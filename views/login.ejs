@@ -1,0 +1,23 @@
+<% include ./partials/header %>
+<% include ./partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4"></div>
+        <div class="col-lg-4">
+            <h2>Log ind</h2>
+            <form action="/login" method="POST">
+                <div class="input-group center-block">
+                    <input class="form-control" type="text" name="username" placeholder="username">
+                </div>
+                <div class="input-group center-block">
+                    <input class="form-control" type="password" name="password" placeholder="password">
+                </div>
+                <input class="btn btn-success center-block" type="submit" value="Log ind!">
+            </form>
+        </div>
+        <div class="col-lg-4"></div>
+    </div>
+</div>
+
+<% include ./partials/footer %>

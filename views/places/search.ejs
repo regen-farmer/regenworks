@@ -1,0 +1,32 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div>
+                <h1>Steder nær dig</h1>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="display:flex; flex-wrap: wrap;">
+        <% places.forEach(function(places){ %>
+        <div class="col-md-3 col-sm-6">
+            <div class="thumbnail">
+                <img class="img-responsive" src="<%= places.image %>">
+                <div class="caption">
+                    <p class="pull-right">Afstp d: <%= places.distance %>  km</p>
+                    <p class="type"> <%= places.type %> </p>
+                    <h4> <%= places.name %> </h4>
+                    <p>
+                        <a href="/places/<%= places._id %>" class="btn btn-success">Mere Info</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+    </div>
+</div>
+
+
+<% include ../partials/footer %>
