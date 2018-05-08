@@ -12,21 +12,13 @@
                     <hr>
                     <h2>Produkter</h2>
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="well well-sm">
-                                <p>Ugentlig grøntsagspose</p>
+                        <% place.products.forEach(function(product){ %>
+                            <div class="col-md-4">
+                                <div class="well well-sm">
+                                    <p><%= product.name %></p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="well well-sm">
-                                <p>Ugentlig grøntsagspose</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="well well-sm">
-                                <p>Ugentlig grøntsagspose</p>
-                            </div>
-                        </div>
+                        <% }); %>
                     </div>
                     <hr>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>

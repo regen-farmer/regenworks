@@ -9,6 +9,7 @@ var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQU
 
 // REQUIRE MODELS
 var Place = require("./models/place");
+// var seedDB = require("./seeds");
 var User = require("./models/user");
 
 // REQUIRE ROUTE FILES
@@ -21,6 +22,7 @@ app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
+// seedDB(); // USE ONLY FOR SEEDING DATABASE
 
 // PASSPORT CONFIGURATION
 app.use(require("express-session")({

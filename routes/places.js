@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var Place = require("../models/place");
+var Product = require("../models/product");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 
@@ -114,7 +115,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
 
 // PLACES SHOW ROUTE
 router.get("/places/:id", function(req, res){
-    Place.findById(req.params.id, function(err, foundPlace){
+    Place.findById(req.params.id).populate("products").exec(function(err, foundPlace){
         if(err) {
             console.log(err);
         } else {
@@ -125,11 +126,19 @@ router.get("/places/:id", function(req, res){
 
 // PLACES EDIT ROUTE
 router.get("/places/:id/edit", middleware.checkPlaceOwnership, function (req, res) {
+    // Find specific place in database
     Place.findById(req.params.id, function(err, foundPlace){
         if(err) {
             console.log(err);
         } else {
-            res.render("places/edit", {place: foundPlace});
+            // Find all products in database
+            Product.find(function(err, foundProducts){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("places/edit", {place: foundPlace, products: foundProducts});
+                }
+            });
         }
     });
 });
@@ -141,6 +150,8 @@ router.put("/places/:id", middleware.checkPlaceOwnership, function(req, res){
     var image = req.body.place.image;
     var type = req.body.place.type;
     var description = req.body.place.description;
+    // Create array for objects with IDs
+    var products = req.body.productids;
     var owner = {
         id: req.user._id,
         username: req.user.username
@@ -163,7 +174,8 @@ router.put("/places/:id", middleware.checkPlaceOwnership, function(req, res){
             location: location,
             lat: lat,
             lng: lng,
-            owner: owner
+            owner: owner,
+            products: products
         };
         Place.findByIdAndUpdate(req.params.id, newPlace, function (err, updatedPlace) {
             if (err) {
