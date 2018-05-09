@@ -15,7 +15,7 @@ router.get("/users/new", function(req, res){
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    var newUser = new User({username: req.body.user.username});
+    var newUser = new User({username: req.body.user.username, email: req.body.user.email});
     User.register(newUser, req.body.user.password, function(err, user){
         if(err) {
             console.log(err);
@@ -61,5 +61,14 @@ router.get("/logout", function(req, res) {
     // req.flash("success", "Logged you out!");
     res.redirect("/places");
 });
+
+// SHOW FORGOT PASSWORD PAGE
+router.get("/forgot", function(req, res){
+    res.render("forgot");
+});
+
+// POST RESET REQUEST
+
+// ENTER NEW PASSWORD AND POST
 
 module.exports = router;
