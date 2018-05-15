@@ -74,7 +74,14 @@ router.get("/places", function(req, res){
 
 // PLACES NEW ROUTE
 router.get("/places/new", middleware.isLoggedIn, function (req, res){
-    res.render("places/new");
+    // Find all products in database and pass to ejs
+    Product.find(function(err, foundProducts){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("places/new", {products: foundProducts});
+        }
+    });
 });
 
 // PLACES CREATE ROUTE
@@ -87,6 +94,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
     var phone = req.body.place.phone;
     var email = req.body.place.email;
     var website = req.body.place.website;
+    var products = req.body.productids;
     var owner = {
         id: req.user._id,
         username: req.user.username
@@ -102,7 +110,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
         var lng = data[0].longitude;
         var location = data[0].formattedAddress;
         // If image is blank, push in standard image
-        var newPlace = {name: name, image: image, description: description, type: type, location: location, lat: lat, lng: lng, owner: owner, phone: phone, email: email, website: website};
+        var newPlace = {name: name, image: image, description: description, type: type, location: location, lat: lat, lng: lng, products: products, owner: owner, phone: phone, email: email, website: website};
         console.log(newPlace);
         // Create a new campground and save it to the database
         Place.create(newPlace, function(err, newlyCreated){
