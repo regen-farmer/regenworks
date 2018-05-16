@@ -20,8 +20,15 @@ var geocoder = NodeGeocoder(options);
 
 // PLACES SEARCH ROUTE
 router.post("/places/search", function(req, res){
+    // Save location to variable
+    var location = req.body.location;
+    // Check if user typed postal code
+    if(location.length === 4 && !isNaN(location)){
+        // Add correct geolocation syntax for geocoder to find correct coordinates based on danish zip code
+        location = location + ", denmark";
+    };
     // Use geocoder to turn location into coordinates
-    geocoder.geocode(req.body.location, function(err, data){
+    geocoder.geocode(location, function(err, data){
         if(err || !data.length){
             console.log(err);
             console.log(data);
