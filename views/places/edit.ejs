@@ -11,7 +11,7 @@
                     <p>Her kan du tilføje et nyt sted til fællesskabet. </p>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-success">
-                            <input type="radio" name="place[type]" value="Gårdbutik" autocomplete="off"> Gårdbutik
+                            <input type="radio" name="place[type]" value="Gårdbutik" autocomplete="off" required> Gårdbutik
                         </label>
                         <label class="btn btn-success">
                             <input type="radio" name="place[type]" value="Fødevarefællesskab" autocomplete="off"> Fødevarefællesskab
@@ -19,7 +19,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Navn</label>
-                        <input type="text" class="form-control" name="place[name]" value="<%= place.name %>">
+                        <input type="text" class="form-control" name="place[name]" value="<%= place.name %> required">
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Billedelink</label>
@@ -31,7 +31,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Adresse</label>
-                        <input type="text" class="form-control" name="place[location]" value="<%= place.location %>">
+                        <input type="text" class="form-control" name="place[location]" value="<%= place.location %> required">
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Telefonnummer</label>

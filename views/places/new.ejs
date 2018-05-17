@@ -7,11 +7,11 @@
         <div class="col-lg-6">
             <h2>Tilføj sted</h2>
             <div>
-                <form name="newPlaceForm" action="/places" method="POST">
-                    <p>Her kan du tilføje et nyt sted til fællesskabet. </p>
+                <form action="/places" method="POST">
+                    <p>Her kan du tilføje et nyt sted til fællesskabet.</p>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-success">
-                            <input type="radio" name="place[type]" value="Gårdbutik" autocomplete="off"> Gårdbutik
+                            <input type="radio" name="place[type]" value="Gårdbutik" autocomplete="off" required> Gårdbutik
                         </label>
                         <label class="btn btn-success">
                             <input type="radio" name="place[type]" value="Fødevarefællesskab" autocomplete="off"> Fødevarefællesskab
