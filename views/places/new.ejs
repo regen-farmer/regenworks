@@ -7,7 +7,7 @@
         <div class="col-lg-6">
             <h2>Tilføj sted</h2>
             <div>
-                <form action="/places" method="POST">
+                <form name="newPlaceForm" action="/places" method="POST">
                     <p>Her kan du tilføje et nyt sted til fællesskabet. </p>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-success">
@@ -19,7 +19,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Navn</label>
-                        <input type="text" class="form-control" name="place[name]" placeholder="Hvad hedder stedet?">
+                        <input type="text" class="form-control" name="place[name]" placeholder="Hvad hedder stedet?" required>
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Billedelink</label>
@@ -31,7 +31,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Adresse</label>
-                        <input type="text" class="form-control" name="place[location]" placeholder="Giv stedet en addresse">
+                        <input type="text" class="form-control" name="place[location]" placeholder="Giv stedet en addresse" required>
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Telefonnummer</label>
@@ -47,7 +47,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Produkter</label>
-                        <div class="form-group">
+                        <div class="row">
                             <% products.forEach(function(product){ %>
                             <div class="col-lg-4">
                                 <div data-toggle="buttons">
@@ -59,7 +59,7 @@
                             <% }); %>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="btn-group">
                         <button type="submit" class="btn btn-success btn-lg">Tilføj sted</button>
                     </div>
                 </form>

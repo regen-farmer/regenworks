@@ -10,17 +10,19 @@
                     <hr>
                     <p><%= place.description %></p>
                     <hr>
-                    <h2>Produkter</h2>
-                    <div class="row">
-                        <% place.products.forEach(function(product){ %>
-                            <div class="col-md-4">
-                                <div class="well well-sm">
-                                    <p><%= product.name %></p>
+                    <% if (place.products){ %>
+                        <h2>Produkter</h2>
+                        <div class="row">
+                            <% place.products.forEach(function(product){ %>
+                                <div class="col-md-4">
+                                    <div class="well well-sm">
+                                        <p><%= product.name %></p>
+                                    </div>
                                 </div>
-                            </div>
-                        <% }); %>
-                    </div>
-                    <hr>
+                            <% }); %>
+                        </div>
+                        <hr>
+                    <% } %>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>
                     <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Edit</a>
                     <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
