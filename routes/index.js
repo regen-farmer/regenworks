@@ -11,6 +11,16 @@ router.get("/", function(req, res){
     res.render("index");
 });
 
+// ABOUT ROUTE
+router.get("/about", function(req, res){
+    res.render("about");
+});
+
+// SUPPORT ROUTE
+router.get("/support", function(req, res){
+    res.render("support");
+});
+
 // NEW USER ROUTE
 router.get("/users/new", function(req, res){
     res.render("users/new");
