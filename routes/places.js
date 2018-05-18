@@ -145,7 +145,7 @@ router.get("/places/:id", function(req, res){
 // PLACES EDIT ROUTE
 router.get("/places/:id/edit", middleware.checkPlaceOwnership, function (req, res) {
     // Find specific place in database
-    Place.findById(req.params.id, function(err, foundPlace){
+    Place.findById(req.params.id).populate("products").exec(function(err, foundPlace){
         if(err) {
             console.log(err);
         } else {
