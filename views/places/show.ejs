@@ -14,7 +14,7 @@
                         <h2>Produkter</h2>
                         <div class="row">
                             <% place.products.forEach(function(product){ %>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="well well-sm">
                                         <p><%= product.name %></p>
                                     </div>
@@ -24,9 +24,9 @@
                         <hr>
                     <% } %>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>
-                    <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Edit</a>
+                    <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Rediger</a>
                     <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Delete</button>
+                        <button class="btn btn-danger">Slet</button>
                     </form>
                     <% } %>
                 </div>

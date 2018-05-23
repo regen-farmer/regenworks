@@ -64,7 +64,7 @@
                                 <% products.forEach(function(product){ %>
                                     <% place.products.forEach(function(placeProduct){ %>
                                         <% if(product._id.toString() === placeProduct._id.toString()){ %>
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3">
                                                 <div data-toggle="buttons">
                                                     <label class="btn btn-default btn-block active">
                                                         <input type="checkbox" checked="checked" autocomplete="off" name="productids" value="<%= product._id %>"><p><%= product.name %></p>
@@ -72,7 +72,7 @@
                                                 </div>
                                             </div>
                                         <% } else { %>
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3">
                                                 <div data-toggle="buttons">
                                                     <label class="btn btn-default btn-block">
                                                         <input type="checkbox" autocomplete="off" name="productids" value="<%= product._id %>"><p><%= product.name %></p>
@@ -84,7 +84,7 @@
                                 <% }); %>
                             <% } else { %>
                                 <% products.forEach(function(product){ %>
-                                    <div class="col-lg-4">
+                                    <div class="col-lg-3">
                                         <div data-toggle="buttons">
                                             <label class="btn btn-default btn-block">
                                                 <input type="checkbox" autocomplete="off" name="productids" value="<%= product._id %>"><p><%= product.name %></p>
