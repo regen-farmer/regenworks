@@ -1,4 +1,5 @@
 var Place = require("../models/place");
+var User = require("../models/user");
 
 // Define middleware object
 var middlewareObj = {};
@@ -23,6 +24,29 @@ middlewareObj.checkPlaceOwnership = function(req, res, next){
     } else {
         // req.flash("error", "You need to be logged in to do that.");
         res.redirect("back"); // Sends the user back to the previous page they were on.
+    }
+};
+
+// CHECK USER OWNERSHIP MIDDLEWARE
+middlewareObj.checkUserOwnership = function(req, res, next){
+    if(req.isAuthenticated()){
+        User.findById(req.params.id, function(err, foundUser){
+            if(err){
+                // req.flash("error", "Brugeren blev ikke fundet.");
+                res.redirect("back");
+            } else {
+                // Does logged in user match the user profile requested?
+                if(foundUser._id.equals(req.user._id)){
+                    next();
+                } else {
+                    // req.flash("error", "Du har ikke tilladelse til at foretage denne handling.");
+                    res.redirect("back");
+                }
+            }
+        });
+    } else {
+        // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
+        res.redirect("back");
     }
 };
 

@@ -1,0 +1,33 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div>
+                <h1> <%= experience.name %> </h1>
+                <p> <%= experience.type %> </p>
+                <hr>
+                <p><%= experience.description %></p>
+                <% if(currentUser && experience.owner.id.equals(currentUser._id)){ %>
+                    <a class="btn btn-warning" href="/experiences/<%= experience._id %>/edit">Rediger</a>
+                    <form class="delete-form" action="/experiences/<%= experience._id %>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Slet</button>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <p></p>
+            <p><i class="fas fa-map-marker"></i> <%= experience.location %></p>
+            <hr>
+            <p>
+                <%= experience.price %> kr. pr. person
+                <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>">Find billetter/Tilmeld</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+
+<% include ../partials/footer %>

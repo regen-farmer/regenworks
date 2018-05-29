@@ -1,0 +1,47 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+            <h2>Tilføj oplevelse til <%= place.name %></h2>
+            <div>
+                <form action="/places/<%= place._id %>/experiences" method="POST">
+                    <p>Her kan du tilføje en ny oplevelse.</p>
+                    <div class="form-group">
+                        <label for="experience[name]">Navn</label>
+                        <input type="text" class="form-control" name="experience[name]" placeholder="Hvad vil du kalde oplevelsen?" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="experience[description]">Beskrivelse</label>
+                        <input type="text" class="form-control" name="experience[description]" placeholder="Giv oplevelsen en beskrivelse.">
+                    </div>
+                    <div class="form-group">
+                        <label for="experience[location]">Adresse: Som standard sat til samme adresse som <%= place.name %></label>
+                        <input type="text" class="form-control" name="experience[location]" value="<%= place.location %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="experience[start][date]">Tidspunkt</label>
+                        <input type="date" class="form-control" name="experience[start][date]" required>
+                        <input type="time" class="form-control" name="experience[start][time]">
+                    </div>
+                    <div class="form-group">
+                        <label for="experience[price]">Pris: Udfyldes ikke hvis gratis</label>
+                        <input type="text" class="form-control" name="experience[price]" placeholder="Fastsæt en pris for oplevelsen.">
+                    </div>
+                    <div class="form-group">
+                        <label for="experience[action]">Billetter eller tilmelding</label>
+                        <input type="text" class="form-control" name="experience[action]" placeholder="Fortæl folk, hvor de kan få billetter til din begivenhed.">
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-success btn-lg">Opret oplevelse</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-3"></div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

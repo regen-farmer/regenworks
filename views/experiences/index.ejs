@@ -2,11 +2,27 @@
 <% include ../partials/navbar %>
 
 <div class="container">
-    <h1>Find lokale oplevelser</h1>
-    <p>Her vil du senere på sommeren kunne finde oplevelser hvor det nære og fællesskabet er i fokus.</p>
-    <a href="https://www.facebook.com/grownlocaldk" class="btn-link"><i class="fab fa-facebook fa-2x"></i></a>
-    <a href="https://www.instagram.com/grown.local/" class="btn-link"><i class="fab fa-instagram fa-2x"></i></a>
+    <h1>Find lokale arrangementer og oplevelser</h1>
+    <p>Her finder du et overblik over arrangementer med fokus på bæredygtige fællesskaber og oplevelser.
+    </p>
+    <div class="row" style="display:flex; flex-wrap: wrap;">
+        <% experiences.forEach(function(experience){ %>
+        <div class="col-md-3 col-sm-6">
+            <div class="thumbnail">
+                <div class="caption">
+                    <h4> <%= experience.name %> </h4>
+                    <p> <%= experience.start.date %> kl. <%= experience.start.time %> </p>
+                    <p>
+                        <span>
+                            <%= experience.price %> kr. pr. person
+                        </span>
+                        <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+    </div>
 </div>
-
 
 <% include ../partials/footer %>

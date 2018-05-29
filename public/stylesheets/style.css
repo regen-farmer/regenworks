@@ -23,10 +23,6 @@ html {
   height: 100%;
 }
 
-hr {
-
-}
-
 #fronpagehr {
   width: 40%;
   min-width: 250px;
@@ -41,6 +37,14 @@ h1 {
 
 .type {
   color: green;
+}
+
+.delete-form {
+  display: inline;
+}
+
+.action-btn {
+  display: inline;
 }
 
 #content {

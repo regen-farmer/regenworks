@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-8">
-                <div class="caption">
+                <div>
                     <h1><%= place.name %></h1>
                     <p><%= place.type %></p>
                     <hr>
@@ -24,21 +24,38 @@
                         <hr>
                     <% } %>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>
+                    <a class="btn btn-success" href="/places/<%= place._id %>/experiences/new">Opret oplevelse</a>
                     <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Rediger</a>
                     <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
                         <button class="btn btn-danger">Slet</button>
                     </form>
                     <% } %>
+                    <h2>Oplevelser og arrangementer hos <%= place.name %></h2>
+                    <% place.experiences.forEach (function(experience){ %>
+                        <div class="col-md-4 col-sm-6">
+                            <div class="thumbnail">
+                                <div class="caption">
+                                    <h4> <%= experience.name %> </h4>
+                                    <p> <%= experience.start.date %> kl. <%= experience.start.time %></p>
+                                    <p>
+                                        <span>
+                                            <%= experience.price %> kr.
+                                        </span>
+                                        <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
                 </div>
         </div>
         <div class="col-md-4">
             <img class="img-responsive" src="<%= place.image %>">
-            <h2>Adresse</h2>
             <p><i class="fas fa-map-marker"></i> <%= place.location %></p>
-            <h2>Kontakt</h2>
-            <p>Tlf: <%= place.phone %></p>
-            <p>email: <%= place.email %></p>
-            <p>Hjemmeside: <%= place.website %></p>
+            <p><strong>Åbningstider:</strong></p>
+            <p><strong>Telefon:</strong> <%= place.phone %></p>
+            <p><strong>Email:</strong> <%= place.email %></p>
+            <p><strong>Hjemmeside:</strong> <%= place.website %></p>
         </div>
     </div>
 </div>

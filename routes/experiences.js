@@ -1,9 +1,100 @@
 var express = require("express");
 var router = express.Router();
+var Place = require("../models/place");
+var Experience = require("../models/experience");
+var middleware = require("../middleware");
 
-// EXPERIENCESS INDEX ROUTE
+// EXPERIENCES INDEX ROUTE
 router.get("/experiences", function(req, res){
-    res.render("experiences/index");
+    // Get all experiences from DB
+    Experience.find({}, function(err, allExperiences){
+        if(err) {
+            console.log(err);
+        } else {
+            res.render("experiences/index", {experiences: allExperiences});
+        }
+    });
 });
+
+// EXPERIENCES NEW ROUTE
+
+// EXPERIENCES CREATE ROUTE
+
+// EXPERIENCES SHOW ROUTE
+router.get("/experiences/:id", function(req, res){
+    Experience.findById(req.params.id, function(err, foundExperience){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("experiences/show", {experience: foundExperience});
+        }
+    });
+});
+
+// PLACE EXPERIENCES EDIT ROUTE
+
+// PLACE EXPERIENCES UPDATE ROUTE
+
+// PLACE EXPERIENCES DELETE ROUTE
+router.delete("/experiences/:id", function(req, res){ // MAKE EXPERIENCE OWNERSHIP MIDDLEWARE
+    Experience.findByIdAndRemove(req.params.id, function(err){
+        if(err){
+            console.log(err);
+            res.redirect("/places");
+        } else {
+            res.redirect("/places");
+        }
+    });
+});
+
+
+// --------------- NESTED ROUTES ---------------- //
+
+// PLACE EXPERIENCES INDEX ROUTE - NOT NEEDED?
+
+// PLACE EXPERIENCES NEW ROUTE
+router.get("/places/:id/experiences/new", middleware.isLoggedIn, function(req, res){
+    // FIND PLACE ID
+    Place.findById(req.params.id, function(err, foundPlace){
+        if(err) {
+            console.log(err);
+            // res.flash(err
+        } else {
+            res.render("experiences/new", {place: foundPlace});
+        }
+    });
+});
+
+// PLACE EXPERIENCES CREATE ROUTE
+router.post("/places/:id/experiences", middleware.isLoggedIn, function(req, res){
+    // Lookup place using id
+    Place.findById(req.params.id, function(err, foundPlace){
+        if(err) {
+            console.log(err);
+            res.redirect("/places");
+        } else {
+            Experience.create(req.body.experience, function(err, experience){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log(experience);
+                    // Add username and ID to experience.
+                    experience.owner.id = req.user._id;
+                    experience.owner.username = req.user.username;
+                    // Save the experience
+                    experience.save();
+                    // Connect new experience to place
+                    foundPlace.experiences.push(experience);
+                    foundPlace.save();
+                    // Redirect to places SHOW page
+                    // req.flash("success", "Successfully added comment");
+                    res.redirect("/places/" + foundPlace._id);
+                }
+            });
+        }
+    });
+});
+
+// --------------- NESTED ROUTES ---------------- //
 
 module.exports = router;

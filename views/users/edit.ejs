@@ -1,0 +1,25 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4"></div>
+        <div class="col-lg-4">
+            <h2>Rediger profil</h2>
+            <form action="/users/<%= user._id %>?_method=PUT" method="POST">
+                <div class="input-group center-block">
+                    <label for="user[username]">Brugernavn</label>
+                    <input class="form-control" type="text" name="user[username]" value="<%= user.username %>">
+                </div>
+                <div class="input-group center-block">
+                    <label for="user[email]">Email</label>
+                    <input class="form-control" type="email" name="user[email]" value="<%= user.email %>">
+                </div>
+                <button type="submit" class="btn btn-success center-block">Opdater profil</button>
+            </form>
+        </div>
+        <div class="col-lg-4"></div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

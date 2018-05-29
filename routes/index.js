@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
+var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
 var crypto = require("crypto");
@@ -28,9 +29,10 @@ router.get("/users/new", function(req, res){
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    var newUser = new User({username: req.body.user.username, email: req.body.user.email});
-    User.register(newUser, req.body.user.password, function(err, user){
+    var newUser = new User({username: req.body.username, email: req.body.email});
+    User.register(newUser, req.body.password, function(err, user){
         if(err) {
+            // req.flash("error", err.message);
             console.log(err);
             return res.render("users/new");
         }
@@ -53,8 +55,22 @@ router.get("/users/:id", function(req, res){
 });
 
 // USER EDIT ROUTE
+router.get("/users/:id/edit", middleware.checkUserOwnership, function(req, res){
+    User.findById(req.params.id, function(err, foundUser){
+        if(err) {
+            console.log(err);
+        } else {
+            res.render("users/edit", {user: foundUser});
+        }
+    });
+});
 
 // USER UPDATE ROUTE
+// router.put("/users/:id/edit", middleware.checkUserOwnership, function(req, res){
+
+// });
+
+// USER DELETE ROUTE
 
 // SHOW LOGIN FORM
 router.get("/login", function(req, res) {

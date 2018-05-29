@@ -20,20 +20,47 @@ var placesSchema = new mongoose.Schema({
         },
         username: String
     },
+    experiences: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Experience"
+        }
+    ],
     products: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Product"
         }
      ],
-    hours: {
-        monday: String,
-        tuesday: String,
-        wednesday: String,
-        thursday: String,
-        friday: String,
-        saturday: String,
-        sunday: String
+    openhours: {
+        mon: {
+            open: Number,
+            close: Number
+        },
+        tue: {
+            open: Number,
+            close: Number
+        },
+        wed: {
+            open: Number,
+            close: Number
+        },
+        thu: {
+            open: Number,
+            close: Number
+        },
+        fri: {
+            open: Number,
+            close: Number
+        },
+        sat: {
+            open: Number,
+            close: Number
+        },
+        sun: {
+            open: Number,
+            close: Number
+        }
     }
 });
 
