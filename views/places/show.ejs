@@ -6,7 +6,7 @@
         <div class="col-md-8">
                 <div>
                     <h1><%= place.name %></h1>
-                    <% if(!(place.action === undefined)){ %>
+                    <% if(!(place.action === undefined || place.action === "")){ %>
                         <a href="<%= place.action %>" class="btn btn-success pull-right" target="_blank">Bliv Medlem</a>
                     <% } %>
                     <p><%= place.type %></p>
