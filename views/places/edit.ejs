@@ -58,6 +58,10 @@
                         <input type="text" class="form-control" name="place[website]" value="<%= place.website %>">
                     </div>
                     <div class="form-group">
+                        <label for="place[action]">Link til knap</label>
+                        <input type="text" class="form-control" name="place[action]" value="<%= place.action %>">
+                    </div>
+                    <div class="form-group">
                         <label for="formGroupExampleInput">Produkter</label>
                         <div class="form-group">
                             <% if(place.products){ %>

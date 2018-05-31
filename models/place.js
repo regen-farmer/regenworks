@@ -34,34 +34,42 @@ var placesSchema = new mongoose.Schema({
      ],
     openhours: {
         mon: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         tue: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         wed: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         thu: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         fri: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         sat: {
+            active: Boolean,
             open: Number,
             close: Number
         },
         sun: {
+            active: Boolean,
             open: Number,
             close: Number
         }
-    }
+    },
+    action: String
 });
 
 module.exports = mongoose.model("Place", placesSchema);
