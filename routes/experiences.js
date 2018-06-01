@@ -17,8 +17,30 @@ router.get("/experiences", function(req, res){
 });
 
 // EXPERIENCES NEW ROUTE
+router.get("/experiences/new", middleware.isLoggedIn, function(req, res){
+    var place = undefined;
+    res.render("experiences/new", {place: place});
+});
 
 // EXPERIENCES CREATE ROUTE
+router.post("/experiences", middleware.isLoggedIn, function(req, res){
+    // Create a new experience
+    Experience.create(req.body.experience, function(err, experience){
+        if(err){
+            console.log(err);
+        } else {
+            console.log(experience);
+            // Add username and ID to experience.
+            experience.owner.id = req.user._id;
+            experience.owner.username = req.user.username;
+            // Save the experience
+            experience.save();
+            // Redirect to experience INDEX page
+            // req.flash("success", "Successfully added experience");
+            res.redirect("/experiences");
+        }
+    });
+});
 
 // EXPERIENCES SHOW ROUTE
 router.get("/experiences/:id", function(req, res){

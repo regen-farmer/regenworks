@@ -15,10 +15,12 @@
                 <hr>
                 <p><%= experience.start.date %> kl. <%= experience.start.time %></p>
                 <hr>
-                <p>
-                    <%= experience.price %> kr. pr. person
-                    <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>">Find billetter/Tilmeld</a>
-                </p>
+                <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>" target="_blank">Find billetter/Tilmeld</a>
+                <% if(!(experience.price === "")){ %>
+                    <p> <%= experience.price %> kr. pr. person </p>
+                <% } else { %>
+                    <p> gratis </p>
+                <% } %>
                 <hr>
                 <% if(currentUser && experience.owner.id.equals(currentUser._id)){ %>
                     <a class="btn btn-warning" href="/experiences/<%= experience._id %>/edit">Rediger</a>

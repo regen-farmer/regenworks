@@ -12,12 +12,12 @@
                 <div class="caption">
                     <h4> <%= experience.name %> </h4>
                     <p> <%= experience.start.date %> kl. <%= experience.start.time %> </p>
-                    <p>
-                        <span>
-                            <%= experience.price %> kr. pr. person
-                        </span>
-                        <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
-                    </p>
+                    <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                    <% if(!(experience.price === "")){ %>
+                        <p> <%= experience.price %> kr. pr. person </p>
+                    <% } else { %>
+                        <p> gratis </p>
+                    <% } %>
                 </div>
             </div>
         </div>
