@@ -57,7 +57,51 @@
         <div class="col-md-4">
             <img class="img-responsive thumbnail" src="<%= place.image %>">
             <p><i class="fas fa-map-marker"></i> <%= place.location %></p>
-            <p><strong>Åbningstider:</strong></p>
+            <p><strong>Åbningstider: </strong></p>
+            <div class="well">
+                <p>Mandag:
+                    <% if(place.hours.mon.open === "" || place.hours.mon.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.mon.open %> - <%= place.hours.mon.close %></p>
+                    <% } %>
+                <p>Tirsdag:
+                    <% if(place.hours.tue.open === "" || place.hours.tue.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.tue.open %> - <%= place.hours.tue.close %></p>
+                    <% } %>
+                <p>Onsdag:
+                    <% if(place.hours.wed.open === "" || place.hours.wed.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.wed.open %> - <%= place.hours.wed.close %></p>
+                    <% } %>
+                <p>Torsdag:
+                    <% if(place.hours.thu.open === "" || place.hours.thu.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.thu.open %> - <%= place.hours.thu.close %></p>
+                    <% } %>
+                <p>Fredag:
+                    <% if(place.hours.fri.open === "" || place.hours.fri.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.fri.open %> - <%= place.hours.fri.close %></p>
+                    <% } %>
+                <p>Lørdag:
+                    <% if(place.hours.sat.open === "" || place.hours.sat.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.sat.open %> - <%= place.hours.sat.close %></p>
+                    <% } %>
+                <p>Søndag:
+                    <% if(place.hours.sun.open === "" || place.hours.sun.close === ""){ %>
+                        lukket
+                    <% } else { %>
+                        <%= place.hours.sun.open %> - <%= place.hours.sun.close %></p>
+                    <% } %>
+            </div>
             <p><strong>Telefon:</strong> <%= place.phone %></p>
             <p><strong>Email:</strong> <%= place.email %></p>
             <p><strong>Hjemmeside:</strong> <%= place.website %></p>

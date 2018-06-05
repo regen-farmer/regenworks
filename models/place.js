@@ -32,41 +32,34 @@ var placesSchema = new mongoose.Schema({
             ref: "Product"
         }
      ],
-    openhours: {
+    hours: {
         mon: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         tue: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         wed: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         thu: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         fri: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         sat: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         },
         sun: {
-            active: Boolean,
-            open: Number,
-            close: Number
+            open: String,
+            close: String
         }
     },
     action: String

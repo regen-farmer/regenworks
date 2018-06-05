@@ -103,6 +103,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
     var website = req.body.place.website;
     var action = req.body.place.action;
     var products = req.body.productids;
+    var hours = req.body.place.hours;
     var owner = {
         id: req.user._id,
         username: req.user.username
@@ -118,7 +119,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
         var lng = data[0].longitude;
         var location = data[0].formattedAddress;
         // If image is blank, push in standard image
-        var newPlace = {name: name, image: image, description: description, type: type, location: location, lat: lat, lng: lng, products: products, owner: owner, phone: phone, email: email, website: website, action: action};
+        var newPlace = {name: name, image: image, description: description, type: type, location: location, lat: lat, lng: lng, products: products, owner: owner, phone: phone, email: email, website: website, action: action, hours: hours};
         console.log(newPlace);
         // Create a new campground and save it to the database
         Place.create(newPlace, function(err, newlyCreated){
@@ -173,6 +174,7 @@ router.put("/places/:id", middleware.checkPlaceOwnership, function(req, res){
     var email = req.body.place.email;
     var website = req.body.place.website;
     var action = req.body.place.action;
+    var hours = req.body.place.hours;
     // Create array for objects with IDs
     var products = req.body.productids;
     var owner = {
@@ -202,7 +204,8 @@ router.put("/places/:id", middleware.checkPlaceOwnership, function(req, res){
             phone: phone,
             email: email,
             website: website,
-            action: action
+            action: action,
+            hours: hours
         };
         Place.findByIdAndUpdate(req.params.id, newPlace, function (err, updatedPlace) {
             if (err) {
