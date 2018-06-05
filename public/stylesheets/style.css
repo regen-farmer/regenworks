@@ -17,6 +17,7 @@ h2 {
   color: white;
   background-position: center;
   height: 100vh;
+  min-height: 300px;
 }
 
 html {
