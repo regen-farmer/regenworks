@@ -61,7 +61,7 @@ router.post("/places/search", function(req, res){
                     if(a1== b1) return 0;
                     return a1> b1? 1: -1;
                 });
-                res.render("places/search", {places: tempDataArr});
+                res.render("places/search", {places: tempDataArr, searchterm: req.body.location});
             }
         });
     });
