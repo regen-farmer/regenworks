@@ -54,8 +54,28 @@ router.get("/experiences/:id", function(req, res){
 });
 
 // PLACE EXPERIENCES EDIT ROUTE
+router.get("/experiences/:id/edit", function(req, res){ // MAKE EXPERIENCE OWNERSHIP MIDDLEWARE
+    // Find specific experience in database
+    Experience.findById(req.params.id, function(err, foundExperience){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("experiences/edit", {experience: foundExperience});
+        }
+    });
+});
 
 // PLACE EXPERIENCES UPDATE ROUTE
+router.put("/experiences/:id", function(req, res){
+    Experience.findByIdAndUpdate(req.params.id, req.body.experience, function(err, updatedExperience){
+        if(err) {
+            console.log(err);
+        } else {
+            console.log(updatedExperience);
+            res.redirect("/experiences/" + req.params.id);
+        }
+    });
+});
 
 // PLACE EXPERIENCES DELETE ROUTE
 router.delete("/experiences/:id", function(req, res){ // MAKE EXPERIENCE OWNERSHIP MIDDLEWARE
