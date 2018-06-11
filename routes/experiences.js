@@ -16,7 +16,7 @@ router.get("/experiences", function(req, res){
             ];
             allExperiences.forEach(function(experience){
                 var dateParts = experience.start.date.split("-");
-                var monthNumber = parseInt(dateParts[1], 10);
+                var monthNumber = parseInt(dateParts[1], 10) - 1;
                 experience.month = monthNames[monthNumber];
                 experience.day = parseInt(dateParts[2], 10);
             });
@@ -61,7 +61,7 @@ router.get("/experiences/:id", function(req, res){
             const monthNames = ["Januar", "Februar", "Marts", "April", "Maj", "Juni",
                 "Juli", "August", "September", "Oktober", "November", "December"
             ];
-            var monthNumber = parseInt(dateParts[1], 10);
+            var monthNumber = parseInt(dateParts[1], 10) - 1;
             var month = monthNames[monthNumber];
             var day = parseInt(dateParts[2], 10);
             res.render("experiences/show", {experience: foundExperience, month: month, day: day});
