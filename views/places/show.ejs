@@ -57,6 +57,8 @@
         <div class="col-md-4">
             <img class="img-responsive thumbnail" src="<%= place.image %>">
             <p><i class="fas fa-map-marker"></i> <%= place.location %></p>
+            <a class="btn btn-success" href="https://www.google.com/maps/dir/?api=1&destination=<%= place.lat %>+<%= place.lng %>" target="_blank">Find Rute</a>
+            <hr>
             <p><strong>Åbningstider: </strong></p>
             <div class="well">
                 <p>Mandag:

@@ -11,6 +11,15 @@ router.get("/experiences", function(req, res){
         if(err) {
             console.log(err);
         } else {
+            const monthNames = ["Januar", "Februar", "Marts", "April", "Maj", "Juni",
+                "Juli", "August", "September", "Oktober", "November", "December"
+            ];
+            allExperiences.forEach(function(experience){
+                var dateParts = experience.start.date.split("-");
+                var monthNumber = parseInt(dateParts[1], 10);
+                experience.month = monthNames[monthNumber];
+                experience.day = parseInt(dateParts[2], 10);
+            });
             res.render("experiences/index", {experiences: allExperiences});
         }
     });
@@ -48,7 +57,14 @@ router.get("/experiences/:id", function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.render("experiences/show", {experience: foundExperience});
+            var dateParts = foundExperience.start.date.split("-");
+            const monthNames = ["Januar", "Februar", "Marts", "April", "Maj", "Juni",
+                "Juli", "August", "September", "Oktober", "November", "December"
+            ];
+            var monthNumber = parseInt(dateParts[1], 10);
+            var month = monthNames[monthNumber];
+            var day = parseInt(dateParts[2], 10);
+            res.render("experiences/show", {experience: foundExperience, month: month, day: day});
         }
     });
 });

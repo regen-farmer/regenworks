@@ -11,7 +11,7 @@
             <div class="thumbnail">
                 <div class="caption">
                     <h4> <%= experience.name %> </h4>
-                    <p> <%= experience.start.date %> kl. <%= experience.start.time %> </p>
+                    <p> <%= experience.day %> <%= experience.month %> kl. <%= experience.start.time %> </p>
                     <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
                     <% if(!(experience.price === "")){ %>
                         <p> <%= experience.price %> kr. pr. person </p>

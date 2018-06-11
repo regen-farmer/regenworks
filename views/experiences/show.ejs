@@ -13,9 +13,13 @@
                 <hr>
                 <p><i class="fas fa-map-marker"></i> <%= experience.location %></p>
                 <hr>
-                <p><%= experience.start.date %> kl. <%= experience.start.time %></p>
+                <p><%= day %> <%= month %> kl. <%= experience.start.time %></p>
                 <hr>
-                <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>" target="_blank">Find billetter/Tilmeld</a>
+                <% if(!(experience.action === "")){ %>
+                    <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>" target="_blank">Find billetter/Tilmeld</a>
+                <% } else { %>
+                    <p>Tilmedling ikke nødvendig</p>
+                <% } %>
                 <% if(!(experience.price === "")){ %>
                     <p> <%= experience.price %> kr. pr. person </p>
                 <% } else { %>
