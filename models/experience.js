@@ -5,6 +5,8 @@ var experienceSchema = new mongoose.Schema({
     name: String,
     description: String,
     location: String,
+    lat: Number,
+    lng: Number,
     start: {
         date: String,
         time: String

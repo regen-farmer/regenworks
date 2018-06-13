@@ -4,6 +4,21 @@ var Place = require("../models/place");
 var Experience = require("../models/experience");
 var middleware = require("../middleware");
 
+// NODE GEOCODER CODE
+var NodeGeocoder = require("node-geocoder");
+
+var options = {
+    provier: "google",
+    httpAdapter: "https",
+    apiKey: process.env.GEOCODER_API_KEY,
+    formatter: null
+};
+
+var geocoder = NodeGeocoder(options);
+
+// EXPERIENCES SEARCH ROUTE
+
+
 // EXPERIENCES INDEX ROUTE
 router.get("/experiences", function(req, res){
     // Get all experiences from DB
@@ -39,14 +54,24 @@ router.post("/experiences", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             console.log(experience);
-            // Add username and ID to experience.
-            experience.owner.id = req.user._id;
-            experience.owner.username = req.user.username;
-            // Save the experience
-            experience.save();
-            // Redirect to experience INDEX page
-            // req.flash("success", "Successfully added experience");
-            res.redirect("/experiences");
+            // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+            geocoder.geocode(req.body.experience.location, function(err, data) {
+                if (err || !data.length) {
+                    console.log(err);
+                    return res.redirect("back");
+                }
+                experience.lat = data[0].latitude;
+                experience.lng = data[0].longitude;
+                experience.location = data[0].formattedAddress;
+                // Add username and ID to experience
+                experience.owner.id = req.user._id;
+                experience.owner.username = req.user.username;
+                // Save the experience
+                experience.save();
+                // Redirect to experience INDEX page
+                // req.flash("success", "Successfully added experience");
+                res.redirect("/experiences");
+            });
         }
     });
 });
@@ -87,8 +112,21 @@ router.put("/experiences/:id", function(req, res){
         if(err) {
             console.log(err);
         } else {
-            console.log(updatedExperience);
-            res.redirect("/experiences/" + req.params.id);
+            // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+            geocoder.geocode(updatedExperience.location, function(err, data) {
+                if (err || !data.length) {
+                    console.log(err);
+                    return res.redirect("back");
+                } else {
+                    updatedExperience.lat = data[0].latitude;
+                    updatedExperience.lng = data[0].longitude;
+                    updatedExperience.location = data[0].formattedAddress;
+                    // Save the updatedExperience
+                    updatedExperience.save();
+                    console.log(updatedExperience);
+                    res.redirect("/experiences/" + req.params.id);
+                }
+            });
         }
     });
 });
@@ -107,8 +145,6 @@ router.delete("/experiences/:id", function(req, res){ // MAKE EXPERIENCE OWNERSH
 
 
 // --------------- NESTED ROUTES ---------------- //
-
-// PLACE EXPERIENCES INDEX ROUTE - NOT NEEDED?
 
 // PLACE EXPERIENCES NEW ROUTE
 router.get("/places/:id/experiences/new", middleware.isLoggedIn, function(req, res){
@@ -131,22 +167,32 @@ router.post("/places/:id/experiences", middleware.isLoggedIn, function(req, res)
             console.log(err);
             res.redirect("/places");
         } else {
-            Experience.create(req.body.experience, function(err, experience){
-                if(err){
+            Experience.create(req.body.experience, function (err, experience) {
+                if (err) {
                     console.log(err);
                 } else {
                     console.log(experience);
-                    // Add username and ID to experience.
-                    experience.owner.id = req.user._id;
-                    experience.owner.username = req.user.username;
-                    // Save the experience
-                    experience.save();
-                    // Connect new experience to place
-                    foundPlace.experiences.push(experience);
-                    foundPlace.save();
-                    // Redirect to places SHOW page
-                    // req.flash("success", "Successfully added comment");
-                    res.redirect("/places/" + foundPlace._id);
+                    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+                    geocoder.geocode(req.body.experience.location, function (err, data) {
+                        if (err || !data.length) {
+                            console.log(err);
+                            return res.redirect("back");
+                        }
+                        experience.lat = data[0].latitude;
+                        experience.lng = data[0].longitude;
+                        experience.location = data[0].formattedAddress;
+                        // Add username and ID to experience.
+                        experience.owner.id = req.user._id;
+                        experience.owner.username = req.user.username;
+                        // Save the experience
+                        experience.save();
+                        // Connect new experience to place
+                        foundPlace.experiences.push(experience);
+                        foundPlace.save();
+                        // Redirect to places SHOW page
+                        // req.flash("success", "Successfully added comment");
+                        res.redirect("/places/" + foundPlace._id);
+                    });
                 }
             });
         }

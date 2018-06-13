@@ -11,6 +11,7 @@
                 <hr>
                 <p><%= experience.description %></p>
                 <hr>
+                <a class="btn btn-success pull-right" href="https://www.google.com/maps/dir/?api=1&destination=<%= experience.lat %>+<%= experience.lng %>" target="_blank">Find Rute</a>
                 <p><i class="fas fa-map-marker"></i> <%= experience.location %></p>
                 <hr>
                 <p><%= day %> <%= month %> kl. <%= experience.start.time %></p>
@@ -18,7 +19,7 @@
                 <% if(!(experience.action === "")){ %>
                     <a class="btn btn-primary action-btn pull-right" href="<%= experience.action %>" target="_blank">Find billetter/Tilmeld</a>
                 <% } else { %>
-                    <p>Tilmedling ikke nødvendig</p>
+                    <p class="pull-right">Tilmelding ikke nødvendig</p>
                 <% } %>
                 <% if(!(experience.price === "")){ %>
                     <p> <%= experience.price %> kr. pr. person </p>
