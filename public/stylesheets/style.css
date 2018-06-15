@@ -16,7 +16,25 @@ h2 {
   background-size: cover;
   color: white;
   background-position: center;
-  height: 100vh;
+  height: 80vh;
+  min-height: 450px;
+}
+
+#fronpage2 {
+  background: url(https://images.unsplash.com/photo-1475260151973-4b51c9c9af2d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=3fefd34315a2c77642b37017dd6fcd74&auto=format&fit=crop&w=1052&q=80);
+  background-size: cover;
+  color: white;
+  background-position: center;
+  height: 80vh;
+  min-height: 450px;
+}
+
+#fronpage3 {
+  background: url(https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a2774121a939de0d503ec2d6d9836969&auto=format&fit=crop&w=1050&q=80);
+  background-size: cover;
+  color: white;
+  background-position: center;
+  height: 80vh;
   min-height: 450px;
 }
 
@@ -50,7 +68,7 @@ h1 {
 
 #content {
   text-align: center;
-  padding-top: 10%;
+  padding-top: 15%;
   text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
   0px 8px 13px rgba(0,0,0,0.1),
   0px 18px 23px rgba(0,0,0,0.1);
@@ -64,6 +82,7 @@ h1 {
 
 .thumbnail {
   padding: 0;
+  min-width: 250px;
 }
 
 #frontpagesearch {
