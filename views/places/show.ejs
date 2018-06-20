@@ -28,6 +28,7 @@
                     <% } %>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>
                     <a class="btn btn-success" href="/places/<%= place._id %>/experiences/new">Opret oplevelse</a>
+                    <a class="btn btn-success" href="/places/<%= place._id %>/services/new">Opret ydelse</a>
                     <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Rediger</a>
                     <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
                         <button class="btn btn-danger">Slet</button>
