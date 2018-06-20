@@ -70,7 +70,16 @@ router.get("/services/:id", function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.render("services/show", {service: foundService});
+            const monthNames = ["Januar", "Februar", "Marts", "April", "Maj", "Juni",
+                "Juli", "August", "September", "Oktober", "November", "December"
+            ];
+            var datePartsStart = foundService.period.start.split("-");
+            var monthNumberStart = parseInt(datePartsStart[1], 10) - 1;
+            var monthStart = monthNames[monthNumberStart];
+            var datePartsEnd = foundService.period.end.split("-");
+            var monthNumberEnd = parseInt(datePartsEnd[1], 10) - 1;
+            var monthEnd = monthNames[monthNumberEnd];
+            res.render("services/show", {service: foundService, monthStart: monthStart, monthEnd: monthEnd});
         }
     });
 });
@@ -168,7 +177,7 @@ router.post("/places/:id/services", middleware.isLoggedIn, function(req, res){
                         // Save the service
                         service.save();
                         // Connect new service to place
-                        foundPlace.experiences.push(service);
+                        foundPlace.services.push(service);
                         foundPlace.save();
                         // Redirect to places SHOW page
                         // req.flash("success", "Successfully added comment");

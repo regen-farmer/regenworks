@@ -9,6 +9,26 @@
             <div>
                 <form action="/services/<%= service._id %>?_method=PUT" method="POST">
                     <p>Her kan du opdatere din ydelse.</p>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <% if(service.type === "Selvpluk"){ %>
+                                <label class="btn btn-success active">
+                                <input type="radio" name="service[type]" checked="checked" value="Selvpluk" autocomplete="off" required> Selvpluk
+                                </label>
+                            <% } else { %>
+                                <label class="btn btn-success">
+                                <input type="radio" name="service[type]" value="Selvpluk" autocomplete="off" required> Selvpluk
+                                </label>
+                            <% } %>
+                            <% if(service.type === "Ugepose"){ %>
+                                <label class="btn btn-success active">
+                                <input type="radio" name="service[type]" checked="checked" value="Ugepose" autocomplete="off" required> Ugepose
+                                </label>
+                            <% } else { %>
+                                <label class="btn btn-success">
+                                <input type="radio" name="service[type]" value="Ugepose" autocomplete="off" required> Ugepose
+                                </label>
+                            <% } %>
+                        </div>
                         <div class="form-group">
                             <label for="service[name]">Titel</label>
                             <input type="text" class="form-control" name="service[name]" value="<%= service.name %>" required>

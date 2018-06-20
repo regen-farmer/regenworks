@@ -14,24 +14,24 @@
                 <a class="btn btn-success pull-right" href="https://www.google.com/maps/dir/?api=1&destination=<%= service.lat %>+<%= service.lng %>" target="_blank">Find Rute</a>
                 <p><i class="fas fa-map-marker"></i> <%= service.location %></p>
                 <hr>
-                <p><%= service.period.start %></p>
+                <p>Sæson: <%= monthStart %> - <%= monthEnd %></p>
                 <hr>
                 <% if(!(service.action === "")){ %>
-                <a class="btn btn-primary action-btn pull-right" href="<%= service.action %>" target="_blank">Find billetter/Tilmeld</a>
+                    <a class="btn btn-primary action-btn pull-right" href="<%= service.action %>" target="_blank">Find billetter/Tilmeld</a>
                 <% } else { %>
-                <p class="pull-right">Tilmelding ikke nødvendig</p>
+                    <p class="pull-right">Tilmelding ikke nødvendig</p>
                 <% } %>
                 <% if(!(service.price === "")){ %>
-                <p> <%= service.price %> kr. pr. person </p>
+                    <p> <%= service.price %> kr.</p>
                 <% } else { %>
-                <p> gratis </p>
+                    <p> gratis </p>
                 <% } %>
                 <hr>
                 <% if(currentUser && service.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-warning" href="/services/<%= service._id %>/edit">Rediger</a>
-                <form class="delete-form" action="/services/<%= service._id %>?_method=DELETE" method="POST">
-                    <button class="btn btn-danger">Slet</button>
-                </form>
+                    <a class="btn btn-warning" href="/services/<%= service._id %>/edit">Rediger</a>
+                    <form class="delete-form" action="/services/<%= service._id %>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Slet</button>
+                    </form>
                 <% } %>
             </div>
         </div>
