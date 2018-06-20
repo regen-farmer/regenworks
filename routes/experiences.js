@@ -162,7 +162,7 @@ router.get("/experiences/:id", function(req, res){
     });
 });
 
-// PLACE EXPERIENCES EDIT ROUTE
+// EXPERIENCES EDIT ROUTE
 router.get("/experiences/:id/edit", function(req, res){ // MAKE EXPERIENCE OWNERSHIP MIDDLEWARE
     // Find specific experience in database
     Experience.findById(req.params.id, function(err, foundExperience){
@@ -174,7 +174,7 @@ router.get("/experiences/:id/edit", function(req, res){ // MAKE EXPERIENCE OWNER
     });
 });
 
-// PLACE EXPERIENCES UPDATE ROUTE
+// EXPERIENCES UPDATE ROUTE
 router.put("/experiences/:id", function(req, res){
     Experience.findByIdAndUpdate(req.params.id, req.body.experience, function(err, updatedExperience){
         if(err) {

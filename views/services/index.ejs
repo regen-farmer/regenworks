@@ -1,0 +1,25 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>Find lokale ydelser</h1>
+    <div class="row" style="display:flex; flex-wrap: wrap;">
+        <% services.forEach(function(service){ %>
+        <div class="col-md-3 col-sm-6">
+            <div class="thumbnail">
+                <div class="caption">
+                    <h4> <%= service.name %> </h4>
+                    <a href="/services/<%= service._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                    <% if(!(service.price === "")){ %>
+                    <p> <%= service.price %> kr. pr. person </p>
+                    <% } else { %>
+                    <p> gratis </p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <% }); %>
+    </div>
+</div>
+
+<% include ../partials/footer %>

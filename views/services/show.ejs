@@ -1,0 +1,43 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <div>
+                <h1> <%= service.name %> </h1>
+                <p> <%= service.type %> </p>
+                <hr>
+                <p><%= service.description %></p>
+                <hr>
+                <a class="btn btn-success pull-right" href="https://www.google.com/maps/dir/?api=1&destination=<%= service.lat %>+<%= service.lng %>" target="_blank">Find Rute</a>
+                <p><i class="fas fa-map-marker"></i> <%= service.location %></p>
+                <hr>
+                <p><%= service.period.start %></p>
+                <hr>
+                <% if(!(service.action === "")){ %>
+                <a class="btn btn-primary action-btn pull-right" href="<%= service.action %>" target="_blank">Find billetter/Tilmeld</a>
+                <% } else { %>
+                <p class="pull-right">Tilmelding ikke nødvendig</p>
+                <% } %>
+                <% if(!(service.price === "")){ %>
+                <p> <%= service.price %> kr. pr. person </p>
+                <% } else { %>
+                <p> gratis </p>
+                <% } %>
+                <hr>
+                <% if(currentUser && service.owner.id.equals(currentUser._id)){ %>
+                <a class="btn btn-warning" href="/services/<%= service._id %>/edit">Rediger</a>
+                <form class="delete-form" action="/services/<%= service._id %>?_method=DELETE" method="POST">
+                    <button class="btn btn-danger">Slet</button>
+                </form>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
+
+
+<% include ../partials/footer %>

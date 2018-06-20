@@ -1,0 +1,48 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+            <h2>Rediger ydelse "<%= service.name %>"</h2>
+            <div>
+                <form action="/services/<%= service._id %>?_method=PUT" method="POST">
+                    <p>Her kan du opdatere din ydelse.</p>
+                        <div class="form-group">
+                            <label for="service[name]">Titel</label>
+                            <input type="text" class="form-control" name="service[name]" value="<%= service.name %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="service[description]">Beskrivelse</label>
+                            <input type="text" class="form-control" name="service[description]" value="<%= service.name %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="service[location]">Adresse</label>
+                            <input type="text" class="form-control" name="service[location]" value="<%= service.location %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="service[period][start]">Sæson start</label>
+                            <input type="date" class="form-control" name="service[period][start]" value="<%= service.period.start %>" required>
+                            <label for="service[period][end]">Sæson slut</label>
+                            <input type="date" class="form-control" name="service[period][end]" value="<%= service.period.end %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="service[price]">Pris: Udfyldes ikke hvis gratis</label>
+                            <input type="text" class="form-control" name="service[price]" value="<%= service.price %>">
+                        </div>
+                        <div class="form-group">
+                            <label for="service[action]">Billetter eller tilmelding</label>
+                            <input type="text" class="form-control" name="service[action]" value="<%= service.action %>">
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-success btn-lg">Opdater ydelsen</button>
+                        </div>
+                    </form>
+                </div>
+        </div>
+        <div class="col-lg-3"></div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

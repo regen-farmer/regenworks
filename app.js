@@ -16,6 +16,7 @@ var User = require("./models/user");
 var placeRoutes = require("./routes/places");
 var indexRoutes = require("./routes/index");
 var experienceRoutes = require("./routes/experiences");
+var serviceRoutes = require("./routes/services");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -49,6 +50,7 @@ app.use(function(req, res, next){
 app.use(indexRoutes);
 app.use("", placeRoutes); // THE "" CAN BE CHANGED TO "/places FOR SHORTER FILES
 app.use("", experienceRoutes);
+app.use("", serviceRoutes);
 
 // SETUP THE EXPRESS LISTENER ON LOCAL HOST
 app.listen(process.env.PORT, process.env.IP, function(){

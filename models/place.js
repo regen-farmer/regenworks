@@ -26,6 +26,12 @@ var placesSchema = new mongoose.Schema({
             ref: "Experience"
         }
     ],
+    services: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Service"
+        }
+    ],
     products: [
         {
             type: mongoose.Schema.Types.ObjectId,
