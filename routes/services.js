@@ -174,6 +174,9 @@ router.post("/places/:id/services", middleware.isLoggedIn, function(req, res){
                         // Add username and ID to service.
                         service.owner.id = req.user._id;
                         service.owner.username = req.user.username;
+                        // Add host name and ID to service.
+                        service.host.id = foundPlace.id;
+                        service.host.name = foundPlace.name;
                         // Save the service
                         service.save();
                         // Connect new service to place

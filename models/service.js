@@ -18,6 +18,13 @@ var serviceSchema = new mongoose.Schema({
         },
         username: String
     },
+    host: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Place"
+        },
+        name: String
+    },
     type: String,
     price: String,
     action: String
