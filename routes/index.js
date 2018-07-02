@@ -18,6 +18,11 @@ router.get("/about", function(req, res){
     res.render("about");
 });
 
+// PRODUCERS ROUTE
+router.get("/producers", function(req, res){
+    res.render("producers");
+});
+
 // SUPPORT ROUTE
 router.get("/support", function(req, res){
     res.render("support");

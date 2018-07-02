@@ -4,6 +4,15 @@
     <h1>Find lokale fødevarer</h1>
     <p>Her finder du et overblik over økologiske fødevarefællesskaber, gårdbutikker, markeder m.m.
     </p>
+    <form action="/places/search" method="POST">
+        <div class="input-group">
+            <input class="form-control" type="text" name="location" placeholder="Skriv adresse, by eller postnummer" required>
+            <span class="input-group-btn">
+                <button type="submit" class="btn btn-success"><i class="fas fa-search"></i> Søg!</button>
+            </span>
+        </div>
+    </form>
+    <h2>Oversigt</h2>
     <div class="row" style="display:flex; flex-wrap: wrap;">
         <% places.forEach(function(places){ %>
             <div class="col-md-3 col-sm-6">
