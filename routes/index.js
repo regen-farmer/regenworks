@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
+var Place = require("../models/place");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
@@ -44,13 +45,20 @@ router.post("/users", function(req, res){
 });
 
 // SHOW USER ROUTE
-router.get("/users/:id",  middleware.checkUserOwnership, function(req, res){
+router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
     User.findById(req.params.id, function(err, foundUser){
         if(err) {
             console.log(err);
         } else {
             // find places based on users id
-            res.render("users/show", {user: foundUser});
+            Place.find({owner: {id: foundUser._id}}, function(err, foundPlaces){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log(foundPlaces);
+                    res.render("users/show", {user: foundUser, places: foundPlaces});
+                }
+            });
         }
     });
 });
