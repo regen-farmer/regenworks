@@ -106,8 +106,8 @@
                     <% } %>
             </div>
             <p><strong>Telefon:</strong> <%= place.phone %></p>
-            <p><strong>Email:</strong> <%= place.email %></p>
-            <p><strong>Hjemmeside:</strong> <%= place.website %></p>
+            <p><strong>Email:</strong> <a href="mailto:<%= place.email %>"><%= place.email %></a></p>
+            <a class="btn btn-primary" href="<%= place.website %>">Hjemmeside</a>
         </div>
     </div>
 </div>
