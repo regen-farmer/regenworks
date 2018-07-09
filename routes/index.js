@@ -56,7 +56,7 @@ router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
             console.log(err);
         } else {
             // find places based on users id
-            Place.find({owner: {id: foundUser._id}}, function(err, foundPlaces){
+            Place.find({owner: {username: foundUser.username}}, function(err, foundPlaces){
                 if(err){
                     console.log(err);
                 } else {
