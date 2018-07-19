@@ -156,7 +156,11 @@ router.get("/places/:id/edit", middleware.checkPlaceOwnership, function (req, re
                 if(err){
                     console.log(err);
                 } else {
-                    res.render("places/edit", {place: foundPlace, products: foundProducts});
+                    const productArray = [];
+                    foundPlace.products.forEach(function(placeProduct){
+                        productArray.push(placeProduct._id.toString());
+                    });
+                    res.render("places/edit", {place: foundPlace, products: foundProducts, placeProducts: productArray});
                 }
             });
         }

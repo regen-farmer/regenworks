@@ -56,7 +56,8 @@ router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
             console.log(err);
         } else {
             // find places based on users id
-            Place.find({owner: {username: foundUser.username}}, function(err, foundPlaces){
+            const userTemp = foundUser.username.toString();
+            Place.find({owner:{$elemMatch:{id:foundUser._id.toString()}}}, function(err, foundPlaces){
                 if(err){
                     console.log(err);
                 } else {
