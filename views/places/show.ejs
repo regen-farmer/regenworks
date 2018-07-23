@@ -6,8 +6,19 @@
         <div class="col-md-8">
                 <div>
                     <h1><%= place.name %></h1>
-                    <% if(!(place.action === undefined || place.action === "")){ %>
-                        <a href="<%= place.action %>" class="btn btn-success pull-right" target="_blank">Bliv Medlem</a>
+                    <% if(currentUser){ %>
+                        <% var fav = false; %>
+                        <% currentUser.favorites.forEach(function(favorite){ %>
+                            <% if(favorite.equals(place._id)){%>
+                                <% fav = true; %>
+                            <% } %>
+                        <% }); %>
+                        <% if(fav == false){%>
+                            <form action="/users/<%= currentUser._id %>/favorites" method="POST">
+                                <input type="hidden" name="placeID" value="<%= place._id %>">
+                                <button class="btn btn-primary pull-right"><i class="fas fa-heart"></i> Føj til favoritter</button>
+                            </form>
+                        <% } %>
                     <% } %>
                     <p><%= place.type %></p>
                     <hr>
@@ -108,6 +119,9 @@
             <p><strong>Telefon:</strong> <%= place.phone %></p>
             <p><strong>Email:</strong> <a href="mailto:<%= place.email %>"><%= place.email %></a></p>
             <a class="btn btn-primary" href="<%= place.website %>" target="_blank">Hjemmeside</a>
+            <% if(!(place.action === undefined || place.action === "")){ %>
+                <a href="<%= place.action %>" class="btn btn-success" target="_blank">Bliv Medlem</a>
+            <% } %>
         </div>
     </div>
 </div>

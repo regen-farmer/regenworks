@@ -51,7 +51,7 @@ router.post("/users", function(req, res){
 
 // SHOW USER ROUTE
 router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id, function(err, foundUser){
+    User.findById(req.params.id).populate("favorites").exec(function(err, foundUser){
         if(err) {
             console.log(err);
         } else {
@@ -224,6 +224,44 @@ router.post("/reset/:token", function(req, res){
             console.log(err);
         } else {
             res.redirect("/places");
+        }
+    });
+});
+
+// USER FAVORITES CREATE //
+router.post("/users/:id/favorites", middleware.checkUserOwnership, function(req, res){
+    User.findById(req.params.id, function(err, foundUser){
+        if(err) {
+            console.log(err);
+        } else {
+            Place.findById(req.body.placeID, function(err, foundPlace) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    foundUser.favorites.push(foundPlace);
+                    foundUser.save();
+                    res.redirect("/places");
+                }
+            });
+        }
+    });
+});
+
+// USER FAVORITE REMOVE //
+router.post("/users/:id/favorites/edit", middleware.checkUserOwnership, function(req, res){
+    User.findById(req.params.id, function(err, foundUser){
+        if(err) {
+            console.log(err);
+        } else {
+            Place.findById(req.body.placeID, function(err, foundPlace) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    foundUser.favorites.remove(foundPlace);
+                    foundUser.save();
+                    res.redirect("/places");
+                }
+            });
         }
     });
 });

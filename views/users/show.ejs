@@ -5,6 +5,26 @@
     <div class="row">
         <div class="col-lg-8">
             <h1><i class="fas fa-heart 5x" style="color:#5cb85c"></i> Dine favoritter</h1>
+            <div class="row" style="display:flex; flex-wrap: wrap;">
+                <% user.favorites.forEach(function(favoritePlace){ %>
+                    <div class="col-md-4 col-sm-6">
+                        <div class="thumbnail">
+                            <img class="img-responsive" src="<%= favoritePlace.image %>">
+                            <div class="caption">
+                                <p class="type"> <%= favoritePlace.type %> </p>
+                                <h4> <%= favoritePlace.name %> </h4>
+                                <p>
+                                    <a href="/places/<%= favoritePlace._id %>" class="btn btn-success">Mere Info</a>
+                                    <form action="/users/<%= currentUser._id %>/favorites/edit" method="POST">
+                                        <input type="hidden" name="placeID" value="<%= favoritePlace._id %>">
+                                        <button class="btn btn-primary"><i class="fas fa-heart"></i> Fjern favorit</button>
+                                    </form>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
             <hr>
             <div class="row" style="display:flex; flex-wrap: wrap;">
                 <% places.forEach(function(places){ %>
