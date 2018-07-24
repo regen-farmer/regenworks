@@ -116,12 +116,12 @@
                         <%= place.hours.sun.open %> - <%= place.hours.sun.close %></p>
                     <% } %>
             </div>
-            <p><strong>Telefon:</strong> <%= place.phone %></p>
-            <p><strong>Email:</strong> <a href="mailto:<%= place.email %>"><%= place.email %></a></p>
-            <a class="btn btn-primary" href="<%= place.website %>" target="_blank">Hjemmeside</a>
             <% if(!(place.action === undefined || place.action === "")){ %>
                 <a href="<%= place.action %>" class="btn btn-success" target="_blank">Bliv Medlem</a>
             <% } %>
+            <p><strong>Telefon:</strong> <%= place.phone %></p>
+            <p><strong>Email:</strong> <a href="mailto:<%= place.email %>"><%= place.email %></a></p>
+            <a class="btn btn-primary" href="<%= place.website %>" target="_blank">Hjemmeside</a>
         </div>
     </div>
 </div>

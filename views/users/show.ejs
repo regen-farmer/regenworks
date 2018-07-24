@@ -17,7 +17,7 @@
                                     <a href="/places/<%= favoritePlace._id %>" class="btn btn-success">Mere Info</a>
                                     <form action="/users/<%= currentUser._id %>/favorites/edit" method="POST">
                                         <input type="hidden" name="placeID" value="<%= favoritePlace._id %>">
-                                        <button class="btn btn-primary"><i class="fas fa-heart"></i> Fjern favorit</button>
+                                        <button class="btn btn-default"><i class="fas fa-heart"></i> Fjern favorit</button>
                                     </form>
                                 </p>
                             </div>
