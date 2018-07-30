@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+var User = require("../models/user");
 var Place = require("../models/place");
 var Product = require("../models/product");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
@@ -121,13 +122,23 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
         // If image is blank, push in standard image
         var newPlace = {name: name, image: image, description: description, type: type, location: location, lat: lat, lng: lng, products: products, owner: owner, phone: phone, email: email, website: website, action: action, hours: hours};
         console.log(newPlace);
-        // Create a new campground and save it to the database
+        // Create a new place and save it to the database
         Place.create(newPlace, function(err, newlyCreated){
             if(err){
                 console.log(err);
             } else {
                 console.log(newlyCreated + "added");
-                res.redirect("places");
+                // Find user based on ID
+                User.findById(newlyCreated.owner.id, function(err, foundUser){
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        // Add the place to the users places for referencing
+                        foundUser.places.push(newlyCreated);
+                        foundUser.save();
+                        res.redirect("places");
+                    }
+                });
             }
         });
     });

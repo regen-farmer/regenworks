@@ -51,20 +51,11 @@ router.post("/users", function(req, res){
 
 // SHOW USER ROUTE
 router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id).populate("favorites").exec(function(err, foundUser){
+    User.findById(req.params.id).populate("favorites").populate("places").exec(function(err, foundUser){
         if(err) {
             console.log(err);
         } else {
-            // find places based on users id
-            const userTemp = foundUser.username.toString();
-            Place.find({owner:{$elemMatch:{id:foundUser._id.toString()}}}, function(err, foundPlaces){
-                if(err){
-                    console.log(err);
-                } else {
-                    console.log(foundPlaces);
-                    res.render("users/show", {user: foundUser, places: foundPlaces});
-                }
-            });
+            res.render("users/show", {user: foundUser});
         }
     });
 });

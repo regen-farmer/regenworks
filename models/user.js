@@ -12,6 +12,12 @@ var UserSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Place"
         }
+    ],
+    places: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Place"
+        }
     ]
 });
 
