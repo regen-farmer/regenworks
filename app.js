@@ -52,6 +52,11 @@ app.use("", placeRoutes); // THE "" CAN BE CHANGED TO "/places FOR SHORTER FILES
 app.use("", experienceRoutes);
 app.use("", serviceRoutes);
 
+// 404 ROUTE
+app.get('*', function(req, res){
+    res.status(404).render('404');
+});
+
 // SETUP THE EXPRESS LISTENER ON LOCAL HOST
 app.listen(process.env.PORT, process.env.IP, function(){
     console.log("The grown local Server Has Started!");

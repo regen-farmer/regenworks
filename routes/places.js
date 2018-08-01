@@ -99,7 +99,8 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
     var image = req.body.place.image;
     var type = req.body.place.type;
     var description = req.body.place.description;
-    var phone = req.body.place.phone;
+    var phoneTemp = req.body.place.phone;
+    var phone = phoneTemp.replace(/[^\d]/g, '');
     var email = req.body.place.email;
     var website = req.body.place.website;
     var action = req.body.place.action;
@@ -185,7 +186,8 @@ router.put("/places/:id", middleware.checkPlaceOwnership, function(req, res){
     var image = req.body.place.image;
     var type = req.body.place.type;
     var description = req.body.place.description;
-    var phone = req.body.place.phone;
+    var phoneTemp = req.body.place.phone;
+    var phone = phoneTemp.replace(/[^\d]/g, '');
     var email = req.body.place.email;
     var website = req.body.place.website;
     var action = req.body.place.action;

@@ -28,11 +28,15 @@ router.get("/support", function(req, res){
     res.render("support");
 });
 
-// 404 ROUTE
-
 // NEW USER ROUTE
 router.get("/users/new", function(req, res){
     res.render("users/new");
+});
+
+// robots.txt
+router.get('/robots.txt', function (req, res) {
+    res.type('text/plain');
+    res.send("User-agent: *\nDisallow: /admin/");
 });
 
 // CREATE USER ROUTE
