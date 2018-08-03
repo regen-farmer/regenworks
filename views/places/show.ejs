@@ -90,7 +90,7 @@
                                 <div class="thumbnail">
                                     <div class="caption">
                                         <h4> <%= experience.name %> </h4>
-                                        <p> <%= experience.start.date %> kl. <%= experience.start.time %></p>
+                                        <p>Dato: <%= experience.start.date %> kl. <%= experience.start.time %></p>
                                         <a href="/experiences/<%= experience._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
                                         <% if(!(experience.price === "")){ %>
                                             <p> <%= experience.price %> kr. pr. person </p>
@@ -100,6 +100,26 @@
                                     </div>
                                 </div>
                             </div>
+                        <% }); %>
+                    <% } %>
+                    <% if(!(place.services == "")){ %>
+                        <% place.services.forEach (function(service){ %>
+                            <% if(Date.parse(service.period.start) < Date.now() && Date.parse(service.period.end) > Date.now()){ %>
+                                <div class="col-md-6 col-sm-6">
+                                    <div class="thumbnail">
+                                        <div class="caption">
+                                            <h4> <%= service.name %> </h4>
+                                            <p>Periode: <%= service.period.start %> - <%= service.period.end %></p>
+                                            <a href="/services/<%= service._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                                            <% if(!(service.price === "")){ %>
+                                            <p> <%= service.price %> kr. pr. person </p>
+                                            <% } else { %>
+                                            <p> gratis </p>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
                         <% }); %>
                     <% } %>
                 </div>

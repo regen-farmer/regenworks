@@ -147,7 +147,7 @@ router.post("/places", middleware.isLoggedIn, function(req, res){
 
 // PLACES SHOW ROUTE
 router.get("/places/:id", function(req, res){
-    Place.findById(req.params.id).populate("products").populate("experiences").exec(function(err, foundPlace){
+    Place.findById(req.params.id).populate("products").populate("experiences").populate("services").exec(function(err, foundPlace){
         if(err) {
             console.log(err);
         } else {
