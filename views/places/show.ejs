@@ -38,12 +38,50 @@
                         <hr>
                     <% } %>
                     <% if(currentUser && place.owner.id.equals(currentUser._id)){ %>
-                    <a class="btn btn-success" href="/places/<%= place._id %>/experiences/new">Opret oplevelse</a>
-                    <a class="btn btn-success" href="/places/<%= place._id %>/services/new">Opret ydelse</a>
-                    <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Rediger</a>
-                    <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Slet</button>
-                    </form>
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModalCreate">Opret begivenhed/ydelse</button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="myModalCreate" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Opret begivenhed eller ydelse for <%= place.name %></h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <p>Begivenheder er aktiviteter der afholdes på en specifik dato.</p>
+                                                <p>Eksempler på begivenheder: Arrangementer, festivaller, markeder, fællesspisning/middage, kurser m.m.</p>
+                                                <a class="btn btn-success" href="/places/<%= place._id %>/experiences/new">Opret begivenhed</a>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <p>Ydelser er aktiviteter og/eller services som tilbydes enten på ugebasis eller i specifikke sæsoner.</p>
+                                                <p>Eksempler på ydelser: Ugekasse, selvpluk, gårdbesøg, udbringning m.m.</p>
+                                                <a class="btn btn-success" href="/places/<%= place._id %>/services/new">Opret ydelse</a>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <p>Hvis du er i tvivl om det er en begivenhed eller ydelse du skal oprette, så kontakt venligst vores support.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Fortryd</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <a class="btn btn-warning" href="/places/<%= place._id %>/edit">Rediger</a>
+                        <form class="delete-form" action="/places/<%= place._id %>?_method=DELETE" method="POST">
+                            <button class="btn btn-danger">Slet</button>
+                        </form>
                     <% } %>
                     <% if(!(place.experiences == "")){ %>
                         <h2>Oplevelser og arrangementer hos <%= place.name %></h2>

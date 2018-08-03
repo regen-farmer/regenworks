@@ -78,11 +78,31 @@ router.get("/users/:id/edit", middleware.checkUserOwnership, function(req, res){
 });
 
 // USER UPDATE ROUTE
-// router.put("/users/:id/edit", middleware.checkUserOwnership, function(req, res){
-
-// });
+router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
+    User.findByIdAndUpdate(req.params.id, req.body.user, function(err, updatedUser){
+        if (err) {
+            // flash with updatedUser
+            console.log(err);
+        } else {
+            // flash with updatedUser
+            res.redirect("/users/" + req.params.id);
+        }
+    });
+});
 
 // USER DELETE ROUTE
+router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
+    User.findByIdAndRemove(req.params.id, function(err){
+        if(err){
+            console.log(err);
+            // Flash message
+            res.redirect("/places");
+        } else {
+            // Flash message
+            res.redirect("/places");
+        }
+    });
+});
 
 // SHOW LOGIN FORM
 router.get("/login", function(req, res) {
