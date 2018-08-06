@@ -112,9 +112,9 @@
                                             <p>Periode: <%= service.period.start %> - <%= service.period.end %></p>
                                             <a href="/services/<%= service._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
                                             <% if(!(service.price === "")){ %>
-                                            <p> <%= service.price %> kr. pr. person </p>
+                                                <p> <%= service.price %> kr. pr. person </p>
                                             <% } else { %>
-                                            <p> gratis </p>
+                                                <p> Pris ikke tilgængelig. </p>
                                             <% } %>
                                         </div>
                                     </div>

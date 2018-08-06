@@ -10,11 +10,7 @@
                 <div class="caption">
                     <h4> <%= service.name %> </h4>
                     <a href="/services/<%= service._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
-                    <% if(!(service.price === "")){ %>
-                    <p> <%= service.price %> kr. </p>
-                    <% } else { %>
-                    <p> gratis </p>
-                    <% } %>
+                    <p>Hos <%= service.host.name %></p>
                 </div>
             </div>
         </div>

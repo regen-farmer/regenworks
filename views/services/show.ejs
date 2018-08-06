@@ -19,13 +19,9 @@
                 <% if(!(service.action === "")){ %>
                     <a class="btn btn-primary action-btn pull-right" href="<%= service.action %>" target="_blank">Find billetter/Tilmeld</a>
                 <% } else { %>
-                    <p class="pull-right">Tilmelding ikke nødvendig</p>
+                    <p class="pull-right">Ikke nødvendig</p>
                 <% } %>
-                <% if(!(service.price === "")){ %>
-                    <p> <%= service.price %> kr.</p>
-                <% } else { %>
-                    <p> gratis </p>
-                <% } %>
+                <p>Tilmelding:</p>
                 <hr>
                 <% if(currentUser && service.owner.id.equals(currentUser._id)){ %>
                     <a class="btn btn-warning" href="/services/<%= service._id %>/edit">Rediger</a>
