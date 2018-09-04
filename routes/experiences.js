@@ -144,7 +144,7 @@ router.post("/experiences", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// EXPERIENCES SHOW ROUTE
+// EXPERIENCES SHOW ROUTES
 router.get("/experiences/:id", function(req, res){
     Experience.findById(req.params.id, function(err, foundExperience){
         if(err){
