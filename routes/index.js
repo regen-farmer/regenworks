@@ -2,7 +2,8 @@ var express = require("express");
 var router = express.Router();
 var passport = require("passport");
 var User = require("../models/user");
-var Place = require("../models/place");
+var Parcel = require("../models/parcel");
+var Activity = require("../models/activity");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
@@ -10,7 +11,7 @@ var crypto = require("crypto");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
-    res.render("index");
+    res.redirect("/dashboard");
 });
 
 // ABOUT ROUTE
@@ -18,14 +19,50 @@ router.get("/about", function(req, res){
     res.render("about");
 });
 
-// PRODUCERS ROUTE
-router.get("/producers", function(req, res){
-    res.render("producers");
+// TERMS ROUTE
+router.get("/terms", function(req, res){
+    res.render("terms");
+});
+
+// PRIVACY ROUTE
+router.get("/privacy", function(req, res){
+    res.render("privacy");
+});
+
+// PRIVACY ROUTE
+router.get("/feedback", function(req, res){
+    res.render("feedback");
 });
 
 // SUPPORT ROUTE
 router.get("/support", function(req, res){
     res.render("support");
+});
+
+// PLANNING ROUTE
+router.get("/planning", function(req, res){
+    res.render("planning");
+});
+
+// DASHBOARD ROUTE
+router.get("/dashboard", middleware.isLoggedIn, function(req, res){
+    Parcel.find({'owner.id': req.user._id}, function(err, allParcels){
+        if(err) {
+            console.log(err);
+        } else {
+            Activity.find({'owner.id': req.user._id}, function(err, allActivities){
+                if(err) {
+                    console.log(err);
+                } else {
+                    allActivities.sort(function(a, b){
+                        return Date.parse(a.start.date) - Date.parse(b.start.date);
+                    });
+                    allActivities.slice(0,4);
+                    res.render("dashboard", {activities: allActivities, parcels: allParcels});
+                }
+            });
+        }
+    });
 });
 
 // NEW USER ROUTE
@@ -50,7 +87,7 @@ router.post("/users", function(req, res){
         }
         passport.authenticate("local")(req, res, function(){
             // req.flash("success", "Welcome to Yelpcamp " + user.username);
-            res.redirect("/places");
+            res.redirect("/parcels");
         });
     });
 });
@@ -96,10 +133,10 @@ router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
         if(err){
             console.log(err);
             // Flash message
-            res.redirect("/places");
+            res.redirect("/parcels");
         } else {
             // Flash message
-            res.redirect("/places");
+            res.redirect("/parcels");
         }
     });
 });
@@ -112,7 +149,7 @@ router.get("/login", function(req, res) {
 // HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local",
     {
-        successRedirect: "/places",
+        successRedirect: "/dashboard",
         failureRedirect: "/login"
     }), function (req, res) {
 });
@@ -121,7 +158,7 @@ router.post("/login", passport.authenticate("local",
 router.get("/logout", function(req, res) {
     req.logout();
     // req.flash("success", "Logged you out!");
-    res.redirect("/places");
+    res.redirect("/parcels");
 });
 
 // SHOW FORGOT PASSWORD PAGE
@@ -240,7 +277,7 @@ router.post("/reset/:token", function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.redirect("/places");
+            res.redirect("/parcels");
         }
     });
 });
@@ -257,26 +294,7 @@ router.post("/users/:id/favorites", middleware.checkUserOwnership, function(req,
                 } else {
                     foundUser.favorites.push(foundPlace);
                     foundUser.save();
-                    res.redirect("/places");
-                }
-            });
-        }
-    });
-});
-
-// USER FAVORITE REMOVE //
-router.post("/users/:id/favorites/edit", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id, function(err, foundUser){
-        if(err) {
-            console.log(err);
-        } else {
-            Place.findById(req.body.placeID, function(err, foundPlace) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    foundUser.favorites.remove(foundPlace);
-                    foundUser.save();
-                    res.redirect("/places");
+                    res.redirect("/parcels");
                 }
             });
         }

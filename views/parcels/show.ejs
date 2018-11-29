@@ -1,0 +1,146 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div>
+                <h1>Parcel: <%= parcel.name %></h1>
+                <p><%= parcel.description %></p>
+                <hr>
+                <% if(!(parcel.projects == "")){ %>
+                    <h2>Oplevelser og arrangementer hos <%= parcel.name %></h2>
+                    <% parcel.projects.forEach (function(project){ %>
+                        <div class="col-md-6 col-sm-6">
+                            <div class="thumbnail">
+                                <div class="caption">
+                                    <h4> <%= project.name %> </h4>
+                                    <p>Dato: <%= project.start.date %> kl. <%= project.start.time %></p>
+                                    <a href="/experiences/<%= project._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                                    <% if(!(project.price === "")){ %>
+                                        <p> <%= project.price %> kr. pr. person </p>
+                                    <% } else { %>
+                                        <p> gratis </p>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } %>
+                <h2>Parcel layers</h2>
+                <p>Parcel layers is a simple way to organize the different tasks and activities on your farm into specific zones and areas. When you create a layer you can reference it when you create a new task or asset.</p>
+                <div class="row">
+                    <% parcel.layers.forEach (function(layer){ %>
+                        <div class="col-md-12">
+                            <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
+                                <p>"<%= layer.name %>" Layer Type: "<%= layer.type %>"</p>
+                            </a>
+                        </div>
+                    <% }); %>
+                    <div class="col-md-12">
+                        <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
+                            <p>Add new layer to this parcel</p>
+                        </a>
+                    </div>
+                </div>
+                <h2>Parcel regen scores</h2>
+                <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. To see recommendations for your land, check out the
+                    <a href="/projects">Projects</a> section.</p>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="well well-sm">
+                            <p><strong>Soil quality</strong></p>
+                            <p><%= soilScore %> / 5</p>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="well well-sm">
+                            <p><strong>Water quality</strong></p>
+                            <p><%= waterScore %> / 5</p>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="well well-sm">
+                            <p><strong>Climate impact</strong></p>
+                            <p><%= climateScore %> / 5</p>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="well well-sm">
+                            <p><strong>Biodiversity</strong></p>
+                            <p><%= bioScore %> / 5</p>
+                        </div>
+                    </div>
+                </div>
+                <p><em><small>These scores are generated based on: 1. your unique parcel profile and 2. expert analysis based on leading scientific studies within agroecology. As we develop our solution the assessment will include more data from various sources that will help to improve the accuracy of the scores. We are also working on sub-dividing the individual scores to make it possible to delve deeper into each regenerative area and increase the precision and quality of the assessment.</small></em></p>
+                <% if (parcel.practices){ %>
+                <h2>Practices used on this parcel</h2>
+                <p>Below is a list of practices used on this parcel. Please keep this up-to-date to ensure the best regenerative assessment. You can add and remove practices by clicking the "Edit parcel details" button.</p>
+                <div class="row">
+                    <% parcel.practices.forEach(function(practice){ %>
+                        <div class="col-xs-6 col-sm-3">
+                            <div class="well well-sm">
+                                <p><%= practice.name %></p>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div id='map' style='width: 300px; height: 300px;'></div>
+            <h2>Parcel details</h2>
+            <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
+            <p><strong>Parcel size:</strong> <%= parcel.size %> acres</p>
+            <p><strong>Agriculture type:</strong> <%= parcel.agType %></p>
+            <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
+            <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
+                <a class="btn btn-default" href="/parcels/<%= parcel._id %>/edit">Edit parcel details</a>
+                <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
+                    <button class="btn btn-danger">Delete parcel</button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    var getgeometry = "<%= parcel.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    var parcelLat = "<%= parcel.lat %>";
+    var parcelLng = "<%= parcel.lng %>";
+
+mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v9',
+        center: [parcelLng, parcelLat],
+        zoom: 14,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#6EBC4A',
+                'fill-opacity': 0.6
+            }
+        });
+    });
+</script>
+
+<% include ../partials/footer %>

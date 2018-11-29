@@ -1,0 +1,55 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>Projects</h1>
+    <h2>Recommended projects</h2>
+    <p>It is through projects that we help you implement regenerative changes to your land. Projects are tailor made implementation plans that ensures a smooth integration of new practices with your existing daily activities. For now you can explore the practices that our assessment recommends you to implement. We are working hard to create the project implementation feature that will automatically generate a tailor made implementation project for you. Stay tuned :)</p>
+    <% if(parcels){ %>
+        <div class="row" style="display:flex; flex-wrap: wrap;">
+            <% parcels.forEach(function(parcel){ %>
+                <div class="col-md-3 col-sm-6">
+                    <div class="thumbnail">
+                        <div class="caption">
+                            <h4>Implement "<%= parcel.recPractices[0].name %>" practice on parcel "<%= parcel.name %>"</h4>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[0].scoreDiffence %></p>
+                            <a href="/practices/<%= parcel.recPractices[0].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="thumbnail">
+                        <div class="caption">
+                            <h4>Implement "<%= parcel.recPractices[1].name %>" practice on parcel "<%= parcel.name %>"</h4>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[1].scoreDiffence %></p>
+                            <a href="/practices/<%= parcel.recPractices[1].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    <% }; %>
+    <h2>Current regenerative projects</h2>
+    <p>-- Coming soon --</p>
+    <div class="row" style="display:flex; flex-wrap: wrap;">
+        <% if(projects){ %>
+            <% projects.forEach(function(project){ %>
+                <div class="col-md-3 col-sm-6">
+                    <div class="thumbnail">
+                        <div class="caption">
+                            <h4> <%= project.name %> </h4>
+                            <a href="/services/<%= project._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
+                            <p>Hos <%= project.host.name %></p>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        <% }; %>
+    </div>
+    <h2>Improvements in regenerative profile</h2>
+    <p>-- More data is needed to show improvements. You need to have at least one ongoing or finished project for improvements to be assessed. --</p>
+</div>
+
+<% include ../partials/footer %>

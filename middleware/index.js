@@ -1,19 +1,19 @@
-var Place = require("../models/place");
+var Parcel = require("../models/parcel");
 var User = require("../models/user");
 
 // Define middleware object
 var middlewareObj = {};
 
 // CHECK PLACE OWNERSHIP MIDDLEWARE
-middlewareObj.checkPlaceOwnership = function(req, res, next){
+middlewareObj.checkParcelOwnership = function(req, res, next){
     if(req.isAuthenticated()){
-        Place.findById(req.params.id, function(err, foundPlace){
+        Parcel.findById(req.params.id, function(err, foundParcel){
             if(err) {
                 // req.flash("error", "Place not found.");
                 res.redirect("back");
             } else {
                 // does user own the place?
-                if(foundPlace.owner.id.equals(req.user._id)){
+                if(foundParcel.owner.id.equals(req.user._id)){
                     next();
                 } else {
                     // req.flash("error", "You don't have permission to do that.");

@@ -1,16 +1,12 @@
 var mongoose = require("mongoose");
 
-// SERVICE SCHEMA SETUP
-var serviceSchema = new mongoose.Schema({
+// PROJECT SCHEMA SETUP
+var projectSchema = new mongoose.Schema({
     name: String,
     description: String,
     location: String,
     lat: Number,
     lng: Number,
-    period: {
-        start: String,
-        end: String
-    },
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -18,10 +14,10 @@ var serviceSchema = new mongoose.Schema({
         },
         username: String
     },
-    host: {
+    parcel: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Place"
+            ref: "Parcel"
         },
         name: String
     },
@@ -30,4 +26,4 @@ var serviceSchema = new mongoose.Schema({
     action: String
 });
 
-module.exports = mongoose.model("Service", serviceSchema);
+module.exports = mongoose.model("Project", projectSchema);

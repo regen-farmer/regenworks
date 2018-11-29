@@ -1,12 +1,9 @@
 var mongoose = require("mongoose");
 
-// EXPERIENCE SCHEMA SETUP
-var experienceSchema = new mongoose.Schema({
+// ACTIVITY SCHEMA SETUP
+var activitySchema = new mongoose.Schema({
     name: String,
     description: String,
-    location: String,
-    lat: Number,
-    lng: Number,
     start: {
         date: String,
         time: String
@@ -15,8 +12,9 @@ var experienceSchema = new mongoose.Schema({
         date: String,
         time: String
     },
-    image: String,
     type: String,
+    duration: String,
+    status: Boolean,
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -24,8 +22,10 @@ var experienceSchema = new mongoose.Schema({
         },
         username: String
     },
-    price: String,
-    action: String,
+    layer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Layer"
+    }
 });
 
-module.exports = mongoose.model("Experience", experienceSchema);
+module.exports = mongoose.model("Activity", activitySchema);

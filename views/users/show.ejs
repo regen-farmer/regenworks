@@ -4,61 +4,17 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-8">
-            <% if(!(user.places == "")){ %>
-                <h1><i class="fas fa-home 5x" style="color:#5cb85c"></i> Dine steder</h1>
-            <% } %>
-            <div class="row" style="display:flex; flex-wrap: wrap;">
-                <% user.places.forEach(function(Place){ %>
-                    <div class="col-md-4 col-sm-6">
-                        <div class="thumbnail">
-                            <img class="img-responsive" src="<%= Place.image %>">
-                            <div class="caption">
-                                <p class="type"> <%= Place.type %> </p>
-                                <h4> <%= Place.name %> </h4>
-                                <p>
-                                    <a href="/places/<%= Place._id %>" class="btn btn-success">Mere Info</a>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                <% }); %>
-            </div>
-            <h1><i class="fas fa-heart 5x" style="color:#5cb85c"></i> Dine favoritter</h1>
-            <% if(user.favorites == ""){ %>
-                <p>Du har endnu ingen favoritter. Tryk på "føj til favoritter" for at tilføje et sted til dine favoritter så du hurtigt kan finde den igen.</p>
-            <% } %>
-            <div class="row" style="display:flex; flex-wrap: wrap;">
-                <% user.favorites.forEach(function(favoritePlace){ %>
-                    <div class="col-md-4 col-sm-6">
-                        <div class="thumbnail">
-                            <img class="img-responsive" src="<%= favoritePlace.image %>">
-                            <div class="caption">
-                                <p class="type"> <%= favoritePlace.type %> </p>
-                                <h4> <%= favoritePlace.name %> </h4>
-                                <p>
-                                    <a href="/places/<%= favoritePlace._id %>" class="btn btn-success">Mere Info</a>
-                                    <form action="/users/<%= currentUser._id %>/favorites/edit" method="POST">
-                                        <input type="hidden" name="placeID" value="<%= favoritePlace._id %>">
-                                        <button class="btn btn-default"><i class="fas fa-heart"></i> Fjern favorit</button>
-                                    </form>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                <% }); %>
-            </div>
-
         </div>
         <div class="col-lg-4">
-            <h1><i class="fas fa-user 5x" style="color:#5cb85c"></i> Din profil</h1>
+            <h1><i class="fas fa-user 5x" style="color:#5cb85c"></i> Profile</h1>
             <hr>
-            <p>Brugernavn: <%= user.username %></p>
+            <p>Username: <%= user.username %></p>
             <hr>
-            <a class="btn btn-default" href="/forgot">Nulstil kodeord</a>
+            <a class="btn btn-default" href="/forgot">Reset password</a>
             <hr>
-            <a class="btn btn-default" href="/users/<%= user._id %>/edit">Rediger profil</a>
+            <a class="btn btn-default" href="/users/<%= user._id %>/edit">Edit profile</a>
             <hr>
-            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModalDeleteUser">Slet profil</button>
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModalDeleteUser">Delete profile</button>
             <!-- Modal -->
             <div class="modal fade" id="myModalDeleteUser" role="dialog">
                 <div class="modal-dialog">
@@ -67,19 +23,18 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h4 class="modal-title">Bekræft sletning af profil</h4>
+                            <h4 class="modal-title">Confirm deletion of profile</h4>
                         </div>
                         <div class="modal-body">
-                            <p>Når du sletter din profil vil al information der er forbundet til den blive permanent slettet og profilen vil ikke kunne genskabes.</p>
+                            <p>When you delete your profile, all information connected to it will be permanently deleted and we will not be able to recreate your data.</p>
                         </div>
                         <div class="modal-footer">
                             <form class="delete-form" action="/users/<%= user._id %>?_method=DELETE" method="POST">
-                                <button class="btn btn-danger">Slet profil</button>
+                                <button class="btn btn-danger">Delete profile</button>
                             </form>
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Fortryd</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

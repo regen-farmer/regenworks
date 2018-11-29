@@ -9,25 +9,17 @@
                 <span class="icon-bar"></span>
             </button>
             <a id="logotype" class="navbar-brand" href="/dashboard"><strong>Regen</strong> Farmer <span style="color: #88C762">FLOW</span></a>
-            <p class="navbar-text"><small>v0.2</small></p>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/activities">Tasks</a></li>
-                <li><a href="/parcels">Land</a></li>
-                <li><a href="/assets">Assets</a></li>
-                <li><a href="/projects">Projects</a></li>
-            </ul>
             <ul class="nav navbar-nav navbar-right">
                 <% if(!currentUser){ %>
-                    <li><a href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
-                    <li><a href="/login">Sign in</i></a></li>
+                <li><a href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
+                <li><a href="/login">Sign in</i></a></li>
                 <% } else { %>
-                    <li><a href="/feedback"><i class="fas fa-comments"></i> Feedback</a></li>
-                    <li><a href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
-                    <li><a href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
+                <li><a href="/"><i class="fas fa-comments"></i> Feedback</a></li>
+                <li><a href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
+                <li><a href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
                 <% } %>
             </ul>
         </div><!-- /.navbar-collapse -->

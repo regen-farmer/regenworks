@@ -1,0 +1,26 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <div>
+                <h1>Asset: <%= asset.name %> </h1>
+                <p>Asset type: <%= asset.type %> </p>
+                <p><%= asset.description %> </p>
+                <p>Location/layer: <%= asset.layer.name %></p>
+                <hr>
+                <% if(currentUser && asset.owner.id.equals(currentUser._id)){ %>
+                    <a class="btn btn-default" href="">Edit asset</a>
+                    <form class="delete-form" action="/assets/<%= asset._id %>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Delete asset</button>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

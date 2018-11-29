@@ -8,15 +8,19 @@ var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT P
 var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
-var Place = require("./models/place");
-// var seedDB = require("./seeds");
+var Parcel = require("./models/parcel");
+//var seedDB = require("./seeds");
 var User = require("./models/user");
 
 // REQUIRE ROUTE FILES
-var placeRoutes = require("./routes/places");
+var parcelRoutes = require("./routes/parcels");
 var indexRoutes = require("./routes/index");
-var experienceRoutes = require("./routes/experiences");
-var serviceRoutes = require("./routes/services");
+var activityRoutes = require("./routes/activities");
+var projectRoutes = require("./routes/projects");
+var layerRoutes = require("./routes/layers");
+var practiceRoutes = require("./routes/practices");
+var assetRoutes = require("./routes/assets");
+
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -24,7 +28,7 @@ app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
-// seedDB(); // USE ONLY FOR SEEDING DATABASE
+//seedDB(); // USE ONLY FOR SEEDING DATABASE
 
 // PASSPORT CONFIGURATION
 app.use(require("express-session")({
@@ -48,9 +52,12 @@ app.use(function(req, res, next){
 
 // MAKES THE APP ACTUALLY USE THE ROUTES
 app.use(indexRoutes);
-app.use("", placeRoutes); // THE "" CAN BE CHANGED TO "/places FOR SHORTER FILES
-app.use("", experienceRoutes);
-app.use("", serviceRoutes);
+app.use("", parcelRoutes); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
+app.use("", activityRoutes);
+app.use("", projectRoutes);
+app.use("", layerRoutes);
+app.use("", practiceRoutes);
+app.use("", assetRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){

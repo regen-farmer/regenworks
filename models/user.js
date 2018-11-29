@@ -7,13 +7,7 @@ var UserSchema = new mongoose.Schema({
     email: {type: String, unique: true, require: true},
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    favorites: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Place"
-        }
-    ],
-    places: [
+    parcels: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Place"

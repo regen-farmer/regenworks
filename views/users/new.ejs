@@ -1,22 +1,24 @@
 <% include ../partials/header %>
-<% include ../partials/navbar %>
+<% include ../partials/simplenavbar.ejs %>
 
 <div class="container">
     <div class="row">
         <div class="col-lg-4"></div>
         <div class="col-lg-4">
-            <h2>Opret bruger</h2>
+            <h2 class="text-center">Early Access Sign Up</h2>
             <form action="/users" method="POST">
-                <div class="input-group center-block">
-                    <input class="form-control" type="text" name="username" placeholder="brugernavn">
+                <div class="form-group center-block">
+                    <input class="form-control" type="text" name="username" placeholder="username">
                 </div>
-                <div class="input-group center-block">
+                <div class="form-group center-block">
                     <input class="form-control" type="email" name="email" placeholder="email">
                 </div>
-                <div class="input-group center-block">
-                    <input class="form-control" type="password" name="password" placeholder="kodeord">
+                <div class="form-group center-block">
+                    <input class="form-control" type="password" name="password" placeholder="password">
                 </div>
-                <button type="submit" class="btn btn-success center-block">Opret</button>
+                <p><em><small>By signing up you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</small></em></p>
+
+                <button type="submit" class="btn btn-success center-block">Sign up</button>
             </form>
         </div>
         <div class="col-lg-4"></div>

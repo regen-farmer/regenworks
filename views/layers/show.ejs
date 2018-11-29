@@ -1,0 +1,62 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <div>
+                <h1>Layer "<%= layer.name %>"</h1>
+                <p>Layer type: <%= layer.type %> </p>
+                <p>Area size: <%= (layer.size * 0.000247105381).toFixed(2) %> acres</p>
+                <div id="layerMapShow"></div>
+                <hr>
+                <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
+                    <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit layer</a>
+                    <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Delete layer</button>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
+
+<script>
+    var getgeometry = "<%= layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'layerMapShow',
+        style: 'mapbox://styles/mapbox/streets-v9',
+        center: [11.569984, 54.808400],
+        zoom: 15,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#6EBC4A',
+                'fill-opacity': 0.6
+            }
+        });
+    });
+
+</script>
+
+<% include ../partials/footer %>
