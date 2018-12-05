@@ -54,7 +54,7 @@
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Practices</label>
-                        <p>Please choose the practices that you currently use on this parcel.</p>
+                        <p>Please choose the key practices that you currently use on this parcel.</p>
                         <div class="row">
                             <% practices.forEach(function(practice){ %>
                             <div class="col-lg-3">
@@ -67,12 +67,16 @@
                             <% }); %>
                         </div>
                     </div>
+                    <div>
+                        <p><strong>Parcel geometry</strong></p>
+                        <p>Please zoom in and draw the outside perimeter of your parcel of land by clicking on the "draw a polygon" button on the map below. Press "Finish" to close the shape.</p>
+                    </div>
                     <div id="parcelMapNew"></div>
+                    <hr>
                     <input type="hidden" id="geometry" name="geometry">
                     <div id="coordinates"></div>
-                    <hr>
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-success btn-lg">Add parcel</button>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success btn-lg center-block">Add parcel</button>
                     </div>
                 </form>
             </div>
@@ -83,12 +87,12 @@
 
 <script>
     // NEW LAYER GEOMETRY MAP
-    var myparcelmapnew = L.map('parcelMapNew').setView([54.809187, 11.568213], 16);
+    var myparcelmapnew = L.map('parcelMapNew').setView([0, 0], 1);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 18,
-        id: 'mapbox.satellite',
+        id: 'mapbox.outdoors',
         accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
     }).addTo(myparcelmapnew);
 
@@ -128,7 +132,8 @@
         var shape_for_db = JSON.stringify(shape);
 
         // Try and send to HTML
-        document.getElementById("coordinates").innerHTML = "A layer geometry has successfully been created and you may create the new layer";
+        alert('A parcel geometry has successfully been created and you may click the button below to create the new parcel');
+        // document.getElementById("coordinates").innerHTML = "A parcel geometry has successfully been created and you may click the button below to create the new parcel";
         document.getElementById("geometry").value = shape_for_db;
 
         editableLayers.addLayer(layer);

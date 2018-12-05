@@ -44,12 +44,12 @@ var vanillacalendar = {
             }
         }
 
-        if (this.date.getTime() <= this.todaysDate.getTime() - 1) {
-            newDay.classList.add('cal__date--disabled')
-        } else {
+        // if (this.date.getTime() <= this.todaysDate.getTime() - 1) {
+        //     newDay.classList.add('cal__date--disabled')
+        // } else {
             newDay.classList.add('cal__date--active')
             newDay.setAttribute('data-calendar-status', 'active')
-        }
+        // }
 
         if (this.date.toString() === this.todaysDate.toString()) {
             newDay.classList.add('cal__date--today')

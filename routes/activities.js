@@ -37,7 +37,7 @@ router.get("/activities", middleware.isLoggedIn, function(req, res){
 // ACTIVITY NEW ROUTE
 router.get("/activities/new", middleware.isLoggedIn, function(req, res){
     var parcel = undefined;
-    console.log(req.body.picked)
+    console.log(req.body.picked);
     Layer.find({'owner.id': req.user._id}, function(err, foundLayers){
         if(err){
             console.log(err);
@@ -126,13 +126,13 @@ router.put("/activities/:id", middleware.isLoggedIn, function(req, res){
 
 
 // ACTIVITY DELETE ROUTE
-router.delete("/activities/:id", function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
-    Experience.findByIdAndRemove(req.params.id, function(err){
+router.delete("/activities/:id", middleware.isLoggedIn, function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+    Activity.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);
-            res.redirect("/parcels");
+            res.redirect("/activities");
         } else {
-            res.redirect("/parcels");
+            res.redirect("/activities");
         }
     });
 });

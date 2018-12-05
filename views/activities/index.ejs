@@ -2,9 +2,44 @@
 <% include ../partials/navbar %>
 
 <div class="container">
+    <div class="col-md-6 col-sm-6">
+        <div class="thumbnail">
+            <div class="caption">
+                <h3>Upcoming tasks</h3>
+                <hr>
+                <% if(activities === undefined){%>
+                    <p>You do not have any upcoming tasks.</p>
+                <% } else { %>
+                    <div class="row">
+                        <% activities.forEach(function(activity){ %>
+                            <div class="col-md-12">
+                                <a href="/activities/<%= activity._id %>" class="btn btn-default btn-block">
+                                    <p>"<%= activity.name %>" Date: <%= activity.start.date %></p>
+                                </a>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="thumbnail">
+            <div class="caption">
+                <h3>Overdue tasks</h3>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <p>You do not have any overdue tasks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="col-md-6">
         <div class="thumbnail">
             <div class="caption">
+                <a href="/activities/new" class="btn btn-success pull-right">Add new task</a>
+                <h3>Task calendar</h3>
+                <hr>
                 <div class="cal">
                     <div class="cal__header">
                         <button class="btn btn-action btn-link btn-lg" data-calendar-toggle="previous"><svg height="24" version="1.1" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
@@ -19,22 +54,12 @@
                     </div>
                     <div class="cal__body" data-calendar-area="month"></div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="thumbnail">
-            <div class="caption">
+                <hr>
                 <p class="demo-picked text-center">
-                    <strong>Showing tasks for selected date<span data-calendar-label="picked"></span></strong>
+                    <strong>Showing tasks for selected date (grey)<span data-calendar-label="picked"></span></strong>
                 </p>
                 <div class="row">
                     <span data-calendar-label="tasks"></span>
-                    <div class="col-md-12">
-                        <a href="/activities/new" class="btn btn-success btn-block">
-                            <p>Add new task</p>
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>

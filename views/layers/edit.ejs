@@ -21,11 +21,31 @@
                         <a class="pull-right"data-toggle="modal" data-target="#layerTypesModal">View layer type definitions</a>
                         <label for="layer[type]">Layer type</label>
                         <select class="form-control" name="layer[type]">
-                            <option value="bed">Field (Crops)</option>
-                            <option selected="selected" value="patch">Patch (Pasture/grassland)</option>
-                            <option value="stand">Stand (Forest/shrubs)</option>
-                            <option value="water">Water (Lakes/stream)</option>
-                            <option value="soil">Soil (sub-surface organisms)</option>
+                            <% if(layer.type === "field") { %>
+                                <option selected="selected" value="field">Field/bed (Crops)</option>
+                            <% } else { %>
+                                <option value="field">Field/bed (Crops)</option>
+                            <% } %>
+                            <% if(layer.type === "patch") { %>
+                                <option selected="selected" value="patch">Patch (Pasture/grassland)</option>
+                            <% } else { %>
+                                <option value="patch">Patch (Pasture/grassland)</option>
+                            <% } %>
+                            <% if(layer.type === "stand") { %>
+                                <option selected="selected" value="stand">Stand (Forest/shrubs)</option>
+                            <% } else { %>
+                                <option value="stand">Stand (Forest/shrubs)</option>
+                            <% } %>
+                            <% if(layer.type === "water") { %>
+                                <option selected="selected" value="water">Water (Lakes/stream)</option>
+                            <% } else { %>
+                                <option value="water">Water (Lakes/stream)</option>
+                            <% } %>
+                            <% if(layer.type === "soil") { %>
+                                <option selected="selected" value="soil">Soil (sub-surface organisms)</option>
+                            <% } else { %>
+                                <option value="soil">Soil (sub-surface organisms)</option>
+                            <% } %>
                         </select>
                         <!-- Modal -->
                         <div class="modal fade" id="layerTypesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -54,7 +74,6 @@
                             </div>
                         </div>
                     </div>
-                    <div id="layerMapEdit"></div>
                     <div class="btn-group">
                         <button type="submit" class="btn btn-success btn-lg center-block">Update layer</button>
                     </div>

@@ -94,7 +94,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
 });
 
 // PARCEL SHOW ROUTE
-router.get("/parcels/:id", middleware.isLoggedIn, function(req, res){
+router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
     Parcel.findById(req.params.id).populate("practices").populate("layers").exec(function(err, foundParcel){
         if(err) {
             console.log(err);

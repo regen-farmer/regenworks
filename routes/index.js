@@ -11,7 +11,7 @@ var crypto = require("crypto");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
-    res.redirect("/dashboard");
+    res.redirect("/parcels");
 });
 
 // ABOUT ROUTE
@@ -86,7 +86,7 @@ router.post("/users", function(req, res){
             return res.render("users/new");
         }
         passport.authenticate("local")(req, res, function(){
-            // req.flash("success", "Welcome to Yelpcamp " + user.username);
+            // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
             res.redirect("/parcels");
         });
     });
@@ -149,7 +149,7 @@ router.get("/login", function(req, res) {
 // HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local",
     {
-        successRedirect: "/dashboard",
+        successRedirect: "/parcels",
         failureRedirect: "/login"
     }), function (req, res) {
 });
@@ -158,7 +158,7 @@ router.post("/login", passport.authenticate("local",
 router.get("/logout", function(req, res) {
     req.logout();
     // req.flash("success", "Logged you out!");
-    res.redirect("/parcels");
+    res.redirect("/login");
 });
 
 // SHOW FORGOT PASSWORD PAGE
@@ -201,8 +201,8 @@ router.post("/forgot", function(req, res, next){
          });
          var mailOptions = {
              to: user.email,
-             from: "info@grownlocal.dk",
-             subject: "Grown Local - Nulstil kodeord",
+             from: "hello@regenfarmer.com",
+             subject: "Regen Farmer - Reset Password",
              text: 'http://' + req.headers.host + '/reset/' + token + '\n\n'
          };
          smtpTransport.sendMail(mailOptions, function(err){
@@ -264,12 +264,12 @@ router.post("/reset/:token", function(req, res){
             });
             var mailOptions = {
                 to: user.email,
-                from: "info@grownlocal.dk",
-                subject: "Dit kodeord er blevet opdateret",
+                from: "hello@regenfarmer.com",
+                subject: "Your password has been changed",
                 text: 'Hello, \n\n'
             };
             smtpTransport.sendMail(mailOptions, function(err) {
-                req.flash("success", "Success! Din kodeord er blevet opdateret.");
+                req.flash("success", "Success! Your password has been changed.");
                 done(err);
             });
         }

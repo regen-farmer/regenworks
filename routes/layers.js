@@ -20,7 +20,7 @@ router.get("/parcels/:id/layers/new", middleware.isLoggedIn, function(req, res){
 });
 
 // NESTED PARCEL LAYER CREATE ROUTE
-router.post("/parcels/:id/layers", middleware.isLoggedIn, function(req, res){
+router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req, res){
     // Lookup place using id
     Parcel.findById(req.params.id, function(err, foundParcel){
         if(err) {
@@ -55,7 +55,7 @@ router.post("/parcels/:id/layers", middleware.isLoggedIn, function(req, res){
 });
 
 // LAYER SHOW ROUTES
-router.get("/layers/:id", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
@@ -94,9 +94,9 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
     Layer.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);
-            res.redirect("/dashboard"); // MAYBE CHANGE REDIRECT
+            res.redirect("/parcels");
         } else {
-            res.redirect("/dashboard"); // MAYBE CHANGE REDIRECT
+            res.redirect("/parcels");
         }
     });
 });

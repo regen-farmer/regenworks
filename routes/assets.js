@@ -65,7 +65,7 @@ router.get("/assets/:id", middleware.isLoggedIn, function(req, res){
 // ASSET UPDATE ROUTE
 
 // ASSET DELETE ROUTE
-router.delete("/assets/:id", function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+router.delete("/assets/:id", middleware.isLoggedIn, function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     Asset.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);

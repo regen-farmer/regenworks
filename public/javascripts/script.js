@@ -42,11 +42,13 @@ mylayermapnew.on('draw:created', function(e) {
 
     editableLayers.addLayer(layer);
 
+    // CHANGE FORMAT FOR LAYER
     var shape = layer.toGeoJSON();
     var shape_for_db = JSON.stringify(shape);
 
     // Try and send to HTML
-    document.getElementById("coordinates").innerHTML = "A layer geometry has successfully been created and you may create the new layer";
+    alert('A layer geometry has successfully been created and you may click the "Create New Layer" button below to create the new layer');
+    // document.getElementById("coordinates").innerHTML = "A layer geometry has successfully been created and you may click the button below to create the new layer";
     document.getElementById("geometry").value = shape_for_db;
 
     // Calculate area

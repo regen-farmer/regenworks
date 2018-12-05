@@ -12,7 +12,7 @@
                     <div class="thumbnail">
                         <div class="caption">
                             <h4>Implement "<%= parcel.recPractices[0].name %>" practice on parcel "<%= parcel.name %>"</h4>
-                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[0].scoreDiffence %></p>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[0].scoreDiffence.toFixed(2) %></p>
                             <a href="/practices/<%= parcel.recPractices[0].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
                             <p></p>
                         </div>
@@ -22,8 +22,28 @@
                     <div class="thumbnail">
                         <div class="caption">
                             <h4>Implement "<%= parcel.recPractices[1].name %>" practice on parcel "<%= parcel.name %>"</h4>
-                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[1].scoreDiffence %></p>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[1].scoreDiffence.toFixed(2) %></p>
                             <a href="/practices/<%= parcel.recPractices[1].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="thumbnail">
+                        <div class="caption">
+                            <h4>Implement "<%= parcel.recPractices[2].name %>" practice on parcel "<%= parcel.name %>"</h4>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[2].scoreDiffence.toFixed(2) %></p>
+                            <a href="/practices/<%= parcel.recPractices[2].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="thumbnail">
+                        <div class="caption">
+                            <h4>Implement "<%= parcel.recPractices[3].name %>" practice on parcel "<%= parcel.name %>"</h4>
+                            <p>Estimated improvements to overall Regen Score by <%= parcel.recPractices[3].scoreDiffence.toFixed(2) %></p>
+                            <a href="/practices/<%= parcel.recPractices[3].id %>?parcelid=<%= parcel.id %>" class="btn btn-success action-btn">Explore practice</a>
                             <p></p>
                         </div>
                     </div>
