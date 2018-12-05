@@ -66,10 +66,10 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         var location = data[0].formattedAddress;
         // If image is blank, push in standard image
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner};
-        console.log(newParcel);
-        // Create a new place and save it to the database
+        // Create a new parcel and save it to the database
         Parcel.create(newParcel, function(err, newlyCreated){
             if(err){
+                req.flash("error", "Something went wrong");
                 console.log(err);
             } else {
                 console.log(newlyCreated + "added");
@@ -85,6 +85,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
                         newlyCreated.geometry = req.body.geometry;
                         // Save the layer
                         newlyCreated.save();
+                        req.flash("success", "You have successfully created a new parcel");
                         res.redirect("parcels");
                     }
                 });

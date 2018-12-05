@@ -3,6 +3,7 @@ var express = require("express");
 var app = express();
 var bodyParser = require("body-parser"); // USED TO PARSE DATA FROM POST ROUTE
 var mongoose = require("mongoose"); // REQUIRE MONGOOSE PACKAGE
+var flash = require("connect-flash"); // ENABLES FLASH MESSAGES
 var passport = require("passport"); // REQUIRE PASSPORT PACKAGE
 var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
 var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
@@ -28,6 +29,7 @@ app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
+app.use(flash());
 //seedDB(); // USE ONLY FOR SEEDING DATABASE
 
 // PASSPORT CONFIGURATION
@@ -45,8 +47,8 @@ passport.deserializeUser(User.deserializeUser());
 // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
 app.use(function(req, res, next){
     res.locals.currentUser = req.user;
-    //res.locals.error = req.flash("error");
-    //res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 

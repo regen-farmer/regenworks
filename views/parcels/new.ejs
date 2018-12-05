@@ -76,7 +76,7 @@
                     <input type="hidden" id="geometry" name="geometry">
                     <div id="coordinates"></div>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-success btn-lg center-block">Add parcel</button>
+                        <button type="submit" class="btn btn-success btn-lg center-block">Create parcel</button>
                     </div>
                 </form>
             </div>
@@ -132,7 +132,7 @@
         var shape_for_db = JSON.stringify(shape);
 
         // Try and send to HTML
-        alert('A parcel geometry has successfully been created and you may click the button below to create the new parcel');
+        alert('A parcel geometry has successfully been created and you may click the "Create parcel" button below.');
         // document.getElementById("coordinates").innerHTML = "A parcel geometry has successfully been created and you may click the button below to create the new parcel";
         document.getElementById("geometry").value = shape_for_db;
 

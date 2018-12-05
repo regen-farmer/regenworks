@@ -11,7 +11,7 @@ var crypto = require("crypto");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
-    res.redirect("/parcels");
+    res.redirect("/users/new");
 });
 
 // ABOUT ROUTE
@@ -81,12 +81,12 @@ router.post("/users", function(req, res){
     var newUser = new User({username: req.body.username, email: req.body.email});
     User.register(newUser, req.body.password, function(err, user){
         if(err) {
-            // req.flash("error", err.message);
+            req.flash("error", err.message);
             console.log(err);
             return res.render("users/new");
         }
         passport.authenticate("local")(req, res, function(){
-            // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
+            req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
             res.redirect("/parcels");
         });
     });
