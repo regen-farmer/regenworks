@@ -69,7 +69,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         // Create a new parcel and save it to the database
         Parcel.create(newParcel, function(err, newlyCreated){
             if(err){
-                req.flash("error", "Something went wrong");
+                // req.flash("error", "Something went wrong");
                 console.log(err);
             } else {
                 console.log(newlyCreated + "added");
@@ -85,7 +85,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
                         newlyCreated.geometry = req.body.geometry;
                         // Save the layer
                         newlyCreated.save();
-                        req.flash("success", "You have successfully created a new parcel");
+                        // req.flash("success", "You have successfully created a new parcel");
                         res.redirect("parcels");
                     }
                 });
