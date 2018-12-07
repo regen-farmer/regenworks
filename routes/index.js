@@ -31,7 +31,7 @@ router.get("/privacy", function(req, res){
 });
 
 // PRIVACY ROUTE
-router.get("/feedback", function(req, res){
+router.get("/feedback", middleware.isLoggedIn, function(req, res){
     res.render("feedback");
 });
 
