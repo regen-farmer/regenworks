@@ -22,7 +22,6 @@ var layerRoutes = require("./routes/layers");
 var practiceRoutes = require("./routes/practices");
 var assetRoutes = require("./routes/assets");
 
-
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
 app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
@@ -30,7 +29,7 @@ app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
 app.use(flash());
-//seedDB(); // USE ONLY FOR SEEDING DATABASE
+//seedDB(); // USE ONLY FOR SEEDING DATABAS
 
 // PASSPORT CONFIGURATION
 app.use(require("express-session")({

@@ -2,3 +2,5 @@
 .idea/
 node_modules/
 seeds.js
+combined.log
+error.log

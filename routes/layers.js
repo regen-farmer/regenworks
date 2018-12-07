@@ -3,6 +3,7 @@ var router = express.Router();
 var Layer = require("../models/layer");
 var Parcel = require("../models/parcel");
 var middleware = require("../middleware");
+var logger = require("../middleware/logger");
 
 // LAYER INDEX ROUTE
 
@@ -12,6 +13,7 @@ router.get("/parcels/:id/layers/new", middleware.isLoggedIn, function(req, res){
     Parcel.findById(req.params.id, function(err, foundParcel){
         if(err) {
             console.log(err);
+            logger.error(err.message);
             // res.flash(err
         } else {
             res.render("layers/new", {parcel: foundParcel});

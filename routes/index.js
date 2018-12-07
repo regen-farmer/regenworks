@@ -8,6 +8,7 @@ var middleware = require("../middleware"); // Will automatically require the mid
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
 var crypto = require("crypto");
+var logger = require("../middleware/logger");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
@@ -67,6 +68,7 @@ router.get("/dashboard", middleware.isLoggedIn, function(req, res){
 
 // NEW USER ROUTE
 router.get("/users/new", function(req, res){
+    logger.info('Sign up page requested', {timestamp: Date.now()});
     res.render("users/new");
 });
 
@@ -82,9 +84,10 @@ router.post("/users", function(req, res){
     User.register(newUser, req.body.password, function(err, user){
         if(err) {
             // req.flash("error", err.message);
-            console.log(err);
+            logger.error(err.message);
             return res.render("users/new");
         }
+        logger.info('New user "' + user.username + '" was created', {timestamp: Date.now()});
         passport.authenticate("local")(req, res, function(){
             // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
             res.redirect("/parcels");
@@ -129,13 +132,14 @@ router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
 
 // USER DELETE ROUTE
 router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findByIdAndRemove(req.params.id, function(err){
+    User.findByIdAndRemove(req.params.id, function(err, user){
         if(err){
             console.log(err);
             // Flash message
             res.redirect("/parcels");
         } else {
             // Flash message
+            logger.info('User "' + user.username + '" was deleted', {timestamp: Date.now()});
             res.redirect("/parcels");
         }
     });
@@ -143,20 +147,21 @@ router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
 
 // SHOW LOGIN FORM
 router.get("/login", function(req, res) {
+    logger.info('Login page requested', {timestamp: Date.now()});
     res.render("login");
 });
 
 // HANDLE LOGIN LOGIC
-router.post("/login", passport.authenticate("local",
-    {
-        successRedirect: "/parcels",
-        failureRedirect: "/login"
-    }), function (req, res) {
+router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
+    logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
+    res.redirect('/parcels');
 });
 
 // LOGOUT ROUTE
 router.get("/logout", function(req, res) {
+    logger.info("User requested to log out", {timestamp: Date.now()});
     req.logout();
+    logger.info("User was logged out", {timestamp: Date.now()});
     // req.flash("success", "Logged you out!");
     res.redirect("/login");
 });
