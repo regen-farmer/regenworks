@@ -80,19 +80,26 @@ router.get('/robots.txt', function (req, res) {
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    var newUser = new User({username: req.body.username, email: req.body.email});
-    User.register(newUser, req.body.password, function(err, user){
-        if(err) {
-            // req.flash("error", err.message);
-            logger.error(err.message);
-            return res.render("users/new");
-        }
-        logger.info('New user "' + user.username + '" was created', {timestamp: Date.now()});
-        passport.authenticate("local")(req, res, function(){
-            // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
-            res.redirect("/parcels");
+    if (req.body.secret === "4q89fq6afe531op"){
+        logger.info("Secret correct", {timestamp: Date.now()});
+        var newUser = new User({username: req.body.username, email: req.body.email});
+        User.register(newUser, req.body.password, function(err, user){
+            if(err) {
+                // req.flash("error", err.message);
+                logger.error(err.message);
+                return res.render("users/new");
+            }
+            logger.info('New user "' + user.username + '" was created', {timestamp: Date.now()});
+            passport.authenticate("local")(req, res, function(){
+                // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
+                res.redirect("/parcels");
+            });
         });
-    });
+    } else {
+        logger.error("Secret is wrong", {timestamp: Date.now()});
+        req.flash("error", "Secret not correct");
+        res.redirect("/users/new");
+    }
 });
 
 // SHOW USER ROUTE
