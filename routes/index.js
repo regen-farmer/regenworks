@@ -30,9 +30,14 @@ router.get("/privacy", function(req, res){
     res.render("privacy");
 });
 
-// PRIVACY ROUTE
+// FEEDBACK ROUTE
 router.get("/feedback", middleware.isLoggedIn, function(req, res){
     res.render("feedback");
+});
+
+// QUESTIONNAIRE ROUTE
+router.get("/questionnaire", function(req, res){
+    res.render("questionnaire");
 });
 
 // SUPPORT ROUTE
