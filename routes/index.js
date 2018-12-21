@@ -85,7 +85,7 @@ router.get('/robots.txt', function (req, res) {
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    if (req.body.secret === "4q89fq6afe531op"){
+    if (req.body.secret === "899af01m4maiqj13"){
         logger.info("Secret correct", {timestamp: Date.now()});
         var newUser = new User({username: req.body.username, email: req.body.email});
         User.register(newUser, req.body.password, function(err, user){
