@@ -52,7 +52,7 @@ mylayermapnew.on('draw:created', function(e) {
     var shape_for_db = JSON.stringify(shape);
 
     // Try and send to HTML
-    alert('A layer geometry has successfully been created and you may click the "Create New Layer" button below to create the new layer');
+    alert('An area geometry has successfully been created and you may click the "Create New Area" button below to create the new area');
     // document.getElementById("coordinates").innerHTML = "A layer geometry has successfully been created and you may click the button below to create the new layer";
     document.getElementById("geometry").value = shape_for_db;
 
