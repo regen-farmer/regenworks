@@ -27,8 +27,8 @@
                         </div>
                     <% }); %>
                 <% } %>
-                <h2>Parcel layers</h2>
-                <p>Parcel layers is a simple way to organize the different tasks and activities on your farm into specific zones and areas. When you create a layer you can reference it when you create a new task or asset.</p>
+                <h2>Parcel areas</h2>
+                <p>Parcel areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
                 <div class="row">
                     <% parcel.layers.forEach (function(layer){ %>
                         <div class="col-md-12">
@@ -39,13 +39,12 @@
                     <% }); %>
                     <div class="col-md-12">
                         <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
-                            <p>Add new layer to this parcel</p>
+                            <p>Add new area to this parcel</p>
                         </a>
                     </div>
                 </div>
                 <h2>Parcel regen scores <i class="fa fa-info-circle" data-toggle="tooltip" title="These scores are generated based on your unique parcel profile and expert analysis based on leading scientific studies within agroecology."></i></h2>
-                <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. To see recommendations for your land, check out the
-                    <a href="/projects">Projects</a> section.</p>
+                <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. To see recommendations for your land, check out the</p>
                 <div class="row">
                     <div class="col-xs-6 col-sm-3">
                         <div class="well well-sm">
@@ -115,7 +114,7 @@
             <div id='map' style='width: 300px; height: 300px;'></div>
             <h2>Parcel details</h2>
             <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
-            <p><strong>Parcel size:</strong> <%= parcel.size %> acres</p>
+            <p><strong>Parcel size:</strong> <%= parcel.size %> hectare(s)</p>
             <p><strong>Agriculture type:</strong> <%= parcel.agType %></p>
             <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
             <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>

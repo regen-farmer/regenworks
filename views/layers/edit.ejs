@@ -5,11 +5,11 @@
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-            <h2>Edit layer "<%= layer.name %>"</h2>
+            <h2>Edit area "<%= layer.name %>"</h2>
             <div>
                 <form action="/layers/<%= layer._id %>?_method=PUT" method="POST">
                     <div class="form-group">
-                        <label for="layer[name]">Layer name</label>
+                        <label for="layer[name]">Area name</label>
                         <input type="text" class="form-control" name="layer[name]" value="<%= layer.name %>" required>
                     </div>
                     <div class="form-group">
@@ -19,7 +19,7 @@
                     <div class="form-group">
                         <!-- Button trigger modal -->
                         <a class="pull-right"data-toggle="modal" data-target="#layerTypesModal">View layer type definitions</a>
-                        <label for="layer[type]">Layer type</label>
+                        <label for="layer[type]">Area type</label>
                         <select class="form-control" name="layer[type]">
                             <% if(layer.type === "field") { %>
                                 <option selected="selected" value="field">Field/bed (Crops)</option>
@@ -52,13 +52,13 @@
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h4 class="modal-title" id="exampleModalLabel">Layer type definitions</h4>
+                                        <h4 class="modal-title" id="exampleModalLabel">Area type definitions</h4>
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
                                     <div class="modal-body">
-                                        <p>Below is the list of current layer types and what each layer type represents.</p>
+                                        <p>Below is the list of current area types and what each area type represents.</p>
                                         <ul>
                                             <li>Field: Area cultivated with annual crops such as cereals, vegetables or natural fiber crops.</li>
                                             <li>Patch: Area with grass primarily used for grazing.</li>
@@ -75,7 +75,7 @@
                         </div>
                     </div>
                     <div class="btn-group">
-                        <button type="submit" class="btn btn-success btn-lg center-block">Update layer</button>
+                        <button type="submit" class="btn btn-success btn-lg center-block">Update area</button>
                     </div>
                 </form>
             </div>

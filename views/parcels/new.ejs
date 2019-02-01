@@ -8,7 +8,7 @@
             <h2>Add Parcel</h2>
             <div>
                 <form action="/parcels" method="POST">
-                    <p>Add a new parcel to your collection.</p>
+                    <p>Add a new parcel of land to your collection.</p>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Name</label>
                         <input type="text" class="form-control" name="parcel[name]" placeholder="Give your parcel a name" required>
@@ -22,7 +22,7 @@
                         <input type="text" class="form-control" name="parcel[description]" placeholder="Give the parcel a description">
                     </div>
                     <div class="form-group">
-                        <label for="formGroupExampleInput">Parcel size (acres)</label>
+                        <label for="formGroupExampleInput">Parcel size (Hectares)</label>
                         <input type="number" class="form-control" name="parcel[size]" placeholder="How big is this parcel?">
                     </div>
                     <div class="form-group btn-group btn-group-toggle" data-toggle="buttons">
@@ -51,10 +51,13 @@
                         <label class="btn btn-default">
                             <input type="checkbox" name="parcel[agType]" value="Forestry" autocomplete="off"> Forestry
                         </label>
+                        <label class="btn btn-default">
+                            <input type="checkbox" name="parcel[agType]" value="Orchard" autocomplete="off"> Orchard
+                        </label>
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Practices</label>
-                        <p>Please choose the key practices that you currently use on this parcel.</p>
+                        <p>Please choose the key practices/methods currently used on this parcel.</p>
                         <div class="row">
                             <% practices.forEach(function(practice){ %>
                             <div class="col-lg-3">
@@ -87,7 +90,7 @@
 
 <script>
     // NEW LAYER GEOMETRY MAP
-    var myparcelmapnew = L.map('parcelMapNew').setView([0, 0], 1);
+    var myparcelmapnew = L.map('parcelMapNew').setView([56.044441, 11.148389], 6);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',

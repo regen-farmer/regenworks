@@ -6,15 +6,15 @@
         <div class="col-md-2"></div>
         <div class="col-md-8">
             <div>
-                <h1>Layer "<%= layer.name %>"</h1>
-                <p>Layer type: <%= layer.type %> </p>
+                <h1>Area "<%= layer.name %>"</h1>
+                <p>Area type: <%= layer.type %> </p>
                 <p>Area size: <%= (layer.size * 0.000247105381).toFixed(2) %> acres</p>
                 <div id="layerMapShow"></div>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
                     <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit layer</a>
                     <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Delete layer</button>
+                        <button class="btn btn-danger">Delete Area</button>
                     </form>
                 <% } %>
             </div>
