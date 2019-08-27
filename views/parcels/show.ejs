@@ -43,6 +43,7 @@
                         </a>
                     </div>
                 </div>
+                <!--
                 <h2>Parcel regen scores <i class="fa fa-info-circle" data-toggle="tooltip" title="These scores are generated based on your unique parcel profile and expert analysis based on leading scientific studies within agroecology."></i></h2>
                 <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. </p>
                 <div class="row">
@@ -95,6 +96,7 @@
                         </div>
                     </div>
                 </div>
+                -->
                 <% if (parcel.practices){ %>
                 <h2>Practices used on this parcel</h2>
                 <p>Below is a list of key practices used on this parcel. Please keep this up-to-date to ensure the best regenerative assessment. You can add and remove practices by clicking the "Edit parcel details" button.</p>
@@ -128,8 +130,8 @@
 </div>
 
 <script>
-    var getgeometry = "<%= parcel.geometry %>";
-    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    // var getgeometry = "<%= parcel.geometry %>";
+    // var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
     var parcelLat = "<%= parcel.lat %>";
     var parcelLng = "<%= parcel.lng %>";
 
