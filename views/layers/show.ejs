@@ -3,12 +3,38 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-2"></div>
+        <h1>Area: "<%= layer.name %>"</h1>
         <div class="col-md-8">
             <div>
-                <h1>Area "<%= layer.name %>"</h1>
+                <h2>Area system</h2>
+                <h2>Layout</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <img class="img-responsive" src="/images/banana.svg">
+                    </div>
+                    <div class="col-md-4">
+                        <img class="img-responsive" src="/images/euca.svg">
+                    </div>
+                    <div class="col-md-4">
+                        <img class="img-responsive" src="/images/banana.svg">
+                    </div>
+                </div>
+            </div>
+            <h2>System layers/rows</h2>
+            <div class="col-md-12">
+                <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
+                    <p>"<%= layer.name %>" Area Type: "<%= layer.type %>"</p>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div>
+                <h2>Area details</h2>
                 <p>Area type: <%= layer.type %> </p>
                 <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+                <p>System type: Multstrata agroforestry</p>
+                <p>System layout: Straight rows</p>
+                <p>System alignment: North/south</p>
                 <div id="layerMapShow"></div>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
@@ -19,7 +45,6 @@
                 <% } %>
             </div>
         </div>
-        <div class="col-md-2"></div>
     </div>
 </div>
 

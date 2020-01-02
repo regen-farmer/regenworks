@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-8">
             <div>
-                <h1>Parcel: <%= parcel.name %></h1>
+                <h1>Farm: <%= parcel.name %></h1>
                 <p><%= parcel.description %></p>
                 <hr>
                 <% if(!(parcel.projects == "")){ %>
@@ -27,8 +27,9 @@
                         </div>
                     <% }); %>
                 <% } %>
-                <h2>Parcel areas</h2>
-                <p>Parcel areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
+                <h2>Farm areas</h2>
+                <div id='map' style='width: 600px; height: 600px;'></div>
+                <p>Farm areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
                 <div class="row">
                     <% parcel.layers.forEach (function(layer){ %>
                         <div class="col-md-12">
@@ -39,10 +40,23 @@
                     <% }); %>
                     <div class="col-md-12">
                         <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
-                            <p>Add new area to this parcel</p>
+                            <p>Add new area to this farm</p>
                         </a>
                     </div>
                 </div>
+                <% if (parcel.practices){ %>
+                <h2>Practices used on this farm</h2>
+                <p>Below is a list of key practices used on this farm. Please keep this up-to-date to ensure the best regenerative assessment. You can add and remove practices by clicking the "Edit parcel details" button.</p>
+                <div class="row">
+                    <% parcel.practices.forEach(function(practice){ %>
+                    <div class="col-xs-6 col-sm-3">
+                        <div class="well well-sm">
+                            <p><%= practice.name %></p>
+                        </div>
+                    </div>
+                    <% }); %>
+                </div>
+                <% } %>
                 <!--
                 <h2>Parcel regen scores <i class="fa fa-info-circle" data-toggle="tooltip" title="These scores are generated based on your unique parcel profile and expert analysis based on leading scientific studies within agroecology."></i></h2>
                 <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. </p>
@@ -97,26 +111,13 @@
                     </div>
                 </div>
                 -->
-                <% if (parcel.practices){ %>
-                <h2>Practices used on this parcel</h2>
-                <p>Below is a list of key practices used on this parcel. Please keep this up-to-date to ensure the best regenerative assessment. You can add and remove practices by clicking the "Edit parcel details" button.</p>
-                <div class="row">
-                    <% parcel.practices.forEach(function(practice){ %>
-                        <div class="col-xs-6 col-sm-3">
-                            <div class="well well-sm">
-                                <p><%= practice.name %></p>
-                            </div>
-                        </div>
-                    <% }); %>
-                </div>
-                <% } %>
+
             </div>
         </div>
         <div class="col-md-4">
-            <div id='map' style='width: 300px; height: 300px;'></div>
-            <h2>Parcel details</h2>
+            <h2>Farm details</h2>
             <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
-            <p><strong>Parcel size:</strong> <%= parcel.size %> hectare(s)</p>
+            <p><strong>Farm size:</strong> <%= parcel.size %> hectare(s)</p>
             <p><strong>Agriculture type:</strong> <%= parcel.agType %></p>
             <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
             <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
@@ -125,6 +126,7 @@
                     <button class="btn btn-danger">Delete parcel</button>
                 </form>
             <% } %>
+
         </div>
     </div>
 </div>

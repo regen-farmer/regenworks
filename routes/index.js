@@ -35,6 +35,16 @@ router.get("/feedback", middleware.isLoggedIn, function(req, res){
     res.render("feedback");
 });
 
+// ASSESSMENT ROUTE
+router.get("/analysis", middleware.isLoggedIn, function(req, res){
+    res.render("analysis");
+});
+
+// PLANNING ROUTE
+router.get("/planning", middleware.isLoggedIn, function(req, res){
+    res.render("planning");
+});
+
 // QUESTIONNAIRE ROUTE
 router.get("/questionnaire", function(req, res){
     res.render("questionnaire");
@@ -85,7 +95,7 @@ router.get('/robots.txt', function (req, res) {
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    if (req.body.secret === "899af01m4maiqj13"){
+    if (req.body.secret === "899af01m4maiq5k3"){
         logger.info("Secret correct", {timestamp: Date.now()});
         var newUser = new User({username: req.body.username, email: req.body.email});
         User.register(newUser, req.body.password, function(err, user){
