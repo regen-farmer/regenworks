@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require("../models/user");
 var Parcel = require("../models/parcel");
 var Practice = require("../models/practice");
+var Layer = require("../models/layer");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 
 // NODE GEOCODER CODE
@@ -80,13 +81,14 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
                     } else {
                         // Add the parcel to the users parcels for referencing
                         foundUser.parcels.push(newlyCreated);
+                        foundUser.currentProject = newlyCreated;
                         foundUser.save();
                         // Save JSON file to geometry
                         newlyCreated.geometry = req.body.geometry;
                         // Save the layer
                         newlyCreated.save();
                         // req.flash("success", "You have successfully created a new parcel");
-                        res.redirect("/parcels");
+                        res.redirect("/parcels/" + newlyCreated._id);
                     }
                 });
             }
@@ -207,6 +209,38 @@ router.delete("/parcels/:id", middleware.checkParcelOwnership, function(req, res
             res.redirect("/parcels");
         } else {
             res.redirect("/parcels");
+        }
+    });
+});
+
+// ANALYSIS ROUTE FOR ALL PARCEL LAYERS
+router.get("/parcels/:id/analysis", middleware.checkParcelOwnership, function(req, res) {
+    Parcel.findById(req.params.id).populate("layers").exec(function (err, foundParcel) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render("parcelanalysis", {parcel: foundParcel});
+        }
+    });
+});
+
+// SUCCESSION ROUTE FOR ALL SYSTEMS IN PARCEL LAYERS
+router.get("/parcels/:id/composition", middleware.checkParcelOwnership, function(req, res){
+    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+        if(err) {
+            console.log(err);
+        } else {
+            var layerarray = [];
+            foundParcel.layers.forEach(function(layer){
+                layerarray.push(layer._id);
+            });
+            Layer.find({"_id": layerarray}).populate("systems.future").exec(function(err, foundLayers){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("parcelcomposition", {parcel: foundParcel, layers: foundLayers});
+                }
+            });
         }
     });
 });

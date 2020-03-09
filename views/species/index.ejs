@@ -1,0 +1,18 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>Species</h1>
+    <% species.forEach(function(species){ %>
+        <div class="col-md-3 col-sm-4 col-xs-12">
+                <img class="img-responsive" src="/images/<%= species.form %>.svg">
+                <div class="caption">
+                    <p>
+                        <a href="/species/<%= species._id %>" class="btn btn-success"><%= species.nameCommon %></a>
+                    </p>
+                </div>
+        </div>
+    <% }); %>
+</div>
+
+<% include ../partials/footer %>

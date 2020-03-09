@@ -14,6 +14,10 @@
                         <p>
                             <a href="/parcels/<%= parcel._id %>" class="btn btn-success">More info</a>
                         </p>
+                        <form action="/users/<%= currentUser._id %>/currentproject" method="POST">
+                            <input type="hidden" id="parcelid" name="parcelid" value="<%= parcel._id %>">
+                            <button class="btn btn-success">Set as active project</button>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,68 @@
+<% include ./partials/header %>
+<% include ./partials/navbar %>
+
+<div class="container">
+    <h1>System species consortium for <%= system.name %></h1>
+    <p>Climate zone: </p>
+    <table class="table table-striped">
+        <tr>
+            <td></td>
+            <td>Placenta</td>
+            <td>Secondary</td>
+            <td>Climax</td>
+        </tr>
+        <tr>
+            <td>Emergent</td>
+            <td></td>
+            <td></td>
+            <td><% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 30){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+        </tr>
+        <tr>
+            <td>High</td>
+            <td><% species.forEach(function(species){ %>
+                <% if(species.form == "giantherb" ){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td></td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+        </tr>
+        <tr>
+            <td>Medium</td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "herb" || species.form == "grass" ){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td></td>
+            <td><% species.forEach(function(species){ %>
+                <% if(species.form == "shrub"){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+
+<% include ./partials/footer %>

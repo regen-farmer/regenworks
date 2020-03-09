@@ -9,14 +9,14 @@
                 <span class="icon-bar"></span>
             </button>
             <a id="logotype" class="navbar-brand" href="/parcels"><strong>Regen</strong><span style="color: #88C762">Works</span></a>
-            <p class="navbar-text"><small>v0.4.0</small></p>
+            <p class="navbar-text"><small>v0.5.0</small></p>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li><a href="/parcels">Areas</a></li>
-                <li><a href="/planning">Planning</a></li>
-                <li><a href="/analysis">Analysis</a></li>
+                <li><a href="/parcels/<%= currentUser.currentProject %>">Areas</a></li>
+                <li><a href="/parcels/<%= currentUser.currentProject %>/analysis">Suitability assessment</a></li>
+                <li><a href="/parcels/<%= currentUser.currentProject %>/composition">Species composition</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <% if(!currentUser){ %>

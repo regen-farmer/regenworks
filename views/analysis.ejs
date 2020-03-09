@@ -2,9 +2,65 @@
 <% include ./partials/navbar %>
 
 <div class="container">
-    <h1>Suitability Assessment</h1>
-    <button class="btn btn-success btn">Request farm level assessment</button>
-    <p>The current build of our assessment requires a manual review. This means that from the time you click the button it takes about 1-2 business days until you receive the results. This is to ensure that the quality of the results meets our high standards. Once the assessment have been done you will be able to access the results here on your profile.</p>
+    <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
+    <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
+    <h2>The proven and tested</h2>
+    <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields have been measured.</p>
+    <% if(!(systemsproven == "")){ %>
+        <div class="row">
+            <% for(i=0;i<systemsproven.length;i++){ %>
+                    <div class="col-lg-4">
+                        <div class="thumbnail">
+                            <div class="row">
+                                <% systemsproven[i].rows.forEach(function(row){ %>
+                                <div class="col-sm-3">
+                                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                </div>
+                                <% }); %>
+                            </div>
+                            <div class="caption">
+                                <p><%= systemsproven[i].name %></p>
+                                <p><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
+                                <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                    <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
+                                    <button class="btn btn-success">Add system to future drafts</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+            <% } %>
+        </div>
+    <% } %>
+    <h2>Promissing systems near you</h2>
+    <p>Systems that have been implemented, but current data is not sufficient to give any good indications about performance.</p>
+    <% if(!(systems == "")){ %>
+    <div class="row">
+        <% for(i=0;i<systems.length;i++){ %>
+        <div class="col-lg-4">
+            <div class="thumbnail">
+                <div class="row">
+                    <% systems[i].rows.forEach(function(row){ %>
+                    <div class="col-sm-3">
+                        <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                    </div>
+                    <% }); %>
+                </div>
+                <div class="caption">
+                    <p><%= systems[i].name %></p>
+                    <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                        <input type="hidden" id="systemid" name="systemid" value="<%= systems[i]._id %>">
+                        <button class="btn btn-success">Add system to future drafts</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+    <% } %>
+    <h2>COMING SOON - AI modelled systems</h2>
+    <p>Suitable systems based on our unique agroforestry system models - Push the limits of agroforestry and become a first mover. These systems are based on models developed based on actual production data. This means that the specific system might not have been tested yet. Despite this it might actually be the best system.</p>
+    <h2>COMING SOON - Systems of tomorrow</h2>
+    <p>Based on leading local climate change scenarios and projections for the specific piece of land, these systems are highly focused on long term system adaptation to changing climates. This often includes more diverse species compositions and exotic species.</p>
 </div>
 
 <% include ./partials/footer %>

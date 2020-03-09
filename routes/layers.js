@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router();
 var Layer = require("../models/layer");
 var Parcel = require("../models/parcel");
+var System = require("../models/system");
+var Species = require("../models/species");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 
@@ -16,7 +18,23 @@ router.get("/parcels/:id/layers/new", middleware.isLoggedIn, function(req, res){
             logger.error(err.message);
             // res.flash(err
         } else {
-            res.render("layers/new", {parcel: foundParcel});
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    function compare( a, b ) {
+                        if ( a.nameCommon < b.nameCommon ){
+                            return -1;
+                        }
+                        if ( a.nameCommon > b.nameCommon ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    foundSpecies.sort(compare);
+                    res.render("layers/new", {parcel: foundParcel, species: foundSpecies});
+                }
+            });
         }
     });
 });
@@ -41,6 +59,8 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     // Save JSON file to geometry
                     layer.geometry = req.body.geometry;
                     layer.size = req.body.layersize;
+                    layer.lat = foundParcel.lat;
+                    layer.lng = foundParcel.lng;
                     // Save the layer
                     layer.save();
                     // Connect new layer to parcel
@@ -49,7 +69,44 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     console.log(layer);
                     // Redirect to parcels SHOW page
                     // req.flash("success", "Successfully added comment");
-                    res.redirect("/parcels/" + foundParcel._id);
+                    if(layer.type == "agroforestry"){
+                        res.redirect("/layers/" + layer._id + '/systems/new');
+                    } else {
+                        var tempspecies = req.body.maincrop;
+                        if(req.body.maincrop === ""){
+                            tempspecies = "5e665452cccc150b186d4cd1";
+                        }
+                        Species.findById(tempspecies, function(err, foundSpecies){
+                            if(err){
+                                console.log(err);
+                            } else {
+                                // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
+                                var presentsystem = {
+                                    name: foundSpecies.nameCommon + " monoculture",
+                                    description: "",
+                                    rows: [
+                                        {
+                                            width: 2,
+                                            sequense: []
+                                        }
+                                    ],
+                                    shared: false
+                                };
+                                presentsystem.rows[0].sequense.push(foundSpecies);
+                                // CREATE SYSTEM
+                                System.create(presentsystem, function(err, createdSystem){
+                                    if(err){
+                                        console.log(err);
+                                    } else {
+                                        // ASS SYSTEM TO PRESENT SYSTEM
+                                        layer.systems.present = createdSystem;
+                                        layer.save();
+                                        res.redirect("/parcels/" + foundParcel._id);
+                                    }
+                                });
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -58,7 +115,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
 
 // LAYER SHOW ROUTES
 router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id, function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -99,6 +156,54 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
             res.redirect("/parcels");
         } else {
             res.redirect("/parcels");
+        }
+    });
+});
+
+// LAYER CURRENT SYSTEM UPDATE
+router.post("/layers/:id/presentsystem", middleware.isLoggedIn, function(req, res){
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            System.findById(req.body.systemid, function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // PUSH CURRENT SYSTEM TO PAST
+                    if(!(foundLayer.systems.present == "")){
+                        foundLayer.systems.past.push(foundLayer.systems.present);
+                    }
+                    // SET CURRENT SYSTEM TO FUTURE DRAFT
+                    foundLayer.systems.present = foundSystem;
+                    console.log(foundSystem.name + " has been set to current system");
+                    // REMOVE FUTURE DRAFT FROM FUTURE ARRAY
+                    foundLayer.systems.future.remove(foundSystem);
+                    console.log(foundSystem.name + " has been removed from future systems");
+                    foundLayer.save();
+                    res.redirect("/layers/" + foundLayer._id);
+                }
+            });
+        }
+    });
+});
+
+// LAYER ADD FUTURE SYSTEM DRAFT
+router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            System.findById(req.body.systemid, function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    foundLayer.systems.future.push(foundSystem);
+                    foundLayer.save();
+                    console.log("Now there is " + foundLayer.systems.future.length + " future drafts on this area");
+                    res.redirect("/layers/" + foundLayer._id);
+                }
+            });
         }
     });
 });

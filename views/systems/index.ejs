@@ -1,0 +1,37 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>Area production system timeline</h1>
+    <p>This pages shows the past, current and future production systems. You can use this to view old system configurations, change the current system and plan future agroforestry production systems.</p>
+    <h2>Future systems</h2>
+    <% if(layer.systems.future){ %>
+        <% layer.systems.future.forEach(function(system){ %>
+            <p><%= system.name %></p>
+            <p>
+                <a href="/systems/<%= system._id %>" class="btn btn-success">Edit this draft</a>
+            </p>
+            <p>
+                <a href="/systems/<%= system._id %>" class="btn btn-success">Make this system draft current</a>
+            </p>
+        <% }); %>
+    <% } %>
+    <h2>Current system</h2>
+    <% if(layer.systems.current){ %>
+        <p><%= layer.systems.current.name %></p>
+        <p>
+            <a href="/systems/<%= system._id %>" class="btn btn-success">More info</a>
+        </p>
+    <% } %>
+    <h2>Past systems</h2>
+    <% if(layer.systems.past){ %>
+        <% layer.systems.past.forEach(function(system){ %>
+            <p><%= system.name %></p>
+            <p>
+                <a href="/systems/<%= system._id %>" class="btn btn-success">More info</a>
+            </p>
+        <% }); %>
+    <% } %>
+</div>
+
+<% include ../partials/footer %>

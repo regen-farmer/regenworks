@@ -21,6 +21,10 @@ var projectRoutes = require("./routes/projects");
 var layerRoutes = require("./routes/layers");
 var practiceRoutes = require("./routes/practices");
 var assetRoutes = require("./routes/assets");
+var systemRoutes = require("./routes/systems");
+var speciesRoutes = require("./routes/species");
+var flowRoutes = require("./routes/flows");
+var systemflowRoutes = require("./routes/systemflows");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -59,6 +63,10 @@ app.use("", projectRoutes);
 app.use("", layerRoutes);
 app.use("", practiceRoutes);
 app.use("", assetRoutes);
+app.use("", systemRoutes);
+app.use("", speciesRoutes);
+app.use("", flowRoutes);
+app.use("", systemflowRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){

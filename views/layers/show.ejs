@@ -3,60 +3,85 @@
 
 <div class="container">
     <div class="row">
-        <h1>Area: "<%= layer.name %>"</h1>
+        <div class="col-md-12">
+            <h1>Area: "<%= layer.name %>"</h1>
+            <p><%= layer.description %></p>
+        </div>
         <div class="col-md-8">
-            <div>
-                <h2>Area system</h2>
-                <h2>Layout</h2>
-                <div class="row">
-                    <div class="col-md-4">
-                        <img class="img-responsive" src="/images/banana.svg">
-                    </div>
-                    <div class="col-md-4">
-                        <img class="img-responsive" src="/images/euca.svg">
-                    </div>
-                    <div class="col-md-4">
-                        <img class="img-responsive" src="/images/banana.svg">
-                    </div>
-                </div>
-            </div>
-            <h2>System layers/rows</h2>
-            <div class="col-md-12">
-                <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
-                    <p>"<%= layer.name %>" Area Type: "<%= layer.type %>"</p>
-                </a>
-            </div>
+            <h2>Current production system on area</h2>
+            <p>The current production system has been defined as "<%= layer.type %>".</p>
+            <% if(!(layer.systems.present == "")){ %>
+                <p><%= layer.systems.present.name %></p>
+                <a class="btn btn-default" href="/systems/<%= layer.systems.present._id %>">See current system: <%= layer.systems.present.name %></a>
+                <h2>System layers</h2>
+                <table class="table table-striped">
+                    <tr>
+                        <td>Layer</td>
+                        <td>Species</td>
+                    </tr>
+                    <tr>
+                        <td>Canopy</td>
+                        <td>Tree species</td>
+                    </tr>
+                    <tr>
+                        <td>Sub-canopy</td>
+                        <td>Low tree and shrub species</td>
+                    </tr>
+                </table>
+            <% } %>
+            <h2>Plan new system</h2>
+            <% if(!(layer.systems.future == "")){ %>
+                <p>Saved future system drafts</p>
+                <% layer.systems.future.forEach(function(system){ %>
+                    <a class="btn btn-default" href="/systems/<%= system._id %>">View <%= system.name %></a>
+                    <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
+                        <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
+                        <button class="btn btn-warning">Set as current system</button>
+                    </form>
+                <% }); %>
+            <% } %>
+            <% if(layer.systems.future.length > 1){ %>
+            <% } %>
+            <p>Plan new system</p>
+            <a class="btn btn-success" href="/layers/<%= layer._id %>/systems/new">Plan new agroforestry system from scratch</a>
+            <a class="btn btn-primary" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
+            <h2>See production system timeline</h2>
+            <a class="btn btn-default" href="/layers/<%= layer._id %>/systems">See timeline</a>
         </div>
         <div class="col-md-4">
             <div>
-                <h2>Area details</h2>
-                <p>Area type: <%= layer.type %> </p>
-                <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
-                <p>System type: Multstrata agroforestry</p>
-                <p>System layout: Straight rows</p>
-                <p>System alignment: North/south</p>
                 <div id="layerMapShow"></div>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
-                    <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit area</a>
-                    <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Delete Area</button>
-                    </form>
+                <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit area</a>
+                <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
+                    <button class="btn btn-danger">Delete Area</button>
+                </form>
                 <% } %>
+                <h2>Area details</h2>
+                <p>Area type: <%= layer.type %> </p>
+                <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+                <p>Current system type: N/A</p>
+                <p>System layout: N/A</p>
+                <p>System alignment: N/A</p>
+                <hr>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    var areaLat = "<%= layer.lat %>";
+    var areaLng = "<%= layer.lng %>";
+
     var getgeometry = "<%= layer.geometry %>";
     var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
     mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
         container: 'layerMapShow',
         style: 'mapbox://styles/mapbox/streets-v9',
-        center: [11.569984, 54.808400],
-        zoom: 15,
+        center: [areaLng, areaLat],
+        zoom: 14,
     });
 
     map.on('load', function () {

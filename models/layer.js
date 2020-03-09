@@ -13,8 +13,59 @@ var layerSchema = new mongoose.Schema({
         },
         username: String
     },
+    climate: {
+        monthlyaveragetemp: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        },
+        annualaverageprec: Number,
+        monthlyaverageprec: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        }
+    },
     geometry: String,
-    size: Number
+    lat: Number,
+    lng: Number,
+    size: Number,
+    systems: {
+        past: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "System"
+            }
+        ],
+        present: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "System"
+        },
+        future: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "System"
+            }
+        ]
+    }
 });
 
 module.exports = mongoose.model("Layer", layerSchema);

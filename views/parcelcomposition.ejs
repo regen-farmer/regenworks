@@ -1,0 +1,27 @@
+<% include ./partials/header %>
+<% include ./partials/navbar %>
+
+<div class="container">
+    <h1>Farm area system species composition</h1>
+    <% if(!(layers == "")){ %>
+    <p>Select a system and optimize its species composition.</p>
+    <div class="row">
+            <div class="thumbnail">
+                <div class="row">
+                    <% layers[0].systems.future.forEach(function(system){ %>
+                    <div class="col-sm-3">
+                        <p><%= system.name %></p>
+                    </div>
+                    <% }); %>
+                </div>
+                <div class="caption">
+                    <button class="btn btn-success btn">Add system to future drafts</button>
+                </div>
+            </div>
+    </div>
+    <% } else { %>
+    <p>There currently is no systems defined on any of your areas.</p>
+    <% } %>
+</div>
+
+<% include ./partials/footer %>

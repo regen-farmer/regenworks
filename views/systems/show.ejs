@@ -1,0 +1,263 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>System: <%= system.name %></h1>
+    <div class="row">
+        <div class="col-sm-6">
+            <h2>System layout</h2>
+            <div class="row">
+                <% if(system.rows){ %>
+                    <% system.rows.forEach(function(row, i){ %>
+                        <% if(row.sequense[0].form === "tree"){ %>
+                            <% if(row.sequense[0].height > 12){ %>
+                                <div class="col-sm-3">
+                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                </div>
+                            <% } else { %>
+                                <div class="col-sm-3">
+                                    <img class="img-responsive" src="/images/treelow.svg">
+                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                </div>
+                            <% } %>
+                        <% } else { %>
+                            <div class="col-sm-3">
+                                <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                            </div>
+                        <% } %>
+                    <% }); %>
+                <% } %>
+            </div>
+            <div class="row">
+                <% if(system.rows){ %>
+                    <% system.rows.forEach(function(row){ %>
+                    <div class="col-sm-3">
+                        <% row.sequense.reverse().forEach(function(sequense){ %>
+                        <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
+                        <p class="text-center"><%= sequense.nameCommon %></p>
+                        <% }); %>
+                    </div>
+                    <% }); %>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <h2>System specifications</h2>
+            <p><%= system.description %></p>
+            <div class="thumbnail">
+                <div class="caption">
+                    <table class="table table-striped">
+                        <tr>
+                            <td><strong>Layer</strong></td>
+                            <td><strong>Species</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Canopy</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "tree" || species.form == "palm" ){ %>
+                                <%= species.nameCommon %>,
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sub-Canopy</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "shrub" || species.form == "giantherb" ){ %>
+                                <%= species.nameCommon %>,
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Climbers</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "vine"){ %>
+                                <%= species.nameCommon %>,
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ground</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "herb" || species.form == "grass" ){ %>
+                                <%= species.nameCommon %>,
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                    </table>
+                    <a class="btn btn-success" href="/systems/<%= system._id %>/composition">Analyse system composition</a>
+                </div>
+            </div>
+            <p>System tree count: N/A</p>
+            <p>System dimensions: N/A</p>
+        </div>
+    </div>
+    <h2>System lifetime productivity</h2>
+    <table class="table table-striped">
+        <tr>
+            <td></td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
+            <td>7</td>
+            <td>8</td>
+            <td>9</td>
+            <td>10</td>
+            <td>11</td>
+            <td>12</td>
+            <td>13</td>
+            <td>14</td>
+            <td>15</td>
+        </tr>
+        <% species.forEach(function(species){ %>
+            <tr>
+                <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
+                <% if(!(species.flows == "")){ %>
+                    <% for(i=0;i<15;i++){ %>
+                        <% if(species.flows[0].data[i]>0){ %>
+                            <td class="success"><%= species.flows[0].data[i] %></td>
+                        <% } else { %>
+                            <td class="warning"><%= species.flows[0].data[i] %></td>
+                        <% } %>
+                    <% } %>
+                <% } else { %>
+                    <td>No data available on this species.</td>
+                <% } %>
+            </tr>
+        <% }); %>
+    </table>
+    <p>- Not showing location/context based data. Production systems associated with a particular geographical area have higher accuracy of yield profile. -</p>
+    <hr>
+    <!--
+    <div class="row">
+        <div class="col-sm-2">
+            <img class="img-responsive" src="/images/shrub.svg">
+        </div>
+        <div class="col-sm-2">
+            <p></p>
+        </div>
+        <div class="col-sm-2">
+            <h2>Yields</h2>
+            <p>Yield type 1: Fruit</p>
+            <p>Yield type 2: Cereal</p>
+        </div>
+        <div class="col-sm-6"><canvas id="lineChartAnnual"></canvas></div>
+    </div>
+    <h2>System lifetime productivity profile</h2>
+    <div class="row">
+        <div class="col-sm-2">
+            <img class="img-responsive" src="/images/shrub.svg">
+        </div>
+        <div class="col-sm-2">
+            <p></p>
+        </div>
+        <div class="col-sm-2">
+            <h2>Yields</h2>
+            <p>Yield type 1: Fruit</p>
+            <p>Yield type 2: Cereal</p>
+        </div>
+        <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-2">
+            <h2>Carbon</h2>
+            <p>LER over time (Land equavelant ratio)</p>
+        </div>
+        <div class="col-sm-6"><canvas id="lineChartCarbon"></canvas></div>
+    </div>
+    -->
+</div>
+
+<script>
+    var ctx = document.getElementById('lineChartAnnual').getContext('2d');
+    var myChartAnnual = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            datasets: [{
+                label: 'Apple trees',
+                backgroundColor: 'rgb(110, 188, 74)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: [0, 0, 0, 0, 0, 0, 0, 3.2, 4.5, 1.3, 0, 0]
+            },
+                {
+                    label: 'Wheat',
+                    backgroundColor: 'rgb(208, 106, 4)',
+                    borderColor: 'rgb(135, 68, 1)',
+                    data: [0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0]
+                }
+            ]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
+    var ctx = document.getElementById('lineChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            datasets: [{
+                label: 'Apple trees',
+                backgroundColor: 'rgb(110, 188, 74)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: [0, 0, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5]
+            },
+                {
+                    label: 'Wheat',
+                    backgroundColor: 'rgb(208, 106, 4)',
+                    borderColor: 'rgb(135, 68, 1)',
+                    data: [1, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.7, 0.7, 0.7, 0.7]
+                }
+            ]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
+    var ctx = document.getElementById('lineChartCarbon').getContext('2d');
+    var myChartCarbon = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            datasets: [{
+                label: 'System LER (wheat baseline = 1)',
+                backgroundColor: 'rgb(35, 88, 147)',
+                borderColor: 'rgb(11, 51, 95)',
+                data: [0.8, 0.8, 0.9, 1, 1.1, 1.1, 1.2, 1.2, 1.2, 1.3, 1.3, 1.3, 1.3, 1.3]
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+</script>
+
+<% include ../partials/footer %>

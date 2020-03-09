@@ -10,9 +10,13 @@ var UserSchema = new mongoose.Schema({
     parcels: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Place"
+            ref: "Parcel"
         }
-    ]
+    ],
+    currentProject: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Parcel"
+    }
 });
 
 UserSchema.plugin(passportLocalMongoose);

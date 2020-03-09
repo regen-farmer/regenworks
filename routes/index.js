@@ -12,7 +12,7 @@ var logger = require("../middleware/logger");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
-    res.redirect("/users/new");
+    res.redirect("/login");
 });
 
 // ABOUT ROUTE
@@ -35,9 +35,14 @@ router.get("/feedback", middleware.isLoggedIn, function(req, res){
     res.render("feedback");
 });
 
-// ASSESSMENT ROUTE
-router.get("/analysis", middleware.isLoggedIn, function(req, res){
-    res.render("analysis");
+// COMPOSITION ROUTE
+router.get("/composition", middleware.isLoggedIn, function(req, res){
+    res.render("composition");
+});
+
+// SUCCESSION ROUTE
+router.get("/succession", middleware.isLoggedIn, function(req, res){
+    res.render("succession");
 });
 
 // PLANNING ROUTE
@@ -107,7 +112,7 @@ router.post("/users", function(req, res){
             logger.info('New user "' + user.username + '" was created', {timestamp: Date.now()});
             passport.authenticate("local")(req, res, function(){
                 // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
-                res.redirect("/parcels");
+                res.redirect("/users/" + req.user.id); // Redirect to user account page
             });
         });
     } else {
@@ -119,7 +124,7 @@ router.post("/users", function(req, res){
 
 // SHOW USER ROUTE
 router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id).populate("favorites").populate("places").exec(function(err, foundUser){
+    User.findById(req.params.id).populate("favorites").populate("parcels").exec(function(err, foundUser){
         if(err) {
             console.log(err);
         } else {
@@ -176,7 +181,7 @@ router.get("/login", function(req, res) {
 // HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
-    res.redirect('/parcels');
+    res.redirect('/users/' + req.user.id);
 });
 
 // LOGOUT ROUTE
@@ -309,19 +314,20 @@ router.post("/reset/:token", function(req, res){
     });
 });
 
-// USER FAVORITES CREATE //
-router.post("/users/:id/favorites", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id, function(err, foundUser){
+// SET CURRENTPROJECT //
+router.post("/users/:id/currentproject/", middleware.checkUserOwnership, function(req, res){
+    User.findById(req.user._id, function(err, foundUser){
         if(err) {
             console.log(err);
         } else {
-            Place.findById(req.body.placeID, function(err, foundPlace) {
+            Parcel.findById(req.body.parcelid, function(err, foundParcel) {
                 if (err) {
                     console.log(err);
                 } else {
-                    foundUser.favorites.push(foundPlace);
+                    foundUser.currentProject = foundParcel;
                     foundUser.save();
-                    res.redirect("/parcels");
+                    console.log(foundParcel.name + " has been set to active project");
+                    res.redirect("/parcels/" + foundParcel._id);
                 }
             });
         }

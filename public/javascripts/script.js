@@ -73,3 +73,16 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
     id: 'mapbox.satellite',
     accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
 }).addTo(mylayermapshow);
+
+// ADD DATA INPUT
+function addFields() {
+    // Container <div> where dynamic content will be placed
+    var container = document.getElementById("container");
+    // Create an <input> element, set its type and name attributes
+    var input = document.createElement("input");
+    input.type = "number";
+    input.step = ".01";
+    input.classList.add("form-control");
+    input.name = "flow[data]";
+    container.appendChild(input);
+}

@@ -2,48 +2,49 @@
 <% include ../partials/navbar %>
 
 <div class="container">
+    <h1>Farm: <%= parcel.name %></h1>
+    <p><%= parcel.description %></p>
     <div class="row">
+        <div class="col-md-12">
+            <h1>Farm areas</h1>
+            <p>Farm areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
+        </div>
+        <div class="col-md-7">
+            <h2>Farm area map</h2>
+            <div id='map' style='width: 600px; height: 600px;'></div>
+        </div>
+        <div class="col-md-5">
+            <h2>Farm area list</h2>
+            <div class="row">
+                <% parcel.layers.forEach (function(layer){ %>
+                <div class="col-md-12">
+                    <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
+                        <p>Explore systems for "<%= layer.name %>"</p>
+                    </a>
+                </div>
+                <% }); %>
+                <div class="col-md-12">
+                    <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
+                        <p>Add new area to this farm</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <h2>Farm details</h2>
+            <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
+            <p><strong>Farm size:</strong> <%= parcel.size %> hectare(s)</p>
+            <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
+            <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
+            <a class="btn btn-default" href="/parcels/<%= parcel._id %>/edit">Edit parcel details</a>
+            <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
+                <button class="btn btn-danger">Delete parcel</button>
+            </form>
+            <% } %>
+        </div>
         <div class="col-md-8">
             <div>
-                <h1>Farm: <%= parcel.name %></h1>
-                <p><%= parcel.description %></p>
-                <hr>
-                <% if(!(parcel.projects == "")){ %>
-                    <h2>Oplevelser og arrangementer hos <%= parcel.name %></h2>
-                    <% parcel.projects.forEach (function(project){ %>
-                        <div class="col-md-6 col-sm-6">
-                            <div class="thumbnail">
-                                <div class="caption">
-                                    <h4> <%= project.name %> </h4>
-                                    <p>Dato: <%= project.start.date %> kl. <%= project.start.time %></p>
-                                    <a href="/experiences/<%= project._id %>" class="btn btn-primary pull-right action-btn">Mere Info</a>
-                                    <% if(!(project.price === "")){ %>
-                                        <p> <%= project.price %> kr. pr. person </p>
-                                    <% } else { %>
-                                        <p> gratis </p>
-                                    <% } %>
-                                </div>
-                            </div>
-                        </div>
-                    <% }); %>
-                <% } %>
-                <h2>Farm areas</h2>
-                <div id='map' style='width: 600px; height: 600px;'></div>
-                <p>Farm areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
-                <div class="row">
-                    <% parcel.layers.forEach (function(layer){ %>
-                        <div class="col-md-12">
-                            <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
-                                <p>"<%= layer.name %>" Area Type: "<%= layer.type %>"</p>
-                            </a>
-                        </div>
-                    <% }); %>
-                    <div class="col-md-12">
-                        <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
-                            <p>Add new area to this farm</p>
-                        </a>
-                    </div>
-                </div>
+                <!--
                 <% if (parcel.practices){ %>
                 <h2>Practices used on this farm</h2>
                 <p>Below is a list of key practices used on this farm. Please keep this up-to-date to ensure the best regenerative assessment. You can add and remove practices by clicking the "Edit parcel details" button.</p>
@@ -57,7 +58,6 @@
                     <% }); %>
                 </div>
                 <% } %>
-                <!--
                 <h2>Parcel regen scores <i class="fa fa-info-circle" data-toggle="tooltip" title="These scores are generated based on your unique parcel profile and expert analysis based on leading scientific studies within agroecology."></i></h2>
                 <p>The regen score act as a baseline for the regenerative state of your land. We use the Regen Score in our regenerative assessment and for recommending new regenerative practices tailor made for your farm. </p>
                 <div class="row">
@@ -111,29 +111,12 @@
                     </div>
                 </div>
                 -->
-
             </div>
-        </div>
-        <div class="col-md-4">
-            <h2>Farm details</h2>
-            <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
-            <p><strong>Farm size:</strong> <%= parcel.size %> hectare(s)</p>
-            <p><strong>Agriculture type:</strong> <%= parcel.agType %></p>
-            <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
-            <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-default" href="/parcels/<%= parcel._id %>/edit">Edit parcel details</a>
-                <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
-                    <button class="btn btn-danger">Delete parcel</button>
-                </form>
-            <% } %>
-
         </div>
     </div>
 </div>
 
 <script>
-    // var getgeometry = "<%= parcel.geometry %>";
-    // var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
     var parcelLat = "<%= parcel.lat %>";
     var parcelLng = "<%= parcel.lng %>";
 
@@ -153,11 +136,24 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2d
             'source': {
                 'type': 'geojson',
                 'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Polygon',
-                        'coordinates': correctgeometry.geometry.coordinates
-                    }
+                    'type': 'FeatureCollection',
+                    'features': [
+                        {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': correctgeometry.geometry.coordinates
+                            }
+                        },
+                        {
+                            'type': 'Feature',
+                            'geometry': {
+                                'type': 'Polygon',
+                                'coordinates': correctgeometry1.geometry.coordinates
+                            }
+                        }
+                    ]
+
                 }
             },
             'layout': {},
