@@ -6,6 +6,7 @@ var System = require("../models/system");
 var Species = require("../models/species");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
+var unique = require("array-unique");
 
 // LAYER INDEX ROUTE
 
@@ -119,7 +120,29 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
         if(err){
             console.log(err);
         } else {
-            res.render("layers/show", {layer: foundLayer});
+            System.findById(foundLayer.systems.present._id).populate("rows.sequense").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES IN SYSTEM
+                    var allSpecies = [];
+                    foundSystem.rows.forEach(function(row){
+                        row.sequense.forEach(function(species){
+                            allSpecies.push(species.id);
+                        });
+                    });
+                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                    var uniqueSpecies = unique(allSpecies);
+                    // FIND SPECIES AND POPULATE FLOWS
+                    Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
+                        if(err) {
+                            console.log(err);
+                        } else {
+                            res.render("layers/show", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies});
+                        }
+                    });
+                }
+            });
         }
     });
 });

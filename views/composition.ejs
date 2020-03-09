@@ -15,8 +15,9 @@
             <td>Emergent</td>
             <td></td>
             <td></td>
-            <td><% species.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height > 30){ %>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>
                 <% }); %>

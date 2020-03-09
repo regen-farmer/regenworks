@@ -7,47 +7,6 @@
             <h1>Area: "<%= layer.name %>"</h1>
             <p><%= layer.description %></p>
         </div>
-        <div class="col-md-8">
-            <h2>Current production system on area</h2>
-            <p>The current production system has been defined as "<%= layer.type %>".</p>
-            <% if(!(layer.systems.present == "")){ %>
-                <p><%= layer.systems.present.name %></p>
-                <a class="btn btn-default" href="/systems/<%= layer.systems.present._id %>">See current system: <%= layer.systems.present.name %></a>
-                <h2>System layers</h2>
-                <table class="table table-striped">
-                    <tr>
-                        <td>Layer</td>
-                        <td>Species</td>
-                    </tr>
-                    <tr>
-                        <td>Canopy</td>
-                        <td>Tree species</td>
-                    </tr>
-                    <tr>
-                        <td>Sub-canopy</td>
-                        <td>Low tree and shrub species</td>
-                    </tr>
-                </table>
-            <% } %>
-            <h2>Plan new agroforestry system</h2>
-            <% if(!(layer.systems.future == "")){ %>
-                <p>Saved future system drafts</p>
-                <% layer.systems.future.forEach(function(system){ %>
-                    <a class="btn btn-default" href="/systems/<%= system._id %>">View <%= system.name %></a>
-                    <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
-                        <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
-                        <button class="btn btn-warning">Set as current system</button>
-                    </form>
-                <% }); %>
-            <% } %>
-            <% if(layer.systems.future.length > 1){ %>
-            <% } %>
-            <p>Plan new system</p>
-            <a class="btn btn-success" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
-            <a class="btn btn-primary" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
-            <h2>See production system timeline</h2>
-            <a class="btn btn-default" href="/layers/<%= layer._id %>/systems">See timeline</a>
-        </div>
         <div class="col-md-4">
             <div>
                 <div id="layerMapShow"></div>
@@ -66,6 +25,126 @@
                 <p>System alignment: N/A</p>
                 <hr>
             </div>
+        </div>
+        <div class="col-md-4">
+            <h2>Current production system on area</h2>
+            <p>The current production system has been defined as "<%= layer.type %>".</p>
+            <% if(!(layer.systems.present == "")){ %>
+                <p><%= layer.systems.present.name %></p>
+            <div class="row">
+                <% if(presentsystem.rows){ %>
+                <% presentsystem.rows.forEach(function(row, i){ %>
+                <% if(row.sequense[0].form === "tree"){ %>
+                <% if(row.sequense[0].height > 12){ %>
+                <div class="col-sm-3">
+                    <img class="img-responsive" src="/images/treehigh.svg">
+                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                </div>
+                <% } else { %>
+                <div class="col-sm-3">
+                    <img class="img-responsive" src="/images/treelow.svg">
+                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                </div>
+                <% } %>
+                <% } else { %>
+                <div class="col-sm-3">
+                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                </div>
+                <% } %>
+                <% }); %>
+                <% } %>
+            </div>
+            <div class="row">
+                <% if(presentsystem.rows){ %>
+                <% presentsystem.rows.forEach(function(row){ %>
+                <div class="col-sm-3">
+                    <% row.sequense.reverse().forEach(function(sequense){ %>
+                    <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
+                    <p class="text-center"><%= sequense.nameCommon %></p>
+                    <% }); %>
+                </div>
+                <% }); %>
+                <% } %>
+            </div>
+            <a class="btn btn-default" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
+            <hr>
+            <div class="thumbnail">
+                <div class="caption">
+                    <h2>Current system layers</h2>
+                    <table class="table table-striped">
+                        <tr>
+                            <td><strong>Layer</strong></td>
+                            <td><strong>Species</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Canopy</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "tree" || species.form == "palm" ){ %>
+                                <em><%= species.nameCommon %>,</em>
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sub-canopy</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "shrub" || species.form == "giantherb" ){ %>
+                                <em><%= species.nameCommon %>,</em>
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Climbers</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "vine"){ %>
+                                <em><%= species.nameCommon %>,</em>
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ground</td>
+                            <td>
+                                <% species.forEach(function(species){ %>
+                                <% if(species.form == "herb" || species.form == "grass" ){ %>
+                                <em><%= species.nameCommon %>,</em>
+                                <% } %>
+                                <% }); %>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <% } %>
+        </div>
+        <div class="col-md-4">
+            <h2>Plan new agroforestry system</h2>
+            <% if(!(layer.systems.future == "")){ %>
+            <p>Saved future system drafts</p>
+            <% layer.systems.future.forEach(function(system){ %>
+                <div class="thumbnail">
+                    <div class="caption">
+                        <p><%= system.name %></p>
+                        <a class="btn btn-default" href="/systems/<%= system._id %>">View more details</a>
+                        <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
+                            <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
+                            <button class="btn btn-warning">Set as current system</button>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+            <% } %>
+            <% if(layer.systems.future.length > 1){ %>
+            <% } %>
+            <a class="btn btn-success" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
+            <a class="btn btn-primary" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
+            <h2>See production system timeline</h2>
+            <a class="btn btn-default" href="/layers/<%= layer._id %>/systems">See timeline</a>
         </div>
     </div>
 </div>
