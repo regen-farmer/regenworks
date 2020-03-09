@@ -112,7 +112,8 @@ router.post("/users", function(req, res){
             logger.info('New user "' + user.username + '" was created', {timestamp: Date.now()});
             passport.authenticate("local")(req, res, function(){
                 // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
-                res.redirect("/users/" + req.user.id); // Redirect to user account page
+                // res.redirect("/users/" + req.user.id); // Redirect to user account page
+                res.redirect("/parcels/new");
             });
         });
     } else {

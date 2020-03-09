@@ -3,14 +3,14 @@
 
 <div class="container">
     <h1>Farm area analysis</h1>
-    <p>Assess suitable agroforestry systems for individual areas of your farm.</p>
+    <p>Assess suitable agroforestry systems for individual areas on the farm.</p>
     <% if(!(parcel.layers == "")){ %>
     <div class="row">
         <% parcel.layers.forEach(function(layer){ %>
         <div class="col-lg-3">
             <div class="thumbnail">
                 <div class="caption">
-                    <p>Area: <%= layer.name %></p>
+                    <h2>Area: "<%= layer.name %>"</h2>
                     <a class="btn btn-success" href="/layers/<%= layer._id %>/analysis">Assess this area</a>
                 </div>
             </div>

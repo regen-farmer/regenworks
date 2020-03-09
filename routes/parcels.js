@@ -88,7 +88,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
                         // Save the layer
                         newlyCreated.save();
                         // req.flash("success", "You have successfully created a new parcel");
-                        res.redirect("/parcels/" + newlyCreated._id);
+                        res.redirect("/parcels/" + newlyCreated._id + "/layers/new");
                     }
                 });
             }

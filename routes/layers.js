@@ -176,6 +176,7 @@ router.post("/layers/:id/presentsystem", middleware.isLoggedIn, function(req, re
                     }
                     // SET CURRENT SYSTEM TO FUTURE DRAFT
                     foundLayer.systems.present = foundSystem;
+                    foundLayer.type = "agroforestry";
                     console.log(foundSystem.name + " has been set to current system");
                     // REMOVE FUTURE DRAFT FROM FUTURE ARRAY
                     foundLayer.systems.future.remove(foundSystem);

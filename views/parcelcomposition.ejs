@@ -6,21 +6,24 @@
     <% if(!(layers == "")){ %>
     <p>Select a system and optimize its species composition.</p>
     <div class="row">
+        <% layers.forEach(function(layer){ %>
+        <div class="col-lg-3">
             <div class="thumbnail">
-                <div class="row">
-                    <% layers[0].systems.future.forEach(function(system){ %>
-                    <div class="col-sm-3">
+                <div class="caption">
+                        <h2>Systems on area "<%= layer.name %>"</h2>
+                    <% layer.systems.future.forEach(function(system){ %>
+                    <hr>
                         <p><%= system.name %></p>
-                    </div>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/composition">Explore species composition</a>
+
                     <% }); %>
                 </div>
-                <div class="caption">
-                    <button class="btn btn-success btn">Add system to future drafts</button>
-                </div>
             </div>
+        </div>
+        <% }); %>
     </div>
     <% } else { %>
-    <p>There currently is no systems defined on any of your areas.</p>
+    <p>There currently is no future systems defined on any of your areas.</p>
     <% } %>
 </div>
 

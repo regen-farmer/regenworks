@@ -201,10 +201,9 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                             for(i=0;i<systems.length;i++){
                                 if(systems[i].flows.length > 0){
                                     systemsproven.push(systems[i]);
-                                    systems.splice(i);
                                 }
                             }
-                            console.log(systemsproven);
+                            console.log("Proven systems for this area: " + systemsproven.length);
                             if(systems.length < 1){
                                 res.redirect("layers/" + foundLayer._id);
                             } else {

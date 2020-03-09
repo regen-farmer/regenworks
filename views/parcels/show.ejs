@@ -9,17 +9,14 @@
             <h1>Farm areas</h1>
             <p>Farm areas is a simple way to organize the different activities on your farm into specific zones and areas. </p>
         </div>
-        <div class="col-md-7">
-            <h2>Farm area map</h2>
-            <div id='map' style='width: 600px; height: 600px;'></div>
-        </div>
+
         <div class="col-md-5">
             <h2>Farm area list</h2>
             <div class="row">
                 <% parcel.layers.forEach (function(layer){ %>
                 <div class="col-md-12">
                     <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
-                        <p>Explore systems for "<%= layer.name %>"</p>
+                        <p>Explore production systems for "<%= layer.name %>"</p>
                     </a>
                 </div>
                 <% }); %>
@@ -29,8 +26,6 @@
                     </a>
                 </div>
             </div>
-        </div>
-        <div class="col-md-12">
             <h2>Farm details</h2>
             <p><i class="fas fa-map-marker"></i> <%= parcel.location %></p>
             <p><strong>Farm size:</strong> <%= parcel.size %> hectare(s)</p>
@@ -41,6 +36,13 @@
                 <button class="btn btn-danger">Delete parcel</button>
             </form>
             <% } %>
+        </div>
+        <div class="col-md-7">
+            <h2>Farm area map</h2>
+            <div id='map' style='width: 600px; height: 600px;'></div>
+        </div>
+        <div class="col-md-12">
+
         </div>
         <div class="col-md-8">
             <div>
