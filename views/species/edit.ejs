@@ -124,11 +124,27 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="species[precipitation][min]">Min precipitation</label>
+                    <input type="number" class="form-control" name="species[precipitation][min]" value="<%= species.precipitation.min %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[precipitation][max]">Max precipitation</label>
+                    <input type="number" class="form-control" name="species[precipitation][max]" value="<%= species.precipitation.max %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[temperature][min]">Min temp</label>
+                    <input type="number" class="form-control" name="species[temperature][min]" value="<%= species.temperature.min %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[temperature][max]">Max temp</label>
+                    <input type="number" class="form-control" name="species[temperature][max]" value="<%= species.temperature.max %>">
+                </div>
+                <div class="form-group">
                     <label for="species[height]">Mature height</label>
                     <input type="number" class="form-control" name="species[height]" value="<%= species.height %>">
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success btn-lg center-block">Create new species</button>
+                    <button type="submit" class="btn btn-success btn-lg center-block">Update species</button>
                 </div>
             </form>
         </div>
