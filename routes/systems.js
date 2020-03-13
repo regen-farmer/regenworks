@@ -4,6 +4,7 @@ var unique = require("array-unique");
 var System = require("../models/system");
 var Layer = require("../models/layer");
 var Species = require("../models/species");
+var Parcel = require("../models/parcel");
 var middleware = require("../middleware");
 
 // NESTED AREA SYSTEM INDEX
@@ -168,7 +169,20 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
                 if(err) {
                     console.log(err);
                 } else {
-                    res.render("composition", {system: foundSystem, species: foundSpecies});
+                    Parcel.findById(req.user.currentProject, function(err, foundParcel){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}}, function(err, foundSuitableSpecies){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    console.log(foundSuitableSpecies);
+                                    res.render("composition", {system: foundSystem, species: foundSpecies, suitablespecies: foundSuitableSpecies});
+                                }
+                            });
+                        }
+                    });
                 }
             });
         }
@@ -190,25 +204,38 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                         if(err){
                             console.log(err);
                         } else {
-                            // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?)
-                            var systems = [];
-                            for(i=0;i<foundSystems.length;i++){
-                                if(foundSystems[i].shared === true){
-                                    systems.push(foundSystems[i]);
+                            Parcel.findById(req.user.currentProject, function(err, foundParcel) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?)
+                                    var systems = [];
+                                    for(i=0;i<foundSystems.length;i++){
+                                        if(foundSystems[i].shared === true){
+                                            systems.push(foundSystems[i]);
+                                        }
+                                    }
+                                    var systemsproven = [];
+                                    for(i=0;i<systems.length;i++){
+                                        if(systems[i].flows.length > 0){
+                                            systemsproven.push(systems[i]);
+                                        }
+                                    }
+                                    var systemsclimate = [];
+                                    for(i=0;i<systems.length;i++){
+                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec){
+                                            systemsclimate.push(systems[i]);
+                                        }
+                                    }
+                                    console.log("Proven systems for this area: " + systemsproven.length);
+                                    console.log(systemsclimate[0].name);
+                                    if(systems.length < 1){
+                                        res.redirect("layers/" + foundLayer._id);
+                                    } else {
+                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate});
+                                    }
                                 }
-                            }
-                            var systemsproven = [];
-                            for(i=0;i<systems.length;i++){
-                                if(systems[i].flows.length > 0){
-                                    systemsproven.push(systems[i]);
-                                }
-                            }
-                            console.log("Proven systems for this area: " + systemsproven.length);
-                            if(systems.length < 1){
-                                res.redirect("layers/" + foundLayer._id);
-                            } else {
-                                res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven});
-                            }
+                            });
                         }
                     });
                 }

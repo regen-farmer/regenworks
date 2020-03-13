@@ -91,7 +91,11 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                             sequense: []
                                         }
                                     ],
-                                    shared: false
+                                    shared: false,
+                                    owner: {
+                                        id: req.user._id,
+                                        username: req.user.username
+                                    }
                                 };
                                 presentsystem.rows[0].sequense.push(foundSpecies);
                                 // CREATE SYSTEM

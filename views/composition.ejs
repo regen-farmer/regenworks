@@ -3,6 +3,7 @@
 
 <div class="container">
     <h1>System species consortium for <%= system.name %></h1>
+    <p>Analyse the succession of the system to fill potential gaps.</p>
     <p>Climate zone: </p>
     <table class="table table-striped">
         <tr>
@@ -18,7 +19,12 @@
             <td>
                 <% species.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29){ %>
-                <p><%= species.nameCommon %></p>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29){ %>
+                    <p><%= species.nameCommon %></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -27,6 +33,11 @@
             <td>High</td>
             <td><% species.forEach(function(species){ %>
                 <% if(species.form == "giantherb" ){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "giantherb")){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>
                 <% }); %>
@@ -34,6 +45,11 @@
             <td></td>
             <td>
                 <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>
@@ -44,13 +60,35 @@
             <td>Medium</td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if(species.form == "herb" || species.form == "grass" ){ %>
+                <% if(species.form == "herb" || species.form == "grass"){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "herb" || species.form == "grass"){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>
                 <% }); %>
             </td>
-            <td></td>
-            <td><% species.forEach(function(species){ %>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "succulent" || species.form == "cactus" ){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "succulent" || species.form == "cactus" ){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "shrub"){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "shrub"){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>

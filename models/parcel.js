@@ -40,7 +40,38 @@ var parcelSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Project"
         }
-    ]
+    ],
+    climate: {
+        monthlyaveragetemp: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        },
+        annualaverageprec: Number,
+        monthlyaverageprec: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        }
+    }
 });
 
 module.exports = mongoose.model("Parcel", parcelSchema);

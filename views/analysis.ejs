@@ -31,15 +31,15 @@
             <% } %>
         </div>
     <% } %>
-    <h2>Promissing systems for you</h2>
+    <h2>Promissing systems for your climate</h2>
     <p>Systems that have been implemented, but current data is not sufficient to give any good indications about performance.</p>
-    <% if(!(systems == "")){ %>
+    <% if(!(systemsclimate == "")){ %>
     <div class="row">
-        <% for(i=0;i<systems.length;i++){ %>
+        <% for(i=0;i<systemsclimate.length;i++){ %>
         <div class="col-lg-4">
             <div class="thumbnail">
                 <div class="row">
-                    <% systems[i].rows.forEach(function(row){ %>
+                    <% systemsclimate[i].rows.forEach(function(row){ %>
                     <div class="col-sm-3">
                         <% if(row.sequense[0].family === "pinaceae"){ %>
                             <img class="img-responsive" src="/images/conifer.svg">
@@ -50,9 +50,9 @@
                     <% }); %>
                 </div>
                 <div class="caption">
-                    <p><%= systems[i].name %></p>
+                    <p><%= systemsclimate[i].name %></p>
                     <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                        <input type="hidden" id="systemid" name="systemid" value="<%= systems[i]._id %>">
+                        <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
                         <button class="btn btn-success">Add system to future drafts</button>
                     </form>
                 </div>

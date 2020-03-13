@@ -111,6 +111,11 @@
                         <% } else { %>
                             <option value="shrub">Shrub</option>
                         <% } %>
+                        <% if(species.form === "succulent") { %>
+                        <option selected="selected" value="succulent">Succulent</option>
+                        <% } else { %>
+                        <option value="succulent">Succulent</option>
+                        <% } %>
                         <% if(species.form === "tree") { %>
                             <option selected="selected" value="tree">Tree</option>
                         <% } else { %>
