@@ -173,7 +173,7 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
                         if(err){
                             console.log(err);
                         } else {
-                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}}, function(err, foundSuitableSpecies){
+                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}, "temperature.min": {$lt: foundParcel.climate.hardiness.high}}, function(err, foundSuitableSpecies){
                                 if(err){
                                     console.log(err);
                                 } else {
@@ -223,7 +223,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     }
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
-                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec){
+                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high){
                                             systemsclimate.push(systems[i]);
                                         }
                                     }

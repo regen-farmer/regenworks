@@ -70,6 +70,10 @@ var parcelSchema = new mongoose.Schema({
             october: Number,
             november: Number,
             december: Number
+        },
+        hardiness: {
+            low: Number,
+            high: Number
         }
     }
 });

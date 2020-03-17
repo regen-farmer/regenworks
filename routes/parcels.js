@@ -129,11 +129,15 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
                     climateScoreCount = climateScoreCount + 1;
                 }
             });
+            var geometry = "";
+            if(foundParcel.layers){
+                geometry = foundParcel.layers[0].geometry;
+            }
             var soilScoreFinal = (soilScore / soilScoreCount).toFixed(2);
             var bioScoreFinal = (bioScore / bioScoreCount).toFixed(2);
             var waterScoreFinal = (waterScore / waterScoreCount).toFixed(2);
             var climateScoreFinal = (climateScore / climateScoreCount).toFixed(2);
-            res.render("parcels/show", {parcel: foundParcel, soilScore: soilScoreFinal, bioScore: bioScoreFinal, waterScore: waterScoreFinal, climateScore: climateScoreFinal});
+            res.render("parcels/show", {parcel: foundParcel, soilScore: soilScoreFinal, bioScore: bioScoreFinal, waterScore: waterScoreFinal, climateScore: climateScoreFinal, geometry: geometry});
         }
     });
 });

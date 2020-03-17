@@ -13,10 +13,19 @@
                         <div class="thumbnail">
                             <div class="row">
                                 <% systemsproven[i].rows.forEach(function(row){ %>
-                                <div class="col-sm-3">
-                                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
-                                </div>
+                                    <div class="col-sm-3">
+                                        <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                    </div>
                                 <% }); %>
+                                <% if(systemsproven[i].rows.length > 1){ %>
+                                    <div class="col-sm-3">
+                                        <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                                            <img class="img-responsive" src="/images/conifer.svg">
+                                        <% } else { %>
+                                            <img class="img-responsive" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
+                                        <% } %>
+                                    </div>
+                                <% }; %>
                             </div>
                             <div class="caption">
                                 <p><%= systemsproven[i].name %></p>
@@ -40,14 +49,23 @@
             <div class="thumbnail">
                 <div class="row">
                     <% systemsclimate[i].rows.forEach(function(row){ %>
-                    <div class="col-sm-3">
-                        <% if(row.sequense[0].family === "pinaceae"){ %>
-                            <img class="img-responsive" src="/images/conifer.svg">
-                        <% } else { %>
-                            <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
-                        <% } %>
-                    </div>
+                        <div class="col-sm-3">
+                            <% if(row.sequense[0].family === "pinaceae"){ %>
+                                <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else { %>
+                                <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                            <% } %>
+                        </div>
                     <% }); %>
+                    <% if(systemsclimate[i].rows.length > 1){ %>
+                        <div class="col-sm-3">
+                            <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                                <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else { %>
+                                <img class="img-responsive" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
+                            <% } %>
+                        </div>
+                    <% }; %>
                 </div>
                 <div class="caption">
                     <p><%= systemsclimate[i].name %></p>

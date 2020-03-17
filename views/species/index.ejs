@@ -4,11 +4,13 @@
 <div class="container">
     <h1>Species</h1>
     <a href="/species/new" class="btn btn-success">Add new species</a>
+    <p><%= species.length %></p>
     <table class="table table-striped">
         <tr>
             <td>Common name</td>
             <td>Latin</td>
             <td>Precip</td>
+            <td>Temp</td>
             <td></td>
         </tr>
         <% species.forEach(function(species){ %>
@@ -19,6 +21,11 @@
                     <td><%= species.precipitation.min %> - <%= species.precipitation.max %></td>
                 <% } else { %>
                     <td>no precipitation data</td>
+                <% } %>
+                <% if(!(species.temperature === "")){ %>
+                <td><%= species.temperature.min %> - <%= species.temperature.max %></td>
+                <% } else { %>
+                <td>no precipitation data</td>
                 <% } %>
                 <td><a href="/species/<%= species._id %>" class="btn btn-success">Show more</a></td>
             </tr>

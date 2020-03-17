@@ -4,12 +4,13 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Area: "<%= layer.name %>"</h1>
-            <p><%= layer.description %></p>
+
         </div>
         <div class="col-md-4">
             <div>
                 <div id="layerMapShow"></div>
+                <h2>Area: "<%= layer.name %>"</h2>
+                <p><%= layer.description %></p>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
                 <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit area</a>
@@ -27,7 +28,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <h2>Current production system on area</h2>
+            <h2>Current area system</h2>
             <p>The current production system has been defined as "<%= layer.type %>".</p>
             <% if(!(layer.systems.present == "")){ %>
                 <p><%= layer.systems.present.name %></p>
@@ -131,10 +132,36 @@
                     <div class="caption">
                         <p><%= system.name %></p>
                         <a class="btn btn-default" href="/systems/<%= system._id %>">View more details</a>
-                        <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
-                            <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
-                            <button class="btn btn-warning">Set as current system</button>
-                        </form>
+                        <button class="btn btn-warning" data-toggle="modal" data-target="#setCurrentModal">Set as current system</button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="setCurrentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="exampleModalLabel">Set system "<%= system.name %>" to current</h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>You are about to change the current production system for this area.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
+                                                    <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
+                                                    <button class="btn btn-warning pull-left">Change current system</button>
+                                                </form>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <button type="button" class="btn btn-secondary pull-right" data-dismiss="modal">Cancel change and close this window</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <% }); %>
