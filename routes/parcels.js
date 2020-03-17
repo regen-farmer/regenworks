@@ -46,7 +46,13 @@ router.get("/parcels/new", middleware.isLoggedIn, function (req, res){
 router.post("/parcels", middleware.isLoggedIn, function(req, res){
     // Create variable with new place posted from place form
     var name = req.body.parcel.name;
-    var climate = {annualaverageprec: req.body.parcel.climate.annualaverageprec};
+    var climate = {
+        annualaverageprec: req.body.parcel.climate.annualaverageprec,
+        hardiness: {
+            low: -18,
+            high: -12
+        }
+        };
     var soilType = req.body.parcel.soilType;
     var agType = req.body.parcel.agType;
     var size = req.body.parcel.size;

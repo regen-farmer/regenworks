@@ -6,7 +6,7 @@
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
     <h2>The proven and tested</h2>
     <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields have been measured.</p>
-    <% if(!(systemsproven == "")){ %>
+    <% if(systemsproven.length > 0){ %>
         <div class="row">
             <% for(i=0;i<systemsproven.length;i++){ %>
                     <div class="col-lg-4">
@@ -19,10 +19,10 @@
                                 <% }); %>
                                 <% if(systemsproven[i].rows.length > 1){ %>
                                     <div class="col-sm-3">
-                                        <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                                        <% if(systemsproven[i].rows[0].sequense[0].family === "pinaceae"){ %>
                                             <img class="img-responsive" src="/images/conifer.svg">
                                         <% } else { %>
-                                            <img class="img-responsive" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
+                                            <img class="img-responsive" src="/images/<%= systemsproven[i].rows[0].sequense[0].form %>.svg">
                                         <% } %>
                                     </div>
                                 <% }; %>
@@ -42,7 +42,7 @@
     <% } %>
     <h2>Promissing systems for your climate</h2>
     <p>Systems that have been implemented, but current data is not sufficient to give any good indications about performance.</p>
-    <% if(!(systemsclimate == "")){ %>
+    <% if(systemsclimate.length > 0){ %>
     <div class="row">
         <% for(i=0;i<systemsclimate.length;i++){ %>
         <div class="col-lg-4">

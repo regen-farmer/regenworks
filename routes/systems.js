@@ -223,12 +223,11 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     }
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
-                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high){
+                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[0].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
                                             systemsclimate.push(systems[i]);
                                         }
                                     }
                                     console.log("Proven systems for this area: " + systemsproven.length);
-                                    console.log(systemsclimate[0].name);
                                     if(systems.length < 1){
                                         res.redirect("layers/" + foundLayer._id);
                                     } else {
