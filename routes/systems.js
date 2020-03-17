@@ -173,7 +173,7 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
                         if(err){
                             console.log(err);
                         } else {
-                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}, "temperature.min": {$lt: foundParcel.climate.hardiness.high}}, function(err, foundSuitableSpecies){
+                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}, "temperature.min": {$lt: foundParcel.climate.hardiness.high}, "temperature.max": {$gt: foundParcel.climate.hardiness.low}}, function(err, foundSuitableSpecies){
                                 if(err){
                                     console.log(err);
                                 } else {
