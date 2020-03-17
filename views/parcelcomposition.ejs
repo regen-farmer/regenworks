@@ -4,7 +4,8 @@
 <div class="container">
     <h1>Farm area system species composition</h1>
     <% if(!(layers == "")){ %>
-    <p>Select a system and optimize its species composition.</p>
+    <p>Select a system and optimize its species composition. This page only shows future system drafts. If you want to check the composition of the current system on an area, select an area on
+        <a href="/parcels/<%= parcel._id %>">this page.</a></p>
     <div class="row">
         <% layers.forEach(function(layer){ %>
         <div class="col-lg-3">
