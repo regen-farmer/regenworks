@@ -243,4 +243,27 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
     });
 });
 
+// SYSTEM OCCURRENCE NEW ROUTE
+router.get("/systems/:id/occurrences/new", middleware.isLoggedIn, function(req, res){
+    System.findById(req.params.id, function(err, foundSystem){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("systems/occurrences", {system: foundSystem});
+        }
+    });
+});
+
+// SYSTEM OCCURRANCE CREATE ROUTE
+router.put("/systems/:id/occurrences", middleware.isLoggedIn, function(req, res){
+    System.findByIdAndUpdate(req.params.id, {$addToSet: {occurrences: req.body.occurrence}}, function(err, updatedSystem){
+        if(err){
+            console.log(err);
+        } else {
+            console.log(req.body.occurrence + " has been added to the system");
+            res.redirect("/systems/" + updatedSystem._id);
+        }
+    });
+});
+
 module.exports = router;

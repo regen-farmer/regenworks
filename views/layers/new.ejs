@@ -19,7 +19,7 @@
                 <div class="form-group">
                     <!-- Button trigger modal -->
                     <a class="pull-right" data-toggle="modal" data-target="#layerTypesModal">View area type definitions</a>
-                    <label for="layer[type]">Existing production type</label>
+                    <label for="layer[type]">Existing production type on area</label>
                     <select class="form-control" name="layer[type]">
                         <option value="arable">Crop cultivation</option>
                         <option value="grassland">Pasture/grassland</option>
@@ -61,6 +61,15 @@
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
                             <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="animal">Current animal (If any)</label>
+                    <select name="animal">
+                        <option value="">none</option>
+                        <% animals.forEach(function(animal){ %>
+                        <option value="<%= animal._id %>"><%= animal.name %></option>
                         <% }); %>
                     </select>
                 </div>

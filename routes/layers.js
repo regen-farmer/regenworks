@@ -4,6 +4,7 @@ var Layer = require("../models/layer");
 var Parcel = require("../models/parcel");
 var System = require("../models/system");
 var Species = require("../models/species");
+var Animal = require("../models/animal");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
@@ -33,7 +34,23 @@ router.get("/parcels/:id/layers/new", middleware.isLoggedIn, function(req, res){
                         return 0;
                     }
                     foundSpecies.sort(compare);
-                    res.render("layers/new", {parcel: foundParcel, species: foundSpecies});
+                    Animal.find(function(err, foundAnimals){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            function compare1( a, b ) {
+                                if ( a.name < b.name ){
+                                    return -1;
+                                }
+                                if ( a.name > b.name ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundAnimals.sort(compare1);
+                            res.render("layers/new", {parcel: foundParcel, species: foundSpecies, animals: foundAnimals});
+                        }
+                    });
                 }
             });
         }
@@ -95,8 +112,19 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                     owner: {
                                         id: req.user._id,
                                         username: req.user.username
-                                    }
+                                    },
+                                    animals: []
                                 };
+                                // FIND ANIMAL AND PUSH TO SYSTEM
+                                if(!(req.body.animal === "")){
+                                    Animal.findById(req.body.animal, function(err, foundAnimal){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            presentsystem.animals.push(foundAnimal);
+                                        }
+                                    });
+                                }
                                 presentsystem.rows[0].sequense.push(foundSpecies);
                                 // CREATE SYSTEM
                                 System.create(presentsystem, function(err, createdSystem){

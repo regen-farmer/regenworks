@@ -15,6 +15,12 @@ var systemSchema = new mongoose.Schema({
         }
 
     ],
+    animals: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Animal"
+        }
+    ],
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +36,18 @@ var systemSchema = new mongoose.Schema({
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Systemflow"
+        }
+    ],
+    occurrences: [
+        {
+            name: String,
+            lat: Number,
+            lng: Number,
+            alt: Number,
+            country: String,
+            source: String,
+            eco: Number,
+            koppen: String
         }
     ]
 });
