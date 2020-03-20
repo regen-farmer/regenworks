@@ -45,12 +45,12 @@
             <td></td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 30){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 30){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10){ %>
                 <p><%= species.nameCommon %></p>
                 <% } %>
                 <% }); %>
@@ -70,6 +70,24 @@
                 <% } %>
                 <% }); %>
             </td>
+            <td>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11){ %>
+                <p><%= species.nameCommon %></p>
+                <% } %>
+                <% }); %>
+            </td>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td></td>
             <td>
                 <% species.forEach(function(species){ %>
                 <% if(species.form == "succulent" || species.form == "cactus" ){ %>
@@ -94,12 +112,6 @@
                 <% } %>
                 <% }); %>
             </td>
-        </tr>
-        <tr>
-            <td>Low</td>
-            <td></td>
-            <td></td>
-            <td></td>
         </tr>
     </table>
 </div>
