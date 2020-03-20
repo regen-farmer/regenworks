@@ -115,6 +115,8 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                     },
                                     animals: []
                                 };
+                                // ADD SPECIES TO ROW SEQUENSE IN NEW SYSTEM
+                                presentsystem.rows[0].sequense.push(foundSpecies);
                                 // FIND ANIMAL AND PUSH TO SYSTEM
                                 if(!(req.body.animal === "")){
                                     Animal.findById(req.body.animal, function(err, foundAnimal){
@@ -122,21 +124,32 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                             console.log(err);
                                         } else {
                                             presentsystem.animals.push(foundAnimal);
+                                            // CREATE SYSTEM
+                                            System.create(presentsystem, function(err, createdSystem){
+                                                if(err){
+                                                    console.log(err);
+                                                } else {
+                                                    // ASS SYSTEM TO PRESENT SYSTEM
+                                                    layer.systems.present = createdSystem;
+                                                    layer.save();
+                                                    res.redirect("/parcels/" + foundParcel._id);
+                                                }
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    // CREATE SYSTEM
+                                    System.create(presentsystem, function(err, createdSystem){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            // ASS SYSTEM TO PRESENT SYSTEM
+                                            layer.systems.present = createdSystem;
+                                            layer.save();
+                                            res.redirect("/parcels/" + foundParcel._id);
                                         }
                                     });
                                 }
-                                presentsystem.rows[0].sequense.push(foundSpecies);
-                                // CREATE SYSTEM
-                                System.create(presentsystem, function(err, createdSystem){
-                                    if(err){
-                                        console.log(err);
-                                    } else {
-                                        // ASS SYSTEM TO PRESENT SYSTEM
-                                        layer.systems.present = createdSystem;
-                                        layer.save();
-                                        res.redirect("/parcels/" + foundParcel._id);
-                                    }
-                                });
                             }
                         });
                     }
@@ -152,7 +165,7 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
         if(err){
             console.log(err);
         } else {
-            System.findById(foundLayer.systems.present._id).populate("rows.sequense").exec(function(err, foundSystem){
+            System.findById(foundLayer.systems.present._id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
                 if(err){
                     console.log(err);
                 } else {

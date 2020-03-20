@@ -5,6 +5,7 @@ var System = require("../models/system");
 var Layer = require("../models/layer");
 var Species = require("../models/species");
 var Parcel = require("../models/parcel");
+var Animal = require("../models/animal");
 var middleware = require("../middleware");
 
 // NESTED AREA SYSTEM INDEX
@@ -42,8 +43,26 @@ router.get("/layers/:id/systems/new", middleware.isLoggedIn, function(req, res){
                         return 0;
                     }
                     foundSpecies.sort(compare);
-                    // RENDER NEW SYSTEM PAGE WITH SPECIES
-                    res.render("systems/new", {layer: foundLayer, species: foundSpecies});
+                    // FIND ALL ANIMALS AND SORT
+                    Animal.find(function(err, foundAnimals){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // SORT ANIMALS
+                            function compare1( a, b ) {
+                                if ( a.name < b.name ){
+                                    return -1;
+                                }
+                                if ( a.name > b.name ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundAnimals.sort(compare1);
+                            // RENDER NEW SYSTEM PAGE WITH SPECIES
+                            res.render("systems/new", {layer: foundLayer, species: foundSpecies, animals: foundAnimals});
+                        }
+                    });
                 }
             });
         }
@@ -77,6 +96,12 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
                     rows.push(system.rows[i]);
                 }
             }
+            // REMOVE ANIMAL ITEMS IF NONE
+            for(var i = system.animals.length - 1; i >= 0; i--){
+                if(system.animals[i] === ""){
+                    system.animals.splice(i, 1);
+                }
+            }
             // INSERT UPDATED ROWS
             system.rows = rows;
             System.create(system, function(err, createdSystem){
@@ -107,7 +132,7 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
 
 // SYSTEM SHOW ROUTE
 router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("rows.sequense").exec(function(err, foundSystem){
+    System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
         } else {

@@ -169,6 +169,15 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="system[animals][0]">Animals in system (If any)</label>
+                    <select name="system[animals][0]">
+                        <option value="">none</option>
+                        <% animals.forEach(function(animal){ %>
+                        <option value="<%= animal._id %>"><%= animal.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="system[shared]">Share this system with other farmers.</label>
                     <input type="checkbox" class="form-control" name="system[shared]">
                 </div>

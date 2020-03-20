@@ -93,6 +93,15 @@
                                 <% }); %>
                             </td>
                         </tr>
+                        <tr>
+                            <td>Animals</td>
+                            <td>
+                                <% if(system.animals.length > 0){ %>
+                                    <p><%= system.animals[0].name %></p>
+                                <% } %>
+                            </td>
+                        </tr>
+
                     </table>
                     <a class="btn btn-success" href="/systems/<%= system._id %>/composition">Analyse system composition</a>
                 </div>
