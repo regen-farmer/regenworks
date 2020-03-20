@@ -57,7 +57,7 @@
                             <% } %>
                         </div>
                     <% }); %>
-                    <% if(systemsclimate[i].rows.length > 1){ %>
+                    <% if(systemsclimate[i].rows.length > 1 && systemsclimate[i].rows.length < 4){ %>
                         <div class="col-sm-3">
                             <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
                                 <img class="img-responsive" src="/images/conifer.svg">
