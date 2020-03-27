@@ -5,19 +5,19 @@
     <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
     <h2>The proven and tested</h2>
-    <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields have been measured.</p>
+    <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields and performance have been measured.</p>
     <% if(systemsproven.length > 0){ %>
         <div class="row">
             <% for(i=0;i<systemsproven.length;i++){ %>
                     <div class="col-lg-4">
                         <div class="thumbnail">
-                            <div class="row">
-                                <% systemsproven[i].rows.forEach(function(row){ %>
+                                <div class="row">
+                                    <% systemsproven[i].rows.forEach(function(row){ %>
                                     <div class="col-sm-3">
                                         <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
                                     </div>
-                                <% }); %>
-                                <% if(systemsproven[i].rows.length > 1){ %>
+                                    <% }); %>
+                                    <% if(systemsproven[i].rows.length > 1){ %>
                                     <div class="col-sm-3">
                                         <% if(systemsproven[i].rows[0].sequense[0].family === "pinaceae"){ %>
                                             <img class="img-responsive" src="/images/conifer.svg">
@@ -25,23 +25,26 @@
                                             <img class="img-responsive" src="/images/<%= systemsproven[i].rows[0].sequense[0].form %>.svg">
                                         <% } %>
                                     </div>
-                                <% }; %>
-                            </div>
-                            <div class="caption">
-                                <p><%= systemsproven[i].name %></p>
-                                <p><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
-                                <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                                    <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
-                                    <button class="btn btn-success">Add system to future drafts</button>
-                                </form>
-                            </div>
+                                    <% }; %>
+                                </div>
+                                <div class="caption">
+                                    <p class="text-center"><%= systemsproven[i].name %></p>
+                                    <p class="text-center"><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
+                                    <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                        <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
+                                        <button class="btn btn-success center-block">Add system to future drafts</button>
+                                    </form>
+                                </div>
+
                         </div>
                     </div>
             <% } %>
         </div>
+    <% } else { %>
+        <p><i>--- NO PROVEN SYSTEMS FOUND FOR YOUR CLIMATE ---</i></p>
     <% } %>
     <h2>Promissing systems for your climate</h2>
-    <p>Systems that have been implemented, but current data is not sufficient to give any good indications about performance.</p>
+    <p>Systems that have been implemented, but current data is not sufficient to give any good indications on performance.</p>
     <% if(systemsclimate.length > 0){ %>
     <div class="row">
         <% for(i=0;i<systemsclimate.length;i++){ %>
@@ -52,6 +55,12 @@
                         <div class="col-sm-3">
                             <% if(row.sequense[0].family === "pinaceae"){ %>
                                 <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else if (row.sequense[0].form === "tree") { %>
+                                <% if(row.sequense[0].height > 12){ %>
+                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                <% } else { %>
+                                    <img class="img-responsive" src="/images/treelow.svg">
+                                <% } %>
                             <% } else { %>
                                 <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
                             <% } %>
@@ -61,6 +70,12 @@
                         <div class="col-sm-3">
                             <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
                                 <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else if (systemsclimate[i].rows[0].sequense[0].form === "tree") { %>
+                                <% if(systemsclimate[i].rows[0].sequense[0].height > 12){ %>
+                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                <% } else { %>
+                                    <img class="img-responsive" src="/images/treelow.svg">
+                                <% } %>
                             <% } else { %>
                                 <img class="img-responsive" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
                             <% } %>
@@ -68,10 +83,10 @@
                     <% }; %>
                 </div>
                 <div class="caption">
-                    <p><%= systemsclimate[i].name %></p>
+                    <p class="text-center"><%= systemsclimate[i].name %></p>
                     <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                         <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
-                        <button class="btn btn-success">Add system to future drafts</button>
+                        <button class="btn btn-success center-block">Add system to future drafts</button>
                     </form>
                 </div>
             </div>

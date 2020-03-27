@@ -11,6 +11,7 @@
             <td>Latin</td>
             <td>Precip</td>
             <td>Temp</td>
+            <td>Lifespan</td>
             <td></td>
         </tr>
         <% species.forEach(function(species){ %>
@@ -26,6 +27,11 @@
                 <td><%= species.temperature.min %> - <%= species.temperature.max %></td>
                 <% } else { %>
                 <td>no precipitation data</td>
+                <% } %>
+                <% if(!(species.lifespan === "")){ %>
+                <td><%= species.lifespan %></td>
+                <% } else { %>
+                <td>no age data</td>
                 <% } %>
                 <td><a href="/species/<%= species._id %>" class="btn btn-success">Show more</a></td>
             </tr>

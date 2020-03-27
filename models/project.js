@@ -14,16 +14,11 @@ var projectSchema = new mongoose.Schema({
         },
         username: String
     },
-    parcel: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Parcel"
-        },
-        name: String
+    layer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Layer"
     },
-    type: String,
-    price: String,
-    action: String
+    activities: String
 });
 
 module.exports = mongoose.model("Project", projectSchema);

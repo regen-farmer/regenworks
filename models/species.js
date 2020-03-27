@@ -22,6 +22,11 @@ var speciesSchema = new mongoose.Schema({
     stapleCrop: String,
     industrialCrop: String,
     fodder: String,
+    classsyntropic: {
+        strata: String,
+        lifecycle: String
+    },
+    lifespan: Number,
     height: Number,
     width: Number,
     flows: [
@@ -29,7 +34,8 @@ var speciesSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Flow"
         }
-    ]
+    ],
+    utilities: [String]
 });
 
 module.exports = mongoose.model("Species", speciesSchema);

@@ -65,6 +65,11 @@ i {
   color: #6EBC4A;
 }
 
+.i-am-centered {
+  margin: auto;
+  max-width: 300px;
+}
+
 .type {
   color: green;
 }

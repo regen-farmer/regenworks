@@ -222,33 +222,33 @@ router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAK
 
 // --------------- NESTED ROUTES ---------------- //
 
-// PLACE EXPERIENCES NEW ROUTE
-router.get("/parcels/:id/projects/new", middleware.isLoggedIn, function(req, res){
+// LAYER PROJECT NEW ROUTE WITH SYSTEM REF
+router.get("/layers/:id/projects/new/:system", middleware.isLoggedIn, function(req, res){
     // FIND PLACE ID
-    Place.findById(req.params.id, function(err, foundPlace){
+    Layer.findById(req.params.id, function(err, foundLayer){
         if(err) {
             console.log(err);
             // res.flash(err
         } else {
-            res.render("projects/new", {place: foundPlace});
+            res.render("projects/new", {layer: foundLayer});
         }
     });
 });
 
 // PLACE EXPERIENCES CREATE ROUTE
-router.post("/parcels/:id/projects", middleware.isLoggedIn, function(req, res){
+router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
     // Lookup place using id
-    Place.findById(req.params.id, function(err, foundPlace){
+    Layer.findById(req.params.id, function(err, foundLayer){
         if(err) {
             console.log(err);
-            res.redirect("/parcels");
+            res.redirect("/layers/" + req.params.id);
         } else {
-            Service.create(req.body.service, function (err, service) {
+            Project.create(req.body.project, function (err, createdProject) {
                 if (err) {
                     console.log(err);
                 } else {
                     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-                    geocoder.geocode(req.body.service.location, function (err, data) {
+                    geocoder.geocode(req.body.project.location, function (err, data) {
                         if (err || !data.length) {
                             console.log(err);
                             return res.redirect("back");

@@ -5,15 +5,15 @@
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-            <% if(!(place === undefined)){ %>
-                <h2>Tilføj ydelse/service til <%= place.name %></h2>
+            <% if(!(layer === undefined)){ %>
+                <h2>Create new project for <strong><%= layer.name %></strong> to implement <strong><%= system.name %></strong></h2>
                 <div>
                     <form action="/places/<%= place._id %>/services" method="POST">
             <% } else { %>
                 <h2>Tilføj ydelse/service</h2>
                 <div>
                     <form action="/services" method="POST">
-                        <% } %>
+            <% } %>
                         <p>Her kan du tilføje en ny ydelse.</p>
                         <div class="btn-group btn-group-toggle" data-toggle="buttons">
                             <label class="btn btn-success">

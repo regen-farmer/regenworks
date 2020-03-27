@@ -8,23 +8,34 @@
     <table class="table table-striped">
         <tr>
             <td></td>
-            <td>Placenta</td>
+            <td>Pioneer</td>
             <td>Secondary</td>
             <td>Climax</td>
         </tr>
         <tr>
             <td>Emergent</td>
             <td></td>
-            <td></td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height > 29){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan < 80){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height > 29){ %>
-                    <p><%= species.nameCommon %></p>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan < 80){ %>
+                <p><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan > 79){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan > 79){ %>
+                    <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -38,20 +49,31 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "giantherb")){ %>
-                <p><%= species.nameCommon %></p>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
-            <td></td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan < 80 ){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10){ %>
-                <p><%= species.nameCommon %></p>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan < 80 ){ %>
+                <p><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan > 79){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan > 79){ %>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -66,21 +88,31 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "herb" || species.form == "grass"){ %>
-                <p><%= species.nameCommon %></p>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
             <td>
-            </td>
-            <td>
                 <% species.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 11){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan < 80){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if((species.form == "tree" || species.form == "palm") && species.height < 11){ %>
-                <p><%= species.nameCommon %></p>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan < 80){ %>
+                <p><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan > 79){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan > 79){ %>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -96,19 +128,29 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "succulent" || species.form == "cactus" ){ %>
-                <p><%= species.nameCommon %></p>
+                <p><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 80){ %>
+                <p><strong><%= species.nameCommon %></strong></p>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 80){ %>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if(species.form == "shrub"){ %>
+                <% if(species.form == "shrub" && species.lifespan > 79){ %>
                 <p><strong><%= species.nameCommon %></strong></p>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if(species.form == "shrub"){ %>
-                <p><%= species.nameCommon %></p>
+                <% if(species.form == "shrub" && species.lifespan > 79){ %>
+                <p><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>

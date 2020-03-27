@@ -5,6 +5,7 @@ var Parcel = require("../models/parcel");
 var Practice = require("../models/practice");
 var Layer = require("../models/layer");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
+var request = require("request"); // Making REST requests
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -49,8 +50,8 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
     var climate = {
         annualaverageprec: req.body.parcel.climate.annualaverageprec,
         hardiness: {
-            low: -18,
-            high: -12
+            low: -4,
+            high: 12
         }
         };
     var soilType = req.body.parcel.soilType;
@@ -72,7 +73,44 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         var lat = data[0].latitude;
         var lng = data[0].longitude;
         var location = data[0].formattedAddress;
-        // If image is blank, push in standard image
+        // HARDCODE COLD HARDINESS FOR CERTAIN REGIONS
+        if(data[0].country === "Brazil"){
+            climate.hardiness.low = 1;
+            climate.hardiness.high = 10;
+        }
+        if(data[0].country === "Sweden"){
+            climate.hardiness.low = -18;
+            climate.hardiness.high = -12;
+        }
+        if(data[0].country === "Vietnam"){
+            climate.hardiness.low = 9;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "India"){
+            climate.hardiness.low = 9;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Guatemala"){
+            climate.hardiness.low = 4;
+            climate.hardiness.high = 10;
+        }
+        if(data[0].country === "Nicaragua"){
+            climate.hardiness.low = 10;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Colombia"){
+            climate.hardiness.low = 4;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Costa Rica"){
+            climate.hardiness.low = 8;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Philippines"){
+            climate.hardiness.low = 10;
+            climate.hardiness.high = 16;
+        }
+        // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate};
         // Create a new parcel and save it to the database
         Parcel.create(newParcel, function(err, newlyCreated){
@@ -94,6 +132,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
                         newlyCreated.geometry = req.body.geometry;
                         // Save the layer
                         newlyCreated.save();
+                        // ADD PRECIPITATION?HARDINESS?
                         // req.flash("success", "You have successfully created a new parcel");
                         res.redirect("/parcels/" + newlyCreated._id + "/layers/new");
                     }
@@ -109,41 +148,11 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
         if(err) {
             console.log(err);
         } else {
-            var soilScore = 0;
-            var soilScoreCount = 0;
-            var bioScore = 0;
-            var bioScoreCount = 0;
-            var waterScore = 0;
-            var waterScoreCount = 0;
-            var climateScore = 0;
-            var climateScoreCount = 0;
-            foundParcel.practices.forEach(function(practice){
-                if(practice.regenScores.soilScore && !(practice.regenScores.soilScore === 0)){
-                    soilScore = soilScore + practice.regenScores.soilScore;
-                    soilScoreCount = soilScoreCount + 1;
-                }
-                if(practice.regenScores.bioScore && !(practice.regenScores.bioScore === 0)){
-                    bioScore = bioScore + practice.regenScores.bioScore;
-                    bioScoreCount = bioScoreCount + 1;
-                }
-                if(practice.regenScores.waterScore && !(practice.regenScores.waterScore === 0)){
-                    waterScore = waterScore + practice.regenScores.waterScore;
-                    waterScoreCount = waterScoreCount + 1;
-                }
-                if(practice.regenScores.climateScore && !(practice.regenScores.climateScore === 0)){
-                    climateScore = climateScore + practice.regenScores.climateScore;
-                    climateScoreCount = climateScoreCount + 1;
-                }
-            });
             var geometry = "";
             if(foundParcel.layers){
                 geometry = foundParcel.layers[0].geometry;
             }
-            var soilScoreFinal = (soilScore / soilScoreCount).toFixed(2);
-            var bioScoreFinal = (bioScore / bioScoreCount).toFixed(2);
-            var waterScoreFinal = (waterScore / waterScoreCount).toFixed(2);
-            var climateScoreFinal = (climateScore / climateScoreCount).toFixed(2);
-            res.render("parcels/show", {parcel: foundParcel, soilScore: soilScoreFinal, bioScore: bioScoreFinal, waterScore: waterScoreFinal, climateScore: climateScoreFinal, geometry: geometry});
+            res.render("parcels/show", {parcel: foundParcel, geometry: geometry});
         }
     });
 });
@@ -255,5 +264,39 @@ router.get("/parcels/:id/composition", middleware.checkParcelOwnership, function
         }
     });
 });
+
+// BIGQUERY PARCEL LAT LNG TEST
+router.get("/parcels/:id/climate", middleware.checkParcelOwnership, function(req, res){
+    Parcel.findById(req.params.id, function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            geocoder.geocode(foundParcel.location, function(err, data){
+                if(err || !data.length){
+                    console.log(err);
+                    console.log(data);
+                    return res.redirect("back");
+                }
+                console.log(data[0].country);
+                console.log(data[0].administrativeLevels.level1long);
+                console.log(data[0].city);
+                request("https://restcountries.eu/rest/v2/name/" + data[0].country + "?fullText=true&fields=alpha3Code", function(error, response, body){
+                    console.log('error:', error);
+                    console.log('statusCode:', response && response.statusCode);
+                    var alphacountry = JSON.parse(body);
+                    console.log(alphacountry[0].alpha3Code);
+                    request("http://climatedataapi.worldbank.org/climateweb/rest/v1/country/annualavg/pr/1980/1999/" + alphacountry[0].alpha3Code, function(error1, response1, body1){
+                        console.log('error:', error1);
+                        console.log('statusCode:', response1 && response1.statusCode);
+                        var weather = JSON.parse(body1);
+                        console.log(weather[0].annualData[0]);
+                        res.render("parcels/climate");
+                    });
+                });
+            });
+        }
+    });
+});
+
 
 module.exports = router;

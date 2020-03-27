@@ -240,16 +240,16 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             systems.push(foundSystems[i]);
                                         }
                                     }
-                                    var systemsproven = [];
-                                    for(i=0;i<systems.length;i++){
-                                        if(systems[i].flows.length > 0){
-                                            systemsproven.push(systems[i]);
-                                        }
-                                    }
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
                                         if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[0].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
                                             systemsclimate.push(systems[i]);
+                                        }
+                                    }
+                                    var systemsproven = [];
+                                    for(i=0;i<systemsclimate.length;i++){
+                                        if(systemsclimate[i].flows.length > 0){
+                                            systemsproven.push(systemsclimate[i]);
                                         }
                                     }
                                     console.log("Proven systems for this area: " + systemsproven.length);
