@@ -16,7 +16,9 @@ var UserSchema = new mongoose.Schema({
     currentProject: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Parcel"
-    }
+    },
+    registrationDate: Number,
+    membership: Number
 });
 
 UserSchema.plugin(passportLocalMongoose);

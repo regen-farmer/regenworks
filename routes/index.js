@@ -102,7 +102,7 @@ router.get('/robots.txt', function (req, res) {
 router.post("/users", function(req, res){
     if (req.body.secret === "899af01m4maiq5k3"){
         logger.info("Secret correct", {timestamp: Date.now()});
-        var newUser = new User({username: req.body.username, email: req.body.email});
+        var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000});
         User.register(newUser, req.body.password, function(err, user){
             if(err) {
                 // req.flash("error", err.message);
@@ -182,6 +182,9 @@ router.get("/login", function(req, res) {
 // HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
+    if((req.user.membership + req.user.registrationDate) > Date.now()){
+       console.log("membership test passed");
+    }
     res.redirect('/users/' + req.user.id);
 });
 

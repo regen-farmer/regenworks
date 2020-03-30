@@ -133,12 +133,55 @@
         <% species.forEach(function(species){ %>
             <tr>
                 <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
-                <% if(!(species.flows == "")){ %>
-                    <% for(i=0;i<15;i++){ %>
-                        <% if(species.flows[0].data[i]>0){ %>
-                            <td class="success"><%= species.flows[0].data[i] %></td>
-                        <% } else { %>
-                            <td class="warning"><%= species.flows[0].data[i] %></td>
+                <% if(species.flows.length > 0){ %>
+                <% for(j=0;j<species.flows.length;j++){ %>
+                <% if(species.flows[j].timeframe === "year"){ %>
+                <% for(i=0;i<15;i++){ %>
+                <% if(species.flows[j].data[i] > 0){ %>
+                <td class="success"><%= species.flows[j].data[i] %></td>
+                <% } else { %>
+                <td class="warning"><%= species.flows[j].data[i] %></td>
+                <% } %>
+                <% } %>
+                <% } %>
+                <% } %>
+                <% } else { %>
+                <td>No data available on this species.</td>
+                <% } %>
+            </tr>
+        <% }); %>
+    </table>
+    <h2>Seasonal activities</h2>
+    <p>Assess system labor loads and complementarity of species in system.</p>
+    <table class="table table-striped">
+        <tr>
+            <td></td>
+            <td>Jan</td>
+            <td>Feb</td>
+            <td>Mar</td>
+            <td>Apr</td>
+            <td>May</td>
+            <td>Jun</td>
+            <td>Jul</td>
+            <td>Aug</td>
+            <td>Sep</td>
+            <td>Oct</td>
+            <td>Nov</td>
+            <td>Dec</td>
+        </tr>
+        <% species.forEach(function(species){ %>
+            <tr>
+                <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
+                <% if(species.flows.length > 0){ %>
+                    <% for(j=0;j<species.flows.length;j++){ %>
+                        <% if(species.flows[j].timeframe === "month"){ %>
+                            <% for(i=0;i<12;i++){ %>
+                                <% if(species.flows[j].data[i] > 0){ %>
+                                    <td class="success"><%= species.flows[j].data[i] %></td>
+                                <% } else { %>
+                                    <td class="warning"><%= species.flows[j].data[i] %></td>
+                                <% } %>
+                            <% } %>
                         <% } %>
                     <% } %>
                 <% } else { %>

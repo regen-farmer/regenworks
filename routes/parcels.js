@@ -110,6 +110,22 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.low = 10;
             climate.hardiness.high = 16;
         }
+        if(data[0].country === "Greece"){
+            climate.hardiness.low = -7;
+            climate.hardiness.high = -1;
+        }
+        if(data[0].country === "Uganda"){
+            climate.hardiness.low = 6;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Guinea-Bissau"){
+            climate.hardiness.low = 10;
+            climate.hardiness.high = 16;
+        }
+        if(data[0].country === "Portugal"){
+            climate.hardiness.low = -7;
+            climate.hardiness.high = 1;
+        }
         // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate};
         // Create a new parcel and save it to the database
