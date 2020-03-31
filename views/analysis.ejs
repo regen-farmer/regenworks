@@ -12,34 +12,34 @@
                 <div class="thumbnail">
                     <div class="row">
                         <% commoditysystems[i].rows.forEach(function(row){ %>
-                        <div class="col-sm-3">
-                            <% if(row.sequense[0].family === "pinaceae"){ %>
-                            <img class="img-responsive" src="/images/conifer.svg">
-                            <% } else if (row.sequense[0].form === "tree") { %>
-                            <% if(row.sequense[0].height > 12){ %>
-                            <img class="img-responsive" src="/images/treehigh.svg">
-                            <% } else { %>
-                            <img class="img-responsive" src="/images/treelow.svg">
-                            <% } %>
-                            <% } else { %>
-                            <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
-                            <% } %>
-                        </div>
+                            <div class="col-sm-3">
+                                <% if(row.sequense[0].family === "pinaceae"){ %>
+                                    <img class="img-responsive" src="/images/conifer.svg">
+                                <% } else if (row.sequense[0].form === "tree") { %>
+                                    <% if(row.sequense[0].height > 12){ %>
+                                        <img class="img-responsive" src="/images/treehigh.svg">
+                                    <% } else { %>
+                                        <img class="img-responsive" src="/images/treelow.svg">
+                                    <% } %>
+                                <% } else { %>
+                                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                <% } %>
+                            </div>
                         <% }); %>
                         <% if(commoditysystems[i].rows.length > 1 && commoditysystems[i].rows.length < 4){ %>
-                        <div class="col-sm-3">
-                            <% if(commoditysystems[i].rows[0].sequense[0].family === "pinaceae"){ %>
-                            <img class="img-responsive" src="/images/conifer.svg">
-                            <% } else if (commoditysystems[i].rows[0].sequense[0].form === "tree") { %>
-                            <% if(commoditysystems[i].rows[0].sequense[0].height > 12){ %>
-                            <img class="img-responsive" src="/images/treehigh.svg">
-                            <% } else { %>
-                            <img class="img-responsive" src="/images/treelow.svg">
-                            <% } %>
-                            <% } else { %>
-                            <img class="img-responsive" src="/images/<%= commoditysystems[i].rows[0].sequense[0].form %>.svg">
-                            <% } %>
-                        </div>
+                            <div class="col-sm-3">
+                                <% if(commoditysystems[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                                    <img class="img-responsive" src="/images/conifer.svg">
+                                <% } else if (commoditysystems[i].rows[0].sequense[0].form === "tree") { %>
+                                    <% if(commoditysystems[i].rows[0].sequense[0].height > 12){ %>
+                                        <img class="img-responsive" src="/images/treehigh.svg">
+                                    <% } else { %>
+                                        <img class="img-responsive" src="/images/treelow.svg">
+                                    <% } %>
+                                <% } else { %>
+                                    <img class="img-responsive" src="/images/<%= commoditysystems[i].rows[0].sequense[0].form %>.svg">
+                                <% } %>
+                            </div>
                         <% }; %>
                     </div>
                     <div class="caption">
@@ -63,9 +63,9 @@
                         <div class="thumbnail">
                                 <div class="row">
                                     <% systemsproven[i].rows.forEach(function(row){ %>
-                                    <div class="col-sm-3">
-                                        <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
-                                    </div>
+                                        <div class="col-sm-3">
+                                            <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                        </div>
                                     <% }); %>
                                     <% if(systemsproven[i].rows.length > 1){ %>
                                     <div class="col-sm-3">
