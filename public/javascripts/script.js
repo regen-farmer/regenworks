@@ -26,6 +26,7 @@ var drawPluginOptions = {
         circle: false, // Turns off this drawing tool
         rectangle: false,
         marker: false,
+        circlemarker: false,
     },
     edit: {
         featureGroup: editableLayers, //REQUIRED!!
