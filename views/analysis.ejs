@@ -4,9 +4,59 @@
 <div class="container">
     <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
+    <% if(commoditysystems.length > 0){ %>
+    <h2>Systems for suitable for areas with "<%= commodity %>"</h2>
+    <div class="row">
+        <% for(i=0;i<commoditysystems.length;i++){ %>
+            <div class="col-lg-4">
+                <div class="thumbnail">
+                    <div class="row">
+                        <% commoditysystems[i].rows.forEach(function(row){ %>
+                        <div class="col-sm-3">
+                            <% if(row.sequense[0].family === "pinaceae"){ %>
+                            <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else if (row.sequense[0].form === "tree") { %>
+                            <% if(row.sequense[0].height > 12){ %>
+                            <img class="img-responsive" src="/images/treehigh.svg">
+                            <% } else { %>
+                            <img class="img-responsive" src="/images/treelow.svg">
+                            <% } %>
+                            <% } else { %>
+                            <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                            <% } %>
+                        </div>
+                        <% }); %>
+                        <% if(commoditysystems[i].rows.length > 1 && commoditysystems[i].rows.length < 4){ %>
+                        <div class="col-sm-3">
+                            <% if(commoditysystems[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                            <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else if (commoditysystems[i].rows[0].sequense[0].form === "tree") { %>
+                            <% if(commoditysystems[i].rows[0].sequense[0].height > 12){ %>
+                            <img class="img-responsive" src="/images/treehigh.svg">
+                            <% } else { %>
+                            <img class="img-responsive" src="/images/treelow.svg">
+                            <% } %>
+                            <% } else { %>
+                            <img class="img-responsive" src="/images/<%= commoditysystems[i].rows[0].sequense[0].form %>.svg">
+                            <% } %>
+                        </div>
+                        <% }; %>
+                    </div>
+                    <div class="caption">
+                        <p class="text-center"><%= commoditysystems[i].name %></p>
+                        <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                            <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
+                            <button class="btn btn-success center-block">Add system to future drafts</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    <% } %>
     <h2>The proven and tested</h2>
     <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields and performance have been measured.</p>
-    <% if(systemsproven.length > 0){ %>
+    <% if(systemsproven.length > 0 && commoditysystems.length < 1){ %>
         <div class="row">
             <% for(i=0;i<systemsproven.length;i++){ %>
                     <div class="col-lg-4">

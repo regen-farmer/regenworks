@@ -234,12 +234,31 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     console.log(err);
                                 } else {
                                     // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?)
+                                    var commodity = "";
+                                    var commodityName = "";
+                                    foundSystem.rows.forEach(function(row){
+                                        if(row.sequense[0].nameCommon === "Arabian coffee"){
+                                            commodity = row.sequense[0].id;
+                                            commodityName = row.sequense[0].nameCommon;
+                                            console.log(commodity);
+                                        }
+                                    });
                                     var systems = [];
                                     for(i=0;i<foundSystems.length;i++){
                                         if(foundSystems[i].shared === true){
                                             systems.push(foundSystems[i]);
                                         }
                                     }
+                                    var commoditysystems = [];
+                                    for(i=0;i<systems.length;i++){
+                                        for(j=0;j<systems[i].rows.length;j++){
+                                            if(commodity === systems[i].rows[j].sequense[0].id && !(commoditysystems.includes(systems[i]))) {
+                                                console.log(systems[i].name);
+                                                commoditysystems.push(systems[i]);
+                                            }
+                                        }
+                                    }
+                                    console.log(commoditysystems.length);
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
                                         if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[0].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
@@ -256,7 +275,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     if(systems.length < 1){
                                         res.redirect("layers/" + foundLayer._id);
                                     } else {
-                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate});
+                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate, commoditysystems: commoditysystems, commodity: commodityName});
                                     }
                                 }
                             });

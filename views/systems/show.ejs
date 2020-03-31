@@ -156,6 +156,7 @@
     <table class="table table-striped">
         <tr>
             <td></td>
+            <td>Activity</td>
             <td>Jan</td>
             <td>Feb</td>
             <td>Mar</td>
@@ -175,6 +176,7 @@
                 <% if(species.flows.length > 0){ %>
                     <% for(j=0;j<species.flows.length;j++){ %>
                         <% if(species.flows[j].timeframe === "month"){ %>
+                            <td><%= species.flows[j].name %></td>
                             <% for(i=0;i<12;i++){ %>
                                 <% if(species.flows[j].data[i] > 0){ %>
                                     <td class="success"><%= species.flows[j].data[i] %></td>

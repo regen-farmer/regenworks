@@ -277,4 +277,37 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
     });
 });
 
+// LAYER CURRENT SYSTEM LAYOUT
+router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
+    Layer.findById(req.params.id).populate("systems.present").exec(function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            System.findById(foundLayer.systems.present._id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES IN SYSTEM
+                    var allSpecies = [];
+                    foundSystem.rows.forEach(function(row){
+                        row.sequense.forEach(function(species){
+                            allSpecies.push(species.id);
+                        });
+                    });
+                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                    var uniqueSpecies = unique(allSpecies);
+                    // FIND SPECIES AND POPULATE FLOWS
+                    Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
+                        if(err) {
+                            console.log(err);
+                        } else {
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies});
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
 module.exports = router;

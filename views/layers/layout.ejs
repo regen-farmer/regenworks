@@ -1,0 +1,278 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div id="layerMapShow"></div>
+        </div>
+        <div class="col-md-4">
+            <p></p>
+            <div class="row">
+                <% if(presentsystem.rows){ %>
+                <% presentsystem.rows.forEach(function(row){ %>
+                <div class="col-sm-3">
+                    <% row.sequense.reverse().forEach(function(sequense){ %>
+                    <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
+                    <p class="text-center"><%= sequense.nameCommon %></p>
+                    <% }); %>
+                </div>
+                <% }); %>
+                <% } %>
+            </div>
+            <p><i><%= presentsystem.name %></i></p>
+            <h2>System layout</h2>
+            <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+            <p>Layout type: Straight rows</p>
+            <p>Alignment: North/south</p>
+            <p>Headland offset: 15 m</p>
+            <p>Tree count: 187</p>
+            <a class="btn btn-default" href="/layers/<%= layer._id %>/layout">Update parameters</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    var areaLat = "<%= layer.lat %>";
+    var areaLng = "<%= layer.lng %>";
+
+    var getgeometry = "<%= layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'layerMapShow',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [areaLng, areaLat],
+        zoom: 14,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7F22C0',
+                'fill-opacity': 0.6
+            }
+        });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.571401214050291,
+                                        54.808120739994986
+                                    ],
+                                    [
+                                        11.571401214050291,
+                                        54.80714278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.570901214050291,
+                                        54.808320739994986
+                                    ],
+                                    [
+                                        11.570901214050291,
+                                        54.80714278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.570401214050291,
+                                        54.808420739994986
+                                    ],
+                                    [
+                                        11.570401214050291,
+                                        54.80714278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.569901704788208,
+                                        54.808278527081555
+                                    ],
+                                    [
+                                        11.569901704788208,
+                                        54.80709133888314
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.569401704788208,
+                                        54.808128527081555
+                                    ],
+                                    [
+                                        11.569401704788208,
+                                        54.80709133888314
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.568901704788208,
+                                        54.808278527081555
+                                    ],
+                                    [
+                                        11.568901704788208,
+                                        54.80709133888314
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.568401214050291,
+                                        54.808420739994986
+                                    ],
+                                    [
+                                        11.568401214050291,
+                                        54.80707278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.567901214050291,
+                                        54.808420739994986
+                                    ],
+                                    [
+                                        11.567901214050291,
+                                        54.80703278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.567401214050291,
+                                        54.808420739994986
+                                    ],
+                                    [
+                                        11.567401214050291,
+                                        54.80707278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.566901214050291,
+                                        54.808420739994986
+                                    ],
+                                    [
+                                        11.566901214050291,
+                                        54.80730278879077
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "LineString",
+                                "coordinates": [
+                                    [
+                                        11.566401214050291,
+                                        54.808390739994986
+                                    ],
+                                    [
+                                        11.566401214050291,
+                                        54.80760278879077
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#fff1ff',
+            }
+        });
+    });
+
+</script>
+
+<% include ../partials/footer %>
