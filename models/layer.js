@@ -65,7 +65,13 @@ var layerSchema = new mongoose.Schema({
                 ref: "System"
             }
         ]
-    }
+    },
+    projects: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Project"
+        }
+    ]
 });
 
 module.exports = mongoose.model("Layer", layerSchema);

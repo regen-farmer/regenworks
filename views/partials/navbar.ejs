@@ -1,32 +1,23 @@
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a id="logotype" class="navbar-brand" href="/parcels"><strong>Regen</strong><span style="color: #88C762">Works</span></a>
-            <p class="navbar-text"><small>v0.5.0</small></p>
-        </div>
+        <a id="logotype" class="navbar-brand" href="/parcels"><strong>Regen</strong><span style="color: #88C762">Works</span></a>
+
         <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="/parcels/<%= currentUser.currentProject %>">Areas</a></li>
-                <li><a href="/parcels/<%= currentUser.currentProject %>/analysis">Suitability assessment</a></li>
-                <li><a href="/parcels/<%= currentUser.currentProject %>/composition">Succession tool</a></li>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>">Areas</a></li>
+                <li class="nav-item"><a class="nav-link" href="/projects">Projects</a></li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
+            <ul class="navbar-nav navbar-right">
                 <% if(!currentUser){ %>
-                    <li><a href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
-                    <li><a href="/login">Sign in</i></a></li>
+                    <li><a class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
+                    <li><a class="nav-link" href="/login">Sign in</i></a></li>
                 <% } else { %>
-                    <li><a href="/feedback"><i class="fas fa-comments"></i> Feedback</a></li>
-                    <li><a href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
-                    <li><a href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
+                    <li><a class="nav-link" href="/feedback"><i class="fas fa-comments"></i> Feedback</a></li>
+                    <li><a class="nav-link" href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
+                    <li><a class="nav-link" href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
                 <% } %>
+                <span class="navbar-text"><small>v0.5.5</small></span>
             </ul>
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->

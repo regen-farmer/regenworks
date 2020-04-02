@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-            <h2>Add area to "<%= parcel.name %>"</h2>
+            <h2>Add new area to "<%= parcel.name %>"</h2>
             <div>
             <form action="/parcels/<%= parcel._id %>/layers" method="POST">
                 <div class="form-group">
@@ -17,8 +17,6 @@
                     <input type="text" class="form-control" name="layer[description]" placeholder="Describe what is on the layer: apple orchard, cereal crops, grazing area, etc.">
                 </div>
                 <div class="form-group">
-                    <!-- Button trigger modal -->
-                    <a class="pull-right" data-toggle="modal" data-target="#layerTypesModal">View area type definitions</a>
                     <label for="layer[type]">Existing production type on area</label>
                     <select class="form-control" name="layer[type]">
                         <option value="arable">Crop cultivation</option>
@@ -27,32 +25,6 @@
                         <option value="orchard">Orchard</option>
                         <option value="forestry">Forest</option>
                     </select>
-                    <!-- Modal -->
-                    <div class="modal fade" id="layerTypesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title" id="exampleModalLabel">Area type definitions</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Below is the list of current area types and what each area type represents.</p>
-                                    <ul>
-                                        <li><strong>Field/bed:</strong> Area cultivated with annual crops such as cereals, vegetables or natural fiber crops.</li>
-                                        <li><strong>Patch:</strong> Area with grass primarily used for grazing.</li>
-                                        <li><strong>Stand:</strong> Area with some form of treecover, shrubs or perennial energy crops.</li>
-                                        <li><strong>Water:</strong> Larger open bodies of water like ponds or lakes.</li>
-                                        <li><strong>Soil:</strong> This layer is used if underground microbal life and fungi is actively managed.</li>
-                                    </ul>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close this window</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 <p><em><small>If you have different overlapping activities we recommend that you make a area for each type. (Example: a tree (stand) layer and a pasture (patch) layer for Silvopasture).</small></em></p>
                 </div>
                 <div class="form-group">

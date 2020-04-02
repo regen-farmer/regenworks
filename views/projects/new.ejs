@@ -5,59 +5,25 @@
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6">
-            <% if(!(layer === undefined)){ %>
+            <% if(!(layer === "")){ %>
                 <h2>Create new project for <strong><%= layer.name %></strong> to implement <strong><%= system.name %></strong></h2>
                 <div>
-                    <form action="/places/<%= place._id %>/services" method="POST">
+                    <form action="/layers/<%= layer._id %>/projects" method="POST">
             <% } else { %>
-                <h2>Tilføj ydelse/service</h2>
+                <h2>Create new project</h2>
                 <div>
-                    <form action="/services" method="POST">
+                    <form action="/projects" method="POST">
             <% } %>
-                        <p>Her kan du tilføje en ny ydelse.</p>
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-success">
-                                <input type="radio" name="service[type]" value="Selvpluk" autocomplete="off" required> Selvpluk
-                            </label>
-                            <label class="btn btn-success">
-                                <input type="radio" name="service[type]" value="Ugepose" autocomplete="off"> Ugepose
-                            </label>
+                        <div class="form-group">
+                            <label for="project[name]">Project title</label>
+                            <input type="text" class="form-control" name="project[name]" value="Implement <%= system.name %>" required>
                         </div>
                         <div class="form-group">
-                            <label for="service[name]">Titel</label>
-                            <input type="text" class="form-control" name="service[name]" placeholder="Hvad vil du kalde ydelsen?" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="service[description]">Beskrivelse</label>
-                            <input type="text" class="form-control" name="service[description]" placeholder="Giv en beskrivelse.">
-                        </div>
-                        <% if(!(place === undefined)){ %>
-                        <div class="form-group">
-                            <label for="service[location]">Adresse: Som standard sat til samme adresse som <%= place.name %></label>
-                            <input type="text" class="form-control" name="service[location]" value="<%= place.location %>" required>
-                        </div>
-                        <% } else { %>
-                        <div class="form-group">
-                            <label for="service[location]">Adresse</label>
-                            <input type="text" class="form-control" name="service[location]" placeholder="Skriv en adresse." required>
-                        </div>
-                        <% } %>
-                        <div class="form-group">
-                            <label for="service[period][start]">Sæson start</label>
-                            <input type="date" class="form-control" name="service[period][start]" required>
-                            <label for="service[period][end]">Sæson slut</label>
-                            <input type="date" class="form-control" name="service[period][end]">
-                        </div>
-                        <div class="form-group">
-                            <label for="service[price]">Pris: Udfyldes ikke hvis gratis</label>
-                            <input type="text" class="form-control" name="service[price]" placeholder="Fastsæt en pris for ydelsen.">
-                        </div>
-                        <div class="form-group">
-                            <label for="service[action]">Billetter eller tilmelding</label>
-                            <input type="text" class="form-control" name="service[action]" placeholder="Link til hvor man kan finde billetter.">
+                            <label for="project[description]">Project description</label>
+                            <input type="text" class="form-control" name="project[description]" placeholder="Describe the project.">
                         </div>
                         <div class="btn-group">
-                            <button type="submit" class="btn btn-success btn-lg">Opret ydelsen</button>
+                            <button type="submit" class="btn btn-success btn-lg">Create project</button>
                         </div>
                     </form>
                 </div>

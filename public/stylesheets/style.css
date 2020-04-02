@@ -15,7 +15,11 @@ p {
 
 h2 {
   font-size: 22px;
-  font-weight: 700;
+  margin-top: 5px;
+}
+
+h1{
+  margin-top: 7px;
 }
 
 #fronpage {
@@ -54,11 +58,6 @@ html {
   min-width: 250px;
   border-top: 1px solid #F8F8F8;
   border-bottom: 1px solid rgba(0,0,0,2);
-}
-
-h1 {
-  font-weight: 700;
-  font-size: 26;
 }
 
 i {

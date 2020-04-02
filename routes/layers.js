@@ -8,6 +8,7 @@ var Animal = require("../models/animal");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
+var centroid = require("@turf/centroid");
 
 // LAYER INDEX ROUTE
 
@@ -77,8 +78,10 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     // Save JSON file to geometry
                     layer.geometry = req.body.geometry;
                     layer.size = req.body.layersize;
-                    layer.lat = foundParcel.lat;
-                    layer.lng = foundParcel.lng;
+                    var geometrycentroid = centroid(JSON.parse(req.body.geometry));
+                    console.log(geometrycentroid.geometry.coordinates[0]);
+                    layer.lat = geometrycentroid.geometry.coordinates[1];
+                    layer.lng = geometrycentroid.geometry.coordinates[0];
                     // Save the layer
                     layer.save();
                     // Connect new layer to parcel

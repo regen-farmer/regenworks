@@ -16,64 +16,6 @@
                         <label for="layer[description]">Description</label>
                         <input type="text" class="form-control" name="layer[description]" value="<%= layer.description %>">
                     </div>
-                    <div class="form-group">
-                        <!-- Button trigger modal -->
-                        <a class="pull-right"data-toggle="modal" data-target="#layerTypesModal">View area type definitions</a>
-                        <label for="layer[type]">Area type</label>
-                        <select class="form-control" name="layer[type]">
-                            <% if(layer.type === "field") { %>
-                                <option selected="selected" value="field">Field/bed (Crops)</option>
-                            <% } else { %>
-                                <option value="field">Field/bed (Crops)</option>
-                            <% } %>
-                            <% if(layer.type === "patch") { %>
-                                <option selected="selected" value="patch">Patch (Pasture/grassland)</option>
-                            <% } else { %>
-                                <option value="patch">Patch (Pasture/grassland)</option>
-                            <% } %>
-                            <% if(layer.type === "stand") { %>
-                                <option selected="selected" value="stand">Stand (Forest/shrubs)</option>
-                            <% } else { %>
-                                <option value="stand">Stand (Forest/shrubs)</option>
-                            <% } %>
-                            <% if(layer.type === "water") { %>
-                                <option selected="selected" value="water">Water (Lakes/stream)</option>
-                            <% } else { %>
-                                <option value="water">Water (Lakes/stream)</option>
-                            <% } %>
-                            <% if(layer.type === "soil") { %>
-                                <option selected="selected" value="soil">Soil (sub-surface organisms)</option>
-                            <% } else { %>
-                                <option value="soil">Soil (sub-surface organisms)</option>
-                            <% } %>
-                        </select>
-                        <!-- Modal -->
-                        <div class="modal fade" id="layerTypesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title" id="exampleModalLabel">Area type definitions</h4>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Below is the list of current area types and what each area type represents.</p>
-                                        <ul>
-                                            <li>Field: Area cultivated with annual crops such as cereals, vegetables or natural fiber crops.</li>
-                                            <li>Patch: Area with grass primarily used for grazing.</li>
-                                            <li>Stand: Area with some form of treecover, shrubs or perennial energy crops.</li>
-                                            <li>Water: </li>
-                                            <li>Soil: This layer is used if underground microbal life and fungi is actively managed.</li>
-                                        </ul>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close this window</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div class="btn-group">
                         <button type="submit" class="btn btn-success btn-lg center-block">Update area</button>
                     </div>

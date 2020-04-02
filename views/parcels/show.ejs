@@ -14,14 +14,14 @@
             <div class="row">
                 <% parcel.layers.forEach (function(layer){ %>
                 <div class="col-md-12">
-                    <a href="/layers/<%= layer._id %>" class="btn btn-default btn-block">
-                        <p>Explore production systems for "<%= layer.name %>"</p>
+                    <a href="/layers/<%= layer._id %>" class="btn btn-outline-secondary btn-block mb-1">
+                        Explore production systems for area "<%= layer.name %>"
                     </a>
                 </div>
                 <% }); %>
                 <div class="col-md-12">
                     <a href="/parcels/<%= parcel._id %>/layers/new" class="btn btn-success btn-block">
-                        <p>Add new area to this farm</p>
+                        Add new area to this farm
                     </a>
                 </div>
             </div>
@@ -30,9 +30,9 @@
             <p><strong>Farm size:</strong> <%= parcel.size %> hectare(s)</p>
             <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
             <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
-            <a class="btn btn-default" href="/parcels/<%= parcel._id %>/edit">Edit parcel details</a>
+            <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/edit">Edit farm details</a>
             <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
-                <button class="btn btn-danger">Delete parcel</button>
+                <button class="btn btn-outline-danger">Delete farm</button>
             </form>
             <% } %>
         </div>

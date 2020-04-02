@@ -8,7 +8,7 @@
             <h2>Update information for "<%= parcel.name %>"</h2>
             <div>
                 <form action="/parcels/<%= parcel._id %>?_method=PUT" method="POST">
-                    <p>Change the information for your parcel below. </p>
+                    <p>Change the information for your farm below. </p>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Name</label>
                         <input type="text" class="form-control" name="parcel[name]" value="<%= parcel.name %>" required>
@@ -25,106 +25,39 @@
                         <label for="formGroupExampleInput">Parcel size (Hectares)</label>
                         <input type="number" class="form-control" name="parcel[size]" value="<%= parcel.size %>">
                     </div>
+                    <label for="formGroupExampleInput">Soil type</label>
+                    <br>
                     <div class="form-group btn-group btn-group-toggle" data-toggle="buttons">
-                        <label for="formGroupExampleInput">Soil type</label>
-                        <br>
                         <% if(parcel.soilType === "sand"){ %>
-                        <label class="btn btn-default active">
+                        <label class="btn btn-outline-primary active">
                             <input type="radio" name="parcel[soilType]" checked="checked" value="sand" autocomplete="off"> Sand
                         </label>
                         <% } else { %>
-                        <label class="btn btn-default">
+                        <label class="btn btn-outline-primary">
                             <input type="radio" name="parcel[soilType]" value="sand" autocomplete="off"> Sand
                         </label>
                         <% } %>
                         <% if(parcel.soilType === "loam"){ %>
-                        <label class="btn btn-default active">
+                        <label class="btn btn-outline-primary active">
                             <input type="radio" name="parcel[soilType]" checked="checked" value="loam" autocomplete="off"> Loam
                         </label>
                         <% } else { %>
-                        <label class="btn btn-default">
+                        <label class="btn btn-outline-primary">
                             <input type="radio" name="parcel[soilType]" value="loam" autocomplete="off"> Loam
                         </label>
                         <% } %>
                         <% if(parcel.soilType === "clay"){ %>
-                        <label class="btn btn-default active">
+                        <label class="btn btn-outline-primary active">
                             <input type="radio" name="parcel[soilType]" checked="checked" value="clay" autocomplete="off"> Clay
                         </label>
                         <% } else { %>
-                        <label class="btn btn-default">
+                        <label class="btn btn-outline-primary">
                             <input type="radio" name="parcel[soilType]" value="clay" autocomplete="off"> Clay
                         </label>
                         <% } %>
                     </div>
-                    <br>
-                    <div class="form-group btn-group btn-group-toggle" data-toggle="buttons">
-                        <label for="parcel[agType]">Farming type</label>
-                        <p>Choose all that apply</p>
-                        <% if(parcel.agType.indexOf("Crop Cultivation") > -1){ %>
-                            <label class="btn btn-default active">
-                                <input type="checkbox" name="parcel[agType]" checked="checked" value="Crop Cultivation" autocomplete="off"> Crop Cultivation
-                        </label>
-                        <% } else { %>
-                            <label class="btn btn-default">
-                                <input type="checkbox" name="parcel[agType]" value="Crop Cultivation" autocomplete="off"> Crop Cultivation
-                            </label>
-                        <% } %>
-                        <% if(parcel.agType.indexOf("Animal husbandry") > -1){ %>
-                            <label class="btn btn-default active">
-                                <input type="checkbox" name="parcel[agType]" checked="checked" value="Animal husbandry" autocomplete="off"> Animal husbandry
-                            </label>
-                        <% } else { %>
-                            <label class="btn btn-default">
-                                <input type="checkbox" name="parcel[agType]" value="Animal husbandry" autocomplete="off"> Animal husbandry
-                            </label>
-                        <% } %>
-                        <% if(parcel.agType.indexOf("Forestry") > -1){ %>
-                            <label class="btn btn-default active">
-                                <input type="checkbox" name="parcel[agType]" checked="checked" value="Forestry" autocomplete="off"> Forestry
-                            </label>
-                        <% } else { %>
-                            <label class="btn btn-default">
-                                <input type="checkbox" name="parcel[agType]" value="Forestry" autocomplete="off"> Forestry
-                            </label>
-                        <% } %>
-                        <% if(parcel.agType.indexOf("Orchard") > -1){ %>
-                        <label class="btn btn-default active">
-                            <input type="checkbox" name="parcel[agType]" checked="checked" value="Orchard" autocomplete="off"> Orchard
-                        </label>
-                        <% } else { %>
-                        <label class="btn btn-default">
-                            <input type="checkbox" name="parcel[agType]" value="Orchard" autocomplete="off"> Orchard
-                        </label>
-                        <% } %>
-                    </div>
                     <div class="form-group">
-                        <label for="formGroupExampleInput">Practices</label>
-                        <div class="form-group">
-                            <div class="row">
-                                <% practices.forEach(function(practice){ %>
-                                    <% if(parcelPractices.includes(practice._id.toString())){ %>
-                                        <div class="col-lg-3">
-                                            <div data-toggle="buttons">
-                                                <label class="btn btn-default btn-block active">
-                                                    <input type="checkbox" checked="checked" autocomplete="off" name="practiceids" value="<%= practice._id %>"><p><%= practice.name %></p>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    <% } else { %>
-                                        <div class="col-lg-3">
-                                            <div data-toggle="buttons">
-                                                <label class="btn btn-default btn-block">
-                                                    <input type="checkbox" autocomplete="off" name="practiceids" value="<%= practice._id %>"><p><%= practice.name %></p>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                <% }); %>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-success btn-lg">Update parcel details</button>
+                        <button type="submit" class="btn btn-success btn-lg">Update farm details</button>
                     </div>
                 </form>
             </div>

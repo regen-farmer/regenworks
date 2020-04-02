@@ -2,36 +2,40 @@
 <% include ../partials/navbar %>
 
 <div class="container">
+    <h1> <%= project.name %> </h1>
     <div class="row">
-        <div class="col-md-2"></div>
+        <div class="col-md-4">
+            <p><%= project.description %></p>
+            <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
+            <a class="btn btn-outline-primary" href="#">Edit project</a>
+            <form class="delete-form" action="/projects/<%= project._id %>?_method=DELETE" method="POST">
+                <button class="btn btn-outline-danger">Delete project</button>
+            </form>
+            <% } %>
+        </div>
         <div class="col-md-8">
             <div>
-                <h1> <%= service.name %> </h1>
-                <p> <%= service.type %> hos <a href="/places/<%= service.host.id %>"><%= service.host.name %></a></p>
-                <hr>
-                <p><%= service.description %></p>
-                <hr>
-                <a class="btn btn-success pull-right" href="https://www.google.com/maps/dir/?api=1&destination=<%= service.lat %>+<%= service.lng %>" target="_blank">Find Rute</a>
-                <p><i class="fas fa-map-marker"></i> <%= service.location %></p>
-                <hr>
-                <p>Sæson: <%= monthStart %> - <%= monthEnd %></p>
-                <hr>
-                <% if(!(service.action === "")){ %>
-                    <a class="btn btn-primary action-btn pull-right" href="<%= service.action %>" target="_blank">Find billetter/Tilmeld</a>
-                <% } else { %>
-                    <p class="pull-right">Ikke nødvendig</p>
-                <% } %>
-                <p>Tilmelding:</p>
-                <hr>
-                <% if(currentUser && service.owner.id.equals(currentUser._id)){ %>
-                    <a class="btn btn-warning" href="/services/<%= service._id %>/edit">Rediger</a>
-                    <form class="delete-form" action="/services/<%= service._id %>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Slet</button>
-                    </form>
-                <% } %>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project activities</h2>
+                        <p class="card-text">-- COMING SOON --</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project progress</h2>
+                        <p class="card-text">-- COMING SOON --</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project finances</h2>
+                        <p class="card-text">-- COMING SOON --</p>
+                    </div>
+                </div>
+
             </div>
         </div>
-        <div class="col-md-2"></div>
     </div>
 </div>
 

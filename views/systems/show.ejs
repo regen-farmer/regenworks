@@ -12,18 +12,18 @@
                         <% if(row.sequense[0].form === "tree"){ %>
                             <% if(row.sequense[0].height > 12){ %>
                                 <div class="col-sm-3">
-                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                    <img class="img-fluid" src="/images/treehigh.svg">
                                     <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
                                 </div>
                             <% } else { %>
                                 <div class="col-sm-3">
-                                    <img class="img-responsive" src="/images/treelow.svg">
+                                    <img class="img-fluid" src="/images/treelow.svg">
                                     <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
                                 </div>
                             <% } %>
                         <% } else { %>
                             <div class="col-sm-3">
-                                <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
                                 <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
                             </div>
                         <% } %>
@@ -35,7 +35,7 @@
                     <% system.rows.forEach(function(row){ %>
                     <div class="col-sm-3">
                         <% row.sequense.reverse().forEach(function(sequense){ %>
-                        <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
+                        <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
                         <p class="text-center"><%= sequense.nameCommon %></p>
                         <% }); %>
                     </div>
@@ -48,7 +48,7 @@
             <p><%= system.description %></p>
             <div class="thumbnail">
                 <div class="caption">
-                    <table class="table table-striped">
+                    <table class="table table-striped small">
                         <tr>
                             <td><strong>Layer</strong></td>
                             <td><strong>Species</strong></td>
@@ -101,9 +101,8 @@
                                 <% } %>
                             </td>
                         </tr>
-
                     </table>
-                    <a class="btn btn-success" href="/systems/<%= system._id %>/composition">Analyse system composition</a>
+                    <a class="btn btn-outline-primary" href="/systems/<%= system._id %>/composition">Analyse system composition</a>
                 </div>
             </div>
             <p>System tree count: N/A</p>
@@ -111,7 +110,7 @@
         </div>
     </div>
     <h2>System lifetime productivity</h2>
-    <table class="table table-striped">
+    <table class="table table-striped small">
         <tr>
             <td></td>
             <td>1</td>
@@ -138,9 +137,9 @@
                 <% if(species.flows[j].timeframe === "year"){ %>
                 <% for(i=0;i<15;i++){ %>
                 <% if(species.flows[j].data[i] > 0){ %>
-                <td class="success"><%= species.flows[j].data[i] %></td>
+                <td class="table-success"><%= species.flows[j].data[i] %></td>
                 <% } else { %>
-                <td class="warning"><%= species.flows[j].data[i] %></td>
+                <td class="table-warning"><%= species.flows[j].data[i] %></td>
                 <% } %>
                 <% } %>
                 <% } %>
@@ -153,7 +152,7 @@
     </table>
     <h2>Seasonal activities</h2>
     <p>Assess system labor loads and complementarity of species in system.</p>
-    <table class="table table-striped">
+    <table class="table table-striped small">
         <tr>
             <td></td>
             <td>Activity</td>
@@ -179,9 +178,9 @@
                             <td><%= species.flows[j].name %></td>
                             <% for(i=0;i<12;i++){ %>
                                 <% if(species.flows[j].data[i] > 0){ %>
-                                    <td class="success"><%= species.flows[j].data[i] %></td>
+                                    <td class="table-success"><%= species.flows[j].data[i] %></td>
                                 <% } else { %>
-                                    <td class="warning"><%= species.flows[j].data[i] %></td>
+                                    <td class="table-warning"><%= species.flows[j].data[i] %></td>
                                 <% } %>
                             <% } %>
                         <% } %>

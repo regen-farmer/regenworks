@@ -5,48 +5,48 @@
     <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
     <% if(commoditysystems.length > 0){ %>
-    <h2>Systems for suitable for areas with "<%= commodity %>"</h2>
+    <h2>Systems suitable for areas with "<%= commodity %>"</h2>
     <div class="row">
         <% for(i=0;i<commoditysystems.length;i++){ %>
             <div class="col-lg-4">
-                <div class="thumbnail">
-                    <div class="row">
+                <div class="card text-center">
+                    <div class="row p-3 justify-content-center">
                         <% commoditysystems[i].rows.forEach(function(row){ %>
                             <div class="col-sm-3">
                                 <% if(row.sequense[0].family === "pinaceae"){ %>
-                                    <img class="img-responsive" src="/images/conifer.svg">
+                                    <img class="img-fluid" src="/images/conifer.svg">
                                 <% } else if (row.sequense[0].form === "tree") { %>
                                     <% if(row.sequense[0].height > 12){ %>
-                                        <img class="img-responsive" src="/images/treehigh.svg">
+                                        <img class="img-fluid" src="/images/treehigh.svg">
                                     <% } else { %>
-                                        <img class="img-responsive" src="/images/treelow.svg">
+                                        <img class="img-fluid" src="/images/treelow.svg">
                                     <% } %>
                                 <% } else { %>
-                                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                    <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
                                 <% } %>
                             </div>
                         <% }); %>
                         <% if(commoditysystems[i].rows.length > 1 && commoditysystems[i].rows.length < 4){ %>
                             <div class="col-sm-3">
                                 <% if(commoditysystems[i].rows[0].sequense[0].family === "pinaceae"){ %>
-                                    <img class="img-responsive" src="/images/conifer.svg">
+                                    <img class="img-fluid" src="/images/conifer.svg">
                                 <% } else if (commoditysystems[i].rows[0].sequense[0].form === "tree") { %>
                                     <% if(commoditysystems[i].rows[0].sequense[0].height > 12){ %>
-                                        <img class="img-responsive" src="/images/treehigh.svg">
+                                        <img class="img-fluid" src="/images/treehigh.svg">
                                     <% } else { %>
-                                        <img class="img-responsive" src="/images/treelow.svg">
+                                        <img class="img-fluid" src="/images/treelow.svg">
                                     <% } %>
                                 <% } else { %>
-                                    <img class="img-responsive" src="/images/<%= commoditysystems[i].rows[0].sequense[0].form %>.svg">
+                                    <img class="img-fluid" src="/images/<%= commoditysystems[i].rows[0].sequense[0].form %>.svg">
                                 <% } %>
                             </div>
                         <% }; %>
                     </div>
-                    <div class="caption">
-                        <p class="text-center"><%= commoditysystems[i].name %></p>
+                    <div class="card-body">
+                        <p class="card-text"><%= commoditysystems[i].name %></p>
                         <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                             <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
-                            <button class="btn btn-success center-block">Add system to future drafts</button>
+                            <button class="btn btn-success">Add system to future drafts</button>
                         </form>
                     </div>
                 </div>
@@ -60,29 +60,29 @@
         <div class="row">
             <% for(i=0;i<systemsproven.length;i++){ %>
                     <div class="col-lg-4">
-                        <div class="thumbnail">
-                                <div class="row">
+                        <div class="card text-center">
+                                <div class="row p-3 justify-content-center">
                                     <% systemsproven[i].rows.forEach(function(row){ %>
                                         <div class="col-sm-3">
-                                            <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                            <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
                                         </div>
                                     <% }); %>
                                     <% if(systemsproven[i].rows.length > 1){ %>
                                     <div class="col-sm-3">
                                         <% if(systemsproven[i].rows[0].sequense[0].family === "pinaceae"){ %>
-                                            <img class="img-responsive" src="/images/conifer.svg">
+                                            <img class="img-fluid" src="/images/conifer.svg">
                                         <% } else { %>
-                                            <img class="img-responsive" src="/images/<%= systemsproven[i].rows[0].sequense[0].form %>.svg">
+                                            <img class="img-fluid" src="/images/<%= systemsproven[i].rows[0].sequense[0].form %>.svg">
                                         <% } %>
                                     </div>
                                     <% }; %>
                                 </div>
-                                <div class="caption">
-                                    <p class="text-center"><%= systemsproven[i].name %></p>
-                                    <p class="text-center"><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
+                                <div class="card-body">
+                                    <h5 class="body-title"><%= systemsproven[i].name %></h5>
+                                    <p class="body-text"><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
                                     <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                                         <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
-                                        <button class="btn btn-success center-block">Add system to future drafts</button>
+                                        <button class="btn btn-success">Add system to future drafts</button>
                                     </form>
                                 </div>
 
@@ -99,44 +99,44 @@
     <div class="row">
         <% for(i=0;i<systemsclimate.length;i++){ %>
         <div class="col-lg-4">
-            <div class="thumbnail">
-                <div class="row">
+            <div class="card text-center">
+                <div class="row p-3 justify-content-center">
                     <% systemsclimate[i].rows.forEach(function(row){ %>
                         <div class="col-sm-3">
                             <% if(row.sequense[0].family === "pinaceae"){ %>
-                                <img class="img-responsive" src="/images/conifer.svg">
+                                <img class="img-fluid" src="/images/conifer.svg">
                             <% } else if (row.sequense[0].form === "tree") { %>
                                 <% if(row.sequense[0].height > 12){ %>
-                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                    <img class="img-fluid" src="/images/treehigh.svg">
                                 <% } else { %>
-                                    <img class="img-responsive" src="/images/treelow.svg">
+                                    <img class="img-fluid" src="/images/treelow.svg">
                                 <% } %>
                             <% } else { %>
-                                <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                                <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
                             <% } %>
                         </div>
                     <% }); %>
                     <% if(systemsclimate[i].rows.length > 1 && systemsclimate[i].rows.length < 4){ %>
                         <div class="col-sm-3">
                             <% if(systemsclimate[i].rows[0].sequense[0].family === "pinaceae"){ %>
-                                <img class="img-responsive" src="/images/conifer.svg">
+                                <img class="img-fluid" src="/images/conifer.svg">
                             <% } else if (systemsclimate[i].rows[0].sequense[0].form === "tree") { %>
                                 <% if(systemsclimate[i].rows[0].sequense[0].height > 12){ %>
-                                    <img class="img-responsive" src="/images/treehigh.svg">
+                                    <img class="img-fluid" src="/images/treehigh.svg">
                                 <% } else { %>
-                                    <img class="img-responsive" src="/images/treelow.svg">
+                                    <img class="img-fluid" src="/images/treelow.svg">
                                 <% } %>
                             <% } else { %>
-                                <img class="img-responsive" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
+                                <img class="img-fluid" src="/images/<%= systemsclimate[i].rows[0].sequense[0].form %>.svg">
                             <% } %>
                         </div>
                     <% }; %>
                 </div>
-                <div class="caption">
-                    <p class="text-center"><%= systemsclimate[i].name %></p>
+                <div class="card-body">
+                    <h5 class="body-title"><%= systemsclimate[i].name %></h5>
                     <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                         <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
-                        <button class="btn btn-success center-block">Add system to future drafts</button>
+                        <button class="btn btn-success">Add system to future drafts</button>
                     </form>
                 </div>
             </div>

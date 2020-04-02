@@ -13,7 +13,7 @@
                 <p><%= layer.description %></p>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-default" href="/layers/<%= layer._id %>/edit">Edit area</a>
+                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area</a>
                 <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
                     <button class="btn btn-danger">Delete Area</button>
                 </form>
@@ -27,154 +27,175 @@
                 <hr>
             </div>
         </div>
-        <div class="col-md-4">
-            <h2>Current area system</h2>
-            <p>The current production system has been defined as "<%= layer.type %>".</p>
-            <% if(!(layer.systems.present == "")){ %>
-                <p><%= layer.systems.present.name %></p>
-                <% if(presentsystem.animals.length > 0){ %>
-                    <p>Animals: <%= presentsystem.animals[0].name %></p>
-                <% } %>
-            <div class="row">
-                <% if(presentsystem.rows){ %>
-                <% presentsystem.rows.forEach(function(row, i){ %>
-                <% if(row.sequense[0].form === "tree"){ %>
-                <% if(row.sequense[0].height > 12){ %>
-                <div class="col-sm-3">
-                    <img class="img-responsive" src="/images/treehigh.svg">
-                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
-                </div>
-                <% } else { %>
-                <div class="col-sm-3">
-                    <img class="img-responsive" src="/images/treelow.svg">
-                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
-                </div>
-                <% } %>
-                <% } else { %>
-                <div class="col-sm-3">
-                    <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
-                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
-                </div>
-                <% } %>
-                <% }); %>
-                <% } %>
-            </div>
-            <div class="row">
-                <% if(presentsystem.rows){ %>
-                <% presentsystem.rows.forEach(function(row){ %>
-                <div class="col-sm-3">
-                    <% row.sequense.reverse().forEach(function(sequense){ %>
-                    <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
-                    <p class="text-center"><%= sequense.nameCommon %></p>
-                    <% }); %>
-                </div>
-                <% }); %>
-                <% } %>
-            </div>
-            <a class="btn btn-default" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
-            <hr>
-            <div class="thumbnail">
-                <div class="caption">
-                    <h2>Current system layers</h2>
-                    <table class="table table-striped">
-                        <tr>
-                            <td><strong>Layer</strong></td>
-                            <td><strong>Species</strong></td>
-                        </tr>
-                        <tr>
-                            <td>Canopy</td>
-                            <td>
-                                <% species.forEach(function(species){ %>
-                                <% if(species.form == "tree" || species.form == "palm" ){ %>
-                                <em><%= species.nameCommon %>,</em>
+        <div class="col-md-8">
+            <h2>Production system</h2>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <% if(!(layer.systems.present == "")){ %>
+                            <div class="row">
+                                <% if(presentsystem.rows){ %>
+                                <% presentsystem.rows.forEach(function(row, i){ %>
+                                <% if(row.sequense[0].form === "tree"){ %>
+                                <% if(row.sequense[0].height > 12){ %>
+                                <div class="col-sm-3">
+                                    <img class="img-fluid" src="/images/treehigh.svg">
+                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                </div>
+                                <% } else { %>
+                                <div class="col-sm-3">
+                                    <img class="img-fluid" src="/images/treelow.svg">
+                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                </div>
+                                <% } %>
+                                <% } else { %>
+                                <div class="col-sm-3">
+                                    <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
+                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                </div>
                                 <% } %>
                                 <% }); %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Sub-canopy</td>
-                            <td>
-                                <% species.forEach(function(species){ %>
-                                <% if(species.form == "shrub" || species.form == "giantherb" ){ %>
-                                <em><%= species.nameCommon %>,</em>
                                 <% } %>
+                            </div>
+                            <div class="row">
+                                <% if(presentsystem.rows){ %>
+                                <% presentsystem.rows.forEach(function(row){ %>
+                                <div class="col-sm-3">
+                                    <% row.sequense.reverse().forEach(function(sequense){ %>
+                                    <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
+                                    <p class="text-center"><%= sequense.nameCommon %></p>
+                                    <% }); %>
+                                </div>
                                 <% }); %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Climbers</td>
-                            <td>
-                                <% species.forEach(function(species){ %>
-                                <% if(species.form == "vine"){ %>
-                                <em><%= species.nameCommon %>,</em>
                                 <% } %>
-                                <% }); %>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Ground</td>
-                            <td>
-                                <% species.forEach(function(species){ %>
-                                <% if(species.form == "herb" || species.form == "grass" ){ %>
-                                <em><%= species.nameCommon %>,</em>
-                                <% } %>
-                                <% }); %>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <% } %>
-        </div>
-        <div class="col-md-4">
-            <h2>Plan new agroforestry system</h2>
-            <% if(!(layer.systems.future == "")){ %>
-            <p>Saved future system drafts</p>
-            <% layer.systems.future.forEach(function(system){ %>
-                <div class="thumbnail">
-                    <div class="caption">
-                        <p><%= system.name %></p>
-                        <a class="btn btn-default" href="/systems/<%= system._id %>">View more details</a>
-                        <button class="btn btn-warning" data-toggle="modal" data-target="#setCurrentModal">Set as current system</button>
-                        <!-- Modal -->
-                        <div class="modal fade" id="setCurrentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title" id="exampleModalLabel">Set system "<%= system.name %>" to current</h4>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
+                            </div>
+                            <p>The current production system has been defined as "<%= layer.type %>" - <i><%= layer.systems.present.name %></i></p>
+                            <p></p>
+                            <% if(presentsystem.animals.length > 0){ %>
+                            <p>Animals: <%= presentsystem.animals[0].name %></p>
+                            <% } %>
+                            <a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
+                            <% } %>
+                        </div>
+                        <div class="col-md-6">
+                            <% if(!(layer.systems.present == "")){ %><div class="thumbnail">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Current system species</h5>
+                                        <table class="table table-striped small">
+                                            <tr>
+                                                <td><strong>Layer</strong></td>
+                                                <td><strong>Species</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Canopy</td>
+                                                <td>
+                                                    <% species.forEach(function(species){ %>
+                                                    <% if(species.form == "tree" || species.form == "palm" ){ %>
+                                                    <em><%= species.nameCommon %>,</em>
+                                                    <% } %>
+                                                    <% }); %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sub-canopy</td>
+                                                <td>
+                                                    <% species.forEach(function(species){ %>
+                                                    <% if(species.form == "shrub" || species.form == "giantherb" ){ %>
+                                                    <em><%= species.nameCommon %>,</em>
+                                                    <% } %>
+                                                    <% }); %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Climbers</td>
+                                                <td>
+                                                    <% species.forEach(function(species){ %>
+                                                    <% if(species.form == "vine"){ %>
+                                                    <em><%= species.nameCommon %>,</em>
+                                                    <% } %>
+                                                    <% }); %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Ground</td>
+                                                <td>
+                                                    <% species.forEach(function(species){ %>
+                                                    <% if(species.form == "herb" || species.form == "grass" ){ %>
+                                                    <em><%= species.nameCommon %>,</em>
+                                                    <% } %>
+                                                    <% }); %>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <a class="btn btn-outline-primary" href="/systems/<%= layer.systems.present._id %>/composition">Analyse species consortium</a>
                                     </div>
-                                    <div class="modal-body">
-                                        <p>You are about to change the current production system for this area.</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <form action="/layers/<%= layer._id %>/presentsystem" method="POST">
-                                                    <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
-                                                    <button class="btn btn-warning pull-left">Change current system</button>
-                                                </form>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <button type="button" class="btn btn-secondary pull-right" data-dismiss="modal">Cancel change and close this window</button>
+
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <% if(!(layer.systems.future == "")){ %>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Saved future agroforestry system drafts</h5>
+                            <% layer.systems.future.forEach(function(system){ %>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="card-text"><%= system.name %></p>
+                                    <a class="btn btn-outline-primary" href="/systems/<%= system._id %>">View more details</a>
+                                    <button class="btn btn-outline-warning" data-toggle="modal" data-target="#setCurrentModal">Set as current system</button>
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="setCurrentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="exampleModalLabel">Set system "<%= system.name %>" to current</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>You are about to change the current production system for this area.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <a class="btn btn-success" href="/layers/<%= layer._id %>/projects/new/<%= system._id %>">Create project</a>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel and close this window</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <% }); %>
                         </div>
                     </div>
+                    <% } %>
+                    <% if(layer.systems.future.length > 1){ %>
+                    <% } %>
+                    <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
+                    <a class="btn btn-primary mt-2" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
                 </div>
-            <% }); %>
-            <% } %>
-            <% if(layer.systems.future.length > 1){ %>
-            <% } %>
-            <a class="btn btn-success" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
-            <a class="btn btn-primary" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
-            <h2>See production system timeline</h2>
-            <a class="btn btn-default" href="/layers/<%= layer._id %>/systems">See timeline</a>
+            </div>
         </div>
     </div>
 </div>
@@ -190,7 +211,7 @@
         container: 'layerMapShow',
         style: 'mapbox://styles/mapbox/satellite-v9',
         center: [areaLng, areaLat],
-        zoom: 14,
+        zoom: 15,
     });
 
     map.on('load', function () {

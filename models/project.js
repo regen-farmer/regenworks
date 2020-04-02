@@ -18,7 +18,11 @@ var projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Layer"
     },
-    activities: String
+    activities: String,
+    system: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "System"
+    }
 });
 
 module.exports = mongoose.model("Project", projectSchema);

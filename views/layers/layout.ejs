@@ -13,7 +13,7 @@
                 <% presentsystem.rows.forEach(function(row){ %>
                 <div class="col-sm-3">
                     <% row.sequense.reverse().forEach(function(sequense){ %>
-                    <img class="img-responsive" src="/images/<%= sequense.form %>top.svg">
+                    <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
                     <p class="text-center"><%= sequense.nameCommon %></p>
                     <% }); %>
                 </div>
@@ -27,7 +27,7 @@
             <p>Alignment: North/south</p>
             <p>Headland offset: 15 m</p>
             <p>Tree count: 187</p>
-            <a class="btn btn-default" href="/layers/<%= layer._id %>/layout">Update parameters</a>
+            <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/layout">Update parameters</a>
         </div>
     </div>
 </div>
