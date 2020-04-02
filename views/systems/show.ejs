@@ -110,6 +110,7 @@
         </div>
     </div>
     <h2>System lifetime productivity</h2>
+    <p>Assess projected lifetime productivity of system.</p>
     <table class="table table-striped small">
         <tr>
             <td></td>
@@ -137,15 +138,15 @@
                 <% if(species.flows[j].timeframe === "year"){ %>
                 <% for(i=0;i<15;i++){ %>
                 <% if(species.flows[j].data[i] > 0){ %>
-                <td class="table-success"><%= species.flows[j].data[i] %></td>
+                <td class="bg-success"><%= species.flows[j].data[i] %></td>
                 <% } else { %>
-                <td class="table-warning"><%= species.flows[j].data[i] %></td>
+                <td><%= species.flows[j].data[i] %></td>
                 <% } %>
                 <% } %>
                 <% } %>
                 <% } %>
                 <% } else { %>
-                <td>No data available on this species.</td>
+                <td>---</td>
                 <% } %>
             </tr>
         <% }); %>
@@ -178,15 +179,15 @@
                             <td><%= species.flows[j].name %></td>
                             <% for(i=0;i<12;i++){ %>
                                 <% if(species.flows[j].data[i] > 0){ %>
-                                    <td class="table-success"><%= species.flows[j].data[i] %></td>
+                                    <td class="bg-success"><%= species.flows[j].data[i] %></td>
                                 <% } else { %>
-                                    <td class="table-warning"><%= species.flows[j].data[i] %></td>
+                                    <td><%= species.flows[j].data[i] %></td>
                                 <% } %>
                             <% } %>
                         <% } %>
                     <% } %>
                 <% } else { %>
-                    <td>No data available on this species.</td>
+                    <td>---</td>
                 <% } %>
             </tr>
         <% }); %>
