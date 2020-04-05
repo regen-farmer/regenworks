@@ -13,6 +13,7 @@ var turf = require("@turf/helpers");
 var lineOffset = require("@turf/line-offset");
 var lineIntersect = require("@turf/line-intersect");
 var length = require("@turf/length");
+var buffer = require("@turf/buffer");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -105,26 +106,28 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
             System.findById(foundProject.system).populate("rows.sequense").exec(function(err, foundSystem){
                 // GET GEOMETRY
                 var polygon = JSON.parse(foundProject.layer.geometry);
+                // SET ROW WIDTH
+                var rowWidth = foundSystem.rows[0].width;
                 // CREATE BOUNDING BOX
                 var box = bboxPolygon(bbox(polygon));
                 // TAKE TOP SIDE OF BOUNDING BOX
                 var lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
                 // ESTIMATE AMOUNT OF ROWS
                 console.log((length(lengthLine, {units: "meters"})));
-                var rowCount = Math.floor((length(lengthLine, {units: "meters"}))/4);
+                var rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
                 console.log(rowCount);
                 // CREATE ROW LINE
                 var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
                 // CREATE ROW ARRAY
                 var rowArray = [];
-                var distance = -4;
+                var distance = rowWidth;
                 // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-                for(i=0;i<rowCount;i++){
-                    var offsetLine1 = lineOffset(line, distance, {units: "meters"});
-                    var rowPoints1 = lineIntersect(offsetLine1, polygon);
+                for(i=0;i<rowCount+2;i++){
+                    var bufferLine1 = buffer(line, distance, {units: "meters"});
+                    var rowPoints1 = lineIntersect(bufferLine1, polygon);
                     var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
                     rowArray.push(row1);
-                    distance = distance - 4;
+                    distance = distance + rowWidth;
                 }
                 // CREATE FEATURECOLLECTION
                 var featurecollection = turf.featureCollection(rowArray);

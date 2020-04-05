@@ -179,7 +179,6 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
             }
             // CREATE FEATURECOLLECTION
             var featurecollection = turf.featureCollection(geometryArray);
-            console.log(featurecollection);
             var collection = JSON.stringify(featurecollection);
             res.render("parcels/show", {parcel: foundParcel, collection: collection});
         }

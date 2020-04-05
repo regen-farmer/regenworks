@@ -14,6 +14,8 @@ var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
 var lineOffset = require("@turf/line-offset");
 var lineIntersect = require("@turf/line-intersect");
+var length = require("@turf/length");
+var buffer = require("@turf/buffer");
 
 // LAYER INDEX ROUTE
 
@@ -310,7 +312,31 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             console.log(err);
                         } else {
                             var polygon = JSON.parse(foundLayer.geometry);
+                            // SET ROW WIDTH
+                            var rowWidth = foundSystem.rows[0].width;
+                            // CREATE BOUNDING BOX
                             var box = bboxPolygon(bbox(polygon));
+                            // TAKE TOP SIDE OF BOUNDING BOX
+                            var lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
+                            // ESTIMATE AMOUNT OF ROWS
+                            console.log((length(lengthLine, {units: "meters"})));
+                            var rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
+                            console.log(rowCount);
+                            // CREATE ROW LINE
+                            var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
+                            // CREATE ROW ARRAY
+                            var rowArray = [];
+                            var distance = rowWidth;
+                            // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
+                            for(i=0;i<rowCount+2;i++){
+                                var bufferLine1 = buffer(line, distance, {units: "meters"});
+                                var rowPoints1 = lineIntersect(bufferLine1, polygon);
+                                var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                rowArray.push(row1);
+                                distance = distance + rowWidth;
+                            }
+                            // CREATE FEATURECOLLECTION
+                            var featurecollection = turf.featureCollection(rowArray);
                             var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
                             var offsetline = lineOffset(line, -(foundSystem.rows[0].width),{units: "meters"});
                             var rowPoints = lineIntersect(offsetline, polygon);
@@ -319,7 +345,8 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             console.log(row);
                             var stringline = JSON.stringify(row);
                             var stringbox = JSON.stringify(box);
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, stringbox: stringbox, stringline: stringline});
+                            var collection = JSON.stringify(featurecollection);
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, stringbox: stringbox, stringline: stringline, collection: collection});
                         }
                     });
                 }

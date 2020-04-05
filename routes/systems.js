@@ -216,7 +216,7 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
 
 // SYSTEM ASSESSMENT ROUTE
 router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
-    System.find().populate("rows.sequense").populate("flows").exec(function(err, foundSystems){
+    System.find().populate("rows.sequense").populate("flows").populate("animals").exec(function(err, foundSystems){
         if(err){
             console.log(err);
         } else {
@@ -225,7 +225,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                 if(err){
                     console.log(err);
                 } else {
-                    System.findById(foundLayer.systems.present.id).populate("rows.sequense").exec(function(err, foundSystem){
+                    System.findById(foundLayer.systems.present.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
@@ -243,6 +243,11 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             console.log(commodity);
                                         }
                                     });
+                                    // CHECK IF SYSTEM HAS ANIMALS
+                                    var animals = "";
+                                    if(foundSystem.animals.length > 0){
+                                        animals = foundSystem.animals[0];
+                                    }
                                     var systems = [];
                                     for(i=0;i<foundSystems.length;i++){
                                         if(foundSystems[i].shared === true){
@@ -258,13 +263,20 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             }
                                         }
                                     }
-                                    console.log(commoditysystems.length);
+                                    console.log("Commodity systems: " + commoditysystems.length);
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
                                         if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[0].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
                                             systemsclimate.push(systems[i]);
                                         }
                                     }
+                                    var animalsystems = [];
+                                    for(i=0;i<systemsclimate.length;i++){
+                                        if(systemsclimate[i].animals[0] === animals) {
+                                            animalsystems.push(systemsclimate[i]);
+                                        }
+                                    }
+                                    console.log("Animal systems: " + animalsystems.length);
                                     var systemsproven = [];
                                     for(i=0;i<systemsclimate.length;i++){
                                         if(systemsclimate[i].flows.length > 0){
@@ -275,7 +287,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     if(systems.length < 1){
                                         res.redirect("layers/" + foundLayer._id);
                                     } else {
-                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate, commoditysystems: commoditysystems, commodity: commodityName});
+                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate, commoditysystems: commoditysystems, commodity: commodityName, animalsystems: animalsystems});
                                     }
                                 }
                             });
