@@ -1,0 +1,124 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div id="layerMapShow"></div>
+        </div>
+        <div class="col-md-4">
+            <p></p>
+            <div class="row">
+                <% if(system.rows.length > 0){ %>
+                    <% system.rows.forEach(function(row){ %>
+                    <div class="col-sm-3">
+                        <% row.sequense.reverse().forEach(function(sequense){ %>
+                        <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
+                        <p class="text-center"><%= sequense.nameCommon %></p>
+                        <% }); %>
+                    </div>
+                    <% }); %>
+                <% } %>
+            </div>
+            <p><i><%= project.system.name %></i></p>
+            <h2>System layout</h2>
+            <p>Area size: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+            <p>Tree count: 187</p>
+            <div class="card">
+                <div class="card-body">
+                    <h5>Change parameters</h5>
+                    <form action="/projects/<%= project._id %>?_method=PUT" method="POST">
+                        <div class="form-group">
+                            <label for="project[layout]">Layout type</label>
+                            <select class="form-control" name="project[layout]">
+                                <% if(project.layout === "straight") { %>
+                                <option selected="selected" value="straight">Straight rows</option>
+                                <% } else { %>
+                                <option value="straight">Straight rows</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="project[alignment]">Alignment</label>
+                            <select class="form-control" name="project[alignment]">
+                                <% if(project.alignment === "north") { %>
+                                <option selected="selected" value="north">North/south</option>
+                                <% } else { %>
+                                <option value="north">North/south</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="project[headland]">Headland</label>
+                            <input type="number" class="form-control" name="project[headland]" value="<%= project.headland %>">
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-outline-primary">Update parameters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var areaLat = "<%= project.layer.lat %>";
+    var areaLng = "<%= project.layer.lng %>";
+
+    var line = "<%= stringline %>";
+    var correctline = JSON.parse(line.replace(/&#34;/g,'"'));
+
+    var col = "<%= collection %>";
+    var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= project.layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'layerMapShow',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [areaLng, areaLat],
+        zoom: 15,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7F22C0',
+                'fill-opacity': 0.6
+            }
+        });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data':
+                    correctcol
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#fff1ff',
+            }
+        });
+    });
+
+</script>
+
+<% include ../partials/footer %>

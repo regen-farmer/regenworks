@@ -87,6 +87,13 @@
                     <input type="hidden" id="geometry" name="geometry">
                     <div id="coordinates"></div>
                     <div class="form-group">
+                        <label for="parcel[measurement]">System of measurement</label>
+                        <select class="form-control" name="parcel[measurement]">
+                            <option value="metric">Metric system (Meter, hectare...)</option>
+                            <option value="imperial">Imperial system (Inch, foot, acre...)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <button type="submit" class="btn btn-success btn-lg">Create farm</button>
                     </div>
                 </form>

@@ -22,7 +22,10 @@ var projectSchema = new mongoose.Schema({
     system: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "System"
-    }
+    },
+    layout: String,
+    alignment: String,
+    headland: Number
 });
 
 module.exports = mongoose.model("Project", projectSchema);

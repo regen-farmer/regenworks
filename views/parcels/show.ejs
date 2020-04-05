@@ -64,8 +64,10 @@
     var parcelLat = "<%= parcel.lat %>";
     var parcelLng = "<%= parcel.lng %>";
 
-    var getgeometry = "<%= geometry %>";
-    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    var getcollection = "<%= collection %>";
+    var correctcollection = JSON.parse(getcollection.replace(/&#34;/g,'"'));
+
+
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
@@ -82,18 +84,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2d
             'type': 'fill',
             'source': {
                 'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': [
-                        {
-                            'type': 'Feature',
-                            'geometry': {
-                                'type': 'Polygon',
-                                'coordinates': correctgeometry.geometry.coordinates
-                            }
-                        }
-                    ]
-                }
+                'data': correctcollection
             },
             'layout': {},
             'paint': {

@@ -7,6 +7,12 @@ var Layer = require("../models/layer");
 var System = require("../models/system");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
+var bbox = require("@turf/bbox");
+var bboxPolygon = require("@turf/bbox-polygon");
+var turf = require("@turf/helpers");
+var lineOffset = require("@turf/line-offset");
+var lineIntersect = require("@turf/line-intersect");
+var length = require("@turf/length");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -40,8 +46,8 @@ router.get("/projects/new", middleware.isLoggedIn, function(req, res){
 
 // SERVICES CREATE ROUTE
 router.post("/projects", middleware.isLoggedIn, function(req, res){
-    // Create a new service
-    Service.create(req.body.service, function(err, service){
+    // Create a new project
+    Project.create(req.body.project, function(err, service){
         if(err){
             console.log(err);
         } else {
@@ -69,7 +75,7 @@ router.post("/projects", middleware.isLoggedIn, function(req, res){
 
 // SERVICES SHOW ROUTE
 router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id, function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate("system").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -78,48 +84,79 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// SERVICES EDIT ROUTE
+// PROJECT EDIT ROUTE
 router.get("/projects/:id/edit", middleware.isLoggedIn, function(req, res){ // MAKE SERVICE OWNERSHIP MIDDLEWARE
-    // Find specific experience in database
-    Service.findById(req.params.id, function(err, foundService){
+    // Find specific project in database
+    Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            res.render("projects/edit", {service: foundService});
+            res.render("projects/edit", {project: foundProject});
         }
     });
 });
 
-// SERVICES UPDATE ROUTE
-router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
-    // Create a new service
-    Service.findByIdAndUpdate(req.params.id, req.body.service, function(err, updatedService){
+// PROJECT LAYOUT EDIT ROUTE
+router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
+    Project.findById(req.params.id).populate("system").populate("layer").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-            geocoder.geocode(updatedService.location, function(err, data) {
-                if (err || !data.length) {
-                    console.log(err);
-                    return res.redirect("back");
-                } else {
-                    updatedService.lat = data[0].latitude;
-                    updatedService.lng = data[0].longitude;
-                    updatedService.location = data[0].formattedAddress;
-                    // Save the service - Not need if created after this step
-                    updatedService.save();
-                    // Redirect to projects INDEX page
-                    // req.flash("success", "Successfully added service");
-                    res.redirect("/projects/" + req.params.id);
+            System.findById(foundProject.system).populate("rows.sequense").exec(function(err, foundSystem){
+                // GET GEOMETRY
+                var polygon = JSON.parse(foundProject.layer.geometry);
+                // CREATE BOUNDING BOX
+                var box = bboxPolygon(bbox(polygon));
+                // TAKE TOP SIDE OF BOUNDING BOX
+                var lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
+                // ESTIMATE AMOUNT OF ROWS
+                console.log((length(lengthLine, {units: "meters"})));
+                var rowCount = Math.floor((length(lengthLine, {units: "meters"}))/4);
+                console.log(rowCount);
+                // CREATE ROW LINE
+                var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
+                // CREATE ROW ARRAY
+                var rowArray = [];
+                var distance = -4;
+                // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
+                for(i=0;i<rowCount;i++){
+                    var offsetLine1 = lineOffset(line, distance, {units: "meters"});
+                    var rowPoints1 = lineIntersect(offsetLine1, polygon);
+                    var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                    rowArray.push(row1);
+                    distance = distance - 4;
                 }
+                // CREATE FEATURECOLLECTION
+                var featurecollection = turf.featureCollection(rowArray);
+                // OFFSET LINE
+                var offsetline = lineOffset(line, -(3),{units: "meters"});
+                var rowPoints = lineIntersect(offsetline, polygon);
+                var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
+                var stringline = JSON.stringify(row);
+                var stringbox = JSON.stringify(box);
+                var collection = JSON.stringify(featurecollection);
+                res.render("projects/layout", {project: foundProject, system: foundSystem, stringbox: stringbox, stringline: stringline, collection: collection});
             });
         }
     });
 });
 
+// PROJECT UPDATE ROUTE
+router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
+    // Create a new service
+    Project.findByIdAndUpdate(req.params.id, req.body.project, function(err, updatedProject){
+        if(err){
+            console.log(err);
+        } else {
+            // req.flash("success", "Successfully added service");
+            res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
+
 // SERVICES DELETE ROUTE
-router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAKE SERVICE OWNERSHIP MIDDLEWARE
-    Service.findByIdAndRemove(req.params.id, function(err){
+router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAKE PROJECT OWNERSHIP MIDDLEWARE
+    Project.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);
             res.redirect("/projects");
@@ -133,7 +170,7 @@ router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAK
 
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get("/layers/:id/projects/new/:system", middleware.isLoggedIn, function(req, res){ // CHECK OWNERSHIP!!!
-    // FIND PLACE ID
+    // FIND LAYER ID
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err) {
             console.log(err);
@@ -158,21 +195,30 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
             console.log(err);
             res.redirect("/layers/" + req.params.id);
         } else {
-            Project.create(req.body.project, function (err, createdProject) {
+            Project.create(req.body.project, function(err, createdProject) {
                 if (err) {
                     console.log(err);
                 } else {
-                    // Add username and ID to service.
-                    createdProject.owner.id = req.user._id;
-                    createdProject.owner.username = req.user.username;
-                    // Save the service
-                    createdProject.save();
-                    // Connect new service to place
-                    foundLayer.projects.push(createdProject);
-                    foundLayer.save();
-                    // Redirect to parcels SHOW page
-                    // req.flash("success", "Successfully added comment");
-                    res.redirect("/projects/" + createdProject._id);
+                    // FIND SYSTEM AND ADD TO PROJECT
+                    System.findById(req.body.systemid, function(err, foundSystem){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // Add username and ID to service.
+                            createdProject.owner.id = req.user._id;
+                            createdProject.owner.username = req.user.username;
+                            createdProject.system = foundSystem;
+                            createdProject.layer = foundLayer;
+                            // Save the service
+                            createdProject.save();
+                            // Connect new service to place
+                            foundLayer.projects.push(createdProject);
+                            foundLayer.save();
+                            // Redirect to parcels SHOW page
+                            // req.flash("success", "Successfully added comment");
+                            res.redirect("/projects/" + createdProject._id);
+                        }
+                    });
                 }
             });
         }

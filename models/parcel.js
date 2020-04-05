@@ -75,7 +75,8 @@ var parcelSchema = new mongoose.Schema({
             low: Number,
             high: Number
         }
-    }
+    },
+    measurement: String
 });
 
 module.exports = mongoose.model("Parcel", parcelSchema);

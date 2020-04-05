@@ -71,7 +71,10 @@ var layerSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Project"
         }
-    ]
+    ],
+    alignment: String,
+    layout: String,
+    headland: Number
 });
 
 module.exports = mongoose.model("Layer", layerSchema);

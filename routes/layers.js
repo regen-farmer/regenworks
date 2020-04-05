@@ -9,6 +9,11 @@ var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
 var centroid = require("@turf/centroid");
+var bbox = require("@turf/bbox");
+var bboxPolygon = require("@turf/bbox-polygon");
+var turf = require("@turf/helpers");
+var lineOffset = require("@turf/line-offset");
+var lineIntersect = require("@turf/line-intersect");
 
 // LAYER INDEX ROUTE
 
@@ -304,7 +309,17 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                         if(err) {
                             console.log(err);
                         } else {
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies});
+                            var polygon = JSON.parse(foundLayer.geometry);
+                            var box = bboxPolygon(bbox(polygon));
+                            var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
+                            var offsetline = lineOffset(line, -(foundSystem.rows[0].width),{units: "meters"});
+                            var rowPoints = lineIntersect(offsetline, polygon);
+                            console.log(rowPoints.features[0].geometry.coordinates[0]);
+                            var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
+                            console.log(row);
+                            var stringline = JSON.stringify(row);
+                            var stringbox = JSON.stringify(box);
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, stringbox: stringbox, stringline: stringline});
                         }
                     });
                 }

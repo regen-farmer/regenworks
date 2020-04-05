@@ -6,6 +6,7 @@ var Practice = require("../models/practice");
 var Layer = require("../models/layer");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var request = require("request"); // Making REST requests
+var turf = require("@turf/helpers");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -59,6 +60,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
     var size = req.body.parcel.size;
     var description = req.body.parcel.description;
     var practices = req.body.practiceids;
+    var measurement = req.body.parcel.measurement;
     var owner = {
         id: req.user._id,
         username: req.user.username
@@ -127,14 +129,14 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.high = 1;
         }
         // Create new parcel
-        var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate};
+        var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate, measurement: measurement};
         // Create a new parcel and save it to the database
         Parcel.create(newParcel, function(err, newlyCreated){
             if(err){
                 // req.flash("error", "Something went wrong");
                 console.log(err);
             } else {
-                console.log(newlyCreated + "added");
+                console.log(newlyCreated + " added");
                 // Find user based on ID
                 User.findById(newlyCreated.owner.id, function(err, foundUser){
                     if(err) {
@@ -164,11 +166,22 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
         if(err) {
             console.log(err);
         } else {
-            var geometry = "";
-            if(foundParcel.layers){
-                geometry = foundParcel.layers[0].geometry;
+            var geometry = turf.polygon([[[0,0],[0,1],[1,0],[0,0]]]);
+            var geometryArray = [];
+            geometryArray.push(geometry);
+            if(foundParcel.layers.length > 0){
+                for(i=0;foundParcel.layers.length > i;i++){
+                    // GET GEOMETRY
+                    var polygon = JSON.parse(foundParcel.layers[i].geometry);
+                    // PUSH TO ARRAY
+                    geometryArray.push(polygon);
+                }
             }
-            res.render("parcels/show", {parcel: foundParcel, geometry: geometry});
+            // CREATE FEATURECOLLECTION
+            var featurecollection = turf.featureCollection(geometryArray);
+            console.log(featurecollection);
+            var collection = JSON.stringify(featurecollection);
+            res.render("parcels/show", {parcel: foundParcel, collection: collection});
         }
     });
 });
