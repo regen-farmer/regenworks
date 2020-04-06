@@ -5,7 +5,8 @@
     <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
     <% if(animalsystems.length > 0){ %>
-    <h2>Systems suitable for "<%= animalsystems[0].animals[0].name %>"</h2>
+    <h2>Systems suitable for areas with "<%= animalsystems[0].animals[0].name %>"</h2>
+    <p>Systems suitable for areas with existing animal operations.</p>
     <div class="row">
         <% for(i=0;i<animalsystems.length;i++){ %>
         <div class="col-lg-4">
@@ -43,7 +44,7 @@
                     <% }; %>
                 </div>
                 <div class="card-body">
-                    <p class="card-text"><%= animalsystems[i].name %></p>
+                    <h5 class="body-title"><%= animalsystems[i].name %></h5>
                     <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                         <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
                         <button class="btn btn-success">Add system to future drafts</button>

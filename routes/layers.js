@@ -328,7 +328,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var rowArray = [];
                             var distance = rowWidth;
                             // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-                            for(i=0;i<rowCount+2;i++){
+                            for(i=0;i<rowCount;i++){
                                 var bufferLine1 = buffer(line, distance, {units: "meters"});
                                 var rowPoints1 = lineIntersect(bufferLine1, polygon);
                                 var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });

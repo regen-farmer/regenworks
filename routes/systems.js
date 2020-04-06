@@ -272,8 +272,11 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     }
                                     var animalsystems = [];
                                     for(i=0;i<systemsclimate.length;i++){
-                                        if(systemsclimate[i].animals[0] === animals) {
-                                            animalsystems.push(systemsclimate[i]);
+                                        if(systemsclimate[i].animals.length > 0){
+                                            if(systemsclimate[i].animals[0].equals(animals)) {
+                                                animalsystems.push(systemsclimate[i]);
+                                            }
+                                            console.log(systemsclimate[i].animals[0]);
                                         }
                                     }
                                     console.log("Animal systems: " + animalsystems.length);
