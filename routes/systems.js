@@ -240,7 +240,6 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                         if(row.sequense[0].nameCommon === "Arabian coffee"){
                                             commodity = row.sequense[0].id;
                                             commodityName = row.sequense[0].nameCommon;
-                                            console.log(commodity);
                                         }
                                     });
                                     // CHECK IF SYSTEM HAS ANIMALS
@@ -266,8 +265,15 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     console.log("Commodity systems: " + commoditysystems.length);
                                     var systemsclimate = [];
                                     for(i=0;i<systems.length;i++){
-                                        if(systems[i].rows[0].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[0].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[0].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
+                                        var count = 0;
+                                        for(j=0;j<systems[i].rows.length;j++){
+                                            if(systems[i].rows[j].sequense[0].precipitation.min < foundParcel.climate.annualaverageprec && systems[i].rows[j].sequense[0].precipitation.max > foundParcel.climate.annualaverageprec && systems[i].rows[j].sequense[0].temperature.min < foundParcel.climate.hardiness.high && systems[i].rows[j].sequense[0].temperature.max > foundParcel.climate.hardiness.low){
+                                                count = count + 1;
+                                            }
+                                        }
+                                        if(count === systems[i].rows.length){
                                             systemsclimate.push(systems[i]);
+                                            console.log("climate fit");
                                         }
                                     }
                                     var animalsystems = [];
@@ -276,7 +282,6 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             if(systemsclimate[i].animals[0].equals(animals)) {
                                                 animalsystems.push(systemsclimate[i]);
                                             }
-                                            console.log(systemsclimate[i].animals[0]);
                                         }
                                     }
                                     console.log("Animal systems: " + animalsystems.length);
