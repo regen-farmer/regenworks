@@ -1,7 +1,7 @@
 // TOOLTIP
-// $(document).ready(function(){
-//     $('[data-toggle="tooltip"]').tooltip();
-// });
+ $(document).ready(function(){
+     $('[data-toggle="tooltip"]').tooltip();
+ });
 
 // NEW LAYER GEOMETRY MAP
 var mylayermapnew = L.map('layerMapNew').setView([parcelLat, parcelLng], 16);

@@ -3,10 +3,11 @@
 
 <div class="container">
     <h1><%= species.nameCommon %></h1>
+    <a class="btn btn-outline-secondary" href="/species/">Species index</a>
     <div class="row">
         <div class="col-sm-2">
             <img class="img-responsive" src="/images/<%= species.form %>.svg">
-            <a class="btn btn-default" href="/species/<%= species._id %>/edit">Edit species details</a>
+            <a class="btn btn-outline-primary" href="/species/<%= species._id %>/edit">Edit species details</a>
             <form class="delete-form" action="/species/<%= species._id %>?_method=DELETE" method="POST">
                 <button class="btn btn-danger">Delete species</button>
             </form>

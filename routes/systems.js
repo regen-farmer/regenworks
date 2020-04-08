@@ -273,7 +273,6 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                         }
                                         if(count === systems[i].rows.length){
                                             systemsclimate.push(systems[i]);
-                                            console.log("climate fit");
                                         }
                                     }
                                     var animalsystems = [];

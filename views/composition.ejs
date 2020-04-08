@@ -14,7 +14,27 @@
         </tr>
         <tr>
             <td>Emergent</td>
-            <td></td>
+            <td><% species.forEach(function(species){ %>
+                <% if(species.form == "grass"){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "grass"){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "herb" && species.height > 1 && species.lifespan < 2){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "herb" && species.height > 1 && species.lifespan < 2){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+            </td>
             <td>
                 <% species.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan < 80){ %>
@@ -23,7 +43,7 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan < 80){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -35,25 +55,36 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan > 79){ %>
-                    <p><i><%= species.nameCommon %></i></p>
+                    <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
         </tr>
         <tr>
             <td>High</td>
-            <td><% species.forEach(function(species){ %>
+            <td>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 4){ %>
+                <p><strong><%= species.nameCommon %></strong></p>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 4){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+            </td>
+            <td>
+                <% species.forEach(function(species){ %>
                 <% if(species.form == "giantherb" ){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "giantherb")){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
-            </td>
-            <td>
                 <% species.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan < 80 ){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
@@ -61,7 +92,7 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan < 80 ){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -73,7 +104,7 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan > 79){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -82,13 +113,13 @@
             <td>Medium</td>
             <td>
                 <% species.forEach(function(species){ %>
-                <% if(species.form == "herb" || species.form == "grass"){ %>
+                <% if(species.form == "herb" && species.height < 1.1 && species.lifespan < 2){ %>
                 <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if(species.form == "herb" || species.form == "grass"){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <% if(species.form == "herb" && species.height < 1.1 && species.lifespan < 2){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -100,7 +131,27 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan < 80){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 80 && species.lifespan > 3){ %>
+                <p><strong><%= species.nameCommon %></strong></p>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan < 80 && species.lifespan > 3){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "herb" && species.lifespan > 2 && species.height > 1){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "herb" && species.lifespan > 2 && species.height > 1){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -112,7 +163,17 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan > 79){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <% } %>
+                <% }); %>
+                <% species.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan > 79){ %>
+                <p><strong><%= species.nameCommon %></strong></p>
+                <% } %>
+                <% }); %>
+                <% suitablespecies.forEach(function(species){ %>
+                <% if(species.form == "shrub" && species.lifespan > 79){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
@@ -128,34 +189,26 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "succulent" || species.form == "cactus" ){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
-                <% if(species.form == "shrub" && species.lifespan < 80){ %>
-                <p><strong><%= species.nameCommon %></strong></p>
+                <% if(species.form == "herb" && species.lifespan > 2 && species.height < 1.1){ %>
+                <p><strong><%= species.nameCommon %></p></strong>
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if(species.form == "shrub" && species.lifespan < 80){ %>
-                <p><i><%= species.nameCommon %></i></p>
+                <% if(species.form == "herb" && species.lifespan > 2 && species.height < 1.1){ %>
+                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"
+                ><i><%= species.nameCommon %></i></p>
                 <% } %>
                 <% }); %>
             </td>
             <td>
-                <% species.forEach(function(species){ %>
-                <% if(species.form == "shrub" && species.lifespan > 79){ %>
-                <p><strong><%= species.nameCommon %></strong></p>
-                <% } %>
-                <% }); %>
-                <% suitablespecies.forEach(function(species){ %>
-                <% if(species.form == "shrub" && species.lifespan > 79){ %>
-                <p><i><%= species.nameCommon %></i></p>
-                <% } %>
-                <% }); %>
             </td>
         </tr>
     </table>
+    <a class="btn btn-outline-primary" href="/systems/<%= system._id %>/edit">Update system species</a>
 </div>
 
 <% include ./partials/footer %>
