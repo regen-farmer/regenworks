@@ -18,10 +18,19 @@ var projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Layer"
     },
-    activities: String,
+    activities: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Activity"
+        }
+    ],
     system: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "System"
+    },
+    budget: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Budget"
     },
     layout: String,
     alignment: String,

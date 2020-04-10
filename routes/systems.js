@@ -159,7 +159,45 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
 
 // SYSTEM EDIT ROUTE
 
+// SYSTEM EDIT W. SPECIES ROUTE
+router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
+    System.findById(req.params.id, function(err, foundSystem){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ALL SPECIES IN SYSTEM
+            var allSpecies = [];
+            foundSystem.rows.forEach(function(row){
+                row.sequense.forEach(function(species){
+                    allSpecies.push(species.id);
+                });
+            });
+            // PUSH NEW SPECIES TO LIST
+            allSpecies.push(req.params.speciesid);
+            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+            var uniqueSpecies = unique(allSpecies);
+            // FIND ALL SPECIES IN SYSTEM
+            Species.find({"_id": uniqueSpecies}, function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("systems/edit", {species: foundSpecies});
+                }
+            });
+        }
+    });
+});
+
 // SYSTEM UPDATE ROUTE
+router.put("/systems/:id", middleware.isLoggedIn, function(req, res){
+    System.findByIdAndUpdate(req.params.id, req.body.system, function(err, updatedSystem){
+        if(err){
+            console.log(err);
+        } else {
+            res.redirect("/systems/" + updatedSystem.id);
+        }
+    });
+});
 
 // SYSTEM DELETE ROUTE
 

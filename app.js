@@ -26,6 +26,7 @@ var speciesRoutes = require("./routes/species");
 var flowRoutes = require("./routes/flows");
 var systemflowRoutes = require("./routes/systemflows");
 var animalRoutes = require("./routes/animals");
+var budgetRoutes = require("./routes/budgets");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -69,6 +70,7 @@ app.use("", speciesRoutes);
 app.use("", flowRoutes);
 app.use("", systemflowRoutes);
 app.use("", animalRoutes);
+app.use("", budgetRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){

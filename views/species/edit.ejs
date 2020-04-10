@@ -236,6 +236,24 @@
                         <input type="checkbox" name="species[utilities]" value="biomass" autocomplete="off"> Biomass
                     </label>
                     <% } %>
+                    <% if(species.utilities.indexOf("nitrogen") > -1){ %>
+                    <label class="btn btn-outline-primary active">
+                        <input type="checkbox" name="species[utilities]" checked="checked" value="nitrogen" autocomplete="off"> Nitrogen
+                    </label>
+                    <% } else { %>
+                    <label class="btn btn-outline-primary">
+                        <input type="checkbox" name="species[utilities]" value="nitrogen" autocomplete="off"> Nitrogen
+                    </label>
+                    <% } %>
+                    <% if(species.utilities.indexOf("shade") > -1){ %>
+                    <label class="btn btn-outline-primary active">
+                        <input type="checkbox" name="species[utilities]" checked="checked" value="shade" autocomplete="off"> Shade
+                    </label>
+                    <% } else { %>
+                    <label class="btn btn-outline-primary">
+                        <input type="checkbox" name="species[utilities]" value="shade" autocomplete="off"> Shade
+                    </label>
+                    <% } %>
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-success btn-lg">Update species</button>
