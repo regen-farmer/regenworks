@@ -18,7 +18,8 @@ var UserSchema = new mongoose.Schema({
             ref: "Parcel"
     },
     registrationDate: Number,
-    membership: Number
+    membership: Number,
+    farmLimit: Number
 });
 
 UserSchema.plugin(passportLocalMongoose);

@@ -35,7 +35,17 @@ var speciesSchema = new mongoose.Schema({
             ref: "Flow"
         }
     ],
-    utilities: [String]
+    utilities: [String],
+    activities: [
+        {
+            type: String,
+            name: String,
+            time: {
+                startMonth: Number,
+                endMonth: Number
+            }
+        }
+    ]
 });
 
 module.exports = mongoose.model("Species", speciesSchema);

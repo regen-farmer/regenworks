@@ -15,6 +15,7 @@ var activitySchema = new mongoose.Schema({
     type: String,
     duration: String,
     status: Boolean,
+    automated: Boolean,
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,

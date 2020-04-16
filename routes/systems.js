@@ -275,7 +275,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     var commodity = "";
                                     var commodityName = "";
                                     foundSystem.rows.forEach(function(row){
-                                        if(row.sequense[0].nameCommon === "Arabian coffee"){
+                                        if(row.sequense[0].nameCommon === "Arabian coffee" || row.sequense[0].nameCommon === "Cacao" || row.sequense[0].nameCommon === "Cashew"){
                                             commodity = row.sequense[0].id;
                                             commodityName = row.sequense[0].nameCommon;
                                         }

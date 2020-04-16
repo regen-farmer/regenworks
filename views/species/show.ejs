@@ -11,6 +11,7 @@
             <form class="delete-form" action="/species/<%= species._id %>?_method=DELETE" method="POST">
                 <button class="btn btn-danger">Delete species</button>
             </form>
+            <a class="btn btn-outline-secondary" href="/species/<%= species._id %>/activities/new">Add new activity to species</a>
         </div>
         <div class="col-sm-2">
             <p>Name: <%= species.genus %> <%= species.species %></p>

@@ -17,28 +17,39 @@
             <div>
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Project activities</h2>
-                        <p class="card-text">-- COMING SOON --</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">Project progress</h2>
-                        <p class="card-text">-- COMING SOON --</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">Project finances</h2>
-                        <p class="card-text">-- COMING SOON --</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
                         <h2 class="card-title">Project system and layout</h2>
-                        <p class="card-text">-- COMING SOON --</p>
-
+                        <p class="card-text">System: <%= project.system.name %></p>
                         <a href="/projects/<%= project._id %>/layout" class="btn btn-primary">Setup layout</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project planning and activities</h2>
+                        <% if(project.activities.length > 0){ %>
+                        <table class="table table-striped small">
+                            <tr>
+                                <td><strong>Activity</strong></td>
+                                <td><strong>Date</strong></td>
+                            </tr>
+                            <% project.activities.forEach(function(activity){ %>
+                            <tr>
+                                <td><%= activity.name %></td>
+                                <td><%= activity.start.date %></td>
+                            </tr>
+                            <% }); %>
+                        </table>
+                        <% } %>
+                        <a href="/projects/<%= project._id %>/activities/new" class="btn btn-outline-primary">Add new activity</a>
+                        <p class="card-text"></p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project budget and finances</h2>
+                            <% if(project.budget){ %>
+                                <a href="/budgets/<%= project.budget._id %>" class="btn btn-outline-primary">Show budget</a>
+                            <% } %>
+                        <p class="card-text"></p>
                     </div>
                 </div>
             </div>

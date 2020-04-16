@@ -3,6 +3,7 @@ var router = express.Router();
 var Parcel = require("../models/parcel");
 var Activity = require("../models/activity");
 var Layer = require("../models/layer");
+var Project = require("../models/project");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 
@@ -187,6 +188,43 @@ router.post("/parcels/:id/activities", middleware.isLoggedIn, function(req, res)
                     // Redirect to parcels SHOW page
                     // req.flash("success", "Successfully added comment");
                     res.redirect("/parcels/" + foundParcel._id);
+                }
+            });
+        }
+    });
+});
+
+// PROJECT ACTIVITY NEW ROUTE
+router.get("/projects/:id/activities/new", middleware.isLoggedIn, function(req, res){
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("activities/new", {project: foundProject});
+        }
+    });
+});
+
+// PROJECT ACTIVITY CREATE ROUTE
+router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res){
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            Activity.create(req.body.activity, function(err, createdActivity){
+                if(err){
+                    console.log(err);
+                } else {
+                    // Add username and ID to task.
+                    createdActivity.owner.id = req.user._id;
+                    createdActivity.owner.username = req.user.username;
+                    createdActivity.save();
+                    // Connect new task to project
+                    foundProject.activities.push(createdActivity);
+                    foundProject.save();
+                    // Redirect to project SHOW page
+                    // req.flash("success", "Successfully added comment");
+                    res.redirect("/projects/" + foundProject._id);
                 }
             });
         }

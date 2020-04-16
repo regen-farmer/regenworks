@@ -68,4 +68,27 @@ router.put("/species/:id", middleware.isLoggedIn, function(req, res){
 
 // SPECIES DELETE
 
+// SPECIES ACTIVITY NEW ROUTE
+router.get("/species/:id/activities/new", middleware.isLoggedIn, function(req, res){
+    Species.findById(req.params.id, function(err, foundSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("species/activity", {species: foundSpecies});
+        }
+    });
+});
+
+// SPECIES ACTIVITY CREATE ROUTE
+router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
+    Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: req.body.activity}}, function(err, updatedSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            console.log(req.body.activity + " has been added to the system");
+            res.redirect("/species/" + updatedSpecies._id);
+        }
+    });
+});
+
 module.exports = router;

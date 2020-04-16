@@ -87,3 +87,60 @@ function addFields() {
     input.name = "flow[data]";
     container.appendChild(input);
 }
+
+// ADD BUDGET INPUT ROW
+function addBudgetFields() {
+    // Container <div> where dynamic content will be placed
+    var container = document.getElementById("budgetcontainer");
+    // Create an <div> element, set its class
+    var div = document.createElement("div");
+    div.classList.add("form-row");
+    // Create first input
+    var inputTypeDiv = document.createElement("div");
+    inputTypeDiv.classList.add("form-group");
+    inputTypeDiv.classList.add("col-md-4");
+    var inputType = document.createElement("select");
+    inputType.classList.add("form-control");
+    inputType.name = "budget[postings][][type]";
+    var option1 = document.createElement("option");
+    option1.text = "Product revenue";
+    option1.value = "product";
+    inputType.add(option1);
+    var option2 = document.createElement("option");
+    option2.text = "Services";
+    option2.value = "service";
+    inputType.add(option2);
+    var option3 = document.createElement("option");
+    option3.text = "Material costs";
+    option3.value = "material";
+    inputType.add(option3);
+    var option4 = document.createElement("option");
+    option4.text = "Labor";
+    option4.value = "labor";
+    inputType.add(option4);
+    inputTypeDiv.appendChild(inputType);
+    // Create second input
+    var inputAmountDiv = document.createElement("div");
+    inputAmountDiv.classList.add("form-group");
+    inputAmountDiv.classList.add("col-md-4");
+    var inputAmount = document.createElement("input");
+    inputAmount.type = "number";
+    inputAmount.step = ".01";
+    inputAmount.classList.add("form-control");
+    inputAmount.name = "budget[postings][][amount]";
+    inputAmountDiv.appendChild(inputAmount);
+    // Create third input
+    var inputValueDiv = document.createElement("div");
+    inputValueDiv.classList.add("form-group");
+    inputValueDiv.classList.add("col-md-4");
+    var inputValue = document.createElement("input");
+    inputValue.type = "number";
+    inputValue.step = ".01";
+    inputValue.classList.add("form-control");
+    inputValue.name = "budget[postings][][value]";
+    inputValueDiv.appendChild(inputValue);
+    div.appendChild(inputTypeDiv);
+    div.appendChild(inputAmountDiv);
+    div.appendChild(inputValueDiv);
+    container.appendChild(div);
+}

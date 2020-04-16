@@ -102,7 +102,7 @@ router.get('/robots.txt', function (req, res) {
 router.post("/users", function(req, res){
     if (req.body.secret === "899af01m4maiq5k3"){
         logger.info("Secret correct", {timestamp: Date.now()});
-        var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000});
+        var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000, farmLimit: 1});
         User.register(newUser, req.body.password, function(err, user){
             if(err) {
                 // req.flash("error", err.message);

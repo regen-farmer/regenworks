@@ -1,0 +1,39 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+            <h1>Add new activity to species</h1>
+            <p>Use this page to create activity templates for species that are used to auto-generate activities for projects.</p>
+            <form action="/species/<%= species._id %>/activity?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="activity[name]">Task name</label>
+                    <input type="text" class="form-control" name="activity[name]" placeholder="Give the activity a name" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity[type]">Activity type</label>
+                    <select name="activity[type]" id="activity[type]">
+                        <option value="implement">Implementation</option>
+                        <option value="manage">Management</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activity[time][startMonth]">Earliest performed month</label>
+                    <input type="number" class="form-control" name="activity[time][startMonth]" min="1" max="12" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity[time][endMonth]">Latest performed month</label>
+                    <input type="number" class="form-control" name="activity[time][endMonth]" min="1" max="12" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Create new species activity</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-3"></div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

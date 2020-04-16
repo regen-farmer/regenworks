@@ -1,0 +1,25 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>Budget</h1>
+    <table class="table">
+        <tr>
+            <td>Name</td>
+            <td>Amount</td>
+            <td>Value</td>
+            <td>Total</td>
+        </tr>
+        <% budget.postings.forEach(function(posting){ %>
+            <tr>
+                <td><%= posting.name %></td>
+                <td><%= posting.amount %></td>
+                <td><%= posting.value %> <%= budget.currency %></td>
+                <td><%= posting.value * posting.amount %> <%= budget.currency %></td>
+            </tr>
+        <% }); %>
+    </table>
+    <a href="/budgets/<%= budget._id %>/postings/new" class="btn btn-outline-primary">Add new posting</a>
+</div>
+
+<% include ../partials/footer %>
