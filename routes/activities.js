@@ -216,6 +216,7 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res
                     console.log(err);
                 } else {
                     // Add username and ID to task.
+                    createdActivity.status = true;
                     createdActivity.owner.id = req.user._id;
                     createdActivity.owner.username = req.user.username;
                     createdActivity.save();

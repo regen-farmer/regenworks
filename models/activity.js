@@ -12,8 +12,7 @@ var activitySchema = new mongoose.Schema({
         date: String,
         time: String
     },
-    type: String,
-    duration: String,
+    time: Number,
     status: Boolean,
     automated: Boolean,
     owner: {

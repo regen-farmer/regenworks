@@ -5,6 +5,7 @@ var Project = require("../models/project");
 var Practice = require("../models/practice");
 var Layer = require("../models/layer");
 var System = require("../models/system");
+var Budget = require("../models/budget");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var bbox = require("@turf/bbox");
@@ -208,18 +209,34 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                             console.log(err);
                         } else {
                             // Add username and ID to service.
-                            createdProject.owner.id = req.user._id;
-                            createdProject.owner.username = req.user.username;
-                            createdProject.system = foundSystem;
-                            createdProject.layer = foundLayer;
-                            // Save the service
-                            createdProject.save();
-                            // Connect new service to place
-                            foundLayer.projects.push(createdProject);
-                            foundLayer.save();
-                            // Redirect to parcels SHOW page
-                            // req.flash("success", "Successfully added comment");
-                            res.redirect("/projects/" + createdProject._id);
+                            var budget = {
+                                currency: "usd"
+                            };
+                            Budget.create(budget, function(err, createdBudget){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    // BUDGET OWNER
+                                    createdBudget.owner.id = req.user._id;
+                                    createdBudget.owner.username = req.user.username;
+                                    createdBudget.save();
+                                    // ADD PROJECT STUFF
+                                    createdProject.owner.id = req.user._id;
+                                    createdProject.owner.username = req.user.username;
+                                    createdProject.system = foundSystem;
+                                    createdProject.layer = foundLayer;
+                                    createdProject.budget = createdBudget;
+                                    // Save the service
+                                    createdProject.save();
+                                    // Connect new service to place
+                                    foundLayer.projects.push(createdProject);
+                                    foundLayer.save();
+                                    // Redirect to parcels SHOW page
+                                    // CREATE BUDGET
+                                    // req.flash("success", "Successfully added comment");
+                                    res.redirect("/projects/" + createdProject._id);
+                                }
+                            });
                         }
                     });
                 }
