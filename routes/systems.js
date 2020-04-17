@@ -288,6 +288,17 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     var systems = [];
                                     for(i=0;i<foundSystems.length;i++){
                                         if(foundSystems[i].shared === true){
+                                            // FIND ALL SPECIES IN SYSTEM
+                                            var allSpecies = [];
+                                            foundSystems[i].rows.forEach(function(row){
+                                                row.sequense.forEach(function(species){
+                                                    allSpecies.push(species.nameCommon);
+                                                });
+                                            });
+                                            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                                            var uniqueSpecies = unique(allSpecies);
+                                            // SET UNIQUESPECIES TO SYSTEM
+                                            foundSystems[i].uniqueSpecies = uniqueSpecies;
                                             systems.push(foundSystems[i]);
                                         }
                                     }

@@ -178,7 +178,11 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
                     // GET GEOMETRY
                     var polygon = JSON.parse(foundParcel.layers[i].geometry);
                     // PUSH TO ARRAY
-                    geometryArray.push(polygon);
+                    var properties = {
+                        'description': foundParcel.layers[i].name
+                    };
+                    var feature = turf.feature(polygon.geometry,properties);
+                    geometryArray.push(feature);
                 }
             }
             // CREATE FEATURECOLLECTION

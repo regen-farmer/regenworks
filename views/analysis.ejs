@@ -45,10 +45,24 @@
                 </div>
                 <div class="card-body">
                     <h5 class="body-title"><%= animalsystems[i].name %></h5>
-                    <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                        <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
-                        <button class="btn btn-success">Add system to future drafts</button>
-                    </form>
+                    <p class="card-body">
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= animalsystems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            More details
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseExample<%= animalsystems[i]._id %>">
+                        <div class="card card-body">
+                            <p class="card-text"><strong>Species:</strong>
+                                <% animalsystems[i].uniqueSpecies.forEach(function(species){ %>
+                                <%= species %>,
+                                <% }); %>
+                            </p>
+                            <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
+                                <button class="btn btn-success">Add system to future drafts</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,11 +108,25 @@
                         <% }; %>
                     </div>
                     <div class="card-body">
-                        <p class="card-text"><%= commoditysystems[i].name %></p>
-                        <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                            <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
-                            <button class="btn btn-success">Add system to future drafts</button>
-                        </form>
+                        <h5 class="body-title"><%= commoditysystems[i].name %></h5>
+                        <p class="card-body">
+                            <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= commoditysystems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                                More details
+                            </button>
+                        </p>
+                        <div class="collapse" id="collapseExample<%= commoditysystems[i]._id %>">
+                            <div class="card card-body">
+                                <p class="card-text"><strong>Species:</strong>
+                                    <% commoditysystems[i].uniqueSpecies.forEach(function(species){ %>
+                                    <%= species %>,
+                                    <% }); %>
+                                </p>
+                                <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                    <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
+                                    <button class="btn btn-success">Add system to future drafts</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -128,15 +156,27 @@
                                     </div>
                                     <% }; %>
                                 </div>
-                                <div class="card-body">
-                                    <h5 class="body-title"><%= systemsproven[i].name %></h5>
-                                    <p class="body-text"><%= systemsproven[i].flows[0].name %>: <%= systemsproven[i].flows[0].data[0].data %> compared to monoculture</p>
-                                    <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                                        <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
-                                        <button class="btn btn-success">Add system to future drafts</button>
-                                    </form>
+                            <div class="card-body">
+                                <h5 class="body-title"><%= systemsproven[i].name %></h5>
+                                <p class="card-body">
+                                    <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= systemsproven[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                                        More details
+                                    </button>
+                                </p>
+                                <div class="collapse" id="collapseExample<%= systemsproven[i]._id %>">
+                                    <div class="card card-body">
+                                        <p class="card-text"><strong>Species:</strong>
+                                            <% systemsproven[i].uniqueSpecies.forEach(function(species){ %>
+                                            <%= species %>,
+                                            <% }); %>
+                                        </p>
+                                        <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                            <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
+                                            <button class="btn btn-success">Add system to future drafts</button>
+                                        </form>
+                                    </div>
                                 </div>
-
+                            </div>
                         </div>
                     </div>
             <% } %>
@@ -185,10 +225,24 @@
                 </div>
                 <div class="card-body">
                     <h5 class="body-title"><%= systemsclimate[i].name %></h5>
-                    <form action="/layers/<%= layer._id %>/editfuture" method="POST">
-                        <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
-                        <button class="btn btn-success">Add system to future drafts</button>
-                    </form>
+                    <p class="card-body">
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= systemsclimate[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            More details
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseExample<%= systemsclimate[i]._id %>">
+                        <div class="card card-body">
+                            <p class="card-text"><strong>Species:</strong>
+                                <% systemsclimate[i].uniqueSpecies.forEach(function(species){ %>
+                                    <%= species %>,
+                                <% }); %>
+                            </p>
+                            <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
+                                <button class="btn btn-success">Add system to future drafts</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
