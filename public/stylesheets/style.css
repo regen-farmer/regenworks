@@ -1,12 +1,13 @@
 body {
   font-family: 'Open Sans', sans-serif;
-  background-color: #f6f6f6;
 }
 
 ul {list-style-type: none;}
 
 #logotype {
   font-family: 'Open Sans', sans-serif;
+  color: white;
+  padding-left: 6px;
 }
 
 p {
@@ -61,7 +62,8 @@ html {
 }
 
 i {
-  color: #6EBC4A;
+  width: 24px;
+  height: 20px;
 }
 
 .i-am-centered {
@@ -134,4 +136,25 @@ i {
 
 #layerMapShow {
   height: 400px;
+}
+
+.sidebar{
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  padding: 56px 0 0;
+}
+
+.sidebar-stricky{
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 56px);
+  padding-top: 0.5rem;
+}
+
+.main{
+  padding-top: 56px;
+  padding-left: 40px;
+  padding-right: 24px;
 }

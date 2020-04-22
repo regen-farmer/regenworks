@@ -84,6 +84,10 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.low = -18;
             climate.hardiness.high = -12;
         }
+        if(data[0].country === "Denmark"){
+            climate.hardiness.low = -12;
+            climate.hardiness.high = -9;
+        }
         if(data[0].country === "Vietnam"){
             climate.hardiness.low = 9;
             climate.hardiness.high = 16;

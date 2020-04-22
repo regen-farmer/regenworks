@@ -1,12 +1,11 @@
 <% include ../partials/header %>
 <% include ../partials/navbar %>
 
-<div class="container">
     <div class="row">
         <div class="col-lg-2"></div>
         <div class="col-lg-8">
-            <h1>Create new agroforestry system model for area "<%= layer.name %>"</h1>
-            <p>This page lets you create a new agroforestry system model.</p>
+            <h1>Create new agroforestry system for area "<%= layer.name %>"</h1>
+            <p>This page lets you create a new agroforestry system.</p>
             <form action="/layers/<%= layer._id %>/systems" method="POST">
                 <div class="form-group">
                     <label for="system[name]">System name</label>
@@ -190,6 +189,5 @@
         </div>
         <div class="col-lg-2"></div>
     </div>
-</div>
 
 <% include ../partials/footer %>

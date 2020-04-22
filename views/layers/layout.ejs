@@ -1,13 +1,12 @@
 <% include ../partials/header %>
 <% include ../partials/navbar %>
 
-<div class="container">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-5">
             <div id="layerMapShow"></div>
         </div>
-        <div class="col-md-4">
-            <p></p>
+        <div class="col-md-3">
+            <h2>System layout</h2>
             <div class="row">
                 <% if(presentsystem.rows){ %>
                 <% presentsystem.rows.forEach(function(row){ %>
@@ -21,8 +20,9 @@
                 <% } %>
             </div>
             <p><i><%= presentsystem.name %></i></p>
-            <h2>System layout</h2>
             <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+        </div>
+        <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5>Change parameters</h5>
@@ -59,7 +59,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <script>
     var areaLat = "<%= layer.lat %>";

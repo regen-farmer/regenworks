@@ -76,4 +76,35 @@ router.delete("/assets/:id", middleware.isLoggedIn, function(req, res){ // MAKE 
     });
 });
 
+// AREA ASSET NEW ROUTE
+router.get("/layers/:id/assets/new", middleware.isLoggedIn, function(req, res){
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("assets/new", {layer: foundLayer});
+        }
+    });
+});
+
+// AREA ASSET CREATE ROUTE
+router.post("/layers/:id/assets", middleware.isLoggedIn, function(req, res){
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            Asset.create(req.body.asset, function(err, createdAsset){
+                // Add username and ID to experience
+                createdAsset.owner.id = req.user._id;
+                createdAsset.owner.username = req.user.username;
+                createdAsset.save();
+                // ADD ASSET TO LAYER
+                foundLayer.assets.push(createdAsset);
+                // REDIRECT TO
+                res.redirect("/layers/" + foundLayer._id);
+            });
+        }
+    });
+});
+
 module.exports = router;

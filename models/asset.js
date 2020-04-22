@@ -4,20 +4,17 @@ var mongoose = require("mongoose");
 var assetSchema = new mongoose.Schema({
     name: String,
     description: String,
-    type: String,
+    typeAsset: String,
     amount: Number,
     species: String,
     value: Number,
+    creation: Number,
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
-    },
-    layer: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Layer"
     }
 });
 

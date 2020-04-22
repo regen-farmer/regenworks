@@ -72,6 +72,12 @@ var layerSchema = new mongoose.Schema({
             ref: "Project"
         }
     ],
+    assets: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Asset"
+        }
+    ],
     alignment: String,
     layout: String,
     headland: Number
