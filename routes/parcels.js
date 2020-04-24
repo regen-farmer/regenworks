@@ -204,60 +204,22 @@ router.get("/parcels/:id/edit", middleware.checkParcelOwnership, function (req, 
         if(err) {
             console.log(err);
         } else {
-            // Find all products in database
-            Practice.find(function(err, foundPractices){
-                if(err){
-                    console.log(err);
-                } else {
-                    const practiceArray = [];
-                    foundParcel.practices.forEach(function(parcelPractice){
-                        practiceArray.push(parcelPractice._id.toString());
-                    });
-                    res.render("parcels/edit", {parcel: foundParcel, practices: foundPractices, parcelPractices: practiceArray});
-                }
-            });
+            // RENDER EDIT PAGE FOR PARCEL
+            res.render("parcels/edit", {parcel: foundParcel});
         }
     });
 });
 
 // PLACES UPDATE ROUTE
 router.put("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
-    // Create variable for edited place posted from edit place form
-    var name = req.body.parcel.name;
-    var soilType = req.body.parcel.soilType;
-    var agType = req.body.parcel.agType;
-    var size = req.body.parcel.size;
-    var description = req.body.parcel.description;
-    var practices = req.body.practiceids;
-    // CONVERT NEW ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.parcel.location, function(err, data) {
-        if (err || !data.length) {
+    // UPDATE PARCEL
+    Parcel.findByIdAndUpdate(req.params.id, req.body.parcel, function (err, updatedParcel) {
+        if (err) {
             console.log(err);
-            console.log(data);
-            return res.redirect("back");
+        } else {
+            console.log(updatedParcel);
+            res.redirect("/parcels/" + req.params.id);
         }
-        var lat = data[0].latitude;
-        var lng = data[0].longitude;
-        var location = data[0].formattedAddress;
-        var newParcel = {
-            name: name,
-            soilType: soilType,
-            agType: agType,
-            size: size,
-            description: description,
-            location: location,
-            lat: lat,
-            lng: lng,
-            practices: practices
-        };
-        Parcel.findByIdAndUpdate(req.params.id, newParcel, function (err, updatedParcel) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(updatedParcel);
-                res.redirect("/parcels/" + req.params.id);
-            }
-        });
     });
 });
 

@@ -297,11 +297,11 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             });
                                             // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                                             var uniqueSpecies = unique(allSpecies);
-                                            // SET UNIQUESPECIES TO SYSTEM
                                             foundSystems[i].uniqueSpecies = uniqueSpecies;
                                             systems.push(foundSystems[i]);
                                         }
                                     }
+                                    // COMMODITY SYSTEMS
                                     var commoditysystems = [];
                                     for(i=0;i<systems.length;i++){
                                         for(j=0;j<systems[i].rows.length;j++){

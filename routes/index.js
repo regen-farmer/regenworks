@@ -95,7 +95,7 @@ router.get("/users/new", function(req, res){
 // robots.txt
 router.get('/robots.txt', function (req, res) {
     res.type('text/plain');
-    res.send("User-agent: *\nDisallow: /admin/");
+    res.send("User-agent: *\nDisallow: /");
 });
 
 // CREATE USER ROUTE
