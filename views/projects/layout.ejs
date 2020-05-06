@@ -21,10 +21,14 @@
             </div>
             <p><i><%= project.system.name %></i></p>
             <p>Area size: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
-
         </div>
         <div class="col-md-4">
             <div class="card">
+                <div class="card-body">
+                    <% species.forEach(function(species){ %>
+                        <p><%= species.id %> count: <%= species.uniqueCount %></p>
+                    <% }); %>
+                </div>
                 <div class="card-body">
                     <h5>Change parameters</h5>
                     <form action="/projects/<%= project._id %>?_method=PUT" method="POST">

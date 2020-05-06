@@ -254,6 +254,19 @@
                         <input type="checkbox" name="species[utilities]" value="shade" autocomplete="off"> Shade
                     </label>
                     <% } %>
+                    <% if(species.utilities.indexOf("fiber") > -1){ %>
+                    <label class="btn btn-outline-primary active">
+                        <input type="checkbox" name="species[utilities]" checked="checked" value="fiber" autocomplete="off"> Fiber
+                    </label>
+                    <% } else { %>
+                    <label class="btn btn-outline-primary">
+                        <input type="checkbox" name="species[utilities]" value="fiber" autocomplete="off"> Fiber
+                    </label>
+                    <% } %>
+                </div>
+                <div class="form-group">
+                    <label for="species[price]">Price</label>
+                    <input type="number" class="form-control" name="species[price]" value="<%= species.price %>">
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-success btn-lg">Update species</button>

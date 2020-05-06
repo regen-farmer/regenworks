@@ -6,6 +6,7 @@ var Layer = require("../models/layer");
 var Species = require("../models/species");
 var Parcel = require("../models/parcel");
 var Animal = require("../models/animal");
+var Project = require("../models/project");
 var middleware = require("../middleware");
 
 // NESTED AREA SYSTEM INDEX
@@ -130,6 +131,25 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
     })
 });
 
+// LAYER FUTURE SYSTEMS COMPARE ROUTE
+router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id).populate("systems.future").exec(function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND FUTURE SYSTEM TO POPULATE ROWS ETC
+            System.find({"_id": foundLayer.systems.future}).populate("flows").populate("rows.sequense").exec(function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("systems/compare", {layer: foundLayer, systems: foundSystems});
+                }
+            });
+        }
+    });
+});
+
 // SYSTEM SHOW ROUTE
 router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
     System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
@@ -158,10 +178,54 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
 });
 
 // SYSTEM EDIT ROUTE
+router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
+    System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
+        if(err){
+            console.log(err);
+        } else {
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT SPECIES
+                    function compare( a, b ) {
+                        if ( a.nameCommon < b.nameCommon ){
+                            return -1;
+                        }
+                        if ( a.nameCommon > b.nameCommon ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    foundSpecies.sort(compare);
+                    // FIND ALL ANIMALS AND SORT
+                    Animal.find(function(err, foundAnimals){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // SORT SPECIES
+                            function compare1( a, b ) {
+                                if ( a.nameCommon < b.nameCommon ){
+                                    return -1;
+                                }
+                                if ( a.nameCommon > b.nameCommon ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundAnimals.sort(compare1);
+                            res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundAnimals});
+                        }
+                    })
+                }
+            })
+        }
+    });
+});
 
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id, function(err, foundSystem){
+    System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
         } else {
@@ -181,7 +245,7 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
                 if(err){
                     console.log(err);
                 } else {
-                    res.render("systems/edit", {species: foundSpecies});
+                    res.render("systems/edit", {system: foundSystem, species: foundSpecies});
                 }
             });
         }
@@ -189,12 +253,109 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
 });
 
 // SYSTEM UPDATE ROUTE
-router.put("/systems/:id", middleware.isLoggedIn, function(req, res){
-    System.findByIdAndUpdate(req.params.id, req.body.system, function(err, updatedSystem){
-        if(err){
-            console.log(err);
+router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
+    System.findById(req.params.id, function(err, foundSystem){
+        // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
+        // GET SYSTEM
+        var system = req.body.system;
+        // SET BOOLEAN
+        if(req.body.system.shared){
+            system.shared = true;
+        }
+        // CLEAN ARRAY
+        var rows = [];
+        for(i=0;i<system.rows.length;i++){
+            // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
+            for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
+                if(system.rows[i].sequense[j] === ""){
+                    system.rows[i].sequense.splice(j, 1);
+                }
+            }
+            // REMOVE EMPTY ROWS IF WIDTH IS NOT FILLED OUT
+            if(!(system.rows[i].width === "")){
+                rows.push(system.rows[i]);
+            }
+        }
+        // REMOVE ANIMAL ITEMS IF NONE
+        for(var i = system.animals.length - 1; i >= 0; i--){
+            if(system.animals[i] === ""){
+                system.animals.splice(i, 1);
+            }
+        }
+        // INSERT UPDATED ROWS
+        system.rows = rows;
+        // does user own the system?
+        if(foundSystem.owner.id.equals(req.user._id)){
+            // if true, update existing system
+            System.findByIdAndUpdate(req.params.id, system, function(err, updatedSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/systems/" + updatedSystem._id);
+                }
+            });
         } else {
-            res.redirect("/systems/" + updatedSystem.id);
+            // if false, create a new system and add current user as owner
+            System.create(system, function(err, createdSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // Add owner
+                    createdSystem.owner.id = req.user._id;
+                    createdSystem.owner.username = req.user.username;
+                    createdSystem.save();
+                    // REPLACE IN PRESENT
+                    Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log(foundLayersPresent.length + " present found");
+                            if(foundLayersPresent.length > 0){
+                                foundLayersPresent.forEach(function(layer){
+                                    // REPLACE SYSTEM
+                                    layer.systems.present = createdSystem;
+                                    // NO NEED TO PUSH TO PAST IN THIS CASE
+                                    layer.save();
+                                });
+                            }
+                        }
+                    }); // IMPORTANT TO CHECK FOR USER!!! LIKE CHECKING OWNERSHIP
+                    // REPLACE IN FUTURE DRAFT
+                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log(foundLayersFuture.length + " future drafts found");
+                            if(foundLayersFuture.length > 0){
+                                foundLayersFuture.forEach(function(layer){
+                                    // REMOVE ORIGINAL SYSTEM
+                                    layer.systems.future.remove(foundSystem);
+                                    // ADD NEW SYSTEM
+                                    layer.systems.future.push(createdSystem);
+                                    layer.save();
+                                });
+                            }
+                        }
+                    });
+                    // REPLACE IN PROJECT
+                    Project.find({"owner.id": req.user._id, "system": foundSystem._id}, function(err, foundProjects){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log(foundProjects.length + " projects found");
+                            if(foundProjects.length > 0){
+                                foundProjects.forEach(function(project){
+                                    // REPLACE SYSTEM
+                                    project.system = createdSystem;
+                                    project.save();
+                                });
+                            }
+                        }
+                    });
+                    // Redirect to system page
+                    res.redirect("/systems/" + createdSystem._id);
+                }
+            });
         }
     });
 });

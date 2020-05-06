@@ -1,11 +1,14 @@
 var express = require("express");
 var router = express.Router();
+var unique = require("array-unique");
 var Parcel = require("../models/parcel");
 var Project = require("../models/project");
 var Practice = require("../models/practice");
 var Layer = require("../models/layer");
 var System = require("../models/system");
 var Budget = require("../models/budget");
+var Activity = require("../models/activity");
+var Species = require("../models/species");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var bbox = require("@turf/bbox");
@@ -139,7 +142,44 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var stringline = JSON.stringify(row);
                 var stringbox = JSON.stringify(box);
                 var collection = JSON.stringify(featurecollection);
-                res.render("projects/layout", {project: foundProject, system: foundSystem, stringbox: stringbox, stringline: stringline, collection: collection});
+                // CALCULATE TREE COUNT
+                var areaSize = foundProject.layer.size;
+                // FIND ALL SPECIES IN PROJECT SYSTEM
+                var allSpecies = [];
+                var width = 0;
+                foundSystem.rows.forEach(function(row){
+                    row.sequense.forEach(function(species){
+                        allSpecies.push(species.nameCommon);
+                    });
+                    width = width + row.width;
+                });
+                // GRID SIZE
+                var areaGrid = width * width;
+                var gridCount = areaSize / areaGrid;
+                // COPY ALL SPECIES
+                var allSpeciesCopy = [];
+                for(i=0;allSpecies.length > i;i++){
+                    allSpeciesCopy.push(allSpecies[i]);
+                }
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                var uniqueSpecies = unique(allSpeciesCopy);
+                // UNIQUE ITEM COUNTS
+                console.log(allSpecies);
+                var uniqueSpeciesCount = [];
+                for(i=0;uniqueSpecies.length > i;i++){
+                    var count = 0;
+                    for(j = 0; j < allSpecies.length; j++){
+                        if(allSpecies[j] === uniqueSpecies[i])
+                            count = count + 1;
+                    }
+                    console.log(count);
+                    speciesCount = {
+                        id: uniqueSpecies[i],
+                        uniqueCount: Math.floor(count * gridCount)
+                    };
+                    uniqueSpeciesCount.push(speciesCount);
+                }
+                res.render("projects/layout", {project: foundProject, system: foundSystem, stringbox: stringbox, stringline: stringline, collection: collection, species: uniqueSpeciesCount});
             });
         }
     });
@@ -178,7 +218,7 @@ router.get("/layers/:id/projects/new/:system", middleware.isLoggedIn, function(r
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err) {
             console.log(err);
-            // res.flash(err
+            // res.flash(err);
         } else {
             System.findById(req.params.system, function(err, foundSystem){
                 if(err){
@@ -204,13 +244,14 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                     console.log(err);
                 } else {
                     // FIND SYSTEM AND ADD TO PROJECT
-                    System.findById(req.body.systemid, function(err, foundSystem){
+                    System.findById(req.body.systemid).populate("rows.sequense").exec(function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
-                            // Add username and ID to service.
+                            // CREATE CURRENCY
                             var budget = {
-                                currency: "usd"
+                                currency: "usd",
+                                name: "Establishment budget"
                             };
                             Budget.create(budget, function(err, createdBudget){
                                 if(err){
@@ -231,10 +272,71 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                     // Connect new service to place
                                     foundLayer.projects.push(createdProject);
                                     foundLayer.save();
-                                    // Redirect to parcels SHOW page
-                                    // CREATE BUDGET
-                                    // req.flash("success", "Successfully added comment");
-                                    res.redirect("/projects/" + createdProject._id);
+                                    // CREATE POSTINGS
+                                    // FIND ALL SPECIES IN PROJECT SYSTEM
+                                    var allSpecies = [];
+                                    foundSystem.rows.forEach(function(row){
+                                        row.sequense.forEach(function(species){
+                                            allSpecies.push(species.id);
+                                        });
+                                    });
+                                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                                    var uniqueSpecies = unique(allSpecies);
+                                    Species.find({"_id": uniqueSpecies}, function(err, foundSpecies){
+                                        if(err) {
+                                            console.log(err);
+                                        } else {
+                                            var activities = [];
+                                            var postings = [];
+                                            for(i=0;foundSpecies.length > i;i++){
+                                                for(j=0;foundSpecies[i].activities.length > j;j++){
+                                                    // CHECK IF ESTABLISHMENT - DIFFERENTIATE ACTIVITIES
+                                                    if(foundSpecies[i].activities[j].activityType === "establish"){
+                                                        var activity = {
+                                                            name: foundSpecies[i].activities[j].name + " " + foundSpecies[i].nameCommon,
+                                                            automated: true,
+                                                            status: true
+                                                        };
+                                                        activities.push(activity);
+                                                    }
+                                                }
+                                                var posting = {
+                                                    name: foundSpecies[i].nameCommon + " plants",
+                                                    postType: "material",
+                                                    amount: 1,
+                                                    value: 1
+                                                };
+                                                if(foundSpecies[i].price > 0){
+                                                    posting.value = foundSpecies[i].price;
+                                                }
+                                                postings.push(posting);
+                                            }
+                                            // CREATE ACTIVITIES
+                                            activities.forEach(function(activity){
+                                                Activity.create(activity, function(err, createdActivity){
+                                                    if(err){
+                                                        console.log(err);
+                                                    } else {
+                                                        createdActivity.owner.id = req.user._id;
+                                                        createdActivity.owner.username = req.user.username;
+                                                        createdActivity.save();
+                                                        // PUSH TO PROJECT
+                                                        createdProject.activities.push(createdActivity);
+                                                        createdProject.save();
+                                                    }
+                                                });
+                                            });
+                                            // SAVE POSTINGS
+                                            Budget.findByIdAndUpdate(createdBudget._id, {$addToSet: {postings: { $each: postings }}}, function(err, updatedBudget){
+                                                if(err){
+                                                    console.log(err);
+                                                } else {
+                                                    // req.flash("success", "Successfully added comment");
+                                                    res.redirect("/projects/" + createdProject._id);
+                                                }
+                                            });
+                                        }
+                                    });
                                 }
                             });
                         }

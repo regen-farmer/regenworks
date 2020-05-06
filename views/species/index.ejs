@@ -12,6 +12,8 @@
             <td>Precip</td>
             <td>Temp</td>
             <td>Lifespan</td>
+            <td>Activities</td>
+            <td>Price</td>
             <td></td>
         </tr>
         <% species.forEach(function(species){ %>
@@ -30,6 +32,16 @@
                 <% } %>
                 <% if(!(species.lifespan === "")){ %>
                 <td><%= species.lifespan %></td>
+                <% } else { %>
+                <td>no age data</td>
+                <% } %>
+                <% if(species.activities.length > 0){ %>
+                    <td><%= species.activities.length %></td>
+                <% } else { %>
+                    <td>-</td>
+                <% } %>
+                <% if(!(species.price === "")){ %>
+                <td><%= species.price %> $</td>
                 <% } else { %>
                 <td>no age data</td>
                 <% } %>

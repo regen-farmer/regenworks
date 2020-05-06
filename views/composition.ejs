@@ -7,9 +7,9 @@
     <table class="table table-striped">
         <tr>
             <td></td>
-            <td>Pioneer</td>
-            <td>Secondary</td>
-            <td>Climax</td>
+            <td style="width: 30%">Pioneer</td>
+            <td style="width: 30%">Secondary</td>
+            <td style="width: 30%">Climax</td>
         </tr>
         <tr>
             <td>Emergent</td>
@@ -20,7 +20,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "grass"){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                                <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -29,9 +42,22 @@
                 <% } %>
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
-                <% if(species.form == "herb" && species.height > 1 && species.lifespan < 2){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
-                <% } %>
+                    <% if(species.form == "herb" && species.height > 1 && species.lifespan < 2){ %>
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            <%= species.nameCommon %>
+                        </button>
+                        <div class="collapse" id="collapseSuitable<%= species._id %>">
+                            <div class="card card-body">
+                                <p><i><%= species.genus %> <%= species.species %></i></p>
+                                <p class="card-text"><strong>Utilities:</strong>
+                                    <% species.utilities.forEach(function(utility){ %>
+                                    <%= utility %>
+                                    <% }); %>
+                                </p>
+                                <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                            </div>
+                        </div>
+                    <% } %>
                 <% }); %>
             </td>
             <td>
@@ -42,7 +68,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan < 80){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -54,7 +93,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height > 29 && species.lifespan > 79){ %>
-                    <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -69,7 +121,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "shrub" && species.lifespan < 4){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -81,7 +146,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "giantherb")){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -91,7 +169,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan < 80 ){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -103,7 +194,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 30 && species.height > 10 && species.lifespan > 79){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -118,7 +222,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "herb" && species.height < 1.1 && species.lifespan < 2){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -130,7 +247,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan < 80){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -140,7 +270,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "shrub" && species.lifespan < 80 && species.lifespan > 3){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -150,7 +293,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "herb" && species.lifespan > 2 && species.height > 1){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -162,7 +318,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if((species.form == "tree" || species.form == "palm") && species.height < 11 && species.lifespan > 79){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -172,7 +341,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "shrub" && species.lifespan > 79){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>
@@ -188,7 +370,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "succulent" || species.form == "cactus" ){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
                 <% species.forEach(function(species){ %>
@@ -198,8 +393,20 @@
                 <% }); %>
                 <% suitablespecies.forEach(function(species){ %>
                 <% if(species.form == "herb" && species.lifespan > 2 && species.height < 1.1){ %>
-                <p data-toggle="tooltip" data-placement="left" title="<%= species.utilities[0] %>"
-                ><i><%= species.nameCommon %></i></p>
+                <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseSuitable<%= species._id %>" aria-expanded="false" aria-controls="collapseExample">
+                    <%= species.nameCommon %>
+                </button>
+                <div class="collapse" id="collapseSuitable<%= species._id %>">
+                    <div class="card card-body">
+                        <p><i><%= species.genus %> <%= species.species %></i></p>
+                        <p class="card-text"><strong>Utilities:</strong>
+                            <% species.utilities.forEach(function(utility){ %>
+                            <%= utility %>
+                            <% }); %>
+                        </p>
+                        <a class="btn btn-success" href="/systems/<%= system._id %>/edit/<%= species._id %>">Add <%= species.nameCommon %> to system</a>
+                    </div>
+                </div>
                 <% } %>
                 <% }); %>
             </td>

@@ -17,7 +17,8 @@ var budgetSchema = new mongoose.Schema({
         },
         username: String
     },
-    currency: String
+    currency: String,
+    name: String
 });
 
 module.exports = mongoose.model("Budget", budgetSchema);

@@ -158,3 +158,7 @@ li i {
   padding-left: 40px;
   padding-right: 24px;
 }
+
+.border-grey {
+  border-color: grey;
+}

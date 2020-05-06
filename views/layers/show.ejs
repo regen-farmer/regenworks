@@ -192,10 +192,11 @@
                                 </div>
                             </div>
                             <% }); %>
+                            <% if(layer.systems.future.length > 1){ %>
+                                <a class="btn btn-outline-secondary mt-2" href="/layers/<%= layer._id %>/systems/compare">Compare future systems</a>
+                            <% } %>
                         </div>
                     </div>
-                    <% } %>
-                    <% if(layer.systems.future.length > 1){ %>
                     <% } %>
                     <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
                     <a class="btn btn-primary mt-2" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>

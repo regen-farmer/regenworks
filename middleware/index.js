@@ -27,6 +27,12 @@ middlewareObj.checkParcelOwnership = function(req, res, next){
     }
 };
 
+// CHECK SYSTEM OWNERSHIP MIDDLEWARE
+
+
+// CHECK BUDGET OWNERSHIP MIDDLEWARE
+
+
 // CHECK USER OWNERSHIP MIDDLEWARE
 middlewareObj.checkUserOwnership = function(req, res, next){
     if(req.isAuthenticated()){

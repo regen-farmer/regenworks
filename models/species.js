@@ -38,14 +38,15 @@ var speciesSchema = new mongoose.Schema({
     utilities: [String],
     activities: [
         {
-            type: String,
+            activityType: String,
             name: String,
             time: {
                 startMonth: Number,
                 endMonth: Number
             }
         }
-    ]
+    ],
+    price: Number
 });
 
 module.exports = mongoose.model("Species", speciesSchema);
