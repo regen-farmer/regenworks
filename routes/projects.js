@@ -187,7 +187,6 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
 
 // PROJECT UPDATE ROUTE
 router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
-    // Create a new service
     Project.findByIdAndUpdate(req.params.id, req.body.project, function(err, updatedProject){
         if(err){
             console.log(err);
