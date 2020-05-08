@@ -28,9 +28,15 @@ var projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "System"
     },
-    budget: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Budget"
+    budgets: {
+        establishment: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Budget"
+        },
+        management: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Budget"
+        }
     },
     layout: String,
     alignment: String,

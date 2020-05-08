@@ -6,10 +6,30 @@
         <div class="col-md-4">
             <p><%= project.description %></p>
             <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
-            <a class="btn btn-outline-primary" href="#">Edit project</a>
-            <form class="delete-form" action="/projects/<%= project._id %>?_method=DELETE" method="POST">
-                <button class="btn btn-outline-danger">Delete project</button>
-            </form>
+                <a class="btn btn-outline-primary" href="#">Edit project</a>
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteProject">Delete project</button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalDeleteProject" role="dialog">
+                    <div class="modal-dialog">
+
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm deletion of project</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you delete your project, all information connected to it like budgets and activities will be permanently deleted and we will not be able to recreate it.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form class="delete-form" action="/projects/<%= project._id %>?_method=DELETE" method="POST">
+                                    <button class="btn btn-danger">Delete project</button>
+                                </form>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             <% } %>
         </div>
         <div class="col-md-8">
@@ -44,11 +64,16 @@
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Project budget and finances</h2>
-                            <% if(project.budget){ %>
-                                <a href="/budgets/<%= project.budget._id %>" class="btn btn-outline-primary">Show budget</a>
+                        <h2 class="card-title">Project budgets and finances</h2>
+                        <h3>Establishment budget</h3>
+                            <% if(project.budgets.establishment){ %>
+                                <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
                             <% } %>
-                        <p class="card-text">Financing (IRR, NPV) coming soon.</p>
+                        <h3>Management budget</h3>
+                            <% if(project.budgets.management){ %>
+                                <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                            <% } %>
+                        <h3 class="card-text">Financing (IRR, NPV) coming soon.</h3>
                     </div>
                 </div>
             </div>

@@ -65,6 +65,52 @@ router.get("/parcels/:id/layers/new", middleware.isLoggedIn, function(req, res){
     });
 });
 
+// NESTED PARCEL LAYER NEW WITH UPLOAD ROUTE
+router.get("/parcels/:id/layers/newkml", middleware.isLoggedIn, function(req, res){
+    // FIND PARCEL ID
+    Parcel.findById(req.params.id, function(err, foundParcel){
+        if(err) {
+            console.log(err);
+            logger.error(err.message);
+            // res.flash(err
+        } else {
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    function compare( a, b ) {
+                        if ( a.nameCommon < b.nameCommon ){
+                            return -1;
+                        }
+                        if ( a.nameCommon > b.nameCommon ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    foundSpecies.sort(compare);
+                    Animal.find(function(err, foundAnimals){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            function compare1( a, b ) {
+                                if ( a.name < b.name ){
+                                    return -1;
+                                }
+                                if ( a.name > b.name ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundAnimals.sort(compare1);
+                            res.render("layers/newkml", {parcel: foundParcel, species: foundSpecies, animals: foundAnimals});
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
 // NESTED PARCEL LAYER CREATE ROUTE
 router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req, res){
     // Lookup place using id
@@ -167,6 +213,12 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
             });
         }
     });
+});
+
+// NESTED PARCEL LAYER CREATE WITH UPLOAD ROUTE
+router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, function(req, res){
+    console.log(req.files);
+    res.redirect("/parcels/" + req.params.id);
 });
 
 // LAYER SHOW ROUTES

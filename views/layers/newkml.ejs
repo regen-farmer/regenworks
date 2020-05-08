@@ -1,12 +1,12 @@
 <% include ../partials/header %>
 <% include ../partials/navbar %>
 
-    <div class="row">
-        <div class="col-lg-3"></div>
-        <div class="col-lg-6">
-            <h2>Add new area to "<%= parcel.name %>"</h2>
-            <div>
-            <form action="/parcels/<%= parcel._id %>/layers" method="POST">
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        <h2>Add new area to "<%= parcel.name %>"</h2>
+        <div>
+            <form action="/parcels/<%= parcel._id %>/layersuploadkml" method="POST">
                 <div class="form-group">
                     <label for="layer[name]">Area name</label>
                     <input type="text" class="form-control" name="layer[name]" placeholder="Give the layer a name - Descriptive is often best" required>
@@ -30,7 +30,7 @@
                     <select name="maincrop">
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
-                            <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                        <option value="<%= species._id %>"><%= species.nameCommon %></option>
                         <% }); %>
                     </select>
                 </div>
@@ -39,19 +39,14 @@
                     <select name="animal">
                         <option value="">none</option>
                         <% animals.forEach(function(animal){ %>
-                            <option value="<%= animal._id %>"><%= animal.name %></option>
+                        <option value="<%= animal._id %>"><%= animal.name %></option>
                         <% }); %>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="[layerCoordinates]">Area geometry</label>
-                    <p>Please draw the outline of your new area. Press first point or "Finish" to close the shape.</p>
+                    <label for="filename">Upload area geometry file (KML format supported)</label>
+                    <input type="file" id="myFile" name="filename">
                 </div>
-                <div id="layerMapNew"></div>
-                <input type="hidden" id="geometry" name="geometry">
-                <input type="hidden" id="layersize" name="layersize">
-                <div id="coordinates"></div>
-                <hr>
                 <div class="form-group">
                     <button type="submit" class="btn btn-success btn-lg center-block">Create new area</button>
                 </div>
@@ -59,9 +54,9 @@
         </div>
     </div>
 
-<script>
-    var parcelLat = "<%= parcel.lat %>";
-    var parcelLng = "<%= parcel.lng %>";
-</script>
+    <script>
+        var parcelLat = "<%= parcel.lat %>";
+        var parcelLng = "<%= parcel.lng %>";
+    </script>
 
 <% include ../partials/footer %>

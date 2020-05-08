@@ -80,7 +80,7 @@ router.post("/projects", middleware.isLoggedIn, function(req, res){
 
 // PROJECT SHOW ROUTE
 router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate("layer").populate("budget").populate("system").populate("activities").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate("budgets.establishment").populate("budgets.management").populate("system").populate("activities").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -199,12 +199,45 @@ router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
 
 // SERVICES DELETE ROUTE
 router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAKE PROJECT OWNERSHIP MIDDLEWARE
-    Project.findByIdAndRemove(req.params.id, function(err){
+    // FIND PROJECT FIRST FOR REFERENCES
+    Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);
-            res.redirect("/projects");
         } else {
-            res.redirect("/projects");
+            // REMOVE PROJECT REFERENCE FROM LAYER
+            Layer.findByIdAndUpdate(foundProject.layer, { $pull: {projects: foundProject._id}}, function(err, updatedLayer){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("project removed from layer");
+                    // DELETE BUDGET(S?)
+                    Budget.findByIdAndRemove(foundProject.budgets.establishment, function(err){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log("budget deleted from project");
+                            // DELETE ACTIVITIES
+                            foundProject.activities.forEach(function(activity){
+                                Activity.findByIdAndRemove(activity, function(err){
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                });
+                            });
+                            // DELETE PROJECT
+                            Project.findByIdAndRemove(req.params.id, function(err){
+                                if(err){
+                                    console.log(err);
+                                    res.redirect("/projects");
+                                } else {
+                                    console.log("project deleted");
+                                    res.redirect("/projects");
+                                }
+                            });
+                        }
+                    });
+                }
+            });
         }
     });
 });
@@ -265,7 +298,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                     createdProject.owner.username = req.user.username;
                                     createdProject.system = foundSystem;
                                     createdProject.layer = foundLayer;
-                                    createdProject.budget = createdBudget;
+                                    createdProject.budgets.establishment = createdBudget;
                                     // Save the service
                                     createdProject.save();
                                     // Connect new service to place
