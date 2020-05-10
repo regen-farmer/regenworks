@@ -143,6 +143,26 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                 if(err){
                     console.log(err);
                 } else {
+                    for(i=0;i<foundSystems.length;i++){
+                        // FIND ALL SPECIES IN SYSTEM
+                        var allSpecies = [];
+                        var allUtilities = [];
+                        foundSystems[i].rows.forEach(function(row){
+                            row.sequense.forEach(function(species){
+                                allSpecies.push(species.nameCommon);
+                                if(species.utilities.length > 0){
+                                    for(j=0;j<species.utilities.length;j++){
+                                        allUtilities.push(species.utilities[j]);
+                                    }
+                                }
+                            });
+                        });
+                        // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                        var uniqueSpecies = unique(allSpecies);
+                        foundSystems[i].uniqueSpecies = uniqueSpecies;
+                        var uniqueUtilities = unique(allUtilities);
+                        foundSystems[i].uniqueUtilities = uniqueUtilities;
+                    }
                     res.render("systems/compare", {layer: foundLayer, systems: foundSystems});
                 }
             });
@@ -451,14 +471,22 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                         if(foundSystems[i].shared === true){
                                             // FIND ALL SPECIES IN SYSTEM
                                             var allSpecies = [];
+                                            var allUtilities = [];
                                             foundSystems[i].rows.forEach(function(row){
                                                 row.sequense.forEach(function(species){
                                                     allSpecies.push(species.nameCommon);
+                                                    if(species.utilities.length > 0){
+                                                        for(j=0;j<species.utilities.length;j++){
+                                                            allUtilities.push(species.utilities[j]);
+                                                        }
+                                                    }
                                                 });
                                             });
                                             // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                                             var uniqueSpecies = unique(allSpecies);
                                             foundSystems[i].uniqueSpecies = uniqueSpecies;
+                                            var uniqueUtilities = unique(allUtilities);
+                                            foundSystems[i].uniqueUtilities = uniqueUtilities;
                                             systems.push(foundSystems[i]);
                                         }
                                     }

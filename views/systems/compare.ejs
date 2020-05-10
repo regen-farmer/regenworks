@@ -16,23 +16,38 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title"><%= system.name %></h5>
-                    <p>Specs: Species, utility, grid size</p>
+                    <p><strong>Species: </strong>
+                        <% system.uniqueSpecies.forEach(function(species){ %>
+                            <%= species %>,
+                        <% }); %>
+                    </p>
+                    <p><strong>Utilities: </strong>
+                        <% system.uniqueUtilities.forEach(function(utility){ %>
+                            <%= utility %>,
+                        <% }); %>
+                    </p>
+                    <p><strong>Grid size:</strong>
 
+                    </p>
                 </div>
             </div>
             <div class="col-md-9">
                 <div class="row">
                     <div class="col-md-3 card-body">
-                        <p>Productivity and profit</p>
+                        <p><strong>Productivity and finances</strong></p>
+                        <p>- Coming soon -</p>
                     </div>
                     <div class="col-md-3 card-body">
-                        <p>Resilience and food security</p>
+                        <p><strong>Resilience and food security</strong></p>
+                        <p>- Coming soon -</p>
                     </div>
                     <div class="col-md-3 card-body">
-                        <p>Biomass and sequestration</p>
+                        <p><strong>Environment</strong></p>
+                        <p>- Coming soon -</p>
                     </div>
                     <div class="col-md-3 card-body">
-                        <p>Labor and workflows</p>
+                        <p><strong>Labor and workflows</strong></p>
+                        <p>- Coming soon -</p>
                     </div>
                 </div>
             </div>
