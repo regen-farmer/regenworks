@@ -223,7 +223,7 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, fun
 
 // LAYER SHOW ROUTES
 router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.future").populate("projects").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {

@@ -44,18 +44,21 @@
                                 <% if(row.sequense[0].height > 12){ %>
                                 <div class="col-sm-3">
                                     <img class="img-fluid" src="/images/treehigh.svg">
-                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                    <p class="text-center">Row <%= i + 1 %></p>
+                                    <p class="text-center"><%= row.width %> m wide</p>
                                 </div>
                                 <% } else { %>
                                 <div class="col-sm-3">
                                     <img class="img-fluid" src="/images/treelow.svg">
-                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                    <p class="text-center">Row <%= i + 1 %></p>
+                                    <p class="text-center"><%= row.width %> m wide</p>
                                 </div>
                                 <% } %>
                                 <% } else { %>
                                 <div class="col-sm-3">
                                     <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
-                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                    <p class="text-center">Row <%= i + 1 %></p>
+                                    <p class="text-center"><%= row.width %> m wide</p>
                                 </div>
                                 <% } %>
                                 <% }); %>
@@ -154,6 +157,21 @@
                     </div>
                 </div>
                 <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <% if(!(layer.projects == "")){ %>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Area projects</h5>
+                                <% layer.projects.forEach(function(project){ %>
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <p class="card-text"><%= project.name %></p>
+                                            <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    <% } %>
                     <% if(!(layer.systems.future == "")){ %>
                     <div class="card">
                         <div class="card-body">

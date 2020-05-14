@@ -55,7 +55,7 @@
                         </div>
                         <div class="form-group">
                             <label for="project[headland]">Headland</label>
-                            <input type="number" min="0" max="10" class="form-control" name="project[headland]" value="<%= project.headland %>">
+                            <input type="number" min="0" max="<%= rowWidth %>" class="form-control" name="project[headland]" value="<%= project.headland %>">
                         </div>
                         <div class="btn-group">
                             <button type="submit" class="btn btn-outline-primary">Update parameters</button>
