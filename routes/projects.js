@@ -84,7 +84,30 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.render("projects/show", {project: foundProject});
+            totalEstablishment = 0;
+            for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
+                if(foundProject.budgets.establishment.postings[i].postType === "labor" || foundProject.budgets.establishment.postings[i].postType === "material"){
+                    totalEstablishment = totalEstablishment - (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
+                } else if(foundProject.budgets.establishment.postings[i].postType === "product" || foundProject.budgets.establishment.postings[i].postType === "service"){
+                    totalEstablishment = totalEstablishment + (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
+                }
+            }
+            totalManagement = 0;
+            if(foundProject.budgets.management){
+                for(i=0;i<foundProject.budgets.management.postings.length;i++){
+                    if(foundProject.budgets.management.postings[i].postType === "labor" || foundProject.budgets.management.postings[i].postType === "material"){
+                        totalManagement = totalManagement - (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
+                    } else if(foundProject.budgets.management.postings[i].postType === "product" || foundProject.budgets.management.postings[i].postType === "service"){
+                        totalManagement = totalManagement + (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
+                    }
+                }
+            }
+            irr = 0;
+            for(i=0;i<foundProject.financial.period;i++){
+                irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
+            }
+            irr = irr - totalEstablishment;
+            res.render("projects/show", {project: foundProject, irr: irr});
         }
     });
 });
@@ -108,12 +131,18 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             System.findById(foundProject.system).populate("rows.sequense").exec(function(err, foundSystem){
+                // FIX TURF BUG
+                // var merc = 1/Math.cos(54*Math.PI/180);
                 // GET GEOMETRY
                 var polygon = JSON.parse(foundProject.layer.geometry);
-                // SET ROW WIDTH
-                var rowWidth = foundSystem.rows[0].width;
+                var offsetPolygon = buffer(polygon, - foundProject.headland, {units: "meters"});
+                // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
+                var rowWidth = 0;
+                for(i=0;i<foundSystem.rows.length;i++){
+                    rowWidth = rowWidth + foundSystem.rows[i].width;
+                }
                 // CREATE BOUNDING BOX
-                var box = bboxPolygon(bbox(polygon));
+                var box = bboxPolygon(bbox(offsetPolygon));
                 // TAKE TOP SIDE OF BOUNDING BOX
                 var lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
                 // ESTIMATE AMOUNT OF ROWS
@@ -128,7 +157,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
                 for(i=0;i<rowCount;i++){
                     var bufferLine1 = buffer(line, distance, {units: "meters"});
-                    var rowPoints1 = lineIntersect(bufferLine1, polygon);
+                    var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                     var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
                     rowArray.push(row1);
                     distance = distance + rowWidth;
@@ -137,7 +166,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var featurecollection = turf.featureCollection(rowArray);
                 // OFFSET LINE
                 var offsetline = lineOffset(line, -(3),{units: "meters"});
-                var rowPoints = lineIntersect(offsetline, polygon);
+                var rowPoints = lineIntersect(offsetline, offsetPolygon);
                 var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
                 var stringline = JSON.stringify(row);
                 var stringbox = JSON.stringify(box);
@@ -179,7 +208,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     };
                     uniqueSpeciesCount.push(speciesCount);
                 }
-                res.render("projects/layout", {project: foundProject, system: foundSystem, stringbox: stringbox, stringline: stringline, collection: collection, species: uniqueSpeciesCount});
+                res.render("projects/layout", {project: foundProject, system: foundSystem, stringbox: stringbox, stringline: stringline, collection: collection, species: uniqueSpeciesCount, rowWidth: rowWidth});
             });
         }
     });
@@ -210,28 +239,35 @@ router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAK
                     console.log(err);
                 } else {
                     console.log("project removed from layer");
-                    // DELETE BUDGET(S?)
+                    // DELETE BUDGET(S)
                     Budget.findByIdAndRemove(foundProject.budgets.establishment, function(err){
                         if(err){
                             console.log(err);
                         } else {
-                            console.log("budget deleted from project");
-                            // DELETE ACTIVITIES
-                            foundProject.activities.forEach(function(activity){
-                                Activity.findByIdAndRemove(activity, function(err){
-                                    if(err){
-                                        console.log(err);
-                                    }
-                                });
-                            });
-                            // DELETE PROJECT
-                            Project.findByIdAndRemove(req.params.id, function(err){
+                            console.log("establishment budget deleted from project");
+                            Budget.findByIdAndRemove(foundProject.budgets.management, function(err){
                                 if(err){
                                     console.log(err);
-                                    res.redirect("/projects");
                                 } else {
-                                    console.log("project deleted");
-                                    res.redirect("/projects");
+                                    console.log("management budget deleted from project");
+                                    // DELETE ACTIVITIES
+                                    foundProject.activities.forEach(function(activity){
+                                        Activity.findByIdAndRemove(activity, function(err){
+                                            if(err){
+                                                console.log(err);
+                                            }
+                                        });
+                                    });
+                                    // DELETE PROJECT
+                                    Project.findByIdAndRemove(req.params.id, function(err){
+                                        if(err){
+                                            console.log(err);
+                                            res.redirect("/projects");
+                                        } else {
+                                            console.log("project deleted");
+                                            res.redirect("/projects");
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -281,11 +317,11 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                             console.log(err);
                         } else {
                             // CREATE CURRENCY
-                            var budget = {
+                            var budgetEstablishment = {
                                 currency: "usd",
                                 name: "Establishment budget"
                             };
-                            Budget.create(budget, function(err, createdBudget){
+                            Budget.create(budgetEstablishment, function(err, createdBudget){
                                 if(err){
                                     console.log(err);
                                 } else {
@@ -298,6 +334,11 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                     createdProject.owner.username = req.user.username;
                                     createdProject.system = foundSystem;
                                     createdProject.layer = foundLayer;
+                                    createdProject.financial = {
+                                        discountRate: 0.05,
+                                        period: 20
+                                    };
+                                    createdProject.headland = 0;
                                     createdProject.budgets.establishment = createdBudget;
                                     // Save the service
                                     createdProject.save();
@@ -363,8 +404,25 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                                 if(err){
                                                     console.log(err);
                                                 } else {
-                                                    // req.flash("success", "Successfully added comment");
-                                                    res.redirect("/projects/" + createdProject._id);
+                                                    var budgetManagement = {
+                                                        currency: "usd",
+                                                        name: "Management budget"
+                                                    };
+                                                    Budget.create(budgetManagement, function(err, createdManagementBudget){
+                                                        if(err){
+                                                            console.log(err);
+                                                        } else {
+                                                            // BUDGET OWNER
+                                                            createdManagementBudget.owner.id = req.user._id;
+                                                            createdManagementBudget.owner.username = req.user.username;
+                                                            createdManagementBudget.save();
+                                                            // SET AS PROJECT BUDGET
+                                                            createdProject.budgets.management = createdManagementBudget;
+                                                            createdProject.save();
+                                                            // req.flash("success", "Successfully added comment");
+                                                            res.redirect("/projects/" + createdProject._id);
+                                                        }
+                                                    })
                                                 }
                                             });
                                         }

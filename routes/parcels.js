@@ -51,8 +51,8 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
     var climate = {
         annualaverageprec: req.body.parcel.climate.annualaverageprec,
         hardiness: {
-            low: -4,
-            high: 12
+            low: -12,
+            high: -7
         }
         };
     var soilType = req.body.parcel.soilType;
@@ -135,6 +135,10 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         if(data[0].country === "Sri Lanka"){
             climate.hardiness.low = 10;
             climate.hardiness.high = 16;
+        }
+        if(data[0].country === "United Kingdom"){
+            climate.hardiness.low = -12;
+            climate.hardiness.high = -7;
         }
         // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate, measurement: measurement};

@@ -38,6 +38,10 @@ var projectSchema = new mongoose.Schema({
             ref: "Budget"
         }
     },
+    financial: {
+        discountRate: Number,
+        period: Number
+    },
     layout: String,
     alignment: String,
     headland: Number

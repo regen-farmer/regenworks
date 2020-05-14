@@ -65,15 +65,22 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="card-title">Project budgets and finances</h2>
-                        <h3>Establishment budget</h3>
+                        <p>Establishment budget</p>
                             <% if(project.budgets.establishment){ %>
                                 <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
                             <% } %>
-                        <h3>Management budget</h3>
+                        <p>Management budget</p>
                             <% if(project.budgets.management){ %>
                                 <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
                             <% } %>
-                        <h3 class="card-text">Financing (IRR, NPV) coming soon.</h3>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Financial analysis</h2>
+                        <p><strong>IRR: <%= irr %></strong></p>
+                        <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+                        <p>Time period: <%= project.financial.period %> yrs</p>
                     </div>
                 </div>
             </div>

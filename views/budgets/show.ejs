@@ -2,9 +2,10 @@
 <% include ../partials/navbar %>
 
 <div>
-    <h1>Budget</h1>
+    <h1><%= budget.name %></h1>
+    <p><small>- As initial postings are automatically generated, please check all values and update them with more up to date local prices where applicable. -</small></p>
     <table class="table">
-        <tr>
+        <tr class="table-secondary">
             <td>Name</td>
             <td>Amount</td>
             <td>Value</td>
@@ -18,6 +19,12 @@
                 <td><%= posting.value * posting.amount %> <%= budget.currency %></td>
             </tr>
         <% }); %>
+        <tr class="table-primary">
+            <td>Sum</td>
+            <td></td>
+            <td></td>
+            <td><%= total %> <%= budget.currency %></td>
+        </tr>
     </table>
     <a href="/budgets/<%= budget._id %>/postings/new" class="btn btn-outline-primary">Add new posting</a>
 </div>

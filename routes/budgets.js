@@ -16,7 +16,15 @@ router.get("/budgets/:id", middleware.isLoggedIn, function(req, res){ // CHECK O
         if(err){
             console.log(err);
         } else {
-            res.render("budgets/show", {budget: foundBudget});
+            total = 0;
+            for(i=0;i<foundBudget.postings.length;i++){
+                if(foundBudget.postings[i].postType === "labor" || foundBudget.postings[i].postType === "material"){
+                    total = total - (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+                } else if(foundBudget.postings[i].postType === "product" || foundBudget.postings[i].postType === "service"){
+                    total = total + (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+                }
+            }
+            res.render("budgets/show", {budget: foundBudget, total: total});
         }
     });
 });

@@ -147,6 +147,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                         // FIND ALL SPECIES IN SYSTEM
                         var allSpecies = [];
                         var allUtilities = [];
+                        var grid = 0;
                         foundSystems[i].rows.forEach(function(row){
                             row.sequense.forEach(function(species){
                                 allSpecies.push(species.nameCommon);
@@ -156,12 +157,14 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                                     }
                                 }
                             });
+                            grid = grid + row.width;
                         });
                         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                         var uniqueSpecies = unique(allSpecies);
                         foundSystems[i].uniqueSpecies = uniqueSpecies;
                         var uniqueUtilities = unique(allUtilities);
                         foundSystems[i].uniqueUtilities = uniqueUtilities;
+                        foundSystems[i].grid = grid;
                     }
                     res.render("systems/compare", {layer: foundLayer, systems: foundSystems});
                 }
@@ -472,6 +475,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             // FIND ALL SPECIES IN SYSTEM
                                             var allSpecies = [];
                                             var allUtilities = [];
+                                            var grid = 0;
                                             foundSystems[i].rows.forEach(function(row){
                                                 row.sequense.forEach(function(species){
                                                     allSpecies.push(species.nameCommon);
@@ -481,12 +485,15 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                                         }
                                                     }
                                                 });
+                                                grid = grid + row.width;
                                             });
                                             // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                                             var uniqueSpecies = unique(allSpecies);
                                             foundSystems[i].uniqueSpecies = uniqueSpecies;
                                             var uniqueUtilities = unique(allUtilities);
                                             foundSystems[i].uniqueUtilities = uniqueUtilities;
+                                            // SAVE GRID
+                                            foundSystems[i].grid = grid;
                                             systems.push(foundSystems[i]);
                                         }
                                     }

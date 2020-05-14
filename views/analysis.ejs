@@ -58,8 +58,11 @@
                             </p>
                             <p class="card-text"><strong>Utilities:</strong>
                                 <% animalsystems[i].uniqueUtilities.forEach(function(utility){ %>
-                                <%= utility %>,
+                                    <%= utility %>,
                                 <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Spacing/grid:</strong>
+                                <%= animalsystems[i].grid %> x <%= animalsystems[i].grid %> m
                             </p>
                             <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                                 <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
@@ -130,6 +133,9 @@
                                     <%= utility %>,
                                     <% }); %>
                                 </p>
+                                <p class="card-text"><strong>Spacing/grid:</strong>
+                                    <%= commoditysystems[i].grid %> x <%= commoditysystems[i].grid %> m
+                                </p>
                                 <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                                     <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
                                     <button class="btn btn-success">Add system to future drafts</button>
@@ -183,6 +189,9 @@
                                             <% systemsproven[i].uniqueUtilities.forEach(function(utility){ %>
                                             <%= utility %>,
                                             <% }); %>
+                                        </p>
+                                        <p class="card-text"><strong>Spacing/grid:</strong>
+                                            <%= systemsproven[i].grid %> x <%= systemsproven[i].grid %> m
                                         </p>
                                         <p>
                                             <% systemsproven[i].flows.forEach(function(flow){ %>
@@ -260,6 +269,9 @@
                                 <% systemsclimate[i].uniqueUtilities.forEach(function(utility){ %>
                                     <%= utility %>,
                                 <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Spacing/grid:</strong>
+                                <%= systemsclimate[i].grid %> x <%= systemsclimate[i].grid %> m
                             </p>
                             <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                                 <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">

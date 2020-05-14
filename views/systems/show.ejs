@@ -12,18 +12,21 @@
                             <% if(row.sequense[0].height > 12){ %>
                                 <div class="col-sm-3">
                                     <img class="img-fluid" src="/images/treehigh.svg">
-                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                    <p class="text-center">Row <%= i + 1 %></p>
+                                    <p class="text-center"><%= row.width %> m wide</p>
                                 </div>
                             <% } else { %>
                                 <div class="col-sm-3">
                                     <img class="img-fluid" src="/images/treelow.svg">
-                                    <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                    <p class="text-center">Row <%= i + 1 %></p>
+                                    <p class="text-center"><%= row.width %> m wide</p>
                                 </div>
                             <% } %>
                         <% } else { %>
                             <div class="col-sm-3">
                                 <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
-                                <p class="text-center">Row <%= i %> - <%= row.width %> m</p>
+                                <p class="text-center">Row <%= i + 1 %></p>
+                                <p class="text-center"><%= row.width %> m wide</p>
                             </div>
                         <% } %>
                     <% }); %>
