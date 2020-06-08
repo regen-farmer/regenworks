@@ -9,11 +9,11 @@
                 <form action="/parcels" method="POST">
                     <div class="form-group">
                         <label for="formGroupExampleInput">Name</label>
-                        <input type="text" class="form-control" name="parcel[name]" placeholder="Give your farm a name" required>
+                        <input type="text" class="form-control" name="parcel[name]" placeholder="What is the name of the farm?" required>
                     </div>
                     <div class="form-group">
-                        <label for="formGroupExampleInput">Address/location</label>
-                        <input type="text" class="form-control" name="parcel[location]" placeholder="Add the address of the farm" required>
+                        <label for="formGroupExampleInput">Address/location <small>(If no exact address is available for the farm, use coordinates.)</small></label>
+                        <input type="text" class="form-control" name="parcel[location]" placeholder="Add location of the farm" required>
                     </div>
                     <div class="form-group">
                         <label for="formGroupExampleInput">Description (Optional)</label>

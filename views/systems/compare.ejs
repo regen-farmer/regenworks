@@ -8,9 +8,9 @@
         <div class="row">
             <div class="col-md-3">
                 <div class="row p-3 justify-content-center">
-                    <% system.rows.forEach(function(row){ %>
+                    <% system.sortedrows.forEach(function(row){ %>
                         <div class="col-sm-3">
-                            <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
+                            <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
                         </div>
                     <% }); %>
                 </div>
@@ -26,8 +26,8 @@
                             <%= utility %>,
                         <% }); %>
                     </p>
-                    <p><strong>Grid size: </strong>
-                        <%= system.grid %> x <%= system.grid %> m
+                    <p><strong>System width: </strong>
+                        <%= system.grid %> m
                     </p>
                 </div>
             </div>

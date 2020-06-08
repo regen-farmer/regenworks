@@ -16,6 +16,14 @@ var lineOffset = require("@turf/line-offset");
 var lineIntersect = require("@turf/line-intersect");
 var length = require("@turf/length");
 var buffer = require("@turf/buffer");
+var area = require("@turf/area");
+// SETUP MULTER
+var multer = require("multer");
+var storage = multer.memoryStorage();
+var uploadMem = multer({storage: storage});
+// XML2JS
+var xml2js = require('xml2js');
+var parser = new xml2js.Parser();
 
 // LAYER INDEX ROUTE
 
@@ -158,10 +166,11 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                 var presentsystem = {
                                     name: foundSpecies.nameCommon + " monoculture",
                                     description: "",
-                                    rows: [
+                                    model: [
                                         {
+                                            species: foundSpecies._id,
                                             width: 2,
-                                            sequense: []
+                                            position: [1,1]
                                         }
                                     ],
                                     shared: false,
@@ -171,8 +180,6 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                     },
                                     animals: []
                                 };
-                                // ADD SPECIES TO ROW SEQUENSE IN NEW SYSTEM
-                                presentsystem.rows[0].sequense.push(foundSpecies);
                                 // FIND ANIMAL AND PUSH TO SYSTEM
                                 if(!(req.body.animal === "")){
                                     Animal.findById(req.body.animal, function(err, foundAnimal){
@@ -216,9 +223,126 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
 });
 
 // NESTED PARCEL LAYER CREATE WITH UPLOAD ROUTE
-router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, function(req, res){
-    console.log(req.files);
-    res.redirect("/parcels/" + req.params.id);
+router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, uploadMem.single("filename"), function(req, res){
+    // PARSE UPLOADED FILE AND CREATE POLYGON
+    parser.parseString(req.file.buffer, function(err, result){
+        if(err){
+            req.flash("error", err.message);
+            // console.log(err);
+            res.redirect("back");
+        } else {
+            var string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
+            var splitString = string.split(" ");
+            // CREATE NEW ARRAY HERE? OR IS THIS OBSOLETE?
+            var array = [];
+            for(i=0;i<splitString.length;i++){
+                var apples = JSON.parse("[" + splitString[i] + "]");
+                array.push(apples);
+            }
+            // CHECK IF LAST ARRAY IS EMPTY?
+            if(array[array.length - 1].length === 0){
+                console.log("last is empty array");
+                array.pop();
+            }
+            // THEN ADD HERE?!
+            var polygon = turf.polygon([array]);
+            var size = area(polygon);
+            var geometry = JSON.stringify(polygon);
+            // FIND PARCEL
+            Parcel.findById(req.params.id, function(err, foundParcel){
+                if(err){
+                    console.log(err);
+                } else {
+                    Layer.create(req.body.layer, function(err, createdLayer){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            createdLayer.owner.id = req.user._id;
+                            createdLayer.owner.username = req.user.username;
+                            createdLayer.geometry = geometry;
+                            // CALCULATE LAYER SIZE
+                            createdLayer.size = size;
+                            // GEOMETRY CENTROID FOR LAT AND LNG
+                            var geometrycentroid = centroid(polygon.geometry);
+                            createdLayer.lat = geometrycentroid.geometry.coordinates[1];
+                            createdLayer.lng = geometrycentroid.geometry.coordinates[0];
+                            // Save the layer
+                            createdLayer.save();
+                            // PUSH LAYER TO PARCEL
+                            foundParcel.layers.push(createdLayer);
+                            foundParcel.save();
+                            // DEFINE SYSTEM
+                            if(createdLayer.type == "agroforestry"){
+                                res.redirect("/layers/" + createdLayer._id + '/systems/new');
+                            } else {
+                                var tempspecies = req.body.maincrop;
+                                if(req.body.maincrop === ""){
+                                    tempspecies = "5e665452cccc150b186d4cd1";
+                                }
+                                Species.findById(tempspecies, function(err, foundSpecies){
+                                    if(err){
+                                        console.log(err);
+                                    } else {
+                                        // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
+                                        var presentsystem = {
+                                            name: foundSpecies.nameCommon + " monoculture",
+                                            description: "",
+                                            model: [
+                                                {
+                                                    species: foundSpecies._id,
+                                                    width: 2,
+                                                    position: [1,1]
+                                                }
+                                            ],
+                                            shared: false,
+                                            owner: {
+                                                id: req.user._id,
+                                                username: req.user.username
+                                            },
+                                            animals: []
+                                        };
+                                        // FIND ANIMAL AND PUSH TO SYSTEM
+                                        if(!(req.body.animal === "")){
+                                            Animal.findById(req.body.animal, function(err, foundAnimal){
+                                                if(err){
+                                                    console.log(err);
+                                                } else {
+                                                    presentsystem.animals.push(foundAnimal);
+                                                    // CREATE SYSTEM
+                                                    System.create(presentsystem, function(err, createdSystem){
+                                                        if(err){
+                                                            console.log(err);
+                                                        } else {
+                                                            // ADD SYSTEM TO PRESENT SYSTEM
+                                                            createdLayer.systems.present = createdSystem;
+                                                            createdLayer.save();
+                                                            res.redirect("/parcels/" + foundParcel._id);
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        } else {
+                                            // CREATE SYSTEM
+                                            System.create(presentsystem, function(err, createdSystem){
+                                                if(err){
+                                                    console.log(err);
+                                                } else {
+                                                    // ADD SYSTEM TO PRESENT SYSTEM
+                                                    createdLayer.systems.present = createdSystem;
+                                                    createdLayer.save();
+                                                    res.redirect("/parcels/" + foundParcel._id);
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    });
 });
 
 // LAYER SHOW ROUTES
@@ -230,25 +354,48 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
             if(foundLayer.systems.present === undefined){
                 res.redirect("/layers/" + foundLayer._id + '/systems/new')
             } else {
-                System.findById(foundLayer.systems.present._id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
+                System.findById(foundLayer.systems.present._id).populate("model.species").populate("animals").exec(function(err, foundSystem){
                     if(err){
                         console.log(err);
                     } else {
                         // FIND ALL SPECIES IN SYSTEM
                         var allSpecies = [];
-                        foundSystem.rows.forEach(function(row){
-                            row.sequense.forEach(function(species){
-                                allSpecies.push(species.id);
-                            });
+                        var dataset = [];
+                        foundSystem.model.forEach(function(species){
+                            allSpecies.push(species.species);
+                            var count = 0;
+                            for(i=0;i<dataset.length;i++){
+                                if(dataset[i].row === species.position[0]){
+                                    dataset[i].array.push(species);
+                                    count = count + 1;
+                                }
+                            }
+                            if(count === 0){
+                                dataset.push({row: species.position[0], array: [species]});
+                            }
                         });
                         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                         var uniqueSpecies = unique(allSpecies);
+                        // SORT FIRST ROW ITEMS
+                        function compare1( a, b ) {
+                            if ( a.position[1] < b.position[1] ){
+                                return -1;
+                            }
+                            if ( a.position[1] > b.position[1] ){
+                                return 1;
+                            }
+                            return 0;
+                        }
+                        for(i=0;i<dataset.length;i++){
+                            dataset[i].array.sort(compare1);
+                            console.log(dataset[i].array[0]);
+                        }
                         // FIND SPECIES AND POPULATE FLOWS
                         Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
                             if(err) {
                                 console.log(err);
                             } else {
-                                res.render("layers/show", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies});
+                                res.render("layers/show", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, rows: dataset});
                             }
                         });
                     }
@@ -284,12 +431,29 @@ router.put("/layers/:id", middleware.isLoggedIn, function(req, res){
 
 // LAYER DELETE ROUTE
 router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK OWNERSHIP
-    Layer.findByIdAndRemove(req.params.id, function(err){
+    Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
             res.redirect("/parcels");
         } else {
-            res.redirect("/parcels");
+            // REMOVE LAYER FROM PARCEL
+            Parcel.find({"layers": req.params.id}, function(err, foundParcel){
+                if(err){
+                    console.log(err);
+                    res.redirect("/parcels");
+                } else {
+                    console.log(foundParcel.layers);
+                    // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
+                    Layer.findByIdAndRemove(req.params.id, function(err){
+                        if(err){
+                            console.log(err);
+                            res.redirect("/parcels");
+                        } else {
+                            res.redirect("/parcels");
+                        }
+                    });
+                }
+            });
         }
     });
 });
@@ -349,16 +513,14 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
         if(err){
             console.log(err);
         } else {
-            System.findById(foundLayer.systems.present._id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
+            System.findById(foundLayer.systems.present._id).populate("model.species").populate("animals").exec(function(err, foundSystem){
                 if(err){
                     console.log(err);
                 } else {
                     // FIND ALL SPECIES IN SYSTEM
                     var allSpecies = [];
-                    foundSystem.rows.forEach(function(row){
-                        row.sequense.forEach(function(species){
-                            allSpecies.push(species.id);
-                        });
+                    foundSystem.model.forEach(function(species){
+                        allSpecies.push(species.species.id);
                     });
                     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                     var uniqueSpecies = unique(allSpecies);
@@ -368,8 +530,41 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             console.log(err);
                         } else {
                             var polygon = JSON.parse(foundLayer.geometry);
-                            // SET ROW WIDTH
-                            var rowWidth = foundSystem.rows[0].width;
+                            // FIND SYSTEM ROWS
+                            var dataset = [];
+                            foundSystem.model.forEach(function(species){
+                                var count = 0;
+                                for(i=0;i<dataset.length;i++){
+                                    if(dataset[i].row === species.position[0]){
+                                        dataset[i].array.push(species);
+                                        count = count + 1;
+                                    }
+                                }
+                                if(count === 0){
+                                    dataset.push({row: species.position[0], array: [species]});
+                                }
+                            });
+                            // SORT FIRST ROW ITEMS
+                            function compare1( a, b ) {
+                                if ( a.position[1] < b.position[1] ){
+                                    return -1;
+                                }
+                                if ( a.position[1] > b.position[1] ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            for(i=0;i<dataset.length;i++){
+                                dataset[i].array.sort(compare1);
+                            }
+                            // SAVE DATASET
+                            foundSystem.sortedrows = dataset;
+                            // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
+                            var rowWidth = 0;
+                            for(i=0;i<dataset.length;i++){
+                                rowWidth = rowWidth + dataset[i].array[0].width;
+                                console.log(dataset[i].array[0].width);
+                            }
                             // CREATE BOUNDING BOX
                             var box = bboxPolygon(bbox(polygon));
                             // TAKE TOP SIDE OF BOUNDING BOX
@@ -394,7 +589,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             // CREATE FEATURECOLLECTION
                             var featurecollection = turf.featureCollection(rowArray);
                             var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
-                            var offsetline = lineOffset(line, -(foundSystem.rows[0].width),{units: "meters"});
+                            var offsetline = lineOffset(line, -(rowWidth),{units: "meters"});
                             var rowPoints = lineIntersect(offsetline, polygon);
                             console.log(rowPoints.features[0].geometry.coordinates[0]);
                             var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});

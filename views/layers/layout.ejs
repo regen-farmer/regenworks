@@ -4,19 +4,20 @@
     <div class="row">
         <div class="col-md-5">
             <div id="layerMapShow"></div>
+            <a href="/layers/<%= layer._id %>" class="btn mt-2 btn-outline-primary">Back to area page</a>
         </div>
         <div class="col-md-3">
             <h2>System layout</h2>
             <div class="row">
-                <% if(presentsystem.rows){ %>
-                <% presentsystem.rows.forEach(function(row){ %>
-                <div class="col-sm-3">
-                    <% row.sequense.reverse().forEach(function(sequense){ %>
-                    <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
-                    <p class="text-center"><%= sequense.nameCommon %></p>
+                <% if(presentsystem.sortedrows.length > 0){ %>
+                    <% presentsystem.sortedrows.forEach(function(row){ %>
+                        <div class="col-sm-3">
+                            <% row.array.forEach(function(species){ %>
+                                <img class="img-fluid" src="/images/<%= species.species.form %>top.svg">
+                                <p class="text-center"><%= species.species.nameCommon %></p>
+                            <% }); %>
+                        </div>
                     <% }); %>
-                </div>
-                <% }); %>
                 <% } %>
             </div>
             <p><i><%= presentsystem.name %></i></p>

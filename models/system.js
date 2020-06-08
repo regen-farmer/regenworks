@@ -15,6 +15,16 @@ var systemSchema = new mongoose.Schema({
         }
 
     ],
+    model: [
+        {
+            species: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Species"
+            },
+            position: [Number],
+            width: Number
+        }
+    ],
     animals: [
         {
             type: mongoose.Schema.Types.ObjectId,

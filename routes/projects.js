@@ -130,16 +130,48 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            System.findById(foundProject.system).populate("rows.sequense").exec(function(err, foundSystem){
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
                 // FIX TURF BUG
                 // var merc = 1/Math.cos(54*Math.PI/180);
                 // GET GEOMETRY
                 var polygon = JSON.parse(foundProject.layer.geometry);
                 var offsetPolygon = buffer(polygon, - foundProject.headland, {units: "meters"});
+                // FIND SYSTEM ROWS
+                var allSpecies = [];
+                var dataset = [];
+                foundSystem.model.forEach(function(species){
+                    allSpecies.push(species.species.nameCommon);
+                    var count = 0;
+                    for(i=0;i<dataset.length;i++){
+                        if(dataset[i].row === species.position[0]){
+                            dataset[i].array.push(species);
+                            count = count + 1;
+                        }
+                    }
+                    if(count === 0){
+                        dataset.push({row: species.position[0], array: [species]});
+                    }
+                });
+                // SORT FIRST ROW ITEMS
+                function compare1( a, b ) {
+                    if ( a.position[1] < b.position[1] ){
+                        return -1;
+                    }
+                    if ( a.position[1] > b.position[1] ){
+                        return 1;
+                    }
+                    return 0;
+                }
+                for(i=0;i<dataset.length;i++){
+                    dataset[i].array.sort(compare1);
+                }
+                // SAVE DATASET
+                foundSystem.sortedrows = dataset;
                 // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
                 var rowWidth = 0;
-                for(i=0;i<foundSystem.rows.length;i++){
-                    rowWidth = rowWidth + foundSystem.rows[i].width;
+                for(i=0;i<dataset.length;i++){
+                    rowWidth = rowWidth + dataset[i].array[0].width;
+                    console.log(dataset[i].array[0].width);
                 }
                 // CREATE BOUNDING BOX
                 var box = bboxPolygon(bbox(offsetPolygon));
@@ -173,17 +205,8 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var collection = JSON.stringify(featurecollection);
                 // CALCULATE TREE COUNT
                 var areaSize = foundProject.layer.size;
-                // FIND ALL SPECIES IN PROJECT SYSTEM
-                var allSpecies = [];
-                var width = 0;
-                foundSystem.rows.forEach(function(row){
-                    row.sequense.forEach(function(species){
-                        allSpecies.push(species.nameCommon);
-                    });
-                    width = width + row.width;
-                });
                 // GRID SIZE
-                var areaGrid = width * width;
+                var areaGrid = rowWidth * dataset[0].array[(dataset[0].array.length - 1)].position[1]; // CHECK THAT THIS IS WORKING
                 var gridCount = areaSize / areaGrid;
                 // COPY ALL SPECIES
                 var allSpeciesCopy = [];
@@ -312,7 +335,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                     console.log(err);
                 } else {
                     // FIND SYSTEM AND ADD TO PROJECT
-                    System.findById(req.body.systemid).populate("rows.sequense").exec(function(err, foundSystem){
+                    System.findById(req.body.systemid).populate("model.species").exec(function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
@@ -348,10 +371,8 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                     // CREATE POSTINGS
                                     // FIND ALL SPECIES IN PROJECT SYSTEM
                                     var allSpecies = [];
-                                    foundSystem.rows.forEach(function(row){
-                                        row.sequense.forEach(function(species){
-                                            allSpecies.push(species.id);
-                                        });
+                                    foundSystem.model.forEach(function(species){
+                                        allSpecies.push(species.species.id);
                                     });
                                     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                                     var uniqueSpecies = unique(allSpecies);

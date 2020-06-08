@@ -13,9 +13,9 @@
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
                 <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area</a>
-                <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
+                <!--<form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
                     <button class="btn btn-danger">Delete Area</button>
-                </form>
+                </form>-->
                 <% } %>
             </div>
         </div>
@@ -38,30 +38,30 @@
                         <div class="col-md-6">
                             <% if(!(layer.systems.present == "")){ %>
                             <div class="row">
-                                <% if(presentsystem.rows){ %>
-                                <% presentsystem.rows.forEach(function(row, i){ %>
-                                <% if(row.sequense[0].form === "tree"){ %>
-                                <% if(row.sequense[0].height > 12){ %>
-                                <div class="col-sm-3">
-                                    <img class="img-fluid" src="/images/treehigh.svg">
-                                    <p class="text-center">Row <%= i + 1 %></p>
-                                    <p class="text-center"><%= row.width %> m wide</p>
-                                </div>
-                                <% } else { %>
-                                <div class="col-sm-3">
-                                    <img class="img-fluid" src="/images/treelow.svg">
-                                    <p class="text-center">Row <%= i + 1 %></p>
-                                    <p class="text-center"><%= row.width %> m wide</p>
-                                </div>
-                                <% } %>
-                                <% } else { %>
-                                <div class="col-sm-3">
-                                    <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
-                                    <p class="text-center">Row <%= i + 1 %></p>
-                                    <p class="text-center"><%= row.width %> m wide</p>
-                                </div>
-                                <% } %>
-                                <% }); %>
+                                <% if(rows){ %>
+                                    <% rows.forEach(function(row, i){ %>
+                                        <% if(row.array[0].species.form === "tree"){ %>
+                                            <% if(row.array[0].species.height > 12){ %>
+                                                <div class="col-sm-3">
+                                                    <img class="img-fluid" src="/images/treehigh.svg">
+                                                    <p class="text-center">Row <%= i + 1 %></p>
+                                                    <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="col-sm-3">
+                                                    <img class="img-fluid" src="/images/treelow.svg">
+                                                    <p class="text-center">Row <%= i + 1 %></p>
+                                                    <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                                </div>
+                                            <% } %>
+                                        <% } else { %>
+                                            <div class="col-sm-3">
+                                                <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                                                <p class="text-center">Row <%= i + 1 %></p>
+                                                <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                            </div>
+                                        <% } %>
+                                    <% }); %>
                                 <% } %>
                             </div>
                             <div class="row">
@@ -82,7 +82,9 @@
                             <p>Animals: <%= presentsystem.animals[0].name %></p>
                             <% } %>
                             <a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
+<!--
                             <a class="btn btn-outline-warning mt-2" href="/systems/<%= layer.systems.present._id %>/edit">Edit current system</a>
+-->
                             <% } %>
                         </div>
                         <div class="col-md-6">
@@ -138,7 +140,6 @@
                                         </table>
                                         <a class="btn btn-outline-primary" href="/systems/<%= layer.systems.present._id %>/composition">Analyse species succession</a>
                                     </div>
-
                                 </div>
                             </div>
                             <% } %>
@@ -217,7 +218,7 @@
                         </div>
                     </div>
                     <% } %>
-                    <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/new">Define new agroforestry system from scratch</a>
+                    <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/newgrid">Define new agroforestry system from scratch</a>
                     <a class="btn btn-primary mt-2" href="/layers/<%= layer._id %>/analysis">Get a headstart with the agroforestry suitability analysis</a>
                 </div>
             </div>

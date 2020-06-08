@@ -6,6 +6,34 @@
         <div class="col-sm-6">
             <h2>System layout</h2>
             <div class="row">
+                <% if(rows){ %>
+                    <% rows.forEach(function(row, i){ %>
+                        <% if(row.array[0].species.form === "tree"){ %>
+                            <% if(row.array[0].species.height > 12){ %>
+                            <div class="col-sm-3">
+                                <img class="img-fluid" src="/images/treehigh.svg">
+                                <p class="text-center">Row <%= i + 1 %></p>
+                                <p class="text-center"><%= row.array[0].width %> m wide</p>
+                            </div>
+                            <% } else { %>
+                            <div class="col-sm-3">
+                                <img class="img-fluid" src="/images/treelow.svg">
+                                <p class="text-center">Row <%= i + 1 %></p>
+                                <p class="text-center"><%= row.array[0].width %> m wide</p>
+                            </div>
+                            <% } %>
+                        <% } else { %>
+                        <div class="col-sm-3">
+                            <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                            <p class="text-center">Row <%= i + 1 %></p>
+                            <p class="text-center"><%= row.array[0].width %> m wide</p>
+                        </div>
+                        <% } %>
+                    <% }); %>
+                <% } %>
+            </div>
+            <!--<h2>System layout</h2>
+            <div class="row">
                 <% if(system.rows){ %>
                     <% system.rows.forEach(function(row, i){ %>
                         <% if(row.sequense[0].form === "tree"){ %>
@@ -43,7 +71,7 @@
                     </div>
                     <% }); %>
                 <% } %>
-            </div>
+            </div>-->
         </div>
         <div class="col-sm-4">
             <h2>System specifications</h2>
