@@ -36,8 +36,14 @@
                 </div>
                 <h3>System model</h3>
                 <div class="row">
+                    <% var xPosition = 0; %>
                     <% for(j=0;j<rows.length;j++){ %>
                     <div class="col-lg-<%= Math.floor(12/rows.length) %>">
+                        <% if(j === 0){ %>
+                            <% xPosition = rows[j].array[0].position[0]; %>
+                        <% } else { %>
+                            <% xPosition = rows[j].array[0].position[0] - rows[j-1].array[0].position[0] %>
+                        <% } %>
                         <h5>Row <%= j + 1 %></h5>
                         <div class="form-group">
                             <label for="system[model][<%= j %>][width]">Row width</label>
@@ -45,7 +51,7 @@
                         </div>
                         <div class="form-group">
                             <label for="system[model][<%= j %>][distance]">Distance to next row</label>
-                            <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" value="<%= rows[j].array[0].position[0] %>" required>
+                            <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" value="<%= xPosition %>" required>
                         </div>
                         <% for(i=0;i<(length/distance);i++){ %>
                         <div class="card">

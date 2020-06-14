@@ -466,7 +466,7 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
                             // FIND DISTANCE Y MIN
                             distanceDifference.sort(compare3);
                             var distance = 0;
-                            if(distanceDifference[0] > distanceArray[0]) {
+                            if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
                                 distance = distanceArray[0];
                                 } else {
                                 distance = distanceDifference[0];
@@ -567,22 +567,6 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
         if(req.body.system.shared){
             system.shared = true;
         }
-        // CLEAN ARRAY
-        /*var rows = [];
-        for(i=0;i<system.rows.length;i++){
-            // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
-            for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
-                if(system.rows[i].sequense[j] === ""){
-                    system.rows[i].sequense.splice(j, 1);
-                }
-            }
-            // REMOVE EMPTY ROWS IF WIDTH IS NOT FILLED OUT
-            if(!(system.rows[i].width === "")){
-                rows.push(system.rows[i]);
-            }
-        }*/
-        /*// INSERT UPDATED ROWS
-        system.rows = rows;*/
         // NEW GRID MODEL SETUP
         var model = [];
         // DO COUNT FOR ROW WIDTH
@@ -911,11 +895,13 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     var commodity = "";
                                     var commodityName = "";
                                     foundSystem.model.forEach(function(species){
-                                        if(species.species.nameCommon === "Arabian coffee" || species.species.nameCommon === "Cacao" || species.species.nameCommon === "Cashew"){
+                                        // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
+                                        if(species.species.nameCommon === "Arabian coffee" || species.species.nameCommon === "Cacao" || species.species.nameCommon === "Cashew" || species.species.nameCommon === "Coconut palm"){
                                             commodity = species.species.id;
                                             commodityName = species.species.nameCommon;
                                         }
                                     });
+                                    console.log(commodityName);
                                     // CHECK IF SYSTEM HAS ANIMALS
                                     var animals = "";
                                     if(foundSystem.animals.length > 0){
@@ -966,7 +952,6 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             // SORT ROW
                                             for(j=0;j<dataset.length;j++){
                                                 dataset[j].array.sort(compare1);
-                                                console.log(dataset[j].array[0]);
                                                 grid = grid + dataset[j].array[0].width;
                                             }
                                             // SAVE ROWS
@@ -979,8 +964,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     var commoditysystems = [];
                                     for(i=0;i<systems.length;i++){
                                         for(j=0;j<systems[i].model.length;j++){
-                                            if(commodity === systems[i].model[j].species.species.id && !(commoditysystems.includes(systems[i]))) {
-                                                console.log(systems[i].name);
+                                            if(commodityName === systems[i].model[j].species.nameCommon && !(commoditysystems.includes(systems[i]))) {
                                                 commoditysystems.push(systems[i]);
                                             }
                                         }
