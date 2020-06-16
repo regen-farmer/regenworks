@@ -530,16 +530,27 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
 
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
+    System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
         } else {
             // FIND ALL SPECIES IN SYSTEM
             var allSpecies = [];
-            foundSystem.rows.forEach(function(row){
-                row.sequense.forEach(function(species){
-                    allSpecies.push(species.id);
-                });
+            var dataset = [];
+            var distanceArray = [];
+            foundSystem.model.forEach(function(species){
+                allSpecies.push(species.species.id);
+                distanceArray.push(species.position[1]);
+                var count = 0;
+                for(i=0;i<dataset.length;i++){
+                    if(dataset[i].row === species.position[0]){
+                        dataset[i].array.push(species);
+                        count = count + 1;
+                    }
+                }
+                if(count === 0){
+                    dataset.push({row: species.position[0], array: [species]});
+                }
             });
             // PUSH NEW SPECIES TO LIST
             allSpecies.push(req.params.speciesid);
@@ -550,7 +561,55 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
                 if(err){
                     console.log(err);
                 } else {
-                    res.render("systems/edit", {system: foundSystem, species: foundSpecies});
+                    // SORT FIRST ROW ITEMS
+                    function compare2( a, b ) {
+                        if ( a.position[1] < b.position[1] ){
+                            return -1;
+                        }
+                        if ( a.position[1] > b.position[1] ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    // SORT ROWS
+                    for(i=0;i<dataset.length;i++){
+                        dataset[i].array.sort(compare2);
+                        console.log(dataset[i].array[0]);
+                    }
+                    var rows = dataset;
+                    // CALCULATE DISTANCE
+                    var distanceDifference = [];
+                    for(i=0;i<distanceArray.length;i++){
+                        for(j=0;j<distanceArray.length;j++){
+                            if(distanceArray[i] !== distanceArray[j]){
+                                distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
+                            }
+                        }
+                    }
+                    // SORT DIFFERENCE IN DISTANCE
+                    function compare3( a, b ) {
+                        if ( a < b ){
+                            return -1;
+                        }
+                        if ( a > b ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    // CALCULATE LENGTH
+                    distanceArray.sort(compare3);
+                    console.log(distanceArray[distanceArray.length - 1]);
+                    // SET LENGTH TO HIGHEST Y COORDINATE
+                    var length = distanceArray[distanceArray.length - 1];
+                    // FIND DISTANCE Y MIN
+                    distanceDifference.sort(compare3);
+                    var distance = 0;
+                    if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
+                        distance = distanceArray[0];
+                    } else {
+                        distance = distanceDifference[0];
+                    }
+                    res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundSystem.animals, rows: rows, distance: distance, length: length});
                 }
             });
         }

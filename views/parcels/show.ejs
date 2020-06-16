@@ -30,9 +30,9 @@
         <p><strong>Soil type:</strong> <%= parcel.soilType %></p>
         <% if(currentUser && parcel.owner.id.equals(currentUser._id)){ %>
         <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/edit">Edit farm details</a>
-        <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
+<!--        <form class="delete-form" action="/parcels/<%= parcel._id %>?_method=DELETE" method="POST">
             <button class="btn btn-outline-danger">Delete farm</button>
-        </form>
+        </form>-->
         <% } %>
     </div>
     <div class="col-md-12">
