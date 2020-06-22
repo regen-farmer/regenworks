@@ -217,13 +217,26 @@ router.get("/parcels/:id/edit", middleware.checkParcelOwnership, function (req, 
 // PLACES UPDATE ROUTE
 router.put("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
     // UPDATE PARCEL
-    Parcel.findByIdAndUpdate(req.params.id, req.body.parcel, function (err, updatedParcel) {
-        if (err) {
+    var parcel = req.body.parcel;
+    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+    geocoder.geocode(req.body.parcel.location, function(err, data) {
+        if (err || !data.length) {
             console.log(err);
-        } else {
-            console.log(updatedParcel);
-            res.redirect("/parcels/" + req.params.id);
+            console.log(data);
+            return res.redirect("back");
         }
+        parcel.lat = data[0].latitude;
+        parcel.lng = data[0].longitude;
+        parcel.location = data[0].formattedAddress;
+        // UPDATE PARCEL
+        Parcel.findByIdAndUpdate(req.params.id, parcel, function (err, updatedParcel) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(updatedParcel);
+                res.redirect("/parcels/" + req.params.id);
+            }
+        });
     });
 });
 

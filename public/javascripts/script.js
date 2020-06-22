@@ -144,3 +144,9 @@ function addBudgetFields() {
     div.appendChild(inputValueDiv);
     container.appendChild(div);
 }
+
+// LOCATION SEARCH
+function activatePlaceSearch(){
+    var input = document.getElementById("search_input");
+    var autocomplete = new google.maps.places.Autocomplete(input);
+}

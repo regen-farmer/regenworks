@@ -482,8 +482,8 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
     });
 });
 
-/*// SYSTEM EDIT ROUTE OLD
-router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
+// SYSTEM EDIT ROUTE OLD
+router.get("/systems/:id/editold", middleware.isLoggedIn, function(req, res){
     System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
@@ -519,14 +519,14 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
                                 return 0;
                             }
                             foundAnimals.sort(compare1);
-                            res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundAnimals});
+                            res.render("systems/editold", {system: foundSystem, species: foundSpecies, animals: foundAnimals});
                         }
                     })
                 }
             })
         }
     });
-});*/
+});
 
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
