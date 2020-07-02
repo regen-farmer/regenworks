@@ -20,6 +20,9 @@
             <% if(!(species.flows == "")){ %>
                 <p><%= species.flows[0].data %></p>
             <% } %>
+            <% if(!(species.activities == "")){ %>
+            <p><%= species.activities[0].activityType %></p>
+            <% } %>
         </div>
         <div class="col-sm-2">
             <h2>Yield</h2>

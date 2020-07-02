@@ -363,6 +363,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                     };
                                     createdProject.headland = 0;
                                     createdProject.budgets.establishment = createdBudget;
+                                    createdProject.status = "planning";
                                     // Save the service
                                     createdProject.save();
                                     // Connect new service to place
@@ -405,7 +406,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                                 }
                                                 postings.push(posting);
                                             }
-                                            // CREATE ACTIVITIES
+                                            /*// CREATE ACTIVITIES
                                             activities.forEach(function(activity){
                                                 Activity.create(activity, function(err, createdActivity){
                                                     if(err){
@@ -419,7 +420,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                                         createdProject.save();
                                                     }
                                                 });
-                                            });
+                                            });*/
                                             // SAVE POSTINGS
                                             Budget.findByIdAndUpdate(createdBudget._id, {$addToSet: {postings: { $each: postings }}}, function(err, updatedBudget){
                                                 if(err){

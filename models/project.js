@@ -44,7 +44,8 @@ var projectSchema = new mongoose.Schema({
     },
     layout: String,
     alignment: String,
-    headland: Number
+    headland: Number,
+    status: String
 });
 
 module.exports = mongoose.model("Project", projectSchema);

@@ -143,7 +143,7 @@
     <p>Assess projected lifetime productivity of system.</p>
     <table class="table table-striped small">
         <tr>
-            <td></td>
+            <td class="text-right">Year</td>
             <td>1</td>
             <td>2</td>
             <td>3</td>
@@ -182,7 +182,7 @@
         <% }); %>
     </table>
     <h2>Seasonal activities</h2>
-    <p>Assess system labor loads and complementarity of species in system.</p>
+    <p>Assess system labor loads and complementarity of species management activities in system.</p>
     <table class="table table-striped small">
         <tr>
             <td></td>
@@ -201,17 +201,17 @@
             <td>Dec</td>
         </tr>
         <% species.forEach(function(species){ %>
-                <% if(species.flows.length > 0){ %>
-                    <% for(j=0;j<species.flows.length;j++){ %>
-                        <% if(species.flows[j].timeframe === "month"){ %>
+                <% if(species.activities.length > 0){ %>
+                    <% for(j=0;j<species.activities.length;j++){ %>
+                        <% if(species.activities[j].activityType === "manage"){ %>
                             <tr>
                                 <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
-                                <td><%= species.flows[j].name %></td>
+                                <td><%= species.activities[j].name %></td>
                                 <% for(i=0;i<12;i++){ %>
-                                    <% if(species.flows[j].data[i] > 0){ %>
-                                        <td class="bg-success"><%= species.flows[j].data[i] %></td>
+                                    <% if(species.activities[j].time.startMonth <= i && species.activities[j].time.endMonth >= i){ %>
+                                        <td class="bg-success"></td>
                                     <% } else { %>
-                                        <td><%= species.flows[j].data[i] %></td>
+                                        <td></td>
                                     <% } %>
                                 <% } %>
                             </tr>
@@ -220,7 +220,7 @@
                 <% } else { %>
                     <tr>
                         <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
-                        <td>---</td>
+                        <td>-N/A-</td>
                     </tr>
                 <% } %>
         <% }); %>

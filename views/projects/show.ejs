@@ -4,6 +4,7 @@
     <h1> <%= project.name %> </h1>
     <div class="row">
         <div class="col-md-4">
+            <p><strong>Project phase: </strong> Planning</p>
             <p><%= project.description %></p>
             <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
                 <a class="btn btn-outline-primary" href="#">Edit project</a>
@@ -11,7 +12,6 @@
                 <!-- Modal -->
                 <div class="modal fade" id="myModalDeleteProject" role="dialog">
                     <div class="modal-dialog">
-
                         <!-- Modal content-->
                         <div class="modal-content">
                             <div class="modal-header">
@@ -31,17 +31,60 @@
                     </div>
                 </div>
             <% } %>
+            <a class="btn btn-outline-warning" href="#">Duplicate this project (Coming soon)</a>
+            <a class="btn btn-outline-success" href="#">Start project implementation (Coming soon)</a>
         </div>
         <div class="col-md-8">
-            <div>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">Project system and layout</h2>
-                        <p class="card-text">System: <%= project.system.name %></p>
-                        <a href="/projects/<%= project._id %>/layout" class="btn btn-primary">Setup layout</a>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="true">Layout and system</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="layout-tab" data-toggle="tab" href="#financials" role="tab" aria-controls="financials" aria-selected="false">Budgets and financials</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="layout" role="tabpanel" aria-labelledby="layout-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Project agroforestry system</h2>
+                            <p class="card-text">System: <%= project.system.name %></p>
+                            <h2>Establishement and management activities</h2>
+                            <p>Site prep: </p>
+                            <p>Management practices: </p>
+                            <h2>Project layout</h2>
+                            <a href="/projects/<%= project._id %>/layout" class="btn btn-outline-primary">Setup/edit layout</a>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="tab-pane fade" id="financials" role="tabpanel" aria-labelledby="financials-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Project budgets</h2>
+                            <p>Establishment budget</p>
+                            <% if(project.budgets.establishment){ %>
+                            <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
+                            <% } %>
+                            <p>Management and cash-flow budget</p>
+                            <% if(project.budgets.management){ %>
+                            <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Financial analysis</h2>
+                            <p><strong>IRR: <%= irr %></strong></p>
+                            <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+                            <p>Time period: <%= project.financial.period %> yrs</p>
+                            <p>ROI</p>
+                            <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <!--<div class="card">
                     <div class="card-body">
                         <h2 class="card-title">Project planning and activities</h2>
                         <% if(project.activities.length > 0){ %>
@@ -61,28 +104,8 @@
                         <a href="/projects/<%= project._id %>/activities/new" class="btn btn-outline-primary">Add new activity</a>
                         <p class="card-text"></p>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">Project budgets and finances</h2>
-                        <p>Establishment budget</p>
-                            <% if(project.budgets.establishment){ %>
-                                <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
-                            <% } %>
-                        <p>Management budget</p>
-                            <% if(project.budgets.management){ %>
-                                <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
-                            <% } %>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="card-title">Financial analysis</h2>
-                        <p><strong>IRR: <%= irr %></strong></p>
-                        <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
-                        <p>Time period: <%= project.financial.period %> yrs</p>
-                    </div>
-                </div>
+                </div>-->
+
             </div>
         </div>
     </div>

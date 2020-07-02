@@ -1,7 +1,9 @@
 var express = require("express");
 var router = express.Router();
+var unique = require("array-unique");
 var Budget = require("../models/budget");
 var Project = require("../models/project");
+var System = require("../models/system");
 var middleware = require("../middleware");
 
 // BUDGET INDEX ROUTE
@@ -55,11 +57,24 @@ router.post("/budgets/:id", middleware.isLoggedIn, function(req, res){
 
 // PROJECT BUDGET NEW ROUTE
 router.get("/projects/:id/budgets/new", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id, function(err, foundProject){
+    Project.findById(req.params.id).populate("system").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            res.render("budgets/new", {project: foundProject});
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES IN SYSTEM
+                    var allSpecies = [];
+                    foundSystem.model.forEach(function(species){
+                        allSpecies.push(species.species);
+                    });
+                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                    var uniqueSpecies = unique(allSpecies);
+                    res.render("budgets/new", {project: foundProject, species: uniqueSpecies});
+                }
+            });
         }
     });
 });

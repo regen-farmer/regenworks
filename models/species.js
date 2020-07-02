@@ -39,6 +39,7 @@ var speciesSchema = new mongoose.Schema({
     activities: [
         {
             activityType: String,
+            subtype: String,
             name: String,
             time: {
                 startMonth: Number,

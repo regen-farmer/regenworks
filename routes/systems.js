@@ -683,6 +683,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
                     // Add owner
                     createdSystem.owner.id = req.user._id;
                     createdSystem.owner.username = req.user.username;
+                    createdSystem.shared = false;
                     createdSystem.save();
                     // REPLACE IN PRESENT
                     Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
@@ -955,7 +956,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     var commodityName = "";
                                     foundSystem.model.forEach(function(species){
                                         // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
-                                        if(species.species.nameCommon === "Arabian coffee" || species.species.nameCommon === "Cacao" || species.species.nameCommon === "Cashew" || species.species.nameCommon === "Coconut palm"){
+                                        if(species.species.nameCommon === "Arabian coffee" || species.species.nameCommon === "Cacao" || species.species.nameCommon === "Cashew" || species.species.nameCommon === "Coconut palm" || species.species.nameCommon === "Scots pine"){
                                             commodity = species.species.id;
                                             commodityName = species.species.nameCommon;
                                         }
