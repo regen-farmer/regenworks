@@ -580,7 +580,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var distance = rowWidth;
                             // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
                             for(i=0;i<rowCount;i++){
-                                var bufferLine1 = buffer(line, distance, {units: "meters"});
+                                var bufferLine1 = buffer(line, (distance), {units: "meters"});
                                 var rowPoints1 = lineIntersect(bufferLine1, polygon);
                                 var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
                                 rowArray.push(row1);
@@ -591,7 +591,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
                             var offsetline = lineOffset(line, -(rowWidth),{units: "meters"});
                             var rowPoints = lineIntersect(offsetline, polygon);
-                            console.log(rowPoints.features[0].geometry.coordinates[0]);
+                            console.log(rowPoints.features[0].geometry.coordinates[1]);
                             var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
                             console.log(row);
                             var stringline = JSON.stringify(row);
