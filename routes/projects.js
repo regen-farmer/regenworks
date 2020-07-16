@@ -300,7 +300,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             distance = distance + distanceArray[j];
                             var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                             var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
-                            if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)){
+                            if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
                                 var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
                             } else {
                                 var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
@@ -317,7 +317,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
                         var rowPoints2 = lineIntersect(bufferLine2, offsetPolygon);
                         // CHECK IF ROWS CROSS MEDIAN LINE (GOES FROM NEGATIVE TO POSITIVE)
-                        if((rowPoints2.features[0].geometry.coordinates[0] < 0 && rowPoints2.features[1].geometry.coordinates[0] > 0) || (rowPoints2.features[0].geometry.coordinates[0] > 0 && rowPoints2.features[1].geometry.coordinates[0] < 0)){
+                        if((rowPoints2.features[0].geometry.coordinates[0] < 0 && rowPoints2.features[1].geometry.coordinates[0] > 0) || (rowPoints2.features[0].geometry.coordinates[0] > 0 && rowPoints2.features[1].geometry.coordinates[0] < 0) || rowPoints2.features[0].geometry.coordinates[1] > rowPoints2.features[1].geometry.coordinates[1]){
                             var row2 = turf.lineString([[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]],[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]]],{name: "line-1" + i });
                         } else {
                             var row2 = turf.lineString([[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]],[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]]],{name: "line-1" + i });
@@ -402,7 +402,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 // DO POINT COLLECTION
                 var treeCanopyArray = [];
                 for(i=0;i<treeMarkerArray.length;i++){
-                    var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 2, {units: "meters"});
+                    var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
                     treeCanopyArray.push(circle1);
                 }
                 var treeMarkers = turf.featureCollection(treeCanopyArray);
