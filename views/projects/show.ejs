@@ -6,6 +6,7 @@
         <div class="col-md-4">
             <p><strong>Project name: </strong><%= project.name %></p>
             <p><strong>Project phase: </strong> Planning</p>
+            <p><strong>Project area: </strong> "<%= project.layer.name %>"</p>
             <p><%= project.description %></p>
             <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
                 <a class="btn btn-outline-primary" href="#">Edit project</a>

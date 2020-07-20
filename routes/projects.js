@@ -192,6 +192,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 }
                 var rowWidthArray = [];
                 var rowWidthArrayCount = 0;
+                var treeRowWidthArray = [];
                 for(i=0;i<dataset.length+1;i++){
                     // SET ROW LENGTHS
                     // IF FIRST ROW
@@ -202,6 +203,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
                             rowWidthArray.push(rowWidthArrayCount);
                             rowWidthArrayCount = 0;
+                            treeRowWidthArray.push(dataset[i].array[0].width);
                         }
                     // IF LAST ROW
                     } else if (i === dataset.length) {
@@ -213,6 +215,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         if(!(dataset[i].array[0].species.form === "grass")) {
                             rowWidthArray.push(rowWidthArrayCount);
                             rowWidthArrayCount = 0;
+                            treeRowWidthArray.push(dataset[i].array[0].width);
                         }
                     }
                 }
@@ -361,12 +364,15 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var treeCountArray = [];
                 var treeMarkerArray = [];
                 var treeArray = [];
+                var treeRowArea = 0;
                 for(i=0;i<rowArray.length;i++){
                     // COUNT SYSTEM MODEL ITERATIONS IN ROW
                     var rowLength = length(rowArray[i], {units: "meters"});
                     var systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
                     var systemModelCount = Math.floor(rowLength/systemModelLength);
                     var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
+                    // CALCULATE AREA
+                    treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
                     // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
                     treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
                     var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
@@ -433,7 +439,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     };
                     uniqueSpeciesCount.push(speciesCount);
                 }
-                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth});
+                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea});
             });
         }
     });
