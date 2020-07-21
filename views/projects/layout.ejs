@@ -5,10 +5,15 @@
         <div class="col-md-5">
             <div id="layerMapShow"></div>
             <div class="card-body">
+                <h2>Tree and shrub counts</h2>
                 <% species.forEach(function(species){ %>
                     <p><%= species.id %> count: <%= species.uniqueCount %></p>
                 <% }); %>
+                <h2>Area sizes</h2>
+                <p>Total area: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
                 <p>Total tree row strip area (Approximation): <%= treeArea.toFixed(0) %> m2</p>
+                <p>Headland and margin: <%= marginArea.toFixed(0) %> m2</p>
+                <p>Rest (Approximation): <%= project.layer.size.toFixed(0) - treeArea.toFixed(0) - marginArea.toFixed(0) %> m2</p>
             </div>
             <a href="/projects/<%= project._id %>" class="btn mt-2 btn-outline-primary">Back to project page</a>
         </div>
@@ -27,7 +32,6 @@
                 <% } %>
             </div>
             <p><i><%= project.system.name %></i></p>
-            <p>Area size: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
             <p>Total system width: <%= rowWidth %> m</p>
         </div>
         <div class="col-md-4">

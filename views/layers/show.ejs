@@ -150,7 +150,13 @@
                             <h5 class="card-title">Current layout</h5>
                             <p class="card-text">System layout: N/A</p>
                             <p class="card-text">System alignment: N/A</p>
-                            <p class="card-text">Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+                            <p class="card-text">Area size:
+                                <% if(layer.size > 5000){ %>
+                                    <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)
+                                <% } else { %>
+                                    <%= layer.size.toFixed(0) %> m2
+                                <% } %>
+                            </p>
                             <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current system layout</a>
                         </div>
                     </div>

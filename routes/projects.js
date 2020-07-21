@@ -24,6 +24,7 @@ var transformRotate = require("@turf/transform-rotate");
 var lineSplit = require("@turf/line-split");
 var along = require("@turf/along");
 var circle = require("@turf/circle");
+var area = require("@turf/area");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -439,7 +440,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     };
                     uniqueSpeciesCount.push(speciesCount);
                 }
-                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea});
+                // CALCULATE MARGIN AREA
+                var marginArea = area(polygon) - area(offsetPolygon);
+                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea});
             });
         }
     });
