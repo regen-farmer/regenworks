@@ -9,6 +9,7 @@ var async = require("async"); // “waterfall” - makes sure the function are c
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
 var crypto = require("crypto");
 var logger = require("../middleware/logger");
+var Log = require("../models/log");
 
 // ROOT ROUTE
 router.get("/", function(req, res){
@@ -98,6 +99,13 @@ router.get('/robots.txt', function (req, res) {
     res.send("User-agent: *\nDisallow: /");
 });
 
+// ADMIN PANEL
+router.get("/admindash", middleware.adminIsLoggedIn, function(req, res){
+    // GET LOGS
+
+    res.render("admin")
+});
+
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
     if (req.body.secret === "899af01m4maiq5k3"){
@@ -176,16 +184,31 @@ router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
 // SHOW LOGIN FORM
 router.get("/login", function(req, res) {
     logger.info('Login page requested', {timestamp: Date.now()});
+    // DO LOGIN PAGE REQUEST TRACKING
+
     res.render("login");
 });
 
 // HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
+/*
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
-    if((req.user.membership + req.user.registrationDate) > Date.now()){
-       console.log("membership test passed");
-    }
-    res.redirect('/users/' + req.user.id);
+*/
+    var newLog = {
+        message: req.user.username + " logged in",
+        level: "info",
+        timestamp: Date.now()
+    };
+    Log.create(newLog, function(err, createdLog){
+        if(err){
+            console.log(err);
+        } else {
+            if((req.user.membership + req.user.registrationDate) > Date.now()){
+                console.log("membership test passed");
+            }
+            res.redirect('/users/' + req.user.id);
+        }
+    });
 });
 
 // LOGOUT ROUTE

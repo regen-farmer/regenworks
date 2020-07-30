@@ -2,16 +2,9 @@ var mongoose = require("mongoose");
 
 // LOG SCHEMA SETUP
 var logSchema = new mongoose.Schema({
-    name: String,
     message: String,
-    type: String,
-    owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
-    }
+    level: String,
+    timestamp: Number
 });
 
 module.exports = mongoose.model("Log", logSchema);

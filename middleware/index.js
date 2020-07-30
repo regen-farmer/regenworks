@@ -45,7 +45,7 @@ middlewareObj.checkUserOwnership = function(req, res, next){
                 if(foundUser._id.equals(req.user._id)){
                     next();
                 } else {
-                    // req.flash("error", "Du har ikke tilladelse til at foretage denne handling.");
+                    // req.flash("error", "You do not have permission to do this");
                     res.redirect("back");
                 }
             }
@@ -63,6 +63,21 @@ middlewareObj.isLoggedIn = function(req, res, next){
     }
     // req.flash("error", "You need to be logged in to do that!");
     res.redirect("/login");
+};
+
+// CHECK ADMIN USER IS LOGGED IN
+middlewareObj.adminIsLoggedIn = function(req, res, next){
+    if(req.isAuthenticated()){
+        if(req.user.isAdmin){
+            next();
+        } else {
+            // req.flash("error", "You do not have permission to do that.");
+            res.redirect("back");
+        }
+    } else {
+        // req.flash("error", "You need to be logged in to do that!");
+        res.redirect("back");
+    }
 };
 
 // Export middleware object

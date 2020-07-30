@@ -19,7 +19,8 @@ var UserSchema = new mongoose.Schema({
     },
     registrationDate: Number,
     membership: Number,
-    farmLimit: Number
+    farmLimit: Number,
+    isAdmin: {type: Boolean, default: false}
 });
 
 UserSchema.plugin(passportLocalMongoose);

@@ -5,7 +5,7 @@ var Flow = require("../models/flow");
 var middleware = require("../middleware");
 
 // SPECIES INDEX
-router.get("/species", middleware.isLoggedIn, function(req, res){
+router.get("/species", middleware.adminIsLoggedIn, function(req, res){
     Species.find(function(err, foundSpecies){
         if(err){
             console.log(err);
