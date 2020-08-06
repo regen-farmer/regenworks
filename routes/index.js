@@ -4,6 +4,7 @@ var passport = require("passport");
 var User = require("../models/user");
 var Parcel = require("../models/parcel");
 var Activity = require("../models/activity");
+var rateLimiterIP = require("../models/rateLimiterIP");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
@@ -62,7 +63,7 @@ router.get("/support", function(req, res){
 });
 
 // PLANNING ROUTE
-router.get("/planning", function(req, res){
+router.get("/planning", middleware.isLoggedIn, function(req, res){
     res.render("planning");
 });
 
@@ -189,11 +190,11 @@ router.get("/login", function(req, res) {
     res.render("login");
 });
 
-// HANDLE LOGIN LOGIC
+/*// HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
-/*
+/!*
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
-*/
+*!/
     var newLog = {
         message: req.user.username + " logged in",
         level: "info",
@@ -207,6 +208,87 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
                 console.log("membership test passed");
             }
             res.redirect('/users/' + req.user.id);
+        }
+    });
+});*/
+
+// HANDLE LOGIN LOGIC
+router.post("/login", function (req, res, next) {
+    // SANITIZE?
+    // IP VAR
+    var ip = req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+    ip = (ip || '').split(',')[0];
+    var limiterObject = {};
+    // CHECK RATE LIMITER
+    rateLimiterIP.findOneAndUpdate({ip: ip},{$inc: {hits: 1}},{upsert: false}).exec(function(error, limiter){
+        // IF EXISTING LIMITER, ADD HIT
+        if(error){
+            console.log(error)
+        } else if (!limiter){
+            // IF NO LIMITER, CREATE NEW ONE
+            rateLimiterIP.create({createdAt: new Date(), ip: ip}, function(err, createdLimiter){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SET LIMITER AND NEXT
+                    limiterObject = createdLimiter;
+                }
+            })
+        } else {
+            // IF TIME HAS EXPIRED, SET HIT TO 1
+            if(new Date() - limiter.createdAt > 300000){
+                limiter.hits = 1;
+                limiter.createdAt = new Date();
+                limiter.save();
+            }
+            // SET LIMITER AND NEXT
+            limiterObject = limiter;
+        }
+        // CHECK RATE LIMITER AMOUNT OR TIME
+        if(limiterObject.hits < 4){
+            // LOGIN
+            passport.authenticate("local", {failureRedirect: '/login'})(req, res, function(){
+                // ON SUCCESSFUL LOGIN
+                var newLog = {
+                    message: req.user.username + " logged in",
+                    level: "info",
+                    timestamp: Date.now()
+                };
+                Log.create(newLog, function(err, createdLog){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        res.redirect('/users/' + req.user.id);
+                    }
+                });
+            });
+            /*passport.authenticate("local") function(err, user){
+                console.log("reach this");
+                if (err) { console.log(err); }
+                if (!user) { res.redirect('/login'); }
+                req.logIn(user, function(err) {
+                    if (err) { console.log(err); }
+                    // ON SUCCESSFUL LOGIN
+                    var newLog = {
+                        message: req.user.username + " logged in",
+                        level: "info",
+                        timestamp: Date.now()
+                    };
+                    Log.create(newLog, function(err, createdLog){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log("Logeed in!");
+                            res.redirect('/users/' + req.user.id);
+                        }
+                    });
+                });
+            });*/
+        } else {
+            res.redirect("/login");
         }
     });
 });

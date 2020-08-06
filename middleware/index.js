@@ -80,5 +80,20 @@ middlewareObj.adminIsLoggedIn = function(req, res, next){
     }
 };
 
+/*// CHECK ADMIN USER IS LOGGED IN
+middlewareObj.throttler = function(req, res, next){
+    if(req.isAuthenticated()){
+        if(req.user.isAdmin){
+            next();
+        } else {
+            // req.flash("error", "You do not have permission to do that.");
+            res.redirect("back");
+        }
+    } else {
+        // req.flash("error", "You need to be logged in to do that!");
+        res.redirect("back");
+    }
+};*/
+
 // Export middleware object
 module.exports = middlewareObj;
