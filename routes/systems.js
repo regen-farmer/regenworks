@@ -10,7 +10,7 @@ var Project = require("../models/project");
 var middleware = require("../middleware");
 
 // SYSTEM INDEX
-router.get("/systems", middleware.isLoggedIn, function(req, res){
+router.get("/systems", middleware.adminIsLoggedIn, function(req, res){
     System.find(function(err, foundSystems){
         if(err){
             console.log(err);

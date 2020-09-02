@@ -213,7 +213,7 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
 });*/
 
 // HANDLE LOGIN LOGIC
-router.post("/login", function (req, res, next) {
+router.post("/login", function (req, res) {
     // SANITIZE?
     // IP VAR
     var ip = req.headers['x-forwarded-for'] ||

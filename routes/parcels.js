@@ -51,8 +51,8 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
     var climate = {
         annualaverageprec: req.body.parcel.climate.annualaverageprec,
         hardiness: {
-            low: -12,
-            high: -7
+            low: 9,
+            high: 16
         }
         };
     var soilType = req.body.parcel.soilType;
