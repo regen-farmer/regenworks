@@ -248,7 +248,7 @@ router.post("/login", function (req, res) {
             limiterObject = limiter;
         }
         // CHECK RATE LIMITER AMOUNT OR TIME
-        if(limiterObject.hits < 4){
+        if(limiterObject.hits < 6){
             // LOGIN
             passport.authenticate("local", {failureRedirect: '/login'})(req, res, function(){
                 // ON SUCCESSFUL LOGIN

@@ -9,6 +9,7 @@ var System = require("../models/system");
 var Budget = require("../models/budget");
 var Activity = require("../models/activity");
 var Species = require("../models/species");
+var Asset = require("../models/asset");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var bbox = require("@turf/bbox");
@@ -87,7 +88,7 @@ router.post("/projects", middleware.isLoggedIn, function(req, res){
 
 // PROJECT SHOW ROUTE
 router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate("layer").populate("budgets.establishment").populate("budgets.management").populate("system").populate("activities").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate("assets").populate("budgets.establishment").populate("budgets.management").populate("system").populate("activities").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -247,18 +248,28 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var rowRest = 0;
                 if(foundProject.alignment === "bearing"){
                     // -------- ANGLED ROWS ---------
-                    var lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][4],offsetPolygon.geometry.coordinates[0][5]],{name: 'bearingline'});
+                    var lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
                     // SCALE LINE
                     line = transformScale(lengthLineBearing, 6);
-                    // CREATE ANGLED LENGTH LINE
+                    // ALTERNATIVE BOUNDING BOX LENTH LINE
+                    var lineBearing = rhumbBearing(lengthLineBearing.geometry.coordinates[0],lengthLineBearing.geometry.coordinates[1]);
+                    console.log(lineBearing);
+                    var rotatedpolygon = transformRotate(offsetPolygon, 90-lineBearing);
+                    var bboxOffsetPolygon = bboxPolygon(bbox(rotatedpolygon));
+                    console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
+                    console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
+                    var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
+                    console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+                    /*// CREATE ANGLED LENGTH LINE
                     var rotatedLine = transformRotate(line, 90);
                     var splitLines = lineSplit(rotatedLine, line);
                     // SET LENGTH LINE
                     var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                     lengthLine = lengthLineSplit.features[1];
                     console.log(splitLines.features[0]);
-                    rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                    rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                    console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
+                    rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
+                    rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                     console.log(rowCount);
                     console.log("rest " + rowRest);
                     // -------- ANGLED ROWS ---------
@@ -291,7 +302,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             distance = distance + distanceArray[j];
                         } else if (i === 0 && j === 0) {
                             // START FIRST ROW AT 0
-                            distance = 0.001;
+                            distance = 0.01;
                             var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                             var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                             if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)){
@@ -461,7 +472,347 @@ router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
 });
 
 // PROJECT STATUS CHANGE ROUTE
+router.put("/projects/:id/implement", middleware.isLoggedIn, function(req, res){
+    Project.findByIdAndUpdate(req.params.id, { $set: { status: "Implementation"} }, function(err, plannedProject){
+        if(err){
+            console.log(err);
+        } else {
+            res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
 
+// PROJECT ASSET CREATION
+router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id).populate("system").populate("layer").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND SYSTEM
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // GENERATE ASSET PARAMS //
+                    // GET GEOMETRY
+                    var polygon = JSON.parse(foundProject.layer.geometry);
+                    // CALIBRATE OFFSET
+                    var boxCalibrate = bboxPolygon(bbox(polygon));
+                    // TAKE TOP SIDE OF BOUNDING BOX
+                    var lineCalibrate = turf.lineString([boxCalibrate.geometry.coordinates[0][2],boxCalibrate.geometry.coordinates[0][3]],{name: 'line-35'});
+                    var lineOffsetCalibrate = buffer(lineCalibrate, 10, {units: "meters"});
+                    var rotatedCalibrateLine = transformRotate(lineCalibrate, 90);
+                    var splitCalibrateLine = lineSplit(rotatedCalibrateLine, lineCalibrate);
+                    var distanceCalibrateLine = lineSplit(splitCalibrateLine.features[1], lineOffsetCalibrate);
+                    var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
+                    console.log("Distance check " + calibrateDistance);
+                    var offsetPolygon = buffer(polygon, - foundProject.headland*calibrateDistance, {units: "meters"});
+                    // FIND SYSTEM ROWS
+                    var allSpecies = [];
+                    var dataset = [];
+                    foundSystem.model.forEach(function(species){
+                        allSpecies.push(species.species.nameCommon);
+                        var count = 0;
+                        for(i=0;i<dataset.length;i++){
+                            if(dataset[i].row === species.position[0]){
+                                dataset[i].array.push(species);
+                                count = count + 1;
+                            }
+                        }
+                        if(count === 0){
+                            dataset.push({row: species.position[0], array: [species]});
+                        }
+                    });
+                    // SORT FIRST ROW ITEMS
+                    function compare1( a, b ) {
+                        if ( a.position[1] < b.position[1] ){
+                            return -1;
+                        }
+                        if ( a.position[1] > b.position[1] ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    for(i=0;i<dataset.length;i++){
+                        dataset[i].array.sort(compare1);
+                    }
+                    // SAVE DATASET
+                    foundSystem.sortedrows = dataset;
+                    // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
+                    // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
+                    var rowWidth = 0;
+                    for(i=0;i<dataset.length;i++){
+                        rowWidth = rowWidth + dataset[i].array[0].width;
+                    }
+                    var rowWidthArray = [];
+                    var rowWidthArrayCount = 0;
+                    var treeRowWidthArray = [];
+                    for(i=0;i<dataset.length+1;i++){
+                        // SET ROW LENGTHS
+                        // IF FIRST ROW
+                        if(i === 0){
+                            if(dataset[i].array[0].species.form === "grass"){
+                                rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width;
+                            } else {
+                                rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
+                                rowWidthArray.push(rowWidthArrayCount);
+                                rowWidthArrayCount = 0;
+                                treeRowWidthArray.push(dataset[i].array[0].width);
+                            }
+                            // IF LAST ROW
+                        } else if (i === dataset.length) {
+                            rowWidthArrayCount = rowWidthArrayCount + dataset[i-1].array[0].width/2;
+                            rowWidthArray.push(rowWidthArrayCount);
+                            // FOR ALL OTHER ROWS
+                        } else {
+                            rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
+                            if(!(dataset[i].array[0].species.form === "grass")) {
+                                rowWidthArray.push(rowWidthArrayCount);
+                                rowWidthArrayCount = 0;
+                                treeRowWidthArray.push(dataset[i].array[0].width);
+                            }
+                        }
+                    }
+                    console.log(rowWidthArray);
+                    // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
+                    var lengthLine;
+                    var line;
+                    var rowCount = 0;
+                    var rowRest = 0;
+                    if(foundProject.alignment === "bearing"){
+                        // -------- ANGLED ROWS ---------
+                        var lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                        // SCALE LINE
+                        line = transformScale(lengthLineBearing, 6);
+                        // ALTERNATIVE BOUNDING BOX LENTH LINE
+                        var lineBearing = rhumbBearing(lengthLineBearing.geometry.coordinates[0],lengthLineBearing.geometry.coordinates[1]);
+                        console.log(lineBearing);
+                        var rotatedpolygon = transformRotate(offsetPolygon, 90-lineBearing);
+                        var bboxOffsetPolygon = bboxPolygon(bbox(rotatedpolygon));
+                        console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
+                        console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
+                        var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
+                        console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+                        /*// CREATE ANGLED LENGTH LINE
+                        var rotatedLine = transformRotate(line, 90);
+                        var splitLines = lineSplit(rotatedLine, line);
+                        // SET LENGTH LINE
+                        var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
+                        lengthLine = lengthLineSplit.features[1];
+                        console.log(splitLines.features[0]);
+                        console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
+                        rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
+                        rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log(rowCount);
+                        console.log("rest " + rowRest);
+                        // -------- ANGLED ROWS ---------
+                    } else {
+                        // -------- NORTH/SOURTH ROWS ---------
+                        // CREATE BOUNDING BOX (IF ANGLE IS 0)
+                        var box = bboxPolygon(bbox(offsetPolygon));
+                        // TAKE TOP SIDE OF BOUNDING BOX
+                        lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
+                        // ESTIMATE AMOUNT OF ROWS
+                        console.log((length(lengthLine, {units: "meters"})));
+                        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
+                        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log("rest " + rowRest);
+                        console.log(rowCount);
+                        // CREATE ROW LINE
+                        line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
+                        // -------- NORTH/SOURTH ROWS ---------
+                    }
+                    // CREATE ROW ARRAY
+                    var rowArray = [];
+                    var distance = 0;
+                    var distanceArray = rowWidthArray;
+                    // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
+                    for(i=0;i<rowCount;i++){
+                        // DO IF FIRST COUNT?
+                        for(j=0;j<distanceArray.length;j++){
+                            // DO IF FIRST ROW, DON'T ADD DISTANCE
+                            if(j === distanceArray.length - 1){
+                                distance = distance + distanceArray[j];
+                            } else if (i === 0 && j === 0) {
+                                // START FIRST ROW AT 0
+                                distance = 0.01;
+                                var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
+                                var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
+                                if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)){
+                                    var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
+                                } else {
+                                    var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                }
+                                rowArray.push(row1);
+                            } else {
+                                distance = distance + distanceArray[j];
+                                var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
+                                var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
+                                if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
+                                    var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
+                                } else {
+                                    var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                }
+                                rowArray.push(row1);
+                            }
+                        }
+                    }
+                    // ADD LAST ROWS IF THERE IS SOME MISSING
+                    var countWidth = 0;
+                    for(i=0;i<distanceArray.length;i++){
+                        countWidth = countWidth + distanceArray[i];
+                        if(countWidth < rowRest){
+                            var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
+                            var rowPoints2 = lineIntersect(bufferLine2, offsetPolygon);
+                            // CHECK IF ROWS CROSS MEDIAN LINE (GOES FROM NEGATIVE TO POSITIVE)
+                            if((rowPoints2.features[0].geometry.coordinates[0] < 0 && rowPoints2.features[1].geometry.coordinates[0] > 0) || (rowPoints2.features[0].geometry.coordinates[0] > 0 && rowPoints2.features[1].geometry.coordinates[0] < 0) || rowPoints2.features[0].geometry.coordinates[1] > rowPoints2.features[1].geometry.coordinates[1]){
+                                var row2 = turf.lineString([[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]],[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]]],{name: "line-1" + i });
+                            } else {
+                                var row2 = turf.lineString([[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]],[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]]],{name: "line-1" + i });
+                            }
+                            rowArray.push(row2);
+                        }
+                    }
+                    for (i=0;i<rowArray.length;i++){
+                        console.log(rowArray[i].geometry.coordinates);
+                    }
+                    // PUSH TO ROW ARRAY
+                    // CREATE FEATURECOLLECTION FOR ROWS
+                    var featurecollection = turf.featureCollection(rowArray);
+                    var collection = JSON.stringify(featurecollection);
+                    // OFFSET LINE
+                    // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
+                    var treeRows = [];
+                    for(i=0;i<dataset.length;i++){
+                        if(!(dataset[i].array[0].species.form === "grass")){
+                            treeRows.push(dataset[i]);
+                        }
+                    }
+                    // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
+                    var treeRowCount = 0;
+                    var treeCountArray = [];
+                    var treeMarkerArray = [];
+                    var treeArray = [];
+                    var treeRowArea = 0;
+                    for(i=0;i<rowArray.length;i++){
+                        // COUNT SYSTEM MODEL ITERATIONS IN ROW
+                        var rowLength = length(rowArray[i], {units: "meters"});
+                        var systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+                        var systemModelCount = Math.floor(rowLength/systemModelLength);
+                        var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
+                        // CALCULATE AREA
+                        treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
+                        // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+                        treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
+                        var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
+                        var firstAsset = {
+                            species: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species.id,
+                            lat: firstTreeMarker.geometry.coordinates[0],
+                            lng: firstTreeMarker.geometry.coordinates[1],
+                            name: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species.nameCommon
+                        };
+                        treeMarkerArray.push(firstAsset);
+                        // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
+                        for(j=0;j<systemModelCount;j++){
+                            for(k=0;k<treeRows[treeRowCount].array.length;k++){
+                                // CREATE COORDINATES FOR THE TREE
+                                var treeMarker = along(rowArray[i], (j*systemModelLength + treeRows[treeRowCount].array[k].position[1]), {units: "meters"});
+                                // CREATE ASSET OBJECT
+                                var asset = {
+                                    species: treeRows[treeRowCount].array[k].species.id,
+                                    lat: treeMarker.geometry.coordinates[0],
+                                    lng: treeMarker.geometry.coordinates[1],
+                                    name: treeRows[treeRowCount].array[k].species.nameCommon
+                                };
+                                // ADD TREE OBJECT TO ARRAY
+                                treeMarkerArray.push(asset);
+                            }
+                        }
+                        // ADD REST
+                        for(j=0;j<treeRows[treeRowCount].array.length;j++){
+                            if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
+                                treeArray.push(treeRows[treeRowCount].array[j].species);
+                                // ADD POINT MARKER FOR REMAINING TREES
+                                var treeMarker2 = along(rowArray[i], (systemModelCount*systemModelLength + treeRows[treeRowCount].array[j].position[1]), {units: "meters"});
+                                var asset2 = {
+                                    species: treeRows[treeRowCount].array[j].species.id,
+                                    lat: treeMarker2.geometry.coordinates[0],
+                                    lng: treeMarker2.geometry.coordinates[1],
+                                    name: treeRows[treeRowCount].array[j].species.nameCommon
+                                };
+                                // ADD TREE OBJECT TO ARRAY
+                                treeMarkerArray.push(asset2);
+                            }
+                        }
+                        // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
+                        if(treeRowCount >= treeRows.length - 1 || i === rowArray.length - 2){
+                            treeRowCount = 0;
+                        } else {
+                            treeRowCount = treeRowCount + 1;
+                        }
+                    }
+                    console.log(treeArray.length);
+                    console.log(treeMarkerArray.length);
+                    // CREATE ASSETS
+                    Asset.insertMany(treeMarkerArray, function(err, createdAssets){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log(createdAssets.length);
+                            Project.findByIdAndUpdate(foundProject._id, { $push: { assets: { $each: createdAssets } } }, function(err, updatedProject){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    console.log("Assets added to project");
+                                    res.redirect("/projects/" + req.params.id);
+                                }
+                            });
+                        }
+                    });
+                    /*for(i=1;i<5;i++){
+                        // CREATE ASSET
+                        console.log("1");
+                        Asset.create(treeMarkerArray[i], function(err, createdAsset){
+                            if(err){
+                                console.log(err);
+                            } else {
+                                // SAVE TO PROJECT
+                                foundProject.assets.push(createdAsset);
+                                foundProject.save();
+                            }
+                        });
+                    }*/
+                }
+            });
+        }
+    });
+});
+
+// PROJECT ASSET SHOW PAGE
+router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id).populate("assets").populate("layer").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            var allTrees = [];
+            // GENERATE ASSET CIRCLES
+            var treeCanopyArray = [];
+            for(i=0;foundProject.assets.length > i;i++){
+                var point = turf.point([foundProject.assets[i].lat, foundProject.assets[i].lng]);
+                var circle1 = circle(point.geometry.coordinates, 2, {units: "meters"});
+                allTrees.push(foundProject.assets[i].name);
+                treeCanopyArray.push(circle1);
+            }
+            var treeMarkers = turf.featureCollection(treeCanopyArray);
+            var treeCollection = JSON.stringify(treeMarkers);
+            // COUNT TREE SPECIES
+
+            res.render("projects/assets", {project: foundProject, trees: treeCollection});
+        }
+    });
+});
 
 // SERVICES DELETE ROUTE
 router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAKE PROJECT OWNERSHIP MIDDLEWARE
@@ -669,6 +1020,32 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                     });
                 }
             });
+        }
+    });
+});
+
+// PROJECT ASSETS DELETE ROUTE
+router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ASSETS AND DELETE
+            for(i=0;foundProject.assets.length > i;i++){
+                foundProject.assets.remove(foundProject.assets[i]);
+                // SAVE PROJECT
+                foundProject.save();
+                // DELETE ASSET
+                Asset.findByIdAndRemove(foundProject.assets[i], function(err){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        console.log("Deleted asset");
+                    }
+                });
+            }
+            res.redirect("/projects/" + foundProject.id);
         }
     });
 });

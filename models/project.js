@@ -7,6 +7,12 @@ var projectSchema = new mongoose.Schema({
     location: String,
     lat: Number,
     lng: Number,
+    assets: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Asset"
+        }
+    ],
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
@@ -44,6 +50,7 @@ var projectSchema = new mongoose.Schema({
     },
     layout: String,
     alignment: String,
+    bearing: {type: Number, default: 0},
     headland: Number,
     status: String
 });

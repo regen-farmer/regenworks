@@ -6,9 +6,15 @@ var assetSchema = new mongoose.Schema({
     description: String,
     typeAsset: String,
     amount: Number,
-    species: String,
+    species: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Species"
+    },
     value: Number,
     creation: Number,
+    determination: Number,
+    lat: Number,
+    lng: Number,
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,
