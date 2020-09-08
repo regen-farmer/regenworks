@@ -3,6 +3,7 @@ var router = express.Router();
 var Asset = require("../models/asset");
 var Layer = require("../models/layer");
 var Project = require("../models/project");
+var Species = require("../models/species");
 var middleware = require("../middleware");
 
 // ASSET INDEX ROUTE
@@ -64,12 +65,20 @@ router.get("/assets/:id", middleware.isLoggedIn, function(req, res){
 // ASSET EDIT ROUTE
 router.get("/assets/:id/edit", middleware.isLoggedIn, function(req, res){
     // FIND ASSET AND RENDER EDIT PAGE
-    Asset.findById(req.params.id, function(err, foundAsset){
+    Asset.findById(req.params.id).populate("species").exec(function(err, foundAsset){
         if(err){
             console.log(err);
         } else {
             // GET ALL SPECIES!!
-            res.render("assets/edit", {asset: foundAsset});
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log(foundAsset.species);
+                    console.log(foundSpecies[0]);
+                    res.render("assets/edit", {asset: foundAsset, species: foundSpecies});
+                }
+            });
         }
     });
 });

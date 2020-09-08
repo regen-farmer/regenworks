@@ -9,6 +9,10 @@
     <div class="col-md-7">
         <div class="card">
             <div class="card-body">
+                <h2 class="card-title">Tree counts</h2>
+                <% treecounts.forEach(function(count){ %>
+                        <p class="card-text"><%= count.name %>: <%= count.uniqueCount %></p>
+                <% }); %>
                 <p> Tree asset count: <%= project.assets.length %> </p>
             </div>
         </div>

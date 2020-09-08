@@ -797,19 +797,37 @@ router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             var allTrees = [];
+            var allTreesArray = [];
             // GENERATE ASSET CIRCLES
             var treeCanopyArray = [];
             for(i=0;foundProject.assets.length > i;i++){
                 var point = turf.point([foundProject.assets[i].lat, foundProject.assets[i].lng]);
                 var circle1 = circle(point.geometry.coordinates, 2, {units: "meters"});
                 allTrees.push(foundProject.assets[i].name);
+                allTreesArray.push(foundProject.assets[i].name);
                 treeCanopyArray.push(circle1);
             }
             var treeMarkers = turf.featureCollection(treeCanopyArray);
             var treeCollection = JSON.stringify(treeMarkers);
-            // COUNT TREE SPECIES
-
-            res.render("projects/assets", {project: foundProject, trees: treeCollection});
+            // UNIQUE TREE SPECIES
+            var uniqueSpecies = unique(allTrees);
+            // UNIQUE SPECIES COUNTS
+            var uniqueSpeciesCount = [];
+            for(i=0;uniqueSpecies.length > i;i++){
+                var count = 0;
+                for(j = 0; j < allTreesArray.length; j++){
+                    if(allTreesArray[j] === uniqueSpecies[i]){
+                        count = count + 1;
+                    }
+                }
+                speciesCount = {
+                    name: uniqueSpecies[i],
+                    uniqueCount: count
+                };
+                uniqueSpeciesCount.push(speciesCount);
+            }
+            console.log(uniqueSpeciesCount);
+            res.render("projects/assets", {project: foundProject, trees: treeCollection, treecounts: uniqueSpeciesCount});
         }
     });
 });

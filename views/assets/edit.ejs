@@ -10,10 +10,19 @@
                 <label for="asset[name]">Asset name</label>
                 <input type="text" class="form-control" name="asset[name]" value="<%= asset.name %>" required>
             </div>
-            <div class="form-group">
-                <label for="asset[species]">Species</label>
-                <input type="text" class="form-control" name="asset[species]" value="<%= asset.species %>">
-            </div>
+            <label for="asset[species]">Asset species</label>
+            <select name="asset[species]" style="width:100%;max-width:100%;">
+                <% species.forEach(function(species){ %>
+                    <% var count = 0; %>
+                        <% if(asset.species.nameCommon === species.nameCommon){ %>
+                            <option value="<%= species._id %>" selected="selected"><%= species.nameCommon %></option>
+                        <% count = 1; %>
+                    <% } %>
+                    <% if(count === 0){ %>
+                        <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                    <% } %>
+                <% }); %>
+            </select>
             <div class="btn-group">
                 <button type="submit" class="btn btn-success btn-lg center-block">Update asset</button>
             </div>
