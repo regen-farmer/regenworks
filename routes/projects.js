@@ -213,7 +213,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         rowWidthArray.push(rowWidthArrayCount);
                     // FOR ALL OTHER ROWS
                     } else {
-                        rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
+                        // CHECK IF ROW BEFORE WAS GRASS
+                        if(dataset[i-1].array[0].species.form === "grass" && i === 1){
+                            rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
+                        } else {
+                            rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
+                        }
+                        // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
                         if(!(dataset[i].array[0].species.form === "grass")) {
                             rowWidthArray.push(rowWidthArrayCount);
                             rowWidthArrayCount = 0;
@@ -221,7 +227,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }
                     }
                 }
+/*
                 console.log(rowWidthArray);
+*/
                 /*// CREATE LINES FROM GEOMETRY
                 var boundaryLines = [];
                 console.log(polygon.geometry.coordinates[0].length);
@@ -341,7 +349,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     }
                 }
                 for (i=0;i<rowArray.length;i++){
+/*
                     console.log(rowArray[i].geometry.coordinates);
+*/
                 }
                 // PUSH TO ROW ARRAY
 /*                rowArray.push(scaledLengthLineBearing);
@@ -368,9 +378,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         treeRows.push(dataset[i]);
                     }
                 }
-/*
-                console.log(treeRows);
-*/
+                console.log(treeRows[0]);
                 // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                 var treeRowCount = 0;
                 var treeCountArray = [];
@@ -380,7 +388,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 for(i=0;i<rowArray.length;i++){
                     // COUNT SYSTEM MODEL ITERATIONS IN ROW
                     var rowLength = length(rowArray[i], {units: "meters"});
-                    var systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+                    // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
+                    var systemModelLength = 0;
+                    if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
+                        systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
+                    } else {
+                        systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+                    }
                     var systemModelCount = Math.floor(rowLength/systemModelLength);
                     var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                     // CALCULATE AREA
@@ -471,9 +485,20 @@ router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// PROJECT STATUS CHANGE ROUTE
+// PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put("/projects/:id/implement", middleware.isLoggedIn, function(req, res){
     Project.findByIdAndUpdate(req.params.id, { $set: { status: "Implementation"} }, function(err, plannedProject){
+        if(err){
+            console.log(err);
+        } else {
+            res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
+
+// PROJECT STATUS CHANGE ROUTE - RETIRED
+router.put("/projects/:id/retire", middleware.isLoggedIn, function(req, res){
+    Project.findByIdAndUpdate(req.params.id, { $set: { status: "Retired"} }, function(err, retiredProject){
         if(err){
             console.log(err);
         } else {
@@ -698,8 +723,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     for(i=0;i<rowArray.length;i++){
                         // COUNT SYSTEM MODEL ITERATIONS IN ROW
                         var rowLength = length(rowArray[i], {units: "meters"});
-                        var systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                        var systemModelCount = Math.floor(rowLength/systemModelLength);
+                        // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
+                        var systemModelLength = 0;
+                        if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
+                            systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
+                        } else {
+                            systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+                        }                        var systemModelCount = Math.floor(rowLength/systemModelLength);
                         var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                         // CALCULATE AREA
                         treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
@@ -978,7 +1008,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                                         activities.push(activity);
                                                     }
                                                 }
-                                                var posting = {
+                                               /* var posting = {
                                                     name: foundSpecies[i].nameCommon + " plants",
                                                     postType: "material",
                                                     amount: 1,
@@ -987,7 +1017,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                                 if(foundSpecies[i].price > 0){
                                                     posting.value = foundSpecies[i].price;
                                                 }
-                                                postings.push(posting);
+                                                postings.push(posting);*/
                                             }
                                             /*// CREATE ACTIVITIES
                                             activities.forEach(function(activity){

@@ -167,13 +167,32 @@
                             <div class="card-body">
                                 <h5 class="card-title">Area projects</h5>
                                 <% layer.projects.forEach(function(project){ %>
-                                    <div class="card bg-light">
-                                        <div class="card-body">
-                                            <p class="card-text"><%= project.name %></p>
-                                            <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                    <% if(!(project.status == "Retired")){ %>
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <p class="card-text"><%= project.name %></p>
+                                                <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <% }; %>
                                 <% }); %>
+                                <button class="btn btn-outline-primary mt-2 mb-2" type="button" data-toggle="collapse" data-target="#collapseRetired" aria-expanded="false" aria-controls="collapseExample">
+                                    Show/hide retired projects
+                                </button>
+                                <div class="collapse" id="collapseRetired">
+                                    <div class="card card-body">
+                                        <% layer.projects.forEach(function(project){ %>
+                                            <% if(project.status == "Retired"){ %>
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <p class="card-text"><%= project.name %></p>
+                                                        <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                                    </div>
+                                                </div>
+                                            <% }; %>
+                                        <% }); %>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     <% } %>

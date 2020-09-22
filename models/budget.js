@@ -4,10 +4,8 @@ var mongoose = require("mongoose");
 var budgetSchema = new mongoose.Schema({
     postings: [
         {
-            name: String,
-            postType: String,
-            amount: Number,
-            value: Number
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Posting"
         }
     ],
     owner: {
