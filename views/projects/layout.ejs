@@ -4,6 +4,7 @@
     <div class="row">
         <div class="col-md-5">
             <div id="layerMapShow"></div>
+            <a href="/projects/<%= project._id %>" class="btn mt-2 mb-2 btn-outline-primary">Back to project page</a>
             <div class="card-body">
                 <h2>Tree and shrub counts</h2>
                 <% species.forEach(function(species){ %>
@@ -14,20 +15,25 @@
                 <p>Total tree row strip area (Approximation): <%= treeArea.toFixed(0) %> m2</p>
                 <p>Headland and margin: <%= marginArea.toFixed(0) %> m2</p>
                 <p>Rest (Approximation): <%= project.layer.size.toFixed(0) - treeArea.toFixed(0) - marginArea.toFixed(0) %> m2</p>
+                <h2>Row lengths</h2>
+                <% rowLengthArray.forEach(function(row, i){ %>
+                    <p>Row <%= i + 1 %>: <%= row.toFixed(2) %> m</p>
+                <% }); %>
             </div>
-            <a href="/projects/<%= project._id %>" class="btn mt-2 btn-outline-primary">Back to project page</a>
         </div>
         <div class="col-md-3">
             <h2>System layout</h2>
             <div class="row">
                 <% if(system.sortedrows.length > 0){ %>
                     <% system.sortedrows.forEach(function(row){ %>
-                    <div class="col-sm-3">
-                        <% row.array.forEach(function(species){ %>
-                        <img class="img-fluid" src="/images/<%= species.species.form %>top.svg">
-                        <p class="text-center"><%= species.species.nameCommon %></p>
-                        <% }); %>
-                    </div>
+                        <% if(!(row.array[0].species.nameCommon === "Ryegrass")){ %>
+                            <div class="col-sm-3">
+                                <% row.array.forEach(function(species){ %>
+                                    <img class="img-fluid" src="/images/<%= species.species.form %>top.svg">
+                                    <p class="text-center"><%= species.species.nameCommon %></p>
+                                <% }); %>
+                            </div>
+                        <% } %>
                     <% }); %>
                 <% } %>
             </div>

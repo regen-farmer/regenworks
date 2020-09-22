@@ -155,6 +155,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
                 console.log("Distance check " + calibrateDistance);
                 var offsetPolygon = buffer(polygon, - foundProject.headland*calibrateDistance, {units: "meters"});
+/*
+                console.log(offsetPolygon.geometry.coordinates[0]);
+*/
                 // FIND SYSTEM ROWS
                 var allSpecies = [];
                 var dataset = [];
@@ -256,7 +259,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 var rowRest = 0;
                 if(foundProject.alignment === "bearing"){
                     // -------- ANGLED ROWS ---------
-                    var lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                    // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
+                    var lengthLineBearing = {};
+                    if(foundProject.headland === 0){
+                        lengthLineBearing = turf.lineString([polygon.geometry.coordinates[0][foundProject.bearing],polygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                    } else {
+                        lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                    }
                     // SCALE LINE
                     line = transformScale(lengthLineBearing, 6);
                     // ALTERNATIVE BOUNDING BOX LENTH LINE
@@ -348,7 +357,11 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         rowArray.push(row2);
                     }
                 }
+                // SET ROWLENGTH ARRAY
+                var rowLengthArray = [];
                 for (i=0;i<rowArray.length;i++){
+                    var rowLength1 = length(rowArray[i], {units: "meters"});
+                    rowLengthArray.push(rowLength1);
 /*
                     console.log(rowArray[i].geometry.coordinates);
 */
@@ -378,7 +391,6 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         treeRows.push(dataset[i]);
                     }
                 }
-                console.log(treeRows[0]);
                 // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                 var treeRowCount = 0;
                 var treeCountArray = [];
@@ -423,7 +435,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }
                     }
                     // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
-                    if(treeRowCount >= treeRows.length - 1 || i === rowArray.length - 2){
+                    if(treeRowCount >= treeRows.length - 1){
                         treeRowCount = 0;
                     } else {
                         treeRowCount = treeRowCount + 1;
@@ -467,7 +479,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                 }
                 // CALCULATE MARGIN AREA
                 var marginArea = area(polygon) - area(offsetPolygon);
-                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea});
+                res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, rowLengthArray: rowLengthArray});
             });
         }
     });
