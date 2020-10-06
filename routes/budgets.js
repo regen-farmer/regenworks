@@ -14,7 +14,7 @@ var middleware = require("../middleware");
 
 // BUDGET SHOW ROUTE
 router.get("/budgets/:id", middleware.isLoggedIn, function(req, res){ // CHECK OWNERSHIP ASAP
-    Budget.findById(req.params.id, function(err, foundBudget){
+    Budget.findById(req.params.id).populate("postings").exec(function(err, foundBudget){
         if(err){
             console.log(err);
         } else {
@@ -103,7 +103,191 @@ router.post("/projects/:id/budgets", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// BUDGET POSTING NEW
+// GENERATE NEW PROJECT ESTABLISHMENT BUDGET
+router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id).populate("system").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES IN SYSTEM
+                    var allSpecies = [];
+                    foundSystem.model.forEach(function(species){
+                        allSpecies.push(species.species);
+                    });
+                    console.log(allSpecies.length);
+                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                    var uniqueSpecies = unique(allSpecies);
+                    // SEND ARRAY OF SUBTYPES
+                    var subtypes = ["bed", "plant", "method"];
+                    res.render("budgets/establishnew", {project: foundProject, species: uniqueSpecies, subtypes: subtypes});
+                }
+            });
+        }
+    });
+});
+
+// GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
+router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE BUDGET AND PLACE IN PROJECT
+            var budget = req.body.budget;
+            Budget.create(budget, function(err, createdBudget){
+                if(err){
+                    console.log(err);
+                } else {
+                    foundProject.budgets.establishment = createdBudget;
+                    foundProject.save();
+                    // PARSE QUERY
+                    var postings = req.body.speciespostings;
+                    for(i=0;i<postings.length;i++){
+                        // REMOVE NONE ONES
+                        if(!(postings[i] === "none")){
+                            postings[i].split(" ");
+                        }
+                    }
+                    console.log(postings);
+                    // FIND SPECIES ACTIVITIES
+
+                    // SOMEWHERE CALCULATE TREE COUNT
+
+                    // CREATE POSTINGS FOR SPECIES ACTIVITIES
+
+                    // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
+
+                    // CREATE POSTINGS
+
+                    // REDIRECT TO BUDGET
+                }
+            });
+        }
+    });
+});
+
+
+// GENERATE NEW PROJECT CASH-FLOW BUDGET
+router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND SYSTEM
+            res.redirect("/projects/" + foundProject._id);
+        }
+    });
+});
+
+// GENERATE CASH-FLOW BUDGET CREATE ROUTE
+
+
+// NOTES FOR BOTH ACTIVITIES AND BUDGETS
+// var budgetEstablishment = {
+//     currency: "usd",
+//     name: "Establishment budget"
+// };
+// Budget.create(budgetEstablishment, function(err, createdBudget){
+//     if(err){
+//         console.log(err);
+//     } else {
+//         // BUDGET OWNER
+//         createdBudget.owner.id = req.user._id;
+//         createdBudget.owner.username = req.user.username;
+//         createdBudget.save();
+//         // CREATE POSTINGS
+//         // FIND ALL SPECIES IN PROJECT SYSTEM
+//         var allSpecies = [];
+//         foundSystem.model.forEach(function(species){
+//             allSpecies.push(species.species.id);
+//         });
+//         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+//         var uniqueSpecies = unique(allSpecies);
+//         Species.find({"_id": uniqueSpecies}, function(err, foundSpecies){
+//             if(err) {
+//                 console.log(err);
+//             } else {
+//                 var activities = [];
+//                 var postings = [];
+//                 for(i=0;foundSpecies.length > i;i++){
+//                     for(j=0;foundSpecies[i].activities.length > j;j++){
+//                         // CHECK IF ESTABLISHMENT - DIFFERENTIATE ACTIVITIES
+//                         if(foundSpecies[i].activities[j].activityType === "establish"){
+//                             var activity = {
+//                                 name: foundSpecies[i].activities[j].name + " " + foundSpecies[i].nameCommon,
+//                                 automated: true,
+//                                 status: true
+//                             };
+//                             activities.push(activity);
+//                         }
+//                     }
+//                      var posting = {
+//                          name: foundSpecies[i].nameCommon + " plants",
+//                          postType: "material",
+//                          amount: 1,
+//                          value: 1
+//                      };
+//                      if(foundSpecies[i].price > 0){
+//                          posting.value = foundSpecies[i].price;
+//                      }
+//                      postings.push(posting);
+//                 }
+//                 // CREATE ACTIVITIES
+//                 activities.forEach(function(activity){
+//                     Activity.create(activity, function(err, createdActivity){
+//                         if(err){
+//                             console.log(err);
+//                         } else {
+//                             createdActivity.owner.id = req.user._id;
+//                             createdActivity.owner.username = req.user.username;
+//                             createdActivity.save();
+//                             // PUSH TO PROJECT
+//                             createdProject.activities.push(createdActivity);
+//                             createdProject.save();
+//                         }
+//                     });
+//                 });
+//                 // SAVE POSTINGS
+//                 Budget.findByIdAndUpdate(createdBudget._id, {$addToSet: {postings: { $each: postings }}}, function(err, updatedBudget){
+//                     if(err){
+//                         console.log(err);
+//                     } else {
+//                         var budgetManagement = {
+//                             currency: "usd",
+//                             name: "Management budget"
+//                         };
+//                         Budget.create(budgetManagement, function(err, createdManagementBudget){
+//                             if(err){
+//                                 console.log(err);
+//                             } else {
+//                                 // BUDGET OWNER
+//                                 createdManagementBudget.owner.id = req.user._id;
+//                                 createdManagementBudget.owner.username = req.user.username;
+//                                 createdManagementBudget.save();
+//                                 // SET AS PROJECT BUDGET
+//                                 createdProject.budgets.management = createdManagementBudget;
+//                                 createdProject.save();
+//                                 // req.flash("success", "Successfully added comment");
+//                                 res.redirect("/projects/" + createdProject._id);
+//                             }
+//                         })
+//                     }
+//                 });
+//             }
+//         });
+//     }
+// });
+//
+
+// MOVED TO POSTINGS ROUTE
+/*// BUDGET POSTING NEW
 router.get("/budgets/:id/postings/new", middleware.isLoggedIn, function(req, res){
     Budget.findById(req.params.id, function(err, foundBudget){
         if(err){
@@ -123,6 +307,6 @@ router.put("/budgets/:id/postings", middleware.isLoggedIn, function(req, res){
             res.redirect("/budgets/" + updatedBudget._id);
         }
     });
-});
+});*/
 
 module.exports = router;

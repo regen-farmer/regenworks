@@ -81,7 +81,18 @@ router.get("/species/:id/activities/new", middleware.isLoggedIn, function(req, r
 
 // SPECIES ACTIVITY CREATE ROUTE
 router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
-    Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: req.body.activity}}, function(err, updatedSpecies){
+    // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
+    var types = req.body.activity.activityType.split(" ");
+    var activity = {
+        activityType: types[0],
+        subtype: types[1],
+        name: req.body.activity.name,
+        time: {
+            startMonth: req.body.activity.time.startMonth,
+            endMonth: req.body.activity.time.endMonth
+        }
+    }
+    Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: activity}}, function(err, updatedSpecies){
         if(err){
             console.log(err);
         } else {

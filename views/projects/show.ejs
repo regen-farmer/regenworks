@@ -104,22 +104,30 @@
                             <h2 class="card-title">Project budgets</h2>
                             <p>Establishment budget</p>
                             <% if(project.budgets.establishment){ %>
-                            <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
+                                <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
+                            <% } else { %>
+                                <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
                             <% } %>
                             <p>Management and cash-flow budget</p>
                             <% if(project.budgets.management){ %>
-                            <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                                <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                            <% } else { %>
+                                <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
                             <% } %>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-body">
                             <h2 class="card-title">Financial analysis</h2>
-                            <p><strong>IRR: <%= irr %></strong></p>
-                            <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
-                            <p>Time period: <%= project.financial.period %> yrs</p>
-                            <p>ROI</p>
-                            <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
+                            <% if(project.budgets.management && project.budgets.establishment){ %>
+                                <p><strong>IRR: <%= irr %></strong></p>
+                                <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+                                <p>Time period: <%= project.financial.period %> yrs</p>
+                                <p>ROI</p>
+                                <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
+                            <% } else { %>
+                                <p>-- Financial analysis will show when establishement and cash-flow budget has been generated --</p>
+                            <% } %>
                         </div>
                     </div>
                 </div>

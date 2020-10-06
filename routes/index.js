@@ -190,11 +190,11 @@ router.get("/login", function(req, res) {
     res.render("login");
 });
 
-/*// HANDLE LOGIN LOGIC
+// HANDLE LOGIN LOGIC
 router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}), function (req, res) {
-/!*
+/*
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
-*!/
+*/
     var newLog = {
         message: req.user.username + " logged in",
         level: "info",
@@ -210,9 +210,9 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
             res.redirect('/users/' + req.user.id);
         }
     });
-});*/
+});
 
-// HANDLE LOGIN LOGIC
+/*// HANDLE LOGIN LOGIC
 router.post("/login", function (req, res) {
     // SANITIZE?
     // IP VAR
@@ -265,7 +265,7 @@ router.post("/login", function (req, res) {
                     }
                 });
             });
-            /*passport.authenticate("local") function(err, user){
+            /!*passport.authenticate("local") function(err, user){
                 console.log("reach this");
                 if (err) { console.log(err); }
                 if (!user) { res.redirect('/login'); }
@@ -286,12 +286,12 @@ router.post("/login", function (req, res) {
                         }
                     });
                 });
-            });*/
+            });*!/
         } else {
             res.redirect("/login");
         }
     });
-});
+});*/
 
 // LOGOUT ROUTE
 router.get("/logout", function(req, res) {

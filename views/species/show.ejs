@@ -21,7 +21,8 @@
                 <p><%= species.flows[0].data %></p>
             <% } %>
             <% if(!(species.activities == "")){ %>
-            <p><%= species.activities[0].activityType %></p>
+                <p><strong>Activity amounts:</strong> <%= species.activities.length %> </p>
+                <p><%= species.activities[0].activityType %> + <%= species.activities[0].subtype %></p>
             <% } %>
         </div>
         <div class="col-sm-2">

@@ -48,10 +48,10 @@ var projectSchema = new mongoose.Schema({
         discountRate: Number,
         period: Number
     },
-    layout: String,
-    alignment: String,
+    layout: {type: String, default: "straight"},
+    alignment: {type: String, default: "north"},
     bearing: {type: Number, default: 0},
-    headland: Number,
+    headland: {type: Number, default: 0},
     status: String
 });
 

@@ -92,29 +92,35 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            totalEstablishment = 0;
-            for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
-                if(foundProject.budgets.establishment.postings[i].postType === "labor" || foundProject.budgets.establishment.postings[i].postType === "material"){
-                    totalEstablishment = totalEstablishment - (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
-                } else if(foundProject.budgets.establishment.postings[i].postType === "product" || foundProject.budgets.establishment.postings[i].postType === "service"){
-                    totalEstablishment = totalEstablishment + (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
-                }
-            }
-            totalManagement = 0;
-            if(foundProject.budgets.management){
-                for(i=0;i<foundProject.budgets.management.postings.length;i++){
-                    if(foundProject.budgets.management.postings[i].postType === "labor" || foundProject.budgets.management.postings[i].postType === "material"){
-                        totalManagement = totalManagement - (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
-                    } else if(foundProject.budgets.management.postings[i].postType === "product" || foundProject.budgets.management.postings[i].postType === "service"){
-                        totalManagement = totalManagement + (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
+            var irr = 0;
+            if(foundProject.budgets.establishment || foundProject.budgets.management){
+                var totalEstablishment = 0;
+                if(foundProject.budgets.establishment){
+                    for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
+                        if(foundProject.budgets.establishment.postings[i].postType === "labor" || foundProject.budgets.establishment.postings[i].postType === "material"){
+                            totalEstablishment = totalEstablishment - (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
+                        } else if(foundProject.budgets.establishment.postings[i].postType === "product" || foundProject.budgets.establishment.postings[i].postType === "service"){
+                            totalEstablishment = totalEstablishment + (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
+                        }
                     }
                 }
+                var totalManagement = 0;
+                if(foundProject.budgets.management){
+                    if(foundProject.budgets.management){
+                        for(i=0;i<foundProject.budgets.management.postings.length;i++){
+                            if(foundProject.budgets.management.postings[i].postType === "labor" || foundProject.budgets.management.postings[i].postType === "material"){
+                                totalManagement = totalManagement - (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
+                            } else if(foundProject.budgets.management.postings[i].postType === "product" || foundProject.budgets.management.postings[i].postType === "service"){
+                                totalManagement = totalManagement + (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
+                            }
+                        }
+                    }
+                }
+                for(i=0;i<foundProject.financial.period;i++){
+                    irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
+                }
+                irr = irr - totalEstablishment;
             }
-            irr = 0;
-            for(i=0;i<foundProject.financial.period;i++){
-                irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
-            }
-            irr = irr - totalEstablishment;
             res.render("projects/show", {project: foundProject, irr: irr});
         }
     });
@@ -202,7 +208,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     // SET ROW LENGTHS
                     // IF FIRST ROW
                     if(i === 0){
-                        if(dataset[i].array[0].species.form === "grass"){
+                        if(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb"){
                             rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width;
                         } else {
                             rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
@@ -217,13 +223,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     // FOR ALL OTHER ROWS
                     } else {
                         // CHECK IF ROW BEFORE WAS GRASS
-                        if(dataset[i-1].array[0].species.form === "grass" && i === 1){
+                        if((dataset[i-1].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb") && i === 1){
                             rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
                         } else {
                             rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
                         }
                         // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
-                        if(!(dataset[i].array[0].species.form === "grass")) {
+                        if(!(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb")) {
                             rowWidthArray.push(rowWidthArrayCount);
                             rowWidthArrayCount = 0;
                             treeRowWidthArray.push(dataset[i].array[0].width);
@@ -290,7 +296,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     console.log(rowCount);
                     console.log("rest " + rowRest);
                     // -------- ANGLED ROWS ---------
-                } else {
+                } else if(foundProject.alignment === "north"){
                     // -------- NORTH/SOURTH ROWS ---------
                     // CREATE BOUNDING BOX (IF ANGLE IS 0)
                     var box = bboxPolygon(bbox(offsetPolygon));
@@ -305,6 +311,21 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                     // CREATE ROW LINE
                     line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
                     // -------- NORTH/SOURTH ROWS ---------
+                } else {
+                    // -------- WEST/EAST ROWS ---------
+                    // CREATE BOUNDING BOX
+                    var box = bboxPolygon(bbox(offsetPolygon));
+                    // TAKE TOP SIDE OF BOUNDING BOX
+                    lengthLine = turf.lineString([box.geometry.coordinates[0][1],box.geometry.coordinates[0][2]],{name: 'line-0'});
+                    // ESTIMATE AMOUNT OF ROWS
+                    console.log((length(lengthLine, {units: "meters"})));
+                    rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
+                    rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                    console.log("rest " + rowRest);
+                    console.log(rowCount);
+                    // CREATE ROW LINE
+                    line = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-1'});
+                    // -------- WEST/EAST ROWS ---------
                 }
                 // CREATE ROW ARRAY
                 var rowArray = [];
@@ -965,117 +986,22 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                             console.log(err);
                         } else {
                             // CREATE CURRENCY
-                            var budgetEstablishment = {
-                                currency: "usd",
-                                name: "Establishment budget"
+                            // ADD PROJECT STUFF
+                            createdProject.owner.id = req.user._id;
+                            createdProject.owner.username = req.user.username;
+                            createdProject.system = foundSystem;
+                            createdProject.layer = foundLayer;
+                            createdProject.financial = {
+                                discountRate: 0.05,
+                                period: 20
                             };
-                            Budget.create(budgetEstablishment, function(err, createdBudget){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    // BUDGET OWNER
-                                    createdBudget.owner.id = req.user._id;
-                                    createdBudget.owner.username = req.user.username;
-                                    createdBudget.save();
-                                    // ADD PROJECT STUFF
-                                    createdProject.owner.id = req.user._id;
-                                    createdProject.owner.username = req.user.username;
-                                    createdProject.system = foundSystem;
-                                    createdProject.layer = foundLayer;
-                                    createdProject.financial = {
-                                        discountRate: 0.05,
-                                        period: 20
-                                    };
-                                    createdProject.headland = 0;
-                                    createdProject.budgets.establishment = createdBudget;
-                                    createdProject.status = "planning";
-                                    // Save the service
-                                    createdProject.save();
-                                    // Connect new service to place
-                                    foundLayer.projects.push(createdProject);
-                                    foundLayer.save();
-                                    // CREATE POSTINGS
-                                    // FIND ALL SPECIES IN PROJECT SYSTEM
-                                    var allSpecies = [];
-                                    foundSystem.model.forEach(function(species){
-                                        allSpecies.push(species.species.id);
-                                    });
-                                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                                    var uniqueSpecies = unique(allSpecies);
-                                    Species.find({"_id": uniqueSpecies}, function(err, foundSpecies){
-                                        if(err) {
-                                            console.log(err);
-                                        } else {
-                                            var activities = [];
-                                            var postings = [];
-                                            for(i=0;foundSpecies.length > i;i++){
-                                                for(j=0;foundSpecies[i].activities.length > j;j++){
-                                                    // CHECK IF ESTABLISHMENT - DIFFERENTIATE ACTIVITIES
-                                                    if(foundSpecies[i].activities[j].activityType === "establish"){
-                                                        var activity = {
-                                                            name: foundSpecies[i].activities[j].name + " " + foundSpecies[i].nameCommon,
-                                                            automated: true,
-                                                            status: true
-                                                        };
-                                                        activities.push(activity);
-                                                    }
-                                                }
-                                               /* var posting = {
-                                                    name: foundSpecies[i].nameCommon + " plants",
-                                                    postType: "material",
-                                                    amount: 1,
-                                                    value: 1
-                                                };
-                                                if(foundSpecies[i].price > 0){
-                                                    posting.value = foundSpecies[i].price;
-                                                }
-                                                postings.push(posting);*/
-                                            }
-                                            /*// CREATE ACTIVITIES
-                                            activities.forEach(function(activity){
-                                                Activity.create(activity, function(err, createdActivity){
-                                                    if(err){
-                                                        console.log(err);
-                                                    } else {
-                                                        createdActivity.owner.id = req.user._id;
-                                                        createdActivity.owner.username = req.user.username;
-                                                        createdActivity.save();
-                                                        // PUSH TO PROJECT
-                                                        createdProject.activities.push(createdActivity);
-                                                        createdProject.save();
-                                                    }
-                                                });
-                                            });*/
-                                            // SAVE POSTINGS
-                                            Budget.findByIdAndUpdate(createdBudget._id, {$addToSet: {postings: { $each: postings }}}, function(err, updatedBudget){
-                                                if(err){
-                                                    console.log(err);
-                                                } else {
-                                                    var budgetManagement = {
-                                                        currency: "usd",
-                                                        name: "Management budget"
-                                                    };
-                                                    Budget.create(budgetManagement, function(err, createdManagementBudget){
-                                                        if(err){
-                                                            console.log(err);
-                                                        } else {
-                                                            // BUDGET OWNER
-                                                            createdManagementBudget.owner.id = req.user._id;
-                                                            createdManagementBudget.owner.username = req.user.username;
-                                                            createdManagementBudget.save();
-                                                            // SET AS PROJECT BUDGET
-                                                            createdProject.budgets.management = createdManagementBudget;
-                                                            createdProject.save();
-                                                            // req.flash("success", "Successfully added comment");
-                                                            res.redirect("/projects/" + createdProject._id);
-                                                        }
-                                                    })
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
+                            createdProject.status = "planning";
+                            // Save the service
+                            createdProject.save();
+                            // Connect new service to place
+                            foundLayer.projects.push(createdProject);
+                            foundLayer.save();
+                            res.redirect("/projects/" + createdProject._id);
                         }
                     });
                 }
