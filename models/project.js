@@ -34,6 +34,10 @@ var projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "System"
     },
+    edgesystem:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "System"
+    },
     budgets: {
         establishment: {
             type: mongoose.Schema.Types.ObjectId,

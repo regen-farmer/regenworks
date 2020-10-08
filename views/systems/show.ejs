@@ -208,7 +208,7 @@
                                 <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
                                 <td><%= species.activities[j].name %></td>
                                 <% for(i=0;i<12;i++){ %>
-                                    <% if(species.activities[j].time.startMonth <= i && species.activities[j].time.endMonth >= i){ %>
+                                    <% if(species.activities[j].time.startMonth <= (i + 1) && species.activities[j].time.endMonth >= (i + 1)){ %>
                                         <td class="bg-success"></td>
                                     <% } else { %>
                                         <td></td>

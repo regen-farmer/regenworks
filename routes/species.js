@@ -33,7 +33,7 @@ router.post("/species", middleware.isLoggedIn, function(req, res){ // ONLY ADMIN
 });
 
 // SPECIES SHOW
-router.get("/species/:id", middleware.isLoggedIn, function(req, res){ // ONLY ADMIN ACCESS?
+router.get("/species/:id", middleware.adminIsLoggedIn, function(req, res){ // ONLY ADMIN ACCESS?
     Species.findById(req.params.id).populate("flows").exec(function(err, foundSpecies){
         if(err) {
             console.log(err);
@@ -91,12 +91,34 @@ router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
             startMonth: req.body.activity.time.startMonth,
             endMonth: req.body.activity.time.endMonth
         }
-    }
+    };
     Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: activity}}, function(err, updatedSpecies){
         if(err){
             console.log(err);
         } else {
             console.log(req.body.activity + " has been added to the system");
+            res.redirect("/species/" + updatedSpecies._id);
+        }
+    });
+});
+
+// SPECIES NUTRIENTS CREATE ROUTE
+router.get("/species/:id/nutrients/new", middleware.isLoggedIn, function(req, res){
+    Species.findById(req.params.id, function(err, foundSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("species/nutrients", {species: foundSpecies});
+        }
+    })
+});
+
+// SPECIES NUTRIENTS UPDATE ROUTE
+router.put("/species/:id/nutrients", middleware.isLoggedIn, function(req, res){
+    Species.findByIdAndUpdate(req.params.id, {$set: {nutrients: req.body.nutrients}}, function(err, updatedSpecies){
+        if(err){
+            console.log(err);
+        } else {
             res.redirect("/species/" + updatedSpecies._id);
         }
     });

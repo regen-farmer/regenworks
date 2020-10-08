@@ -36,6 +36,11 @@ var speciesSchema = new mongoose.Schema({
         }
     ],
     utilities: [String],
+    nutrients: {
+        fat: Number,
+        carb: Number,
+        protein: Number
+    },
     activities: [
         {
             activityType: String,
@@ -44,7 +49,8 @@ var speciesSchema = new mongoose.Schema({
             time: {
                 startMonth: Number,
                 endMonth: Number
-            }
+            },
+            price: {type: Number, default: 0}
         }
     ],
     price: Number

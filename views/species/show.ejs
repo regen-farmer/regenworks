@@ -12,6 +12,7 @@
                 <button class="btn btn-danger">Delete species</button>
             </form>
             <a class="btn btn-outline-secondary" href="/species/<%= species._id %>/activities/new">Add new activity to species</a>
+            <a class="btn btn-outline-warning" href="/species/<%= species._id %>/nutrients/new">Update nutrients profile</a>
         </div>
         <div class="col-sm-2">
             <p>Name: <%= species.genus %> <%= species.species %></p>

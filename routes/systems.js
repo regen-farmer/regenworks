@@ -265,6 +265,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                         var allSpecies = [];
                         var allUtilities = [];
                         var dataset = [];
+                        var nutritional = [];
                         foundSystems[i].model.forEach(function(species){
                             // PUSH SPECIES TO ARRAY
                             allSpecies.push(species.species.nameCommon);
@@ -274,6 +275,8 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                                     allUtilities.push(species.species.utilities[j]);
                                 }
                             }
+                            // ADD SPECIES NUTRITIONAL VALUE TO ARRAY
+                            nutritional.push(species.species.nutrients);
                             // ADD SPECIES TO ROWS
                             var count = 0;
                             for(j=0;j<dataset.length;j++){
@@ -286,6 +289,21 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                                 dataset.push({row: species.position[0], array: [species]});
                             }
                         });
+                        /*// AVERAGE NUTRITIONAL VALUE
+                        var nutrientvalue = {
+                            protein: 0,
+                            carb: 0,
+                            fat: 0
+                        };
+                        for(j=0;j<nutritional.length;j++){
+                            nutrientvalue.protein = nutrientvalue.protein + nutritional[j].protein;
+                            nutrientvalue.carb = nutrientvalue.carb + nutritional[j].carb;
+                            nutrientvalue.fat = nutrientvalue.fat + nutritional[j].fat;
+                        }
+                        console.log("protein: " + nutrientvalue.protein);
+                        nutrientvalue.protein = nutrientvalue.protein / nutritional.length;
+                        nutrientvalue.carb = nutrientvalue.carb / nutritional.length;
+                        nutrientvalue.fat = nutrientvalue.fat / nutritional.length;*/
                         // SORT FIRST ROW ITEMS
                         function compare1( a, b ) {
                             if ( a.position[1] < b.position[1] ){
@@ -299,7 +317,6 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                         var grid = 0;
                         for(j=0;j<dataset.length;j++){
                             dataset[j].array.sort(compare1);
-                            console.log(dataset[j].array[0]);
                             grid = grid + dataset[j].array[0].width;
                         }
                         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
@@ -309,6 +326,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                         foundSystems[i].uniqueUtilities = uniqueUtilities;
                         foundSystems[i].grid = grid;
                         foundSystems[i].sortedrows = dataset;
+                        foundSystems[i].nutritional = nutritional[0];
                     }
                     res.render("systems/compare", {layer: foundLayer, systems: foundSystems});
                 }
