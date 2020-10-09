@@ -127,13 +127,19 @@
                             <% if(project.budgets.establishment){ %>
                                 <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
                             <% } else { %>
+<!--
                                 <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
+-->
+                                <a href="#" class="btn btn-outline-primary">Generate establishment budget</a>
                             <% } %>
                             <p>Management and cash-flow budget</p>
                             <% if(project.budgets.management){ %>
                                 <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
                             <% } else { %>
+<!--
                                 <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
+-->
+                                <a href="#" class="btn btn-outline-primary">Generate cash-flow budget</a>
                             <% } %>
                         </div>
                     </div>
