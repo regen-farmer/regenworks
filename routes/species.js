@@ -96,7 +96,7 @@ router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            console.log(req.body.activity + " has been added to the system");
+            console.log(req.body.activity.name + " has been added to the species");
             res.redirect("/species/" + updatedSpecies._id);
         }
     });
