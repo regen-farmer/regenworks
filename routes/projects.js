@@ -88,7 +88,7 @@ router.post("/projects", middleware.isLoggedIn, function(req, res){
 
 // PROJECT SHOW ROUTE
 router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate("layer").populate("assets").populate("budgets.establishment").populate("budgets.management").populate("system").populate("activities").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate("assets").populate("budgets.establishment").populate("budgets.management").populate("system").populate("edgesystem").populate("activities").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
