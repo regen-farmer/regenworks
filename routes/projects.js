@@ -246,10 +246,10 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log("Edge trees: " + edgeTreeArray.length);
                         // DO POINT COLLECTION
                         var edgeTreeCanopyArray = [];
-                        for(i=0;i<edgeTreeMarkerArray.length;i++){
+                        /*for(i=0;i<edgeTreeMarkerArray.length;i++){
                             var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
                             edgeTreeCanopyArray.push(circle5);
-                        }
+                        }*/
                         var edgeTreeMarkers = turf.featureCollection(edgeTreeCanopyArray);
                         var edgeTreeCollection = JSON.stringify(edgeTreeMarkers);
                         // COPY ALL EDGE ROW SPECIES
