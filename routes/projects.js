@@ -26,6 +26,7 @@ var lineSplit = require("@turf/line-split");
 var along = require("@turf/along");
 var circle = require("@turf/circle");
 var area = require("@turf/area");
+var polygonToLine = require("@turf/polygon-to-line");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -171,36 +172,109 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log("Distance check " + calibrateDistance);
                         // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
                         var headland = foundProject.headland;
+                        var edgeRowDataset = [];
                         if(foundProject.edgesystem){
                             // CALCULATE WIDTH - REFACTOR INTO MIDDLEWARE. USED TWICE IN THIS ROUTE
-                            var rowDataset = [];
                             foundEdgeSystem.model.forEach(function(species){
                                 var count = 0;
-                                for(i=0;i<rowDataset.length;i++){
-                                    if(rowDataset[i].row === species.position[0]){
-                                        rowDataset[i].array.push(species);
+                                for(i=0;i<edgeRowDataset.length;i++){
+                                    if(edgeRowDataset[i].row === species.position[0]){
+                                        edgeRowDataset[i].array.push(species);
                                         count = count + 1;
                                     }
                                 }
                                 if(count === 0){
-                                    rowDataset.push({row: species.position[0], array: [species]});
+                                    edgeRowDataset.push({row: species.position[0], array: [species]});
                                 }
                             });
                             // ADD ALL ROWS TO WIDTH
                             var edgeRowWidth = 0;
-                            for(i=0;i<rowDataset.length;i++){
-                                edgeRowWidth = edgeRowWidth + rowDataset[i].array[0].width;
+                            for(i=0;i<edgeRowDataset.length;i++){
+                                edgeRowWidth = edgeRowWidth + edgeRowDataset[i].array[0].width;
                             }
                             // ADD EDGE SYSTEM WIDTH TO HEADLAND
                             headland = headland + edgeRowWidth;
                         }
                         console.log("headland plus perimeter system: " + headland);
                         var offsetPolygon = buffer(polygon, - headland*calibrateDistance, {units: "meters"});
-                        // CREATE PERIMETER ROW
-
-                        /*
-                                        console.log(offsetPolygon.geometry.coordinates[0]);
-                        */
+                        // CREATE PERIMETER ROWS CENTER
+                        var edgeRowWidthArray = [];
+                        for(i=0;i<edgeRowDataset.length;i++){
+                            var edgeRowArrayWidth = 0;
+                            if(i === 0){
+                                edgeRowArrayWidth = edgeRowDataset[i].array[0].width/2;
+                            } else {
+                                edgeRowArrayWidth = edgeRowDataset[i].array[0].width/2 + edgeRowDataset[i-1].array[0].width/2
+                            }
+                            edgeRowWidthArray.push(edgeRowArrayWidth);
+                        }
+                        // CREATE EDGE ROW LINES
+                        var edgeRowArray = [];
+                        var edgeRowDistance = 0;
+                        for(i=0;i<edgeRowWidthArray.length;i++){
+                            edgeRowDistance = edgeRowDistance + edgeRowWidthArray[i];
+                            var offsetEdgeRowPolygon = buffer(polygon, - edgeRowDistance*calibrateDistance, {units: "meters"});
+                            var offsetEdgeRow = polygonToLine(offsetEdgeRowPolygon);
+                            edgeRowArray.push(offsetEdgeRow);
+                        }
+                        // CREATE EDGE ROW MARKERS AND TREE COUNTS
+                        var edgeTreeMarkerArray = [];
+                        var edgeTreeArray = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
+                        // CREATE TREES FOR EACH EDGE ROW
+                        for(i=0;i<edgeRowArray.length;i++){
+                            // COUNT EDGE SYSTEM MODEL ITERATIONS IN ROW
+                            var edgeRowLength = length(edgeRowArray[i], {units: "meters"});
+                            // SET LENGTH AS LAST IN ROW SPECIES Y COORDINATE
+                            var edgeSystemModelLength = 0;
+                            edgeSystemModelLength = edgeRowDataset[0].array[(edgeRowDataset[0].array.length - 1)].position[1];
+                            var edgeSystemModelCount = Math.floor(edgeRowLength/edgeSystemModelLength);
+                            var edgeSystemModelRowRest = ((edgeRowLength/edgeSystemModelLength) - Math.floor(edgeRowLength/edgeSystemModelLength))*edgeSystemModelLength;
+                            // ITERATE FOR EACH MODEL COUNT
+                            for(j=0;j<edgeSystemModelCount;j++){
+                                // CREATE TREE FOR EACH SPECIES IN MODEL
+                                for(k=0;k<edgeRowDataset[i].array.length;k++) {
+                                    // ADD TREE SPECIES TO COUNT ARRAY
+                                    edgeTreeArray.push(edgeRowDataset[i].array[k].species);
+                                    // CREATE TREE POINTS FOR MARKERS
+                                    var edgeTreeMarker = along(edgeRowArray[i], ((j * edgeSystemModelLength) + edgeRowDataset[i].array[k].position[1]), {units: "meters"});
+                                    edgeTreeMarkerArray.push(edgeTreeMarker);
+                                }
+                            }
+                            // ADD REST
+                        }
+                        console.log("Edge tree markers: " + edgeTreeMarkerArray.length);
+                        console.log("Edge trees: " + edgeTreeArray.length);
+                        // DO POINT COLLECTION
+                        var edgeTreeCanopyArray = [];
+                        for(i=0;i<edgeTreeMarkerArray.length;i++){
+                            var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
+                            edgeTreeCanopyArray.push(circle5);
+                        }
+                        var edgeTreeMarkers = turf.featureCollection(edgeTreeCanopyArray);
+                        var edgeTreeCollection = JSON.stringify(edgeTreeMarkers);
+                        // COPY ALL EDGE ROW SPECIES
+                        var allEdgeSpeciesCopy = [];
+                        for(i=0;edgeTreeArray.length > i;i++){
+                            allEdgeSpeciesCopy.push(edgeTreeArray[i]);
+                        }
+                        // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                        var uniqueEdgeSpecies = unique(allEdgeSpeciesCopy);
+                        // UNIQUE ITEM COUNTS
+                        var uniqueEdgeSpeciesCount = [];
+                        for(i=0;uniqueEdgeSpecies.length > i;i++){
+                            var edgecount = 0;
+                            for(j = 0; j < edgeTreeArray.length; j++){
+                                if(edgeTreeArray[j].nameCommon === uniqueEdgeSpecies[i].nameCommon){
+                                    edgecount = edgecount + 1;
+                                }
+                            }
+                            var speciesCount = {
+                                id: uniqueEdgeSpecies[i].nameCommon,
+                                uniqueCount: edgecount
+                            }
+                            uniqueEdgeSpeciesCount.push(speciesCount);
+                        }
+                        console.log("Unique Species in edge: " + uniqueEdgeSpeciesCount.length);
                         // FIND SYSTEM ROWS
                         var allSpecies = [];
                         var dataset = [];
@@ -436,6 +510,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         // CREATE FEATURECOLLECTION FOR ROWS
                         var featurecollection = turf.featureCollection(rowArray);
                         var collection = JSON.stringify(featurecollection);
+                        // CREATE FEATURE COLLECTION FOR EDGEROWS
+                        var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
+                        var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection);
                         // OFFSET LINE
                         /*               var offsetline = lineOffset(line, -(3),{units: "meters"});
                                        var rowPoints = lineIntersect(offsetline, offsetPolygon);
@@ -537,7 +614,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }
                         // CALCULATE MARGIN AREA
                         var marginArea = area(polygon) - area(offsetPolygon);
-                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, rowLengthArray: rowLengthArray});
+                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, edgecollection: edgeRowCollection, trees: treeCollection, edgetrees: edgeTreeCollection, species: uniqueSpeciesCount, edgespecies: uniqueEdgeSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, rowLengthArray: rowLengthArray});
                     }
                 });
             });
