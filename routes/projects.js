@@ -246,6 +246,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log("Edge trees: " + edgeTreeArray.length);
                         // DO POINT COLLECTION
                         var edgeTreeCanopyArray = [];
+                        // SET MAX LIMIT FOR AMOUNT OF TREES
                         /*for(i=0;i<edgeTreeMarkerArray.length;i++){
                             var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
                             edgeTreeCanopyArray.push(circle5);
@@ -634,6 +635,18 @@ router.put("/projects/:id", middleware.isLoggedIn, function(req, res){
     });
 });
 
+// PROJECT UPDATE ROUTE
+router.put("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
+    Project.findByIdAndUpdate(req.params.id, req.body.project, function(err, updatedProject){
+        if(err){
+            console.log(err);
+        } else {
+            // req.flash("success", "Successfully added service");
+            res.redirect("/projects/" + req.params.id + "/layout");
+        }
+    });
+});
+
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put("/projects/:id/implement", middleware.isLoggedIn, function(req, res){
     Project.findByIdAndUpdate(req.params.id, { $set: { status: "Implementation"} }, function(err, plannedProject){
@@ -652,6 +665,50 @@ router.put("/projects/:id/retire", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
+
+// ADD PROJECT EDGE SYSTEM NEW
+router.get("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, res){
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("projects/addedgesystem", {project: foundProject, systems: realSystems});
+                }
+            });
+        }
+    });
+});
+
+// ADD PROJECT EDGE SYSTEM UPDATE
+router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, res){
+    // FIND SYSTEM
+    System.findById(req.body.systemid, function(err, foundSystem){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND PROJECT
+            Project.findByIdAndUpdate(req.params.id, { $set: { edgesystem: foundSystem} }, function(err, foundProject){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/projects/" + foundProject._id);
+                }
+            });
         }
     });
 });

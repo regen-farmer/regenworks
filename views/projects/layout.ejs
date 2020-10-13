@@ -58,7 +58,7 @@
             <div class="card">
                 <div class="card-body">
                     <h5>Change parameters</h5>
-                    <form action="/projects/<%= project._id %>?_method=PUT" method="POST">
+                    <form action="/projects/<%= project._id %>/layout?_method=PUT" method="POST">
                         <div class="form-group">
                             <label for="project[layout]">Layout type</label>
                             <select class="form-control" name="project[layout]">
