@@ -247,10 +247,12 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         // DO POINT COLLECTION
                         var edgeTreeCanopyArray = [];
                         // SET MAX LIMIT FOR AMOUNT OF TREES
-                        /*for(i=0;i<edgeTreeMarkerArray.length;i++){
-                            var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
-                            edgeTreeCanopyArray.push(circle5);
-                        }*/
+                        if(edgeTreeMarkerArray.length < 1500){
+                            for(i=0;i<edgeTreeMarkerArray.length;i++){
+                                var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
+                                edgeTreeCanopyArray.push(circle5);
+                            }
+                        }
                         var edgeTreeMarkers = turf.featureCollection(edgeTreeCanopyArray);
                         var edgeTreeCollection = JSON.stringify(edgeTreeMarkers);
                         // COPY ALL EDGE ROW SPECIES
@@ -581,9 +583,11 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log(treeMarkerArray.length);
                         // DO POINT COLLECTION
                         var treeCanopyArray = [];
-                        for(i=0;i<treeMarkerArray.length;i++){
-                            var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
-                            treeCanopyArray.push(circle1);
+                        if(treeMarkerArray.length < 2000){
+                            for(i=0;i<treeMarkerArray.length;i++){
+                                var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
+                                treeCanopyArray.push(circle1);
+                            }
                         }
                         var treeMarkers = turf.featureCollection(treeCanopyArray);
                         var treeCollection = JSON.stringify(treeMarkers);

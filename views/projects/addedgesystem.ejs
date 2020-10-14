@@ -8,7 +8,7 @@
         <div>
             <form action="/projects/<%= project._id %>/addedgesystem" method="POST">
                 <div class="form-group">
-                    <label for="systemid">Activity type</label>
+                    <label for="systemid">Select edge system: </label>
                     <select name="systemid" id="systemid">
                         <% for(i=0;i<systems.length;i++){ %>
                             <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
