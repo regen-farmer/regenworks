@@ -252,7 +252,97 @@ router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(r
 });
 
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
+router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE BUDGET AND PLACE IN PROJECT
+            var budget = req.body.budget;
+            Budget.create(budget, function(err, createdBudget){
+                if(err){
+                    console.log(err);
+                } else {
+                    foundProject.budgets.management = createdBudget;
+                    foundProject.save();
+                    // PARSE QUERY
+                    var speciesPostings = req.body.speciespostings;
+                    var speciesPostingsArray = [];
+                    for(i=0;i<speciesPostings.length;i++){
+                        // REMOVE NONE ONES
+                        if(!(speciesPostings[i] === "none")){
+                            var splitPostings = speciesPostings[i].split(" ");
+                            speciesPostingsArray.push(splitPostings);
+                        }
+                    }
+                    console.log(speciesPostingsArray);
+                    // FIND SYSTEM
+                    System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // UNIQUE SPECIES
+                            var allSpecies = [];
+                            foundSystem.model.forEach(function(species){
+                                allSpecies.push(species.species);
+                            });
+                            var uniqueSpecies = unique(allSpecies);
+                            // SOMEWHERE CALCULATE TREE COUNT
 
+                            // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
+                            var postings = [];
+                            var period = req.body.period;
+                            // RUN THROUGH ALL POSTINGS
+                            for(i=0;i<speciesPostingsArray.length;i++){
+                                for(j=0;j<uniqueSpecies.length;j++){
+                                    // RUN THROUGH ALL ACTIVITIES
+                                    if(speciesPostingsArray[i][0] === uniqueSpecies[j].id){
+                                        // ITERATE FOR EACH YEAR
+                                        for(k=0;k<period;k++){
+                                            // CREATE THE POSTING HERE AND PUSH
+                                            var posting = {
+                                                name:  uniqueSpecies[j].nameCommon + " " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype + ": " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
+                                                postType: "material",
+                                                amount: 1,
+                                                value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
+                                                year: k + 1
+                                            };
+                                            // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                                            if(uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "pruning" || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "harvest"){
+                                                posting.postType = "labor";
+                                            }
+                                            postings.push(posting);
+                                        }
+                                    }
+                                }
+                            }
+                            console.log(postings.length);
+                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
+
+                            // CREATE POSTINGS
+                            Posting.insertMany(postings, function(err, createdPostings){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    // ADD POSTINGS TO BUDGET
+                                    Budget.findByIdAndUpdate(foundBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            console.log("Postings added to budget");
+                                            res.redirect("/projects/" + foundProject._id);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
 
 // NOTES FOR BOTH ACTIVITIES AND BUDGETS
 // var budgetEstablishment = {

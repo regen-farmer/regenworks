@@ -152,7 +152,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     // Redirect to parcels SHOW page
                     // req.flash("success", "Successfully added comment");
                     if(layer.type == "agroforestry"){
-                        res.redirect("/layers/" + layer._id + '/systems/new');
+                        res.redirect("/layers/" + layer._id + '/systems/newgrid');
                     } else {
                         var tempspecies = req.body.maincrop;
                         if(req.body.maincrop === ""){
