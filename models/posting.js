@@ -6,7 +6,9 @@ var postingSchema = new mongoose.Schema({
     postType: String,
     amount: Number,
     value: Number,
-    year: Number
+    year: Number,
+    month: Number,
+    date: Number
 });
 
 module.exports = mongoose.model("Posting", postingSchema);

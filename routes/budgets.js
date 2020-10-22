@@ -4,6 +4,7 @@ var unique = require("array-unique");
 var Budget = require("../models/budget");
 var Project = require("../models/project");
 var System = require("../models/system");
+var Posting = require("../models/posting");
 var middleware = require("../middleware");
 
 // BUDGET INDEX ROUTE
@@ -147,25 +148,73 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                     foundProject.budgets.establishment = createdBudget;
                     foundProject.save();
                     // PARSE QUERY
-                    var postings = req.body.speciespostings;
-                    for(i=0;i<postings.length;i++){
+                    var speciesPostings = req.body.speciespostings;
+                    var speciesPostingsArray = [];
+                    for(i=0;i<speciesPostings.length;i++){
                         // REMOVE NONE ONES
-                        if(!(postings[i] === "none")){
-                            postings[i].split(" ");
+                        if(!(speciesPostings[i] === "none")){
+                            var splitPostings = speciesPostings[i].split(" ");
+                            speciesPostingsArray.push(splitPostings);
                         }
                     }
-                    console.log(postings);
-                    // FIND SPECIES ACTIVITIES
+                    console.log(speciesPostingsArray);
+                    // FIND SYSTEM
+                    System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // UNIQUE SPECIES
+                            var allSpecies = [];
+                            foundSystem.model.forEach(function(species){
+                                allSpecies.push(species.species);
+                            });
+                            var uniqueSpecies = unique(allSpecies);
+                            // SOMEWHERE CALCULATE TREE COUNT
 
-                    // SOMEWHERE CALCULATE TREE COUNT
+                            // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
+                            var postings = [];
+                            // RUN THROUGH ALL POSTINGS
+                            for(i=0;i<speciesPostingsArray.length;i++){
+                                for(j=0;j<uniqueSpecies.length;j++){
+                                    // RUN THROUGH ALL ACTIVITIES
+                                    if(speciesPostingsArray[i][0] === uniqueSpecies[j].id){
+                                        // CREATE THE POSTING HERE AND PUSH
+                                        var posting = {
+                                            name:  uniqueSpecies[j].nameCommon + " " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype + ": " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
+                                            postType: "material",
+                                            amount: 1,
+                                            value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
+                                            year: 1
+                                        };
+                                        // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                                        if(uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "bed" || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "method"){
+                                            posting.postType = "labor";
+                                        }
+                                        postings.push(posting);
+                                    }
+                                }
+                            }
+                            console.log(postings);
+                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
 
-                    // CREATE POSTINGS FOR SPECIES ACTIVITIES
-
-                    // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
-
-                    // CREATE POSTINGS
-
-                    // REDIRECT TO BUDGET
+                            // CREATE POSTINGS
+                            Posting.insertMany(postings, function(err, createdPostings){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    // ADD POSTINGS TO BUDGET
+                                    Budget.findByIdAndUpdate(foundBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            console.log("Postings added to budget");
+                                            res.redirect("/projects/" + foundProject._id);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
                 }
             });
         }
@@ -181,7 +230,23 @@ router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(r
             console.log(err);
         } else {
             // FIND SYSTEM
-            res.redirect("/projects/" + foundProject._id);
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES IN SYSTEM
+                    var allSpecies = [];
+                    foundSystem.model.forEach(function(species){
+                        allSpecies.push(species.species);
+                    });
+                    console.log(allSpecies.length);
+                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                    var uniqueSpecies = unique(allSpecies);
+                    // SEND ARRAY OF SUBTYPES
+                    var subtypes = ["compost", "pruning", "weedcontrol", "harvest"];
+                    res.render("budgets/managementnew", {project: foundProject, species: uniqueSpecies, subtypes: subtypes});
+                }
+            });
         }
     });
 });

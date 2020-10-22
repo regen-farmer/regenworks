@@ -369,16 +369,22 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
                 }
                 return 0;
             }
+            var systemwidth = 0;
+            var systemlength = 0;
             for(i=0;i<dataset.length;i++){
                 dataset[i].array.sort(compare1);
                 console.log(dataset[i].array[0]);
+                systemwidth = systemwidth + dataset[i].array[0].width;
+                if(dataset[i].array[dataset[i].array.length - 1].position[1] > systemlength){
+                    systemlength = dataset[i].array[dataset[i].array.length - 1].position[1];
+                }
             }
             // FIND SPECIES AND POPULATE FLOWS
             Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
                 if(err) {
                     console.log(err);
                 } else {
-                    res.render("systems/show", {system: foundSystem, species: foundSpecies, rows: dataset});
+                    res.render("systems/show", {system: foundSystem, species: foundSpecies, rows: dataset, systemwidth: systemwidth, systemlength: systemlength});
                 }
             });
         }

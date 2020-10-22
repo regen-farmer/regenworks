@@ -583,7 +583,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log(treeMarkerArray.length);
                         // DO POINT COLLECTION
                         var treeCanopyArray = [];
-                        if(treeMarkerArray.length < 2000){
+                        if(treeMarkerArray.length < 3000){
                             for(i=0;i<treeMarkerArray.length;i++){
                                 var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
                                 treeCanopyArray.push(circle1);

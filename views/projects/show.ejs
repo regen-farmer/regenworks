@@ -124,7 +124,9 @@
                             <% } else if (project.assets && project.assets.length > 0) { %>
                                 <p>Layout has been fixed and digital tree assets have already been created for this project. Go to "Assets" tab to view asset map.</p>
                             <% } else { %>
+<!--
                                 <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
+-->
                             <% } %>
                         </div>
                     </div>
@@ -157,6 +159,9 @@
                         <div class="card-body">
                             <h2 class="card-title">Financial analysis</h2>
                             <% if(project.budgets.management && project.budgets.establishment){ %>
+<!--
+                                <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
+-->
                                 <p><strong>IRR: <%= irr %></strong></p>
                                 <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
                                 <p>Time period: <%= project.financial.period %> yrs</p>
@@ -218,6 +223,26 @@
             </div>
         </div>
     </div>
+<script>
+    var ctx = document.getElementById('lineChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
 
+        // The data for our dataset
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            datasets: [{
+                label: 'YoY cash-flow',
+                backgroundColor: 'rgb(110, 188, 74)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: [0, 0, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5]
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+</script>
 
 <% include ../partials/footer %>
