@@ -3,8 +3,40 @@
 
 <div>
     <h1><%= budget.name %></h1>
-    <p><small>- As initial postings are automatically generated, please update values with local prices where applicable. We are continuously improving our models and dataset, but we recommend that you check all postings to ensure local accuracy. -</small></p>
-    <table class="table">
+    <p><small>- As initial postings are automatically generated, please update values with local prices where applicable. We are continuously improving our models and dataset, but we recommend that you check all postings for most accurate budget. -</small></p>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        Years:
+
+        <% for(i=1;i<years+1;i++){ %>
+            <% if(i === 1){ %>
+                <li class="nav-item">
+                    <a class="nav-link active" id="<%= i %>-tab" data-toggle="tab" href="#<%= i %>" role="tab" aria-controls="<%= i %>" aria-selected="false">Y <%= i %></a>
+                </li>
+            <% } else { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="<%= i %>-tab" data-toggle="tab" href="#<%= i %>" role="tab" aria-controls="<%= i %>" aria-selected="false">Y <%= i %></a>
+                </li>
+            <% } %>
+        <% } %>
+    </ul>
+    <% for(i=1;i<years+1;i++){ %>
+        <% if(i === 1){ %>
+        <li class="nav-item">
+            <a class="nav-link active" id="<%= i %>-tab" data-toggle="tab" href="#<%= i %>" role="tab" aria-controls="<%= i %>" aria-selected="false">Y <%= i %></a>
+        </li>
+        <% } else { %>
+        <li class="nav-item">
+            <a class="nav-link" id="<%= i %>-tab" data-toggle="tab" href="#<%= i %>" role="tab" aria-controls="<%= i %>" aria-selected="false">Y <%= i %></a>
+        </li>
+        <% } %>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            </div>
+            <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">
+            </div>
+        </div>
+    <% } %>
+    <table class="table small">
         <tr class="table-secondary">
             <td>Name</td>
             <td>Amount</td>
@@ -18,7 +50,7 @@
                 <td><%= posting.amount %></td>
                 <td><%= posting.value %> <%= budget.currency %></td>
                 <td><%= posting.value * posting.amount %> <%= budget.currency %></td>
-                <td><a href="/budgets/<%= budget._id %>/postings/<%= posting._id %>/edit" class="btn btn-outline-secondary">Edit posting</a></td>
+                <td><a href="/budgets/<%= budget._id %>/postings/<%= posting._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit posting</a></td>
             </tr>
         <% }); %>
         <tr class="table-primary">

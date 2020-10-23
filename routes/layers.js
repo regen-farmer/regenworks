@@ -352,7 +352,7 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
             console.log(err);
         } else {
             if(foundLayer.systems.present === undefined){
-                res.redirect("/layers/" + foundLayer._id + '/systems/new')
+                res.redirect("/layers/" + foundLayer._id + '/systems/newgrid')
             } else {
                 System.findById(foundLayer.systems.present._id).populate("model.species").populate("animals").exec(function(err, foundSystem){
                     if(err){

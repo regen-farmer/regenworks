@@ -12,7 +12,7 @@
                 <p><%= layer.description %></p>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area</a>
+                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area details</a>
                 <!--<form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
                     <button class="btn btn-danger">Delete Area</button>
                 </form>-->
