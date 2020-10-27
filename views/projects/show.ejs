@@ -52,9 +52,9 @@
                             <p>Once you change phase from planning to implementation phase, the layout of your project will be fixed and additional features wil be unlocked such as asset generation and implementation plans.</p>
                         </div>
                         <div class="modal-footer">
-                            <form class="implement-form" action="/projects/<%= project._id %>/implement?_method=PUT" method="POST">
+                            <!--<form class="implement-form" action="/projects/<%= project._id %>/implement?_method=PUT" method="POST">
                                 <button class="btn btn-success">Confirm project implementation start</button>
-                            </form>
+                            </form>-->
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         </div>
                     </div>
@@ -72,6 +72,9 @@
                 <% if(project.status === "Implementation"){ %>
                     <li class="nav-item">
                         <a class="nav-link" id="asset-tab" data-toggle="tab" href="#assets" role="tab" aria-controls="assets" aria-selected="false">Assets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="implementation-tab" data-toggle="tab" href="#implementation" role="tab" aria-controls="implementation" aria-selected="false">Implementation plans</a>
                     </li>
                 <% } %>
             </ul>
@@ -142,7 +145,7 @@
 <!--
                                 <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
 -->
-                                <a href="#" class="btn btn-outline-primary">Generate establishment budget</a>
+                                <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
                             <% } %>
                             <p>Management and cash-flow budget</p>
                             <% if(project.budgets.management){ %>
@@ -151,7 +154,7 @@
 <!--
                                 <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
 -->
-                                <a href="#" class="btn btn-outline-primary">Generate cash-flow budget</a>
+                                <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
                             <% } %>
                         </div>
                     </div>
@@ -193,6 +196,13 @@
                             <!--<form class="delete-asset-form" action="/projects/<%= project._id %>/allassets?_method=DELETE" method="POST">
                                 <button class="btn btn-danger">Delete all digital assets</button>
                             </form>-->
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="implementation" role="tabpanel" aria-labelledby="implementation-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Assets</h2>
                         </div>
                     </div>
                 </div>
