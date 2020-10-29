@@ -10,6 +10,7 @@ var Budget = require("../models/budget");
 var Activity = require("../models/activity");
 var Species = require("../models/species");
 var Asset = require("../models/asset");
+var Posting = require("../models/posting");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var bbox = require("@turf/bbox");
@@ -93,36 +94,89 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            var irr = 0;
-            if(foundProject.budgets.establishment || foundProject.budgets.management){
-                var totalEstablishment = 0;
-                if(foundProject.budgets.establishment){
-                    for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
-                        if(foundProject.budgets.establishment.postings[i].postType === "labor" || foundProject.budgets.establishment.postings[i].postType === "material"){
-                            totalEstablishment = totalEstablishment - (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
-                        } else if(foundProject.budgets.establishment.postings[i].postType === "product" || foundProject.budgets.establishment.postings[i].postType === "service"){
-                            totalEstablishment = totalEstablishment + (foundProject.budgets.establishment.postings[i].value * foundProject.budgets.establishment.postings[i].amount);
-                        }
-                    }
-                }
-                var totalManagement = 0;
-                if(foundProject.budgets.management){
-                    if(foundProject.budgets.management){
-                        for(i=0;i<foundProject.budgets.management.postings.length;i++){
-                            if(foundProject.budgets.management.postings[i].postType === "labor" || foundProject.budgets.management.postings[i].postType === "material"){
-                                totalManagement = totalManagement - (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
-                            } else if(foundProject.budgets.management.postings[i].postType === "product" || foundProject.budgets.management.postings[i].postType === "service"){
-                                totalManagement = totalManagement + (foundProject.budgets.management.postings[i].value * foundProject.budgets.management.postings[i].amount);
-                            }
-                        }
-                    }
-                }
-                for(i=0;i<foundProject.financial.period;i++){
-                    irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
-                }
-                irr = irr - totalEstablishment;
+            // TEST WITH BLANK
+            var estPostings = [];
+            if(foundProject.budgets.establishment){
+                estPostings = foundProject.budgets.establishment.postings
             }
-            res.render("projects/show", {project: foundProject, irr: irr});
+            Posting.find({"_id": estPostings}, function(err, establishementPostings){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("Establishment postings: " + establishementPostings.length);
+                    // TEST WITH BLANK
+                    var manPostings = [];
+                    if(foundProject.budgets.management){
+                        manPostings = foundProject.budgets.management.postings
+                    }
+                    Posting.find({"_id": manPostings}, function(err, managementPostings){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log("Management postings: " + managementPostings.length);
+                            var irr = 0;
+                            // SET YEARS VARIABLE FOR BOTH GRAPH AND BUDGET
+                            var years = 0;
+                            if(foundProject.budgets.establishment || foundProject.budgets.management){
+                                var totalEstablishment = 0;
+                                if(establishementPostings.length > 0){
+                                    for(i=0;i<establishementPostings.length;i++){
+                                        if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                            totalEstablishment = totalEstablishment - (establishementPostings[i].value * establishementPostings[i].amount);
+                                        } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                            totalEstablishment = totalEstablishment + (establishementPostings[i].value * establishementPostings[i].amount);
+                                        }
+                                        if(establishementPostings[i].year){
+                                            if(establishementPostings[i].year > years){
+                                                years = establishementPostings[i].year;
+                                            }
+                                        }
+                                    }
+
+                                }
+                                var totalManagement = 0;
+                                if(managementPostings.length > 0){
+                                    for(i=0;i<managementPostings.length;i++){
+                                        if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                            totalManagement = totalManagement - (managementPostings[i].value * managementPostings[i].amount);
+                                        } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                            totalManagement = totalManagement + (managementPostings[i].value * managementPostings[i].amount);
+                                        }
+                                        if(managementPostings[i].year){
+                                            if(managementPostings[i].year > years){
+                                                years = managementPostings[i].year;
+                                            }
+                                        }
+                                    }
+                                }
+                                for(i=0;i<foundProject.financial.period;i++){
+                                    irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
+                                }
+                                irr = irr - totalEstablishment;
+                            }
+                            console.log(irr);
+                            console.log("Years: " + years);
+                            //
+                            var labels = [];
+                            for(i=1;i<years+1;i++){
+                                var label = i;
+                                labels.push(label);
+                            }
+                            // GENERATE DATA FOR GRAPH
+/*
+                            var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
+*/
+                            // CALCULATE DATASET
+
+                            var parsedLabels = JSON.stringify(labels);
+                            var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
+                            var parseddataset = JSON.stringify(dataset);
+                            // CHECK LENGTH IS IDENTICAL
+                            res.render("projects/show", {project: foundProject, irr: irr, labels: parsedLabels, dataset: parseddataset});
+                        }
+                    });
+                }
+            });
         }
     });
 });
@@ -669,6 +723,29 @@ router.put("/projects/:id/retire", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
+
+// PROJECT STATUS CHANGE ROUTE - COMPLETE
+router.put("/projects/:id/complete", middleware.isLoggedIn, function(req, res){
+    Project.findByIdAndUpdate(req.params.id, { $set: { status: "Completed"} }, function(err, completedProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND AREA, UPDATE PRESENT SYSTEM AND PUSH OLD PRESENT SYSTEM TO PAST SYSTEMS
+            Layer.findById(completedProject.layer, function(err, projectArea){
+                if(err){
+                    console.log(err);
+                } else {
+                    projectArea.systems.past.push(projectArea.systems.present);
+                    projectArea.systems.present = completedProject.system;
+                    projectArea.save();
+                    // CLEAR FUTURE DRAFTS?
+                    // REDIRECT
+                    res.redirect("/projects/" + req.params.id);
+                }
+            });
         }
     });
 });

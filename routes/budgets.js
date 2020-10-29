@@ -21,20 +21,39 @@ router.get("/budgets/:id", middleware.isLoggedIn, function(req, res){ // CHECK O
         } else {
             // FIND BUDGET LENGTH
             var years = 0;
-            var total = 0;
+            // CREATE ARRAY TO STORE ANNUAL TOTALS AND POSTINGS
+            var postingsArray = [];
+            // SET YEARS
             for(i=0;i<foundBudget.postings.length;i++){
                 // IF YEAR IS LARGER, ADD TO YEARS
                 if(foundBudget.postings[i].year > years){
                     years = foundBudget.postings[i].year;
                 }
-                // CHECK IF COST OR INCOME
-                if(foundBudget.postings[i].postType === "labor" || foundBudget.postings[i].postType === "material"){
-                    total = total - (foundBudget.postings[i].value * foundBudget.postings[i].amount);
-                } else if(foundBudget.postings[i].postType === "product" || foundBudget.postings[i].postType === "service"){
-                    total = total + (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+            }
+            // SET ARRAY LENGTH
+            for(i=0;i<years;i++){
+                var year = {
+                    year: i + 1,
+                    postings: Array,
+                    total: 0
+                };
+                postingsArray.push(year);
+            }
+            // CHECK IF COST OR INCOME
+            for(i=0;i<foundBudget.postings.length;i++){
+                for(j=0;j<postingsArray.length;j++){
+                    // CHECK IF SAME YEAR
+                    if(foundBudget.postings[i].year === postingsArray[j].year){
+                        // CHECK IF COST OR INCOME
+                        if(foundBudget.postings[i].postType === "labor" || foundBudget.postings[i].postType === "material"){
+                            postingsArray[j].total = postingsArray[j].total - (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+                        } else if(foundBudget.postings[i].postType === "product" || foundBudget.postings[i].postType === "service"){
+                            postingsArray[j].total = postingsArray[j].total + (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+                        }
+                    }
                 }
             }
-            res.render("budgets/show", {budget: foundBudget, total: total, years: years});
+            res.render("budgets/show", {budget: foundBudget, total: postingsArray, years: years});
         }
     });
 });

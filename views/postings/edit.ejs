@@ -28,6 +28,14 @@
                     <label for="posting[value]">Value</label>
                     <input type="number" step=".01" class="form-control" name="posting[value]" id="posting[value]" value="<%= posting.value %>">
                 </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[month]">Month</label>
+                    <input type="number" step=".01" class="form-control" name="posting[month]" id="posting[month]" value="<%= posting.month %>">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[year]">Year</label>
+                    <input type="number" step=".01" class="form-control" name="posting[year]" id="posting[year]" value="<%= posting.year %>">
+                </div>
             </div>
             <div class="form-group">
                 <button type="submit" class="btn btn-success">Update posting</button>

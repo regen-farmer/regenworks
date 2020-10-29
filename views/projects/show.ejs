@@ -52,9 +52,9 @@
                             <p>Once you change phase from planning to implementation phase, the layout of your project will be fixed and additional features wil be unlocked such as asset generation and implementation plans.</p>
                         </div>
                         <div class="modal-footer">
-                            <!--<form class="implement-form" action="/projects/<%= project._id %>/implement?_method=PUT" method="POST">
+                            <form class="implement-form" action="/projects/<%= project._id %>/implement?_method=PUT" method="POST">
                                 <button class="btn btn-success">Confirm project implementation start</button>
-                            </form>-->
+                            </form>
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                         <a class="nav-link" id="asset-tab" data-toggle="tab" href="#assets" role="tab" aria-controls="assets" aria-selected="false">Assets</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="implementation-tab" data-toggle="tab" href="#implementation" role="tab" aria-controls="implementation" aria-selected="false">Implementation plans</a>
+                        <a class="nav-link" id="implementation-tab" data-toggle="tab" href="#implementation" role="tab" aria-controls="implementation" aria-selected="false">Implementation</a>
                     </li>
                 <% } %>
             </ul>
@@ -111,9 +111,7 @@
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-body">
-<!--
                                                     <a class="btn btn-outline-primary" href="/projects/<%= project._id %>/addedgesystem">Add edge system</a>
--->
                                                 </div>
                                             </div>
                                         </div>
@@ -140,33 +138,45 @@
                     <div class="card">
                         <div class="card-body">
                             <h2 class="card-title">Project budgets</h2>
-                            <p>Establishment budget</p>
-                            <% if(project.budgets.establishment){ %>
-                                <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
-                            <% } else { %>
-<!--
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text">Establishment budget</p>
+                                            <% if(project.budgets.establishment){ %>
+                                            <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
+                                            <% } else { %>
+                                            <!--
                                 <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
 -->
-                                <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
-                            <% } %>
-                            <p>Management and cash-flow budget</p>
-                            <% if(project.budgets.management){ %>
-                                <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
-                            <% } else { %>
-<!--
+                                            <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text">Management and cash-flow budget</p>
+                                            <% if(project.budgets.management){ %>
+                                            <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                                            <% } else { %>
+                                            <!--
                                 <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
 -->
-                                <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
-                            <% } %>
+                                            <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-body">
                             <h2 class="card-title">Financial analysis</h2>
                             <% if(project.budgets.management && project.budgets.establishment){ %>
-<!--
                                 <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
--->
                                 <p><strong>IRR: <%= irr %></strong></p>
                                 <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
                                 <p>Time period: <%= project.financial.period %> yrs</p>
@@ -204,7 +214,31 @@
                 <div class="tab-pane fade" id="implementation" role="tabpanel" aria-labelledby="implementation-tab">
                     <div class="card">
                         <div class="card-body">
-                            <h2 class="card-title">Assets</h2>
+                            <h2 class="card-title">Implementation plan</h2>
+                            <% if(project.status === "Implementation"){ %>
+                            <button type="button" class="btn btn-outline-success"  data-toggle="modal" data-target="#myModalCompleteProject">Start manual project completion</button>
+                            <% } %>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalCompleteProject" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Start manual project completion</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>NOTICE: Once you complete the project, the current system of the project area will be updated to reflect the system specified in this project and the project will be marked as completed. </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="implement-form" action="/projects/<%= project._id %>/complete?_method=PUT" method="POST">
+                                                <button class="btn btn-success">Confirm manual project completion</button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -236,6 +270,12 @@
         </div>
     </div>
 <script>
+    var labels = "<%= labels %>";
+    var correctlabels = JSON.parse(labels.replace(/&#34;/g,'"'));
+
+    var dataset = "<%= dataset %>";
+    var correctdataset = JSON.parse(dataset.replace(/&#34;/g,'"'));
+
     var ctx = document.getElementById('lineChart').getContext('2d');
     var myChart = new Chart(ctx, {
         // The type of chart we want to create
@@ -243,12 +283,12 @@
 
         // The data for our dataset
         data: {
-            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            labels: correctlabels,
             datasets: [{
                 label: 'YoY cash-flow',
                 backgroundColor: 'rgb(110, 188, 74)',
                 borderColor: 'rgb(77, 131, 51)',
-                data: [0, 0, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5]
+                data: correctdataset
             }]
         },
 
