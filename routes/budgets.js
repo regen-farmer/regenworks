@@ -343,9 +343,26 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                     }
                                 }
                             }
-                            console.log(postings.length);
+                            console.log(postings.length + " postings excluding yields");
                             // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
 
+                            // CREATE POSTINGS FOR YIELDS ;)
+                            for(i=0;i<uniqueSpecies.length;i++){
+                                // CYCLE THROUGH ALL YEARS
+                                for(j=0;j<period;j++) {
+                                    // CREATE YIELD POSTING
+                                    var posting = {
+                                        name: uniqueSpecies[i].nameCommon + " yields",
+                                        postType: "product",
+                                        amount: 1,
+                                        value: 1,
+                                        year: j + 1
+                                    };
+                                    // ADD TO POSTINGS
+                                    postings.push(posting);
+                                }
+                            }
+                            console.log(postings.length + " postings including yields");
                             // CREATE POSTINGS
                             Posting.insertMany(postings, function(err, createdPostings){
                                 if(err){

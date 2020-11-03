@@ -203,7 +203,7 @@
                             <% layer.systems.future.forEach(function(system){ %>
                             <div class="card bg-light">
                                 <div class="card-body">
-                                    <p class="card-text"><%= system.name %></p>
+                                    <p class="card-text"><Strong>System name: </Strong><%= system.name %></p>
                                     <a class="btn btn-outline-primary" href="/systems/<%= system._id %>">View more details</a>
                                     <button class="btn btn-outline-warning" data-toggle="modal" data-target="#setCurrentModal<%= system._id %>">Create implementation project for this system</button>
                                     <!-- Modal -->

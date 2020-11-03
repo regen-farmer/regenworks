@@ -148,6 +148,10 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.low = -7;
             climate.hardiness.high = -1;
         }
+        if(data[0].country === "Saudi Arabia"){
+            climate.hardiness.low = 7;
+            climate.hardiness.high = 16;
+        }
         // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate, measurement: measurement};
         // Create a new parcel and save it to the database

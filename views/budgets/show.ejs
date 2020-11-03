@@ -5,7 +5,9 @@
     <h1><%= budget.name %></h1>
     <p><small>- As initial postings are automatically generated, please update values with local prices where applicable. We are continuously improving our models and dataset, but we recommend that you check all postings for most accurate budget. -</small></p>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
-        Years:
+        <li class="nav-item">
+            <p class="navbar-text">Years: </p>
+        </li>
         <% for(i=1;i<years+1;i++){ %>
             <% if(i === 1){ %>
                 <li class="nav-item">
