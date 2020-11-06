@@ -13,9 +13,28 @@
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
                 <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area details</a>
-                <!--<form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
-                    <button class="btn btn-danger">Delete Area</button>
-                </form>-->
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea">Delete Area</button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalDeleteArea" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm deletion of area</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you delete your area, all information connected to it like saved systems, projects and budgets will be permanently deleted and it will not be able to be restored.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
+                                    <button class="btn btn-danger">Delete area</button>
+                                </form>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <% } %>
             </div>
         </div>
