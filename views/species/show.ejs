@@ -21,18 +21,29 @@
             <% if(!(species.flows == "")){ %>
                 <p><%= species.flows[0].data %></p>
             <% } %>
-            <% if(!(species.activities == "")){ %>
-                <p><strong>Activity amounts:</strong> <%= species.activities.length %> </p>
-                <p><%= species.activities[0].activityType %> + <%= species.activities[0].subtype %></p>
-            <% } %>
+
         </div>
-        <div class="col-sm-2">
+        <!--<div class="col-sm-2">
             <h2>Yield</h2>
             <p>Yield type: Nuts</p>
+        </div>-->
+        <div class="col-sm-8 card">
+            <h2>Activities</h2>
+            <% if(!(species.activities == "")){ %>
+            <p><strong>Activity amounts:</strong> <%= species.activities.length %> </p>
+            <% for(i=0;i<species.activities.length;i++){ %>
+                <div class="card-body">
+                    <p class="card-text"><%= species.activities[i].name %> <%= species.activities[i].activityType %> + <%= species.activities[i].subtype %></p>
+                    <a class="btn btn-sm btn-outline-secondary" href="/species/<%= species._id %>/activities/edit?index=<%= i %>">Edit activity</a>
+                </div>
+            <% } %>
+            <% } %>
         </div>
+<!--
         <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
+-->
     </div>
-    <div class="row">
+    <!--<div class="row">
         <div class="col-sm-2">
         </div>
         <div class="col-sm-2">
@@ -45,7 +56,7 @@
     </div>
     <h2>Annual yield profile for species</h2>
     <p>The annual yield profile makes it possible to assess labor peaks and plan systems where labor is spread out accross the year. Furthermore, it can help to assess and optimize early cash flows. More diverse and spread out yields can help to mitigate market votality etc. </p>
-</div>
+--></div>
 
 <script>
     var ctx = document.getElementById('lineChart').getContext('2d');

@@ -1097,6 +1097,31 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
     });
 });
 
+// LAYER MY SYSTEMS FIND
+router.get("/layers/:id/mysystems", middleware.isLoggedIn, function(req, res){
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            System.find({'owner.id': req.user._id}).populate("model.species").populate("flows").populate("animals").exec(function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("layers/mysystems", {layer: foundLayer, systems: realSystems});
+                }
+            });
+        }
+    });
+});
+
 // SYSTEM OCCURRENCE NEW ROUTE
 router.get("/systems/:id/occurrences/new", middleware.isLoggedIn, function(req, res){
     System.findById(req.params.id, function(err, foundSystem){

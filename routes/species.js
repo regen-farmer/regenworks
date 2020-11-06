@@ -102,6 +102,22 @@ router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
     });
 });
 
+
+// SPECIES ACTIVITY EDIT ROUTE
+router.get("/species/:id/activities/edit", middleware.isLoggedIn, function(req, res){
+    Species.findById(req.params.id, function(err, foundSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            var activity = foundSpecies.activities[req.query.index];
+            res.render("species/editactivity", {species: foundSpecies, activity: activity});
+        }
+    });
+});
+
+// SPECIES ACTIVITY UPDATE ROUTE
+
+
 // SPECIES NUTRIENTS CREATE ROUTE
 router.get("/species/:id/nutrients/new", middleware.isLoggedIn, function(req, res){
     Species.findById(req.params.id, function(err, foundSpecies){

@@ -184,6 +184,7 @@
     <p>Assess projected lifetime productivity of system.</p>
     <table class="table table-striped small">
         <tr>
+            <td></td>
             <td class="text-right">Year</td>
             <td>1</td>
             <td>2</td>
@@ -205,19 +206,20 @@
             <tr>
                 <td><strong><%= species.nameCommon %></strong> - <i><%= species.genus %> <%= species.species %></i></td>
                 <% if(species.flows.length > 0){ %>
-                <% for(j=0;j<species.flows.length;j++){ %>
-                <% if(species.flows[j].timeframe === "year"){ %>
-                <% for(i=0;i<15;i++){ %>
-                <% if(species.flows[j].data[i] > 0){ %>
-                <td class="bg-success"><%= species.flows[j].data[i] %></td>
+                    <% for(j=0;j<species.flows.length;j++){ %>
+                        <% if(species.flows[j].timeframe === "year"){ %>
+                                <td class="text-right"><%= species.flows[0].name %></td>
+                                <% for(i=0;i<15;i++){ %>
+                                <% if(species.flows[j].data[i] > 0){ %>
+                                    <td class="bg-success"><%= species.flows[j].data[i] %></td>
+                                <% } else { %>
+                                    <td><%= species.flows[j].data[i] %></td>
+                                <% } %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
                 <% } else { %>
-                <td><%= species.flows[j].data[i] %></td>
-                <% } %>
-                <% } %>
-                <% } %>
-                <% } %>
-                <% } else { %>
-                <td>---</td>
+                    <td>---</td>
                 <% } %>
             </tr>
         <% }); %>

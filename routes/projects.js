@@ -511,6 +511,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                     distance = 0.01;
                                     var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                                     var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
+                                    console.log("Row point count: " + rowPoints1.features.length);
+                                    // DO IF HERE TO CHECK SEPARATE ROWS
+
                                     if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)){
                                         var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
                                     } else {
@@ -521,12 +524,16 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                     distance = distance + distanceArray[j];
                                     var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                                     var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
-                                    if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
-                                        var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
-                                    } else {
-                                        var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                    console.log("Row point count: " + rowPoints1.features.length);
+                                    // DO IF HERE TO CHECK SEPARATE ROWS
+                                    for(k=0;k<rowPoints1.features.length;k+=2){
+                                        if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
+                                            var row1 = turf.lineString([[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]],[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]]],{name: "line-0" + i });
+                                        } else {
+                                            var row1 = turf.lineString([[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]],[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                        }
+                                        rowArray.push(row1);
                                     }
-                                    rowArray.push(row1);
                                 }
                             }
                         }
@@ -537,6 +544,8 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             if(countWidth < rowRest){
                                 var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
                                 var rowPoints2 = lineIntersect(bufferLine2, offsetPolygon);
+                                console.log("Row point count: " + rowPoints2.features.length);
+                                // DO IF HERE TO CHECK SEPARATE ROWS
                                 // CHECK IF ROWS CROSS MEDIAN LINE (GOES FROM NEGATIVE TO POSITIVE)
                                 if((rowPoints2.features[0].geometry.coordinates[0] < 0 && rowPoints2.features[1].geometry.coordinates[0] > 0) || (rowPoints2.features[0].geometry.coordinates[0] > 0 && rowPoints2.features[1].geometry.coordinates[0] < 0) || rowPoints2.features[0].geometry.coordinates[1] > rowPoints2.features[1].geometry.coordinates[1]){
                                     var row2 = turf.lineString([[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]],[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]]],{name: "line-1" + i });

@@ -437,21 +437,25 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
             res.redirect("/parcels");
         } else {
             // REMOVE LAYER FROM PARCEL
-            Parcel.find({"layers": req.params.id}, function(err, foundParcel){
+            Parcel.find({"layers": { $eq: foundLayer }}, function(err, foundParcel){
                 if(err){
                     console.log(err);
                     res.redirect("/parcels");
                 } else {
-                    console.log(foundParcel.layers);
+                    console.log(foundParcel.layers.length);
                     // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
-                    Layer.findByIdAndRemove(req.params.id, function(err){
+                    foundParcel.layers.remove(foundLayer);
+                    foundParcel.save();
+                    res.redirect("/parcels");
+                    // DELETE LAYER TEMP REMOVED
+                    /*Layer.findByIdAndRemove(req.params.id, function(err){
                         if(err){
                             console.log(err);
                             res.redirect("/parcels");
                         } else {
                             res.redirect("/parcels");
                         }
-                    });
+                    });*/
                 }
             });
         }
