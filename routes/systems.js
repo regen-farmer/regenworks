@@ -496,8 +496,19 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
                                 distance = distanceDifference[0];
                             }
                             console.log(distance);
+                            if(req.query.distance){
+                                console.log("Distance query");
+                                distance = distance / req.query.distance;
+                            }
+                            // JUST SET NEW VARIABLE TO CONTROL NEW ROW
+                            var newRow = -1;
+                            if(req.query.row){
+                                console.log("Row query " + req.query.row);
+                                newRow = parseInt(req.query.row);
+                                console.log(typeof(newRow));
+                            }
                             // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
-                            res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundAnimals, rows: rows, distance: distance, length: length});
+                            res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundAnimals, rows: rows, distance: distance, length: length, newrow: newRow});
                         }
                     })
                 }
