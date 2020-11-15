@@ -121,11 +121,11 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                                 var totalEstablishment = 0;
                                 if(establishementPostings.length > 0){
                                     for(i=0;i<establishementPostings.length;i++){
-                                        if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
-                                            totalEstablishment = totalEstablishment - (establishementPostings[i].value * establishementPostings[i].amount);
+                                        /*if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
                                         } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
-                                            totalEstablishment = totalEstablishment + (establishementPostings[i].value * establishementPostings[i].amount);
-                                        }
+                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                                        }*/
                                         if(establishementPostings[i].year){
                                             if(establishementPostings[i].year > years){
                                                 years = establishementPostings[i].year;
@@ -134,14 +134,13 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                                     }
 
                                 }
-                                var totalManagement = 0;
                                 if(managementPostings.length > 0){
                                     for(i=0;i<managementPostings.length;i++){
-                                        if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
-                                            totalManagement = totalManagement - (managementPostings[i].value * managementPostings[i].amount);
+                                        /*if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
                                         } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
-                                            totalManagement = totalManagement + (managementPostings[i].value * managementPostings[i].amount);
-                                        }
+                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                                        }*/
                                         if(managementPostings[i].year){
                                             if(managementPostings[i].year > years){
                                                 years = managementPostings[i].year;
@@ -149,30 +148,72 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                                         }
                                     }
                                 }
-                                for(i=0;i<foundProject.financial.period;i++){
-                                    irr = irr + (totalManagement)/(1+foundProject.financial.discountRate)^i;
+                                /*for(i=0;i<foundProject.financial.period;i++){
+                                    irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
                                 }
-                                irr = irr - totalEstablishment;
+                                irr = irr - totalEstablishment;*/
                             }
                             console.log(irr);
                             console.log("Years: " + years);
-                            //
+                            // SET UP
+                            var YoY = [];
                             var labels = [];
                             for(i=1;i<years+1;i++){
                                 var label = i;
                                 labels.push(label);
+                                YoY.push(0);
                             }
+                            // SET UP
+                            if(foundProject.budgets.establishment || foundProject.budgets.management){
+                                var totalEstablishment = 0;
+                                if(establishementPostings.length > 0){
+                                    for(i=0;i<establishementPostings.length;i++){
+                                        if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
+                                        } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                                        }
+                                    }
+
+                                }
+                                if(managementPostings.length > 0){
+                                    for(i=0;i<managementPostings.length;i++){
+                                        if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
+                                        } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                                        }
+                                    }
+                                }
+                                /*for(i=0;i<foundProject.financial.period;i++){
+                                    irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                                }
+                                irr = irr - totalEstablishment;*/
+                            }
+                            var parsedLabels = JSON.stringify(labels);
                             // GENERATE DATA FOR GRAPH
+
+                            // ROI
+                            var roi = 0;
 /*
                             var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
 */
                             // CALCULATE DATASET
-
-                            var parsedLabels = JSON.stringify(labels);
+                            var sumArray = [];
+                            var sum = 0;
+                            for(i=0;i<years;i++){
+                                sum = sum + YoY[i];
+                                sumArray.push(sum);
+                            }
+/*
                             var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
-                            var parseddataset = JSON.stringify(dataset);
+*/
+                            console.log(YoY[0]);
+                            console.log(YoY.length);
+                            var parseddataset = JSON.stringify(YoY);
+                            var parsedsum = JSON.stringify(sumArray);
                             // CHECK LENGTH IS IDENTICAL
-                            res.render("projects/show", {project: foundProject, irr: irr, labels: parsedLabels, dataset: parseddataset});
+                            res.render("projects/show", {project: foundProject, years: years, roi: roi, irr: irr, labels: parsedLabels, dataset: parseddataset, sum: parsedsum});
                         }
                     });
                 }

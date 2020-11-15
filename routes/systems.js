@@ -644,7 +644,14 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
                     } else {
                         distance = distanceDifference[0];
                     }
-                    res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundSystem.animals, rows: rows, distance: distance, length: length});
+                    // NEWROW
+                    var newRow = -1;
+                    if(req.query.row){
+                        console.log("Row query " + req.query.row);
+                        newRow = parseInt(req.query.row);
+                        console.log(typeof(newRow));
+                    }
+                    res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundSystem.animals, rows: rows, distance: distance, length: length, newrow: newRow});
                 }
             });
         }

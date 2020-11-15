@@ -201,8 +201,9 @@
                                 <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
                                 <p><strong>IRR: <%= irr %></strong></p>
                                 <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
-                                <p>Time period: <%= project.financial.period %> yrs</p>
-                                <p>ROI</p>
+                                <% if(years && years > 0){ %>
+                                    <p>Time period: <%= years %> years</p>
+                                <% } %>
                                 <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
                             <% } else { %>
                                 <p>-- Financial analysis will show when establishement and cash-flow budget has been generated --</p>
@@ -298,6 +299,9 @@
     var dataset = "<%= dataset %>";
     var correctdataset = JSON.parse(dataset.replace(/&#34;/g,'"'));
 
+    var sum = "<%= sum %>";
+    var correctsum = JSON.parse(sum.replace(/&#34;/g,'"'));
+
     var ctx = document.getElementById('lineChart').getContext('2d');
     var myChart = new Chart(ctx, {
         // The type of chart we want to create
@@ -307,11 +311,18 @@
         data: {
             labels: correctlabels,
             datasets: [{
-                label: 'YoY cash-flow',
-                backgroundColor: 'rgb(110, 188, 74)',
-                borderColor: 'rgb(77, 131, 51)',
+                label: 'Income',
+                backgroundColor: 'rgb(0, 0, 0)',
+                borderColor: 'rgb(0, 0, 255)',
                 data: correctdataset
-            }]
+            },
+            {
+                label: 'Cumulative cash flow',
+                backgroundColor: 'rgb(0, 0, 0)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: correctsum
+            }
+            ]
         },
 
         // Configuration options go here
