@@ -1119,8 +1119,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                         } else {
                             systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                        }
-                        var systemModelCount = Math.floor(rowLength/systemModelLength);
+                        }                        var systemModelCount = Math.floor(rowLength/systemModelLength);
                         var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                         // CALCULATE AREA
                         treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
