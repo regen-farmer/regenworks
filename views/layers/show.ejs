@@ -168,9 +168,7 @@
                 <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Current layout</h5>
-                            <p class="card-text">System layout: N/A</p>
-                            <p class="card-text">System alignment: N/A</p>
+                            <h5 class="card-title">Current layout and assets on area</h5>
                             <p class="card-text">Area size:
                                 <% if(layer.size > 5000){ %>
                                     <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)
@@ -178,12 +176,12 @@
                                     <%= layer.size.toFixed(0) %> m2
                                 <% } %>
                             </p>
-                            <% if(layer.rows && layer.rows.length > 0){ %>
+                            <!--<% if(layer.rows && layer.rows.length > 0){ %>
                                 <div class="card-body">
                                     <p><strong>Current defined rows: </strong><%= layer.rows.length %></p>
                                 </div>
-                            <% } %>
-                            <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current system layout</a>
+                            <% } %>-->
+                            <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current layout and assets</a>
                         </div>
                     </div>
                 </div>

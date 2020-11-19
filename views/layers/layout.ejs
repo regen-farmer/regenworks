@@ -21,7 +21,7 @@
                     <table class="table small">
                         <tr class="table-secondary">
                             <td>Row ref</td>
-                            <td>System</td>
+                            <td>Row system pattern</td>
                             <td></td>
                         </tr>
                     <% if(layer.rows && layer.rows.length > 0){ %>
@@ -29,7 +29,7 @@
                             <tr>
                                 <td><%= layer.rows[i].name %></td>
                                 <% if(layer.rows[i].system){ %>
-                                <td><%= layer.rows[i].system.name %></td>
+                                <td><%= layer.rows[i].system.name %> <%= layer.rows[i].system.model[0].species.nameCommon %></td>
                                 <% } else { %>
                                 <td>---</td>
                                 <% } %>
@@ -49,6 +49,9 @@
     var areaLat = "<%= layer.lat %>";
     var areaLng = "<%= layer.lng %>";
 
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
     var col = "<%= collection %>";
     var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
 
@@ -63,7 +66,7 @@
         container: 'layerMapShow',
         style: 'mapbox://styles/mapbox/satellite-v9',
         center: [areaLng, areaLat],
-        zoom: 15,
+        zoom: 16,
     });
 
     map.on('load', function () {
@@ -113,6 +116,20 @@
                 'text-field': ['get', 'description'],
                 'text-justify': 'center',
                 'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#5cb85c'
             }
         });
 
