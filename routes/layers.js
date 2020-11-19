@@ -523,7 +523,7 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
 
 // LAYER CURRENT SYSTEM LAYOUT
 router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.present").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate("rows.system").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -571,47 +571,29 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             for(i=0;i<dataset.length;i++){
                                 dataset[i].array.sort(compare1);
                             }
-                            // SAVE DATASET
-                            foundSystem.sortedrows = dataset;
-                            // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
-                            var rowWidth = 0;
-                            for(i=0;i<dataset.length;i++){
-                                rowWidth = rowWidth + dataset[i].array[0].width;
-                                console.log(dataset[i].array[0].width);
-                            }
-                            // CREATE BOUNDING BOX
-                            var box = bboxPolygon(bbox(polygon));
-                            // TAKE TOP SIDE OF BOUNDING BOX
-                            var lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
-                            // ESTIMATE AMOUNT OF ROWS
-                            console.log((length(lengthLine, {units: "meters"})));
-                            var rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                            console.log(rowCount);
-                            // CREATE ROW LINE
-                            var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
-                            // CREATE ROW ARRAY
                             var rowArray = [];
-                            var distance = rowWidth;
-                            // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-                            for(i=0;i<rowCount;i++){
-                                var bufferLine1 = buffer(line, (distance), {units: "meters"});
-                                var rowPoints1 = lineIntersect(bufferLine1, polygon);
-                                var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
-                                rowArray.push(row1);
-                                distance = distance + rowWidth;
+                            for(i=0;i<foundLayer.rows.length;i++){
+                                var rowGeometry = JSON.parse(foundLayer.rows[i].geometry);
+                                rowArray.push(rowGeometry);
                             }
-                            // CREATE FEATURECOLLECTION
+                            // ROW LABELS (BEFORE ROWS ARE PARSED)
+                            var placesArray = [];
+                            var placesCollection = turf.featureCollection(placesArray);
+                            var places = JSON.stringify(placesCollection);
+                            // CREATE PLACES FEATURE
                             var featurecollection = turf.featureCollection(rowArray);
-                            var line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
-                            var offsetline = lineOffset(line, -(rowWidth),{units: "meters"});
-                            var rowPoints = lineIntersect(offsetline, polygon);
-                            console.log(rowPoints.features[0].geometry.coordinates[1]);
-                            var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
-                            console.log(row);
-                            var stringline = JSON.stringify(row);
-                            var stringbox = JSON.stringify(box);
                             var collection = JSON.stringify(featurecollection);
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, stringbox: stringbox, stringline: stringline, collection: collection});
+                            // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
+
+
+                            // COUNT ASSETS
+
+
+                            // COMBINE ASSETS AND ROW BASED
+
+
+
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places});
                         }
                     });
                 }
@@ -619,5 +601,103 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
         }
     });
 });
+
+// ROW NEW ROUTE
+router.get("/layers/:id/row/new", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND MY SYSTEMS
+            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("layers/row", {layer: foundLayer, systems: realSystems});
+                }
+            });
+        }
+    });
+});
+
+// ROW CREATE ROUTE
+router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
+    // CREATE ROW HERE?
+    var row = {
+        geometry: req.body.geometry,
+        name: req.body.row.name
+    };
+    if(!(req.body.systemid === "none") && req.body.systemid){
+        row.system = req.body.systemid;
+    }
+    console.log(row);
+    // FIND PROJECT
+    Layer.findByIdAndUpdate(req.params.id, {$addToSet: {rows: row}}, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE ROW
+            console.log("Row has been added to layer");
+            res.redirect("/layers/" + foundLayer.id);
+        }
+    });
+});
+
+// EDIT ROW
+router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            var row = foundLayer.rows[req.query.index];
+            // FIND MY SYSTEMS
+            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("layers/editrow", {layer: foundLayer, row: row, systems: realSystems, index: req.query.index});
+                }
+            });
+        }
+    });
+});
+
+// UPDATE ROW
+router.put("/layers/:id/row", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // CHANGE PARAMS
+            foundLayer.rows[req.query.index].name = req.body.row.name;
+            foundLayer.rows[req.query.index].system = req.body.systemid;
+            foundLayer.save();
+            res.redirect("/layers/" + foundLayer._id + "/layout");
+        }
+    });
+});
+
+// DELETE ROW
+
+
 
 module.exports = router;

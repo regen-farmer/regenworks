@@ -138,6 +138,14 @@ li i {
   height: 400px;
 }
 
+#rowMapNew {
+  height: 400px;
+}
+
+#assetMapShow {
+  height: 500px;
+}
+
 .sidebar{
   position: fixed;
   top: 0;

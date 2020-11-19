@@ -56,7 +56,14 @@ var projectSchema = new mongoose.Schema({
     alignment: {type: String, default: "north"},
     bearing: {type: Number, default: 0},
     headland: {type: Number, default: 0},
-    status: String
+    status: String,
+    rows: [
+        {
+            geometry: String,
+            system: {type: mongoose.Schema.Types.ObjectId, ref: "System"},
+            name: String
+        }
+    ]
 });
 
 module.exports = mongoose.model("Project", projectSchema);

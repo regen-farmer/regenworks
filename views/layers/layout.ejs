@@ -2,60 +2,44 @@
 <% include ../partials/navbar %>
 
     <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div id="layerMapShow"></div>
             <a href="/layers/<%= layer._id %>" class="btn mt-2 btn-outline-primary">Back to area page</a>
+            <a href="/layers/<%= layer._id %>/row/new" class="btn mt-2 btn-outline-secondary">Manually add existing row</a>
         </div>
-        <div class="col-md-3">
-            <h2>System layout</h2>
-            <div class="row">
-                <% if(presentsystem.sortedrows.length > 0){ %>
-                    <% presentsystem.sortedrows.forEach(function(row){ %>
-                        <div class="col-sm-3">
-                            <% row.array.forEach(function(species){ %>
-                                <img class="img-fluid" src="/images/<%= species.species.form %>top.svg">
-                                <p class="text-center"><%= species.species.nameCommon %></p>
-                            <% }); %>
-                        </div>
-                    <% }); %>
-                <% } %>
-            </div>
-            <p><i><%= presentsystem.name %></i></p>
-            <p>Area size: <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
-        </div>
-        <div class="col-md-4">
+        <!--<div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h5>Change parameters</h5>
-                    <form action="/layers/<%= layer._id %>?_method=PUT" method="POST">
-                        <div class="form-group">
-                            <label for="layer[layout]">Layout type</label>
-                            <select class="form-control" name="layer[layout]">
-                                <% if(layer.layout === "straight") { %>
-                                <option selected="selected" value="straight">Straight rows</option>
+                    <h2>Existing assets</h2>
+                </div>
+            </div>
+        </div>-->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2>Existing rows</h2>
+                    <table class="table small">
+                        <tr class="table-secondary">
+                            <td>Row ref</td>
+                            <td>System</td>
+                            <td></td>
+                        </tr>
+                    <% if(layer.rows && layer.rows.length > 0){ %>
+                        <% for(i=0;i<layer.rows.length;i++){ %>
+                            <tr>
+                                <td><%= layer.rows[i].name %></td>
+                                <% if(layer.rows[i].system){ %>
+                                <td><%= layer.rows[i].system.name %></td>
                                 <% } else { %>
-                                <option value="straight">Straight rows</option>
+                                <td>---</td>
                                 <% } %>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="layer[alignment]">Alignment</label>
-                            <select class="form-control" name="layer[alignment]">
-                                <% if(layer.alignment === "north") { %>
-                                <option selected="selected" value="north">North/south</option>
-                                <% } else { %>
-                                <option value="north">North/south</option>
-                                <% } %>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="layer[headland]">Headland</label>
-                            <input type="number" min="0" max="10" class="form-control" name="layer[headland]" value="<%= layer.headland %>">
-                        </div>
-                        <div class="btn-group">
-                            <button type="submit" class="btn btn-success btn-lg center-block">Update parameters</button>
-                        </div>
-                    </form>
+                                <td>
+                                    <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-warning">Edit row</a>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% } %>
+                    </table>
                 </div>
             </div>
         </div>
@@ -70,6 +54,10 @@
 
     var getgeometry = "<%= layer.geometry %>";
     var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+
+    var placecollection = "<%= places %>";
+    var places = JSON.parse(placecollection.replace(/&#34;/g,'"'));
+
     mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
         container: 'layerMapShow',
@@ -95,8 +83,8 @@
             },
             'layout': {},
             'paint': {
-                'fill-color': '#7F22C0',
-                'fill-opacity': 0.6,
+                'fill-color': '#fff1ff',
+                'fill-opacity': 0.5,
                 'fill-outline-color': '#F0F8FF'
             }
         });
@@ -110,9 +98,24 @@
             },
             'layout': {},
             'paint': {
-                'line-color': '#fff1ff',
+                'line-color': '#1f1f1f',
             }
         });
+
+        map.addLayer({
+            'id': 'poi-labels',
+            'type': 'symbol',
+            'source': {
+                'type': 'geojson',
+                'data': places
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });
+
     });
 
 </script>

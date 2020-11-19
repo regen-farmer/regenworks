@@ -5,6 +5,17 @@
         <div class="col-md-5">
             <div id="layerMapShow"></div>
             <a href="/projects/<%= project._id %>" class="btn mt-2 mb-2 btn-outline-primary">Back to project page</a>
+<!--
+            <a href="/projects/<%= project._id %>/row/new" class="btn mt-2 mb-2 btn-outline-secondary">Manually add row</a>
+-->
+            <% if(project.rows && project.rows.length > 0){ %>
+            <div class="card">
+                <div class="card-body">
+                    <p><strong>Rows</strong></p>
+                    <p>count: <%= project.rows.length %></p>
+                </div>
+            </div>
+            <% } %>
             <div class="card-body">
                 <h2>Tree and shrub counts</h2>
                 <div class="card">

@@ -1,0 +1,46 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h2>Add existing row to area</h2>
+        <p>You can use this form to add existing tree rows to your area.</p>
+        <div>
+            <form action="/layers/<%= layer._id %>/row" method="POST">
+                <div class="form-group">
+                    <label for="row[name]">Row name/ref</label>
+                    <input type="text" class="form-control" name="row[name]" placeholder="Give the row a name - Descriptive is often best" required>
+                </div>
+                <% if(systems && systems.length > 0){ %>
+                <div class="form-group">
+                    <label for="systemid">Select row system: </label>
+                    <select name="systemid" id="systemid">
+                        <option value="none">None</option>
+                        <% for(i=0;i<systems.length;i++){ %>
+                        <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                        <% } %>
+                    </select>
+                </div>
+                <% } %>
+                <div class="form-group">
+                    <label for="[rowCoordinates]">Row geometry</label>
+                    <p>Please draw the outline of your new row. Press first point or "Finish" to close the shape.</p>
+                </div>
+                <div id="rowMapNew"></div>
+                <input type="hidden" id="geometry" name="geometry">
+                <input type="hidden" id="layersize" name="layersize">
+                <div id="coordinates"></div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Create new row</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var areaLat = "<%= layer.lat %>";
+        var areaLng = "<%= layer.lng %>";
+    </script>
+
+<% include ../partials/footer %>

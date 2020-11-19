@@ -7,6 +7,7 @@ var Layer = require("../models/layer");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var request = require("request"); // Making REST requests
 var turf = require("@turf/helpers");
+var centroid = require("@turf/centroid");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -51,7 +52,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
     var climate = {
         annualaverageprec: req.body.parcel.climate.annualaverageprec,
         hardiness: {
-            low: 9,
+            low: -1,
             high: 16
         }
         };
@@ -156,6 +157,10 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.low = 7;
             climate.hardiness.high = 16;
         }
+        if(data[0].country === "Myanmar"){
+            climate.hardiness.low = 10;
+            climate.hardiness.high = 16;
+        }
         // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate, measurement: measurement};
         // Create a new parcel and save it to the database
@@ -196,6 +201,7 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
         } else {
             var geometry = turf.polygon([[[0,0],[0,1],[1,0],[0,0]]]);
             var geometryArray = [];
+            var placesArray = [];
             geometryArray.push(geometry);
             if(foundParcel.layers.length > 0){
                 for(i=0;foundParcel.layers.length > i;i++){
@@ -205,14 +211,21 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
                     var properties = {
                         'description': foundParcel.layers[i].name
                     };
-                    var feature = turf.feature(polygon.geometry,properties);
+                    var feature = turf.feature(polygon.geometry, properties);
                     geometryArray.push(feature);
+                    // CREATE PLACE
+                    var centroidPoint = centroid(polygon.geometry);
+                    var place = turf.point(centroidPoint.geometry.coordinates, properties);
+                    placesArray.push(place);
                 }
             }
+            // CREATE LABEL COLLECTION
+            var placesCollection = turf.featureCollection(placesArray);
+            var places = JSON.stringify(placesCollection);
             // CREATE FEATURECOLLECTION
             var featurecollection = turf.featureCollection(geometryArray);
             var collection = JSON.stringify(featurecollection);
-            res.render("parcels/show", {parcel: foundParcel, collection: collection});
+            res.render("parcels/show", {parcel: foundParcel, collection: collection, places: places});
         }
     });
 });

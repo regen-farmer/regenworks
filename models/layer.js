@@ -80,7 +80,14 @@ var layerSchema = new mongoose.Schema({
     ],
     alignment: String,
     layout: String,
-    headland: Number
+    headland: Number,
+    rows: [
+        {
+            geometry: String,
+            system: {type: mongoose.Schema.Types.ObjectId, ref: "System"},
+            name: String
+        }
+    ]
 });
 
 module.exports = mongoose.model("Layer", layerSchema);

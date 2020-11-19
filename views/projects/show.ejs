@@ -105,7 +105,6 @@
                     <div class="card">
                         <div class="card-body">
                             <h2 class="card-title">Project agroforestry system</h2>
-
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="card">
@@ -168,9 +167,6 @@
                                             <% if(project.budgets.establishment){ %>
                                             <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
                                             <% } else { %>
-                                            <!--
-                                <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
--->
                                             <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
                                             <% } %>
                                         </div>
@@ -183,9 +179,6 @@
                                             <% if(project.budgets.management){ %>
                                             <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
                                             <% } else { %>
-                                            <!--
-                                <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
--->
                                             <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
                                             <% } %>
                                         </div>
@@ -198,13 +191,17 @@
                         <div class="card-body">
                             <h2 class="card-title">Financial analysis</h2>
                             <% if(project.budgets.management && project.budgets.establishment){ %>
-                                <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
-                                <p><strong>IRR: <%= irr %></strong></p>
-                                <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
-                                <% if(years && years > 0){ %>
-                                    <p>Time period: <%= years %> years</p>
-                                <% } %>
-                                <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
+                                <div class="row">
+                                    <div class="col-sm-8"><canvas id="lineChart"></canvas></div>
+                                    <div class="col-sm-4">
+                                        <p><strong>IRR: <%= irr %></strong></p>
+                                        <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+                                        <% if(years && years > 0){ %>
+                                        <p>Time period: <%= years %> years</p>
+                                        <% } %>
+                                        <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
+                                    </div>
+                                </div>
                             <% } else { %>
                                 <p>-- Financial analysis will show when establishement and cash-flow budget has been generated --</p>
                             <% } %>
@@ -312,13 +309,13 @@
             labels: correctlabels,
             datasets: [{
                 label: 'Income',
-                backgroundColor: 'rgb(0, 0, 0)',
+                backgroundColor: 'rgb(255, 255, 255)',
                 borderColor: 'rgb(0, 0, 255)',
                 data: correctdataset
             },
             {
                 label: 'Cumulative cash flow',
-                backgroundColor: 'rgb(0, 0, 0)',
+                backgroundColor: 'rgb(255, 255, 255)',
                 borderColor: 'rgb(77, 131, 51)',
                 data: correctsum
             }

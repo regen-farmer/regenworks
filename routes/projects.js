@@ -856,7 +856,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                 if(err){
                     console.log(err);
                 } else {
-                    // GENERATE ASSET PARAMS //
+                    // FIX TURF BUG
+                    var merc = 1/Math.cos(54*Math.PI/180);
+                    console.log(merc);
                     // GET GEOMETRY
                     var polygon = JSON.parse(foundProject.layer.geometry);
                     // CALIBRATE OFFSET
@@ -869,7 +871,10 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     var distanceCalibrateLine = lineSplit(splitCalibrateLine.features[1], lineOffsetCalibrate);
                     var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
                     console.log("Distance check " + calibrateDistance);
-                    var offsetPolygon = buffer(polygon, - foundProject.headland*calibrateDistance, {units: "meters"});
+                    // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
+                    var headland = foundProject.headland;
+                    console.log("headland plus perimeter system: " + headland);
+                    var offsetPolygon = buffer(polygon, - headland*calibrateDistance, {units: "meters"});
                     // FIND SYSTEM ROWS
                     var allSpecies = [];
                     var dataset = [];
@@ -914,7 +919,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // SET ROW LENGTHS
                         // IF FIRST ROW
                         if(i === 0){
-                            if(dataset[i].array[0].species.form === "grass"){
+                            if(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb"){
                                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width;
                             } else {
                                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
@@ -928,15 +933,20 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             rowWidthArray.push(rowWidthArrayCount);
                             // FOR ALL OTHER ROWS
                         } else {
-                            rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
-                            if(!(dataset[i].array[0].species.form === "grass")) {
+                            // CHECK IF ROW BEFORE WAS GRASS
+                            if((dataset[i-1].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb") && i === 1){
+                                rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
+                            } else {
+                                rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
+                            }
+                            // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
+                            if(!(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb")) {
                                 rowWidthArray.push(rowWidthArrayCount);
                                 rowWidthArrayCount = 0;
                                 treeRowWidthArray.push(dataset[i].array[0].width);
                             }
                         }
                     }
-                    console.log(rowWidthArray);
                     // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
                     var lengthLine;
                     var line;
@@ -944,7 +954,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     var rowRest = 0;
                     if(foundProject.alignment === "bearing"){
                         // -------- ANGLED ROWS ---------
-                        var lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                        // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
+                        var lengthLineBearing = {};
+                        if(foundProject.headland === 0){
+                            lengthLineBearing = turf.lineString([polygon.geometry.coordinates[0][foundProject.bearing],polygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                        } else {
+                            lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][foundProject.bearing],offsetPolygon.geometry.coordinates[0][foundProject.bearing + 1]],{name: 'bearingline'});
+                        }
                         // SCALE LINE
                         line = transformScale(lengthLineBearing, 6);
                         // ALTERNATIVE BOUNDING BOX LENTH LINE
@@ -969,7 +985,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         console.log(rowCount);
                         console.log("rest " + rowRest);
                         // -------- ANGLED ROWS ---------
-                    } else {
+                    } else if(foundProject.alignment === "north"){
                         // -------- NORTH/SOURTH ROWS ---------
                         // CREATE BOUNDING BOX (IF ANGLE IS 0)
                         var box = bboxPolygon(bbox(offsetPolygon));
@@ -984,6 +1000,21 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // CREATE ROW LINE
                         line = turf.lineString([box.geometry.coordinates[0][3],box.geometry.coordinates[0][4]],{name: 'line-1'});
                         // -------- NORTH/SOURTH ROWS ---------
+                    } else {
+                        // -------- WEST/EAST ROWS ---------
+                        // CREATE BOUNDING BOX
+                        var box = bboxPolygon(bbox(offsetPolygon));
+                        // TAKE TOP SIDE OF BOUNDING BOX
+                        lengthLine = turf.lineString([box.geometry.coordinates[0][1],box.geometry.coordinates[0][2]],{name: 'line-0'});
+                        // ESTIMATE AMOUNT OF ROWS
+                        console.log((length(lengthLine, {units: "meters"})));
+                        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
+                        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log("rest " + rowRest);
+                        console.log(rowCount);
+                        // CREATE ROW LINE
+                        line = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-1'});
+                        // -------- WEST/EAST ROWS ---------
                     }
                     // CREATE ROW ARRAY
                     var rowArray = [];
@@ -1001,6 +1032,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                 distance = 0.01;
                                 var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                                 var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
+                                console.log("Row point count: " + rowPoints1.features.length);
+                                // DO IF HERE TO CHECK SEPARATE ROWS
+
                                 if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)){
                                     var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
                                 } else {
@@ -1011,12 +1045,16 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                 distance = distance + distanceArray[j];
                                 var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                                 var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
-                                if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
-                                    var row1 = turf.lineString([[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]],[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]]],{name: "line-0" + i });
-                                } else {
-                                    var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                console.log("Row point count: " + rowPoints1.features.length);
+                                // DO IF HERE TO CHECK SEPARATE ROWS
+                                for(k=0;k<rowPoints1.features.length;k+=2){
+                                    if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
+                                        var row1 = turf.lineString([[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]],[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]]],{name: "line-0" + i });
+                                    } else {
+                                        var row1 = turf.lineString([[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]],[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]]],{name: "line-0" + i });
+                                    }
+                                    rowArray.push(row1);
                                 }
-                                rowArray.push(row1);
                             }
                         }
                     }
@@ -1027,6 +1065,8 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         if(countWidth < rowRest){
                             var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
                             var rowPoints2 = lineIntersect(bufferLine2, offsetPolygon);
+                            console.log("Row point count: " + rowPoints2.features.length);
+                            // DO IF HERE TO CHECK SEPARATE ROWS
                             // CHECK IF ROWS CROSS MEDIAN LINE (GOES FROM NEGATIVE TO POSITIVE)
                             if((rowPoints2.features[0].geometry.coordinates[0] < 0 && rowPoints2.features[1].geometry.coordinates[0] > 0) || (rowPoints2.features[0].geometry.coordinates[0] > 0 && rowPoints2.features[1].geometry.coordinates[0] < 0) || rowPoints2.features[0].geometry.coordinates[1] > rowPoints2.features[1].geometry.coordinates[1]){
                                 var row2 = turf.lineString([[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]],[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]]],{name: "line-1" + i });
@@ -1036,14 +1076,27 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             rowArray.push(row2);
                         }
                     }
+                    // SET ROWLENGTH ARRAY
+                    var rowLengthArray = [];
                     for (i=0;i<rowArray.length;i++){
-                        console.log(rowArray[i].geometry.coordinates);
+                        var rowLength1 = length(rowArray[i], {units: "meters"});
+                        rowLengthArray.push(rowLength1);
+                        /*
+                                            console.log(rowArray[i].geometry.coordinates);
+                        */
                     }
                     // PUSH TO ROW ARRAY
+                    /*                rowArray.push(scaledLengthLineBearing);
+                                    rowArray.push(finalLengthLineBearing.features[1]);*/
+                    // DO DISTANCE CHECK FOR ROW ARRAY OFFSET
+                    /* var rotatedCheckLine = transformRotate(rowArray[0], 90);
+                     var splitCheckLine = lineSplit(rotatedCheckLine, rowArray[0]);
+                     var distanceCheckLine = lineSplit(splitCheckLine.features[1], rowArray[1]);
+                     var checkDistance = length(distanceCheckLine.features[0], {units: "meters"});
+                     console.log("Distance check " + checkDistance);*/
                     // CREATE FEATURECOLLECTION FOR ROWS
                     var featurecollection = turf.featureCollection(rowArray);
                     var collection = JSON.stringify(featurecollection);
-                    // OFFSET LINE
                     // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
                     var treeRows = [];
                     for(i=0;i<dataset.length;i++){
@@ -1169,7 +1222,7 @@ router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
             var treeCanopyArray = [];
             for(i=0;foundProject.assets.length > i;i++){
                 var point = turf.point([foundProject.assets[i].lat, foundProject.assets[i].lng]);
-                var circle1 = circle(point.geometry.coordinates, 2, {units: "meters"});
+                var circle1 = circle(point.geometry.coordinates, 1, {units: "meters"});
                 allTrees.push(foundProject.assets[i].name);
                 allTreesArray.push(foundProject.assets[i].name);
                 treeCanopyArray.push(circle1);
@@ -1335,6 +1388,39 @@ router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, re
                     }
                 });
             }
+            res.redirect("/projects/" + foundProject.id);
+        }
+    });
+});
+
+// ROW NEW ROUTE
+router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id).populate("layer").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("projects/row", {project: foundProject});
+        }
+    });
+});
+
+// ROW CREATE ROUTE
+router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
+    // CREATE ROW HERE?
+    var row = {
+        geometry: req.body.geometry,
+        name: req.body.row.name
+    };
+    console.log(row);
+    console.log(typeof row);
+    // FIND PROJECT
+    Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: row}}, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE ROW
+            console.log("Row has been added to project");
             res.redirect("/projects/" + foundProject.id);
         }
     });

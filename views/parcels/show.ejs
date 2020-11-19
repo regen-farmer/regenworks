@@ -68,6 +68,9 @@
     var getcollection = "<%= collection %>";
     var correctcollection = JSON.parse(getcollection.replace(/&#34;/g,'"'));
 
+    var placecollection = "<%= places %>";
+    var places = JSON.parse(placecollection.replace(/&#34;/g,'"'));
+
 mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
         container: 'map',
@@ -92,6 +95,21 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2d
                 'fill-outline-color': '#F0F8FF'
             }
         });
+
+        map.addLayer({
+            'id': 'poi-labels',
+            'type': 'symbol',
+            'source': {
+                'type': 'geojson',
+                'data': places
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });
+
     });
 </script>
 

@@ -44,9 +44,11 @@
                 <li class="nav-item">
                     <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system</a>
                 </li>
-     <!--           <li class="nav-item">
-                    <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout</a>
-                </li>-->
+                <% if((layer.rows && layer.rows.length > 0) || (layer.assets && layer.assets.length > 0)){ %>
+                    <li class="nav-item">
+                        <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
+                    </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
                 </li>
@@ -176,6 +178,11 @@
                                     <%= layer.size.toFixed(0) %> m2
                                 <% } %>
                             </p>
+                            <% if(layer.rows && layer.rows.length > 0){ %>
+                                <div class="card-body">
+                                    <p><strong>Current defined rows: </strong><%= layer.rows.length %></p>
+                                </div>
+                            <% } %>
                             <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current system layout</a>
                         </div>
                     </div>
