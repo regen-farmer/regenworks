@@ -10,9 +10,20 @@
                     <label for="row[name]">Row name/ref</label>
                     <input type="text" class="form-control" name="row[name]" placeholder="Give the row a name - Descriptive is often best" required>
                 </div>
+                <% if(systems && systems.length > 0){ %>
+                    <div class="form-group">
+                        <label for="systemid">Select row system: </label>
+                        <select name="systemid" id="systemid">
+                            <option value="none">None</option>
+                            <% for(i=0;i<systems.length;i++){ %>
+                                <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                            <% } %>
+                        </select>
+                    </div>
+                <% } %>
                 <div class="form-group">
                     <label for="[rowCoordinates]">Row geometry</label>
-                    <p>Please draw the outline of your new row. Press first point or "Finish" to close the shape.</p>
+                    <p>Please draw the new row. Press "Finish" to finish line.</p>
                 </div>
                 <div id="rowMapNew"></div>
                 <input type="hidden" id="geometry" name="geometry">

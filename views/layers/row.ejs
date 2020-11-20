@@ -3,8 +3,8 @@
 
 <div class="row">
     <div class="col-lg-6">
-        <h2>Add existing row to area</h2>
-        <p>You can use this form to add existing tree rows to your area.</p>
+        <h2>Add new row</h2>
+        <p>You can use this form to add new tree rows to your area.</p>
         <div>
             <form action="/layers/<%= layer._id %>/row" method="POST">
                 <div class="form-group">
@@ -24,7 +24,7 @@
                 <% } %>
                 <div class="form-group">
                     <label for="[rowCoordinates]">Row geometry</label>
-                    <p>Please draw the outline of your new row. Press first point or "Finish" to close the shape.</p>
+                    <p>Please draw the new row. Press "Finish" to finish line.</p>
                 </div>
                 <div id="rowMapNew"></div>
                 <input type="hidden" id="geometry" name="geometry">

@@ -274,9 +274,9 @@ router.delete("/parcels/:id", middleware.checkParcelOwnership, function(req, res
     Parcel.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);
-            res.redirect("/parcels");
+            res.redirect('/users/' + req.user.id);
         } else {
-            res.redirect("/parcels");
+            res.redirect('/users/' + req.user.id);
         }
     });
 });

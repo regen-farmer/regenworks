@@ -127,7 +127,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
     Parcel.findById(req.params.id, function(err, foundParcel){
         if(err) {
             console.log(err);
-            res.redirect("/parcels");
+            res.redirect('/users/' + req.user.id);
         } else {
             Layer.create(req.body.layer, function (err, layer) {
                 if (err) {
@@ -436,13 +436,13 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
-            res.redirect("/parcels");
+            res.redirect('/users/' + req.user.id);
         } else {
             // REMOVE LAYER FROM PARCEL
             Parcel.find({"owner.id": req.user._id}, function(err, foundParcels){
                 if(err){
                     console.log(err);
-                    res.redirect("/parcels");
+                    res.redirect('/users/' + req.user.id);
                 } else {
                     // CYCLE THROUGH PARCELS
                     var parcelRef = {};
@@ -637,8 +637,9 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                 // FIND MODEL COUNT AND REST
                                 var systemModelCount = Math.floor(rowLength/systemModelLength);
                                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
-
-                                var distance = 0;
+                                // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+                                var firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
+                                treeMarkerArray.push(firstTreeMarker);
                                 // ROW MARKERS
                                 // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
                                 for(j=0;j<systemModelCount;j++){
@@ -747,7 +748,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
 // EDIT ROW
 router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Layer.findById(req.params.id, function(err, foundLayer){
+    Layer.findById(req.params.id).populate("rows.system").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {

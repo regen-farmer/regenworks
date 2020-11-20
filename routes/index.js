@@ -47,11 +47,6 @@ router.get("/succession", middleware.isLoggedIn, function(req, res){
     res.render("succession");
 });
 
-// PLANNING ROUTE
-router.get("/planning", middleware.isLoggedIn, function(req, res){
-    res.render("planning");
-});
-
 // QUESTIONNAIRE ROUTE
 router.get("/questionnaire", function(req, res){
     res.render("questionnaire");
@@ -418,7 +413,7 @@ router.post("/reset/:token", function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.redirect("/parcels");
+            res.redirect("back");
         }
     });
 });

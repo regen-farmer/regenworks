@@ -1400,7 +1400,22 @@ router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            res.render("projects/row", {project: foundProject});
+            // FIND MY SYSTEMS
+            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("projects/row", {project: foundProject, systems: realSystems});
+                }
+            });
         }
     });
 });
@@ -1412,8 +1427,10 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         geometry: req.body.geometry,
         name: req.body.row.name
     };
+    if(!(req.body.systemid === "none") && req.body.systemid){
+        row.system = req.body.systemid;
+    }
     console.log(row);
-    console.log(typeof row);
     // FIND PROJECT
     Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: row}}, function(err, foundProject){
         if(err){
@@ -1422,6 +1439,50 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
             // CREATE ROW
             console.log("Row has been added to project");
             res.redirect("/projects/" + foundProject.id);
+        }
+    });
+});
+
+// EDIT ROW
+router.get("/projects/:id/row/edit", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id).populate("rows.system").populate("layer").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            var row = foundProject.rows[req.query.index];
+            // FIND MY SYSTEMS
+            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT OUT MONOCULTURE SYSTEMS
+                    var realSystems = [];
+                    for(i=0;i<foundSystems.length;i++){
+                        var systemNameSplit = foundSystems[i].name.split(" ");
+                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
+                            realSystems.push(foundSystems[i]);
+                        }
+                    }
+                    res.render("projects/editrow", {project: foundProject, row: row, systems: realSystems, index: req.query.index});
+                }
+            });
+        }
+    });
+});
+
+// UPDATE ROW
+router.put("/projects/:id/row", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // CHANGE PARAMS
+            foundProject.rows[req.query.index].name = req.body.row.name;
+            foundProject.rows[req.query.index].system = req.body.systemid;
+            foundProject.save();
+            res.redirect("/projects/" + foundProject._id + "/layout");
         }
     });
 });

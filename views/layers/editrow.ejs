@@ -3,7 +3,7 @@
 
 <div class="row">
     <div class="col-lg-6">
-        <h2>Add row to project</h2>
+        <h2>Edit row</h2>
         <div>
             <form action="/layers/<%= layer._id %>/row?_method=PUT&index=<%= index %>" method="POST">
                 <div class="form-group">
@@ -16,7 +16,11 @@
                         <select name="systemid" id="systemid">
                             <option value="none">None</option>
                             <% for(i=0;i<systems.length;i++){ %>
-                            <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                                <% if(systems[i].name === row.system.name){ %>
+                                    <option value="<%= systems[i]._id %>" selected="selected"><%= systems[i].name %></option>
+                                <% } else { %>
+                                    <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                                <% } %>
                             <% } %>
                         </select>
                     </div>
