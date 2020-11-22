@@ -7,12 +7,18 @@ if(!!document.getElementById("layerMapNew")){
     // NEW LAYER GEOMETRY MAP
     var mylayermapnew = L.map('layerMapNew').setView([parcelLat, parcelLng], 16);
 
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        attribution: 'Map data &copy; contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.google.com/">Google</a>',
+        maxZoom: 21,
+        subdomains:['mt0','mt1','mt2','mt3']
+    }).addTo(mylayermapnew);
+
+    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 20,
         id: 'mapbox.satellite',
         accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);
+    }).addTo(mylayermapnew);*/
 
 // FeatureGroup is to store editable layers
     var editableLayers = new L.FeatureGroup();
@@ -72,12 +78,18 @@ if(!!document.getElementById("rowMapNew")){
     // NEW LAYER GEOMETRY MAP
     var mylayermapnew = L.map('rowMapNew').setView([areaLat, areaLng], 16);
 
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        attribution: 'Map data &copy; contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.google.com/">Google</a>',
+        maxZoom: 21,
+        subdomains:['mt0','mt1','mt2','mt3']
+    }).addTo(mylayermapnew);
+
+    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 20,
         id: 'mapbox.satellite',
         accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);
+    }).addTo(mylayermapnew);*/
 
 // FeatureGroup is to store editable layers
     var editableLayers = new L.FeatureGroup();
