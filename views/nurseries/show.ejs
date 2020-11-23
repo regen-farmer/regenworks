@@ -1,0 +1,35 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h1>Your nursery</h1>
+        <div class="card">
+            <div class="card-body">
+                <p><%= nursery.name %></p>
+                <p><%= nursery.description %></p>
+                <p><strong>Location: </strong><%= nursery.location %></p>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <h2>Products</h2>
+        <div class="card">
+            <div class="card-body">
+                <a href="/nurseries/<%= nursery._id %>/nurseryproducts/new" class="btn btn-outline-success">
+                    Add product
+                </a>
+                <table>
+                    <tr>
+                        <td>Product</td>
+                        <td>Stock</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include ../partials/footer %>

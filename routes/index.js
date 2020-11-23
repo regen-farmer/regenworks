@@ -202,7 +202,11 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
             if((req.user.membership + req.user.registrationDate) > Date.now()){
                 console.log("membership test passed");
             }
-            res.redirect('/users/' + req.user.id);
+            if(req.user.isNursery && req.user.isNursery === true){
+                res.redirect('/nurseries');
+            } else {
+                res.redirect('/users/' + req.user.id);
+            }
         }
     });
 });

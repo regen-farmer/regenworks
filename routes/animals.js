@@ -12,7 +12,7 @@ router.get("/animals", middleware.isLoggedIn, function(req, res){
             res.render("animals/index", {animals: foundAnimals});
         }
     })
-})
+});
 
 // ANIMAL NEW
 router.get("/animals/new", middleware.isLoggedIn, function(req, res){ // ADMIN LOGIN REQUIRED
