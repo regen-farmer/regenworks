@@ -21,7 +21,13 @@ var UserSchema = new mongoose.Schema({
     membership: Number,
     farmLimit: Number,
     isAdmin: {type: Boolean, default: false},
-    isNursery: {type: Boolean, default: false}
+    isNursery: {type: Boolean, default: false},
+    nurseries: [
+            {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Nursery"
+        }
+    ]
 });
 
 UserSchema.plugin(passportLocalMongoose);

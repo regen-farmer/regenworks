@@ -5,6 +5,7 @@ var nurserySchema = new mongoose.Schema({
     name: String,
     location: String,
     currency: String,
+    description: String,
     lat: Number,
     lng: Number,
     owner: {

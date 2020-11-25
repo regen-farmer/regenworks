@@ -9,8 +9,12 @@
                 <li><a class="nav-link" class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
                 <li><a class="nav-link" href="/login">Sign in</i></a></li>
                 <% } else { %>
-                <li><a class="nav-link" href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
-                <li><a class="nav-link" href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
+                    <% if(currentUser.isNursery && currentUser.isNursery == true){ %>
+                        <li><a class="nav-link" href="/nurseries"><i class="fas fa-tree"></i> My Nursery</a></li>
+                    <% } else { %>
+                        <li><a class="nav-link" href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
+                    <% } %>
+                    <li><a class="nav-link" href="/logout"><i class="fas fa-arrow-circle-right"></i> Logout</a></li>
                 <% } %>
             </ul>
         </div><!-- /.navbar-collapse -->

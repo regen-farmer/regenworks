@@ -75,16 +75,94 @@ router.post("/nurseries/:id/nurseryproducts", middleware.isLoggedIn, function(re
 });
 
 // NURSERY PRODUCT SHOW
-router.get("/nurseryproducts/:id", middleware.isLoggedIn, function(req, res){
-    // FIND PRODUCT
-    NurseryProduct.findById(req.params.id, function(err, foundProduct){
+router.get("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND NURSERY
+    Nursery.findById(req.params.id, function(err, foundNursery){
         if(err){
             console.log(err);
         } else {
-            res.render("nurseryproduct/show", {product: foundProduct});
+            // FIND PRODUCT
+            NurseryProduct.findById(req.params.pid).populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundProduct){
+                if(err){
+                    console.log(err)
+                } else {
+                    res.render("nurseryproducts/show", {nursery: foundNursery, product: foundProduct});
+                }
+            });
         }
     });
 });
+
+// NURSERY PRODUCT EDIT
+router.get("/nurseries/:id/nurseryproducts/:pid/edit", middleware.isLoggedIn, function(req, res){
+    // FIND NURSERY
+    Nursery.findById(req.params.id, function(err, foundNursery){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND PRODUCT
+            NurseryProduct.findById(req.params.pid).populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundProduct){
+                if(err){
+                    console.log(err)
+                } else {
+                    // FIND ALL SPECIES
+                    Species.find(function(err, allSpecies){
+                        if(err) {
+                            console.log(err);
+                        } else {
+                            // SORT SPECIES
+                            function compare(a, b) {
+                                if (a.genus < b.genus) {
+                                    return -1;
+                                }
+                                if (a.genus > b.genus) {
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            allSpecies.sort(compare);
+                            res.render("nurseryproducts/edit", {nursery: foundNursery, product: foundProduct, species: allSpecies});
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// NURSERY PRODUCT UPDATE
+router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, function(req, res){
+    // CLEAN NONE OPTIONS
+    var product = req.body.product;
+    if(req.body.product.species === ""){
+        delete product.species;
+    }
+    if(req.body.product.hybrid === ""){
+        delete product.hybrid;
+    }
+    if(req.body.product.rootstock === ""){
+        delete product.rootstock;
+    }
+    NurseryProduct.findByIdAndUpdate(req.params.pid, product, function(err, updatedProduct){
+        if(err){
+            console.log(err);
+        } else {
+            // REDIRECT TO PRODUCT
+            /*if(req.body.product.hybrid === ""){
+                updatedProduct.hybrid = {};
+                updatedProduct.save();
+            }
+            if(req.body.product.rootstock === ""){
+                delete updatedProduct.rootstock;
+                updatedProduct.save();
+            }*/
+            res.redirect("/nurseries/" + req.params.id + "/nurseryproducts/" + updatedProduct._id);
+        }
+    });
+});
+
+
+// NURSERY PRODUCT DUPLICATE
 
 
 module.exports = router;

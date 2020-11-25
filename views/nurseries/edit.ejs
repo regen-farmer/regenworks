@@ -1,0 +1,56 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Update Nursery</h2>
+        <div>
+            <form action="/nurseries/<%= nursery._id %>?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="formGroupExampleInput">Name</label>
+                    <input type="text" class="form-control" name="nursery[name]" value="<%= nursery.name %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="formGroupExampleInput">Address/location <small>(If no exact address is available for the farm, use coordinates. Format should be as plain numbers 23.929188, 14.919198)</small></label>
+                    <input type="text" class="form-control" name="nursery[location]" id="search_input" value="<%= nursery.location %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="formGroupExampleInput">Description (Optional)</label>
+                    <input type="text" class="form-control" name="nursery[description]" value="<%= nursery.description %>">
+                </div>
+                <div class="form-group">
+                    <label for="nursery[currency]">Currency</label>
+                    <select class="form-control" name="nursery[currency]">
+                        <% if(nursery.currency === "usd"){ %>
+                            <option value="usd" selected="selected">USD($)</option>
+                        <% } else { %>
+                            <option value="usd" >USD($)</option>
+                        <% } %>
+                        <% if(nursery.currency === "eur"){ %>
+                            <option value="eur" selected="selected">EUR(€)</option>
+                        <% } else { %>
+                            <option value="eur" >EUR(€)</option>
+                        <% } %>
+                        <% if(nursery.currency === "gbp"){ %>
+                            <option value="gbp" selected="selected">GBP(£)</option>
+                        <% } else { %>
+                            <option value="gbp" >GBP(£)</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Update Nursery</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+
+
+<% include ../partials/footer %>

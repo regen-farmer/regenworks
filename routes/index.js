@@ -104,7 +104,7 @@ router.get("/admindash", middleware.adminIsLoggedIn, function(req, res){
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    if (req.body.secret === "899af01m4maiq5k3"){
+    if (req.body.secret === "899af01m4maiq5k3" || req.body.secret === "9afa81hf1flqmfah2"){
         logger.info("Secret correct", {timestamp: Date.now()});
         var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000, farmLimit: 1});
         User.register(newUser, req.body.password, function(err, user){
@@ -117,7 +117,13 @@ router.post("/users", function(req, res){
             passport.authenticate("local")(req, res, function(){
                 // req.flash("success", "Welcome to Regen Farmer " + user.username + ". Please start out by creating your first parcel of land below.");
                 // res.redirect("/users/" + req.user.id); // Redirect to user account page
-                res.redirect("/parcels/new");
+                if(req.body.secret === "9afa81hf1flqmfah2"){
+                    user.isNursery = true;
+                    user.save();
+                    res.redirect("/nurseries/new");
+                } else {
+                    res.redirect("/parcels/new");
+                }
             });
         });
     } else {

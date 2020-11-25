@@ -1,0 +1,126 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Update product</h2>
+        <div>
+            <form action="/nurseries/<%= nursery._id %>/nurseryproducts/<%= product._id %>?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="product[name]">Name</label>
+                    <input type="text" class="form-control" name="product[name]" value="<%= product.name %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="product[description]">Description</label>
+                    <input type="text" class="form-control" name="product[description]" value="<%= product.description %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[price]">Price (In <%= nursery.currency %>)</label>
+                    <input type="number" class="form-control" name="product[price]" value="<%= product.price %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="product[stock]">Stock</label>
+                    <input type="number" class="form-control" name="product[stock]" value="<%= product.stock %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[orderlimit]">Max order limit</label>
+                    <input type="number" class="form-control" name="product[orderlimit]" value="<%= product.orderlimit %>" >
+                </div>
+             <!--   <div class="form-check btn-group btn-group-toggle" data-toggle="buttons">
+                    <div class="body">
+                        <div class="body-text">
+                            <% if(product.availability && product.availability === true){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="product[availability]" checked="checked" value="" autocomplete="off"> Available for sale
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="product[availability]" autocomplete="off"> Available for sale
+                            </label>
+                            <% } %>
+                        </div>
+                    </div>
+
+                </div>-->
+                <div class="form-group">
+                    <label for="product[class]">Classification</label>
+                    <select class="form-control" name="product[class]">
+                        <% if(nursery.currency === "nut"){ %>
+                        <option value="nut" selected="selected">Nuts</option>
+                        <% } else { %>
+                        <option value="nut" >Nuts</option>
+                        <% } %>
+                        <% if(nursery.currency === "fruit"){ %>
+                        <option value="fruit" selected="selected">Fruit</option>
+                        <% } else { %>
+                        <option value="fruit" >Fruit</option>
+                        <% } %>
+                        <% if(nursery.currency === "woodland"){ %>
+                        <option value="woodland" selected="selected">Woodland</option>
+                        <% } else { %>
+                        <option value="woodland" >Woodland</option>
+                        <% } %>
+                        <% if(nursery.currency === "ornamental"){ %>
+                        <option value="ornamental" selected="selected">Ornamental</option>
+                        <% } else { %>
+                        <option value="ornamental" >Ornamental</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[species]">Species</label>
+                    <select name="product[species]" style="width:100%;max-width:100%;" >
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.species && species.nameCommon === product.species.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[variety]">Variety/Cultivar name</label>
+                    <input type="text" class="form-control" name="product[variety]" value="<%= product.variety %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[rootstock]">Rootstock (Optional. Only select if different from main species)</label>
+                    <select name="product[rootstock]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.rootstock && species.nameCommon === product.rootstock.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[hybrid]">Hybrid (Optional. Only select if hybrid variety)</label>
+                    <select name="product[hybrid]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.hybrid && species.nameCommon === product.hybrid.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+<% include ../partials/footer %>

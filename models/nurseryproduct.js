@@ -9,6 +9,7 @@ var nurseryProductSchema = new mongoose.Schema({
         ref: "Species"
     },
     price: Number,
+    description: String,
     stock: Number,
     class: String,
     pollination: String,
@@ -27,7 +28,8 @@ var nurseryProductSchema = new mongoose.Schema({
             ref: "User"
         },
         username: String
-    }
+    },
+    availability: {type: Boolean, default: false}
 });
 
 module.exports = mongoose.model("Nurseryproduct", nurseryProductSchema);
