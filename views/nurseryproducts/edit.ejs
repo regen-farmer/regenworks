@@ -68,10 +68,15 @@
                         <% } else { %>
                         <option value="ornamental" >Ornamental</option>
                         <% } %>
+                        <% if(nursery.currency === "vegetable"){ %>
+                        <option value="vegetable" selected="selected">Vegetable</option>
+                        <% } else { %>
+                        <option value="vegetable" >Vegetable</option>
+                        <% } %>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="product[species]">Species</label>
+                    <label for="product[species]">Species (<em>botanical</em>)</label>
                     <select name="product[species]" style="width:100%;max-width:100%;" >
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
@@ -88,7 +93,7 @@
                     <input type="text" class="form-control" name="product[variety]" value="<%= product.variety %>" >
                 </div>
                 <div class="form-group">
-                    <label for="product[rootstock]">Rootstock (Optional. Only select if different from main species)</label>
+                    <label for="product[rootstock]">Rootstock (Optional. Only select if grafted)</label>
                     <select name="product[rootstock]" style="width:100%;max-width:100%;">
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>

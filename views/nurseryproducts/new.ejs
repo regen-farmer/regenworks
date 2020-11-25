@@ -36,6 +36,7 @@
                         <option value="fruit">Fruit</option>
                         <option value="woodland">Woodland</option>
                         <option value="ornamental">Ornamental</option>
+                        <option value="vegetable">Vegetable</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -52,7 +53,7 @@
                     <input type="text" class="form-control" name="product[variety]">
                 </div>
                 <div class="form-group">
-                    <label for="product[rootstock]">Rootstock (Optional. Only select if different from main species)</label>
+                    <label for="product[rootstock]">Rootstock (Optional. Only select if grafted)</label>
                     <select name="product[rootstock]" style="width:100%;max-width:100%;">
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
