@@ -605,67 +605,69 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             // FIND SYSTEM ROWS
                             for(i=0;i<foundLayer.rows.length;i++){
                                 // SET ROW DATA
-                                var datasetRows = [];
-                                foundLayer.rows[i].system.model.forEach(function(species){
-                                    var count = 0;
-                                    for(j=0;j<datasetRows.length;j++){
-                                        if(datasetRows[j].row === species.position[0]){
-                                            datasetRows[j].array.push(species);
-                                            count = count + 1;
+                                if(foundLayer.rows[i].system) {
+                                    var datasetRows = [];
+                                    foundLayer.rows[i].system.model.forEach(function (species) {
+                                        var count = 0;
+                                        for (j = 0; j < datasetRows.length; j++) {
+                                            if (datasetRows[j].row === species.position[0]) {
+                                                datasetRows[j].array.push(species);
+                                                count = count + 1;
+                                            }
+                                        }
+                                        if (count === 0) {
+                                            datasetRows.push({row: species.position[0], array: [species]});
+                                        }
+                                    });
+                                    // SORT ROWS
+                                    for (j = 0; j < dataset.length; j++) {
+                                        datasetRows[j].array.sort(compare1);
+                                    }
+                                    // ROW LENGTH
+                                    var rowLine = JSON.parse(foundLayer.rows[i].geometry);
+                                    var rowLength = length(rowLine, {units: "meters"});
+                                    console.log("Row length " + rowLength);
+                                    // SYSTEM MODEL LENGTH
+                                    var systemModelLength = 0;
+                                    if (datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1) {
+                                        systemModelLength = datasetRows[1].array[(datasetRows[1].array.length - 1)].position[1];
+                                    } else {
+                                        systemModelLength = datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1];
+                                    }
+                                    console.log("System model length:" + systemModelLength);
+                                    // FIND MODEL COUNT AND REST
+                                    var systemModelCount = Math.floor(rowLength / systemModelLength);
+                                    var systemModelRowRest = ((rowLength / systemModelLength) - Math.floor(rowLength / systemModelLength)) * systemModelLength;
+                                    // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+                                    var firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
+                                    treeMarkerArray.push(firstTreeMarker);
+                                    // ROW MARKERS
+                                    // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
+                                    for (j = 0; j < systemModelCount; j++) {
+                                        for (k = 0; k < datasetRows[0].array.length; k++) {
+                                            // CREATE COORDINATES FOR THE TREE
+                                            var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[0].array[k].position[1]), {units: "meters"});
+                                            // CREATE ASSET OBJECT
+                                            /*var asset = {
+                                                species: treeRows[treeRowCount].array[k].species.id,
+                                                lat: treeMarker.geometry.coordinates[0],
+                                                lng: treeMarker.geometry.coordinates[1],
+                                                name: treeRows[treeRowCount].array[k].species.nameCommon
+                                            };*/
+                                            // ADD TREE OBJECT TO ARRAY
+                                            treeMarkerArray.push(treeMarker);
                                         }
                                     }
-                                    if(count === 0){
-                                        datasetRows.push({row: species.position[0], array: [species]});
-                                    }
-                                });
-                                // SORT ROWS
-                                for(j=0;j<dataset.length;j++){
-                                    datasetRows[j].array.sort(compare1);
-                                }
-                                // ROW LENGTH
-                                var rowLine = JSON.parse(foundLayer.rows[i].geometry);
-                                var rowLength = length(rowLine, {units: "meters"});
-                                console.log("Row length " + rowLength);
-                                // SYSTEM MODEL LENGTH
-                                var systemModelLength = 0;
-                                if(datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1){
-                                    systemModelLength = datasetRows[1].array[(datasetRows[1].array.length - 1)].position[1];
-                                } else {
-                                    systemModelLength = datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1];
-                                }
-                                console.log("System model length:" + systemModelLength);
-                                // FIND MODEL COUNT AND REST
-                                var systemModelCount = Math.floor(rowLength/systemModelLength);
-                                var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
-                                // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
-                                var firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
-                                treeMarkerArray.push(firstTreeMarker);
-                                // ROW MARKERS
-                                // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                                for(j=0;j<systemModelCount;j++){
-                                    for(k=0;k<datasetRows[0].array.length;k++){
-                                        // CREATE COORDINATES FOR THE TREE
-                                        var treeMarker = along(rowLine, (j*systemModelLength + datasetRows[0].array[k].position[1]), {units: "meters"});
-                                        // CREATE ASSET OBJECT
-                                        /*var asset = {
-                                            species: treeRows[treeRowCount].array[k].species.id,
-                                            lat: treeMarker.geometry.coordinates[0],
-                                            lng: treeMarker.geometry.coordinates[1],
-                                            name: treeRows[treeRowCount].array[k].species.nameCommon
-                                        };*/
-                                        // ADD TREE OBJECT TO ARRAY
-                                        treeMarkerArray.push(treeMarker);
-                                    }
-                                }
-                                // ADD REST
-                                for(j=0;j<datasetRows[0].array.length;j++){
-                                    if(datasetRows[0].array[j].position[1] < systemModelRowRest){
-/*
-                                        treeArray.push(treeRows[treeRowCount].array[j].species);
-*/
-                                        // ADD POINT MARKER FOR REMAINING TREES
-                                        var treeMarker2 = along(rowLine, (systemModelCount*systemModelLength + datasetRows[0].array[j].position[1]), {units: "meters"});
-                                        treeMarkerArray.push(treeMarker2);
+                                    // ADD REST
+                                    for (j = 0; j < datasetRows[0].array.length; j++) {
+                                        if (datasetRows[0].array[j].position[1] < systemModelRowRest) {
+                                            /*
+                                                                                    treeArray.push(treeRows[treeRowCount].array[j].species);
+                                            */
+                                            // ADD POINT MARKER FOR REMAINING TREES
+                                            var treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[0].array[j].position[1]), {units: "meters"});
+                                            treeMarkerArray.push(treeMarker2);
+                                        }
                                     }
                                 }
                             }
@@ -673,12 +675,23 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var treeCanopyArray = [];
                             if(treeMarkerArray.length < 3000){
                                 for(i=0;i<treeMarkerArray.length;i++){
-                                    var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
+                                    var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 0.4, {units: "meters"});
                                     treeCanopyArray.push(circle1);
                                 }
                             }
                             var treeMarkers = turf.featureCollection(treeCanopyArray);
                             var treeCollection = JSON.stringify(treeMarkers);
+                            // DO TREE NAMES COLLECTION
+                            var treenames = [];
+                            /*for(i=0;i<treeMarkerArray.length;i++){
+                                var properties1 = {
+                                    'description': 'tree'
+                                };
+                                var treename = turf.point(treeMarkerArray[i].geometry.coordinates, properties1);
+                                treenames.push(treename);
+                            }*/
+                            var treenamemarks = turf.featureCollection(treenames);
+                            var treeNameCollection = JSON.stringify(treenamemarks);
                             // COUNT ASSETS
 
 
@@ -686,7 +699,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
 
 
 
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection});
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection});
                         }
                     });
                 }

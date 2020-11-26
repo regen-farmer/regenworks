@@ -15,13 +15,13 @@
                         <label for="systemid">Select row system: </label>
                         <select name="systemid" id="systemid">
                             <option value="none">None</option>
-                            <% for(i=0;i<systems.length;i++){ %>
-                                <% if(systems[i].name === row.system.name){ %>
-                                    <option value="<%= systems[i]._id %>" selected="selected"><%= systems[i].name %></option>
-                                <% } else { %>
-                                    <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                                <% for(i=0;i<systems.length;i++){ %>
+                                    <% if(row.system && systems[i].name === row.system.name){ %>
+                                        <option value="<%= systems[i]._id %>" selected="selected"><%= systems[i].name %></option>
+                                    <% } else { %>
+                                        <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
+                                    <% } %>
                                 <% } %>
-                            <% } %>
                         </select>
                     </div>
                 <% } %>

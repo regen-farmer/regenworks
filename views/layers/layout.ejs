@@ -61,6 +61,9 @@
     var placecollection = "<%= places %>";
     var places = JSON.parse(placecollection.replace(/&#34;/g,'"'));
 
+    var treenames = "<%= treenames %>";
+    var correcttreenames = JSON.parse(treenames.replace(/&#34;/g,'"'));
+
     mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
         container: 'layerMapShow',
@@ -130,6 +133,20 @@
             'layout': {},
             'paint': {
                 'fill-color': '#5cb85c'
+            }
+        });
+
+        map.addLayer({
+            'id': 'tree-labels',
+            'type': 'symbol',
+            'source': {
+                'type': 'geojson',
+                'data': correcttreenames
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
             }
         });
 
