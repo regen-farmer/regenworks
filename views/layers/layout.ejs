@@ -21,7 +21,7 @@
                     <table class="table small">
                         <tr class="table-secondary">
                             <td>Row ref</td>
-                            <td>Row system pattern</td>
+                            <td>Row sequense pattern</td>
                             <td></td>
                         </tr>
                     <% if(layer.rows && layer.rows.length > 0){ %>
@@ -63,6 +63,9 @@
 
     var treenames = "<%= treenames %>";
     var correcttreenames = JSON.parse(treenames.replace(/&#34;/g,'"'));
+
+    var vegecollection = "<%= vegetables %>";
+    var correctvege = JSON.parse(vegecollection.replace(/&#34;/g,'"'));
 
     mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
     var map = new mapboxgl.Map({
@@ -111,6 +114,7 @@
         map.addLayer({
             'id': 'poi-labels',
             'type': 'symbol',
+            'maxzoom': 20,
             'source': {
                 'type': 'geojson',
                 'data': places
@@ -137,8 +141,23 @@
         });
 
         map.addLayer({
+            'id': 'map3',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctvege
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#002eff'
+            }
+        });
+
+        map.addLayer({
             'id': 'tree-labels',
             'type': 'symbol',
+            'minzoom': 20,
             'source': {
                 'type': 'geojson',
                 'data': correcttreenames

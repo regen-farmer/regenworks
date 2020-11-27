@@ -525,7 +525,7 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
 
 // LAYER CURRENT SYSTEM LAYOUT
 router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate("rows.system").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows.system',populate:{path:'model.species'}}).exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -538,6 +538,8 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                     foundSystem.model.forEach(function(species){
                         allSpecies.push(species.species.id);
                     });
+                    //
+
                     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                     var uniqueSpecies = unique(allSpecies);
                     // FIND SPECIES AND POPULATE FLOWS
@@ -602,6 +604,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var treeAssetsArray = [];
                             // SET COLLECTIVE TREE ARRAY
                             var treeMarkerArray = [];
+                            var treeAssetArray = [];
                             // FIND SYSTEM ROWS
                             for(i=0;i<foundLayer.rows.length;i++){
                                 // SET ROW DATA
@@ -641,6 +644,11 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                     // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
                                     var firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
                                     treeMarkerArray.push(firstTreeMarker);
+                                    var firstAsset = {
+                                        marker: firstTreeMarker,
+                                        species: datasetRows[0].array[(datasetRows[0].array.length - 1)].species
+                                    };
+                                    treeAssetsArray.push(firstAsset);
                                     // ROW MARKERS
                                     // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
                                     for (j = 0; j < systemModelCount; j++) {
@@ -654,8 +662,14 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                                 lng: treeMarker.geometry.coordinates[1],
                                                 name: treeRows[treeRowCount].array[k].species.nameCommon
                                             };*/
+                                            //
+                                            var asset = {
+                                                marker: treeMarker,
+                                                species: datasetRows[0].array[k].species
+                                            };
                                             // ADD TREE OBJECT TO ARRAY
                                             treeMarkerArray.push(treeMarker);
+                                            treeAssetsArray.push(asset);
                                         }
                                     }
                                     // ADD REST
@@ -666,30 +680,51 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                             */
                                             // ADD POINT MARKER FOR REMAINING TREES
                                             var treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[0].array[j].position[1]), {units: "meters"});
+                                            var asset2 = {
+                                                marker: treeMarker2,
+                                                species: datasetRows[0].array[j].species
+                                            };
                                             treeMarkerArray.push(treeMarker2);
+                                            treeAssetsArray.push(asset2);
                                         }
                                     }
                                 }
                             }
                             // DO POINT COLLECTION
                             var treeCanopyArray = [];
-                            if(treeMarkerArray.length < 3000){
-                                for(i=0;i<treeMarkerArray.length;i++){
-                                    var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 0.4, {units: "meters"});
-                                    treeCanopyArray.push(circle1);
+                            var vegeCanopyArray = [];
+                            if(treeAssetsArray.length < 3000){
+                                for(i=0;i<treeAssetsArray.length;i++){
+                                    // FIND TREE DIMENSIONS
+                                    var diameter = 0.4;
+                                    if(treeAssetsArray[i].species.form === "shrub"){
+                                        diameter = 0.2;
+                                    } else if (treeAssetsArray[i].species.form === "herb"){
+                                        diameter = 0.2;
+                                    }
+                                    var circle1 = circle(treeAssetsArray[i].marker.geometry.coordinates, diameter, {units: "meters"});
+                                    if(treeAssetsArray[i].species.height > 15){
+                                        treeCanopyArray.push(circle1);
+                                    } else {
+                                        vegeCanopyArray.push(circle1);
+                                    }
+
                                 }
                             }
                             var treeMarkers = turf.featureCollection(treeCanopyArray);
                             var treeCollection = JSON.stringify(treeMarkers);
+                            // INSERT SYSTEM CLASSIFICATION
+                            var vegeMarkers = turf.featureCollection(vegeCanopyArray);
+                            var vegeCollection = JSON.stringify(vegeMarkers);
                             // DO TREE NAMES COLLECTION
                             var treenames = [];
-                            /*for(i=0;i<treeMarkerArray.length;i++){
+                            for(i=0;i<treeAssetsArray.length;i++){
                                 var properties1 = {
-                                    'description': 'tree'
+                                    'description': treeAssetsArray[i].species.nameCommon
                                 };
-                                var treename = turf.point(treeMarkerArray[i].geometry.coordinates, properties1);
+                                var treename = turf.point(treeAssetsArray[i].marker.geometry.coordinates, properties1);
                                 treenames.push(treename);
-                            }*/
+                            }
                             var treenamemarks = turf.featureCollection(treenames);
                             var treeNameCollection = JSON.stringify(treenamemarks);
                             // COUNT ASSETS
@@ -699,7 +734,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
 
 
 
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection});
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection, vegetables: vegeCollection});
                         }
                     });
                 }
