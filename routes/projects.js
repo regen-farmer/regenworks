@@ -28,6 +28,7 @@ var along = require("@turf/along");
 var circle = require("@turf/circle");
 var area = require("@turf/area");
 var polygonToLine = require("@turf/polygon-to-line");
+const PDFDocument = require("pdfkit");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
@@ -1485,6 +1486,32 @@ router.put("/projects/:id/row", middleware.isLoggedIn, function(req, res){
             res.redirect("/projects/" + foundProject._id + "/layout");
         }
     });
+});
+
+// BUDGET PDF
+router.get("/projects/:id/budgetpdf", middleware.isLoggedIn, async function(req, res, next){
+    // FIND PROJECT
+
+    // GENERATE PDF TEST
+    var myDoc = new PDFDocument({bufferPages: true});
+
+    let buffers = [];
+    myDoc.on('data', buffers.push.bind(buffers));
+    myDoc.on('end', () => {
+
+        let pdfData = Buffer.concat(buffers);
+        res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(pdfData),
+            'Content-Type': 'application/pdf',
+            'Content-disposition': 'attachment;filename=test.pdf',})
+
+    });
+
+    myDoc.font('Times-Roman')
+        .fontSize(12)
+        .text(`this is a test text`);
+
+    myDoc.end();
 });
 
 // --------------- NESTED ROUTES ---------------- //

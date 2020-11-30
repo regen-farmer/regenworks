@@ -80,7 +80,7 @@ router.get("/species/:id/activities/new", middleware.isLoggedIn, function(req, r
 });
 
 // SPECIES ACTIVITY CREATE ROUTE
-router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
+router.post("/species/:id/activities", middleware.isLoggedIn, function(req, res){
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     var types = req.body.activity.activityType.split(" ");
     var activity = {
@@ -90,7 +90,8 @@ router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
         time: {
             startMonth: req.body.activity.time.startMonth,
             endMonth: req.body.activity.time.endMonth
-        }
+        },
+        price: req.body.activity.price
     };
     Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: activity}}, function(err, updatedSpecies){
         if(err){
@@ -110,13 +111,37 @@ router.get("/species/:id/activities/edit", middleware.isLoggedIn, function(req, 
             console.log(err);
         } else {
             var activity = foundSpecies.activities[req.query.index];
-            res.render("species/editactivity", {species: foundSpecies, activity: activity});
+            res.render("species/editactivity", {species: foundSpecies, activity: activity, index: req.query.index});
         }
     });
 });
 
 // SPECIES ACTIVITY UPDATE ROUTE
-
+router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
+    // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
+    var types = req.body.activity.activityType.split(" ");
+    var activity = {
+        activityType: types[0],
+        subtype: types[1],
+        name: req.body.activity.name,
+        time: {
+            startMonth: req.body.activity.time.startMonth,
+            endMonth: req.body.activity.time.endMonth
+        },
+        price: req.body.activity.price
+    };
+    // FIND SPECIES
+    Species.findById(req.params.id, function(err, updatedSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            // CHANGE ACTIVITY DETAILS
+            updatedSpecies.activities[req.query.index] = activity;
+            updatedSpecies.save();
+            res.redirect("/species/" + updatedSpecies._id);
+        }
+    });
+});
 
 // SPECIES NUTRIENTS CREATE ROUTE
 router.get("/species/:id/nutrients/new", middleware.isLoggedIn, function(req, res){

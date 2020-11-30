@@ -30,6 +30,7 @@ var budgetRoutes = require("./routes/budgets");
 var postingRoutes = require("./routes/postings");
 var nurseryRoutes = require("./routes/nurseries");
 var nurseryproductRoutes = require("./routes/nurseryproducts");
+var sequenceRoutes = require("./routes/sequences");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -77,6 +78,7 @@ app.use("", budgetRoutes);
 app.use("", postingRoutes);
 app.use("", nurseryRoutes);
 app.use("", nurseryproductRoutes);
+app.use("", sequenceRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){

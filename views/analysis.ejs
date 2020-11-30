@@ -4,40 +4,46 @@
     <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
     <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
     <% if(animalsystems.length > 0){ %>
-    <h2>Systems suitable for areas with "<%= animalsystems[0].animals[0].name %>"</h2>
+    <h2>Systems suitable for areas with existing animals</h2>
+<!--
     <p>Systems suitable for areas with existing animal operations.</p>
+-->
     <div class="row">
         <% for(i=0;i<animalsystems.length;i++){ %>
         <div class="col-lg-4">
             <div class="card text-center">
                 <div class="row p-3 justify-content-center">
-                    <% animalsystems[i].rows.forEach(function(row){ %>
+                    <% if(animalsystems[i].sortedrows){ %>
+                    <% animalsystems[i].sortedrows.forEach(function(row, i){ %>
+                    <% if(row.array[0].species.form === "tree"){ %>
+                    <% if(row.array[0].species.height > 12){ %>
                     <div class="col-sm-3">
-                        <% if(row.sequense[0].family === "pinaceae"){ %>
-                        <img class="img-fluid" src="/images/conifer.svg">
-                        <% } else if (row.sequense[0].form === "tree") { %>
-                        <% if(row.sequense[0].height > 12){ %>
                         <img class="img-fluid" src="/images/treehigh.svg">
-                        <% } else { %>
-                        <img class="img-fluid" src="/images/treelow.svg">
-                        <% } %>
-                        <% } else { %>
-                        <img class="img-fluid" src="/images/<%= row.sequense[0].form %>.svg">
-                        <% } %>
                     </div>
-                    <% }); %>
-                    <% if(animalsystems[i].rows.length > 1 && animalsystems[i].rows.length < 4){ %>
+                    <% } else { %>
                     <div class="col-sm-3">
-                        <% if(animalsystems[i].rows[0].sequense[0].family === "pinaceae"){ %>
+                        <img class="img-fluid" src="/images/treelow.svg">
+                    </div>
+                    <% } %>
+                    <% } else { %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                    </div>
+                    <% } %>
+                    <% }); %>
+                    <% } %>
+                    <% if(animalsystems[i].sortedrows.length > 1 && animalsystems[i].sortedrows.length < 4){ %>
+                    <div class="col-sm-3">
+                        <% if(animalsystems[i].sortedrows[0].array[0].species.family === "pinaceae"){ %>
                         <img class="img-fluid" src="/images/conifer.svg">
-                        <% } else if (animalsystems[i].rows[0].sequense[0].form === "tree") { %>
-                        <% if(animalsystems[i].rows[0].sequense[0].height > 12){ %>
+                        <% } else if (animalsystems[i].sortedrows[0].array[0].species.form === "tree") { %>
+                        <% if(animalsystems[i].sortedrows[0].array[0].species.height > 12){ %>
                         <img class="img-fluid" src="/images/treehigh.svg">
                         <% } else { %>
                         <img class="img-fluid" src="/images/treelow.svg">
                         <% } %>
                         <% } else { %>
-                        <img class="img-fluid" src="/images/<%= animalsystems[i].rows[0].sequense[0].form %>.svg">
+                        <img class="img-fluid" src="/images/<%= animalsystems[i].sortedrows[0].array[0].species.form %>.svg">
                         <% } %>
                     </div>
                     <% }; %>
@@ -53,16 +59,21 @@
                         <div class="card card-body">
                             <p class="card-text"><strong>Species:</strong>
                                 <% animalsystems[i].uniqueSpecies.forEach(function(species){ %>
-                                    <%= species %>,
+                                <%= species %>,
                                 <% }); %>
                             </p>
                             <p class="card-text"><strong>Utilities:</strong>
                                 <% animalsystems[i].uniqueUtilities.forEach(function(utility){ %>
-                                    <%= utility %>,
+                                <%= utility %>,
                                 <% }); %>
                             </p>
-                            <p class="card-text"><strong>Spacing/grid:</strong>
-                                <%= animalsystems[i].grid %> x <%= animalsystems[i].grid %> m
+                            <p class="card-text"><strong>Total system width:</strong>
+                                <%= animalsystems[i].grid %> m
+                            </p>
+                            <p>
+                                <% animalsystems[i].flows.forEach(function(flow){ %>
+                                <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>
+                                <% }); %>
                             </p>
                             <form action="/layers/<%= layer._id %>/editfuture" method="POST">
                                 <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
@@ -222,11 +233,11 @@
                                         <p class="card-text"><strong>Total system width:</strong>
                                             <%= systemsproven[i].grid %> m
                                         </p>
-                                        <!--<% if(systemsproven[i].name === "Apple wheat alley cropping"){ %>
+                                        <% if(systemsproven[i].name === "Apple wheat alley cropping"){ %>
                                             <p class="card-text"><strong>Subsidies:</strong>
                                                 Økologisk arealtilskud, frugt- og bærtillæg
                                             </p>
-                                        <% } %>-->
+                                        <% } %>
                                         <p>
                                             <% systemsproven[i].flows.forEach(function(flow){ %>
                                                 <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>

@@ -7,7 +7,7 @@
         <div class="col-sm-6">
             <h1>Add new activity to species</h1>
             <p>Use this page to create activity templates for species that are used to auto-generate activities for projects.</p>
-            <form action="/species/<%= species._id %>/activities?_method=PUT" method="POST">
+            <form action="/species/<%= species._id %>/activities" method="POST">
                 <div class="form-group">
                     <label for="activity[name]">Activity name</label>
                     <input type="text" class="form-control" name="activity[name]" placeholder="Give the activity a name" required>

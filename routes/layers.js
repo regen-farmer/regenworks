@@ -700,7 +700,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                     if(treeAssetsArray[i].species.form === "shrub"){
                                         diameter = 0.2;
                                     } else if (treeAssetsArray[i].species.form === "herb"){
-                                        diameter = 0.2;
+                                        diameter = 0.1;
                                     }
                                     var circle1 = circle(treeAssetsArray[i].marker.geometry.coordinates, diameter, {units: "meters"});
                                     if(treeAssetsArray[i].species.height > 15){
@@ -720,7 +720,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var treenames = [];
                             for(i=0;i<treeAssetsArray.length;i++){
                                 var properties1 = {
-                                    'description': treeAssetsArray[i].species.nameCommon
+                                    'description': treeAssetsArray[i].species.nameCommon.slice(0,3)
                                 };
                                 var treename = turf.point(treeAssetsArray[i].marker.geometry.coordinates, properties1);
                                 treenames.push(treename);
@@ -838,7 +838,23 @@ router.put("/layers/:id/row", middleware.isLoggedIn, function(req, res){
 });
 
 // DELETE ROW
-
+router.delete("/layers/:id/row", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id, function(err, updatedLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // REMOVE ROW
+            console.log("Length before " + updatedLayer.rows.length);
+            if (req.query.index > -1) {
+                updatedLayer.rows.splice(req.query.index, 1);
+            }
+            updatedLayer.save();
+            console.log("Length after " + updatedLayer.rows.length);
+            res.redirect("/layers/" + updatedLayer._id + "/layout");
+        }
+    });
+});
 
 
 module.exports = router;

@@ -34,7 +34,13 @@
                                 <td>---</td>
                                 <% } %>
                                 <td>
-                                    <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-warning">Edit row</a>
+                                    <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-warning"><i class="far fa-edit"></i></a>
+                                    <form class="delete-form" action="/layers/<%= layer._id %>/row?_method=DELETE&index=<%= i %>" method="POST">
+                                        <button class="btn btn-sm mt-2 btn-outline-danger"><i class="far fa-trash-alt"></i></button>
+                                    </form>
+<!--
+                                    <a href="/layers/<%= layer._id %>/row/delete?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-danger"><i class="far fa-trash-alt"></i></a>
+-->
                                 </td>
                             </tr>
                         <% } %>
