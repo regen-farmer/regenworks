@@ -22,6 +22,10 @@
                     <input type="text" class="form-control" name="nursery[description]" value="<%= nursery.description %>">
                 </div>
                 <div class="form-group">
+                    <label for="nursery[range]">Service range (km)</label>
+                    <input type="number" max="500" class="form-control" name="nursery[range]" value="<%= nursery.range %>">
+                </div>
+                <div class="form-group">
                     <label for="nursery[currency]">Currency</label>
                     <select class="form-control" name="nursery[currency]">
                         <% if(nursery.currency === "usd"){ %>

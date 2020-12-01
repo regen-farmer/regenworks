@@ -8,6 +8,7 @@ var nurserySchema = new mongoose.Schema({
     description: String,
     lat: Number,
     lng: Number,
+    range: Number,
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,

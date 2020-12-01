@@ -49,6 +49,9 @@ router.post("/nurseries/:id/nurseryproducts", middleware.isLoggedIn, function(re
     if(req.body.product.rootstock === ""){
         delete product.rootstock;
     }
+    if(req.body.product.availability){
+        product.availability = true;
+    }
     // FIND NURSERY
     Nursery.findById(req.params.id, function(err, foundNursery){
         if(err){
@@ -143,6 +146,13 @@ router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, functio
     if(req.body.product.rootstock === ""){
         delete product.rootstock;
     }
+    if(req.body.product.availability){
+        product.availability = true;
+    } else {
+        product.availability = false;
+    }
+    console.log(req.body.product.availability);
+    console.log(typeof req.body.product.availability);
     NurseryProduct.findByIdAndUpdate(req.params.pid, product, function(err, updatedProduct){
         if(err){
             console.log(err);
