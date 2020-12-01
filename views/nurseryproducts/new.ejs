@@ -29,6 +29,46 @@
                     <label for="product[orderlimit]">Max order limit</label>
                     <input type="number" class="form-control" name="product[orderlimit]" >
                 </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="product[season][start]">Delivery season start</label>
+                            <select class="form-control" name="product[season][start]">
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="product[season][end]">End</label>
+                            <select class="form-control" name="product[season][end]">
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="product[class]">Classification</label>
                     <select class="form-control" name="product[class]">
@@ -41,7 +81,7 @@
                 </div>
                 <div class="form-group">
                     <label for="product[species]">Species (<em>botanical</em>)</label>
-                    <select name="product[species]" style="width:100%;max-width:100%;" >
+                    <select class="form-control" name="product[species]" style="width:100%;max-width:100%;" >
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
                             <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
@@ -54,7 +94,7 @@
                 </div>
                 <div class="form-group">
                     <label for="product[rootstock]">Rootstock (Optional. Only select if grafted)</label>
-                    <select name="product[rootstock]" style="width:100%;max-width:100%;">
+                    <select class="form-control" name="product[rootstock]" style="width:100%;max-width:100%;">
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
                         <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
@@ -63,7 +103,7 @@
                 </div>
                 <div class="form-group">
                     <label for="product[hybrid]">Hybrid (Optional. Only select if hybrid variety)</label>
-                    <select name="product[hybrid]" style="width:100%;max-width:100%;">
+                    <select class="form-control" name="product[hybrid]" style="width:100%;max-width:100%;">
                         <option value="">none</option>
                         <% species.forEach(function(species){ %>
                         <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>

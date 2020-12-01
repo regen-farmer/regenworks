@@ -29,7 +29,11 @@ var nurseryProductSchema = new mongoose.Schema({
         },
         username: String
     },
-    availability: {type: Boolean, default: false}
+    availability: {type: Boolean, default: false},
+    season: {
+        start: String,
+        end: String
+    }
 });
 
 module.exports = mongoose.model("Nurseryproduct", nurseryProductSchema);
