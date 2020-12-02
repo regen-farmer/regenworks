@@ -3,6 +3,7 @@ var router = express.Router();
 var Sequence = require("../models/sequence");
 var Layer = require("../models/layer");
 var Project = require("../models/project");
+var Species = require("../models/species");
 var middleware = require("../middleware");
 
 
@@ -46,7 +47,26 @@ router.get("/layers/:id/sequences/new", middleware.isLoggedIn, function(req, res
         if(err){
             console.log(err);
         } else {
-            res.render("sequences/new", {layer: foundLayer});
+            // FIND ALL SPECIES
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT SPECIES
+                    function compare( a, b ) {
+                        if ( a.nameCommon < b.nameCommon ){
+                            return -1;
+                        }
+                        if ( a.nameCommon > b.nameCommon ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    foundSpecies.sort(compare);
+                    res.render("sequences/new", {layer: foundLayer, species: foundSpecies, distance: req.query.distance, length: req.query.length});
+
+                }
+            });
         }
     });
 });
@@ -58,12 +78,33 @@ router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            Sequence.create(req.body.sequence, function(err, createdSequence){
+            var model = [];
+            var length = 0;
+            for(i=0;i<req.body.model.species.length;i++){
+                // FIX IF ONLY ONE ITEM IN ROW
+                // IF SPECIES ID IS NULL
+                if(!(req.body.model.species[i] === "")){
+                    var species = {
+                        species: req.body.model.species[i],
+                        position: Number(req.body.model.position[i])
+                    };
+                    model.push(species);
+                }
+                if(Number(req.body.model.position[i]) > length){
+                    length = Number(req.body.model.position[i]);
+                }
+            }
+            var sequence = req.body.sequence;
+            sequence.model = model;
+            sequence.sequencelength = length;
+            Sequence.create(sequence, function(err, createdSequence){
                 if(err){
                     console.log(err);
                 } else {
                     // SAVE SEQUENCE ON LAYER?
-
+                    createdSequence.owner.id = req.user._id;
+                    createdSequence.owner.username = req.user.username;
+                    createdSequence.save();
                     res.redirect("/layers/" + foundLayer._id + "/layout");
                 }
             });
@@ -87,27 +128,108 @@ router.get("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, re
 });
 
 // SEQUENCE EDIT
-router.get("/layers/:id/sequences/edit", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/sequences/:pid/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Layer.findById(req.params.id).populate("rows.sequence").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate({path:'rows.sequence', populate:{path:'model.species'}}).exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
             // FIND SEQUENCES
-
-            res.render("sequences/edit", {layer: foundLayer});
+            Sequence.findById(req.params.pid).populate('model.species').exec(function(err, foundSequence){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES
+                    Species.find(function(err, foundSpecies){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // SORT SPECIES
+                            function compare( a, b ) {
+                                if ( a.nameCommon < b.nameCommon ){
+                                    return -1;
+                                }
+                                if ( a.nameCommon > b.nameCommon ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundSpecies.sort(compare);
+                            // CALCULATE LENGTH
+                            var length = 0;
+                            if(foundSequence.sequencelength){
+                                length = foundSequence.sequencelength;
+                            }
+                            // CALCULATE DISTANCE
+                            var distanceArray = [];
+                            for(i=0;i<foundSequence.model.length;i++){
+                                distanceArray.push(foundSequence.model[i].position);
+                            }
+                            //
+                            var distanceDifference = [];
+                            for(i=0;i<distanceArray.length;i++){
+                                for(j=0;j<distanceArray.length;j++){
+                                    if(distanceArray[i] !== distanceArray[j]){
+                                        distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
+                                    }
+                                }
+                            }
+                            // SORT DIFFERENCE IN DISTANCE
+                            function compare3( a, b ) {
+                                if ( a < b ){
+                                    return -1;
+                                }
+                                if ( a > b ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            // CALCULATE LENGTH
+                            distanceArray.sort(compare3);
+                            distanceDifference.sort(compare3);
+                            var distance = 1;
+                            if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
+                                distance = distanceArray[0];
+                            } else {
+                                distance = distanceDifference[0];
+                            }
+                            res.render("sequences/edit", {layer: foundLayer, sequence: foundSequence, species: foundSpecies, length: length, distance: distance});
+                        }
+                    });
+                }
+            });
         }
     });
 });
 
 // SEQUENCE UPDATE
-router.put("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
+router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, res){
+    // CLEAN MODEL
+    var model = [];
+    var length = 0;
+    for(i=0;i<req.body.model.species.length;i++){
+        // FIX IF ONLY ONE ITEM IN ROW
+        // IF SPECIES ID IS NULL
+        if(!(req.body.model.species[i] === "")){
+            var species = {
+                species: req.body.model.species[i],
+                position: Number(req.body.model.position[i])
+            };
+            model.push(species);
+        }
+        if(Number(req.body.model.position[i]) > length){
+            length = Number(req.body.model.position[i]);
+        }
+    }
+    var sequence = req.body.sequence;
+    sequence.model = model;
+    sequence.sequencelength = length;
     // FIND LAYER
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
-            Sequence.findByIdAndUpdate(req.body.sequence, function(err, updatedSequence){
+            Sequence.findByIdAndUpdate(req.params.pid, sequence, function(err, updatedSequence){
                 if(err){
                     console.log(err);
                 } else {
@@ -118,7 +240,7 @@ router.put("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// SEQUENCE DELETE
+// SEQUENCE DELETE ROUTE
 
 
 module.exports = router;

@@ -5,6 +5,7 @@ var Parcel = require("../models/parcel");
 var System = require("../models/system");
 var Species = require("../models/species");
 var Animal = require("../models/animal");
+var Sequence = require("../models/sequence");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
@@ -525,7 +526,7 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
 
 // LAYER CURRENT SYSTEM LAYOUT
 router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows.system',populate:{path:'model.species'}}).exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows.sequence', populate:{path:'model.species'}}).exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -564,17 +565,17 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             });
                             // SORT FIRST ROW ITEMS
                             function compare1( a, b ) {
-                                if ( a.position[1] < b.position[1] ){
+                                if ( a.position < b.position ){
                                     return -1;
                                 }
-                                if ( a.position[1] > b.position[1] ){
+                                if ( a.position > b.position ){
                                     return 1;
                                 }
                                 return 0;
                             }
-                            for(i=0;i<dataset.length;i++){
+                            /*for(i=0;i<dataset.length;i++){
                                 dataset[i].array.sort(compare1);
-                            }
+                            }*/
                             // VIZ ROWS
                             var rowArray = [];
                             var placesArray = [];
@@ -608,9 +609,9 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             // FIND SYSTEM ROWS
                             for(i=0;i<foundLayer.rows.length;i++){
                                 // SET ROW DATA
-                                if(foundLayer.rows[i].system) {
-                                    var datasetRows = [];
-                                    foundLayer.rows[i].system.model.forEach(function (species) {
+                                if(foundLayer.rows[i].sequence) {
+                                    var datasetRows = foundLayer.rows[i].sequence.model;
+                                    /*foundLayer.rows[i].sequence.model.forEach(function (species) {
                                         var count = 0;
                                         for (j = 0; j < datasetRows.length; j++) {
                                             if (datasetRows[j].row === species.position[0]) {
@@ -621,22 +622,20 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                         if (count === 0) {
                                             datasetRows.push({row: species.position[0], array: [species]});
                                         }
-                                    });
-                                    // SORT ROWS
-                                    for (j = 0; j < dataset.length; j++) {
-                                        datasetRows[j].array.sort(compare1);
-                                    }
+                                    });*/
+                                    // SORT ROW ITEMS
+                                    datasetRows.sort(compare1);
                                     // ROW LENGTH
                                     var rowLine = JSON.parse(foundLayer.rows[i].geometry);
                                     var rowLength = length(rowLine, {units: "meters"});
                                     console.log("Row length " + rowLength);
                                     // SYSTEM MODEL LENGTH
-                                    var systemModelLength = 0;
-                                    if (datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1) {
+                                    var systemModelLength = foundLayer.rows[i].sequence.sequencelength;
+                                    /*if (datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1) {
                                         systemModelLength = datasetRows[1].array[(datasetRows[1].array.length - 1)].position[1];
                                     } else {
                                         systemModelLength = datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1];
-                                    }
+                                    }*/
                                     console.log("System model length:" + systemModelLength);
                                     // FIND MODEL COUNT AND REST
                                     var systemModelCount = Math.floor(rowLength / systemModelLength);
@@ -646,15 +645,15 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                     treeMarkerArray.push(firstTreeMarker);
                                     var firstAsset = {
                                         marker: firstTreeMarker,
-                                        species: datasetRows[0].array[(datasetRows[0].array.length - 1)].species
+                                        species: datasetRows[(datasetRows.length - 1)].species
                                     };
                                     treeAssetsArray.push(firstAsset);
                                     // ROW MARKERS
                                     // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
                                     for (j = 0; j < systemModelCount; j++) {
-                                        for (k = 0; k < datasetRows[0].array.length; k++) {
+                                        for (k = 0; k < datasetRows.length; k++) {
                                             // CREATE COORDINATES FOR THE TREE
-                                            var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[0].array[k].position[1]), {units: "meters"});
+                                            var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
                                             // CREATE ASSET OBJECT
                                             /*var asset = {
                                                 species: treeRows[treeRowCount].array[k].species.id,
@@ -665,7 +664,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                             //
                                             var asset = {
                                                 marker: treeMarker,
-                                                species: datasetRows[0].array[k].species
+                                                species: datasetRows[k].species
                                             };
                                             // ADD TREE OBJECT TO ARRAY
                                             treeMarkerArray.push(treeMarker);
@@ -673,16 +672,16 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                         }
                                     }
                                     // ADD REST
-                                    for (j = 0; j < datasetRows[0].array.length; j++) {
-                                        if (datasetRows[0].array[j].position[1] < systemModelRowRest) {
+                                    for (j = 0; j < datasetRows.length; j++) {
+                                        if (datasetRows[j].position < systemModelRowRest) {
                                             /*
                                                                                     treeArray.push(treeRows[treeRowCount].array[j].species);
                                             */
                                             // ADD POINT MARKER FOR REMAINING TREES
-                                            var treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[0].array[j].position[1]), {units: "meters"});
+                                            var treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[j].position), {units: "meters"});
                                             var asset2 = {
                                                 marker: treeMarker2,
-                                                species: datasetRows[0].array[j].species
+                                                species: datasetRows[j].species
                                             };
                                             treeMarkerArray.push(treeMarker2);
                                             treeAssetsArray.push(asset2);
@@ -751,19 +750,11 @@ router.get("/layers/:id/row/new", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             // FIND MY SYSTEMS
-            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
                 if(err){
                     console.log(err);
                 } else {
-                    // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
-                        var systemNameSplit = foundSystems[i].name.split(" ");
-                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
-                            realSystems.push(foundSystems[i]);
-                        }
-                    }
-                    res.render("layers/row", {layer: foundLayer, systems: realSystems});
+                    res.render("layers/row", {layer: foundLayer, sequences: foundSequences});
                 }
             });
         }
@@ -788,7 +779,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // CREATE ROW
             console.log("Row has been added to layer");
-            res.redirect("/layers/" + foundLayer.id);
+            res.redirect("/layers/" + foundLayer.id + "/layout");
         }
     });
 });
@@ -802,19 +793,11 @@ router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
         } else {
             var row = foundLayer.rows[req.query.index];
             // FIND MY SYSTEMS
-            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
                 if(err){
                     console.log(err);
                 } else {
-                    // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
-                        var systemNameSplit = foundSystems[i].name.split(" ");
-                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
-                            realSystems.push(foundSystems[i]);
-                        }
-                    }
-                    res.render("layers/editrow", {layer: foundLayer, row: row, systems: realSystems, index: req.query.index});
+                    res.render("layers/editrow", {layer: foundLayer, row: row, sequences: foundSequences, index: req.query.index});
                 }
             });
         }
@@ -830,7 +813,7 @@ router.put("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // CHANGE PARAMS
             foundLayer.rows[req.query.index].name = req.body.row.name;
-            foundLayer.rows[req.query.index].system = req.body.systemid;
+            foundLayer.rows[req.query.index].sequence = req.body.sequenceid;
             foundLayer.save();
             res.redirect("/layers/" + foundLayer._id + "/layout");
         }

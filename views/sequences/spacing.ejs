@@ -4,18 +4,18 @@
 <div class="row">
     <div class="col-lg-2"></div>
     <div class="col-lg-8">
-        <h1>Define grid for your new sequence</h1>
+        <h1>Define grid for your new row sequence</h1>
         <form action="/layers/<%= layer._id %>/sequences/spacing" method="POST">
             <div class="form-group">
-                <label for="distance">Minimum distance between species in row [m] (Lowest denominator)</label>
+                <label for="distance">Minimum distance between species in row sequence [m] (Lowest denominator)</label>
                 <input type="number" step=".5" class="form-control" name="distance" placeholder="Distance in m" required>
             </div>
             <div class="form-group">
-                <label for="length">Length of sequence [m]</label>
+                <label for="length">Length of row sequence [m]</label>
                 <input type="number" step=".5" class="form-control" name="length" placeholder="Length in m" required>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-success btn-lg mt-3">Create sequence</button>
+                <button type="submit" class="btn btn-success btn-lg mt-3">Create row sequence</button>
             </div>
         </form>
     </div>

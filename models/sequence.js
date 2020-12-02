@@ -20,7 +20,7 @@ var sequenceSchema = new mongoose.Schema({
         },
         username: String
     },
-    length: Number
+    sequencelength: Number
 });
 
 module.exports = mongoose.model("Sequence", sequenceSchema);

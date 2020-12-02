@@ -5,48 +5,34 @@
     <div class="col-lg-12">
         <h1>Create new agroforestry systems for area</h1>
         <p>This page lets you create a new agroforestry system. </p>
-        <form action="/layers/<%= layer._id %>/systems" method="POST">
+        <form action="/layers/<%= layer._id %>/sequences?length=<%= length %>" method="POST">
             <div class="form-group">
-                <label for="system[name]">Sequence name</label>
-                <input type="text" class="form-control" name="system[name]" placeholder="Give the system a name - Descriptive is often best" required>
+                <label for="sequence[name]">Sequence name</label>
+                <input type="text" class="form-control" name="sequence[name]" required>
             </div>
             <div class="form-group">
-                <label for="system[description]">Description</label>
-                <input type="text" class="form-control" name="system[description]" placeholder="Describe the agroforestry system: apple orchard, cereal crops, grazing area, etc.">
+                <label for="sequence[description]">Description</label>
+                <input type="text" class="form-control" name="sequence[description]">
             </div>
-            <h3>Sequence model</h3>
+            <h3>Sequence pattern</h3>
             <p>The species positions are absolute. Please note that the first plants in the rows are located at the bottom.</p>
-            <div class="row">
-                <% for(j=0;j<rows;j++){ %>
-                <div class="col-lg-<%= Math.floor(12/rows) %>">
-                    <h5>Row <%= j + 1 %></h5>
-                    <div class="form-group">
-                        <label for="system[model][<%= j %>][width]">Row width</label>
-                        <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][width]" placeholder="Width in m" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="system[model][<%= j %>][distance]">Distance to next row</label>
-                        <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" placeholder="Distance in m" required>
-                    </div>
+                    <h5>Row sequence</h5>
                     <% for(i=0;i<(length/distance);i++){ %>
                     <div class="card">
                         <div class="card-body">
-                            <select name="system[model][<%= j %>][species][id]" style="width:100%;max-width:100%;">
+                            <select name="model[species]" style="width:100%;max-width:100%;">
                                 <option value="">none</option>
                                 <% species.forEach(function(species){ %>
                                 <option value="<%= species._id %>"><%= species.nameCommon %></option>
                                 <% }); %>
                             </select>
-                            <input type="hidden" name="system[model][<%= j %>][species][y]" value="<%= length - i*distance %>">
+                            <input type="hidden" name="model[position]" value="<%= length - i*distance %>">
                             <p>Row position: <%= length - i*distance %> m</p>
                         </div>
                     </div>
                     <% } %>
-                </div>
-                <% } %>
-            </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-success btn-lg mt-3">Create new sequence</button>
+                <button type="submit" class="btn btn-success btn-lg mt-3">Create new row sequence</button>
             </div>
         </form>
     </div>
