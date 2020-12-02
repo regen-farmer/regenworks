@@ -36,14 +36,34 @@
                                 <% } %>
                                 <td>
                                     <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
-                                    <form class="delete-form" action="/layers/<%= layer._id %>/row?_method=DELETE&index=<%= i %>" method="POST">
-                                        <button class="btn btn-sm btn-outline-danger"><i class="far fa-trash-alt"></i></button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
+
 <!--
                                     <a href="/layers/<%= layer._id %>/row/delete?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-danger"><i class="far fa-trash-alt"></i></a>
 -->
                                 </td>
                             </tr>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalDeleteRow<%= i %>" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm deletion of row</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm deletion of row: "<%= layer.rows[i].name %>"</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="delete-form" action="/layers/<%= layer._id %>/row?_method=DELETE&index=<%= i %>" method="POST">
+                                                <button class="btn btn-sm btn-outline-danger">Delete row <i class="far fa-trash-alt"></i></button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         <% } %>
                     <% } %>
                     </table>
