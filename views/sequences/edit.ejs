@@ -25,12 +25,12 @@
                             <% var count = 0; %>
                             <% for(k=0;k<sequence.model.length;k++){ %>
                                 <% if(sequence.model[k].position === length - i*distance && sequence.model[k].species.nameCommon === species.nameCommon){ %>
-                                    <option value="<%= species._id %>" selected="selected"><%= species.nameCommon %></option>
+                                    <option value="<%= species._id %>" selected="selected"><%= species.nameCommon %> - <em><%= species.genus %> <%= species.species %></em></option>
                                 <% count = 1; %>
                                 <% } %>
                             <% } %>
                             <% if(count === 0){ %>
-                                <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                                <option value="<%= species._id %>"><%= species.nameCommon %> - <em><%= species.genus %> <%= species.species %></em></option>
                             <% } %>
                         <% }); %>
                     </select>

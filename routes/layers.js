@@ -692,11 +692,11 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             // DO POINT COLLECTION
                             var treeCanopyArray = [];
                             var vegeCanopyArray = [];
-                            if(treeAssetsArray.length < 3000){
+                            if(treeAssetsArray.length < 4000){
                                 for(i=0;i<treeAssetsArray.length;i++){
                                     // FIND TREE DIMENSIONS
                                     var diameter = 0.4;
-                                    if(treeAssetsArray[i].species.form === "shrub"){
+                                    if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
                                         diameter = 0.2;
                                     } else if (treeAssetsArray[i].species.form === "herb"){
                                         diameter = 0.1;
@@ -768,8 +768,8 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         geometry: req.body.geometry,
         name: req.body.row.name
     };
-    if(!(req.body.systemid === "none") && req.body.systemid){
-        row.system = req.body.systemid;
+    if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+        row.sequence = req.body.sequenceid;
     }
     console.log(row);
     // FIND PROJECT
@@ -787,7 +787,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
 // EDIT ROW
 router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Layer.findById(req.params.id).populate("rows.system").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("rows.sequence").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -813,7 +813,9 @@ router.put("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // CHANGE PARAMS
             foundLayer.rows[req.query.index].name = req.body.row.name;
-            foundLayer.rows[req.query.index].sequence = req.body.sequenceid;
+            if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+                foundLayer.rows[req.query.index].sequence = req.body.sequenceid;
+            }
             foundLayer.save();
             res.redirect("/layers/" + foundLayer._id + "/layout");
         }

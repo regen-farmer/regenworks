@@ -11,6 +11,7 @@ var Activity = require("../models/activity");
 var Species = require("../models/species");
 var Asset = require("../models/asset");
 var Posting = require("../models/posting");
+var Sequence = require("../models/sequence");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var bbox = require("@turf/bbox");
@@ -1402,19 +1403,11 @@ router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             // FIND MY SYSTEMS
-            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
                 if(err){
                     console.log(err);
                 } else {
-                    // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
-                        var systemNameSplit = foundSystems[i].name.split(" ");
-                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
-                            realSystems.push(foundSystems[i]);
-                        }
-                    }
-                    res.render("projects/row", {project: foundProject, systems: realSystems});
+                    res.render("projects/row", {project: foundProject, sequences: foundSequences});
                 }
             });
         }
@@ -1428,8 +1421,8 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         geometry: req.body.geometry,
         name: req.body.row.name
     };
-    if(!(req.body.systemid === "none") && req.body.systemid){
-        row.system = req.body.systemid;
+    if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+        row.sequence = req.body.sequenceid;
     }
     console.log(row);
     // FIND PROJECT
@@ -1439,7 +1432,7 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // CREATE ROW
             console.log("Row has been added to project");
-            res.redirect("/projects/" + foundProject.id);
+            res.redirect("/projects/" + foundProject.id + "/layout");
         }
     });
 });
@@ -1447,25 +1440,17 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
 // EDIT ROW
 router.get("/projects/:id/row/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Project.findById(req.params.id).populate("rows.system").populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("rows.sequence").populate("layer").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
             var row = foundProject.rows[req.query.index];
             // FIND MY SYSTEMS
-            System.find({'owner.id': req.user._id}, function(err, foundSystems){
+            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
                 if(err){
                     console.log(err);
                 } else {
-                    // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
-                        var systemNameSplit = foundSystems[i].name.split(" ");
-                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
-                            realSystems.push(foundSystems[i]);
-                        }
-                    }
-                    res.render("projects/editrow", {project: foundProject, row: row, systems: realSystems, index: req.query.index});
+                    res.render("projects/editrow", {project: foundProject, row: row, sequences: foundSequences, index: req.query.index});
                 }
             });
         }
@@ -1481,7 +1466,9 @@ router.put("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // CHANGE PARAMS
             foundProject.rows[req.query.index].name = req.body.row.name;
-            foundProject.rows[req.query.index].system = req.body.systemid;
+            if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+                foundProject.rows[req.query.index].sequence = req.body.sequenceid;
+            }
             foundProject.save();
             res.redirect("/projects/" + foundProject._id + "/layout");
         }

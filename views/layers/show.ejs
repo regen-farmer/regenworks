@@ -3,7 +3,6 @@
 
     <div class="row">
         <div class="col-md-12">
-
         </div>
         <div class="col-md-4">
             <div>
@@ -44,11 +43,9 @@
                 <li class="nav-item">
                     <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system</a>
                 </li>
-                <% if((layer.rows && layer.rows.length > 0) || (layer.assets && layer.assets.length > 0)){ %>
-                    <li class="nav-item">
-                        <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
-                    </li>
-                <% } %>
+                <li class="nav-item">
+                    <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
                 </li>
@@ -102,11 +99,11 @@
                             <% if(presentsystem.animals.length > 0){ %>
                             <p>Animals: <%= presentsystem.animals[0].name %></p>
                             <% } %>
-                            <a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
+                            <!--<a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
                             <a class="btn btn-outline-warning mt-2" href="/systems/<%= layer.systems.present._id %>/edit">Edit current system model</a>
-                            <% } %>
+                            --><% } %>
                         </div>
-                        <div class="col-md-6">
+                        <!--<div class="col-md-6">
                             <% if(!(layer.systems.present == "")){ %><div class="thumbnail">
                                 <div class="card">
                                     <div class="card-body">
@@ -162,7 +159,7 @@
                                 </div>
                             </div>
                             <% } %>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
                 <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">

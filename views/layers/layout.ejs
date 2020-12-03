@@ -5,8 +5,8 @@
         <div class="col-md-6">
             <div id="layerMapShow"></div>
             <a href="/layers/<%= layer._id %>" class="btn mt-2 btn-outline-primary">Back to area</a>
-            <a href="/layers/<%= layer._id %>/row/new" class="btn mt-2 btn-outline-secondary">Manually add existing row</a>
-            <a href="/layers/<%= layer._id %>/sequences/spacing" class="btn mt-2 btn-outline-success">New row sequence</a>
+            <a href="/layers/<%= layer._id %>/row/new" class="btn mt-2 btn-outline-secondary">Draw row/line on map</a>
+            <a href="/layers/<%= layer._id %>/sequences/spacing" class="btn mt-2 btn-outline-success">Create new row species sequence</a>
         </div>
         <!--<div class="col-md-3">
             <div class="card">
@@ -37,10 +37,6 @@
                                 <td>
                                     <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
-
-<!--
-                                    <a href="/layers/<%= layer._id %>/row/delete?index=<%= i %>" class="btn btn-sm mt-2 btn-outline-danger"><i class="far fa-trash-alt"></i></a>
--->
                                 </td>
                             </tr>
                             <!-- Modal -->

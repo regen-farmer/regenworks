@@ -10,17 +10,17 @@
                     <label for="row[name]">Row name/ref</label>
                     <input type="text" class="form-control" name="row[name]" value="<%= row.name %>" required>
                 </div>
-                <% if(systems && systems.length > 0){ %>
+                <% if(sequences && sequences.length > 0){ %>
                 <div class="form-group">
-                    <label for="systemid">Select row system: </label>
-                    <select name="systemid" id="systemid">
+                    <label for="sequenceid">Select row system: </label>
+                    <select name="sequenceid" id="sequenceid">
                         <option value="none">None</option>
-                        <% for(i=0;i<systems.length;i++){ %>
-                        <% if(systems[i].name === row.system.name){ %>
-                        <option value="<%= systems[i]._id %>" selected="selected"><%= systems[i].name %></option>
-                        <% } else { %>
-                        <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
-                        <% } %>
+                        <% for(i=0;i<sequences.length;i++){ %>
+                            <% if(row.sequence && sequences[i].name === row.sequence.name){ %>
+                                <option value="<%= sequences[i]._id %>" selected="selected"><%= sequences[i].name %></option>
+                            <% } else { %>
+                                <option value="<%= sequences[i]._id %>"><%= sequences[i].name %></option>
+                            <% } %>
                         <% } %>
                     </select>
                 </div>

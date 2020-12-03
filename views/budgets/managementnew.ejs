@@ -57,14 +57,14 @@
                     <p><strong><%= species.nameCommon %></strong></p>
                     <div class="row">
                         <div class="col-lg-4">
-                            <label for="speciespostings">Pruning</label>
+                            <label for="speciespostings">Pruning/cutting</label>
                             <div class="form-group">
                                 <select name="speciespostings" id="speciespostings">
                                     <option value="none">none</option>
                                     <% for(i=0;i<species.activities.length;i++){ %>
-                                    <% if(species.activities[i].subtype === "pruning"){ %>
-                                    <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
-                                    <% }; %>
+                                        <% if(species.activities[i].subtype === "pruning"){ %>
+                                        <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
+                                        <% }; %>
                                     <% }; %>
                                 </select>
                             </div>

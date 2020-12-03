@@ -60,7 +60,7 @@ var projectSchema = new mongoose.Schema({
     rows: [
         {
             geometry: String,
-            system: {type: mongoose.Schema.Types.ObjectId, ref: "System"},
+            sequence: {type: mongoose.Schema.Types.ObjectId, ref: "Sequence"},
             name: String
         }
     ]
