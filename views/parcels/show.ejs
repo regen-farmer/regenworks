@@ -16,7 +16,7 @@
             <% parcel.layers.forEach (function(layer){ %>
             <div class="col-md-12">
                 <a href="/layers/<%= layer._id %>" class="btn btn-outline-secondary btn-block mb-1">
-                    Explore production systems for area "<%= layer.name %>"
+                    <%= layer.name %>
                 </a>
             </div>
             <% }); %>

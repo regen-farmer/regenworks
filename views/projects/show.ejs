@@ -92,9 +92,9 @@
                     <a class="nav-link" id="layout-tab" data-toggle="tab" href="#financials" role="tab" aria-controls="financials" aria-selected="false">Budgets and financials</a>
                 </li>
                 <% if(project.status === "Implementation"){ %>
-                    <!--<li class="nav-item">
+                    <li class="nav-item">
                         <a class="nav-link" id="asset-tab" data-toggle="tab" href="#assets" role="tab" aria-controls="assets" aria-selected="false">Assets</a>
-                    </li>-->
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" id="implementation-tab" data-toggle="tab" href="#implementation" role="tab" aria-controls="implementation" aria-selected="false">Implementation</a>
                     </li>
@@ -128,7 +128,7 @@
                                         </div>
                                     </div>
                                 <% } else { %>
-                                    <% if(project.status === "planning"){ %>
+                                    <!--<% if(project.status === "planning"){ %>
                                         <div class="col-md-6">
                                             <div class="card">
                                                 <div class="card-body">
@@ -136,7 +136,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    <% } %>
+                                    <% } %>-->
                                 <% } %>
                             </div>
                             <!--<h2>Establishement and management activities</h2>
@@ -246,6 +246,34 @@
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                                             <h4 class="modal-title">Start manual project completion</h4>
+                                            <% if(project.activities && project.activities.length > 0){ %>
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <h2>Implementation activity plan</h2>
+                                                        <table class="table small">
+                                                            <tr class="table-secondary">
+                                                                <td>Activity</td>
+                                                                <td>Status</td>
+                                                                <td></td>
+                                                            </tr>
+                                                            <% for(i=0;i<project.activities.length;i++){ %>
+                                                                <tr>
+                                                                    <td><%= project.activities[i].name %></td>
+                                                                    <% if(project.activities[i].status === true){ %>
+                                                                        <td>Active</td>
+                                                                    <% } else { %>
+                                                                        <td>Completed</td>
+                                                                    <% } %>
+                                                                    <td>
+                                                                        <a href="/projects/<%= project._id %>/row/edit?index=<%= i %>" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                                                        <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                                                    </td>
+                                                                </tr>
+                                                            <% } %>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            <% } %>
                                         </div>
                                         <div class="modal-body">
                                             <p>NOTICE: Once you complete the project, the current system of the project area will be updated to reflect the system specified in this project and the project will be marked as completed. </p>

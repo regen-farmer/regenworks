@@ -635,6 +635,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                 treeRows.push(dataset[i]);
                             }
                         }
+                        // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
+                        var systemModelLength = 0;
+                        for(i=0;i<dataset.length;i++){
+                            if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
+                                systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
+                            }
+                        }
                         // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                         var treeRowCount = 0;
                         var treeCountArray = [];
@@ -645,20 +652,23 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             // COUNT SYSTEM MODEL ITERATIONS IN ROW
                             var rowLength = length(rowArray[i], {units: "meters"});
                             // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                            var systemModelLength = 0;
+                            /*var systemModelLength = 0;
                             if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                                 systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                             } else {
                                 systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                            }
+                            }*/
                             var systemModelCount = Math.floor(rowLength/systemModelLength);
                             var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                             // CALCULATE AREA
                             treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
                             // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
-                            treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
-                            var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
-                            treeMarkerArray.push(firstTreeMarker);
+                            console.log("Position: " + treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1]);
+                            if(!(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1] < systemModelLength)){
+                                treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
+                                var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
+                                treeMarkerArray.push(firstTreeMarker);
+                            }
                             // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
                             for(j=0;j<systemModelCount;j++){
                                 for(k=0;k<treeRows[treeRowCount].array.length;k++){
@@ -691,7 +701,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var treeCanopyArray = [];
                         if(treeMarkerArray.length < 3000){
                             for(i=0;i<treeMarkerArray.length;i++){
-                                var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
+                                var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 2, {units: "meters"});
                                 treeCanopyArray.push(circle1);
                             }
                         }
@@ -1106,6 +1116,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             treeRows.push(dataset[i]);
                         }
                     }
+                    // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
+                    var systemModelLength = 0;
+                    for(i=0;i<dataset.length;i++){
+                        if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
+                            systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
+                        }
+                    }
                     // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                     var treeRowCount = 0;
                     var treeCountArray = [];
@@ -1116,12 +1133,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // COUNT SYSTEM MODEL ITERATIONS IN ROW
                         var rowLength = length(rowArray[i], {units: "meters"});
                         // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                        var systemModelLength = 0;
+                        /*var systemModelLength = 0;
                         if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                             systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                         } else {
                             systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                        }                        var systemModelCount = Math.floor(rowLength/systemModelLength);
+                        }                  */
+                        var systemModelCount = Math.floor(rowLength/systemModelLength);
                         var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                         // CALCULATE AREA
                         treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;

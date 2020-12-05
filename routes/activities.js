@@ -232,6 +232,45 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res
     });
 });
 
+// GENERATE ACTIVITIES
+router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT
+    Project.findById(req.params.id).populate("budgets.establishment").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            //
+            var activityArray = [];
+            for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
+                var activity = {
+                    status: false,
+                    automated: true
+                };
+                if(foundProject.budgets.establishment.postings.postType === "material"){
+                    activity.name = "Acquire: " + foundProject.budgets.establishment.postings[i].name;
+                } else {
+                    activity.name = "Perform: " + foundProject.budgets.establishment.postings[i].name
+                }
+                activityArray.push(activity);
+            }
+            Activity.insertMany(activityArray, function(err, createdActivities){
+                if(err){
+                    console.log(err);
+                } else {
+                    Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } }, function(err, updatedBudget){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log("Activities added to project implementation plan");
+                            res.redirect("/projects/" + foundProject._id);
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
 // --------------- NESTED ROUTES ---------------- //
 
 module.exports = router;

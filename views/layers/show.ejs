@@ -41,11 +41,11 @@
             <h2>Area production system</h2>
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system</a>
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system and assets</a>
                 </li>
-                <li class="nav-item">
+                <!--<li class="nav-item">
                     <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
-                </li>
+                </li>-->
                 <li class="nav-item">
                     <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
                 </li>
@@ -102,6 +102,17 @@
                             <!--<a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
                             <a class="btn btn-outline-warning mt-2" href="/systems/<%= layer.systems.present._id %>/edit">Edit current system model</a>
                             --><% } %>
+                        </div>
+                        <div class="col-md-6">
+                            <% if((layer.rows && layer.rows.length > 0) || layer.type === "agroforestry" || layer.type === "orchard"){ %>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h3>Rows and assets</h3>
+                                    <p><strong>Current defined existing rows: </strong><%= layer.rows.length %></p>
+                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current rows and assets</a>
+                                </div>
+                            </div>
+                            <% } %>
                         </div>
                         <!--<div class="col-md-6">
                             <% if(!(layer.systems.present == "")){ %><div class="thumbnail">
@@ -173,12 +184,6 @@
                                     <%= layer.size.toFixed(0) %> m2
                                 <% } %>
                             </p>
-                            <% if(layer.rows && layer.rows.length > 0){ %>
-                                <div class="card-body">
-                                    <p><strong>Current defined rows: </strong><%= layer.rows.length %></p>
-                                </div>
-                            <% } %>
-                            <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current layout and assets</a>
                         </div>
                     </div>
                 </div>

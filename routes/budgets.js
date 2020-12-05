@@ -442,6 +442,13 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                     treeRows.push(dataset[i]);
                                 }
                             }
+                            // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
+                            var systemModelLength = 0;
+                            for(i=0;i<dataset.length;i++){
+                                if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
+                                    systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
+                                }
+                            }
                             // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                             var treeRowCount = 0;
                             var treeCountArray = [];
@@ -452,12 +459,12 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 // COUNT SYSTEM MODEL ITERATIONS IN ROW
                                 var rowLength = length(rowArray[i], {units: "meters"});
                                 // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                                var systemModelLength = 0;
+                                /*var systemModelLength = 0;
                                 if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                                     systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                                 } else {
                                     systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                                }
+                                }*/
                                 var systemModelCount = Math.floor(rowLength/systemModelLength);
                                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                                 // CALCULATE AREA
@@ -873,6 +880,13 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                     treeRows.push(dataset[i]);
                                 }
                             }
+                            // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
+                            var systemModelLength = 0;
+                            for(i=0;i<dataset.length;i++){
+                                if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
+                                    systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
+                                }
+                            }
                             // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                             var treeRowCount = 0;
                             var treeCountArray = [];
@@ -883,12 +897,12 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 // COUNT SYSTEM MODEL ITERATIONS IN ROW
                                 var rowLength = length(rowArray[i], {units: "meters"});
                                 // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                                var systemModelLength = 0;
+                                /*var systemModelLength = 0;
                                 if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                                     systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                                 } else {
                                     systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                                }
+                                }*/
                                 var systemModelCount = Math.floor(rowLength/systemModelLength);
                                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                                 // CALCULATE AREA
