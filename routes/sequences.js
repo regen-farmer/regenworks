@@ -54,10 +54,10 @@ router.get("/layers/:id/sequences/new", middleware.isLoggedIn, function(req, res
                 } else {
                     // SORT SPECIES
                     function compare( a, b ) {
-                        if ( a.nameCommon < b.nameCommon ){
+                        if ( a.genus < b.genus ){
                             return -1;
                         }
-                        if ( a.nameCommon > b.nameCommon ){
+                        if ( a.genus > b.genus ){
                             return 1;
                         }
                         return 0;
@@ -146,10 +146,10 @@ router.get("/layers/:id/sequences/:pid/edit", middleware.isLoggedIn, function(re
                         } else {
                             // SORT SPECIES
                             function compare( a, b ) {
-                                if ( a.nameCommon < b.nameCommon ){
+                                if ( a.genus < b.genus ){
                                     return -1;
                                 }
-                                if ( a.nameCommon > b.nameCommon ){
+                                if ( a.genus > b.genus ){
                                     return 1;
                                 }
                                 return 0;
