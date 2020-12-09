@@ -924,6 +924,66 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
 });*/
 
 // SYSTEM DELETE ROUTE
+router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
+    System.findById(req.params.pid, function(err, foundSystem){
+        if(err){
+            console.log(err);
+        } else {
+            // CHECK FOR SYSTEM IN LAYER PRESENT. IF THERE, BACK.
+            Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log(foundLayersPresent.length + " present found");
+                    if(foundLayersPresent.length > 0){
+                        // SEND BACK IF LAYERS
+                        res.redirect("back");
+                    } else {
+                        // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
+                        Project.find({"owner.id": req.user._id, "system": foundSystem._id}, function(err, foundProjects){
+                            if(err){
+                                console.log(err);
+                            } else {
+                                console.log(foundProjects.length + " projects found");
+                                if(foundProjects.length > 0){
+                                    // SEND BACK IF PROJECTS
+                                    res.redirect("back");
+                                } else {
+                                    // CHECK EDGE SYSTEM!?
+                                    // DELETE IN FUTURE DRAFT
+                                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            console.log(foundLayersFuture.length + " future drafts found");
+                                            if(foundLayersFuture.length > 0){
+                                                foundLayersFuture.forEach(function(layer){
+                                                    // REMOVE ORIGINAL SYSTEM
+                                                    layer.systems.future.remove(foundSystem);
+                                                    // ADD NEW SYSTEM
+                                                    layer.save();
+                                                });
+                                            }
+                                            // DELETE SYSTEM NOW
+                                            System.findByIdAndRemove(req.params.pid, function(err){
+                                                if(err){
+                                                    console.log(err);
+                                                } else {
+                                                    res.redirect("/layers/" + req.params.id);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    });
+});
 
 // SYSTEM SUCCESSION ROUTE
 router.get("/systems/:id/succession", middleware.isLoggedIn, function (req, res) {

@@ -226,13 +226,16 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Saved future agroforestry system drafts</h5>
-                            <% layer.systems.future.forEach(function(system){ %>
+                            <% layer.systems.future.forEach(function(system, i){ %>
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <p class="card-text"><Strong>System name: </Strong><%= system.name %></p>
                                     <a class="btn btn-outline-primary" href="/systems/<%= system._id %>">View more details</a>
                                     <button class="btn btn-outline-warning" data-toggle="modal" data-target="#setCurrentModal<%= system._id %>">Create implementation project for this system</button>
-                                    <!-- Modal -->
+                                    <% if(currentUser && system.owner.id.equals(currentUser._id)){ %>
+                                        <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteSystem<%= i %>">Delete <i class="far fa-trash-alt"></i></button>
+                                    <% } %>
+                                    <!-- Project Modal -->
                                     <div class="modal fade" id="setCurrentModal<%= system._id %>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
@@ -258,6 +261,29 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Project Modal -->
+                                    <!-- Delete system Modal -->
+                                    <div class="modal fade" id="myModalDeleteSystem<%= i %>" role="dialog">
+                                        <div class="modal-dialog">
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    <h4 class="modal-title">Confirm deletion of system</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Confirm deletion of system: "<%= system.name %>". This will delete the system and it will not be possible to retrieve. Please check that you are not using the system in any projects before you delete it. </p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form class="delete-form" action="/layers/<%= layer._id %>/systems/<%= system._id %>?_method=DELETE" method="POST">
+                                                        <button class="btn btn-sm btn-outline-danger">Delete system <i class="far fa-trash-alt"></i></button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Delete system Modal -->
                                 </div>
                             </div>
                             <% }); %>
