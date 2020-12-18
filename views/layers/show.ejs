@@ -107,9 +107,9 @@
                             <% if((layer.rows && layer.rows.length > 0) || layer.type === "agroforestry" || layer.type === "orchard"){ %>
                             <div class="card">
                                 <div class="card-body">
-                                    <h3>Rows and assets</h3>
+                                    <h4>Rows and assets</h4>
                                     <p><strong>Current defined existing rows: </strong><%= layer.rows.length %></p>
-                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-primary">View current rows and assets</a>
+                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-outline-primary">View/edit current rows and species</a>
                                 </div>
                             </div>
                             <% } %>

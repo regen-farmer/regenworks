@@ -148,9 +148,7 @@
                             <% } else if (project.assets && project.assets.length > 0) { %>
                                 <p>Layout has been fixed and digital tree assets have already been created for this project. Go to "Assets" tab to view asset map.</p>
                             <% } else { %>
-<!--
                                 <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
--->
                             <% } %>
                         </div>
                     </div>
@@ -218,9 +216,9 @@
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <p class="card-text"><strong>Name:</strong> <%= asset.name %>, <strong>Georef:</strong> <%= asset.lat %>, <%= asset.lng %>, <strong>id:</strong> <%= asset.id %></p>
-                                    <!--<a class="btn btn-outline-primary" href="/assets/<%= asset._id %>/edit">Edit asset</a>
+                                    <!--<a class="btn btn-outline-primary" href="/assets/<%= asset._id %>/edit">Edit asset <i class="far fa-edit"></i></a>
                                     <form class="delete-asset-form" action="/assets/<%= asset._id %>?_method=DELETE" method="POST">
-                                        <button class="btn btn-outline-danger">Delete asset</button>
+                                        <button class="btn btn-outline-danger">Delete asset <i class="far fa-trash-alt"></i></button>
                                     </form>-->
                                 </div>
                             </div>
@@ -234,7 +232,58 @@
                 <div class="tab-pane fade" id="implementation" role="tabpanel" aria-labelledby="implementation-tab">
                     <div class="card">
                         <div class="card-body">
-                            <h2 class="card-title">Implementation plan</h2>
+                            <h2 class="card-title">Implementation</h2>
+                            <% if(project.activities && project.activities.length > 0){ %>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h2>Activity plan</h2>
+                                    <table class="table small">
+                                        <tr class="table-secondary">
+                                            <td>Activity</td>
+                                            <td>Status</td>
+                                            <td></td>
+                                        </tr>
+                                        <% for(i=0;i<project.activities.length;i++){ %>
+                                        <tr>
+                                            <td><%= project.activities[i].name %></td>
+                                            <% if(project.activities[i].status == true){ %>
+                                                <td>Completed</td>
+                                            <% } else if (project.activities[i].status == false) { %>
+                                                <td>Active</td>
+                                            <% } else { %>
+                                                <td>N/A</td>
+                                            <% } %>
+                                            <td>
+                                                <a href="/projects/<%= project._id %>/activities/<%= project.activities[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteActivity<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                            </td>
+                                        </tr>
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="myModalDeleteActivity<%= i %>" role="dialog">
+                                            <div class="modal-dialog">
+                                                <!-- Modal content-->
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                        <h4 class="modal-title">Confirm deletion of activity</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Confirm deletion of activity: "<%= project.activities[i].name %>"</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <form class="delete-form" action="/projects/<%= project._id %>/activities/<%= project.activities[i]._id %>?_method=DELETE" method="POST">
+                                                            <button class="btn btn-sm btn-outline-danger">Delete activity <i class="far fa-trash-alt"></i></button>
+                                                        </form>
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                    </table>
+                                </div>
+                            </div>
+                            <% } %>
                             <% if(project.status === "Implementation"){ %>
                             <button type="button" class="btn btn-outline-success"  data-toggle="modal" data-target="#myModalCompleteProject">Start manual project completion</button>
                             <% } %>
@@ -246,34 +295,6 @@
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                                             <h4 class="modal-title">Start manual project completion</h4>
-                                            <% if(project.activities && project.activities.length > 0){ %>
-                                                <div class="card">
-                                                    <div class="card-body">
-                                                        <h2>Implementation activity plan</h2>
-                                                        <table class="table small">
-                                                            <tr class="table-secondary">
-                                                                <td>Activity</td>
-                                                                <td>Status</td>
-                                                                <td></td>
-                                                            </tr>
-                                                            <% for(i=0;i<project.activities.length;i++){ %>
-                                                                <tr>
-                                                                    <td><%= project.activities[i].name %></td>
-                                                                    <% if(project.activities[i].status === true){ %>
-                                                                        <td>Active</td>
-                                                                    <% } else { %>
-                                                                        <td>Completed</td>
-                                                                    <% } %>
-                                                                    <td>
-                                                                        <a href="/projects/<%= project._id %>/row/edit?index=<%= i %>" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
-                                                                        <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
-                                                                    </td>
-                                                                </tr>
-                                                            <% } %>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            <% } %>
                                         </div>
                                         <div class="modal-body">
                                             <p>NOTICE: Once you complete the project, the current system of the project area will be updated to reflect the system specified in this project and the project will be marked as completed. </p>

@@ -233,11 +233,6 @@
                                         <p class="card-text"><strong>Total system width:</strong>
                                             <%= systemsproven[i].grid %> m
                                         </p>
-                                        <% if(systemsproven[i].name === "Apple wheat alley cropping"){ %>
-                                            <p class="card-text"><strong>Subsidies:</strong>
-                                                Økologisk arealtilskud, frugt- og bærtillæg
-                                            </p>
-                                        <% } %>
                                         <p>
                                             <% systemsproven[i].flows.forEach(function(flow){ %>
                                                 <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>

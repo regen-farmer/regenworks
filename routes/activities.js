@@ -235,7 +235,7 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res
 // GENERATE ACTIVITIES
 router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("budgets.establishment").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -246,13 +246,14 @@ router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(r
                     status: false,
                     automated: true
                 };
-                if(foundProject.budgets.establishment.postings.postType === "material"){
+                if(foundProject.budgets.establishment.postings[i].postType === "material"){
                     activity.name = "Acquire: " + foundProject.budgets.establishment.postings[i].name;
                 } else {
                     activity.name = "Perform: " + foundProject.budgets.establishment.postings[i].name
                 }
                 activityArray.push(activity);
             }
+            console.log("Activity array length" + activityArray.length);
             Activity.insertMany(activityArray, function(err, createdActivities){
                 if(err){
                     console.log(err);
@@ -263,6 +264,68 @@ router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(r
                         } else {
                             console.log("Activities added to project implementation plan");
                             res.redirect("/projects/" + foundProject._id);
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// PROJECT EDIT ACTIVITY ROUTE
+router.get("/projects/:id/activities/:pid/edit", middleware.isLoggedIn, function(req, res){
+    // FIND PROJECT WITH ACTIVITY
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            Activity.findById(req.params.pid, function(err, foundActivity){
+                if(err){
+                    console.log(err);
+                } else {
+                    // RENDER EDIT PAGE
+                    res.render("projects/editactivity", {project: foundProject, activity: foundActivity});
+                }
+            });
+        }
+    });
+});
+
+// PROJECT UPDATE ACTIVITY ROUTE
+router.put("/projects/:id/activities/:pid", middleware.isLoggedIn, function(req, res){
+   // FIND ACTIVITY AND UPDATE
+    Activity.findByIdAndUpdate(req.params.pid, req.body.activity, function(err, updatedActivity){
+        if(err){
+            console.log(err);
+        } else {
+            res.redirect("/projects/" + req.params.id);
+        }
+    });
+});
+
+
+// DELETE ACTIVITY IN PROJECT
+router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND ACTIVITY
+    Activity.findById(req.params.pid, function(err, foundActivity){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND PROJECT
+            Project.findById(req.params.id, function(err, updatedProject){
+                if(err){
+                    console.log(err)
+                } else {
+                    // REMOVE ACTIVITY FROM PROJECT
+                    updatedProject.activities.remove(foundActivity);
+                    updatedProject.save();
+                    // DELETE ACTIVITY
+                    Activity.findByIdAndRemove(req.params.pid, function(err){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // REDIRECT TO PROJECT AGAIN
+                            res.redirect("/projects/" + updatedProject._id);
                         }
                     });
                 }

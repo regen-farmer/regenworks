@@ -5,8 +5,12 @@
     <div class="col-lg-12">
         <h1>Create new agroforestry systems for area</h1>
         <p>This page lets you create a new agroforestry system. </p>
-        <form action="/layers/<%= layer._id %>/sequences/<%= sequence._id %>?_method=PUT" method="POST">
-            <div class="form-group">
+        <% if(project){ %>
+            <form action="/projects/<%= project._id %>/sequences/<%= sequence._id %>?_method=PUT" method="POST">
+        <% } else { %>
+            <form action="/layers/<%= layer._id %>/sequences/<%= sequence._id %>?_method=PUT" method="POST">
+        <% } %>
+         <div class="form-group">
                 <label for="sequence[name]">Sequence name</label>
                 <input type="text" class="form-control" name="sequence[name]" value="<%= sequence.name %>" required>
             </div>

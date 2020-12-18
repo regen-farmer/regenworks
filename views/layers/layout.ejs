@@ -30,11 +30,14 @@
                             <tr>
                                 <td><%= layer.rows[i].name %></td>
                                 <% if(layer.rows[i].sequence){ %>
-                                <td><%= layer.rows[i].sequence.name %> <a href="/layers/<%= layer._id %>/sequences/<%= layer.rows[i].sequence._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a></td>
+                                <td><%= layer.rows[i].sequence.name %> </td>
                                 <% } else { %>
                                 <td>---</td>
                                 <% } %>
                                 <td>
+<!--
+                                    <a href="/layers/<%= layer._id %>/sequences/<%= layer.rows[i].sequence._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+-->
                                     <a href="/layers/<%= layer._id %>/row/edit?index=<%= i %>" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
                                 </td>

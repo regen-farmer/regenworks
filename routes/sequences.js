@@ -243,4 +243,117 @@ router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, re
 // SEQUENCE DELETE ROUTE
 
 
+// PROJECT SEQUENCE EDIT ROUTE
+router.get("/projects/:id/sequences/:pid/edit", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id).populate({path:'rows.sequence', populate:{path:'model.species'}}).exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND SEQUENCES
+            Sequence.findById(req.params.pid).populate('model.species').exec(function(err, foundSequence){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES
+                    Species.find(function(err, foundSpecies){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // SORT SPECIES
+                            function compare( a, b ) {
+                                if ( a.genus < b.genus ){
+                                    return -1;
+                                }
+                                if ( a.genus > b.genus ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            foundSpecies.sort(compare);
+                            // CALCULATE LENGTH
+                            var length = 0;
+                            if(foundSequence.sequencelength){
+                                length = foundSequence.sequencelength;
+                            }
+                            // CALCULATE DISTANCE
+                            var distanceArray = [];
+                            for(i=0;i<foundSequence.model.length;i++){
+                                distanceArray.push(foundSequence.model[i].position);
+                            }
+                            //
+                            var distanceDifference = [];
+                            for(i=0;i<distanceArray.length;i++){
+                                for(j=0;j<distanceArray.length;j++){
+                                    if(distanceArray[i] !== distanceArray[j]){
+                                        distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
+                                    }
+                                }
+                            }
+                            // SORT DIFFERENCE IN DISTANCE
+                            function compare3( a, b ) {
+                                if ( a < b ){
+                                    return -1;
+                                }
+                                if ( a > b ){
+                                    return 1;
+                                }
+                                return 0;
+                            }
+                            // CALCULATE LENGTH
+                            distanceArray.sort(compare3);
+                            distanceDifference.sort(compare3);
+                            var distance = 1;
+                            if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
+                                distance = distanceArray[0];
+                            } else {
+                                distance = distanceDifference[0];
+                            }
+                            res.render("sequences/edit", {project: foundProject, sequence: foundSequence, species: foundSpecies, length: length, distance: distance});
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// PROJECT SEQUENCE UPDATE
+router.put("/projects/:id/sequences/:pid", middleware.isLoggedIn, function(req, res){
+    // CLEAN MODEL
+    var model = [];
+    var length = 0;
+    for(i=0;i<req.body.model.species.length;i++){
+        // FIX IF ONLY ONE ITEM IN ROW
+        // IF SPECIES ID IS NULL
+        if(!(req.body.model.species[i] === "")){
+            var species = {
+                species: req.body.model.species[i],
+                position: Number(req.body.model.position[i])
+            };
+            model.push(species);
+        }
+        if(Number(req.body.model.position[i]) > length){
+            length = Number(req.body.model.position[i]);
+        }
+    }
+    var sequence = req.body.sequence;
+    sequence.model = model;
+    sequence.sequencelength = length;
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            Sequence.findByIdAndUpdate(req.params.pid, sequence, function(err, updatedSequence){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/projects/" + foundProject._id + "/layout");
+                }
+            });
+        }
+    });
+});
+
 module.exports = router;
