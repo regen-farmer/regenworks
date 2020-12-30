@@ -133,10 +133,6 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
             climate.hardiness.low = 10;
             climate.hardiness.high = 16;
         }
-        if(data[0].country === "Portugal"){
-            climate.hardiness.low = -7;
-            climate.hardiness.high = 1;
-        }
         if(data[0].country === "Sri Lanka"){
             climate.hardiness.low = 10;
             climate.hardiness.high = 16;
