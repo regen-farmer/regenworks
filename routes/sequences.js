@@ -193,7 +193,7 @@ router.get("/layers/:id/sequences/:pid/edit", middleware.isLoggedIn, function(re
                             } else {
                                 distance = distanceDifference[0];
                             }
-                            res.render("sequences/edit", {layer: foundLayer, sequence: foundSequence, species: foundSpecies, length: length, distance: distance});
+                            res.render("sequences/edit", {layer: foundLayer, project: "", sequence: foundSequence, species: foundSpecies, length: length, distance: distance});
                         }
                     });
                 }
