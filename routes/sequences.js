@@ -16,7 +16,7 @@ router.get("/layers/:id/sequences/spacing", middleware.isLoggedIn, function(req,
         if(err){
             console.log(err);
         } else {
-            res.render("sequences/spacing", {layer: foundLayer});
+            res.render("sequences/spacing", {layer: foundLayer, project: ""});
         }
     });
 });
@@ -25,7 +25,7 @@ router.get("/layers/:id/sequences/spacing", middleware.isLoggedIn, function(req,
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post("/layers/:id/sequences/spacing", middleware.isLoggedIn, function(req, res){
     // CHECK LENGTH IS DIVISIBLE
-    if((req.body.length / req.body.distance) % 1 === 0){
+    if((req.body.length / req.body.distance) % 1 === 0 && (req.body.length / req.body.distance) > 1){
         // FIND LAYER
         Layer.findById(req.params.id, function(err, foundLayer){
             if(err){
@@ -63,7 +63,7 @@ router.get("/layers/:id/sequences/new", middleware.isLoggedIn, function(req, res
                         return 0;
                     }
                     foundSpecies.sort(compare);
-                    res.render("sequences/new", {layer: foundLayer, species: foundSpecies, distance: req.query.distance, length: req.query.length});
+                    res.render("sequences/new", {layer: foundLayer, project: "", species: foundSpecies, distance: req.query.distance, length: req.query.length});
 
                 }
             });
@@ -242,6 +242,110 @@ router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, re
 
 // SEQUENCE DELETE ROUTE
 
+/// ----------- PROJECT ROUTES ---------
+
+// NEW AREA SYSTEM GRID NEW ROUTE
+router.get("/projects/:id/sequences/spacing", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("sequences/spacing", {project: foundProject});
+        }
+    });
+});
+
+
+// NEW AREA SYSTEM GRID REDIRECT ROUTE
+router.post("/projects/:id/sequences/spacing", middleware.isLoggedIn, function(req, res){
+    // CHECK LENGTH IS DIVISIBLE
+    if((req.body.length / req.body.distance) % 1 === 0 && (req.body.length / req.body.distance) > 1){
+        // FIND LAYER
+        Project.findById(req.params.id, function(err, foundProject){
+            if(err){
+                console.log(err);
+            } else {
+                res.redirect("/projects/" + foundProject._id + "/sequences/new?distance=" + req.body.distance + "&length=" + req.body.length);
+            }
+        });
+    } else {
+        req.flash("error", "Length must be divisible with distance between species in sequence.");
+        res.redirect("back");
+    }
+});
+
+// SEQUENCE NEW
+router.get("/projects/:id/sequences/new", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ALL SPECIES
+            Species.find(function(err, foundSpecies){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SORT SPECIES
+                    function compare( a, b ) {
+                        if ( a.genus < b.genus ){
+                            return -1;
+                        }
+                        if ( a.genus > b.genus ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    foundSpecies.sort(compare);
+                    res.render("sequences/new", {project: foundProject, species: foundSpecies, distance: req.query.distance, length: req.query.length});
+
+                }
+            });
+        }
+    });
+});
+
+// SEQUENCE CREATE
+router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            var model = [];
+            var length = 0;
+            for(i=0;i<req.body.model.species.length;i++){
+                // FIX IF ONLY ONE ITEM IN ROW
+                // IF SPECIES ID IS NULL
+                if(!(req.body.model.species[i] === "")){
+                    var species = {
+                        species: req.body.model.species[i],
+                        position: Number(req.body.model.position[i])
+                    };
+                    model.push(species);
+                }
+                if(Number(req.body.model.position[i]) > length){
+                    length = Number(req.body.model.position[i]);
+                }
+            }
+            var sequence = req.body.sequence;
+            sequence.model = model;
+            sequence.sequencelength = length;
+            Sequence.create(sequence, function(err, createdSequence){
+                if(err){
+                    console.log(err);
+                } else {
+                    // SAVE SEQUENCE ON LAYER?
+                    createdSequence.owner.id = req.user._id;
+                    createdSequence.owner.username = req.user.username;
+                    createdSequence.save();
+                    res.redirect("/projects/" + foundProject._id + "/layout");
+                }
+            });
+        }
+    });
+});
 
 // PROJECT SEQUENCE EDIT ROUTE
 router.get("/projects/:id/sequences/:pid/edit", middleware.isLoggedIn, function(req, res){

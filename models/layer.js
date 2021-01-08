@@ -83,9 +83,8 @@ var layerSchema = new mongoose.Schema({
     headland: Number,
     rows: [
         {
-            geometry: String,
-            sequence: {type: mongoose.Schema.Types.ObjectId, ref: "Sequence"},
-            name: String
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Row"
         }
     ]
 });

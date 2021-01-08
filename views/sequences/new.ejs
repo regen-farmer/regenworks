@@ -3,9 +3,14 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <h1>Create new agroforestry systems for area</h1>
-        <p>This page lets you create a new agroforestry system. </p>
-        <form action="/layers/<%= layer._id %>/sequences?length=<%= length %>" method="POST">
+        <h1>Create new row sequence pattern</h1>
+        <p>This page lets you create a new row sequence pattern. </p>
+        <% if(project){ %>
+            <form action="/projects/<%= project._id %>/sequences?length=<%= length %>" method="POST">
+        <% } else { %>
+            <a href="/layers/<%= layer._id %>" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to area</a>
+            <form action="/layers/<%= layer._id %>/sequences?length=<%= length %>" method="POST">
+        <% } %>
             <div class="form-group">
                 <label for="sequence[name]">Sequence name</label>
                 <input type="text" class="form-control" name="sequence[name]" required>

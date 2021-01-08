@@ -114,63 +114,6 @@
                             </div>
                             <% } %>
                         </div>
-                        <!--<div class="col-md-6">
-                            <% if(!(layer.systems.present == "")){ %><div class="thumbnail">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Current system species</h5>
-                                        <table class="table table-striped small">
-                                            <tr>
-                                                <td><strong>Layer</strong></td>
-                                                <td><strong>Species</strong></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Canopy</td>
-                                                <td>
-                                                    <% species.forEach(function(species){ %>
-                                                    <% if(species.form == "tree" || species.form == "palm" ){ %>
-                                                    <em><%= species.nameCommon %>,</em>
-                                                    <% } %>
-                                                    <% }); %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Sub-canopy</td>
-                                                <td>
-                                                    <% species.forEach(function(species){ %>
-                                                    <% if(species.form == "shrub" || species.form == "giantherb" ){ %>
-                                                    <em><%= species.nameCommon %>,</em>
-                                                    <% } %>
-                                                    <% }); %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Climbers</td>
-                                                <td>
-                                                    <% species.forEach(function(species){ %>
-                                                    <% if(species.form == "vine"){ %>
-                                                    <em><%= species.nameCommon %>,</em>
-                                                    <% } %>
-                                                    <% }); %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Ground</td>
-                                                <td>
-                                                    <% species.forEach(function(species){ %>
-                                                    <% if(species.form == "herb" || species.form == "grass" ){ %>
-                                                    <em><%= species.nameCommon %>,</em>
-                                                    <% } %>
-                                                    <% }); %>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        <a class="btn btn-outline-primary" href="/systems/<%= layer.systems.present._id %>/composition">Analyse species succession</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <% } %>
-                        </div>-->
                     </div>
                 </div>
                 <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">
@@ -240,13 +183,13 @@
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h4 class="modal-title" id="exampleModalLabel">Set system "<%= system.name %>" to current</h4>
+                                                    <h4 class="modal-title" id="exampleModalLabel">Implement "<%= system.name %>" on area</h4>
                                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                         <span aria-hidden="true">&times;</span>
                                                     </button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p>You are about to change the current production system for this area.</p>
+                                                    <p>Create a project to plan and implement the new agroforestry system. This includes system layout, budgeting and creation of implementation plans.</p>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <div class="row">

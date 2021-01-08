@@ -3,8 +3,8 @@
 
 <div class="row">
     <div class="col-lg-12">
-        <h1>Create new agroforestry systems for area</h1>
-        <p>This page lets you create a new agroforestry system. </p>
+        <h1>Update row sequence pattern</h1>
+        <p>This page lets you update an existing row sequence pattern. </p>
         <% if(project){ %>
             <form action="/projects/<%= project._id %>/sequences/<%= sequence._id %>?_method=PUT" method="POST">
         <% } else { %>
@@ -18,7 +18,7 @@
                 <label for="sequence[description]">Description</label>
                 <input type="text" class="form-control" name="sequence[description]" value="<%= sequence.description %>">
             </div>
-            <h3>Row sequence pattern</h3>
+            <h3>Sequence pattern</h3>
             <p>The species positions are absolute. </p>
             <% for(i=0;i<(length/distance);i++){ %>
             <div class="card">

@@ -6,6 +6,7 @@ var System = require("../models/system");
 var Species = require("../models/species");
 var Animal = require("../models/animal");
 var Sequence = require("../models/sequence");
+var Row = require("../models/row");
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
@@ -198,7 +199,12 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                                     // ASS SYSTEM TO PRESENT SYSTEM
                                                     layer.systems.present = createdSystem;
                                                     layer.save();
-                                                    res.redirect("/parcels/" + foundParcel._id);
+                                                    // IF FOREST OR ORCHARD GO TO LAYOUT
+                                                    if(layer.type === "forestry" || layer.type === "orchard"){
+                                                        res.redirect("/layers/" + layer._id + "/layout");
+                                                    } else {
+                                                        res.redirect("/layers/" + layer._id);
+                                                    }
                                                 }
                                             });
                                         }
@@ -212,7 +218,12 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                             // ASS SYSTEM TO PRESENT SYSTEM
                                             layer.systems.present = createdSystem;
                                             layer.save();
-                                            res.redirect("/parcels/" + foundParcel._id);
+                                            // IF FOREST OR ORCHARD GO TO LAYOUT
+                                            if(layer.type === "forestry" || layer.type === "orchard"){
+                                                res.redirect("/layers/" + layer._id + "/layout");
+                                            } else {
+                                                res.redirect("/layers/" + layer._id);
+                                            }
                                         }
                                     });
                                 }
@@ -227,6 +238,8 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
 
 // NESTED PARCEL LAYER CREATE WITH UPLOAD ROUTE
 router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, uploadMem.single("filename"), function(req, res){
+    // CHECK EXISTING AREAS SIZE!?
+
     // PARSE UPLOADED FILE AND CREATE POLYGON
     parser.parseString(req.file.buffer, function(err, result){
         if(err){
@@ -319,7 +332,12 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                                             // ADD SYSTEM TO PRESENT SYSTEM
                                                             createdLayer.systems.present = createdSystem;
                                                             createdLayer.save();
-                                                            res.redirect("/parcels/" + foundParcel._id);
+                                                            // IF FOREST OR ORCHARD GO TO LAYOUT
+                                                            if(layer.type === "forestry" || layer.type === "orchard"){
+                                                                res.redirect("/layers/" + layer._id + "/layout");
+                                                            } else {
+                                                                res.redirect("/layers/" + layer._id);
+                                                            }
                                                         }
                                                     });
                                                 }
@@ -333,7 +351,12 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                                     // ADD SYSTEM TO PRESENT SYSTEM
                                                     createdLayer.systems.present = createdSystem;
                                                     createdLayer.save();
-                                                    res.redirect("/parcels/" + foundParcel._id);
+                                                    // IF FOREST OR ORCHARD GO TO LAYOUT
+                                                    if(layer.type === "forestry" || layer.type === "orchard"){
+                                                        res.redirect("/layers/" + layer._id + "/layout");
+                                                    } else {
+                                                        res.redirect("/layers/" + layer._id);
+                                                    }
                                                 }
                                             });
                                         }
@@ -526,7 +549,7 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
 
 // LAYER CURRENT SYSTEM LAYOUT
 router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows.sequence', populate:{path:'model.species'}}).exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -772,32 +795,44 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         row.sequence = req.body.sequenceid;
     }
     console.log(row);
-    // FIND PROJECT
-    Layer.findByIdAndUpdate(req.params.id, {$addToSet: {rows: row}}, function(err, foundLayer){
+    // CREATE ROW
+    Row.create(row, function(err, createdRow){
         if(err){
             console.log(err);
         } else {
-            // CREATE ROW
-            console.log("Row has been added to layer");
-            res.redirect("/layers/" + foundLayer.id + "/layout");
+            Layer.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, updatedLayer){
+                if(err){
+                    console.log(err);
+                } else {
+                    // CREATE ROW
+                    console.log("Row has been added to layer");
+                    res.redirect("/layers/" + updatedLayer.id + "/layout");
+                }
+            });
         }
     });
 });
 
 // EDIT ROW
-router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/row/:pid/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Layer.findById(req.params.id).populate("rows.sequence").exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate({path:'rows', populate:{path:'sequence'}}).exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
-            var row = foundLayer.rows[req.query.index];
-            // FIND MY SYSTEMS
-            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
+            // FIND ROW
+            Row.findById(req.params.pid).populate("sequence").exec(function(err, foundRow){
                 if(err){
                     console.log(err);
                 } else {
-                    res.render("layers/editrow", {layer: foundLayer, row: row, sequences: foundSequences, index: req.query.index});
+                    // FIND MY SYSTEMS
+                    Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.render("layers/editrow", {layer: foundLayer, row: foundRow, sequences: foundSequences});
+                        }
+                    });
                 }
             });
         }
@@ -805,25 +840,34 @@ router.get("/layers/:id/row/edit", middleware.isLoggedIn, function(req, res){
 });
 
 // UPDATE ROW
-router.put("/layers/:id/row", middleware.isLoggedIn, function(req, res){
+router.put("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
+    // CREATE ROW HERE?
+    var row = {
+        name: req.body.row.name
+    };
+    if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+        row.sequence = req.body.sequenceid;
+    }
     // FIND LAYER
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
-            // CHANGE PARAMS
-            foundLayer.rows[req.query.index].name = req.body.row.name;
-            if(!(req.body.sequenceid === "none") && req.body.sequenceid){
-                foundLayer.rows[req.query.index].sequence = req.body.sequenceid;
-            }
-            foundLayer.save();
-            res.redirect("/layers/" + foundLayer._id + "/layout");
+            // FIND AND UPDATE ROW
+            Row.findByIdAndUpdate(req.params.pid, row, function(err, updatedRow){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/layers/" + foundLayer._id + "/layout");
+                }
+            });
         }
     });
 });
 
 // DELETE ROW
-router.delete("/layers/:id/row", middleware.isLoggedIn, function(req, res){
+router.delete("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND ROW
     // FIND LAYER
     Layer.findById(req.params.id, function(err, updatedLayer){
         if(err){
@@ -831,12 +875,16 @@ router.delete("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         } else {
             // REMOVE ROW
             console.log("Length before " + updatedLayer.rows.length);
-            if (req.query.index > -1) {
-                updatedLayer.rows.splice(req.query.index, 1);
-            }
-            updatedLayer.save();
-            console.log("Length after " + updatedLayer.rows.length);
-            res.redirect("/layers/" + updatedLayer._id + "/layout");
+            updatedLayer.rows.remove(req.params.pid);
+            // DELETE ROW
+            Row.findByIdAndRemove(req.params.pid, function(err){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("Length after " + updatedLayer.rows.length);
+                    res.redirect("/layers/" + updatedLayer._id + "/layout");
+                }
+            });
         }
     });
 });

@@ -12,6 +12,7 @@ var Species = require("../models/species");
 var Asset = require("../models/asset");
 var Posting = require("../models/posting");
 var Sequence = require("../models/sequence");
+var Row = require("../models/row");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
@@ -239,7 +240,7 @@ router.get("/projects/:id/edit", middleware.isLoggedIn, function(req, res){ // M
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows.sequence', populate:{path:'model.species'}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -818,8 +819,16 @@ router.put("/projects/:id/complete", middleware.isLoggedIn, function(req, res){
                 } else {
                     projectArea.systems.past.push(projectArea.systems.present);
                     projectArea.systems.present = completedProject.system;
-                    projectArea.save();
                     // CLEAR FUTURE DRAFTS?
+                    // ADD ASSETS AND ROWS TO LAYER
+                    if(completedProject.rows && completedProject.rows.length > 0){
+                        projectArea.rows = completedProject.rows;
+                    }
+                    if(completedProject.assets && completedProject.assets.length > 0){
+                        projectArea.assets = completedProject.assets;
+                    }
+                    // SAVE AREA
+                    projectArea.save();
                     // REDIRECT
                     res.redirect("/projects/" + req.params.id);
                 }
@@ -875,7 +884,7 @@ router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, 
 // PROJECT ASSET CREATION
 router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("system").populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -884,7 +893,18 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                 if(err){
                     console.log(err);
                 } else {
-                    // FIX TURF BUG
+                    // SET VARIABLES HERE
+                    var layout = {};
+                    // IF ROWS, DO XXX
+                    if(foundProject.rows && foundProject.rows.length > 0){
+                        // DO ROW LAYOUT
+                        layout = gisObj.rowBasedLayout(foundProject);
+                    } else {
+                        // DO PARAMETRIC LAYOUT
+                        layout = gisObj.systemBasedLayout(foundProject);
+                    }
+
+/*                    // FIX TURF BUG
                     var merc = 1/Math.cos(54*Math.PI/180);
                     console.log(merc);
                     // GET GEOMETRY
@@ -1000,14 +1020,14 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
                         var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
                         console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
-                        /*// CREATE ANGLED LENGTH LINE
+                        /!*!// CREATE ANGLED LENGTH LINE
                         var rotatedLine = transformRotate(line, 90);
                         var splitLines = lineSplit(rotatedLine, line);
                         // SET LENGTH LINE
                         var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                         lengthLine = lengthLineSplit.features[1];
                         console.log(splitLines.features[0]);
-                        console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
+                        console.log(Math.floor((length(lengthLine, {units: "meters"}))));*!/
                         rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
                         rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                         console.log(rowCount);
@@ -1109,19 +1129,19 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     for (i=0;i<rowArray.length;i++){
                         var rowLength1 = length(rowArray[i], {units: "meters"});
                         rowLengthArray.push(rowLength1);
-                        /*
+                        /!*
                                             console.log(rowArray[i].geometry.coordinates);
-                        */
+                        *!/
                     }
                     // PUSH TO ROW ARRAY
-                    /*                rowArray.push(scaledLengthLineBearing);
-                                    rowArray.push(finalLengthLineBearing.features[1]);*/
+                    /!*                rowArray.push(scaledLengthLineBearing);
+                                    rowArray.push(finalLengthLineBearing.features[1]);*!/
                     // DO DISTANCE CHECK FOR ROW ARRAY OFFSET
-                    /* var rotatedCheckLine = transformRotate(rowArray[0], 90);
+                    /!* var rotatedCheckLine = transformRotate(rowArray[0], 90);
                      var splitCheckLine = lineSplit(rotatedCheckLine, rowArray[0]);
                      var distanceCheckLine = lineSplit(splitCheckLine.features[1], rowArray[1]);
                      var checkDistance = length(distanceCheckLine.features[0], {units: "meters"});
-                     console.log("Distance check " + checkDistance);*/
+                     console.log("Distance check " + checkDistance);*!/
                     // CREATE FEATURECOLLECTION FOR ROWS
                     var featurecollection = turf.featureCollection(rowArray);
                     var collection = JSON.stringify(featurecollection);
@@ -1149,12 +1169,12 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // COUNT SYSTEM MODEL ITERATIONS IN ROW
                         var rowLength = length(rowArray[i], {units: "meters"});
                         // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                        /*var systemModelLength = 0;
+                        /!*var systemModelLength = 0;
                         if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                             systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                         } else {
                             systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                        }                  */
+                        }                  *!/
                         var systemModelCount = Math.floor(rowLength/systemModelLength);
                         var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                         // CALCULATE AREA
@@ -1207,11 +1227,22 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         } else {
                             treeRowCount = treeRowCount + 1;
                         }
-                    }
-                    console.log(treeArray.length);
-                    console.log(treeMarkerArray.length);
+                    }*/
+                    var treeAssetArray = layout.treeAssetArray;
+                    var treeMarkerArray = layout.treeMarkerArray;
+                    /*// DON'T HAVE MARKERS. THEY ARE CIRCLES/POLYGONS
+                    console.log("Trees: " + treeAssetArray.length);
+                    console.log("Tree #1 - " + treeAssetArray[0]);
+                    console.log(treeAssetArray[0].species);
+                    console.log(treeAssetArray[0].lat);
+                    res.redirect("/projects/" + req.params.id);*/
+                    console.log("Trees Assets: " + treeAssetArray.length);
+                    console.log("Trees Markets: " + treeMarkerArray.length);
+/*
+                    res.redirect("/projects/" + req.params.id);
+*/
                     // CREATE ASSETS
-                    Asset.insertMany(treeMarkerArray, function(err, createdAssets){
+                    Asset.insertMany(treeAssetArray, function(err, createdAssets){
                         if(err){
                             console.log(err);
                         } else {
@@ -1226,19 +1257,6 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             });
                         }
                     });
-                    /*for(i=1;i<5;i++){
-                        // CREATE ASSET
-                        console.log("1");
-                        Asset.create(treeMarkerArray[i], function(err, createdAsset){
-                            if(err){
-                                console.log(err);
-                            } else {
-                                // SAVE TO PROJECT
-                                foundProject.assets.push(createdAsset);
-                                foundProject.save();
-                            }
-                        });
-                    }*/
                 }
             });
         }
@@ -1267,14 +1285,18 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
             var rowCollection = JSON.stringify(layout.rowLineCollection);
             // CREATE AREAS ON AREA
             var alleyCollection = JSON.stringify(layout.bedPolygonCollection);
-
-            // ASSETS
-            var treeCollection = JSON.stringify(layout.treeMarkerCollection);
-            Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: rows } } }, function(err, updatedProject){
+            // CREATE ROWS
+            Row.insertMany(rows, function(err, createdRows){
                 if(err){
                     console.log(err);
                 } else {
-                    res.redirect("/projects/" + updatedProject._id + "/layout");
+                    Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: createdRows } } }, function(err, updatedProject){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.redirect("/projects/" + updatedProject._id + "/layout");
+                        }
+                    });
                 }
             });
         }
@@ -1284,12 +1306,25 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get("/projects/:id/deleterows", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findByIdAndUpdate(req.params.id, { $set: { rows: [] }}, function(err, updatedProject){
+    Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            // REDIRECT
-            res.redirect("/projects/" + updatedProject._id + "/layout");
+            Row.deleteMany ({_id: {$in: foundProject.rows}}, function(err){
+                if(err){
+                    console.log(err);
+                } else {
+                    // DELETE ROWS
+                    Project.findByIdAndUpdate(req.params.id, { $set: { rows: [] }}, function(err, updatedProject){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            // REDIRECT
+                            res.redirect("/projects/" + updatedProject._id + "/layout");
+                        }
+                    });
+                }
+            });
         }
     });
 });
@@ -1413,7 +1448,7 @@ router.get("/layers/:id/projects/new/:system", middleware.isLoggedIn, function(r
 // LAYER PROJECT CREATE ROUTE
 router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
     // Lookup place using id
-    Layer.findById(req.params.id, function(err, foundLayer){
+    Layer.findById(req.params.id).populate("rows").exec(function(err, foundLayer){
         if(err) {
             console.log(err);
             res.redirect("/layers/" + req.params.id);
@@ -1438,12 +1473,34 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                 period: 20
                             };
                             createdProject.status = "planning";
-                            // Save the service
-                            createdProject.save();
-                            // Connect new service to place
+                            // Connect new project to layer
                             foundLayer.projects.push(createdProject);
                             foundLayer.save();
-                            res.redirect("/projects/" + createdProject._id);
+                            // Save rows from layer on project - Do it so that they are just blank for now
+                            if(req.body.existingrows === "on"){
+                                var newRows = [];
+                                for(i=0;i<foundLayer.rows.length;i++){
+                                var row = {
+                                    geometry: foundLayer.rows[i].geometry,
+                                    name: foundLayer.rows[i].name
+                                };
+                                newRows.push(row);
+                                }
+                                Row.insertMany(newRows, function(err, createdRows){
+                                    if(err){
+                                        console.log(err);
+                                    } else {
+                                        createdProject.rows = createdRows;
+                                        // Save the project
+                                        createdProject.save();
+                                        res.redirect("/projects/" + createdProject._id);
+                                    }
+                                });
+                            } else {
+                                // Save the project
+                                createdProject.save();
+                                res.redirect("/projects/" + createdProject._id);
+                            }
                         }
                     });
                 }
@@ -1508,32 +1565,45 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         row.sequence = req.body.sequenceid;
     }
     console.log(row);
-    // FIND PROJECT
-    Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: row}}, function(err, foundProject){
+    // CREATE ROW
+    Row.create(row, function(err, createdRow){
         if(err){
             console.log(err);
         } else {
-            // CREATE ROW
-            console.log("Row has been added to project");
-            res.redirect("/projects/" + foundProject.id + "/layout");
+            // FIND PROJECT
+            Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, foundProject){
+                if(err){
+                    console.log(err);
+                } else {
+                    // CREATE ROW
+                    console.log("Row has been added to project");
+                    res.redirect("/projects/" + foundProject.id + "/layout");
+                }
+            });
         }
     });
 });
 
 // EDIT ROW
-router.get("/projects/:id/row/edit", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/row/:pid/edit", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Project.findById(req.params.id).populate("rows.sequence").populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'rows', populate:{path:'sequence'}}).populate("layer").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            var row = foundProject.rows[req.query.index];
-            // FIND MY SYSTEMS
-            Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
+            // FIND ROW
+            Row.findById(req.params.pid).populate("sequence").exec(function(err, foundRow){
                 if(err){
                     console.log(err);
                 } else {
-                    res.render("projects/editrow", {project: foundProject, row: row, sequences: foundSequences, index: req.query.index});
+                    // FIND MY SYSTEMS
+                    Sequence.find({'owner.id': req.user._id}, function(err, foundSequences){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.render("projects/editrow", {project: foundProject, row: foundRow, sequences: foundSequences});
+                        }
+                    });
                 }
             });
         }
@@ -1541,19 +1611,50 @@ router.get("/projects/:id/row/edit", middleware.isLoggedIn, function(req, res){
 });
 
 // UPDATE ROW
-router.put("/projects/:id/row", middleware.isLoggedIn, function(req, res){
-    // FIND LAYER
+router.put("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res){
+    // CREATE ROW HERE?
+    var row = {
+        name: req.body.row.name
+    };
+    if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+        row.sequence = req.body.sequenceid;
+    }
+    // FIND PROJECT
     Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);
         } else {
-            // CHANGE PARAMS
-            foundProject.rows[req.query.index].name = req.body.row.name;
-            if(!(req.body.sequenceid === "none") && req.body.sequenceid){
-                foundProject.rows[req.query.index].sequence = req.body.sequenceid;
-            }
-            foundProject.save();
-            res.redirect("/projects/" + foundProject._id + "/layout");
+            // FIND AND UPDATE ROW
+            Row.findByIdAndUpdate(req.params.pid, row, function(err, updatedRow){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/projects/" + foundProject._id + "/layout");
+                }
+            });
+        }
+    });
+});
+
+// DELETE ROW
+router.delete("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id, function(err, updatedProject){
+        if(err){
+            console.log(err);
+        } else {
+            // REMOVE ROW
+            console.log("Length before " + updatedProject.rows.length);
+            updatedProject.rows.remove(req.params.pid);
+            // DELETE ROW
+            Row.findByIdAndRemove(req.params.pid, function(err){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("Length after " + updatedProject.rows.length);
+                    res.redirect("/projects/" + updatedProject._id + "/layout");
+                }
+            });
         }
     });
 });

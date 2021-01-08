@@ -59,9 +59,8 @@ var projectSchema = new mongoose.Schema({
     status: String,
     rows: [
         {
-            geometry: String,
-            sequence: {type: mongoose.Schema.Types.ObjectId, ref: "Sequence"},
-            name: String
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Row"
         }
     ]
 });

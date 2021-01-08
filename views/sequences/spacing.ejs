@@ -5,7 +5,11 @@
     <div class="col-lg-2"></div>
     <div class="col-lg-8">
         <h1>Define grid for your new row sequence</h1>
-        <form action="/layers/<%= layer._id %>/sequences/spacing" method="POST">
+        <% if(project){ %>
+            <form action="/projects/<%= project._id %>/sequences/spacing" method="POST">
+        <% } else { %>
+            <form action="/layers/<%= layer._id %>/sequences/spacing" method="POST">
+        <% } %>
             <div class="form-group">
                 <label for="distance">Minimum distance between species in row sequence [m] (Lowest denominator)</label>
                 <input type="number" step=".1" class="form-control" name="distance" placeholder="Distance in m" required>

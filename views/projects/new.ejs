@@ -21,6 +21,18 @@
                             <label for="project[description]">Project description</label>
                             <input type="text" class="form-control" name="project[description]" placeholder="Describe the project.">
                         </div>
+                        <% if(layer.rows && layer.rows.length > 0){ %>
+                            <div class="form-check btn-group-toggle">
+                                <div class="card-body">
+                                    <input type="checkbox" class="form-check-input" name="existingrows" id="exampleRadios1">
+                                    <label class="form-check-label" for="exampleRadios1">
+                                        Base layout of new system on existing rows.
+                                    </label>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <input type="hidden" id="exampleRadios1" name="existingrows" value="">
+                        <% } %>
                         <input type="hidden" id="systemid" name="systemid" value="<%= system._id %>">
                         <div class="btn-group">
                             <button type="submit" class="btn btn-success btn-lg">Create project</button>

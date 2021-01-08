@@ -410,6 +410,7 @@ gisObj.systemBasedLayout = function(project){
     var treeRowCount = 0;
     var treeCountArray = [];
     var treeMarkerArray = [];
+    var treeAssetArray = [];
     var treeArray = [];
     var treeRowArea = 0;
     for(i=0;i<rowArray.length;i++){
@@ -432,6 +433,14 @@ gisObj.systemBasedLayout = function(project){
             treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
             var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
             treeMarkerArray.push(firstTreeMarker);
+            // ASSET ARRAY
+            var asset = {
+                species: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species.id,
+                lat: firstTreeMarker.geometry.coordinates[0],
+                lng: firstTreeMarker.geometry.coordinates[1],
+                name: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species.nameCommon
+            };
+            treeAssetArray.push(asset);
         }
         // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
         for(j=0;j<systemModelCount;j++){
@@ -441,6 +450,14 @@ gisObj.systemBasedLayout = function(project){
                 // CREATE TREE POINTS FOR MARKERS
                 var treeMarker = along(rowArray[i], (j*systemModelLength + treeRows[treeRowCount].array[k].position[1]), {units: "meters"});
                 treeMarkerArray.push(treeMarker);
+                // ASSET ARRAY
+                var asset = {
+                    species: treeRows[treeRowCount].array[k].species.id,
+                    lat: treeMarker.geometry.coordinates[0],
+                    lng: treeMarker.geometry.coordinates[1],
+                    name: treeRows[treeRowCount].array[k].species.nameCommon
+                };
+                treeAssetArray.push(asset);
             }
         }
         // ADD REST
@@ -450,6 +467,14 @@ gisObj.systemBasedLayout = function(project){
                 // ADD POINT MARKER FOR REMAINING TREES
                 var treeMarker2 = along(rowArray[i], (systemModelCount*systemModelLength + treeRows[treeRowCount].array[j].position[1]), {units: "meters"});
                 treeMarkerArray.push(treeMarker2);
+                // ASSET ARRAY
+                var asset = {
+                    species: treeRows[treeRowCount].array[j].species.id,
+                    lat: treeMarker2.geometry.coordinates[0],
+                    lng: treeMarker2.geometry.coordinates[1],
+                    name: treeRows[treeRowCount].array[j].species.nameCommon
+                };
+                treeAssetArray.push(asset);
             }
         }
         // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
@@ -471,6 +496,7 @@ gisObj.systemBasedLayout = function(project){
     }
     layout.treeArray = treeArray;
     layout.treeMarkerArray = treeCanopyArray;
+    layout.treeAssetArray = treeAssetArray;
     // ADD EDGE TREE MARKERS
     for(i=0;i<edgeTreeCanopyArray.length;i++){
         layout.treeMarkerArray.push(edgeTreeCanopyArray[i]);
@@ -503,6 +529,10 @@ gisObj.systemBasedLayout = function(project){
         uniqueSpeciesCount.push(speciesCount);
     }
     layout.uniqueSpeciesCount = uniqueSpeciesCount;
+    /*// CHECK LENGTH OF LINE BEFORE CUTTING
+    var checkLine = turf.lineString([polygon.geometry.coordinates[0][1],polygon.geometry.coordinates[0][2]],{name: "checkLine"});
+    var checkLength = length(checkLine, {units: "meters"});
+    console.log(checkLength + " meters long");*/
     // CALCULATE MARGIN AREA
     var marginArea = area(polygon) - area(offsetPolygon);
     return (layout);
@@ -552,6 +582,7 @@ gisObj.rowBasedLayout = function(project){
             foundLayer.rows[i].system.populate("model." + j + ".species");
         }
     }*/
+    // MAYBE RENAME THIS ONE!?!
     var treeAssetsArray = [];
     // SET COLLECTIVE TREE ARRAY
     var treeMarkerArray = [];
@@ -599,19 +630,20 @@ gisObj.rowBasedLayout = function(project){
                 species: datasetRows[(datasetRows.length - 1)].species
             };
             treeAssetsArray.push(firstAsset);
+            // ASSET ARRAY
+            var firstTreeAsset = {
+                species: datasetRows[(datasetRows.length - 1)].species.id,
+                lat: firstTreeMarker.geometry.coordinates[0],
+                lng: firstTreeMarker.geometry.coordinates[1],
+                name: datasetRows[(datasetRows.length - 1)].species.nameCommon
+            };
+            treeAssetArray.push(firstTreeAsset);
             // ROW MARKERS
             // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
             for (j = 0; j < systemModelCount; j++) {
                 for (k = 0; k < datasetRows.length; k++) {
                     // CREATE COORDINATES FOR THE TREE
                     var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
-                    // CREATE ASSET OBJECT
-                    /*var asset = {
-                        species: treeRows[treeRowCount].array[k].species.id,
-                        lat: treeMarker.geometry.coordinates[0],
-                        lng: treeMarker.geometry.coordinates[1],
-                        name: treeRows[treeRowCount].array[k].species.nameCommon
-                    };*/
                     //
                     var asset = {
                         marker: treeMarker,
@@ -620,6 +652,14 @@ gisObj.rowBasedLayout = function(project){
                     // ADD TREE OBJECT TO ARRAY
                     treeMarkerArray.push(treeMarker);
                     treeAssetsArray.push(asset);
+                    // ASSET ARRAY
+                    var treeAsset1 = {
+                        species: datasetRows[k].species.id,
+                        lat: treeMarker.geometry.coordinates[0],
+                        lng: treeMarker.geometry.coordinates[1],
+                        name: datasetRows[k].species.nameCommon
+                    };
+                    treeAssetArray.push(treeAsset1);
                 }
             }
             // ADD REST
@@ -636,6 +676,14 @@ gisObj.rowBasedLayout = function(project){
                     };
                     treeMarkerArray.push(treeMarker2);
                     treeAssetsArray.push(asset2);
+                    // ASSET ARRAY
+                    var treeAsset2 = {
+                        species: datasetRows[j].species.id,
+                        lat: treeMarker2.geometry.coordinates[0],
+                        lng: treeMarker2.geometry.coordinates[1],
+                        name: datasetRows[j].species.nameCommon
+                    };
+                    treeAssetArray.push(treeAsset2);
                 }
             }
         }
@@ -665,6 +713,7 @@ gisObj.rowBasedLayout = function(project){
         }
     }
     layout.treeArray = treeAssetsArray;
+    layout.treeAssetArray = treeAssetArray;
     layout.treeMarkerArray = treeCanopyArray;
     layout.treeMarkerCollection = turf.featureCollection(treeCanopyArray);
 /*
