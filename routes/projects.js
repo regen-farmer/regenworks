@@ -13,6 +13,7 @@ var Asset = require("../models/asset");
 var Posting = require("../models/posting");
 var Sequence = require("../models/sequence");
 var Row = require("../models/row");
+var Area = require("../models/area");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
@@ -240,7 +241,7 @@ router.get("/projects/:id/edit", middleware.isLoggedIn, function(req, res){ // M
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -644,7 +645,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var featurecollection = turf.featureCollection(layout.rowLineArray);
                         var collection = JSON.stringify(featurecollection);
                         var bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
-                        var alleysCollection = JSON.stringify(bedArrayPolygons);
+                        var stripsCollection = JSON.stringify(bedArrayPolygons);
+                        var alleyArrayPolygons = turf.featureCollection(layout.alleyPolygonArray);
+                        var alleysCollection = JSON.stringify(alleyArrayPolygons);
                         // CREATE FEATURE COLLECTION FOR EDGEROWS
                      /*   var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
                         var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection);*/
@@ -752,7 +755,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var treeRowArea = layout.treeRowArea;
                         // TEMP VALUE HERE
                         var marginArea = 0;
-                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, alleys: alleysCollection});
+                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection});
                     }
                 });
             });
@@ -1278,10 +1281,28 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
                     geometry: JSON.stringify(layout.rowLineArray[i]),
                     name: "Row " + i
                 }
-                // JUST PUSH TO PROJECT AND SAVE?!
+                // PUSH TO ARRAY
                 rows.push(row);
             }
             console.log(rows[0]);
+            // CREATE AREAS
+            var areas = [];
+            for(i=0;i<layout.alleyPolygonArray.length;i++){
+                var alley = {
+                    geometry: JSON.stringify(layout.alleyPolygonArray[i]),
+                    name: "Alley " + i
+                }
+                // PUSH TO ARRAY
+                areas.push(alley);
+            }
+            for(i=0;i<layout.bedPolygonArray.length;i++){
+                var treeStrip = {
+                    geometry: JSON.stringify(layout.bedPolygonArray[i]),
+                    name: "Tree Strip " + i
+                }
+                // PUSH TO ARRAY
+                areas.push(treeStrip);
+            }
             var rowCollection = JSON.stringify(layout.rowLineCollection);
             // CREATE AREAS ON AREA
             var alleyCollection = JSON.stringify(layout.bedPolygonCollection);
@@ -1290,11 +1311,18 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
                 if(err){
                     console.log(err);
                 } else {
-                    Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: createdRows } } }, function(err, updatedProject){
+                    // CREATE AREAS
+                    Area.insertMany(areas, function(err, createdAreas){
                         if(err){
                             console.log(err);
                         } else {
-                            res.redirect("/projects/" + updatedProject._id + "/layout");
+                            Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: createdRows }, areas: { $each: createdAreas } } }, function(err, updatedProject){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    res.redirect("/projects/" + updatedProject._id + "/layout");
+                                }
+                            });
                         }
                     });
                 }

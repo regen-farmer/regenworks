@@ -86,6 +86,12 @@ var layerSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Row"
         }
+    ],
+    areas: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Area"
+        }
     ]
 });
 

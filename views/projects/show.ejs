@@ -148,8 +148,30 @@
                             <% } else if (project.assets && project.assets.length > 0) { %>
                                 <p>Layout has been fixed and digital tree assets have already been created for this project. Go to "Assets" tab to view asset map.</p>
                             <% } else { %>
+<!--
                                 <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
+-->
+                                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#myModalGenerateAssets">Generate trees assets</button>
                             <% } %>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalGenerateAssets" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm generation of tree assets</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm creation of tree assets. This will automatically generate tree assets for the current project. </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -13,7 +13,8 @@ var along = require("@turf/along");
 var circle = require("@turf/circle");
 var area = require("@turf/area");
 var polygonToLine = require("@turf/polygon-to-line");
-
+var pointToLineDistance = require("@turf/point-to-line-distance");
+var booleanPointOnLine = require("@turf/boolean-point-on-line");
 
 // DEFINE GIS OBJECT
 var gisObj = {};
@@ -180,29 +181,45 @@ gisObj.systemBasedLayout = function(project){
         rowWidth = rowWidth + dataset[i].array[0].width;
     }
     layout.rowWidth = rowWidth;
+    // ROW PARAMETERS
     var rowWidthArray = [];
     var rowWidthArrayCount = 0;
     var treeRowWidthArray = [];
+    var stripWidths = [];
+    // ALLEY PARAMETERS
+    var alleyWidthArray = [];
+    var alleyWidthArrayCount = 0;
+    var alleyWidths = [];
     for(i=0;i<dataset.length+1;i++){
         // SET ROW LENGTHS
         // IF FIRST ROW
         if(i === 0){
             if(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb"){
                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width;
+                // SET ALLEY COUNT
+                alleyWidthArrayCount = alleyWidthArrayCount + dataset[i].array[0].width/2;
+                alleyWidthArray.push(alleyWidthArrayCount);
+                alleyWidthArrayCount = 0;
+                alleyWidths.push(dataset[i].array[0].width);
             } else {
                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
                 rowWidthArray.push(rowWidthArrayCount);
                 rowWidthArrayCount = 0;
                 treeRowWidthArray.push(dataset[i].array[0].width);
+                // SET ALLEY COUNT
+                alleyWidthArrayCount = alleyWidthArrayCount + dataset[i].array[0].width;
             }
-            // IF LAST ROW
+        // IF LAST ROW - OR IS THIS OFF?!
         } else if (i === dataset.length) {
             rowWidthArrayCount = rowWidthArrayCount + dataset[i-1].array[0].width/2;
             rowWidthArray.push(rowWidthArrayCount);
-            // FOR ALL OTHER ROWS
+            // ALLEYS
+            alleyWidthArrayCount = alleyWidthArrayCount + dataset[i-1].array[0].width/2;
+            alleyWidthArray.push(alleyWidthArrayCount);
+        // FOR ALL OTHER ROWS
         } else {
             // CHECK IF ROW BEFORE WAS GRASS
-            if((dataset[i-1].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb") && i === 1){
+            if((dataset[i-1].array[0].species.form === "grass" || dataset[i-1].array[0].species.form === "herb") && i === 1){
                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2;
             } else {
                 rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width/2 + dataset[i-1].array[0].width/2;
@@ -213,8 +230,30 @@ gisObj.systemBasedLayout = function(project){
                 rowWidthArrayCount = 0;
                 treeRowWidthArray.push(dataset[i].array[0].width);
             }
+            // ALLEYS
+            if(dataset[i].array[0].species.form === "grass" || dataset[i].array[0].species.form === "herb") {
+                if((dataset[i-1].array[0].species.form === "grass" || dataset[i-1].array[0].species.form === "herb") && i === 1){
+                    alleyWidthArrayCount = alleyWidthArrayCount + dataset[i-1].array[0].width/2;
+                }
+                alleyWidthArrayCount = alleyWidthArrayCount + dataset[i].array[0].width/2;
+                // DO IF TO CHECK IF FIRST INDEX WAS ALLEY
+                alleyWidthArray.push(alleyWidthArrayCount);
+                alleyWidthArrayCount = 0;
+                alleyWidths.push(dataset[i].array[0].width);
+                if(i < dataset.length - 1){
+                    alleyWidthArrayCount = alleyWidthArrayCount + dataset[i].array[0].width/2;
+                }
+            } else {
+                if((dataset[i-1].array[0].species.form === "grass" || dataset[i-1].array[0].species.form === "herb") && i === 1){
+                    alleyWidthArrayCount = alleyWidthArrayCount + dataset[i-1].array[0].width/2 + dataset[i].array[0].width;
+                } else {
+                    alleyWidthArrayCount = alleyWidthArrayCount + dataset[i].array[0].width;
+                }
+            }
         }
     }
+    console.log("Widths: " + alleyWidths);
+    console.log("Alleys: " + alleyWidthArray);
     // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
     var lengthLine;
     var line;
@@ -290,6 +329,7 @@ gisObj.systemBasedLayout = function(project){
     var distanceArray = rowWidthArray;
     // CREATE ALLEY ARRAY
     var bedArray = [];
+    var alleyArray = [];
     var bedDistance = 0;
     // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
     for(i=0;i<rowCount;i++){
@@ -299,8 +339,8 @@ gisObj.systemBasedLayout = function(project){
             if(j === distanceArray.length - 1){
                 distance = distance + distanceArray[j];
             } else if (i === 0 && j === 0) {
-                // START FIRST ROW AT 0
-                distance = 0.01;
+                // START FIRST ROW AT 0 - JUST SET TO DISTANCE!
+                distance = distance + distanceArray[j];
                 var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
                 var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                 console.log("Row point count: " + rowPoints1.features.length);
@@ -311,6 +351,18 @@ gisObj.systemBasedLayout = function(project){
                     var row1 = turf.lineString([[rowPoints1.features[0].geometry.coordinates[0],rowPoints1.features[0].geometry.coordinates[1]],[rowPoints1.features[1].geometry.coordinates[0],rowPoints1.features[1].geometry.coordinates[1]]],{name: "line-0" + i });
                 }
                 rowArray.push(row1);
+                // CREATE FIRST TREE STRIP
+                /*var lineA = {};
+                var lineB = {};
+                var polyLine = polygonToLine(offsetPolygon);
+                for(k=0;k<offsetPolygon.geometry.coordinates[0].length - 1;k++){
+                    var matchPoint1 = turf.point(row1.geometry.coordinates[0]);
+                    var matchPoint2 = turf.point(row1.geometry.coordinates[1]);
+                    var matchLine = turf.lineString([polyLine.geometry.coordinates[k], polyLine.geometry.coordinates[k+1]],{name: "matchLine-0" + k })
+                    var match = pointToLineDistance(matchPoint1, matchLine);
+                    var match2 = pointToLineDistance(matchPoint2, matchLine);
+                    console.log("Any matches: " + match + match2);
+                }*/
             } else {
                 distance = distance + distanceArray[j];
                 var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
@@ -325,14 +377,33 @@ gisObj.systemBasedLayout = function(project){
                     }
                     rowArray.push(row1);
                 }
-                // CREATE ALLEY
-               /* var alleyBufferLine1 = buffer(line, ((distance-(distanceArray[j]/2))*calibrateDistance), {units: "meters"});
+                // CREATE TREE STRIPS
+                var alleyBufferLine1 = buffer(line, ((distance-(treeRowWidthArray[j]/2))*calibrateDistance), {units: "meters"});
                 var alleyPoints1 = lineIntersect(alleyBufferLine1, offsetPolygon);
-                var alleyBufferLine2 = buffer(line, ((distance+(distanceArray[j]/2))*calibrateDistance), {units: "meters"});
+                var alleyBufferLine2 = buffer(line, ((distance+(treeRowWidthArray[j]/2))*calibrateDistance), {units: "meters"});
                 var alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
                 var alleyPolygon = turf.polygon([[alleyPoints1.features[0].geometry.coordinates, alleyPoints1.features[1].geometry.coordinates, alleyPoints2.features[1].geometry.coordinates, alleyPoints2.features[0].geometry.coordinates, alleyPoints1.features[0].geometry.coordinates]], {name: "alleypoly" + i});
                 // CUT OFFSET PERIMETER AS WELL FOR BEST ACURRACY
-                bedArray.push(alleyPolygon);*/
+                bedArray.push(alleyPolygon);
+            }
+        }
+        for(j=0;j<alleyWidthArray.length;j++){
+            if(i === 0 && j === 0){
+                bedDistance = bedDistance + alleyWidthArray[j];
+            } else {
+                if(j === alleyWidthArray.length - 1){
+                    bedDistance = bedDistance + alleyWidthArray[j];
+                } else {
+                    // CREATE ALLEYS
+                    bedDistance = bedDistance + alleyWidthArray[j];
+                    var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
+                    var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+                    var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                    // PUSH TO ARRAY
+                    alleyArray.push(alleyPolygon1);
+                }
             }
         }
     }
@@ -358,6 +429,7 @@ gisObj.systemBasedLayout = function(project){
     layout.treeRowArea = 0;
     layout.bedPolygonArray = bedArray;
     layout.bedPolygonCollection = turf.featureCollection(bedArray);
+    layout.alleyPolygonArray = alleyArray;
     // SET ROWLENGTH ARRAY
     var rowLengthArray = [];
     for (i=0;i<rowArray.length;i++){
@@ -737,8 +809,23 @@ gisObj.rowBasedLayout = function(project){
 /*
     var treeNameCollection = JSON.stringify(treenamemarks);
 */
+    // VIZ ROWS
+    var alleyPolygonArray = [];
+    var bedPolygonArray = [];
+    for(i=0;i<project.areas.length;i++){
+        // ROW VIZ
+        var areaGeometry = JSON.parse(project.areas[i].geometry);
+        if(project.areas[i].name.charAt(0) === "A"){
+            alleyPolygonArray.push(areaGeometry);
+        } else if(project.areas[i].name.charAt(0) === "T"){
+            bedPolygonArray.push(areaGeometry);
+        } else {
+            alleyPolygonArray.push(areaGeometry);
+        }
+    }
     layout.treeRowArea = 0; // CHANGE THIS LATER ON WHEN AREAS ARE WORKING
-    layout.bedPolygonArray = []; // POPULATE THIS AS WELL WITH AREA
+    layout.bedPolygonArray = bedPolygonArray; // POPULATE THIS AS WELL WITH AREA
+    layout.alleyPolygonArray = alleyPolygonArray;
     // COUNT ASSETS
 
 
