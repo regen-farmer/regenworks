@@ -766,7 +766,7 @@ gisObj.rowBasedLayout = function(project){
     if(treeAssetsArray.length < 5000){
         for(i=0;i<treeAssetsArray.length;i++){
             // FIND TREE DIMENSIONS
-            var diameter = 0.5;
+            var diameter = 1;
             /*if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
                 diameter = 0.2;
             } else if (treeAssetsArray[i].species.form === "herb"){
