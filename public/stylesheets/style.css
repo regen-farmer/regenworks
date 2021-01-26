@@ -138,6 +138,10 @@ li i {
   height: 400px;
 }
 
+#layerMapViz {
+  height: 600px;
+}
+
 #rowMapNew {
   height: 400px;
 }

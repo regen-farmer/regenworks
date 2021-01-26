@@ -1,0 +1,139 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="layerMapViz"></div>
+        <a href="/projects/<%= project._id %>/layout" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to project page</a>
+    </div>
+
+</div>
+
+<script>
+    var areaLat = "<%= project.layer.lat %>";
+    var areaLng = "<%= project.layer.lng %>";
+
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
+    var alleys = "<%= alleys %>";
+    var correctalleys = JSON.parse(alleys.replace(/&#34;/g,'"'));
+
+    var strips = "<%= strips %>";
+    var correctstrips = JSON.parse(strips.replace(/&#34;/g,'"'));
+
+    var col = "<%= collection %>";
+    var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= project.layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'layerMapViz',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [areaLng, areaLat],
+        zoom: 15,
+        pitch: 45
+    });
+
+    function rotateCamera(timestamp) {
+    // clamp the rotation between 0 -360 degrees
+    // Divide timestamp by 100 to slow rotation to ~10 degrees / sec
+        map.rotateTo((timestamp / 100) % 360, { duration: 0 });
+    // Request the next frame of the animation.
+        requestAnimationFrame(rotateCamera);
+    }
+
+    map.on('load', function () {
+
+        // Start the animation.
+        rotateCamera(0);
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#b4aab4',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+             'id': 'alleys',
+             'type': 'fill',
+             'source': {
+                 'type': 'geojson',
+                 'data':
+                 correctalleys
+             },
+             'layout': {},
+             'paint': {
+                 'fill-color': '#1EBEC8',
+                 'fill-opacity': 0.6,
+                 'fill-outline-color': '#F0F8FF'
+             }
+         });
+
+         map.addLayer({
+             'id': 'strips',
+             'type': 'fill',
+             'source': {
+                 'type': 'geojson',
+                 'data':
+                 correctstrips
+             },
+             'layout': {},
+             'paint': {
+                 'fill-color': '#002eff',
+                 'fill-opacity': 0.6,
+                 'fill-outline-color': '#F0F8FF'
+             }
+         });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctcol
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#fff1ff',
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7eff36',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+    });
+
+</script>
+
+<% include ../partials/footer %>

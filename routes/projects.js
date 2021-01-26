@@ -648,6 +648,10 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var stripsCollection = JSON.stringify(bedArrayPolygons);
                         var alleyArrayPolygons = turf.featureCollection(layout.alleyPolygonArray);
                         var alleysCollection = JSON.stringify(alleyArrayPolygons);
+                        // TEMP TESTING LINES
+                        var offsetArrayCollection = turf.featureCollection(layout.offsetArray);
+                        var offsetCollection = JSON.stringify(offsetArrayCollection);
+                        console.log("Length off offset array: " + layout.offsetArray);
                         // CREATE FEATURE COLLECTION FOR EDGEROWS
                      /*   var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
                         var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection);*/
@@ -755,7 +759,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var treeRowArea = layout.treeRowArea;
                         // TEMP VALUE HERE
                         var marginArea = 0;
-                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection});
+                        res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection, offset: offsetCollection});
                     }
                 });
             });
@@ -786,6 +790,69 @@ router.put("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
         }
     });
 });
+
+// PROJECT VIZ ROUTE
+router.get("/projects/:id/viz", middleware.isLoggedIn, function(req, res){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
+            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+                // EDGE SYSTEM FIND, IF ONE
+                var edgesystem = "5e6639bc8add4f22f0820200";
+                if(foundProject.edgesystem){
+                    edgesystem = foundProject.edgesystem;
+                }
+                System.findById(edgesystem).populate("model.species").exec(function(err, foundEdgeSystem){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        // SET VARIABLES HERE
+                        var layout = {};
+                        // IF ROWS, DO XXX
+                        if(foundProject.rows && foundProject.rows.length > 0){
+                            // DO ROW LAYOUT
+                            layout = gisObj.rowBasedLayout(foundProject);
+                        } else {
+                            // DO PARAMETRIC LAYOUT
+                            layout = gisObj.systemBasedLayout(foundProject);
+                        }
+                        var featurecollection = turf.featureCollection(layout.rowLineArray);
+                        var collection = JSON.stringify(featurecollection);
+                        var bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
+                        var stripsCollection = JSON.stringify(bedArrayPolygons);
+                        var alleyArrayPolygons = turf.featureCollection(layout.alleyPolygonArray);
+                        var alleysCollection = JSON.stringify(alleyArrayPolygons);
+                        var treeMarkers = turf.featureCollection(layout.treeMarkerArray);
+                        var treeCollection = JSON.stringify(treeMarkers);
+                        // UNIQUE ITEM COUNTS
+                        var rowWidth = 0;
+                        if(layout.rowWidth){
+                            // ONLY USED FOR SYSTEM BASED
+                            rowWidth = layout.rowWidth;
+                        }
+                        var uniqueSpeciesCount = [];
+                        if(layout.uniqueSpeciesCount) {
+                            uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                        }
+                        // CALCULATE AREA SIZES
+                        var treeRowArea = layout.treeRowArea;
+                        // TEMP VALUE HERE
+                        var marginArea = 0;
+                        res.render("projects/viz", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection});
+                    }
+                });
+            });
+        }
+    });
+});
+
+// PROJECT 3D VIZ
+router.get("/projects/:id/3dviz", middleware.isLoggedIn, function(req, res){
+    res.render("projects/3dviz");
+});
+
 
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put("/projects/:id/implement", middleware.isLoggedIn, function(req, res){
@@ -887,7 +954,7 @@ router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, 
 // PROJECT ASSET CREATION
 router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -1288,17 +1355,21 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
             // CREATE AREAS
             var areas = [];
             for(i=0;i<layout.alleyPolygonArray.length;i++){
+                var alleyGeometry = layout.alleyPolygonArray[i];
                 var alley = {
                     geometry: JSON.stringify(layout.alleyPolygonArray[i]),
-                    name: "Alley " + i
+                    name: "Alley " + i,
+                    size: area(alleyGeometry)
                 }
                 // PUSH TO ARRAY
                 areas.push(alley);
             }
             for(i=0;i<layout.bedPolygonArray.length;i++){
+                var bedGeometry = layout.bedPolygonArray[i];
                 var treeStrip = {
                     geometry: JSON.stringify(layout.bedPolygonArray[i]),
-                    name: "Tree Strip " + i
+                    name: "Tree Strip " + i,
+                    size: area(bedGeometry)
                 }
                 // PUSH TO ARRAY
                 areas.push(treeStrip);

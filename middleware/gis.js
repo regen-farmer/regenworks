@@ -5,9 +5,12 @@ var turf = require("@turf/helpers");
 var lineIntersect = require("@turf/line-intersect");
 var length = require("@turf/length");
 var buffer = require("@turf/buffer");
+var midpoint = require("@turf/midpoint");
 var rhumbBearing = require("@turf/rhumb-bearing");
+var rhumbDistance = require("@turf/rhumb-distance");
 var transformScale = require("@turf/transform-scale");
 var transformRotate = require("@turf/transform-rotate");
+var transformTranslate = require("@turf/transform-translate");
 var lineSplit = require("@turf/line-split");
 var along = require("@turf/along");
 var circle = require("@turf/circle");
@@ -255,6 +258,7 @@ gisObj.systemBasedLayout = function(project){
     console.log("Widths: " + alleyWidths);
     console.log("Alleys: " + alleyWidthArray);
     // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
+    var tempOffsetArray = [];
     var lengthLine;
     var line;
     var rowCount = 0;
@@ -263,22 +267,55 @@ gisObj.systemBasedLayout = function(project){
         // -------- ANGLED ROWS ---------
         // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
         var lengthLineBearing = {};
-        if(project.headland === 0){
+        if(project.bearingline){
+            lengthLineBearing = project.bearingline;
+        } else if(project.headland === 0){
             lengthLineBearing = turf.lineString([polygon.geometry.coordinates[0][project.bearing],polygon.geometry.coordinates[0][project.bearing + 1]],{name: 'bearingline'});
         } else {
             lengthLineBearing = turf.lineString([offsetPolygon.geometry.coordinates[0][project.bearing],offsetPolygon.geometry.coordinates[0][project.bearing + 1]],{name: 'bearingline'});
         }
         // SCALE LINE
+/*
         line = transformScale(lengthLineBearing, 6);
-        // ALTERNATIVE BOUNDING BOX LENTH LINE
+*/
+        // ALTERNATIVE BOUNDING BOX LENGTH LINE
         var lineBearing = rhumbBearing(lengthLineBearing.geometry.coordinates[0],lengthLineBearing.geometry.coordinates[1]);
         console.log(lineBearing);
-        var rotatedpolygon = transformRotate(offsetPolygon, 90-lineBearing);
-        var bboxOffsetPolygon = bboxPolygon(bbox(rotatedpolygon));
+        var rotatedPolygon = transformRotate(offsetPolygon, 90-lineBearing);
+        var bboxOffsetPolygon = bboxPolygon(bbox(rotatedPolygon));
         console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
         console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
         var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
         console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+        // CREATE NEW POLYGON
+        var alignPolygon = transformRotate(offsetPolygon, 180-lineBearing);
+        // CHECK POINTS ON ROTATED POLYGON
+        var offsetPolygonWesternPoint = {};
+        var westernPointCount = 0;
+        var westernPointIndex = 0;
+        for(i=0;i<alignPolygon.geometry.coordinates[0].length-1;i++){
+            console.log("Coordinate: " + alignPolygon.geometry.coordinates[0][i]);
+            if(westernPointCount > alignPolygon.geometry.coordinates[0][i][0]){
+                westernPointIndex = i;
+                westernPointCount = alignPolygon.geometry.coordinates[0][i][0];
+            }
+        }
+        console.log("Index: " + westernPointIndex);
+        console.log("Lengthline: " + lengthLineBearing);
+        console.log("Westernpoint: " + offsetPolygon.geometry.coordinates[0][westernPointIndex]);
+        // MOVE SPECS
+        var lineMidpoint = midpoint(lengthLineBearing.geometry.coordinates[0],lengthLineBearing.geometry.coordinates[1]);
+        var moveLengthLine = turf.lineString([lineMidpoint.geometry.coordinates, offsetPolygon.geometry.coordinates[0][westernPointIndex]], {name: 'moveline'});
+        var moveBearing = rhumbBearing(lineMidpoint, offsetPolygon.geometry.coordinates[0][westernPointIndex]);
+        var moveDistance = length(moveLengthLine, {units: 'meters'});
+        // SEE OFFSET
+        var moveLine = transformTranslate(lengthLineBearing, moveDistance, moveBearing, {units: 'meters'});
+        line = transformScale(moveLine, 6);
+        tempOffsetArray.push(alignPolygon);
+        tempOffsetArray.push(line);
+        tempOffsetArray.push(moveLine);
+        console.log("movedLine: " + moveLine.geometry.coordinates);
+        tempOffsetArray.push(lengthLineOffsetRotatedPolygon);
         /*// CREATE ANGLED LENGTH LINE
         var rotatedLine = transformRotate(line, 90);
         var splitLines = lineSplit(rotatedLine, line);
@@ -352,7 +389,17 @@ gisObj.systemBasedLayout = function(project){
                 }
                 rowArray.push(row1);
                 // CREATE FIRST TREE STRIP
-                /*var lineA = {};
+                if(alleyWidthArray[0] < distanceArray[0]){
+                    // IF ALLEY IS FIRST, CREATE TREE STRIP NORMALLY
+                    var alleyBufferLine1 = buffer(line, ((distance-(treeRowWidthArray[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints1 = lineIntersect(alleyBufferLine1, offsetPolygon);
+                    var alleyBufferLine2 = buffer(line, ((distance+(treeRowWidthArray[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
+                    var alleyPolygon = turf.polygon([[alleyPoints1.features[0].geometry.coordinates, alleyPoints1.features[1].geometry.coordinates, alleyPoints2.features[1].geometry.coordinates, alleyPoints2.features[0].geometry.coordinates, alleyPoints1.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                    bedArray.push(alleyPolygon);
+                } else {
+                    // IF ROW AND STRIP IS FIRST, CREATE TREE STRIP WITH CUT
+                    /*var lineA = {};
                 var lineB = {};
                 var polyLine = polygonToLine(offsetPolygon);
                 for(k=0;k<offsetPolygon.geometry.coordinates[0].length - 1;k++){
@@ -363,6 +410,7 @@ gisObj.systemBasedLayout = function(project){
                     var match2 = pointToLineDistance(matchPoint2, matchLine);
                     console.log("Any matches: " + match + match2);
                 }*/
+                }
             } else {
                 distance = distance + distanceArray[j];
                 var bufferLine1 = buffer(line, (distance*calibrateDistance), {units: "meters"});
@@ -383,14 +431,29 @@ gisObj.systemBasedLayout = function(project){
                 var alleyBufferLine2 = buffer(line, ((distance+(treeRowWidthArray[j]/2))*calibrateDistance), {units: "meters"});
                 var alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
                 var alleyPolygon = turf.polygon([[alleyPoints1.features[0].geometry.coordinates, alleyPoints1.features[1].geometry.coordinates, alleyPoints2.features[1].geometry.coordinates, alleyPoints2.features[0].geometry.coordinates, alleyPoints1.features[0].geometry.coordinates]], {name: "alleypoly" + i});
-                // CUT OFFSET PERIMETER AS WELL FOR BEST ACURRACY
+                // CUT OFFSET PERIMETER AS WELL FOR BEST ACCURACY
                 bedArray.push(alleyPolygon);
             }
         }
         for(j=0;j<alleyWidthArray.length;j++){
             if(i === 0 && j === 0){
+                // FIRST ALLEY ON AREA
                 bedDistance = bedDistance + alleyWidthArray[j];
+                if(alleyWidthArray[0] < distanceArray[0]){
+                    // IF ALLEY IS FIRST, CREATE ALLEY WITH CUT
+
+                } else {
+                    // IF ALLEY IS FIRST, CREATE ALLEY NORMALLY
+                    var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
+                    var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                    var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+                    var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                    // PUSH TO ARRAY
+                    alleyArray.push(alleyPolygon1);
+                }
             } else {
+                // REMAINING ALLEYS ON AREA
                 if(j === alleyWidthArray.length - 1){
                     bedDistance = bedDistance + alleyWidthArray[j];
                 } else {
@@ -407,6 +470,25 @@ gisObj.systemBasedLayout = function(project){
             }
         }
     }
+    // FIND LAST IF LAST IS ROW OR ALLEY
+    var tempWidthAlley = 0;
+    var tempWidthAlleyCount = 0;
+    for(i=0;i<alleyWidthArray.length;i++){
+        tempWidthAlleyCount = tempWidthAlleyCount + alleyWidthArray[i];
+        if(tempWidthAlleyCount < rowRest){
+            tempWidthAlley = tempWidthAlleyCount;
+        }
+    }
+    var tempWidthTree = 0;
+    var tempWidthTreeCount = 0;
+    for(i=0;i<rowWidthArray.length;i++){
+        tempWidthTreeCount = tempWidthTreeCount + rowWidthArray[i];
+        if(tempWidthTreeCount < rowRest){
+            tempWidthTree = tempWidthTreeCount;
+        }
+    }
+    console.log("Tree sequence: " + tempWidthTree);
+    console.log("Alley sequence: " + tempWidthAlley);
     // ADD LAST ROWS IF THERE IS SOME MISSING
     var countWidth = 0;
     for(i=0;i<distanceArray.length;i++){
@@ -423,8 +505,43 @@ gisObj.systemBasedLayout = function(project){
                 var row2 = turf.lineString([[rowPoints2.features[0].geometry.coordinates[0],rowPoints2.features[0].geometry.coordinates[1]],[rowPoints2.features[1].geometry.coordinates[0],rowPoints2.features[1].geometry.coordinates[1]]],{name: "line-1" + i });
             }
             rowArray.push(row2);
+            // DO GRASS STRIPS. CHECK IF IT'S THE LAST ROW. ALSO CHECK ALLEY
+            /*if((countWidth + distanceArray[i+1] > rowRest) && tempWidthTree < tempWidthAlley){
+                // LAST ROW
+
+            } else {
+                // NOT LAST ROW
+                // CREATE TREE STRIPS
+                var alleyBufferLine1 = buffer(line, ((distance+countWidth-(treeRowWidthArray[i]/2))*calibrateDistance), {units: "meters"});
+                var alleyPoints1 = lineIntersect(alleyBufferLine1, offsetPolygon);
+                var alleyBufferLine2 = buffer(line, ((distance+countWidth+(treeRowWidthArray[i]/2))*calibrateDistance), {units: "meters"});
+                var alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
+                var alleyPolygon = turf.polygon([[alleyPoints1.features[0].geometry.coordinates, alleyPoints1.features[1].geometry.coordinates, alleyPoints2.features[1].geometry.coordinates, alleyPoints2.features[0].geometry.coordinates, alleyPoints1.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                // CUT OFFSET PERIMETER AS WELL FOR BEST ACCURACY
+                bedArray.push(alleyPolygon);
+            }*/
         }
     }
+    // ADD LAST ALLEYS IF THERE IS SOME MISSING
+    /*var alleyCountWidth = 0;
+    for(i=0;i<alleyWidthArray.length;i++){
+        alleyCountWidth = alleyCountWidth + alleyWidthArray[i];
+        // NEED TO CHECK FOR MINUS WIDTH AS WELL? YES
+        if(alleyCountWidth < rowRest){
+            if((alleyCountWidth + alleyWidthArray[i+1] > rowRest) && tempWidthTree > tempWidthAlley){
+
+            } else {
+                var alleyBufferLine3 = buffer(line, ((bedDistance+alleyCountWidth-(alleyWidths[i]/2))*calibrateDistance), {units: "meters"});
+                var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
+                var alleyBufferLine4 = buffer(line, ((bedDistance+alleyCountWidth+(alleyWidths[i]/2))*calibrateDistance), {units: "meters"});
+                var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+                var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                // PUSH TO ARRAY
+                alleyArray.push(alleyPolygon1);
+            }
+        }
+    }*/
+    layout.offsetArray = tempOffsetArray;
     // CALCULATE TREE ROW AREA HERE
     layout.treeRowArea = 0;
     layout.bedPolygonArray = bedArray;
@@ -569,6 +686,7 @@ gisObj.systemBasedLayout = function(project){
     layout.treeArray = treeArray;
     layout.treeMarkerArray = treeCanopyArray;
     layout.treeAssetArray = treeAssetArray;
+    layout.offsetArrayCollection = []; // CAN DELETE THIS AT SOME POINT. JUST USED IT TO ENSURE VIZ OF LINES IN LAYOUT ANGLED WAS WORKING
     // ADD EDGE TREE MARKERS
     for(i=0;i<edgeTreeCanopyArray.length;i++){
         layout.treeMarkerArray.push(edgeTreeCanopyArray[i]);
@@ -853,6 +971,8 @@ gisObj.rowBasedLayout = function(project){
         uniqueSpeciesCount.push(speciesCount);
     }
     layout.uniqueSpeciesCount = uniqueSpeciesCount;
+    // JUST SEND BLANK
+    layout.offsetArray = [];
 
     return (layout);
 };
