@@ -23,6 +23,7 @@ var UserSchema = new mongoose.Schema({
     haLimit: {type: Number, default: 50},
     isAdmin: {type: Boolean, default: false},
     isNursery: {type: Boolean, default: false},
+    isManagement: {type: Boolean, default: false},
     nurseries: [
             {
             type: mongoose.Schema.Types.ObjectId,
