@@ -20,6 +20,7 @@ var UserSchema = new mongoose.Schema({
     registrationDate: Number,
     membership: Number,
     farmLimit: Number,
+    haLimit: {type: Number, default: 50},
     isAdmin: {type: Boolean, default: false},
     isNursery: {type: Boolean, default: false},
     nurseries: [

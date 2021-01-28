@@ -435,37 +435,40 @@ gisObj.systemBasedLayout = function(project){
                 bedArray.push(alleyPolygon);
             }
         }
-        for(j=0;j<alleyWidthArray.length;j++){
-            if(i === 0 && j === 0){
-                // FIRST ALLEY ON AREA
-                bedDistance = bedDistance + alleyWidthArray[j];
-                if(alleyWidthArray[0] < distanceArray[0]){
-                    // IF ALLEY IS FIRST, CREATE ALLEY WITH CUT
+        // ONLY DO THIS IF ALLEYS ARE THERE - ABOVE 1 MEANS THAT THERE IS AN ALLEY :P
+        if(alleyWidthArray && alleyWidthArray.length > 1){
+            for(j=0;j<alleyWidthArray.length;j++){
+                if(i === 0 && j === 0){
+                    // FIRST ALLEY ON AREA
+                    bedDistance = bedDistance + alleyWidthArray[j];
+                    if(alleyWidthArray[0] < distanceArray[0]){
+                        // IF ALLEY IS FIRST, CREATE ALLEY WITH CUT
 
+                    } else {
+                        // IF ALLEY IS FIRST, CREATE ALLEY NORMALLY
+                        var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                        var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
+                        var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                        var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+                        var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        // PUSH TO ARRAY
+                        alleyArray.push(alleyPolygon1);
+                    }
                 } else {
-                    // IF ALLEY IS FIRST, CREATE ALLEY NORMALLY
-                    var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
-                    var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
-                    var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
-                    var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
-                    var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
-                    // PUSH TO ARRAY
-                    alleyArray.push(alleyPolygon1);
-                }
-            } else {
-                // REMAINING ALLEYS ON AREA
-                if(j === alleyWidthArray.length - 1){
-                    bedDistance = bedDistance + alleyWidthArray[j];
-                } else {
-                    // CREATE ALLEYS
-                    bedDistance = bedDistance + alleyWidthArray[j];
-                    var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
-                    var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
-                    var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
-                    var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
-                    var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
-                    // PUSH TO ARRAY
-                    alleyArray.push(alleyPolygon1);
+                    // REMAINING ALLEYS ON AREA
+                    if(j === alleyWidthArray.length - 1){
+                        bedDistance = bedDistance + alleyWidthArray[j];
+                    } else {
+                        // CREATE ALLEYS
+                        bedDistance = bedDistance + alleyWidthArray[j];
+                        var alleyBufferLine3 = buffer(line, ((bedDistance-(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                        var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
+                        var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
+                        var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+                        var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        // PUSH TO ARRAY
+                        alleyArray.push(alleyPolygon1);
+                    }
                 }
             }
         }
