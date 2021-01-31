@@ -2,10 +2,22 @@ var express = require("express");
 var router = express.Router();
 var Flow = require("../models/flow");
 var Species = require("../models/species");
+var Parcel = require("../models/parcel");
 var System = require("../models/system");
 var middleware = require("../middleware");
 
-// FLOW INDEX ROUTE
+// PARCEL FLOWS
+router.get("/parcels/:id/flows", middleware.isLoggedIn, function(req, res){
+    // FIND PARCEL
+    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            // RENDER ACTIVITIES
+            res.render("flows/index", {parcel: foundParcel})
+        }
+    });
+});
 
 // NESTED SPECIES FLOW NEW ROUTE
 router.get("/species/:id/flows/new", middleware.isLoggedIn, function(req, res){

@@ -1,0 +1,46 @@
+<% include partials/header %>
+<% include partials/navbar %>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Data Streams</h2>
+    </div>
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <% parcel.layers.forEach(function(layer, i){ %>
+                <% if(i === 0){ %>
+                <li class="nav-item">
+                    <a class="nav-link active" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="true"><%= layer.name %></a>
+                </li>
+                <% } else { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="false"><%= layer.name %></a>
+                </li>
+                <% } %>
+            <% }); %>
+
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <% parcel.layers.forEach(function(layer, i){ %>
+                <% if(i === 0){ %>
+                    <div class="tab-pane fade show active" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                <% } else { %>
+                    <div class="tab-pane fade" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                <% } %>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="col-md-12">
+                                    <h2>Soil</h2>
+                                    <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/new">Add soiltest <i class="fas fa-plus"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<% include partials/footer %>

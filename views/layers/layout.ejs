@@ -78,6 +78,12 @@
     var trees = "<%= trees %>";
     var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
 
+    var alleys = "<%= alleys %>";
+    var correctalleys = JSON.parse(alleys.replace(/&#34;/g,'"'));
+
+    var strips = "<%= strips %>";
+    var correctstrips = JSON.parse(strips.replace(/&#34;/g,'"'));
+
     var col = "<%= collection %>";
     var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
 
@@ -120,6 +126,38 @@
             'paint': {
                 'fill-color': '#fff1ff',
                 'fill-opacity': 0.5,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'alleys',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctalleys
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#1EBEC8',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'strips',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctstrips
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#002eff',
+                'fill-opacity': 0.6,
                 'fill-outline-color': '#F0F8FF'
             }
         });

@@ -549,7 +549,7 @@ router.post("/layers/:id/editfuture", middleware.isLoggedIn, function(req, res){
 
 // LAYER CURRENT SYSTEM LAYOUT
 router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // MAKE LAYER OWNERSHIP MIDDLEWARE
-    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundLayer){
+    Layer.findById(req.params.id).populate("systems.present").populate("assets").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
@@ -718,11 +718,11 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             if(treeAssetsArray.length < 4000){
                                 for(i=0;i<treeAssetsArray.length;i++){
                                     // FIND TREE DIMENSIONS
-                                    var diameter = 0.4;
+                                    var diameter = 1;
                                     if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
-                                        diameter = 0.2;
+                                        diameter = 0.5;
                                     } else if (treeAssetsArray[i].species.form === "herb"){
-                                        diameter = 0.1;
+                                        diameter = 0.2;
                                     }
                                     var circle1 = circle(treeAssetsArray[i].marker.geometry.coordinates, diameter, {units: "meters"});
                                     if(treeAssetsArray[i].species.height > 15){
@@ -754,9 +754,25 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
 
                             // COMBINE ASSETS AND ROW BASED
 
-
-
-                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection, vegetables: vegeCollection});
+                            // AREAS
+                            var alleyPolygonArray = [];
+                            var bedPolygonArray = [];
+                            for(i=0;i<foundLayer.areas.length;i++){
+                                // ROW VIZ
+                                var areaGeometry = JSON.parse(foundLayer.areas[i].geometry);
+                                if(foundLayer.areas[i].name.charAt(0) === "A"){
+                                    alleyPolygonArray.push(areaGeometry);
+                                } else if(foundLayer.areas[i].name.charAt(0) === "T"){
+                                    bedPolygonArray.push(areaGeometry);
+                                } else {
+                                    alleyPolygonArray.push(areaGeometry);
+                                }
+                            }
+                            var bedArrayPolygons = turf.featureCollection(bedPolygonArray);
+                            var stripsCollection = JSON.stringify(bedArrayPolygons);
+                            var alleyArrayPolygons = turf.featureCollection(alleyPolygonArray);
+                            var alleysCollection = JSON.stringify(alleyArrayPolygons);
+                            res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection, vegetables: vegeCollection, strips: stripsCollection, alleys: alleysCollection});
                         }
                     });
                 }

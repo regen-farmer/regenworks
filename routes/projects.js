@@ -757,6 +757,18 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }
                         // CALCULATE AREA SIZES
                         var treeRowArea = layout.treeRowArea;
+                        // TREE ROW LENGTHS
+                        if(foundProject.rows && foundProject.rows.length > 0){
+                            // DO ROW LENGTH
+                            console.log("rows " + foundProject.rows[0]);
+                            for(i=0;i<foundProject.rows.length;i++){
+                                var rowGeometry = JSON.parse(foundProject.rows[i].geometry);
+                                foundProject.rows[i].rowlength = length(rowGeometry, {units: 'meters'});
+                            }
+                        }
+                        /*for(i=0;i<layout.alleyPolygonArray.length;i++){
+                            console.log("area" + i + area(layout.alleyPolygonArray[i]));
+                        }*/
                         // TEMP VALUE HERE
                         var marginArea = 0;
                         res.render("projects/layout", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection, offset: offsetCollection});
@@ -896,6 +908,9 @@ router.put("/projects/:id/complete", middleware.isLoggedIn, function(req, res){
                     }
                     if(completedProject.assets && completedProject.assets.length > 0){
                         projectArea.assets = completedProject.assets;
+                    }
+                    if(completedProject.areas && completedProject.areas.length > 0){
+                        projectArea.areas = completedProject.areas;
                     }
                     // SAVE AREA
                     projectArea.save();
@@ -1298,6 +1313,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             treeRowCount = treeRowCount + 1;
                         }
                     }*/
+                    var treeAssetRowRef = layout.treeAssetRowRef;
                     var treeAssetArray = layout.treeAssetArray;
                     var treeMarkerArray = layout.treeMarkerArray;
                     /*// DON'T HAVE MARKERS. THEY ARE CIRCLES/POLYGONS
@@ -1308,9 +1324,10 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     res.redirect("/projects/" + req.params.id);*/
                     console.log("Trees Assets: " + treeAssetArray.length);
                     console.log("Trees Markets: " + treeMarkerArray.length);
-/*
-                    res.redirect("/projects/" + req.params.id);
-*/
+                    console.log("Trees Row Refs: " + treeAssetRowRef.length);
+                    /*
+                                        res.redirect("/projects/" + req.params.id);
+                    */
                     // CREATE ASSETS
                     Asset.insertMany(treeAssetArray, function(err, createdAssets){
                         if(err){
@@ -1321,8 +1338,24 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                 if(err){
                                     console.log(err);
                                 } else {
-                                    console.log("Assets added to project");
-                                    res.redirect("/projects/" + req.params.id);
+                                    // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
+                                    Row.find({ _id : { $in : updatedProject.rows } }, function(err, foundRows){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            for(i=0;i<createdAssets.length;i++){
+                                                var ref = treeAssetRowRef[i];
+                                                console.log("ref " + ref);
+                                                foundRows[ref].assets.push(createdAssets[i]);
+                                            }
+                                            // SAVE ROWS INDIVIDUALLY
+                                            for(i=0;i<foundRows.length;i++){
+                                                foundRows[i].save();
+                                            }
+                                            console.log("Assets added to project");
+                                            res.redirect("/projects/" + req.params.id);
+                                        }
+                                    });
                                 }
                             });
                         }

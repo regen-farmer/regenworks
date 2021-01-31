@@ -32,6 +32,8 @@ var nurseryRoutes = require("./routes/nurseries");
 var nurseryproductRoutes = require("./routes/nurseryproducts");
 var sequenceRoutes = require("./routes/sequences");
 var areaRoutes = require("./routes/areas");
+var noteRoutes = require("./routes/notes");
+var soiltestRoutes = require("./routes/soiltests");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -81,6 +83,8 @@ app.use("", nurseryRoutes);
 app.use("", nurseryproductRoutes);
 app.use("", sequenceRoutes);
 app.use("", areaRoutes);
+app.use("", noteRoutes);
+app.use("", soiltestRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){

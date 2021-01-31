@@ -141,6 +141,19 @@ router.delete("/activities/:id", middleware.isLoggedIn, function(req, res){ // M
 
 // --------------- NESTED ROUTES ---------------- //
 
+// PARCEL ACTIVITIES
+router.get("/parcels/:id/activities", middleware.isLoggedIn, function(req, res){
+    // FIND PARCEL
+    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            // RENDER ACTIVITIES
+            res.render("activities/index", {parcel: foundParcel})
+        }
+    });
+});
+
 // PLACE ACTIVITY NEW ROUTE
 router.get("/parcels/:id/activities/new", middleware.isLoggedIn, function(req, res){
     // FIND PLACE ID

@@ -452,4 +452,17 @@ router.post("/users/:id/currentproject/", middleware.checkUserOwnership, functio
     });
 });
 
+// PARCEL STATUS PAGE
+router.get("/parcels/:id/status", middleware.isLoggedIn, function(req, res){
+    // FIND PARCEL
+    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            // RENDER ACTIVITIES
+            res.render("status", {parcel: foundParcel})
+        }
+    });
+});
+
 module.exports = router;

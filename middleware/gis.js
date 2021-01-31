@@ -603,6 +603,7 @@ gisObj.systemBasedLayout = function(project){
     var treeCountArray = [];
     var treeMarkerArray = [];
     var treeAssetArray = [];
+    var treeAssetRowRef = [];
     var treeArray = [];
     var treeRowArea = 0;
     for(i=0;i<rowArray.length;i++){
@@ -633,6 +634,7 @@ gisObj.systemBasedLayout = function(project){
                 name: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species.nameCommon
             };
             treeAssetArray.push(asset);
+            treeAssetRowRef.push(i);
         }
         // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
         for(j=0;j<systemModelCount;j++){
@@ -650,6 +652,7 @@ gisObj.systemBasedLayout = function(project){
                     name: treeRows[treeRowCount].array[k].species.nameCommon
                 };
                 treeAssetArray.push(asset);
+                treeAssetRowRef.push(i);
             }
         }
         // ADD REST
@@ -667,6 +670,7 @@ gisObj.systemBasedLayout = function(project){
                     name: treeRows[treeRowCount].array[j].species.nameCommon
                 };
                 treeAssetArray.push(asset);
+                treeAssetRowRef.push(i);
             }
         }
         // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
@@ -686,6 +690,7 @@ gisObj.systemBasedLayout = function(project){
             treeCanopyArray.push(circle1);
         }
     }
+    layout.treeAssetRowRef = treeAssetRowRef;
     layout.treeArray = treeArray;
     layout.treeMarkerArray = treeCanopyArray;
     layout.treeAssetArray = treeAssetArray;
@@ -780,6 +785,7 @@ gisObj.rowBasedLayout = function(project){
     // SET COLLECTIVE TREE ARRAY
     var treeMarkerArray = [];
     var treeAssetArray = [];
+    var treeAssetRowRef = [];
     // FIND SYSTEM ROWS
     for(i=0;i<project.rows.length;i++){
         // SET ROW DATA
@@ -831,6 +837,7 @@ gisObj.rowBasedLayout = function(project){
                 name: datasetRows[(datasetRows.length - 1)].species.nameCommon
             };
             treeAssetArray.push(firstTreeAsset);
+            treeAssetRowRef.push(i);
             // ROW MARKERS
             // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
             for (j = 0; j < systemModelCount; j++) {
@@ -853,6 +860,7 @@ gisObj.rowBasedLayout = function(project){
                         name: datasetRows[k].species.nameCommon
                     };
                     treeAssetArray.push(treeAsset1);
+                    treeAssetRowRef.push(i);
                 }
             }
             // ADD REST
@@ -877,6 +885,7 @@ gisObj.rowBasedLayout = function(project){
                         name: datasetRows[j].species.nameCommon
                     };
                     treeAssetArray.push(treeAsset2);
+                    treeAssetRowRef.push(i);
                 }
             }
         }
@@ -905,6 +914,7 @@ gisObj.rowBasedLayout = function(project){
 
         }
     }
+    layout.treeAssetRowRef = treeAssetRowRef;
     layout.treeArray = treeAssetsArray;
     layout.treeAssetArray = treeAssetArray;
     layout.treeMarkerArray = treeCanopyArray;
