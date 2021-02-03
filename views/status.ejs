@@ -3,7 +3,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <h2>Data Streams</h2>
+        <h2>Tests <em>by field</em></h2>
     </div>
     <div class="col-md-12">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -30,13 +30,61 @@
 
                 <% } %>
                         <div class="card">
+
                             <div class="card-body">
-                                <div class="col-md-12">
-                                    <h2>Soil</h2>
-                                    <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/new">Add soiltest <i class="fas fa-plus"></i></a>
-                                </div>
+                                <h2>Soil tests</h2>
+                                <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/new">Add soiltest <i class="fas fa-plus"></i></a>
+                                <table class="table small">
+                                    <tr class="table-secondary">
+                                        <td>Ref</td>
+                                        <td>Notes</td>
+                                        <td>SOC</td>
+                                    </tr>
+                                    <% if(layer.soiltests && layer.soiltests.length > 0){ %>
+                                    <% for(j=0;j<layer.soiltests.length;j++){ %>
+                                    <tr>
+                                        <td><%= layer.soiltests[j].name %></td>
+                                        <% if(layer.soiltests[j].sequence){ %>
+                                        <td>---</td>
+                                        <% } else { %>
+                                        <td>---</td>
+                                        <% } %>
+                                        <td>
+                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/<%= layer.soiltests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit soiltest<i class="fas fa-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                    <% } %>
+                                </table>
+                            </div>
+                            <div class="card-body">
+                                <h2>Plant sap tests</h2>
+                                <a class="btn btn-outline-primary" href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/saptests/new">Add saptest <i class="fas fa-plus"></i></a>
+                                <table class="table small">
+                                    <tr class="table-secondary">
+                                        <td>Ref</td>
+                                        <td>Notes</td>
+                                        <td>pH</td>
+                                    </tr>
+                                    <% if(layer.saptests && layer.saptests.length > 0){ %>
+                                    <% for(j=0;j<layer.saptests.length;j++){ %>
+                                    <tr>
+                                        <td><%= layer.saptests[j].name %></td>
+                                        <% if(layer.saptests[j].sequence){ %>
+                                        <td>---</td>
+                                        <% } else { %>
+                                        <td>---</td>
+                                        <% } %>
+                                        <td>
+                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/saptests/<%= layer.saptests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit saptest<i class="fas fa-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                    <% } %>
+                                </table>
                             </div>
                         </div>
+
                     </div>
             <% }); %>
         </div>

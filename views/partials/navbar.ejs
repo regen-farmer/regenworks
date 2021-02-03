@@ -40,9 +40,9 @@
                     <% } %>
                     <% if(currentUser.isManagement === true){ %>
                         <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/activities"><i class="far fa-calendar-alt"></i> Activities</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/flows"><i class="fas fa-arrows-alt-h"></i> Inputs/Outputs</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/status"><i class="fas fa-share-alt"></i> Data Streams</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/farmflows"><i class="fas fa-arrows-alt-h"></i> Inputs/Outputs</a></li>
                         <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/notes"><i class="far fa-file"></i> Logs</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/parcels/<%= currentUser.currentProject %>/status"><i class="fas fa-thermometer-quarter"></i> Tests</a></li>
                     <% } %>
                 </ul>
             </nav>

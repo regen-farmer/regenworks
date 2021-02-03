@@ -9,7 +9,7 @@ var middleware = require("../middleware");
 // PARCEL FLOWS
 router.get("/parcels/:id/flows", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {

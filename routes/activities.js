@@ -144,7 +144,7 @@ router.delete("/activities/:id", middleware.isLoggedIn, function(req, res){ // M
 // PARCEL ACTIVITIES
 router.get("/parcels/:id/activities", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {
@@ -347,6 +347,33 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
     });
 });
 
-// --------------- NESTED ROUTES ---------------- //
+// --------------- NESTED ROUTES ROW BASED ---------------- //
+
+
+router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLoggedIn, function(req, res){
+    // RENDER NEW ACTIVITY PAGE
+    res.render("activities/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid})
+});
+
+router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, function(req, res){
+   // CREATE ACTIVITY
+   Activity.create(req.body.activity, function(err, createdActivity){
+       if(err){
+           console.log(err);
+       } else {
+            Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } }, function(err, updatedRow){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/parcels/" + req.params.id + "/activities")
+                }
+            });
+       }
+   });
+});
+
+
+// --------------- NESTED ROUTES ROW BASED ---------------- //
+
 
 module.exports = router;

@@ -12,6 +12,7 @@ var soiltestSchema = new mongoose.Schema({
         silt: Number,
         sand: Number
     },
+    sampleDate: Date,
     compaction: Number,
     fertility: {
         conductivity: Number,
