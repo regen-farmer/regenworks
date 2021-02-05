@@ -14,6 +14,8 @@ var activitySchema = new mongoose.Schema({
     },
     time: Number,
     status: Boolean,
+    activityType: String,
+    subtype: String,
     automated: Boolean,
     owner: {
         id: {

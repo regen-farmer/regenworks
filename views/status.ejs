@@ -38,19 +38,22 @@
                                     <tr class="table-secondary">
                                         <td>Ref</td>
                                         <td>Notes</td>
-                                        <td>SOC</td>
+                                        <td></td>
                                     </tr>
                                     <% if(layer.soiltests && layer.soiltests.length > 0){ %>
                                     <% for(j=0;j<layer.soiltests.length;j++){ %>
                                     <tr>
                                         <td><%= layer.soiltests[j].name %></td>
-                                        <% if(layer.soiltests[j].sequence){ %>
-                                        <td>---</td>
+                                        <td><%= layer.soiltests[j].description %></td>
+                                        <!--<% if(layer.soiltests[j].description){ %>
+                                        <td>-&#45;&#45;</td>
                                         <% } else { %>
-                                        <td>---</td>
-                                        <% } %>
+                                        <td>-&#45;&#45;</td>
+                                        <% } %>-->
                                         <td>
-                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/<%= layer.soiltests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit soiltest<i class="fas fa-trash"></i></a>
+<!--
+                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests/<%= layer.soiltests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit soiltest <i class="fas fa-trash"></i></a>
+-->
                                         </td>
                                     </tr>
                                     <% } %>
@@ -64,19 +67,22 @@
                                     <tr class="table-secondary">
                                         <td>Ref</td>
                                         <td>Notes</td>
-                                        <td>pH</td>
+                                        <td></td>
                                     </tr>
                                     <% if(layer.saptests && layer.saptests.length > 0){ %>
                                     <% for(j=0;j<layer.saptests.length;j++){ %>
                                     <tr>
                                         <td><%= layer.saptests[j].name %></td>
-                                        <% if(layer.saptests[j].sequence){ %>
-                                        <td>---</td>
+                                        <td><%= layer.saptests[j].description %></td>
+                                       <!-- <% if(layer.saptests[j].sequence){ %>
+                                        <td>-&#45;&#45;</td>
                                         <% } else { %>
-                                        <td>---</td>
-                                        <% } %>
+                                        <td>-&#45;&#45;</td>
+                                        <% } %>-->
                                         <td>
-                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/saptests/<%= layer.saptests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit saptest<i class="fas fa-trash"></i></a>
+<!--
+                                            <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/saptests/<%= layer.saptests[j].name %>/edit" class="btn btn-sm btn-outline-warning">Edit saptest <i class="fas fa-trash"></i></a>
+-->
                                         </td>
                                     </tr>
                                     <% } %>

@@ -18,7 +18,6 @@
             </li>
             <% } %>
             <% }); %>
-
         </ul>
         <div class="tab-content" id="myTabContent">
             <% parcel.layers.forEach(function(layer, i){ %>
@@ -44,14 +43,11 @@
                                 <% for(i=0;i<layer.rows.length;i++){ %>
                                 <tr>
                                     <td><%= layer.rows[i].name %></td>
-                                    <% if(layer.rows[i].sequence){ %>
                                     <td>---</td>
-                                    <% } else { %>
-                                    <td>---</td>
-                                    <% } %>
                                     <td>---</td>
                                     <td>
                                         <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/farmflows/new" class="btn btn-sm btn-outline-primary">Add input/output <i class="fas fa-plus"></i></a>
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/farmflows" class="btn btn-sm btn-outline-primary">view flows</a>
                                     </td>
                                 </tr>
                                 <% } %>
@@ -61,6 +57,9 @@
                         <!--<div class="card-body">
                             <h2>Sub-area flows</h2>
                         </div>-->
+<!--
+                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/farmflows/viz" class="btn btn-sm btn-outline-primary">View flow-map</a>
+-->
                     </div>
 
                 </div>

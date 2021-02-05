@@ -46,9 +46,11 @@
                 <!--<li class="nav-item">
                     <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
                 </li>-->
+                <% if(!(currentUser.isManagement === true)){ %>
                 <li class="nav-item">
                     <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
                 </li>
+                <% } %>
             </ul>
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
@@ -107,8 +109,8 @@
                             <% if((layer.rows && layer.rows.length > 0) || layer.type === "agroforestry" || layer.type === "orchard"){ %>
                             <div class="card">
                                 <div class="card-body">
-                                    <h4>Rows and assets</h4>
-                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-outline-primary">View/edit layout map</a>
+                                    <h4>Rows and tree assets</h4>
+                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-outline-primary">View layout map</a>
                                 </div>
                             </div>
                             <% } %>

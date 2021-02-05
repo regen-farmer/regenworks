@@ -155,9 +155,9 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     console.log(layer);
                     // Redirect to parcels SHOW page
                     // req.flash("success", "Successfully added comment");
-                    if(layer.type == "agroforestry"){
+                    /*if(layer.type == "agroforestry"){
                         res.redirect("/layers/" + layer._id + '/systems/newgrid');
-                    } else {
+                    } else {*/
                         var tempspecies = req.body.maincrop;
                         if(req.body.maincrop === ""){
                             tempspecies = "5e665452cccc150b186d4cd1";
@@ -229,7 +229,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                 }
                             }
                         });
-                    }
+                    /*}*/
                 }
             });
         }

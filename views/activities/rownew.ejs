@@ -17,19 +17,33 @@
                     <input type="text" class="form-control" name="activity[description]" placeholder="Give the activity a name">
                 </div>
                 <div class="form-group">
-                    <label for="activity[start][date]">Earliest date</label>
+                    <label for="activity[start][date]">Date & time</label>
                     <input type="date" class="form-control" name="activity[start][date]" placeholder="Set date" required>
+<!--
                     <input type="time" class="form-control" name="activity[start][time]" placeholder="Set time" required>
+-->
                 </div>
                 <div class="form-group">
+                    <label for="activityType">Activity type</label>
+                    <select name="activityType" id="activityType">
+                        <option value="establish bed">Soil prep</option>
+                        <option value="establish method">Planting/Sowing</option>
+                        <option value="manage compost">Nutrients/Amendments</option>
+                        <option value="manage pruning">Pruning/Cutting</option>
+                        <option value="manage weedcontrol">Weed control</option>
+                        <option value="manage animalcontrol">Animal control</option>
+                        <option value="manage harvest">Harvest</option>
+                    </select>
+                </div>
+                <!--<div class="form-group">
                     <label for="activity[end][date]">Latest date</label>
                     <input type="date" class="form-control" name="activity[end][date]" placeholder="Set date" required>
                     <input type="time" class="form-control" name="activity[end][time]" placeholder="Set time" required>
-                </div>
+                </div>-->
                 <div>
                     <div class="form-group">
-                        <label for="activity[time]">Time required to perform (in minutes)</label>
-                        <input type="number" class="form-control" name="activity[time]" placeholder="Set time" required>
+                        <label for="activity[time]">Time [Minutes]</label>
+                        <input type="number" class="form-control"  name="activity[time]" placeholder="Set time" required>
                     </div>
                 </div>
                 <div class="btn-group">

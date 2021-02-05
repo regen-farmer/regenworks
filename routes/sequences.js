@@ -116,13 +116,18 @@ router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
 // SEQUENCE SHOW
 router.get("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-
-    // FIND SEQUENCE
-    Sequence.findById(req.params.pid, function(err, foundSequence){
+    Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
         } else {
-            res.render("sequences/show", {sequence: foundSequence});
+            // FIND SEQUENCE
+            Sequence.findById(req.params.pid, function(err, foundSequence){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("sequences/show", {layer: foundLayer, sequence: foundSequence});
+                }
+            });
         }
     });
 });

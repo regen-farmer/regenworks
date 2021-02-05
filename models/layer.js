@@ -92,6 +92,18 @@ var layerSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Area"
         }
+    ],
+    soiltests: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Soiltest"
+        }
+    ],
+    saptests: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Saptest"
+        }
     ]
 });
 

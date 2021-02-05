@@ -13,6 +13,24 @@ var rowSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Asset"
         }
+    ],
+    activities: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Activity"
+        }
+    ],
+    farmflows: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Farmflow"
+        }
+    ],
+    notes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Note"
+        }
     ]
 });
 

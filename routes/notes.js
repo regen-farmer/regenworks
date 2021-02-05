@@ -2,13 +2,14 @@ var express = require("express");
 var router = express.Router();
 var Parcel = require("../models/parcel");
 var Note = require("../models/note");
+var Row = require("../models/row");
 var middleware = require("../middleware");
 
 
 // PARCEL NOTES
 router.get("/parcels/:id/notes", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows', populate:{path:'notes'}}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {

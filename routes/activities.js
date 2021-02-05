@@ -4,6 +4,7 @@ var Parcel = require("../models/parcel");
 var Activity = require("../models/activity");
 var Layer = require("../models/layer");
 var Project = require("../models/project");
+var Row = require("../models/row");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 
@@ -357,7 +358,18 @@ router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLog
 
 router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, function(req, res){
    // CREATE ACTIVITY
-   Activity.create(req.body.activity, function(err, createdActivity){
+    var types = req.body.activityType.split(" ");
+    var activity = {
+        activityType: types[0],
+        subtype: types[1],
+        name: req.body.activity.name,
+        description: req.body.activity.description,
+        time: {
+            startMonth: req.body.activity.time.startMonth
+        },
+        time: req.body.activity.time
+    };
+   Activity.create(activity, function(err, createdActivity){
        if(err){
            console.log(err);
        } else {

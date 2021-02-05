@@ -1,15 +1,15 @@
 var express = require("express");
 var router = express.Router();
 var Farmflow = require("../models/farmflow");
-var Species = require("../models/species");
 var Parcel = require("../models/parcel");
-var System = require("../models/system");
+var Layer = require("../models/layer");
+var Row = require("../models/row");
 var middleware = require("../middleware");
 
-// PARCEL FLOWS
+// PARCEL FARMFLOWS
 router.get("/parcels/:id/farmflows", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows', populate:{path:'farmflows'}}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {
@@ -26,7 +26,7 @@ router.get("/parcels/:id/layers/:pid/rows/:rid/farmflows/new", middleware.isLogg
     res.render("farmflows/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid})
 });
 
-// CREATE NOTE ON ROW
+// CREATE FARMFLOW ON ROW
 router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", middleware.isLoggedIn, function(req, res){
     // CREATE ACTIVITY
     Farmflow.create(req.body.farmflow, function(err, createdFarmflow){
@@ -40,6 +40,129 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", middleware.isLoggedI
                     res.redirect("/parcels/" + req.params.id + "/farmflows")
                 }
             });
+        }
+    });
+});
+
+// VIZ YIELDS
+router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, function(req, res){
+    // CREATE ACTIVITY
+    Layer.findById(req.params.pid).populate({path:"rows", populate:{path:'farmflows'}}).populate({path:"rows", populate:{path:'sequence'}}).exec(function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE ROW ASSETS AND SORT ACCORDING TO YIELDS
+            var max = 0;
+            var min = 100000;
+            for(i=0;i<foundLayer.rows.length;i++){
+                for(j=0;j<foundLayer.rows[i].farmflows.length;j++){
+                    if(foundLayer.rows[i].farmflows[j].amount > max){
+                        max = foundLayer.rows[i].farmflows[j].amount;
+                    }
+                    if(foundLayer.rows[i].farmflows[j].amount < min){
+                        min = foundLayer.rows[i].farmflows[j].amount;
+                    }
+                }
+            }
+            var rowArrayLow = [];
+            var rowArrayMed = [];
+            var rowArrayHigh = [];
+            // CREATE MARKERS
+            var treeAssetsArray = [];
+            for(i=0;i<foundLayer.rows.length;i++){
+                // SET ROW DATA
+                if(foundLayer.rows[i].sequence) {
+                    var datasetRows = foundLayer.rows[i].sequence.model;
+                    /*foundLayer.rows[i].sequence.model.forEach(function (species) {
+                        var count = 0;
+                        for (j = 0; j < datasetRows.length; j++) {
+                            if (datasetRows[j].row === species.position[0]) {
+                                datasetRows[j].array.push(species);
+                                count = count + 1;
+                            }
+                        }
+                        if (count === 0) {
+                            datasetRows.push({row: species.position[0], array: [species]});
+                        }
+                    });*/
+                    // SORT ROW ITEMS
+                    datasetRows.sort(compare1);
+                    // ROW LENGTH
+                    var rowLine = JSON.parse(foundLayer.rows[i].geometry);
+                    var rowLength = length(rowLine, {units: "meters"});
+                    console.log("Row length " + rowLength);
+                    // SYSTEM MODEL LENGTH
+                    var systemModelLength = foundLayer.rows[i].sequence.sequencelength;
+                    /*if (datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1) {
+                        systemModelLength = datasetRows[1].array[(datasetRows[1].array.length - 1)].position[1];
+                    } else {
+                        systemModelLength = datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1];
+                    }*/
+                    console.log("System model length:" + systemModelLength);
+                    // FIND MODEL COUNT AND REST
+                    var systemModelCount = Math.floor(rowLength / systemModelLength);
+                    var systemModelRowRest = ((rowLength / systemModelLength) - Math.floor(rowLength / systemModelLength)) * systemModelLength;
+                    // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+                    var firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
+/*
+                    treeMarkerArray.push(firstTreeMarker);
+*/
+                    var firstAsset = {
+                        marker: firstTreeMarker,
+                        species: datasetRows[(datasetRows.length - 1)].species
+                    };
+                    treeAssetsArray.push(firstAsset);
+                    // ROW MARKERS
+                    // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
+                    for (j = 0; j < systemModelCount; j++) {
+                        for (k = 0; k < datasetRows.length; k++) {
+                            // CREATE COORDINATES FOR THE TREE
+                            var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
+                            // CREATE ASSET OBJECT
+                            /*var asset = {
+                                species: treeRows[treeRowCount].array[k].species.id,
+                                lat: treeMarker.geometry.coordinates[0],
+                                lng: treeMarker.geometry.coordinates[1],
+                                name: treeRows[treeRowCount].array[k].species.nameCommon
+                            };*/
+                            //
+                            var asset = {
+                                marker: treeMarker,
+                                species: datasetRows[k].species
+                            };
+                            // ADD TREE OBJECT TO ARRAY
+/*
+                            treeMarkerArray.push(treeMarker);
+*/
+                            treeAssetsArray.push(asset);
+                        }
+                    }
+                    // ADD REST
+                    for (j = 0; j < datasetRows.length; j++) {
+                        if (datasetRows[j].position < systemModelRowRest) {
+                            /*
+                                                                    treeArray.push(treeRows[treeRowCount].array[j].species);
+                            */
+                            // ADD POINT MARKER FOR REMAINING TREES
+                            var treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[j].position), {units: "meters"});
+                            var asset2 = {
+                                marker: treeMarker2,
+                                species: datasetRows[j].species
+                            };
+/*
+                            treeMarkerArray.push(treeMarker2);
+*/
+                            treeAssetsArray.push(asset2);
+                        }
+                    }
+                }
+            }
+            console.log("max: " + max);
+            console.log("min: " + min);
+            res.redirect("/parcels/" + req.params.id + "/farmflows");
+/*
+            res.render("farmflows/viz");
+*/
         }
     });
 });
