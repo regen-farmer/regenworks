@@ -1688,32 +1688,37 @@ router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req, res){
 
 // ROW CREATE ROUTE
 router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
-    // CREATE ROW HERE?
-    var row = {
-        geometry: req.body.geometry,
-        name: req.body.row.name
-    };
-    if(!(req.body.sequenceid === "none") && req.body.sequenceid){
-        row.sequence = req.body.sequenceid;
-    }
-    console.log(row);
-    // CREATE ROW
-    Row.create(row, function(err, createdRow){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND PROJECT
-            Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, foundProject){
-                if(err){
-                    console.log(err);
-                } else {
-                    // CREATE ROW
-                    console.log("Row has been added to project");
-                    res.redirect("/projects/" + foundProject.id + "/layout");
-                }
-            });
+    // REDIRECT IF NO GEOMETRY
+    if(req.body.geometry === ""){
+        res.redirect("back");
+    } else {
+        // CREATE ROW HERE?
+        var row = {
+            geometry: req.body.geometry,
+            name: req.body.row.name
+        };
+        if(!(req.body.sequenceid === "none") && req.body.sequenceid){
+            row.sequence = req.body.sequenceid;
         }
-    });
+        console.log(row);
+        // CREATE ROW
+        Row.create(row, function(err, createdRow){
+            if(err){
+                console.log(err);
+            } else {
+                // FIND PROJECT
+                Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, foundProject){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        // CREATE ROW
+                        console.log("Row has been added to project");
+                        res.redirect("/projects/" + foundProject.id + "/layout");
+                    }
+                });
+            }
+        });
+    }
 });
 
 // EDIT ROW
