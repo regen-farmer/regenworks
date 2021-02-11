@@ -4,12 +4,13 @@ var Farmflow = require("../models/farmflow");
 var Parcel = require("../models/parcel");
 var Layer = require("../models/layer");
 var Row = require("../models/row");
+var Area = require("../models/area");
 var middleware = require("../middleware");
 
 // PARCEL FARMFLOWS
 router.get("/parcels/:id/farmflows", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows', populate:{path:'farmflows'}}}).exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows', populate:{path:'farmflows'}}}).populate({path:'layers', populate:{path:'areas', populate:{path:'farmflows'}}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {
@@ -34,6 +35,31 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", middleware.isLoggedI
             console.log(err);
         } else {
             Row.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedRow){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/parcels/" + req.params.id + "/farmflows")
+                }
+            });
+        }
+    });
+});
+
+// --------------- NESTED ROUTES AREA BASED ---------------- //
+
+router.get("/parcels/:id/layers/:pid/areas/:rid/farmflows/new", middleware.isLoggedIn, function(req, res){
+    // RENDER NEW ACTIVITY PAGE
+    res.render("farmflows/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid})
+});
+
+// CREATE FARMFLOW ON ROW
+router.post("/parcels/:id/layers/:pid/areas/:rid/farmflows", middleware.isLoggedIn, function(req, res){
+    // CREATE ACTIVITY
+    Farmflow.create(req.body.farmflow, function(err, createdFarmflow){
+        if(err){
+            console.log(err);
+        } else {
+            Area.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedArea){
                 if(err){
                     console.log(err);
                 } else {

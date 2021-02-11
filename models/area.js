@@ -12,7 +12,25 @@ var areaSchema = new mongoose.Schema({
             ref: "User"
         },
         username: String
-    }
+    },
+    activities: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Activity"
+        }
+    ],
+    farmflows: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Farmflow"
+        }
+    ],
+    notes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Note"
+        }
+    ]
 });
 
 module.exports = mongoose.model("Area", areaSchema);

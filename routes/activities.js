@@ -5,6 +5,7 @@ var Activity = require("../models/activity");
 var Layer = require("../models/layer");
 var Project = require("../models/project");
 var Row = require("../models/row");
+var Area = require("../models/area");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 
@@ -145,7 +146,7 @@ router.delete("/activities/:id", middleware.isLoggedIn, function(req, res){ // M
 // PARCEL ACTIVITIES
 router.get("/parcels/:id/activities", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).exec(function(err, foundParcel){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path:'rows'}}).populate({path:'layers', populate:{path:'areas'}}).exec(function(err, foundParcel){
         if(err){
             console.log(err);
         } else {
@@ -364,8 +365,8 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
         subtype: types[1],
         name: req.body.activity.name,
         description: req.body.activity.description,
-        time: {
-            startMonth: req.body.activity.time.startMonth
+        start: {
+            date: req.body.activity.start.date
         },
         time: req.body.activity.time
     };
@@ -385,7 +386,40 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
 });
 
 
-// --------------- NESTED ROUTES ROW BASED ---------------- //
+// --------------- NESTED ROUTES AREA BASED ---------------- //
 
+
+router.get("/parcels/:id/layers/:pid/areas/:rid/activities/new", middleware.isLoggedIn, function(req, res){
+    // RENDER NEW ACTIVITY PAGE
+    res.render("activities/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid})
+});
+
+router.post("/parcels/:id/layers/:pid/areas/:rid/activities", middleware.isLoggedIn, function(req, res){
+    // CREATE ACTIVITY
+    var types = req.body.activityType.split(" ");
+    var activity = {
+        activityType: types[0],
+        subtype: types[1],
+        name: req.body.activity.name,
+        description: req.body.activity.description,
+        start: {
+            date: req.body.activity.start.date
+        },
+        time: req.body.activity.time
+    };
+    Activity.create(activity, function(err, createdActivity){
+        if(err){
+            console.log(err);
+        } else {
+            Area.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } }, function(err, updatedArea){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/parcels/" + req.params.id + "/activities")
+                }
+            });
+        }
+    });
+});
 
 module.exports = router;

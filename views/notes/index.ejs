@@ -52,12 +52,37 @@
                             </td>
                         </tr>
                         <% } %>
+                        <% } else { %>
+                        <p><em>No rows/blocks on this field.</em></p>
                         <% } %>
                     </table>
                         </div>
-                        <!--<div class="card-body">
-                            <h2>Sub-area flows</h2>
-                        </div>-->
+                        <div class="card-body">
+                            <h2>Sub-area notes</h2>
+                            <table class="table small">
+                                <tr class="table-secondary">
+                                    <td>Area ref</td>
+                                    <td>Area notes</td>
+                                    <td>Add note</td>
+                                </tr>
+                                <% if(layer.areas && layer.areas.length > 0){ %>
+                                <% for(i=0;i<layer.areas.length;i++){ %>
+                                <tr>
+                                    <td><%= layer.areas[i].name %></td>
+                                    <td><%= layer.areas[i].notes.length %></td>
+                                    <td>
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/notes/new" class="btn btn-sm btn-outline-primary">Add note <i class="fas fa-plus"></i></a>
+                                        <!--
+                                <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/notes" class="btn btn-sm btn-outline-primary">View notes</a>
+-->
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } else { %>
+                                <p><em>No sub-areas on this field.</em></p>
+                                <% } %>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <% }); %>

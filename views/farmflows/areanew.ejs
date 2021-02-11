@@ -1,0 +1,44 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        <h2>Add flow to sub-area</h2>
+        <form action="/parcels/<%= parcelid %>/layers/<%= layerid %>/area/<%= areaid %>/farmflows" method="POST">
+            <div class="form-group">
+                <label for="farmflow[name]">Flow name</label>
+                <input type="text" class="form-control" name="farmflow[name]" placeholder="Give the flow a name" required>
+            </div>
+            <div class="form-group">
+                <label for="farmflow[description]">Description</label>
+                <input type="text" class="form-control" name="farmflow[description]">
+            </div>
+            <div class="form-group">
+                <label for="farmflow[type]">Flow type</label>
+                <select class="form-control" name="farmflow[type]">
+                    <option value="output">Output/Yield</option>
+                    <option value="input">Input</option>
+                </select>
+            </div>
+            <!--<div class="form-group">
+                <label for="flow[timestamp]">Date</label>
+                <input type="date" class="form-control" name="flow[timestamp]" placeholder="Give the flow a name" required>
+            </div>-->
+            <div class="form-group">
+                <label for="farmflow[amount]">Amount</label>
+                <input type="number" class="form-control" name="farmflow[amount]" required>
+            </div>
+            <div class="form-group">
+                <label for="farmflow[unit]">Metric</label>
+                <input type="text" class="form-control" name="farmflow[unit]" placeholder="kg, l, m3..." required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-lg center-block">Add flow data</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-3"></div>
+</div>
+
+<% include ../partials/footer %>
