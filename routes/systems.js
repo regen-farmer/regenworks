@@ -129,7 +129,7 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
                     for(j=0;j<system.model[i].species.id.length;j++){
                         // IF SPECIES ID IS NULL
                         if(!(system.model[i].species.id[j] === "")){
-                            species = {
+                            var species = {
                                 species: system.model[i].species.id[j],
                                 position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y[j])],
                                 width: Number(system.model[i].width)
@@ -139,50 +139,57 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
                     }
                 } else {
                     // FIX IF ONLY ONE ITEM IN ROW
-                    species = {
-                        species: system.model[i].species.id,
-                        position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
-                        width: Number(system.model[i].width)
-                    };
-                    model.push(species);
+                    if(!(system.model[i].species.id === "")){
+                        var species = {
+                            species: system.model[i].species.id,
+                            position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
+                            width: Number(system.model[i].width)
+                        };
+                        model.push(species);
+                    }
                 }
                 xPosition = xPosition + Number(system.model[i].distance);
             }
-            console.log(model);
-            system.model = model;
-            // REMOVE ANIMAL ITEMS IF NONE
-            for(var i = system.animals.length - 1; i >= 0; i--){
-                if(system.animals[i] === ""){
-                    system.animals.splice(i, 1);
-                }
-            }
-            // SET BOOLEAN
-            if(req.body.system.shared){
-                system.shared = true;
-            }
-            // CREATE SYSTEM
-            System.create(system, function(err, createdSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    console.log(createdSystem);
-                    // ADD OWNER
-                    createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
-                    createdSystem.save();
-                    // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
-                    if(foundLayer.type === "agroforestry" && foundLayer.systems.present === undefined){
-                        foundLayer.systems.present = createdSystem;
-                        foundLayer.save();
-                        res.redirect("/layers/" + foundLayer._id);
-                    } else {
-                        // Push system to layer future if layer type is not agroforestry
-                        foundLayer.systems.future.push(createdSystem);
-                        foundLayer.save();
-                        res.redirect("/layers/" + foundLayer._id);
+            if(model.length < 1){
+                // REDIRECT IF NO SPECIES
+                res.redirect("/layers/" + foundLayer._id);
+            } else {
+                console.log("Model length:" + model.length);
+                system.model = model;
+                // REMOVE ANIMAL ITEMS IF NONE
+                for(var i = system.animals.length - 1; i >= 0; i--){
+                    if(system.animals[i] === ""){
+                        system.animals.splice(i, 1);
                     }
                 }
-            });
+                // SET BOOLEAN
+                if(req.body.system.shared){
+                    system.shared = true;
+                }
+                // CREATE SYSTEM
+                System.create(system, function(err, createdSystem){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        console.log(createdSystem);
+                        // ADD OWNER
+                        createdSystem.owner.id = req.user._id;
+                        createdSystem.owner.username = req.user.username;
+                        createdSystem.save();
+                        // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
+                        if(foundLayer.type === "agroforestry" && foundLayer.systems.present === undefined){
+                            foundLayer.systems.present = createdSystem;
+                            foundLayer.save();
+                            res.redirect("/layers/" + foundLayer._id);
+                        } else {
+                            // Push system to layer future if layer type is not agroforestry
+                            foundLayer.systems.future.push(createdSystem);
+                            foundLayer.save();
+                            res.redirect("/layers/" + foundLayer._id);
+                        }
+                    }
+                });
+            }
         }
     })
 });

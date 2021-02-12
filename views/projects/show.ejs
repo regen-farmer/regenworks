@@ -144,7 +144,7 @@
                             <p>Management practices: </p>-->
                             <h2>Project layout</h2>
                             <% if(project.status === "planning"){ %>
-                                <a href="/projects/<%= project._id %>/layout" class="btn btn-outline-primary">Setup/edit layout</a>
+                                <a href="/projects/<%= project._id %>/layout" class="btn btn-outline-primary">View layout map <i class="far fa-map"></i></a>
                             <% } else if (project.assets && project.assets.length > 0) { %>
                                 <p>Layout has been fixed and digital tree assets have already been created for this project. Go to "Assets" tab to view asset map.</p>
                             <% } else { %>
