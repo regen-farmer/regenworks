@@ -25,7 +25,7 @@ router.get("/layers/:id/sequences/spacing", middleware.isLoggedIn, function(req,
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post("/layers/:id/sequences/spacing", middleware.isLoggedIn, function(req, res){
     // CHECK LENGTH IS DIVISIBLE
-    if((req.body.length / req.body.distance) % 1 === 0 && (req.body.length / req.body.distance) > 1){
+    if((req.body.length / req.body.distance) % 1 === 0){
         // FIND LAYER
         Layer.findById(req.params.id, function(err, foundLayer){
             if(err){
@@ -78,20 +78,31 @@ router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
+            // MODEL VARIABLES
             var model = [];
             var length = 0;
-            for(i=0;i<req.body.model.species.length;i++){
-                // FIX IF ONLY ONE ITEM IN ROW
-                // IF SPECIES ID IS NULL
-                if(!(req.body.model.species[i] === "")){
-                    var species = {
-                        species: req.body.model.species[i],
-                        position: Number(req.body.model.position[i])
-                    };
-                    model.push(species);
-                }
-                if(Number(req.body.model.position[i]) > length){
-                    length = Number(req.body.model.position[i]);
+            // CHECK IF ARRAY?
+            if(!(req.body.model.species instanceof Array)){
+                var species = {
+                    species: req.body.model.species,
+                    position: Number(req.body.model.position)
+                };
+                model.push(species);
+                length = Number(req.body.model.position);
+            } else {
+                for(i=0;i<req.body.model.species.length;i++){
+                    // FIX IF ONLY ONE ITEM IN ROW
+                    // IF SPECIES ID IS NULL
+                    if(!(req.body.model.species[i] === "")){
+                        var species = {
+                            species: req.body.model.species[i],
+                            position: Number(req.body.model.position[i])
+                        };
+                        model.push(species);
+                    }
+                    if(Number(req.body.model.position[i]) > length){
+                        length = Number(req.body.model.position[i]);
+                    }
                 }
             }
             var sequence = req.body.sequence;
@@ -212,18 +223,28 @@ router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, re
     // CLEAN MODEL
     var model = [];
     var length = 0;
-    for(i=0;i<req.body.model.species.length;i++){
-        // FIX IF ONLY ONE ITEM IN ROW
-        // IF SPECIES ID IS NULL
-        if(!(req.body.model.species[i] === "")){
-            var species = {
-                species: req.body.model.species[i],
-                position: Number(req.body.model.position[i])
-            };
-            model.push(species);
-        }
-        if(Number(req.body.model.position[i]) > length){
-            length = Number(req.body.model.position[i]);
+    // CHECK IF ARRAY
+    if(!(req.body.model.species instanceof Array)){
+        var species = {
+            species: req.body.model.species,
+            position: Number(req.body.model.position)
+        };
+        model.push(species);
+        length = Number(req.body.model.position);
+    } else {
+        for(i=0;i<req.body.model.species.length;i++){
+            // FIX IF ONLY ONE ITEM IN ROW
+            // IF SPECIES ID IS NULL
+            if(!(req.body.model.species[i] === "")){
+                var species = {
+                    species: req.body.model.species[i],
+                    position: Number(req.body.model.position[i])
+                };
+                model.push(species);
+            }
+            if(Number(req.body.model.position[i]) > length){
+                length = Number(req.body.model.position[i]);
+            }
         }
     }
     var sequence = req.body.sequence;
@@ -265,7 +286,7 @@ router.get("/projects/:id/sequences/spacing", middleware.isLoggedIn, function(re
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post("/projects/:id/sequences/spacing", middleware.isLoggedIn, function(req, res){
     // CHECK LENGTH IS DIVISIBLE
-    if((req.body.length / req.body.distance) % 1 === 0 && (req.body.length / req.body.distance) > 1){
+    if((req.body.length / req.body.distance) % 1 === 0){
         // FIND LAYER
         Project.findById(req.params.id, function(err, foundProject){
             if(err){
@@ -320,18 +341,28 @@ router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req, res)
         } else {
             var model = [];
             var length = 0;
-            for(i=0;i<req.body.model.species.length;i++){
-                // FIX IF ONLY ONE ITEM IN ROW
-                // IF SPECIES ID IS NULL
-                if(!(req.body.model.species[i] === "")){
-                    var species = {
-                        species: req.body.model.species[i],
-                        position: Number(req.body.model.position[i])
-                    };
-                    model.push(species);
-                }
-                if(Number(req.body.model.position[i]) > length){
-                    length = Number(req.body.model.position[i]);
+            // CHECK IF ARRAY
+            if(!(req.body.model.species instanceof Array)) {
+                var species = {
+                    species: req.body.model.species,
+                    position: Number(req.body.model.position)
+                };
+                model.push(species);
+                length = Number(req.body.model.position);
+            } else {
+                for(i=0;i<req.body.model.species.length;i++){
+                    // FIX IF ONLY ONE ITEM IN ROW
+                    // IF SPECIES ID IS NULL
+                    if(!(req.body.model.species[i] === "")){
+                        var species = {
+                            species: req.body.model.species[i],
+                            position: Number(req.body.model.position[i])
+                        };
+                        model.push(species);
+                    }
+                    if(Number(req.body.model.position[i]) > length){
+                        length = Number(req.body.model.position[i]);
+                    }
                 }
             }
             var sequence = req.body.sequence;
@@ -432,18 +463,28 @@ router.put("/projects/:id/sequences/:pid", middleware.isLoggedIn, function(req, 
     // CLEAN MODEL
     var model = [];
     var length = 0;
-    for(i=0;i<req.body.model.species.length;i++){
-        // FIX IF ONLY ONE ITEM IN ROW
-        // IF SPECIES ID IS NULL
-        if(!(req.body.model.species[i] === "")){
-            var species = {
-                species: req.body.model.species[i],
-                position: Number(req.body.model.position[i])
-            };
-            model.push(species);
-        }
-        if(Number(req.body.model.position[i]) > length){
-            length = Number(req.body.model.position[i]);
+    // CHECK IF ARRAY
+    if(!(req.body.model.species instanceof Array)) {
+        var species = {
+            species: req.body.model.species,
+            position: Number(req.body.model.position)
+        };
+        model.push(species);
+        length = Number(req.body.model.position);
+    } else {
+        for(i=0;i<req.body.model.species.length;i++){
+            // FIX IF ONLY ONE ITEM IN ROW
+            // IF SPECIES ID IS NULL
+            if(!(req.body.model.species[i] === "")){
+                var species = {
+                    species: req.body.model.species[i],
+                    position: Number(req.body.model.position[i])
+                };
+                model.push(species);
+            }
+            if(Number(req.body.model.position[i]) > length){
+                length = Number(req.body.model.position[i]);
+            }
         }
     }
     var sequence = req.body.sequence;
