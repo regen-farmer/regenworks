@@ -6,6 +6,10 @@ var areaSchema = new mongoose.Schema({
     description: String,
     geometry: String,
     size: Number,
+    rotation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Rotation"
+    },
     owner: {
         id: {
             type: mongoose.Schema.Types.ObjectId,

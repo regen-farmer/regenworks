@@ -142,7 +142,9 @@
                                 <td><%= project.areas[i].name %></td>
                                 <% if(project.areas[i].rotation){ %>
                                 <td><%= project.areas[i].rotation.name %>
+<!--
                                     <a href="/projects/<%= project._id %>/rotations/<%= project.areas[i].rotation._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+-->
                                 </td>
                                 <% } else { %>
                                 <td>---</td>
@@ -153,9 +155,7 @@
                                     <td>---</td>
                                 <% } %>
                                 <td>
-<!--
                                     <a href="/projects/<%= project._id %>/areas/<%= project.areas[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
--->
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt"></i></button>
                                 </td>
                             </tr>

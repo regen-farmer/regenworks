@@ -6,12 +6,23 @@ var rotationSchema = new mongoose.Schema({
     description: String,
     model: [
         {
-            species: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Species"
+            speciesmix: [
+                {
+                    species: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: "Species"
+                    },
+                    amount: Number
+                }
+            ],
+            planting: {
+                year: Number,
+                month: Number
             },
-            year: Number,
-            month: Number
+            harvest: {
+                year: Number,
+                month: Number
+            }
         }
     ],
     owner: {

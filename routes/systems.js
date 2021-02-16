@@ -152,7 +152,7 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
             }
             if(model.length < 1){
                 // REDIRECT IF NO SPECIES
-                res.redirect("/layers/" + foundLayer._id);
+                res.redirect("back");
             } else {
                 console.log("Model length:" + model.length);
                 system.model = model;

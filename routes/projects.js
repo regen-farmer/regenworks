@@ -12,6 +12,7 @@ var Species = require("../models/species");
 var Asset = require("../models/asset");
 var Posting = require("../models/posting");
 var Sequence = require("../models/sequence");
+var Rotation = require("../models/rotation");
 var Row = require("../models/row");
 var Area = require("../models/area");
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
@@ -241,7 +242,7 @@ router.get("/projects/:id/edit", middleware.isLoggedIn, function(req, res){ // M
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation'}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -1795,6 +1796,64 @@ router.delete("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res
         }
     });
 });
+
+// ---------------- AREAS
+
+// EDIT AREA
+router.get("/projects/:id/areas/:pid/edit", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id).populate({path:'areas', populate:{path:'rotation'}}).populate("layer").exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ROW
+            Area.findById(req.params.pid).populate("rotation").exec(function(err, foundArea){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND MY SYSTEMS
+                    Rotation.find({'owner.id': req.user._id}, function(err, foundRotations){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.render("projects/editarea", {project: foundProject, area: foundArea, rotations: foundRotations});
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// UPDATE AREA
+router.put("/projects/:id/areas/:pid", middleware.isLoggedIn, function(req, res){
+    // CREATE AREA HERE?
+    var area = {
+        name: req.body.area.name
+    };
+    if(!(req.body.rotationid === "none") && req.body.rotationid){
+        area.rotation = req.body.rotationid;
+    }
+    // FIND PROJECT
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND AND UPDATE AREA
+            Area.findByIdAndUpdate(req.params.pid, area, function(err, updatedArea){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("Updated area: " + updatedArea);
+                    res.redirect("/projects/" + foundProject._id + "/layout");
+                }
+            });
+        }
+    });
+});
+
+
+// -------------------- PDFS
 
 // BUDGET PDF
 router.get("/projects/:id/budgetpdf", middleware.isLoggedIn, async function(req, res, next){
