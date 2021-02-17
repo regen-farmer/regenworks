@@ -104,7 +104,7 @@ router.get("/admindash", middleware.adminIsLoggedIn, function(req, res){
 
 // CREATE USER ROUTE
 router.post("/users", function(req, res){
-    if (req.body.secret === "899af01m4maiq5k3" || req.body.secret === "9afa81hf1flqmfah2" || req.body.secret === "jf18af910f87ah1jnn"){
+    if (req.body.secret === "899af01m4maiq5k3" || req.body.secret === "9afa81hf1flqmfah2" || req.body.secret === "jf18af910f87ah1jnn" || req.body.secret === "9aoqi1k3uaf7q8qh1a"){
         logger.info("Secret correct", {timestamp: Date.now()});
         var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000, farmLimit: 1});
         User.register(newUser, req.body.password, function(err, user){
@@ -125,7 +125,14 @@ router.post("/users", function(req, res){
                     user.isManagement = true;
                     user.save();
                     res.redirect("/parcels/new");
+                } else if (req.body.secret === "9aoqi1k3uaf7q8qh1a") {
+                    user.isManagement = true;
+                    user.isProject = true;
+                    user.save();
+                    res.redirect("/parcels/new");
                 } else {
+                    user.isProject = true;
+                    user.save();
                     res.redirect("/parcels/new");
                 }
             });

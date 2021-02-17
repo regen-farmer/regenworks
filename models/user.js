@@ -24,6 +24,7 @@ var UserSchema = new mongoose.Schema({
     isAdmin: {type: Boolean, default: false},
     isNursery: {type: Boolean, default: false},
     isManagement: {type: Boolean, default: false},
+    isProject: {type: Boolean, default: false},
     nurseries: [
             {
             type: mongoose.Schema.Types.ObjectId,
