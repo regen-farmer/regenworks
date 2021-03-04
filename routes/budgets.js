@@ -6,6 +6,7 @@ var Project = require("../models/project");
 var System = require("../models/system");
 var Posting = require("../models/posting");
 var middleware = require("../middleware");
+var gisObj = require("../middleware/gis");
 var bbox = require("@turf/bbox");
 var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
@@ -144,7 +145,7 @@ router.post("/projects/:id/budgets", middleware.isLoggedIn, function(req, res){
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("system").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("system").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -152,12 +153,26 @@ router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, functio
                 if(err){
                     console.log(err);
                 } else {
-                    // FIND ALL SPECIES IN SYSTEM
+                    // FIND ALL SPECIES IN SYSTEM OR ROWS
                     var allSpecies = [];
-                    foundSystem.model.forEach(function(species){
-                        allSpecies.push(species.species);
-                    });
-                    console.log(allSpecies.length);
+                    if(foundProject.rows && foundProject.rows.length > 0){
+                        for(i=0;i<foundProject.rows.length;i++){
+                            if(foundProject.rows[i].sequence){
+                                for(j=0;j<foundProject.rows[i].sequence.model.length;j++){
+                                    allSpecies.push(foundProject.rows[i].sequence.model[j].species);
+                                }
+                            }
+                        }
+                    } else {
+                        foundSystem.model.forEach(function(species){
+                            if(species.species.form === "grass" || species.species.form === "herb") {
+                                // DO NOTHING XD
+                            } else {
+                                allSpecies.push(species.species);
+                            }
+                        });
+                    }
+                    console.log("All species length: " + allSpecies.length);
                     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                     var uniqueSpecies = unique(allSpecies);
                     // SEND ARRAY OF SUBTYPES
@@ -172,7 +187,7 @@ router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, functio
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
 router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species'}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -200,7 +215,7 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                         if(err){
                             console.log(err);
                         } else {
-                            // UNIQUE SPECIES
+                            /*// UNIQUE SPECIES
                             var allSpecies = [];
                             foundSystem.model.forEach(function(species){
                                 allSpecies.push(species.species);
@@ -323,14 +338,14 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
                                 var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
                                 console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
-                                /*// CREATE ANGLED LENGTH LINE
+                                /!*!// CREATE ANGLED LENGTH LINE
                                 var rotatedLine = transformRotate(line, 90);
                                 var splitLines = lineSplit(rotatedLine, line);
                                 // SET LENGTH LINE
                                 var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                                 lengthLine = lengthLineSplit.features[1];
                                 console.log(splitLines.features[0]);
-                                console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
+                                console.log(Math.floor((length(lengthLine, {units: "meters"}))));*!/
                                 rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
                                 rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                                 console.log(rowCount);
@@ -432,9 +447,9 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                             for (i=0;i<rowArray.length;i++){
                                 var rowLength1 = length(rowArray[i], {units: "meters"});
                                 rowLengthArray.push(rowLength1);
-                                /*
+                                /!*
                                                     console.log(rowArray[i].geometry.coordinates);
-                                */
+                                *!/
                             }
                             var treeRows = [];
                             for(i=0;i<dataset.length;i++){
@@ -459,12 +474,12 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 // COUNT SYSTEM MODEL ITERATIONS IN ROW
                                 var rowLength = length(rowArray[i], {units: "meters"});
                                 // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                                /*var systemModelLength = 0;
+                                /!*var systemModelLength = 0;
                                 if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                                     systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                                 } else {
                                     systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                                }*/
+                                }*!/
                                 var systemModelCount = Math.floor(rowLength/systemModelLength);
                                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                                 // CALCULATE AREA
@@ -498,7 +513,18 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 } else {
                                     treeRowCount = treeRowCount + 1;
                                 }
+                            }*/
+                            // SET VARIABLES HERE
+                            var layout = {};
+                            // IF ROWS, DO XXX
+                            if(foundProject.rows && foundProject.rows.length > 0){
+                                // DO ROW LAYOUT
+                                layout = gisObj.rowBasedLayout(foundProject);
+                            } else {
+                                // DO PARAMETRIC LAYOUT
+                                layout = gisObj.systemBasedLayout(foundProject);
                             }
+                            /*// SPECIES
                             var allSpeciesCopy = [];
                             for(i=0;allSpecies.length > i;i++){
                                 allSpeciesCopy.push(allSpeciesv[i]);
@@ -519,7 +545,13 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 };
                                 uniqueSpeciesCount.push(speciesCount);
                             }
-                            console.log(uniqueSpeciesCount[0]);
+                            console.log(uniqueSpeciesCount[0]);*/
+                            var uniqueSpeciesCount = [];
+                            var uniqueSpecies = [];
+                            if(layout.uniqueSpeciesCount) {
+                                uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                                uniqueSpecies = layout.uniqueSpecies;
+                            }
                             /////////////////////
                             /////////////////////
                             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
@@ -581,7 +613,7 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
 // GENERATE NEW PROJECT CASH-FLOW BUDGET
 router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id, function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -590,12 +622,33 @@ router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(r
                 if(err){
                     console.log(err);
                 } else {
-                    // FIND ALL SPECIES IN SYSTEM
+                    // FIND ALL SPECIES IN SYSTEM OR ROWS
                     var allSpecies = [];
-                    foundSystem.model.forEach(function(species){
-                        allSpecies.push(species.species);
-                    });
-                    console.log(allSpecies.length);
+                    if(foundProject.rows && foundProject.rows.length > 0){
+                        for(i=0;i<foundProject.rows.length;i++){
+                            if(foundProject.rows[i].sequence){
+                                for(j=0;j<foundProject.rows[i].sequence.model.length;j++){
+                                    allSpecies.push(foundProject.rows[i].sequence.model[j].species);
+                                }
+                            }
+                        }
+                        if(foundProject.areas && foundProject.areas.length > 0){
+                            for(i=0;i<foundProject.areas.length;i++){
+                                if(foundProject.areas[i].rotation){
+                                    for(j=0;j<foundProject.areas[i].rotation.model.length;j++){
+                                        for(k=0;k<foundProject.areas[i].rotation.model[j].speciesmix.length;k++){
+                                            allSpecies.push(foundProject.areas[i].rotation.model[j].speciesmix[k].species);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        foundSystem.model.forEach(function(species){
+                            allSpecies.push(species.species);
+                        });
+                    }
+                    console.log("All species length: " + allSpecies.length);
                     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                     var uniqueSpecies = unique(allSpecies);
                     // SEND ARRAY OF SUBTYPES
@@ -610,7 +663,7 @@ router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(r
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
 router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species', populate:{path:'flows'}}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species', populate:{path:'flows'}}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -639,7 +692,7 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                             console.log(err);
                         } else {
                             // UNIQUE SPECIES
-                            var allSpecies = [];
+                            /*var allSpecies = [];
                             foundSystem.model.forEach(function(species){
                                 allSpecies.push(species.species);
                             });
@@ -761,14 +814,14 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
                                 var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
                                 console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
-                                /*// CREATE ANGLED LENGTH LINE
+                                /!*!// CREATE ANGLED LENGTH LINE
                                 var rotatedLine = transformRotate(line, 90);
                                 var splitLines = lineSplit(rotatedLine, line);
                                 // SET LENGTH LINE
                                 var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                                 lengthLine = lengthLineSplit.features[1];
                                 console.log(splitLines.features[0]);
-                                console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
+                                console.log(Math.floor((length(lengthLine, {units: "meters"}))));*!/
                                 rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
                                 rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                                 console.log(rowCount);
@@ -870,9 +923,9 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                             for (i=0;i<rowArray.length;i++){
                                 var rowLength1 = length(rowArray[i], {units: "meters"});
                                 rowLengthArray.push(rowLength1);
-                                /*
+                                /!*
                                                     console.log(rowArray[i].geometry.coordinates);
-                                */
+                                *!/
                             }
                             var treeRows = [];
                             for(i=0;i<dataset.length;i++){
@@ -897,12 +950,12 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 // COUNT SYSTEM MODEL ITERATIONS IN ROW
                                 var rowLength = length(rowArray[i], {units: "meters"});
                                 // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                                /*var systemModelLength = 0;
+                                /!*var systemModelLength = 0;
                                 if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
                                     systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
                                 } else {
                                     systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                                }*/
+                                }*!/
                                 var systemModelCount = Math.floor(rowLength/systemModelLength);
                                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
                                 // CALCULATE AREA
@@ -957,7 +1010,22 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 };
                                 uniqueSpeciesCount.push(speciesCount);
                             }
-                            console.log(uniqueSpeciesCount[0]);
+                            console.log(uniqueSpeciesCount[0]);*/
+                            var layout = {};
+                            // IF ROWS, DO XXX
+                            if(foundProject.rows && foundProject.rows.length > 0){
+                                // DO ROW LAYOUT
+                                layout = gisObj.rowBasedLayout(foundProject);
+                            } else {
+                                // DO PARAMETRIC LAYOUT
+                                layout = gisObj.systemBasedLayout(foundProject);
+                            }
+                            var uniqueSpeciesCount = [];
+                            var uniqueSpecies = [];
+                            if(layout.uniqueSpeciesCount) {
+                                uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                                uniqueSpecies = layout.uniqueSpecies;
+                            }
                             /////////////////////
                             /////////////////////
                             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
@@ -987,6 +1055,11 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                                     posting.amount = uniqueSpeciesCount[l].uniqueCount;
                                                 }
                                             }
+                                            // CHECK ROTATION HERE FOR SPECIES AREA SIZES -
+                                            // JUST CHECK EACH AREA
+                                            // ADD TO COUNTER
+                                            // THEN SET AMOUNT TO COUNTER
+
                                             postings.push(posting);
                                         }
                                     }
@@ -1014,11 +1087,15 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                             }
                                         }
                                     }
+                                    // DO IF AREA SIZE HERE
+
                                     // ADD TO POSTINGS
                                     postings.push(posting);
                                 }
                             }
                             console.log(postings.length + " postings including yields");
+                            // POSTINGS FOR AREAS SIZES?
+
                             // CREATE POSTINGS
                             Posting.insertMany(postings, function(err, createdPostings){
                                 if(err){

@@ -727,6 +727,10 @@ gisObj.systemBasedLayout = function(project){
         uniqueSpeciesCount.push(speciesCount);
     }
     layout.uniqueSpeciesCount = uniqueSpeciesCount;
+    var uniqueTreeSpecies = unique(treeArray);
+    layout.uniqueSpecies = uniqueTreeSpecies;
+    // UNIQUE AREA COUNT
+
     /*// CHECK LENGTH OF LINE BEFORE CUTTING
     var checkLine = turf.lineString([polygon.geometry.coordinates[0][1],polygon.geometry.coordinates[0][2]],{name: "checkLine"});
     var checkLength = length(checkLine, {units: "meters"});
@@ -786,6 +790,7 @@ gisObj.rowBasedLayout = function(project){
     var treeMarkerArray = [];
     var treeAssetArray = [];
     var treeAssetRowRef = [];
+    var treeArray = [];
     // FIND SYSTEM ROWS
     for(i=0;i<project.rows.length;i++){
         // SET ROW DATA
@@ -829,6 +834,7 @@ gisObj.rowBasedLayout = function(project){
                 species: datasetRows[(datasetRows.length - 1)].species
             };
             treeAssetsArray.push(firstAsset);
+            treeArray.push(datasetRows[(datasetRows.length - 1)].species);
             // ASSET ARRAY
             var firstTreeAsset = {
                 species: datasetRows[(datasetRows.length - 1)].species.id,
@@ -852,6 +858,7 @@ gisObj.rowBasedLayout = function(project){
                     // ADD TREE OBJECT TO ARRAY
                     treeMarkerArray.push(treeMarker);
                     treeAssetsArray.push(asset);
+                    treeArray.push(datasetRows[k].species);
                     // ASSET ARRAY
                     var treeAsset1 = {
                         species: datasetRows[k].species.id,
@@ -877,6 +884,7 @@ gisObj.rowBasedLayout = function(project){
                     };
                     treeMarkerArray.push(treeMarker2);
                     treeAssetsArray.push(asset2);
+                    treeArray.push(datasetRows[j].species);
                     // ASSET ARRAY
                     var treeAsset2 = {
                         species: datasetRows[j].species.id,
@@ -984,6 +992,8 @@ gisObj.rowBasedLayout = function(project){
         uniqueSpeciesCount.push(speciesCount);
     }
     layout.uniqueSpeciesCount = uniqueSpeciesCount;
+    var uniqueTreeSpecies = unique(treeArray);
+    layout.uniqueSpecies = uniqueTreeSpecies;
     // JUST SEND BLANK
     layout.offsetArray = [];
 
