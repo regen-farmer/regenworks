@@ -5,6 +5,16 @@ var Nursery = require("../models/nursery");
 var Species = require("../models/species");
 var middleware = require("../middleware");
 
+// ADMIN ALL VARIETIES
+router.get("/nurseryproducts", middleware.adminIsLoggedIn, function(req, res){
+    NurseryProduct.find().populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundNurseryProducts){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("nurseryproducts/index", {products: foundNurseryProducts});
+        }
+    });
+});
 
 // NURSERY PRODUCT NURSERY NEW
 router.get("/nurseries/:id/nurseryproducts/new", middleware.isLoggedIn, function(req, res){

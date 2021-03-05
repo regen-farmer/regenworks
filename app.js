@@ -37,6 +37,7 @@ var soiltestRoutes = require("./routes/soiltests");
 var saptestRoutes = require("./routes/saptests");
 var farmflowRoutes = require("./routes/farmflows");
 var rotationRoutes = require("./routes/rotations");
+var varietyRoutes = require("./routes/varieties");
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
@@ -91,6 +92,7 @@ app.use("", soiltestRoutes);
 app.use("", saptestRoutes);
 app.use("", farmflowRoutes);
 app.use("", rotationRoutes);
+app.use("", varietyRoutes);
 
 // 404 ROUTE
 app.get('*', function(req, res){
