@@ -242,7 +242,7 @@ router.get("/projects/:id/edit", middleware.isLoggedIn, function(req, res){ // M
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation'}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -970,7 +970,7 @@ router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, 
 // PROJECT ASSET CREATION
 router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {

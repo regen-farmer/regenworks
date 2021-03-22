@@ -7,6 +7,7 @@ var System = require("../models/system");
 var Posting = require("../models/posting");
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
+var area = require("@turf/area");
 var bbox = require("@turf/bbox");
 var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
@@ -187,7 +188,7 @@ router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, functio
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
 router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species'}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species'}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -663,7 +664,7 @@ router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(r
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
 router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species', populate:{path:'flows'}}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species', populate:{path:'flows'}}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species', populate:{path:'flows'}}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species', populate:{path:'flows'}}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species', populate:{path:'flows'}}}}).exec(function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -1031,6 +1032,46 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
                             var postings = [];
                             var period = req.body.period;
+                            // FIND UNIQUE AREA SPECIES
+                            var uniqueAreaSpecies = [];
+                            // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
+                            var areaArray = layout.alleyPolygonArray;
+                            var areaSpeciesRotation = layout.alleySpeciesArray;
+                            var speciesPeriodAreaArray = [];
+                            for(i=0;i<period;i++){
+                                var countArray = [];
+                                for(j=0;areaArray.length > j;j++){
+                                    for(k = 0; k < areaSpeciesRotation[j].length; k++){
+                                        console.log("rotation length: " + areaSpeciesRotation[j].length);
+                                        console.log("rotation check" + ((i+1) % (k+1)));
+                                        // CHECK IF YEAR IS IN ROTATION
+                                        if((i+areaSpeciesRotation[j].length) % (areaSpeciesRotation[j].length) === k){
+                                            uniqueAreaSpecies.push(areaSpeciesRotation[j][k]);
+                                            var count = 0;
+                                            for(l=0;l<countArray.length;l++){
+                                                if(areaSpeciesRotation[j][k] === countArray[l].id){
+                                                    countArray[l].count = countArray[l].count + area(areaArray[j]);
+                                                    count = count + 1;
+                                                }
+                                            }
+                                            if(count < 1){
+                                                speciesArea = {
+                                                    id: areaSpeciesRotation[j][k],
+                                                    count: area(areaArray[j])
+                                                };
+                                                countArray.push(speciesArea);
+                                            }
+                                        }
+                                    }
+                                }
+                                speciesPeriodAreaArray.push(countArray);
+                            }
+                            console.log("Species area count " + speciesPeriodAreaArray[1][0].count);
+                            console.log("Species area species " + speciesPeriodAreaArray[1][0].id);
+                            console.log("Species area first year length " + speciesPeriodAreaArray[1].length);
+                            // UNIQUE AREA SPECIES
+                            var uniqueAreaSpeciesSorted = unique(uniqueAreaSpecies);
+                            console.log("Unique area species " + uniqueAreaSpeciesSorted.length);
                             // RUN THROUGH ALL POSTINGS
                             for(i=0;i<speciesPostingsArray.length;i++){
                                 for(j=0;j<uniqueSpecies.length;j++){
@@ -1066,7 +1107,7 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 }
                             }
                             console.log(postings.length + " postings excluding yields");
-                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
+                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?! CHECK FOR EACH YEAR?!
 
                             // CREATE POSTINGS FOR YIELDS ;)
                             for(i=0;i<uniqueSpecies.length;i++){
@@ -1086,9 +1127,37 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                                 posting.amount = uniqueSpeciesCount[k].uniqueCount * uniqueSpecies[i].flows[0].data[j];
                                             }
                                         }
+                                        /*for(k=0;k<speciesPeriodAreaArray[j].length;k++){
+                                            if(uniqueSpecies[i].nameCommon === speciesPeriodAreaArray[j][k].id){
+                                                posting.amount = speciesPeriodAreaArray[j][k].count * uniqueSpecies[i].flows[0].data[j];
+                                            }
+                                        }*/
                                     }
-                                    // DO IF AREA SIZE HERE
+                                    // DO IF AREA SIZE HERE TO CHECK WITH ROTATION. OK TO HAVE IT HERE SINCE IT OVERWRITE ABOVE FLOWS?
 
+                                    // ADD TO POSTINGS
+                                    postings.push(posting);
+                                }
+                            }
+                            // AREA YIELDS
+                            for(i=0;i<uniqueAreaSpeciesSorted.length;i++){
+                                // CYCLE THROUGH ALL YEARS
+                                for(j=0;j<period;j++) {
+                                    // CREATE YIELD POSTING
+                                    var posting = {
+                                        name: uniqueAreaSpeciesSorted[i].nameCommon + " yields",
+                                        postType: "product",
+                                        amount: 0,
+                                        value: 1,
+                                        year: j + 1
+                                    };
+                                    if(uniqueAreaSpeciesSorted[i].flows && uniqueAreaSpeciesSorted[i].flows.length > 0 && uniqueAreaSpeciesSorted[i].flows[0].unit === "food"){
+                                        for(k=0;k<speciesPeriodAreaArray[j].length;k++){
+                                            if(uniqueAreaSpeciesSorted[i].nameCommon === speciesPeriodAreaArray[j][k].id.nameCommon){
+                                                posting.amount = Math.round(speciesPeriodAreaArray[j][k].count * uniqueAreaSpeciesSorted[i].flows[0].data[0]);
+                                            }
+                                        }
+                                    }
                                     // ADD TO POSTINGS
                                     postings.push(posting);
                                 }

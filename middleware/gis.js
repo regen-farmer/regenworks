@@ -268,7 +268,8 @@ gisObj.systemBasedLayout = function(project){
         // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
         var lengthLineBearing = {};
         if(project.bearingline){
-            lengthLineBearing = project.bearingline;
+            var bearingline = JSON.parse(project.bearingline);
+            lengthLineBearing = bearingline;
         } else if(project.headland === 0){
             lengthLineBearing = turf.lineString([polygon.geometry.coordinates[0][project.bearing],polygon.geometry.coordinates[0][project.bearing + 1]],{name: 'bearingline'});
         } else {
@@ -368,6 +369,15 @@ gisObj.systemBasedLayout = function(project){
     var bedArray = [];
     var alleyArray = [];
     var bedDistance = 0;
+    var alleySpeciesArrayCount = [];
+    var alleySpeciesArray = [];
+    // ALLEY SPECIES ARRAY
+    for(i=0;i<dataset.length;i++){
+        if(dataset[i].array[0].species.form === "grass"){
+            alleySpeciesArrayCount.push(dataset[i].array[0].species);
+        }
+    }
+    console.log(alleySpeciesArrayCount.length + " ---- CHECK ---- " + alleyWidthArray.length);
     // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
     for(i=0;i<rowCount;i++){
         // DO IF FIRST COUNT?
@@ -450,9 +460,22 @@ gisObj.systemBasedLayout = function(project){
                         var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
                         var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
                         var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
-                        var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        // CHECK IF BEARING IS OPPOSITE
+                        var bearingcheck1 = rhumbBearing(alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates);
+                        var bearingcheck2 = rhumbBearing(alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates);
+                        // IF BEARING IS OPPOSITE USE DIFFERENT POINTS
+                        if((bearingcheck1 - bearingcheck2) > 1 || (bearingcheck1 - bearingcheck2) > -1){
+                            var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        } else {
+                            var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        }
                         // PUSH TO ARRAY
                         alleyArray.push(alleyPolygon1);
+                        // ADD SPECIES TO ALLEY ARRAY
+                        var alleySpeciesCount = [
+                            alleySpeciesArrayCount[j]
+                        ];
+                        alleySpeciesArray.push(alleySpeciesCount);
                     }
                 } else {
                     // REMAINING ALLEYS ON AREA
@@ -465,9 +488,24 @@ gisObj.systemBasedLayout = function(project){
                         var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
                         var alleyBufferLine4 = buffer(line, ((bedDistance+(alleyWidths[j]/2))*calibrateDistance), {units: "meters"});
                         var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
-                        var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        // CHECK IF BEARING IS OPPOSITE
+                        var bearingcheck1 = rhumbBearing(alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates);
+                        var bearingcheck2 = rhumbBearing(alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates);
+                        console.log("bearing1: " + bearingcheck1);
+                        console.log("bearing2: " + bearingcheck2);
+                        console.log("bearingcheck: " + (bearingcheck1 % bearingcheck2));
+                        if((bearingcheck1 - bearingcheck2) > 1 || (bearingcheck2 - bearingcheck1) > 1){
+                            var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        } else {
+                            var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
+                        }
                         // PUSH TO ARRAY
                         alleyArray.push(alleyPolygon1);
+                        // ADD SPECIES TO ALLEY ARRAY
+                        var alleySpeciesCount = [
+                            alleySpeciesArrayCount[j]
+                        ];
+                        alleySpeciesArray.push(alleySpeciesCount);
                     }
                 }
             }
@@ -550,6 +588,9 @@ gisObj.systemBasedLayout = function(project){
     layout.bedPolygonArray = bedArray;
     layout.bedPolygonCollection = turf.featureCollection(bedArray);
     layout.alleyPolygonArray = alleyArray;
+    layout.alleySpeciesArray = alleySpeciesArray;
+    console.log("Alley species array count: " + alleySpeciesArray.length);
+    console.log("Alley polygon array count: " + alleyArray.length);
     // SET ROWLENGTH ARRAY
     var rowLengthArray = [];
     for (i=0;i<rowArray.length;i++){
@@ -684,9 +725,9 @@ gisObj.systemBasedLayout = function(project){
     console.log(treeMarkerArray.length);
     // DO POINT COLLECTION
     var treeCanopyArray = [];
-    if(treeMarkerArray.length < 3000){
+    if(treeMarkerArray.length < 5000){
         for(i=0;i<treeMarkerArray.length;i++){
-            var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
+            var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 2, {units: "meters"});
             treeCanopyArray.push(circle1);
         }
     }
@@ -904,7 +945,7 @@ gisObj.rowBasedLayout = function(project){
     if(treeAssetsArray.length < 5000){
         for(i=0;i<treeAssetsArray.length;i++){
             // FIND TREE DIMENSIONS
-            var diameter = 1;
+            var diameter = 2;
             /*if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
                 diameter = 0.2;
             } else if (treeAssetsArray[i].species.form === "herb"){
@@ -951,12 +992,22 @@ gisObj.rowBasedLayout = function(project){
     // VIZ ROWS
     var alleyPolygonArray = [];
     var bedPolygonArray = [];
+    var alleySpeciesArray = [];
     for(i=0;i<project.areas.length;i++){
         // ROW VIZ
         var areaGeometry = JSON.parse(project.areas[i].geometry);
         if(project.areas[i].name.charAt(0) === "A"){
             alleyPolygonArray.push(areaGeometry);
-        } else if(project.areas[i].name.charAt(0) === "T"){
+            // ADD SPECIES TO ALLEY ARRAY
+            if(project.areas[i].rotation && project.areas[i].rotation.model.length > 0){
+                var alleySpeciesCount = [];
+                for(j=0;j<project.areas[i].rotation.model.length;j++){
+                    // ADD SPECIES TO ALLEY ARRAY
+                    alleySpeciesCount.push(project.areas[i].rotation.model[j].speciesmix[0].species);
+                }
+                alleySpeciesArray.push(alleySpeciesCount);
+            }
+        } else if(project.areas[i].name.charAt(0) === "T" || project.areas[i].name.charAt(0) === "W"){
             bedPolygonArray.push(areaGeometry);
         } else {
             alleyPolygonArray.push(areaGeometry);
@@ -965,6 +1016,9 @@ gisObj.rowBasedLayout = function(project){
     layout.treeRowArea = 0; // CHANGE THIS LATER ON WHEN AREAS ARE WORKING
     layout.bedPolygonArray = bedPolygonArray; // POPULATE THIS AS WELL WITH AREA
     layout.alleyPolygonArray = alleyPolygonArray;
+    layout.alleySpeciesArray = alleySpeciesArray;
+    console.log("Alley species array count: " + alleySpeciesArray.length);
+    console.log("Alley polygon array count: " + alleyPolygonArray.length);
     // COUNT ASSETS
 
 

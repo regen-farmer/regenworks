@@ -1,0 +1,32 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1>My Varieties/Cultivars</h1>
+    <a href="/varieties/new" class="btn btn-success">Add new variety/cultivar</a>
+    <p>Count: <%= varieties.length %></p>
+    <table class="table table-striped">
+        <tr>
+            <td>Name</td>
+            <td>Species</td>
+            <td><em>Botanical</em></td>
+            <td>Price</td>
+            <td></td>
+        </tr>
+        <% varieties.forEach(function(variety){ %>
+        <tr>
+            <td><%= variety.name %></td>
+            <td><%= variety.species.nameCommon %></td>
+            <td><em><%= variety.species.genus %> <%= variety.species.species %></em></td>
+            <% if(!(variety.price === "")){ %>
+            <td><%= variety.price %> $</td>
+            <% } else { %>
+            <td>no price data</td>
+            <% } %>
+            <td><!--<a href="/varieties/<%= variety._id %>" class="btn btn-success">Show more</a>--></td>
+        </tr>
+        <% }); %>
+    </table>
+</div>
+
+<% include ../partials/footer %>

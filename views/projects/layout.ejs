@@ -7,7 +7,8 @@
             <a href="/projects/<%= project._id %>" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to project page</a>
             <% if(project.rows && project.rows.length > 0){ %>
                 <a href="/projects/<%= project._id %>/row/new" class="btn mt-2 mb-2 btn-outline-success">Manually add row <i class="fas fa-plus"></i></a>
-                <a href="/projects/<%= project._id %>/sequences/spacing" class="btn mt-2 btn-outline-primary">Create new row sequence</a>
+                <a href="/projects/<%= project._id %>/sequences/spacing" class="btn mt-2 btn-outline-primary">Create tree row sequence</a>
+                <a href="/projects/<%= project._id %>/rotations/steps" class="btn mt-2 btn-outline-primary">Create crop rotation</a>
             <% } else { %>
                 <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModalExplode">Explode layout <i class="fas fa-expand"></i></button>
                 <!-- Modal -->

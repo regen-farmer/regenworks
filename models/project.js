@@ -56,6 +56,7 @@ var projectSchema = new mongoose.Schema({
     alignment: {type: String, default: "north"},
     bearing: {type: Number, default: 0},
     headland: {type: Number, default: 0},
+    bearingline: String,
     status: String,
     rows: [
         {

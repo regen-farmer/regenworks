@@ -4,6 +4,18 @@ var Variety = require("../models/variety");
 var Species = require("../models/species");
 var middleware = require("../middleware");
 
+// VARIETY INDEX
+router.get("/varieties", middleware.isLoggedIn, function(req, res){
+    // Get all varieties from DB
+    Variety.find({'owner.id': req.user._id}).populate("species").exec(function(err, allUserVarieties){
+        if(err) {
+            console.log(err);
+        } else {
+            res.render("varieties/index", {varieties: allUserVarieties});
+        }
+    });
+});
+
 // VARIETY NEW
 router.get("/varieties/new", middleware.isLoggedIn, function(req, res){
     // FIND ALL SPECIES
