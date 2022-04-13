@@ -7,12 +7,17 @@
         <div class="col-md-4">
             <div>
                 <div id="layerMapShow"></div>
-                <h2>Area: "<%= layer.name %>"</h2>
+                <h2>Field: "<%= layer.name %>"</h2>
                 <p><%= layer.description %></p>
                 <hr>
                 <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit area details</a>
-                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea">Delete Area</button>
+                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit field details</a>
+                <% if(layer.projects == "" && !(layer.rows && layer.rows.length > 0) && !(layer.areas && layer.areas.length > 0)){ %>
+<!--
+                    <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModalSplitArea">Split Field</button>
+-->
+                <% } %>
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea">Delete Field</button>
                 <!-- Modal -->
                 <div class="modal fade" id="myModalDeleteArea" role="dialog">
                     <div class="modal-dialog">
@@ -20,15 +25,34 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title">Confirm deletion of area</h4>
+                                <h4 class="modal-title">Confirm deletion of field</h4>
                             </div>
                             <div class="modal-body">
-                                <p>When you delete your area, all information connected to it like saved systems, projects and budgets will be permanently deleted and it will not be able to be restored.</p>
+                                <p>When you delete your field, all information connected to it like saved systems, projects and budgets will be permanently deleted and it will not be able to be restored.</p>
                             </div>
                             <div class="modal-footer">
                                 <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
-                                    <button class="btn btn-danger">Delete area</button>
+                                    <button class="btn btn-danger">Delete field</button>
                                 </form>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalSplitArea" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm field split</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you split a field, all information connected to it like saved systems, rows and sub-areas will be transfered to the first of the two new split areas.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <a class="btn btn-outline-warning" href="/layers/<%= layer._id %>/split">Split field</a>
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                             </div>
                         </div>
@@ -38,7 +62,7 @@
             </div>
         </div>
         <div class="col-md-8">
-            <h2>Area production system</h2>
+            <h2>Field production system</h2>
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system and assets</a>
@@ -120,7 +144,7 @@
                 <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Current layout and assets on area</h5>
+                            <h5 class="card-title">Current layout and assets on field</h5>
                             <p class="card-text">Area size:
                                 <% if(layer.size > 5000){ %>
                                     <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)
@@ -135,7 +159,7 @@
                     <% if(!(layer.projects == "")){ %>
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Area projects</h5>
+                                <h5 class="card-title">Field projects</h5>
                                 <% layer.projects.forEach(function(project){ %>
                                     <% if(!(project.status == "Retired")){ %>
                                         <div class="card bg-light">
@@ -239,7 +263,7 @@
                     <% } %>
                     <div class="card">
                         <div class="card-body">
-                            <p class="card-text">Pick one of the options below to start adding possible future agroforestry systems to this area.</p>
+                            <p class="card-text">Pick one of the options below to start adding possible future agroforestry systems to this field.</p>
                             <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/newgrid">Define new agroforestry system</a>
                             <a class="btn btn-primary mt-2" href="/layers/<%= layer._id %>/analysis">Explore systems in the RegenWorks database</a>
                             <a class="btn btn-secondary mt-2" href="/layers/<%= layer._id %>/mysystems">My systems</a>

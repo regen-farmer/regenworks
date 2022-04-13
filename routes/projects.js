@@ -974,7 +974,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
         if(err){
             console.log(err);
         } else {
-            // FINDD SYSTEM
+            // FIND SYSTEM
             System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
                 if(err){
                     console.log(err);

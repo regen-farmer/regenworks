@@ -126,6 +126,10 @@ li i {
   margin-bottom: 0px;
 }
 
+.lowChart {
+  height:200px;
+}
+
 #layerMapNew {
   height: 400px;
 }
@@ -143,6 +147,10 @@ li i {
 }
 
 #rowMapNew {
+  height: 400px;
+}
+
+#splitMapNew {
   height: 400px;
 }
 

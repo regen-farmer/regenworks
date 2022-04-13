@@ -4,11 +4,11 @@
 <div class="row">
     <div class="col-lg-3"></div>
     <div class="col-lg-6">
-        <h2>Add new area to "<%= parcel.name %>"</h2>
+        <h2>Add new field to "<%= parcel.name %>"</h2>
         <div>
             <form action="/parcels/<%= parcel._id %>/layersuploadkml" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label for="layer[name]">Area name</label>
+                    <label for="layer[name]">Field name</label>
                     <input type="text" class="form-control" name="layer[name]" placeholder="Give the layer a name - Descriptive is often best" required>
                 </div>
                 <div class="form-group">
@@ -16,7 +16,7 @@
                     <input type="text" class="form-control" name="layer[description]" placeholder="Describe what is on the layer: apple orchard, cereal crops, grazing area, etc.">
                 </div>
                 <div class="form-group">
-                    <label for="layer[type]">Existing production type on area</label>
+                    <label for="layer[type]">Existing production type on field</label>
                     <select class="form-control" name="layer[type]">
                         <option value="arable">Crop cultivation</option>
                         <option value="grassland">Pasture/grassland</option>
@@ -44,11 +44,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="filename">Upload area geometry file (KML format supported)</label>
+                    <label for="filename">Upload field geometry file (KML format supported)</label>
                     <input type="file" id="myFile" name="filename" accept="text/kml" required>
                 </div>
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success btn-lg center-block">Create new area</button>
+                    <button type="submit" class="btn btn-success btn-lg center-block">Create new field</button>
                 </div>
             </form>
         </div>

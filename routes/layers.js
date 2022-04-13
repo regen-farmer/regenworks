@@ -21,6 +21,8 @@ var buffer = require("@turf/buffer");
 var area = require("@turf/area");
 var along = require("@turf/along");
 var circle = require("@turf/circle");
+var polygonToLine = require("@turf/polygon-to-line");
+var pointToLineDistance = require("@turf/point-to-line-distance");
 // SETUP MULTER
 var multer = require("multer");
 var storage = multer.memoryStorage();
@@ -775,6 +777,98 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             res.render("layers/layout", {layer: foundLayer, presentsystem: foundSystem, species: foundSpecies, collection: collection, places: places, trees: treeCollection, treenames: treeNameCollection, vegetables: vegeCollection, strips: stripsCollection, alleys: alleysCollection});
                         }
                     });
+                }
+            });
+        }
+    });
+});
+
+// NEW SPLIT LAYER ROUTE
+router.get("/layers/:id/split", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("layers/split", {layer: foundLayer})
+        }
+    });
+});
+
+// CREATE SPLIT LAYER ROUTE
+router.post("/layers/:id/split", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Layer.findById(req.params.id, function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND LAYER GEOMETRY
+            var polygon = JSON.parse(foundLayer.geometry);
+            // PARSE SPLIT LINE
+            var splitLine = JSON.parse(req.body.geometry);
+            console.log(splitLine);
+            // CHECK THAT ALL LINE POINTS EXCEPT LAST ARE WITHIN POLYGON
+
+            // SPLIT LAYER GEOMETRY WITH SPLIT LINE
+            // SET VARIABLES FOR INTERSECTION WITH POLYGON
+            var matchPoint1 = turf.point(splitLine.geometry.coordinates[0]);
+            console.log("matchPoint1: " + matchPoint1);
+            var matchPoint2 = turf.point(splitLine.geometry.coordinates[1]);
+            // SET GEOMETRY LINE SEGMENT INDEX VARIABLES
+            console.log("length of polygon array: " + polygon.geometry.coordinates[0].length);
+            var lineA = 0;
+            var lineAcount = 0;
+            var lineB = 0;
+            var lineBcount = 0;
+            var polyLine = polygonToLine(polygon);
+            console.log("length of polyline array: " + polyLine.geometry.coordinates.length);
+            for(k=0;k<polygon.geometry.coordinates[0].length - 1;k++){
+                var lineA1 = turf.lineString([polygon.geometry.coordinates[0][k],splitLine.geometry.coordinates[0]], {name: 'line A1'});
+                var lineA2 = turf.lineString([splitLine.geometry.coordinates[0],polygon.geometry.coordinates[0][k+1]], {name: 'line A2'});
+                var lineAdistance = length(lineA1, {units: 'meters'}) + length(lineA2, {units: 'meters'});
+                if(k === 0){
+                    lineAcount = lineAdistance;
+                }
+                if(lineAdistance < lineAcount){
+                    lineAcount = lineAdistance;
+                    lineA = k;
+                }
+                console.log(lineAdistance);
+                // LINE B
+                var lineB1 = turf.lineString([polygon.geometry.coordinates[0][k],splitLine.geometry.coordinates[1]], {name: 'line B1'});
+                var lineB2 = turf.lineString([splitLine.geometry.coordinates[1],polygon.geometry.coordinates[0][k+1]], {name: 'line B2'});
+                var lineBdistance = length(lineB1, {units: 'meters'}) + length(lineB2, {units: 'meters'});
+                if(k === 0){
+                    lineBcount = lineBdistance;
+                }
+                if(lineBdistance < lineBcount){
+                    lineBcount = lineBdistance;
+                    lineB = k;
+                }
+                console.log(lineBdistance);
+            }
+            console.log(lineA);
+            console.log(lineB);
+            // IF B IS LARGER THAN A, FLIP WHOLE LINE
+            /*if(lineA > lineB){
+                splitLine.geometry.coordinates.reverse();
+            }*/
+            // SAVE ONE GEOMETRY ON OLD LAYER AND RENAME
+            var polygonCoordinates = polygon.geometry.coordinates[0];
+            console.log("before splice: " + polygonCoordinates);
+            var segmentLength = lineB - lineA;
+            polygonCoordinates.splice((lineA+1), segmentLength, splitLine.geometry.coordinates[0], splitLine.geometry.coordinates[1]);
+            console.log("after splice: " + polygonCoordinates);
+            var newPolygon = turf.polygon([polygonCoordinates], { name: 'poly1' });
+            console.log("String poly " + JSON.stringify(newPolygon));
+            var newPolygonString = JSON.stringify(newPolygon);
+            Layer.findByIdAndUpdate(req.params.id, { $set: { geometry: newPolygonString } }, function(err, updatedField){
+                if(err){
+                    console.log(err)
+                } else {
+                    // CREATE NEW LAYER WITH NEW NAME AND GEOMETRY
+
+                    res.redirect("/layers/" + foundLayer._id);
                 }
             });
         }
