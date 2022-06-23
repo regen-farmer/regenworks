@@ -6,6 +6,8 @@ var Layer = require("../models/layer");
 var Row = require("../models/row");
 var Area = require("../models/area");
 var middleware = require("../middleware");
+const Species = require("../models/species");
+const unique = require("array-unique");
 
 // PARCEL FARMFLOWS
 router.get("/parcels/:id/farmflows", middleware.isLoggedIn, function(req, res){
@@ -23,22 +25,51 @@ router.get("/parcels/:id/farmflows", middleware.isLoggedIn, function(req, res){
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
 router.get("/parcels/:id/layers/:pid/rows/:rid/farmflows/new", middleware.isLoggedIn, function(req, res){
-    // RENDER NEW ACTIVITY PAGE
-    res.render("farmflows/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid})
+    // FIND ROW SEQUENCE SPECIES
+    Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec(function(err, foundRow){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ALL SPECIES
+            if(foundRow.sequence){
+                console.log("species there");
+                var allSpecies = [];
+                foundRow.sequence.model.forEach(function(species){
+                    allSpecies.push(species.species);
+                });
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                var uniqueSpecies = unique(allSpecies);
+                console.log(uniqueSpecies);
+                res.render("farmflows/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid, row: foundRow, species: uniqueSpecies})
+
+            } else {
+                res.redirect("back");
+            }
+        }
+    });
 });
 
 // CREATE FARMFLOW ON ROW
 router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", middleware.isLoggedIn, function(req, res){
-    // CREATE ACTIVITY
-    Farmflow.create(req.body.farmflow, function(err, createdFarmflow){
+    // FIND SPECIES
+    Species.findById(req.body.species, function(err, foundSpecies){
         if(err){
             console.log(err);
         } else {
-            Row.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedRow){
+            // CREATE ACTIVITY
+            var newFarmFlow = req.body.farmflow;
+            newFarmFlow.species = foundSpecies;
+            Farmflow.create(newFarmFlow, function(err, createdFarmflow){
                 if(err){
                     console.log(err);
                 } else {
-                    res.redirect("/parcels/" + req.params.id + "/farmflows")
+                    Row.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedRow){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.redirect("/parcels/" + req.params.id + "/farmflows")
+                        }
+                    });
                 }
             });
         }
@@ -48,22 +79,51 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", middleware.isLoggedI
 // --------------- NESTED ROUTES AREA BASED ---------------- //
 
 router.get("/parcels/:id/layers/:pid/areas/:rid/farmflows/new", middleware.isLoggedIn, function(req, res){
-    // RENDER NEW ACTIVITY PAGE
-    res.render("farmflows/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid})
-});
-
-// CREATE FARMFLOW ON ROW
-router.post("/parcels/:id/layers/:pid/areas/:rid/farmflows", middleware.isLoggedIn, function(req, res){
-    // CREATE ACTIVITY
-    Farmflow.create(req.body.farmflow, function(err, createdFarmflow){
+    // FIND AREA ROTATION SPECIES
+    Area.findById(req.params.rid).populate({path:'rotation', populate:{path:'model.speciesmix.species'}}).exec(function(err, foundArea){
         if(err){
             console.log(err);
         } else {
-            Area.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedArea){
+            // FIND ALL SPECIES
+            if(foundArea.rotation){
+                console.log("species there");
+                var allSpecies = [];
+                foundArea.rotation.model.forEach(function(speciesmix){
+                    allSpecies.push(speciesmix.speciesmix[0].species);
+                });
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                var uniqueSpecies = unique(allSpecies);
+                console.log(uniqueSpecies);
+                res.render("farmflows/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid, area: foundArea, species: uniqueSpecies})
+
+            } else {
+                res.redirect("back");
+            }
+        }
+    });
+});
+
+// CREATE FARMFLOW ON AREA
+router.post("/parcels/:id/layers/:pid/areas/:rid/farmflows", middleware.isLoggedIn, function(req, res){
+    // FIND SPECIES
+    Species.findById(req.body.species, function(err, foundSpecies){
+        if(err){
+            console.log(err);
+        } else {
+            // CREATE ACTIVITY
+            var newFarmFlow = req.body.farmflow;
+            newFarmFlow.species = foundSpecies;
+            Farmflow.create(newFarmFlow, function(err, createdFarmflow){
                 if(err){
                     console.log(err);
                 } else {
-                    res.redirect("/parcels/" + req.params.id + "/farmflows")
+                    Area.findByIdAndUpdate(req.params.rid, { $push: { farmflows : createdFarmflow } }, function(err, updatedArea){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            res.redirect("/parcels/" + req.params.id + "/farmflows")
+                        }
+                    });
                 }
             });
         }

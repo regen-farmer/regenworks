@@ -11,6 +11,7 @@ var middleware = require("../middleware");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
+const unique = require("array-unique");
 
 var options = {
     provier: "google",
@@ -353,8 +354,27 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
 
 
 router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLoggedIn, function(req, res){
-    // RENDER NEW ACTIVITY PAGE
-    res.render("activities/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid})
+    // FIND ROW SEQUENCE SPECIES
+    Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec(function(err, foundRow){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ALL SPECIES
+            if(foundRow.sequence){
+                console.log("species there");
+                var allSpecies = [];
+                foundRow.sequence.model.forEach(function(species){
+                    allSpecies.push(species.species);
+                });
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                var uniqueSpecies = unique(allSpecies);
+                console.log(uniqueSpecies);
+                res.render("activities/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid, row: foundRow, species: uniqueSpecies})
+            } else {
+                res.redirect("back");
+            }
+        }
+    });
 });
 
 router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, function(req, res){
@@ -368,7 +388,8 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
         start: {
             date: req.body.activity.start.date
         },
-        time: req.body.activity.time
+        time: req.body.activity.time,
+        species: req.body.activity.species
     };
    Activity.create(activity, function(err, createdActivity){
        if(err){
@@ -390,8 +411,27 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
 
 
 router.get("/parcels/:id/layers/:pid/areas/:rid/activities/new", middleware.isLoggedIn, function(req, res){
-    // RENDER NEW ACTIVITY PAGE
-    res.render("activities/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid})
+    // FIND AREA ROTATION SPECIES
+    Area.findById(req.params.rid).populate({path:'rotation', populate:{path:'model.speciesmix.species'}}).exec(function(err, foundArea){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND ALL SPECIES
+            if(foundArea.rotation){
+                console.log("species there");
+                var allSpecies = [];
+                foundArea.rotation.model.forEach(function(speciesmix){
+                    allSpecies.push(speciesmix.speciesmix[0].species);
+                });
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                var uniqueSpecies = unique(allSpecies);
+                console.log(uniqueSpecies);
+                res.render("activities/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid, area: foundArea, species: uniqueSpecies})
+            } else {
+                res.redirect("back");
+            }
+        }
+    });
 });
 
 router.post("/parcels/:id/layers/:pid/areas/:rid/activities", middleware.isLoggedIn, function(req, res){
@@ -405,7 +445,8 @@ router.post("/parcels/:id/layers/:pid/areas/:rid/activities", middleware.isLogge
         start: {
             date: req.body.activity.start.date
         },
-        time: req.body.activity.time
+        time: req.body.activity.time,
+        species: req.body.activity.species
     };
     Activity.create(activity, function(err, createdActivity){
         if(err){

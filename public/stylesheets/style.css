@@ -158,6 +158,10 @@ li i {
   height: 500px;
 }
 
+#wellMapNew {
+  height: 400px;
+}
+
 .sidebar{
   position: fixed;
   top: 0;

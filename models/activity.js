@@ -27,6 +27,10 @@ var activitySchema = new mongoose.Schema({
     layer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Layer"
+    },
+    species: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Species"
     }
 });
 

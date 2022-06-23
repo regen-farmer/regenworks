@@ -28,7 +28,7 @@
                             <select name="model[species]" style="width:100%;max-width:100%;">
                                 <option value="">none</option>
                                 <% species.forEach(function(species){ %>
-                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %> (<%= species.nameCommon %>)</option>
                                 <% }); %>
                             </select>
                             <input type="hidden" name="model[position]" value="<%= length - i*distance %>">

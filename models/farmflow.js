@@ -9,7 +9,11 @@ var farmflowSchema = new mongoose.Schema({
     timeframe: String,
     source: String,
     timestamp: Date,
-    amount: Number
+    amount: Number,
+    species: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Species"
+    }
 });
 
 module.exports = mongoose.model("Farmflow", farmflowSchema);

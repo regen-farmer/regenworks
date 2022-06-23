@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-lg-2"></div>
     <div class="col-lg-8">
-        <h2>Add new task/activity to sub-area</h2>
+        <h2>Add new task/activity to sub-area "<%= area.name %>"</h2>
         <div>
             <form action="/parcels/<%= parcelid %>/layers/<%= layerid %>/areas/<%= areaid %>/activities" method="POST">
                 <p>Add a new task to sub-area.</p>
@@ -33,6 +33,14 @@
                         <option value="manage weedcontrol">Weed control</option>
                         <option value="manage animalcontrol">Animal control</option>
                         <option value="manage harvest">Harvest</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activity[species]">Flow species reference</label>
+                    <select class="form-control" name="activity[species]" required>
+                        <% species.forEach(function(species){ %>
+                            <option value="<%= species._id %>"> <%= species.nameCommon %> </option>
+                        <% }); %>
                     </select>
                 </div>
                 <!--<div class="form-group">

@@ -28,13 +28,13 @@
                         <select name="model[speciesmix][species]" style="width:100%;max-width:100%;">
                             <option value="">none</option>
                             <% species.forEach(function(species){ %>
-                            <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <option value="<%= species._id %>"><%= species.genus %> <%= species.species %> (<%= species.nameCommon %>)</option>
                             <% }); %>
                         </select>
                         <div class="row">
                             <div class="col-lg-3">
                                 <div class="form-group">
-                                    <label for="model[planting][year]">Planting year</label>
+                                    <label for="model[planting][year]">Planting year [1 = first year]</label>
                                     <input type="number" min="1" max="25" class="form-control" name="model[planting][year]" required>
                                 </div>
                             </div>
