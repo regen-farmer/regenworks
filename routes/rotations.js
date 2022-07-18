@@ -5,6 +5,7 @@ var Layer = require("../models/layer");
 var Project = require("../models/project");
 var Species = require("../models/species");
 var middleware = require("../middleware");
+const Sequence = require("../models/sequence");
 
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get("/layers/:id/rotations/steps", middleware.isLoggedIn, function(req, res){
@@ -38,7 +39,7 @@ router.post("/layers/:id/rotations/steps", middleware.isLoggedIn, function(req, 
 });
 
 
-// SEQUENCE NEW
+// ROTATION NEW
 router.get("/layers/:id/rotations/new", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
     Layer.findById(req.params.id, function(err, foundLayer){
@@ -96,7 +97,7 @@ router.post("/projects/:id/rotations/steps", middleware.isLoggedIn, function(req
     });
 });
 
-// SEQUENCE NEW
+// ROTATION NEW
 router.get("/projects/:id/rotations/new", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
     Project.findById(req.params.id, function(err, foundProject){
@@ -184,5 +185,42 @@ router.post("/projects/:id/rotations", middleware.isLoggedIn, function(req, res)
     });
 });
 
+// EDIT PROJECT ROTATION
+router.get("/projects/:id/rotations/:pid/edit", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    Project.findById(req.params.id).populate({path:'areas.rotation', populate:{path:'model.species'}}).exec(function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            // FIND SEQUENCES
+            Rotation.findById(req.params.pid).populate('model.species').exec(function(err, foundRotation){
+                if(err){
+                    console.log(err);
+                } else {
+                    // FIND ALL SPECIES
+                    res.render("rotations/edit", {project: foundProject, rotation: foundRotation});
+                }
+            });
+        }
+    });
+});
 
+// UPDATE PROJECT ROTATION
+router.put("/projects/:id/rotations/:pid", middleware.isLoggedIn, function(req, res){
+    // FIND LAYER
+    var rotation = req.body.rotation;
+    Project.findById(req.params.id, function(err, foundProject){
+        if(err){
+            console.log(err);
+        } else {
+            Rotation.findByIdAndUpdate(req.params.pid, rotation, function(err, updatedRotation){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.redirect("/projects/" + foundProject._id + "/layout");
+                }
+            });
+        }
+    });
+});
 module.exports = router;
