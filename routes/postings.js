@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router();
 var Posting = require("../models/posting");
 var Budget = require("../models/budget");
+var Parcel = require("../models/parcel");
+var Layer = require("../models/layer");
 var middleware = require("../middleware");
 
 // POSTING EDIT ROUTE
@@ -71,5 +73,53 @@ router.put("/budgets/:id/postings/:postid", middleware.isLoggedIn, function(req,
         }
     });
 });
+
+// POSTING PARCEL BUDGET NEW
+router.get("/parcels/:id/layers/:bid/accounts/postings/new", middleware.isLoggedIn, function(req, res){
+    // FIND BUDGET ID
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path: 'budget'}}).exec(function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            Layer.findById(req.params.bid,function(err, foundLayer){
+                if(err){
+                    console.log(err);
+                } else {
+                    res.render("postings/accountnew", {parcel: foundParcel, layer: foundLayer});
+                }
+            });
+        }
+    });
+});
+
+// POSTING PARCEL BUDGET CREATE ROUTE
+router.post("/parcels/:id/layers/:bid/accounts/postings", middleware.isLoggedIn, function(req, res){ // BUDGET MIDDLEWARE!!! VIP
+    // CREATE POSTING FIRST AND INSERT IN BUDGET
+    Layer.findById(req.params.bid).populate({path: 'accounts'}).exec(function(err, foundLayer){
+        if(err){
+            console.log(err);
+        } else {
+            Budget.findById(foundLayer.accounts._id, function(err, foundBudget){
+                if(err){
+                    console.log(err);
+                } else {
+                    Posting.create(req.body.posting, function(err, createdPosting){
+                        if(err){
+                            console.log(err);
+                        } else {
+                            console.log(createdPosting);
+                            // SAVE POSTING ON BUDGET
+                            foundBudget.postings.push(createdPosting);
+                            foundBudget.save();
+                            res.redirect("/parcels/" + req.params.id + "/accounts");
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// POSTING
 
 module.exports = router;

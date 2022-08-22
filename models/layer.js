@@ -104,7 +104,11 @@ var layerSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Saptest"
         }
-    ]
+    ],
+    accounts: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Budget"
+    }
 });
 
 module.exports = mongoose.model("Layer", layerSchema);

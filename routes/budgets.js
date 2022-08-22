@@ -5,6 +5,7 @@ var Budget = require("../models/budget");
 var Project = require("../models/project");
 var System = require("../models/system");
 var Posting = require("../models/posting");
+var Parcel = require("../models/parcel");
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
 var area = require("@turf/area");
@@ -93,7 +94,20 @@ router.post("/budgets/:id", middleware.isLoggedIn, function(req, res){
     });
 });
 
-// BUDGET DETELE ROUTE
+// BUDGET DELETE ROUTE
+
+// PARCEL BUDGET SHOW ROUTE
+router.get("/parcels/:id/accounts", middleware.isLoggedIn, function(req, res){
+    Parcel.findById(req.params.id).populate({path:'layers', populate:{path: 'accounts', populate:{path: 'postings'}}}).exec(function(err, foundParcel){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("accounts", {parcel: foundParcel});
+        }
+    });
+});
+
+// PARCEL BUDGET
 
 // PROJECT BUDGET NEW ROUTE
 router.get("/projects/:id/budgets/new", middleware.isLoggedIn, function(req, res){
