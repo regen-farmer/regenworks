@@ -1,34 +1,34 @@
-var mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // VARIETY SCHEMA SETUP
-var varietySchema = new mongoose.Schema({
+const varietySchema = new mongoose.Schema({
+  name: String,
+  species: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Species',
+  },
+  price: Number,
+  description: String,
+  class: String,
+  pollination: String,
+  rootstock: {
     name: String,
     species: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Species"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Species',
     },
-    price: Number,
-    description: String,
-    class: String,
-    pollination: String,
-    rootstock: {
-        name: String,
-        species: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Species"
-        }
+  },
+  hybrid: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Species',
+  },
+  owner: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
-    hybrid: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Species"
-    },
-    owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
-    },
+    username: String,
+  },
 });
 
-module.exports = mongoose.model("Variety", varietySchema);
+module.exports = mongoose.model('Variety', varietySchema);

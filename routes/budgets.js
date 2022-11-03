@@ -1,25 +1,26 @@
-var express = require("express");
-var router = express.Router();
-var unique = require("array-unique");
-var Budget = require("../models/budget");
-var Project = require("../models/project");
-var System = require("../models/system");
-var Posting = require("../models/posting");
-var Parcel = require("../models/parcel");
-var middleware = require("../middleware");
-var gisObj = require("../middleware/gis");
-var area = require("@turf/area");
-var bbox = require("@turf/bbox");
-var bboxPolygon = require("@turf/bbox-polygon");
-var turf = require("@turf/helpers");
-var lineIntersect = require("@turf/line-intersect");
-var length = require("@turf/length");
-var buffer = require("@turf/buffer");
-var rhumbBearing = require("@turf/rhumb-bearing");
-var transformScale = require("@turf/transform-scale");
-var transformRotate = require("@turf/transform-rotate");
-var lineSplit = require("@turf/line-split");
-var along = require("@turf/along");
+const express = require('express');
+
+const router = express.Router();
+const unique = require('array-unique');
+const area = require('@turf/area');
+const bbox = require('@turf/bbox');
+const bboxPolygon = require('@turf/bbox-polygon');
+const turf = require('@turf/helpers');
+const lineIntersect = require('@turf/line-intersect');
+const length = require('@turf/length');
+const buffer = require('@turf/buffer');
+const rhumbBearing = require('@turf/rhumb-bearing');
+const transformScale = require('@turf/transform-scale');
+const transformRotate = require('@turf/transform-rotate');
+const lineSplit = require('@turf/line-split');
+const along = require('@turf/along');
+const gisObj = require('../middleware/gis');
+const middleware = require('../middleware');
+const Parcel = require('../models/parcel');
+const Posting = require('../models/posting');
+const System = require('../models/system');
+const Project = require('../models/project');
+const Budget = require('../models/budget');
 
 // BUDGET INDEX ROUTE
 
@@ -28,209 +29,211 @@ var along = require("@turf/along");
 // BUDGET CREATE ROUTE
 
 // BUDGET SHOW ROUTE
-router.get("/budgets/:id", middleware.isLoggedIn, function(req, res){ // CHECK OWNERSHIP ASAP
-    Budget.findById(req.params.id).populate("postings").exec(function(err, foundBudget){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND BUDGET LENGTH
-            var years = 0;
-            // CREATE ARRAY TO STORE ANNUAL TOTALS AND POSTINGS
-            var postingsArray = [];
-            // SET YEARS
-            for(i=0;i<foundBudget.postings.length;i++){
-                // IF YEAR IS LARGER, ADD TO YEARS
-                if(foundBudget.postings[i].year > years){
-                    years = foundBudget.postings[i].year;
-                }
-            }
-            // SET ARRAY LENGTH
-            for(i=0;i<years;i++){
-                var year = {
-                    year: i + 1,
-                    postings: Array,
-                    total: 0
-                };
-                postingsArray.push(year);
-            }
-            // CHECK IF COST OR INCOME
-            for(i=0;i<foundBudget.postings.length;i++){
-                for(j=0;j<postingsArray.length;j++){
-                    // CHECK IF SAME YEAR
-                    if(foundBudget.postings[i].year === postingsArray[j].year){
-                        // CHECK IF COST OR INCOME
-                        if(foundBudget.postings[i].postType === "labor" || foundBudget.postings[i].postType === "material"){
-                            postingsArray[j].total = postingsArray[j].total - (foundBudget.postings[i].value * foundBudget.postings[i].amount);
-                        } else if(foundBudget.postings[i].postType === "product" || foundBudget.postings[i].postType === "service"){
-                            postingsArray[j].total = postingsArray[j].total + (foundBudget.postings[i].value * foundBudget.postings[i].amount);
-                        }
-                    }
-                }
-            }
-            res.render("budgets/show", {budget: foundBudget, total: postingsArray, years: years});
+router.get('/budgets/:id', middleware.isLoggedIn, (req, res) => { // CHECK OWNERSHIP ASAP
+  Budget.findById(req.params.id).populate('postings').exec((err, foundBudget) => {
+    if (err) {
+      console.log(err);
+    } else {
+      // FIND BUDGET LENGTH
+      let years = 0;
+      // CREATE ARRAY TO STORE ANNUAL TOTALS AND POSTINGS
+      const postingsArray = [];
+      // SET YEARS
+      for (i = 0; i < foundBudget.postings.length; i++) {
+        // IF YEAR IS LARGER, ADD TO YEARS
+        if (foundBudget.postings[i].year > years) {
+          years = foundBudget.postings[i].year;
         }
-    });
+      }
+      // SET ARRAY LENGTH
+      for (i = 0; i < years; i++) {
+        const year = {
+          year: i + 1,
+          postings: Array,
+          total: 0,
+        };
+        postingsArray.push(year);
+      }
+      // CHECK IF COST OR INCOME
+      for (i = 0; i < foundBudget.postings.length; i++) {
+        for (j = 0; j < postingsArray.length; j++) {
+          // CHECK IF SAME YEAR
+          if (foundBudget.postings[i].year === postingsArray[j].year) {
+            // CHECK IF COST OR INCOME
+            if (foundBudget.postings[i].postType === 'labor' || foundBudget.postings[i].postType === 'material') {
+              postingsArray[j].total = postingsArray[j].total - (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+            } else if (foundBudget.postings[i].postType === 'product' || foundBudget.postings[i].postType === 'service') {
+              postingsArray[j].total = postingsArray[j].total + (foundBudget.postings[i].value * foundBudget.postings[i].amount);
+            }
+          }
+        }
+      }
+      res.render('budgets/show', { budget: foundBudget, total: postingsArray, years });
+    }
+  });
 });
 
 // BUDGET EDIT ROUTE
-router.get("/budgets/:id/edit", middleware.isLoggedIn, function(req, res){
-    Budget.findById(req.params.id, function(err, foundBudget){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("budgets/edit", {budget: foundBudget});
-        }
-    });
+router.get('/budgets/:id/edit', middleware.isLoggedIn, (req, res) => {
+  Budget.findById(req.params.id, (err, foundBudget) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('budgets/edit', { budget: foundBudget });
+    }
+  });
 });
 
 // BUDGET UPDATE ROUTE
-router.post("/budgets/:id", middleware.isLoggedIn, function(req, res){
-    Budget.findByIdAndUpdate(req.params.id, req.body.budget, function(err, updatedBudget){
-        if(err){
-            console.log(err);
-        } else {
-            res.redirect("/budgets/" + updatedBudget._id);
-        }
-    });
+router.post('/budgets/:id', middleware.isLoggedIn, (req, res) => {
+  Budget.findByIdAndUpdate(req.params.id, req.body.budget, (err, updatedBudget) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.redirect(`/budgets/${updatedBudget._id}`);
+    }
+  });
 });
 
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get("/parcels/:id/accounts", middleware.isLoggedIn, function(req, res){
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path: 'accounts', populate:{path: 'postings'}}}).exec(function(err, foundParcel){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("accounts", {parcel: foundParcel});
-        }
-    });
+router.get('/parcels/:id/accounts', middleware.isLoggedIn, (req, res) => {
+  Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'accounts', populate: { path: 'postings' } } }).exec((err, foundParcel) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('accounts', { parcel: foundParcel });
+    }
+  });
 });
 
 // PARCEL BUDGET
 
 // PROJECT BUDGET NEW ROUTE
-router.get("/projects/:id/budgets/new", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate("system").exec(function(err, foundProject){
-        if(err){
-            console.log(err);
+router.get('/projects/:id/budgets/new', middleware.isLoggedIn, (req, res) => {
+  Project.findById(req.params.id).populate('system').exec((err, foundProject) => {
+    if (err) {
+      console.log(err);
+    } else {
+      System.findById(foundProject.system).populate('model.species').exec((err, foundSystem) => {
+        if (err) {
+          console.log(err);
         } else {
-            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    // FIND ALL SPECIES IN SYSTEM
-                    var allSpecies = [];
-                    foundSystem.model.forEach(function(species){
-                        allSpecies.push(species.species);
-                    });
-                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                    var uniqueSpecies = unique(allSpecies);
-                    res.render("budgets/new", {project: foundProject, species: uniqueSpecies});
-                }
-            });
+          // FIND ALL SPECIES IN SYSTEM
+          const allSpecies = [];
+          foundSystem.model.forEach((species) => {
+            allSpecies.push(species.species);
+          });
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          const uniqueSpecies = unique(allSpecies);
+          res.render('budgets/new', { project: foundProject, species: uniqueSpecies });
         }
-    });
+      });
+    }
+  });
 });
 
 // PROJECT BUDGET CREATE ROUTE
-router.post("/projects/:id/budgets", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id, function(err, foundProject){
-        if(err){
-            console.log(err);
+router.post('/projects/:id/budgets', middleware.isLoggedIn, (req, res) => {
+  Project.findById(req.params.id, (err, foundProject) => {
+    if (err) {
+      console.log(err);
+    } else {
+      Budget.create(req.body.budget, (err, createdBudget) => {
+        if (err) {
+          console.log(err);
         } else {
-            Budget.create(req.body.budget, function(err, createdBudget){
-                if(err){
-                    console.log(err);
-                } else {
-                    // BUDGET OWNER
-                    createdBudget.owner.id = req.user._id;
-                    createdBudget.owner.username = req.user.username;
-                    createdBudget.save();
-                    // SAVE BUDGET TO PROJECT
-                    foundProject.budget = createdBudget;
-                    foundProject.save();
-                    res.redirect("/projects/" + foundProject._id);
-                }
-            });
+          // BUDGET OWNER
+          createdBudget.owner.id = req.user._id;
+          createdBudget.owner.username = req.user.username;
+          createdBudget.save();
+          // SAVE BUDGET TO PROJECT
+          foundProject.budget = createdBudget;
+          foundProject.save();
+          res.redirect(`/projects/${foundProject._id}`);
         }
-    });
+      });
+    }
+  });
 });
 
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
-router.get("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
-    // FIND PROJECT
-    Project.findById(req.params.id).populate("system").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).exec(function(err, foundProject){
-        if(err){
-            console.log(err);
+router.get('/projects/:id/generateestablishment', middleware.isLoggedIn, (req, res) => {
+  // FIND PROJECT
+  Project.findById(req.params.id).populate('system').populate({ path: 'rows', populate: { path: 'sequence', populate: { path: 'model.species' } } }).exec((err, foundProject) => {
+    if (err) {
+      console.log(err);
+    } else {
+      System.findById(foundProject.system).populate('model.species').exec((err, foundSystem) => {
+        if (err) {
+          console.log(err);
         } else {
-            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    // FIND ALL SPECIES IN SYSTEM OR ROWS
-                    var allSpecies = [];
-                    if(foundProject.rows && foundProject.rows.length > 0){
-                        for(i=0;i<foundProject.rows.length;i++){
-                            if(foundProject.rows[i].sequence){
-                                for(j=0;j<foundProject.rows[i].sequence.model.length;j++){
-                                    allSpecies.push(foundProject.rows[i].sequence.model[j].species);
-                                }
-                            }
-                        }
-                    } else {
-                        foundSystem.model.forEach(function(species){
-                            if(species.species.form === "grass" || species.species.form === "herb") {
-                                // DO NOTHING XD
-                            } else {
-                                allSpecies.push(species.species);
-                            }
-                        });
-                    }
-                    console.log("All species length: " + allSpecies.length);
-                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                    var uniqueSpecies = unique(allSpecies);
-                    // SEND ARRAY OF SUBTYPES
-                    var subtypes = ["bed", "plant", "method"];
-                    res.render("budgets/establishnew", {project: foundProject, species: uniqueSpecies, subtypes: subtypes});
+          // FIND ALL SPECIES IN SYSTEM OR ROWS
+          const allSpecies = [];
+          if (foundProject.rows && foundProject.rows.length > 0) {
+            for (i = 0; i < foundProject.rows.length; i++) {
+              if (foundProject.rows[i].sequence) {
+                for (j = 0; j < foundProject.rows[i].sequence.model.length; j++) {
+                  allSpecies.push(foundProject.rows[i].sequence.model[j].species);
                 }
+              }
+            }
+          } else {
+            foundSystem.model.forEach((species) => {
+              if (species.species.form === 'grass' || species.species.form === 'herb') {
+                // DO NOTHING XD
+              } else {
+                allSpecies.push(species.species);
+              }
             });
+          }
+          console.log(`All species length: ${allSpecies.length}`);
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          const uniqueSpecies = unique(allSpecies);
+          // SEND ARRAY OF SUBTYPES
+          const subtypes = ['bed', 'plant', 'method'];
+          res.render('budgets/establishnew', { project: foundProject, species: uniqueSpecies, subtypes });
         }
-    });
+      });
+    }
+  });
 });
 
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
-router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, function(req, res){
-    // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species'}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
-        if(err){
+router.post('/projects/:id/generateestablishment', middleware.isLoggedIn, (req, res) => {
+  // FIND PROJECT
+  Project.findById(req.params.id).populate('layer').populate({ path: 'system', populate: { path: 'model.species' } }).populate({ path: 'rows', populate: { path: 'sequence', populate: { path: 'model.species' } } })
+    .populate({ path: 'areas', populate: { path: 'rotation', populate: { path: 'model.speciesmix.species' } } })
+    .exec((err, foundProject) => {
+      if (err) {
+        console.log(err);
+      } else {
+      // CREATE BUDGET AND PLACE IN PROJECT
+        const { budget } = req.body;
+        Budget.create(budget, (err, createdBudget) => {
+          if (err) {
             console.log(err);
-        } else {
-            // CREATE BUDGET AND PLACE IN PROJECT
-            var budget = req.body.budget;
-            Budget.create(budget, function(err, createdBudget){
-                if(err){
-                    console.log(err);
-                } else {
-                    foundProject.budgets.establishment = createdBudget;
-                    foundProject.save();
-                    // PARSE QUERY
-                    var speciesPostings = req.body.speciespostings;
-                    var speciesPostingsArray = [];
-                    for(i=0;i<speciesPostings.length;i++){
-                        // REMOVE NONE ONES
-                        if(!(speciesPostings[i] === "none")){
-                            var splitPostings = speciesPostings[i].split(" ");
-                            speciesPostingsArray.push(splitPostings);
-                        }
-                    }
-                    console.log(speciesPostingsArray);
-                    // FIND SYSTEM
-                    System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            /*// UNIQUE SPECIES
+          } else {
+            foundProject.budgets.establishment = createdBudget;
+            foundProject.save();
+            // PARSE QUERY
+            const speciesPostings = req.body.speciespostings;
+            const speciesPostingsArray = [];
+            for (i = 0; i < speciesPostings.length; i++) {
+            // REMOVE NONE ONES
+              if (!(speciesPostings[i] === 'none')) {
+                const splitPostings = speciesPostings[i].split(' ');
+                speciesPostingsArray.push(splitPostings);
+              }
+            }
+            console.log(speciesPostingsArray);
+            // FIND SYSTEM
+            System.findById(foundProject.system).populate('model.species').exec((err, foundSystem) => {
+              if (err) {
+                console.log(err);
+              } else {
+              /* // UNIQUE SPECIES
                             var allSpecies = [];
                             foundSystem.model.forEach(function(species){
                                 allSpecies.push(species.species);
@@ -528,18 +531,18 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 } else {
                                     treeRowCount = treeRowCount + 1;
                                 }
-                            }*/
-                            // SET VARIABLES HERE
-                            var layout = {};
-                            // IF ROWS, DO XXX
-                            if(foundProject.rows && foundProject.rows.length > 0){
-                                // DO ROW LAYOUT
-                                layout = gisObj.rowBasedLayout(foundProject);
-                            } else {
-                                // DO PARAMETRIC LAYOUT
-                                layout = gisObj.systemBasedLayout(foundProject);
-                            }
-                            /*// SPECIES
+                            } */
+                // SET VARIABLES HERE
+                let layout = {};
+                // IF ROWS, DO XXX
+                if (foundProject.rows && foundProject.rows.length > 0) {
+                // DO ROW LAYOUT
+                  layout = gisObj.rowBasedLayout(foundProject);
+                } else {
+                // DO PARAMETRIC LAYOUT
+                  layout = gisObj.systemBasedLayout(foundProject);
+                }
+                /* // SPECIES
                             var allSpeciesCopy = [];
                             for(i=0;allSpecies.length > i;i++){
                                 allSpeciesCopy.push(allSpeciesv[i]);
@@ -560,154 +563,155 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                                 };
                                 uniqueSpeciesCount.push(speciesCount);
                             }
-                            console.log(uniqueSpeciesCount[0]);*/
-                            var uniqueSpeciesCount = [];
-                            var uniqueSpecies = [];
-                            if(layout.uniqueSpeciesCount) {
-                                uniqueSpeciesCount = layout.uniqueSpeciesCount;
-                                uniqueSpecies = layout.uniqueSpecies;
-                            }
-                            /////////////////////
-                            /////////////////////
-                            // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
-                            var postings = [];
-                            // RUN THROUGH ALL POSTINGS
-                            for(i=0;i<speciesPostingsArray.length;i++){
-                                for(j=0;j<uniqueSpecies.length;j++){
-                                    // RUN THROUGH ALL ACTIVITIES
-                                    if(speciesPostingsArray[i][0] === uniqueSpecies[j].id){
-                                        // CREATE THE POSTING HERE AND PUSH
-                                        var posting = {
-                                            name:  uniqueSpecies[j].nameCommon + " " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype + ": " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
-                                            postType: "material",
-                                            amount: 1,
-                                            value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
-                                            year: 1
-                                        };
-                                        // SET POSTTYPE DEPENDING ON POSTINGS TYPE
-                                        if(uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "bed" || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "method"){
-                                            posting.postType = "labor";
-                                        }
-                                        for(k=0;k<uniqueSpeciesCount.length;k++){
-                                            if(uniqueSpecies[j].nameCommon === uniqueSpeciesCount[k].id){
-                                                posting.amount = uniqueSpeciesCount[k].uniqueCount;
-                                            }
-                                        }
-                                        postings.push(posting);
-                                    }
-                                }
-                            }
-                            console.log(postings);
-                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
-
-                            // CREATE POSTINGS
-                            Posting.insertMany(postings, function(err, createdPostings){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    // ADD POSTINGS TO BUDGET
-                                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
-                                        if(err){
-                                            console.log(err);
-                                        } else {
-                                            console.log("Postings added to budget");
-                                            res.redirect("/projects/" + foundProject._id);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
+                            console.log(uniqueSpeciesCount[0]); */
+                let uniqueSpeciesCount = [];
+                let uniqueSpecies = [];
+                if (layout.uniqueSpeciesCount) {
+                  uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                  uniqueSpecies = layout.uniqueSpecies;
                 }
+                /// //////////////////
+                /// //////////////////
+                // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
+                const postings = [];
+                // RUN THROUGH ALL POSTINGS
+                for (i = 0; i < speciesPostingsArray.length; i++) {
+                  for (j = 0; j < uniqueSpecies.length; j++) {
+                  // RUN THROUGH ALL ACTIVITIES
+                    if (speciesPostingsArray[i][0] === uniqueSpecies[j].id) {
+                    // CREATE THE POSTING HERE AND PUSH
+                      const posting = {
+                        name: `${uniqueSpecies[j].nameCommon} ${uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype}: ${uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name}`,
+                        postType: 'material',
+                        amount: 1,
+                        value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
+                        year: 1,
+                      };
+                      // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                      if (uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === 'bed' || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === 'method') {
+                        posting.postType = 'labor';
+                      }
+                      for (k = 0; k < uniqueSpeciesCount.length; k++) {
+                        if (uniqueSpecies[j].nameCommon === uniqueSpeciesCount[k].id) {
+                          posting.amount = uniqueSpeciesCount[k].uniqueCount;
+                        }
+                      }
+                      postings.push(posting);
+                    }
+                  }
+                }
+                console.log(postings);
+                // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
+
+                // CREATE POSTINGS
+                Posting.insertMany(postings, (err, createdPostings) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                  // ADD POSTINGS TO BUDGET
+                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, (err, updatedBudget) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        console.log('Postings added to budget');
+                        res.redirect(`/projects/${foundProject._id}`);
+                      }
+                    });
+                  }
+                });
+              }
             });
-        }
+          }
+        });
+      }
     });
 });
 
-
 // GENERATE NEW PROJECT CASH-FLOW BUDGET
-router.get("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
-    // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species'}}}).exec(function(err, foundProject){
-        if(err){
-            console.log(err);
+router.get('/projects/:id/generatemanagement', middleware.isLoggedIn, (req, res) => {
+  // FIND PROJECT
+  Project.findById(req.params.id).populate({ path: 'rows', populate: { path: 'sequence', populate: { path: 'model.species' } } }).populate({ path: 'areas', populate: { path: 'rotation', populate: { path: 'model.speciesmix.species' } } }).exec((err, foundProject) => {
+    if (err) {
+      console.log(err);
+    } else {
+      // FIND SYSTEM
+      System.findById(foundProject.system).populate('model.species').exec((err, foundSystem) => {
+        if (err) {
+          console.log(err);
         } else {
-            // FIND SYSTEM
-            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    // FIND ALL SPECIES IN SYSTEM OR ROWS
-                    var allSpecies = [];
-                    if(foundProject.rows && foundProject.rows.length > 0){
-                        for(i=0;i<foundProject.rows.length;i++){
-                            if(foundProject.rows[i].sequence){
-                                for(j=0;j<foundProject.rows[i].sequence.model.length;j++){
-                                    allSpecies.push(foundProject.rows[i].sequence.model[j].species);
-                                }
-                            }
-                        }
-                        if(foundProject.areas && foundProject.areas.length > 0){
-                            for(i=0;i<foundProject.areas.length;i++){
-                                if(foundProject.areas[i].rotation){
-                                    for(j=0;j<foundProject.areas[i].rotation.model.length;j++){
-                                        for(k=0;k<foundProject.areas[i].rotation.model[j].speciesmix.length;k++){
-                                            allSpecies.push(foundProject.areas[i].rotation.model[j].speciesmix[k].species);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        foundSystem.model.forEach(function(species){
-                            allSpecies.push(species.species);
-                        });
-                    }
-                    console.log("All species length: " + allSpecies.length);
-                    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                    var uniqueSpecies = unique(allSpecies);
-                    // SEND ARRAY OF SUBTYPES
-                    var subtypes = ["compost", "pruning", "weedcontrol", "harvest"];
-                    res.render("budgets/managementnew", {project: foundProject, species: uniqueSpecies, subtypes: subtypes});
+          // FIND ALL SPECIES IN SYSTEM OR ROWS
+          const allSpecies = [];
+          if (foundProject.rows && foundProject.rows.length > 0) {
+            for (i = 0; i < foundProject.rows.length; i++) {
+              if (foundProject.rows[i].sequence) {
+                for (j = 0; j < foundProject.rows[i].sequence.model.length; j++) {
+                  allSpecies.push(foundProject.rows[i].sequence.model[j].species);
                 }
+              }
+            }
+            if (foundProject.areas && foundProject.areas.length > 0) {
+              for (i = 0; i < foundProject.areas.length; i++) {
+                if (foundProject.areas[i].rotation) {
+                  for (j = 0; j < foundProject.areas[i].rotation.model.length; j++) {
+                    for (k = 0; k < foundProject.areas[i].rotation.model[j].speciesmix.length; k++) {
+                      allSpecies.push(foundProject.areas[i].rotation.model[j].speciesmix[k].species);
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            foundSystem.model.forEach((species) => {
+              allSpecies.push(species.species);
             });
+          }
+          console.log(`All species length: ${allSpecies.length}`);
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          const uniqueSpecies = unique(allSpecies);
+          // SEND ARRAY OF SUBTYPES
+          const subtypes = ['compost', 'pruning', 'weedcontrol', 'harvest'];
+          res.render('budgets/managementnew', { project: foundProject, species: uniqueSpecies, subtypes });
         }
-    });
+      });
+    }
+  });
 });
 
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
-router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(req, res){
-    // FIND PROJECT
-    Project.findById(req.params.id).populate("layer").populate({path:'system', populate:{path:'model.species', populate:{path:'flows'}}}).populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species', populate:{path:'flows'}}}}).populate({path:'areas', populate:{path:'rotation', populate:{path:'model.speciesmix.species', populate:{path:'flows'}}}}).exec(function(err, foundProject){
-        if(err){
+router.post('/projects/:id/generatemanagement', middleware.isLoggedIn, (req, res) => {
+  // FIND PROJECT
+  Project.findById(req.params.id).populate('layer').populate({ path: 'system', populate: { path: 'model.species', populate: { path: 'flows' } } }).populate({ path: 'rows', populate: { path: 'sequence', populate: { path: 'model.species', populate: { path: 'flows' } } } })
+    .populate({ path: 'areas', populate: { path: 'rotation', populate: { path: 'model.speciesmix.species', populate: { path: 'flows' } } } })
+    .exec((err, foundProject) => {
+      if (err) {
+        console.log(err);
+      } else {
+      // CREATE BUDGET AND PLACE IN PROJECT
+        const { budget } = req.body;
+        Budget.create(budget, (err, createdBudget) => {
+          if (err) {
             console.log(err);
-        } else {
-            // CREATE BUDGET AND PLACE IN PROJECT
-            var budget = req.body.budget;
-            Budget.create(budget, function(err, createdBudget){
-                if(err){
-                    console.log(err);
-                } else {
-                    foundProject.budgets.management = createdBudget;
-                    foundProject.save();
-                    // PARSE QUERY
-                    var speciesPostings = req.body.speciespostings;
-                    var speciesPostingsArray = [];
-                    for(i=0;i<speciesPostings.length;i++){
-                        // REMOVE NONE ONES
-                        if(!(speciesPostings[i] === "none")){
-                            var splitPostings = speciesPostings[i].split(" ");
-                            speciesPostingsArray.push(splitPostings);
-                        }
-                    }
-                    console.log(speciesPostingsArray);
-                    // FIND SYSTEM
-                    System.findById(foundProject.system).populate({path:'model.species',populate:{path:'flows'}}).exec(function(err, foundSystem){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // UNIQUE SPECIES
-                            /*var allSpecies = [];
+          } else {
+            foundProject.budgets.management = createdBudget;
+            foundProject.save();
+            // PARSE QUERY
+            const speciesPostings = req.body.speciespostings;
+            const speciesPostingsArray = [];
+            for (i = 0; i < speciesPostings.length; i++) {
+            // REMOVE NONE ONES
+              if (!(speciesPostings[i] === 'none')) {
+                const splitPostings = speciesPostings[i].split(' ');
+                speciesPostingsArray.push(splitPostings);
+              }
+            }
+            console.log(speciesPostingsArray);
+            // FIND SYSTEM
+            System.findById(foundProject.system).populate({ path: 'model.species', populate: { path: 'flows' } }).exec((err, foundSystem) => {
+              if (err) {
+                console.log(err);
+              } else {
+              // UNIQUE SPECIES
+              /* var allSpecies = [];
                             foundSystem.model.forEach(function(species){
                                 allSpecies.push(species.species);
                             });
@@ -1025,181 +1029,181 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                                 };
                                 uniqueSpeciesCount.push(speciesCount);
                             }
-                            console.log(uniqueSpeciesCount[0]);*/
-                            var layout = {};
-                            // IF ROWS, DO XXX
-                            if(foundProject.rows && foundProject.rows.length > 0){
-                                // DO ROW LAYOUT
-                                layout = gisObj.rowBasedLayout(foundProject);
-                            } else {
-                                // DO PARAMETRIC LAYOUT
-                                layout = gisObj.systemBasedLayout(foundProject);
-                            }
-                            var uniqueSpeciesCount = [];
-                            var uniqueSpecies = [];
-                            if(layout.uniqueSpeciesCount) {
-                                uniqueSpeciesCount = layout.uniqueSpeciesCount;
-                                uniqueSpecies = layout.uniqueSpecies;
-                            }
-                            /////////////////////
-                            /////////////////////
-                            // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
-                            var postings = [];
-                            var period = req.body.period;
-                            // FIND UNIQUE AREA SPECIES
-                            var uniqueAreaSpecies = [];
-                            // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
-                            var areaArray = layout.alleyPolygonArray;
-                            var areaSpeciesRotation = layout.alleySpeciesArray;
-                            var speciesPeriodAreaArray = [];
-                            for(i=0;i<period;i++){
-                                var countArray = [];
-                                for(j=0;areaArray.length > j;j++){
-                                    for(k = 0; k < areaSpeciesRotation[j].length; k++){
-                                        console.log("rotation length: " + areaSpeciesRotation[j].length);
-                                        console.log("rotation check" + ((i+1) % (k+1)));
-                                        // CHECK IF YEAR IS IN ROTATION
-                                        if((i+areaSpeciesRotation[j].length) % (areaSpeciesRotation[j].length) === k){
-                                            uniqueAreaSpecies.push(areaSpeciesRotation[j][k]);
-                                            var count = 0;
-                                            for(l=0;l<countArray.length;l++){
-                                                if(areaSpeciesRotation[j][k] === countArray[l].id){
-                                                    countArray[l].count = countArray[l].count + area(areaArray[j]);
-                                                    count = count + 1;
-                                                }
-                                            }
-                                            if(count < 1){
-                                                speciesArea = {
-                                                    id: areaSpeciesRotation[j][k],
-                                                    count: area(areaArray[j])
-                                                };
-                                                countArray.push(speciesArea);
-                                            }
-                                        }
-                                    }
-                                }
-                                speciesPeriodAreaArray.push(countArray);
-                            }
-                            console.log("Species area count " + speciesPeriodAreaArray[1][0].count);
-                            console.log("Species area species " + speciesPeriodAreaArray[1][0].id);
-                            console.log("Species area first year length " + speciesPeriodAreaArray[1].length);
-                            // UNIQUE AREA SPECIES
-                            var uniqueAreaSpeciesSorted = unique(uniqueAreaSpecies);
-                            console.log("Unique area species " + uniqueAreaSpeciesSorted.length);
-                            // RUN THROUGH ALL POSTINGS
-                            for(i=0;i<speciesPostingsArray.length;i++){
-                                for(j=0;j<uniqueSpecies.length;j++){
-                                    // RUN THROUGH ALL ACTIVITIES
-                                    if(speciesPostingsArray[i][0] === uniqueSpecies[j].id){
-                                        // ITERATE FOR EACH YEAR
-                                        for(k=0;k<period;k++){
-                                            // CREATE THE POSTING HERE AND PUSH
-                                            var posting = {
-                                                name:  uniqueSpecies[j].nameCommon + " " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype + ": " + uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
-                                                postType: "material",
-                                                amount: 1,
-                                                value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
-                                                year: k + 1
-                                            };
-                                            // SET POSTTYPE DEPENDING ON POSTINGS TYPE
-                                            if(uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "pruning" || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === "harvest"){
-                                                posting.postType = "labor";
-                                            }
-                                            for(l=0;l<uniqueSpeciesCount.length;l++){
-                                                if(uniqueSpecies[j].nameCommon === uniqueSpeciesCount[l].id){
-                                                    posting.amount = uniqueSpeciesCount[l].uniqueCount;
-                                                }
-                                            }
-                                            // CHECK ROTATION HERE FOR SPECIES AREA SIZES -
-                                            // JUST CHECK EACH AREA
-                                            // ADD TO COUNTER
-                                            // THEN SET AMOUNT TO COUNTER
+                            console.log(uniqueSpeciesCount[0]); */
+                let layout = {};
+                // IF ROWS, DO XXX
+                if (foundProject.rows && foundProject.rows.length > 0) {
+                // DO ROW LAYOUT
+                  layout = gisObj.rowBasedLayout(foundProject);
+                } else {
+                // DO PARAMETRIC LAYOUT
+                  layout = gisObj.systemBasedLayout(foundProject);
+                }
+                let uniqueSpeciesCount = [];
+                let uniqueSpecies = [];
+                if (layout.uniqueSpeciesCount) {
+                  uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                  uniqueSpecies = layout.uniqueSpecies;
+                }
+                /// //////////////////
+                /// //////////////////
+                // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
+                const postings = [];
+                const { period } = req.body;
+                // FIND UNIQUE AREA SPECIES
+                const uniqueAreaSpecies = [];
+                // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
+                const areaArray = layout.alleyPolygonArray;
+                const areaSpeciesRotation = layout.alleySpeciesArray;
+                const speciesPeriodAreaArray = [];
+                for (i = 0; i < period; i++) {
+                  const countArray = [];
+                  for (j = 0; areaArray.length > j; j++) {
+                    for (k = 0; k < areaSpeciesRotation[j].length; k++) {
+                      console.log(`rotation length: ${areaSpeciesRotation[j].length}`);
+                      console.log(`rotation check${(i + 1) % (k + 1)}`);
+                      // CHECK IF YEAR IS IN ROTATION
+                      if ((i + areaSpeciesRotation[j].length) % (areaSpeciesRotation[j].length) === k) {
+                        uniqueAreaSpecies.push(areaSpeciesRotation[j][k]);
+                        let count = 0;
+                        for (l = 0; l < countArray.length; l++) {
+                          if (areaSpeciesRotation[j][k] === countArray[l].id) {
+                            countArray[l].count = countArray[l].count + area(areaArray[j]);
+                            count += 1;
+                          }
+                        }
+                        if (count < 1) {
+                          speciesArea = {
+                            id: areaSpeciesRotation[j][k],
+                            count: area(areaArray[j]),
+                          };
+                          countArray.push(speciesArea);
+                        }
+                      }
+                    }
+                  }
+                  speciesPeriodAreaArray.push(countArray);
+                }
+                console.log(`Species area count ${speciesPeriodAreaArray[1][0].count}`);
+                console.log(`Species area species ${speciesPeriodAreaArray[1][0].id}`);
+                console.log(`Species area first year length ${speciesPeriodAreaArray[1].length}`);
+                // UNIQUE AREA SPECIES
+                const uniqueAreaSpeciesSorted = unique(uniqueAreaSpecies);
+                console.log(`Unique area species ${uniqueAreaSpeciesSorted.length}`);
+                // RUN THROUGH ALL POSTINGS
+                for (i = 0; i < speciesPostingsArray.length; i++) {
+                  for (j = 0; j < uniqueSpecies.length; j++) {
+                  // RUN THROUGH ALL ACTIVITIES
+                    if (speciesPostingsArray[i][0] === uniqueSpecies[j].id) {
+                    // ITERATE FOR EACH YEAR
+                      for (k = 0; k < period; k++) {
+                      // CREATE THE POSTING HERE AND PUSH
+                        var posting = {
+                          name: `${uniqueSpecies[j].nameCommon} ${uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype}: ${uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name}`,
+                          postType: 'material',
+                          amount: 1,
+                          value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
+                          year: k + 1,
+                        };
+                        // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                        if (uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === 'pruning' || uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype === 'harvest') {
+                          posting.postType = 'labor';
+                        }
+                        for (l = 0; l < uniqueSpeciesCount.length; l++) {
+                          if (uniqueSpecies[j].nameCommon === uniqueSpeciesCount[l].id) {
+                            posting.amount = uniqueSpeciesCount[l].uniqueCount;
+                          }
+                        }
+                        // CHECK ROTATION HERE FOR SPECIES AREA SIZES -
+                        // JUST CHECK EACH AREA
+                        // ADD TO COUNTER
+                        // THEN SET AMOUNT TO COUNTER
 
-                                            postings.push(posting);
-                                        }
-                                    }
-                                }
-                            }
-                            console.log(postings.length + " postings excluding yields");
-                            // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?! CHECK FOR EACH YEAR?!
+                        postings.push(posting);
+                      }
+                    }
+                  }
+                }
+                console.log(`${postings.length} postings excluding yields`);
+                // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?! CHECK FOR EACH YEAR?!
 
-                            // CREATE POSTINGS FOR YIELDS ;)
-                            for(i=0;i<uniqueSpecies.length;i++){
-                                // CYCLE THROUGH ALL YEARS
-                                for(j=0;j<period;j++) {
-                                    // CREATE YIELD POSTING
-                                    var posting = {
-                                        name: uniqueSpecies[i].nameCommon + " yields",
-                                        postType: "product",
-                                        amount: 0,
-                                        value: 1,
-                                        year: j + 1
-                                    };
-                                    if(uniqueSpecies[i].flows && uniqueSpecies[i].flows.length > 0 && uniqueSpecies[i].flows[0].unit === "food" && (uniqueSpecies[i].flows[0].data.length >= (j+1))){
-                                        for(k=0;k<uniqueSpeciesCount.length;k++){
-                                            if(uniqueSpecies[i].nameCommon === uniqueSpeciesCount[k].id){
-                                                posting.amount = uniqueSpeciesCount[k].uniqueCount * uniqueSpecies[i].flows[0].data[j];
-                                            }
-                                        }
-                                        /*for(k=0;k<speciesPeriodAreaArray[j].length;k++){
+                // CREATE POSTINGS FOR YIELDS ;)
+                for (i = 0; i < uniqueSpecies.length; i++) {
+                // CYCLE THROUGH ALL YEARS
+                  for (j = 0; j < period; j++) {
+                  // CREATE YIELD POSTING
+                    var posting = {
+                      name: `${uniqueSpecies[i].nameCommon} yields`,
+                      postType: 'product',
+                      amount: 0,
+                      value: 1,
+                      year: j + 1,
+                    };
+                    if (uniqueSpecies[i].flows && uniqueSpecies[i].flows.length > 0 && uniqueSpecies[i].flows[0].unit === 'food' && (uniqueSpecies[i].flows[0].data.length >= (j + 1))) {
+                      for (k = 0; k < uniqueSpeciesCount.length; k++) {
+                        if (uniqueSpecies[i].nameCommon === uniqueSpeciesCount[k].id) {
+                          posting.amount = uniqueSpeciesCount[k].uniqueCount * uniqueSpecies[i].flows[0].data[j];
+                        }
+                      }
+                    /* for(k=0;k<speciesPeriodAreaArray[j].length;k++){
                                             if(uniqueSpecies[i].nameCommon === speciesPeriodAreaArray[j][k].id){
                                                 posting.amount = speciesPeriodAreaArray[j][k].count * uniqueSpecies[i].flows[0].data[j];
                                             }
-                                        }*/
-                                    }
-                                    // DO IF AREA SIZE HERE TO CHECK WITH ROTATION. OK TO HAVE IT HERE SINCE IT OVERWRITE ABOVE FLOWS?
+                                        } */
+                    }
+                    // DO IF AREA SIZE HERE TO CHECK WITH ROTATION. OK TO HAVE IT HERE SINCE IT OVERWRITE ABOVE FLOWS?
 
-                                    // ADD TO POSTINGS
-                                    postings.push(posting);
-                                }
-                            }
-                            // AREA YIELDS
-                            for(i=0;i<uniqueAreaSpeciesSorted.length;i++){
-                                // CYCLE THROUGH ALL YEARS
-                                for(j=0;j<period;j++) {
-                                    // CREATE YIELD POSTING
-                                    var posting = {
-                                        name: uniqueAreaSpeciesSorted[i].nameCommon + " yields",
-                                        postType: "product",
-                                        amount: 0,
-                                        value: 1,
-                                        year: j + 1
-                                    };
-                                    if(uniqueAreaSpeciesSorted[i].flows && uniqueAreaSpeciesSorted[i].flows.length > 0 && uniqueAreaSpeciesSorted[i].flows[0].unit === "food"){
-                                        for(k=0;k<speciesPeriodAreaArray[j].length;k++){
-                                            if(uniqueAreaSpeciesSorted[i].nameCommon === speciesPeriodAreaArray[j][k].id.nameCommon){
-                                                posting.amount = Math.round(speciesPeriodAreaArray[j][k].count * uniqueAreaSpeciesSorted[i].flows[0].data[0]);
-                                            }
-                                        }
-                                    }
-                                    // ADD TO POSTINGS
-                                    postings.push(posting);
-                                }
-                            }
-                            console.log(postings.length + " postings including yields");
-                            // POSTINGS FOR AREAS SIZES?
-
-                            // CREATE POSTINGS
-                            Posting.insertMany(postings, function(err, createdPostings){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    // ADD POSTINGS TO BUDGET
-                                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
-                                        if(err){
-                                            console.log(err);
-                                        } else {
-                                            console.log("Postings added to budget");
-                                            res.redirect("/projects/" + foundProject._id);
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
+                    // ADD TO POSTINGS
+                    postings.push(posting);
+                  }
                 }
+                // AREA YIELDS
+                for (i = 0; i < uniqueAreaSpeciesSorted.length; i++) {
+                // CYCLE THROUGH ALL YEARS
+                  for (j = 0; j < period; j++) {
+                  // CREATE YIELD POSTING
+                    var posting = {
+                      name: `${uniqueAreaSpeciesSorted[i].nameCommon} yields`,
+                      postType: 'product',
+                      amount: 0,
+                      value: 1,
+                      year: j + 1,
+                    };
+                    if (uniqueAreaSpeciesSorted[i].flows && uniqueAreaSpeciesSorted[i].flows.length > 0 && uniqueAreaSpeciesSorted[i].flows[0].unit === 'food') {
+                      for (k = 0; k < speciesPeriodAreaArray[j].length; k++) {
+                        if (uniqueAreaSpeciesSorted[i].nameCommon === speciesPeriodAreaArray[j][k].id.nameCommon) {
+                          posting.amount = Math.round(speciesPeriodAreaArray[j][k].count * uniqueAreaSpeciesSorted[i].flows[0].data[0]);
+                        }
+                      }
+                    }
+                    // ADD TO POSTINGS
+                    postings.push(posting);
+                  }
+                }
+                console.log(`${postings.length} postings including yields`);
+                // POSTINGS FOR AREAS SIZES?
+
+                // CREATE POSTINGS
+                Posting.insertMany(postings, (err, createdPostings) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                  // ADD POSTINGS TO BUDGET
+                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, (err, updatedBudget) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        console.log('Postings added to budget');
+                        res.redirect(`/projects/${foundProject._id}`);
+                      }
+                    });
+                  }
+                });
+              }
             });
-        }
+          }
+        });
+      }
     });
 });
 
@@ -1301,7 +1305,7 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
 //
 
 // MOVED TO POSTINGS ROUTE
-/*// BUDGET POSTING NEW
+/* // BUDGET POSTING NEW
 router.get("/budgets/:id/postings/new", middleware.isLoggedIn, function(req, res){
     Budget.findById(req.params.id, function(err, foundBudget){
         if(err){
@@ -1321,6 +1325,6 @@ router.put("/budgets/:id/postings", middleware.isLoggedIn, function(req, res){
             res.redirect("/budgets/" + updatedBudget._id);
         }
     });
-});*/
+}); */
 
 module.exports = router;
