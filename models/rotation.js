@@ -1,37 +1,37 @@
-var mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // ROTATION SCHEMA SETUP
-var rotationSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    model: [
+const rotationSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  model: [
+    {
+      speciesmix: [
         {
-            speciesmix: [
-                {
-                    species: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "Species"
-                    },
-                    amount: Number
-                }
-            ],
-            planting: {
-                year: Number,
-                month: Number
-            },
-            harvest: {
-                year: Number,
-                month: Number
-            }
-        }
-    ],
-    owner: {
-        id: {
+          species: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+            ref: 'Species',
+          },
+          amount: Number,
         },
-        username: String
-    }
+      ],
+      planting: {
+        year: Number,
+        month: Number,
+      },
+      harvest: {
+        year: Number,
+        month: Number,
+      },
+    },
+  ],
+  owner: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    username: String,
+  },
 });
 
-module.exports = mongoose.model("Rotation", rotationSchema);
+module.exports = mongoose.model('Rotation', rotationSchema);

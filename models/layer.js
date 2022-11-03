@@ -1,114 +1,114 @@
-var mongoose = require("mongoose");
-var GeoJSON = require("mongoose-geojson-schema");
+const mongoose = require('mongoose');
+const GeoJSON = require('mongoose-geojson-schema');
 
 // LAYER SCHEMA SETUP
-var layerSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    type: String,
-    owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
+const layerSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  type: String,
+  owner: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
-    climate: {
-        monthlyaveragetemp: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
-        },
-        annualaverageprec: Number,
-        monthlyaverageprec: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
-        }
+    username: String,
+  },
+  climate: {
+    monthlyaveragetemp: {
+      january: Number,
+      february: Number,
+      march: Number,
+      april: Number,
+      may: Number,
+      june: Number,
+      july: Number,
+      august: Number,
+      september: Number,
+      october: Number,
+      november: Number,
+      december: Number,
     },
-    geometry: String,
-    lat: Number,
-    lng: Number,
-    size: Number,
-    systems: {
-        past: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "System"
-            }
-        ],
-        present: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "System"
-        },
-        future: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "System"
-            }
-        ]
+    annualaverageprec: Number,
+    monthlyaverageprec: {
+      january: Number,
+      february: Number,
+      march: Number,
+      april: Number,
+      may: Number,
+      june: Number,
+      july: Number,
+      august: Number,
+      september: Number,
+      october: Number,
+      november: Number,
+      december: Number,
     },
-    projects: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Project"
-        }
-    ],
-    assets: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Asset"
-        }
-    ],
-    alignment: String,
-    layout: String,
-    headland: Number,
-    rows: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Row"
-        }
-    ],
-    areas: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Area"
-        }
-    ],
-    soiltests: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Soiltest"
-        }
-    ],
-    saptests: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Saptest"
-        }
-    ],
-    accounts: {
+  },
+  geometry: String,
+  lat: Number,
+  lng: Number,
+  size: Number,
+  systems: {
+    past: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Budget"
-    }
+        ref: 'System',
+      },
+    ],
+    present: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'System',
+    },
+    future: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'System',
+      },
+    ],
+  },
+  projects: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+    },
+  ],
+  assets: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Asset',
+    },
+  ],
+  alignment: String,
+  layout: String,
+  headland: Number,
+  rows: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Row',
+    },
+  ],
+  areas: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Area',
+    },
+  ],
+  soiltests: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Soiltest',
+    },
+  ],
+  saptests: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Saptest',
+    },
+  ],
+  accounts: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Budget',
+  },
 });
 
-module.exports = mongoose.model("Layer", layerSchema);
+module.exports = mongoose.model('Layer', layerSchema);

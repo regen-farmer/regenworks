@@ -1,27 +1,27 @@
-var mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // ASSET SCHEMA SETUP
-var assetSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    typeAsset: String,
-    amount: Number,
-    species: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Species"
+const assetSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  typeAsset: String,
+  amount: Number,
+  species: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Species',
+  },
+  value: Number,
+  creation: Number,
+  determination: Number,
+  lat: Number,
+  lng: Number,
+  owner: {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
-    value: Number,
-    creation: Number,
-    determination: Number,
-    lat: Number,
-    lng: Number,
-    owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
-    }
+    username: String,
+  },
 });
 
-module.exports = mongoose.model("Asset", assetSchema);
+module.exports = mongoose.model('Asset', assetSchema);

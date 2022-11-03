@@ -1,14 +1,14 @@
-var mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // POSTING SCHEMA SETUP
-var postingSchema = new mongoose.Schema({
-    name: String,
-    postType: String,
-    amount: Number,
-    value: Number,
-    year: Number,
-    month: Number,
-    date: Number
+const postingSchema = new mongoose.Schema({
+  name: String,
+  postType: String,
+  amount: Number,
+  value: Number,
+  year: Number,
+  month: Number,
+  date: Number,
 });
 
-module.exports = mongoose.model("Posting", postingSchema);
+module.exports = mongoose.model('Posting', postingSchema);
