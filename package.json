@@ -41,7 +41,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "copy:assets": "cpx 'src/views/**' 'dist/views' && cpx 'src/public/**' 'dist/public'",
-    "start": "node dist/app.js"
+    "start": "npm run build && npm run copy:assets && node dist/app.js"
   },
   "author": "grownlocal",
   "license": "ISC",
