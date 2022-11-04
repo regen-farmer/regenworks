@@ -1,0 +1,90 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            <h2>Create establishment budget for project "<%= project.name %>"</h2>
+            <form action="/projects/<%= project.id %>/generateestablishment" method="POST">
+                <h2>Budget specifications</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <label for="budget[currency]">Currency</label>
+                        <div class="form-group">
+                            <select name="budget[currency]" id="budget[currency]">
+                                <option value="usd">USD</option>
+                                <option value="eur">EUR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <h2>Area specific activities</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <label for="areapostings">Site prep</label>
+                                <div class="form-group">
+                                    <select name="areapostings" id="areapostings">
+                                        <option value="none">None</option>
+                                        <option value="disc">Open ground - tillage and disking</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <label for="areapostings">Subsoil prep</label>
+                                <div class="form-group">
+                                    <select name="areapostings" id="areapostings">
+                                        <option value="none">None</option>
+                                        <option value="ripping">Deep ripping</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2>Species specific activities</h2>
+                <% species.forEach(function(species){ %>
+                    <div class="card">
+                        <div class="card-body">
+                            <p><strong><%= species.nameCommon %></strong></p>
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <label for="speciespostings">Planting material type</label>
+                                    <div class="form-group">
+                                        <select name="speciespostings" id="speciespostings">
+                                            <option value="none">none</option>
+                                            <% for(let i=0;i<species.activities.length;i++){ %>
+                                                <% if(species.activities[i].subtype === "plant"){ %>
+                                                    <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
+                                                <% }; %>
+                                            <% }; %>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label for="speciespostings">Planting method type</label>
+                                    <div class="form-group">
+                                        <select name="speciespostings" id="speciespostings">
+                                            <option value="none">none</option>
+                                            <% for(let i=0;i<species.activities.length;i++){ %>
+                                            <% if(species.activities[i].subtype === "method"){ %>
+                                            <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
+                                            <% }; %>
+                                            <% }; %>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Create establishment budget</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+
+<% include ../partials/footer %>

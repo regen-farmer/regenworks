@@ -1,0 +1,68 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+    <div class="col-lg-2"></div>
+    <div class="col-lg-8">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>Your nursery</h1>
+
+            </div>
+            <div class="col-lg-4">
+                <h2>Info</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>Nursery name: </strong><%= nursery.name %></p>
+                        <p><em><%= nursery.description %></em></p>
+                        <p><strong>Currency: </strong><%= nursery.currency %></p>
+                        <p><strong>Location: </strong><%= nursery.location %></p>
+                        <% if(currentUser && nursery.owner.id.equals(currentUser._id)){ %>
+                        <a class="btn btn-outline-warning" href="/nurseries/<%= nursery._id %>/edit">Edit nursery details</a>
+                        <!--        <form class="delete-form" action="/parcels/<%= nursery._id %>?_method=DELETE" method="POST">
+            <button class="btn btn-outline-danger">Delete farm</button>
+        </form>-->
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <h2>Products</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <a href="/nurseries/<%= nursery._id %>/nurseryproducts/new" class="btn btn-outline-success mb-2">
+                            Add product
+                        </a>
+                        <table class="table small">
+                            <tr class="table-secondary">
+                                <td>Product name</td>
+                                <td>Variety</td>
+                                <td>Stock</td>
+                                <td>Price</td>
+                                <td></td>
+                            </tr>
+                            <% for(let i=0;i<nursery.products.length;i++){ %>
+                            <tr>
+                                <td><%= nursery.products[i].name %></td>
+                                <td><%= nursery.products[i].variety %></td>
+                                <td><%= nursery.products[i].stock %></td>
+                                <td><%= nursery.products[i].price %></td>
+                                <td>
+                                    <a href="/nurseries/<%= nursery._id %>/nurseryproducts/<%= nursery.products[i]._id %>" class="btn btn-sm btn-outline-secondary">View</a>
+                                    <a href="/nurseries/<%= nursery._id %>/nurseryproducts/<%= nursery.products[i]._id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                </td>
+                            </tr>
+                            <% } %>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-2"></div>
+</div>
+
+<% include ../partials/footer %>
