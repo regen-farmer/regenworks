@@ -1,22 +1,22 @@
-const mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
 // BUDGET SCHEMA SETUP
-const budgetSchema = new mongoose.Schema({
-  postings: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Posting',
+var budgetSchema = new mongoose.Schema({
+    postings: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Posting"
+        }
+    ],
+    owner: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        username: String
     },
-  ],
-  owner: {
-    id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    username: String,
-  },
-  currency: String,
-  name: String,
+    currency: String,
+    name: String
 });
 
-module.exports = mongoose.model('Budget', budgetSchema);
+module.exports = mongoose.model("Budget", budgetSchema);
