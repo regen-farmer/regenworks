@@ -1,133 +1,134 @@
-const express = require('express');
-
-const router = express.Router();
-const NodeGeocoder = require('node-geocoder');
-const Nursery = require('../models/nursery');
-const NurseryProduct = require('../models/nurseryproduct');
-const User = require('../models/user');
-const middleware = require('../middleware');
+var express = require("express");
+var router = express.Router();
+var Nursery = require("../models/nursery");
+var NurseryProduct = require("../models/nurseryproduct");
+var User = require("../models/user");
+var middleware = require("../middleware");
 
 // NODE GEOCODER CODE
+var NodeGeocoder = require("node-geocoder");
 
-const options = {
-  provier: 'google',
-  httpAdapter: 'https',
-  apiKey: process.env.GEOCODER_API_KEY,
-  formatter: null,
+var options = {
+    provier: "google",
+    httpAdapter: "https",
+    apiKey: process.env.GEOCODER_API_KEY,
+    formatter: null
 };
 
-const geocoder = NodeGeocoder(options);
+var geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get('/nurseries', middleware.isLoggedIn, (req, res) => {
-  // FIND NURSERY BASED ON USER
-  Nursery.find({ 'owner.id': req.user._id }, (err, foundNurseries) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(foundNurseries.length);
-      res.render('nurseries/index', { nurseries: foundNurseries });
-    }
-  });
+router.get("/nurseries", middleware.isLoggedIn, function(req, res){
+    // FIND NURSERY BASED ON USER
+    Nursery.find({'owner.id': req.user._id}, function(err, foundNurseries){
+        if(err){
+            console.log(err);
+        } else {
+            console.log(foundNurseries.length);
+            res.render("nurseries/index", {nurseries: foundNurseries});
+        }
+    });
 });
 
 // NURSERY NEW
-router.get('/nurseries/new', middleware.isLoggedIn, (req, res) => { // ADMIN LOGIN REQUIRED
-  res.render('nurseries/new');
+router.get("/nurseries/new", middleware.isLoggedIn, function(req, res){ // ADMIN LOGIN REQUIRED
+    res.render("nurseries/new");
 });
 
 // ANIMAL CREATE
-router.post('/nurseries', middleware.isLoggedIn, (req, res) => {
-  // SET INITIAL VARIABLE
-  const newNursery = req.body.nursery;
-  // GEOLOCATION
-  geocoder.geocode(req.body.nursery.location, (err, data) => {
-    if (err || !data.length) {
-      console.log(err);
-      console.log(data);
-      return res.redirect('back');
-    }
-    // SET NEW LATS
-    newNursery.lat = data[0].latitude;
-    newNursery.lng = data[0].longitude;
-    newNursery.location = data[0].formattedAddress;
-    Nursery.create(newNursery, (err, createdNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // SET OWNERSHIP
-        createdNursery.owner.id = req.user._id;
-        createdNursery.owner.username = req.user.username;
-        createdNursery.save();
-        // ADD TO USER
-        User.findById(req.user._id, (err, foundUser) => {
-          if (err) {
+router.post("/nurseries", middleware.isLoggedIn, function(req, res){
+    // SET INITIAL VARIABLE
+    var newNursery = req.body.nursery;
+    // GEOLOCATION
+    geocoder.geocode(req.body.nursery.location, function(err, data) {
+        if (err || !data.length) {
             console.log(err);
-          } else {
-            // Add the parcel to the users parcels for referencing
-            foundUser.nurseries.push(createdNursery);
-            foundUser.save();
-            // REDIRECT
-            console.log(`Nursery created: ${createdNursery}`);
-            res.redirect(`/nurseries/${createdNursery._id}`);
-          }
+            console.log(data);
+            return res.redirect("back");
+        }
+        // SET NEW LATS
+        newNursery.lat = data[0].latitude;
+        newNursery.lng = data[0].longitude;
+        newNursery.location = data[0].formattedAddress;
+        Nursery.create(newNursery, function (err, createdNursery) {
+            if (err) {
+                console.log(err);
+            } else {
+                // SET OWNERSHIP
+                createdNursery.owner.id = req.user._id;
+                createdNursery.owner.username = req.user.username;
+                createdNursery.save();
+                // ADD TO USER
+                User.findById(req.user._id, function(err, foundUser){
+                    if(err) {
+                        console.log(err);
+                    } else {
+                        // Add the parcel to the users parcels for referencing
+                        foundUser.nurseries.push(createdNursery);
+                        foundUser.save();
+                        // REDIRECT
+                        console.log("Nursery created: " + createdNursery);
+                        res.redirect("/nurseries/" + createdNursery._id);
+                    }
+                });
+            }
         });
-      }
     });
-  });
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', middleware.isLoggedIn, (req, res) => { // DO OWNERSHIP MODEL
-  // FIND NURSERY
-  Nursery.findById(req.params.id).populate('products').exec((err, foundNursery) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // RENDER SHOW PAGE
-      res.render('nurseries/show', { nursery: foundNursery });
-    }
-  });
+router.get("/nurseries/:id", middleware.isLoggedIn, function(req, res){ // DO OWNERSHIP MODEL
+    // FIND NURSERY
+    Nursery.findById(req.params.id).populate("products").exec(function(err, foundNursery){
+        if(err){
+            console.log(err);
+        } else {
+            // RENDER SHOW PAGE
+            res.render("nurseries/show", {nursery: foundNursery});
+        }
+    });
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', middleware.isLoggedIn, (req, res) => {
-  // FIND NURSERY
-  Nursery.findById(req.params.id, (err, foundNursery) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('nurseries/edit', { nursery: foundNursery });
-    }
-  });
+router.get("/nurseries/:id/edit", middleware.isLoggedIn, function(req, res){
+    // FIND NURSERY
+    Nursery.findById(req.params.id, function(err, foundNursery){
+        if(err){
+            console.log(err);
+        } else {
+            res.render("nurseries/edit", {nursery: foundNursery});
+        }
+    });
 });
 
+
 // NURSERY UPDATE
-router.put('/nurseries/:id', middleware.isLoggedIn, (req, res) => {
-  // SETUP NEW GEO
-  // SET INITIAL VARIABLE
-  const newNursery = req.body.nursery;
-  // GEOLOCATION
-  geocoder.geocode(req.body.nursery.location, (err, data) => {
-    if (err || !data.length) {
-      console.log(err);
-      console.log(data);
-      return res.redirect('back');
-    }
-    // SET NEW LATS
-    newNursery.lat = data[0].latitude;
-    newNursery.lng = data[0].longitude;
-    newNursery.location = data[0].formattedAddress;
-    Nursery.findByIdAndUpdate(req.params.id, newNursery, (err, updateNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // REDIRECT
-        console.log(`Nursery update: ${updateNursery}`);
-        res.redirect(`/nurseries/${updateNursery._id}`);
-      }
+router.put("/nurseries/:id", middleware.isLoggedIn, function(req, res){
+    // SETUP NEW GEO
+    // SET INITIAL VARIABLE
+    var newNursery = req.body.nursery;
+    // GEOLOCATION
+    geocoder.geocode(req.body.nursery.location, function(err, data) {
+        if (err || !data.length) {
+            console.log(err);
+            console.log(data);
+            return res.redirect("back");
+        }
+        // SET NEW LATS
+        newNursery.lat = data[0].latitude;
+        newNursery.lng = data[0].longitude;
+        newNursery.location = data[0].formattedAddress;
+        Nursery.findByIdAndUpdate(req.params.id, newNursery, function (err, updateNursery) {
+            if (err) {
+                console.log(err);
+            } else {
+                // REDIRECT
+                console.log("Nursery update: " + updateNursery);
+                res.redirect("/nurseries/" + updateNursery._id);
+            }
+        });
     });
-  });
 });
+
 
 module.exports = router;
