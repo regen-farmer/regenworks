@@ -119,14 +119,14 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             var system = req.body.system;
-            var model = [];
+            var model:any[] = [];
             // DO COUNT FOR ROW WIDTH
             var xPosition = 0;
             // ADD SPECIES TO MODEL
             for(i=0;i<system.model.length;i++){
                 // FIX IF ONLY ONE ITEM IN ROW
                 if(system.model[i].species.id instanceof Array){
-                    for(j=0;j<system.model[i].species.id.length;j++){
+                    for(let j=0;j<system.model[i].species.id.length;j++){
                         // IF SPECIES ID IS NULL
                         if(!(system.model[i].species.id[j] === "")){
                             var species = {
@@ -267,18 +267,18 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                 if(err){
                     console.log(err);
                 } else {
-                    for(i=0;i<foundSystems.length;i++){
+                    for(let i=0;i<foundSystems.length;i++){
                         // FIND ALL SPECIES IN SYSTEM
-                        var allSpecies = [];
-                        var allUtilities = [];
-                        var dataset = [];
-                        var nutritional = [];
+                        var allSpecies:any[] = [];
+                        var allUtilities:any[] = [];
+                        var dataset:any[] = [];
+                        var nutritional:any[] = [];
                         foundSystems[i].model.forEach(function(species){
                             // PUSH SPECIES TO ARRAY
                             allSpecies.push(species.species.nameCommon);
                             // FIND SPECIES UTILITIES
                             if(species.species.utilities.length > 0){
-                                for(j=0;j<species.species.utilities.length;j++){
+                                for(let j=0;j<species.species.utilities.length;j++){
                                     allUtilities.push(species.species.utilities[j]);
                                 }
                             }
@@ -286,7 +286,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                             nutritional.push(species.species.nutrients);
                             // ADD SPECIES TO ROWS
                             var count = 0;
-                            for(j=0;j<dataset.length;j++){
+                            for(let j=0;j<dataset.length;j++){
                                 if(dataset[j].row === species.position[0]){
                                     dataset[j].array.push(species);
                                     count = count + 1;
@@ -322,7 +322,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                             return 0;
                         }
                         var grid = 0;
-                        for(j=0;j<dataset.length;j++){
+                        for(let j=0;j<dataset.length;j++){
                             dataset[j].array.sort(compare1);
                             grid = grid + dataset[j].array[0].width;
                         }
@@ -349,12 +349,12 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             // FIND ALL SPECIES IN SYSTEM
-            var allSpecies = [];
-            var dataset = [];
+            var allSpecies:any[] = [];
+            var dataset:any[] = [];
             foundSystem.model.forEach(function(species){
                 allSpecies.push(species.species);
                 var count = 0;
-                for(i=0;i<dataset.length;i++){
+                for(let i=0;i<dataset.length;i++){
                     if(dataset[i].row === species.position[0]){
                         dataset[i].array.push(species);
                         count = count + 1;
@@ -378,7 +378,7 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
             }
             var systemwidth = 0;
             var systemlength = 0;
-            for(i=0;i<dataset.length;i++){
+            for(let i=0;i<dataset.length;i++){
                 dataset[i].array.sort(compare1);
                 console.log(dataset[i].array[0]);
                 systemwidth = systemwidth + dataset[i].array[0].width;
@@ -436,14 +436,14 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
                             }
                             foundAnimals.sort(compare1);
                             // FIND ROWS IN SYSTEM
-                            var allSpecies = [];
-                            var dataset = [];
-                            var distanceArray = [];
+                            var allSpecies:any[] = [];
+                            var dataset:any[] = [];
+                            var distanceArray:any[] = [];
                             foundSystem.model.forEach(function(species){
                                 allSpecies.push(species.species);
                                 distanceArray.push(species.position[1]);
                                 var count = 0;
-                                for(i=0;i<dataset.length;i++){
+                                for(let i=0;i<dataset.length;i++){
                                     if(dataset[i].row === species.position[0]){
                                         dataset[i].array.push(species);
                                         count = count + 1;
@@ -465,15 +465,15 @@ router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
                                 }
                                 return 0;
                             }
-                            for(i=0;i<dataset.length;i++){
+                            for(let i=0;i<dataset.length;i++){
                                 dataset[i].array.sort(compare2);
                                 console.log(dataset[i].array[0]);
                             }
                             var rows = dataset;
                             // CALCULATE DISTANCE
-                            var distanceDifference = [];
-                            for(i=0;i<distanceArray.length;i++){
-                                for(j=0;j<distanceArray.length;j++){
+                            var distanceDifference:any[] = [];
+                            for(let i=0;i<distanceArray.length;i++){
+                                for(let j=0;j<distanceArray.length;j++){
                                     if(distanceArray[i] !== distanceArray[j]){
                                         distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
                                     }
@@ -577,14 +577,14 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
             console.log(err);
         } else {
             // FIND ALL SPECIES IN SYSTEM
-            var allSpecies = [];
-            var dataset = [];
-            var distanceArray = [];
+            var allSpecies:any[] = [];
+            var dataset:any[] = [];
+            var distanceArray:any[] = [];
             foundSystem.model.forEach(function(species){
                 allSpecies.push(species.species.id);
                 distanceArray.push(species.position[1]);
                 var count = 0;
-                for(i=0;i<dataset.length;i++){
+                for(let i=0;i<dataset.length;i++){
                     if(dataset[i].row === species.position[0]){
                         dataset[i].array.push(species);
                         count = count + 1;
@@ -614,15 +614,15 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
                         return 0;
                     }
                     // SORT ROWS
-                    for(i=0;i<dataset.length;i++){
+                    for(let i=0;i<dataset.length;i++){
                         dataset[i].array.sort(compare2);
                         console.log(dataset[i].array[0]);
                     }
                     var rows = dataset;
                     // CALCULATE DISTANCE
-                    var distanceDifference = [];
-                    for(i=0;i<distanceArray.length;i++){
-                        for(j=0;j<distanceArray.length;j++){
+                    var distanceDifference:any[] = [];
+                    for(let i=0;i<distanceArray.length;i++){
+                        for(let j=0;j<distanceArray.length;j++){
                             if(distanceArray[i] !== distanceArray[j]){
                                 distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
                             }
@@ -676,17 +676,17 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
             system.shared = true;
         }
         // NEW GRID MODEL SETUP
-        var model = [];
+        var model:any[] = [];
         // DO COUNT FOR ROW WIDTH
         var xPosition = 0;
         // ADD SPECIES TO MODEL
         for(i=0;i<system.model.length;i++){
             // FIX IF ONLY ONE ITEM IN ROW
             if(system.model[i].species.id instanceof Array){
-                for(j=0;j<system.model[i].species.id.length;j++){
+                for(let j=0;j<system.model[i].species.id.length;j++){
                     // IF SPECIES ID IS NULL
                     if(!(system.model[i].species.id[j] === "")){
-                        species = {
+                        let species = {
                             species: system.model[i].species.id[j],
                             position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y[j])],
                             width: Number(system.model[i].width)
@@ -696,7 +696,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
                 }
             } else {
                 // FIX IF ONLY ONE ITEM IN ROW
-                species = {
+                let species = {
                     species: system.model[i].species.id,
                     position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
                     width: Number(system.model[i].width)
@@ -1010,7 +1010,7 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
             console.log(err);
         } else {
             // FIND ALL SPECIES IN SYSTEM
-            var allSpecies = [];
+            var allSpecies:any[] = [];
             foundSystem.model.forEach(function(species){
                 allSpecies.push(species.species);
             });
@@ -1076,24 +1076,24 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                     if(foundSystem.animals.length > 0){
                                         animals = foundSystem.animals[0];
                                     }
-                                    var systems = [];
-                                    for(i=0;i<foundSystems.length;i++){
+                                    var systems:any[] = [];
+                                    for(let i=0;i<foundSystems.length;i++){
                                         if(foundSystems[i].shared === true && foundSystems[i].model.length > 0){
                                             // FIND ALL SPECIES IN SYSTEM
-                                            var allSpecies = [];
-                                            var allUtilities = [];
+                                            var allSpecies:any[] = [];
+                                            var allUtilities:any[] = [];
                                             var grid = 0;
-                                            var dataset = [];
+                                            var dataset:any[] = [];
                                             foundSystems[i].model.forEach(function(species){
                                                 allSpecies.push(species.species.nameCommon);
                                                 if(species.species.utilities.length > 0){
-                                                    for(j=0;j<species.species.utilities.length;j++){
+                                                    for(let j=0;j<species.species.utilities.length;j++){
                                                         allUtilities.push(species.species.utilities[j]);
                                                     }
                                                 }
                                                 // CREATE ADD SPECIES ROWS
                                                 var count = 0;
-                                                for(j=0;j<dataset.length;j++){
+                                                for(let j=0;j<dataset.length;j++){
                                                     if(dataset[j].row === species.position[0]){
                                                         dataset[j].array.push(species);
                                                         count = count + 1;
@@ -1119,7 +1119,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                                 return 0;
                                             }
                                             // SORT ROW
-                                            for(j=0;j<dataset.length;j++){
+                                            for(let j=0;j<dataset.length;j++){
                                                 dataset[j].array.sort(compare1);
                                                 grid = grid + dataset[j].array[0].width;
                                             }
@@ -1130,19 +1130,19 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                         }
                                     }
                                     // COMMODITY SYSTEMS
-                                    var commoditysystems = [];
-                                    for(i=0;i<systems.length;i++){
-                                        for(j=0;j<systems[i].model.length;j++){
+                                    var commoditysystems:any[] = [];
+                                    for(let i=0;i<systems.length;i++){
+                                        for(let j=0;j<systems[i].model.length;j++){
                                             if(commodityName === systems[i].model[j].species.nameCommon && !(commoditysystems.includes(systems[i]))) {
                                                 commoditysystems.push(systems[i]);
                                             }
                                         }
                                     }
                                     console.log("Commodity systems: " + commoditysystems.length);
-                                    var systemsclimate = [];
-                                    for(i=0;i<systems.length;i++){
+                                    var systemsclimate:any[] = [];
+                                    for(let i=0;i<systems.length;i++){
                                         var count = 0;
-                                        for(j=0;j<systems[i].model.length;j++){
+                                        for(let j=0;j<systems[i].model.length;j++){
                                             if(systems[i].model[j].species.precipitation.min < foundParcel.climate.annualaverageprec && systems[i].model[j].species.precipitation.max > foundParcel.climate.annualaverageprec && systems[i].model[j].species.temperature.min < foundParcel.climate.hardiness.high && systems[i].model[j].species.temperature.max > foundParcel.climate.hardiness.low){
                                                 count = count + 1;
                                             }
@@ -1151,8 +1151,8 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                             systemsclimate.push(systems[i]);
                                         }
                                     }
-                                    var animalsystems = [];
-                                    for(i=0;i<systemsclimate.length;i++){
+                                    var animalsystems:any[] = [];
+                                    for(let i=0;i<systemsclimate.length;i++){
                                         if(systemsclimate[i].animals.length > 0 && !(animals === "")){
                                             animalsystems.push(systemsclimate[i]);
                                             /*if(systemsclimate[i].animals[0].equals(animals)) {
@@ -1160,8 +1160,8 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
                                         }
                                     }
                                     console.log("Animal systems: " + animalsystems.length);
-                                    var systemsproven = [];
-                                    for(i=0;i<systemsclimate.length;i++){
+                                    var systemsproven:any[] = [];
+                                    for(let i=0;i<systemsclimate.length;i++){
                                         if(systemsclimate[i].flows.length > 0){
                                             systemsproven.push(systemsclimate[i]);
                                         }
@@ -1193,8 +1193,8 @@ router.get("/layers/:id/mysystems", middleware.isLoggedIn, function(req, res){
                     console.log(err);
                 } else {
                     // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
+                    var realSystems:any[] = [];
+                    for(let i=0;i<foundSystems.length;i++){
                         var systemNameSplit = foundSystems[i].name.split(" ");
                         if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
                             realSystems.push(foundSystems[i]);
