@@ -17,7 +17,7 @@
                 <p>Site prep: </p>
                 <h2>Species specific activities</h2>
                 <% species.forEach(function(species){ %>
-                    <% for(i=0;i<species.activities.length;i++){ %>
+                    <% for(let i=0;i<species.activities.length;i++){ %>
                         <p><%= species.activities[i].name %></p>
                     <% }; %>
                 <% }); %>

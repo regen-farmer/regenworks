@@ -11,7 +11,7 @@ var middleware = require("../middleware");
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
-const unique = require("array-unique");
+var unique = require("array-unique");
 
 var options = {
     provier: "google",
@@ -256,9 +256,9 @@ router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(r
             console.log(err);
         } else {
             //
-            var activityArray = [];
-            for(i=0;i<foundProject.budgets.establishment.postings.length;i++){
-                var activity = {
+            var activityArray: any[] = [];
+            for(let i=0;i<foundProject.budgets.establishment.postings.length;i++){
+                var activity:any = {
                     status: false,
                     automated: true
                 };
@@ -362,7 +362,7 @@ router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLog
             // FIND ALL SPECIES
             if(foundRow.sequence){
                 console.log("species there");
-                var allSpecies = [];
+                var allSpecies:any[] = [];
                 foundRow.sequence.model.forEach(function(species){
                     allSpecies.push(species.species);
                 });
@@ -419,7 +419,7 @@ router.get("/parcels/:id/layers/:pid/areas/:rid/activities/new", middleware.isLo
             // FIND ALL SPECIES
             if(foundArea.rotation){
                 console.log("species there");
-                var allSpecies = [];
+                var allSpecies:any[] = [];
                 foundArea.rotation.model.forEach(function(speciesmix){
                     allSpecies.push(speciesmix.speciesmix[0].species);
                 });

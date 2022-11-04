@@ -6,9 +6,19 @@ var Layer = require("../models/layer");
 var Row = require("../models/row");
 var Area = require("../models/area");
 var middleware = require("../middleware");
-const Species = require("../models/species");
-const unique = require("array-unique");
+var Species = require("../models/species");
+var unique = require("array-unique");
+var turfLength = require("@turf/length");
 
+function compare1( a, b ) {
+    if ( a.position[1] < b.position[1] ){
+        return -1;
+    }
+    if ( a.position[1] > b.position[1] ){
+        return 1;
+    }
+    return 0;
+}
 // PARCEL FARMFLOWS
 router.get("/parcels/:id/farmflows", middleware.isLoggedIn, function(req, res){
     // FIND PARCEL
@@ -33,7 +43,7 @@ router.get("/parcels/:id/layers/:pid/rows/:rid/farmflows/new", middleware.isLogg
             // FIND ALL SPECIES
             if(foundRow.sequence){
                 console.log("species there");
-                var allSpecies = [];
+                var allSpecies:any[] = [];
                 foundRow.sequence.model.forEach(function(species){
                     allSpecies.push(species.species);
                 });
@@ -87,7 +97,7 @@ router.get("/parcels/:id/layers/:pid/areas/:rid/farmflows/new", middleware.isLog
             // FIND ALL SPECIES
             if(foundArea.rotation){
                 console.log("species there");
-                var allSpecies = [];
+                var allSpecies:any[] = [];
                 foundArea.rotation.model.forEach(function(speciesmix){
                     allSpecies.push(speciesmix.speciesmix[0].species);
                 });
@@ -140,8 +150,8 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
             // CREATE ROW ASSETS AND SORT ACCORDING TO YIELDS
             var max = 0;
             var min = 100000;
-            for(i=0;i<foundLayer.rows.length;i++){
-                for(j=0;j<foundLayer.rows[i].farmflows.length;j++){
+            for(let i=0;i<foundLayer.rows.length;i++){
+                for(let j=0;j<foundLayer.rows[i].farmflows.length;j++){
                     if(foundLayer.rows[i].farmflows[j].amount > max){
                         max = foundLayer.rows[i].farmflows[j].amount;
                     }
@@ -150,12 +160,12 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
                     }
                 }
             }
-            var rowArrayLow = [];
-            var rowArrayMed = [];
-            var rowArrayHigh = [];
+            var rowArrayLow:any[] = [];
+            var rowArrayMed:any[] = [];
+            var rowArrayHigh:any[] = [];
             // CREATE MARKERS
-            var treeAssetsArray = [];
-            for(i=0;i<foundLayer.rows.length;i++){
+            var treeAssetsArray:any[] = [];
+            for(let i=0;i<foundLayer.rows.length;i++){
                 // SET ROW DATA
                 if(foundLayer.rows[i].sequence) {
                     var datasetRows = foundLayer.rows[i].sequence.model;
@@ -175,7 +185,7 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
                     datasetRows.sort(compare1);
                     // ROW LENGTH
                     var rowLine = JSON.parse(foundLayer.rows[i].geometry);
-                    var rowLength = length(rowLine, {units: "meters"});
+                    var rowLength = turfLength(rowLine, {units: "meters"});
                     console.log("Row length " + rowLength);
                     // SYSTEM MODEL LENGTH
                     var systemModelLength = foundLayer.rows[i].sequence.sequencelength;
@@ -200,8 +210,8 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
                     treeAssetsArray.push(firstAsset);
                     // ROW MARKERS
                     // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                    for (j = 0; j < systemModelCount; j++) {
-                        for (k = 0; k < datasetRows.length; k++) {
+                    for (let j = 0; j < systemModelCount; j++) {
+                        for (let k = 0; k < datasetRows.length; k++) {
                             // CREATE COORDINATES FOR THE TREE
                             var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
                             // CREATE ASSET OBJECT
@@ -224,7 +234,7 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
                         }
                     }
                     // ADD REST
-                    for (j = 0; j < datasetRows.length; j++) {
+                    for (let j = 0; j < datasetRows.length; j++) {
                         if (datasetRows[j].position < systemModelRowRest) {
                             /*
                                                                     treeArray.push(treeRows[treeRowCount].array[j].species);

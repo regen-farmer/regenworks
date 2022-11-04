@@ -62,19 +62,19 @@ router.get("/parcels/:id/soiltests/viz", middleware.isLoggedIn, function(req, re
             console.log(err);
         } else {
             var geometry = turf.polygon([[[0,0],[0,1],[1,0],[0,0]]]);
-            var geometryArray1 = [];
-            var geometryArray2 = [];
-            var geometryArray3 = [];
-            var geometryArray4 = [];
-            var geometryArray5 = [];
-            var placesArray = [];
+            var geometryArray1: any[] = [];
+            var geometryArray2: any[] = [];
+            var geometryArray3: any[] = [];
+            var geometryArray4: any[] = [];
+            var geometryArray5: any[] = [];
+            var placesArray: any[] = [];
             geometryArray1.push(geometry);
             geometryArray2.push(geometry);
             geometryArray3.push(geometry);
             geometryArray4.push(geometry);
             geometryArray5.push(geometry);
             if(foundParcel.layers.length > 0){
-                for(i=0;foundParcel.layers.length > i;i++){
+                for(let i=0;foundParcel.layers.length > i;i++){
                     // GET GEOMETRY
                     var polygon = JSON.parse(foundParcel.layers[i].geometry);
                     // PUSH TO ARRAY

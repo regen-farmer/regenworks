@@ -32,7 +32,7 @@
                 <h3>System model</h3>
                 <p>The species positions are absolute. Please note that the first plants in the rows are located at the bottom. If only one species is selected in one row, this species will automatically be extended to the whole row.</p>
                 <div class="row">
-                    <% for(j=0;j<rows;j++){ %>
+                    <% for(let j=0;j<rows;j++){ %>
                         <div class="col-lg-<%= Math.floor(12/rows) %>">
                             <h5>Row <%= j + 1 %></h5>
                             <div class="form-group">
@@ -43,7 +43,7 @@
                                 <label for="system[model][<%= j %>][distance]">Distance to next row</label>
                                 <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" placeholder="Distance in m" required>
                             </div>
-                            <% for(i=0;i<(length/distance);i++){ %>
+                            <% for(let i=0;i<(length/distance);i++){ %>
                             <div class="card">
                                 <div class="card-body">
                                     <select name="system[model][<%= j %>][species][id]" style="width:100%;max-width:100%;">

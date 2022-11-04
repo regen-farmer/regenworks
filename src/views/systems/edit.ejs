@@ -51,7 +51,7 @@
                                 <label for="system[model][<%= newrow %>][distance]">Distance to next row</label>
                                 <input type="number" step=".01" class="form-control" name="system[model][<%= newrow %>][distance]" value="<%= 1 %>" required>
                             </div>
-                            <% for(i=0;i<(length/distance);i++){ %>
+                            <% for(let i=0;i<(length/distance);i++){ %>
                                 <div class="card">
                                     <div class="card-body">
                                         <select name="system[model][<%= newrow %>][species][id]" style="width:100%;max-width:100%;">
@@ -67,7 +67,7 @@
                             <% } %>
                         </div>
                     <% } %>
-                    <% for(j=0;j<rows.length;j++){ %>
+                    <% for(let j=0;j<rows.length;j++){ %>
                         <% var rowafter = 0; %>
                         <% if(j + 1 <= newrow || newrow === -1){ %>
                             <% rowafter = 0; %>
@@ -89,14 +89,14 @@
                                 <label for="system[model][<%= j + rowafter %>][distance]">Distance to next row</label>
                                 <input type="number" step=".01" class="form-control" name="system[model][<%= j + rowafter %>][distance]" value="<%= xPosition + rowafter %>" required>
                             </div>
-                            <% for(i=0;i<(length/distance);i++){ %>
+                            <% for(let i=0;i<(length/distance);i++){ %>
                                 <div class="card">
                                     <div class="card-body">
                                         <select name="system[model][<%= j + rowafter %>][species][id]" style="width:100%;max-width:100%;">
                                             <option value="">none</option>
                                             <% species.forEach(function(species){ %>
                                                 <% var count = 0; %>
-                                                <% for(k=0;k<rows[j].array.length;k++){ %>
+                                                <% for(let k=0;k<rows[j].array.length;k++){ %>
                                                     <% if(rows[j].array[k].position[1] === length - i*distance && rows[j].array[k].species.nameCommon === species.nameCommon){ %>
                                                         <option value="<%= species._id %>" selected="selected"><%= species.nameCommon %></option>
                                                         <% count = 1; %>
@@ -130,7 +130,7 @@
                                     <label for="system[model][<%= newrow %>][distance]">Distance to next row</label>
                                     <input type="number" step=".01" class="form-control" name="system[model][<%= newrow %>][distance]" value="<%= 1 %>" required>
                                 </div>
-                                <% for(i=0;i<(length/distance);i++){ %>
+                                <% for(let i=0;i<(length/distance);i++){ %>
                                     <div class="card">
                                         <div class="card-body">
                                             <select name="system[model][<%= newrow %>][species][id]" style="width:100%;max-width:100%;">

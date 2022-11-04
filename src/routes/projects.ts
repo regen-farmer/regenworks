@@ -23,7 +23,7 @@ var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
 var lineOffset = require("@turf/line-offset");
 var lineIntersect = require("@turf/line-intersect");
-var length = require("@turf/length");
+var turfLength = require("@turf/length");
 var buffer = require("@turf/buffer");
 var rhumbBearing = require("@turf/rhumb-bearing");
 var transformScale = require("@turf/transform-scale");
@@ -126,7 +126,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                             if(foundProject.budgets.establishment || foundProject.budgets.management){
                                 var totalEstablishment = 0;
                                 if(establishementPostings.length > 0){
-                                    for(i=0;i<establishementPostings.length;i++){
+                                    for(let i=0;i<establishementPostings.length;i++){
                                         /*if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
                                             YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
                                         } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
@@ -141,7 +141,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
 
                                 }
                                 if(managementPostings.length > 0){
-                                    for(i=0;i<managementPostings.length;i++){
+                                    for(let i=0;i<managementPostings.length;i++){
                                         /*if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
                                             YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
                                         } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
@@ -154,7 +154,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                                         }
                                     }
                                 }
-                                /*for(i=0;i<foundProject.financial.period;i++){
+                                /*for(let i=0;i<foundProject.financial.period;i++){
                                     irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
                                 }
                                 irr = irr - totalEstablishment;*/
@@ -162,9 +162,9 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                             console.log(irr);
                             console.log("Years: " + years);
                             // SET UP
-                            var YoY = [];
-                            var labels = [];
-                            for(i=1;i<years+1;i++){
+                            var YoY: any[] = [];
+                            var labels: any[] = [];
+                            for(let i=1;i<years+1;i++){
                                 var label = i;
                                 labels.push(label);
                                 YoY.push(0);
@@ -173,7 +173,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                             if(foundProject.budgets.establishment || foundProject.budgets.management){
                                 var totalEstablishment = 0;
                                 if(establishementPostings.length > 0){
-                                    for(i=0;i<establishementPostings.length;i++){
+                                    for(let i=0;i<establishementPostings.length;i++){
                                         if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
                                             YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
                                         } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
@@ -183,7 +183,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
 
                                 }
                                 if(managementPostings.length > 0){
-                                    for(i=0;i<managementPostings.length;i++){
+                                    for(let i=0;i<managementPostings.length;i++){
                                         if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
                                             YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
                                         } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
@@ -191,7 +191,7 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                                         }
                                     }
                                 }
-                                /*for(i=0;i<foundProject.financial.period;i++){
+                                /*for(let i=0;i<foundProject.financial.period;i++){
                                     irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
                                 }
                                 irr = irr - totalEstablishment;*/
@@ -205,9 +205,9 @@ router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
                             var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
 */
                             // CALCULATE DATASET
-                            var sumArray = [];
+                            var sumArray: any[] = [];
                             var sum = 0;
-                            for(i=0;i<years;i++){
+                            for(let i=0;i<years;i++){
                                 sum = sum + YoY[i];
                                 sumArray.push(sum);
                             }
@@ -258,7 +258,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log(err);
                     } else {
                         // SET VARIABLES HERE
-                        var layout = {};
+                        var layout: any = {};
                         // IF ROWS, DO XXX
                         if(foundProject.rows && foundProject.rows.length > 0){
                             // DO ROW LAYOUT
@@ -280,7 +280,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var rotatedCalibrateLine = transformRotate(lineCalibrate, 90);
                         var splitCalibrateLine = lineSplit(rotatedCalibrateLine, lineCalibrate);
                         var distanceCalibrateLine = lineSplit(splitCalibrateLine.features[1], lineOffsetCalibrate);
-                        var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
+                        var calibrateDistance = 10/(turfLength(distanceCalibrateLine.features[0], {units: "meters"}));
                         console.log("Distance check " + calibrateDistance);
                         // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
                         var headland = foundProject.headland;
@@ -289,7 +289,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             // CALCULATE WIDTH - REFACTOR INTO MIDDLEWARE. USED TWICE IN THIS ROUTE
                             foundEdgeSystem.model.forEach(function(species){
                                 var count = 0;
-                                for(i=0;i<edgeRowDataset.length;i++){
+                                for(let i=0;i<edgeRowDataset.length;i++){
                                     if(edgeRowDataset[i].row === species.position[0]){
                                         edgeRowDataset[i].array.push(species);
                                         count = count + 1;
@@ -301,7 +301,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             });
                             // ADD ALL ROWS TO WIDTH
                             var edgeRowWidth = 0;
-                            for(i=0;i<edgeRowDataset.length;i++){
+                            for(let i=0;i<edgeRowDataset.length;i++){
                                 edgeRowWidth = edgeRowWidth + edgeRowDataset[i].array[0].width;
                             }
                             // ADD EDGE SYSTEM WIDTH TO HEADLAND
@@ -310,8 +310,8 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log("headland plus perimeter system: " + headland);
                         var offsetPolygon = buffer(polygon, - headland*calibrateDistance, {units: "meters"});
                         // CREATE PERIMETER ROWS CENTER
-                        var edgeRowWidthArray = [];
-                        for(i=0;i<edgeRowDataset.length;i++){
+                        var edgeRowWidthArray: any[] = [];
+                        for(let i=0;i<edgeRowDataset.length;i++){
                             var edgeRowArrayWidth = 0;
                             if(i === 0){
                                 edgeRowArrayWidth = edgeRowDataset[i].array[0].width/2;
@@ -321,30 +321,30 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             edgeRowWidthArray.push(edgeRowArrayWidth);
                         }
                         // CREATE EDGE ROW LINES
-                        var edgeRowArray = [];
+                        var edgeRowArray: any[] = [];
                         var edgeRowDistance = 0;
-                        for(i=0;i<edgeRowWidthArray.length;i++){
+                        for(let i=0;i<edgeRowWidthArray.length;i++){
                             edgeRowDistance = edgeRowDistance + edgeRowWidthArray[i];
                             var offsetEdgeRowPolygon = buffer(polygon, - edgeRowDistance*calibrateDistance, {units: "meters"});
                             var offsetEdgeRow = polygonToLine(offsetEdgeRowPolygon);
                             edgeRowArray.push(offsetEdgeRow);
                         }
                         // CREATE EDGE ROW MARKERS AND TREE COUNTS
-                        var edgeTreeMarkerArray = [];
-                        var edgeTreeArray = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
+                        var edgeTreeMarkerArray: any[] = [];
+                        var edgeTreeArray: any[] = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
                         // CREATE TREES FOR EACH EDGE ROW
-                        for(i=0;i<edgeRowArray.length;i++){
+                        for(let i=0;i<edgeRowArray.length;i++){
                             // COUNT EDGE SYSTEM MODEL ITERATIONS IN ROW
-                            var edgeRowLength = length(edgeRowArray[i], {units: "meters"});
+                            var edgeRowLength = turfLength(edgeRowArray[i], {units: "meters"});
                             // SET LENGTH AS LAST IN ROW SPECIES Y COORDINATE
                             var edgeSystemModelLength = 0;
                             edgeSystemModelLength = edgeRowDataset[0].array[(edgeRowDataset[0].array.length - 1)].position[1];
                             var edgeSystemModelCount = Math.floor(edgeRowLength/edgeSystemModelLength);
                             var edgeSystemModelRowRest = ((edgeRowLength/edgeSystemModelLength) - Math.floor(edgeRowLength/edgeSystemModelLength))*edgeSystemModelLength;
                             // ITERATE FOR EACH MODEL COUNT
-                            for(j=0;j<edgeSystemModelCount;j++){
+                            for(let j=0;j<edgeSystemModelCount;j++){
                                 // CREATE TREE FOR EACH SPECIES IN MODEL
-                                for(k=0;k<edgeRowDataset[i].array.length;k++) {
+                                for(let k=0;k<edgeRowDataset[i].array.length;k++) {
                                     // ADD TREE SPECIES TO COUNT ARRAY
                                     edgeTreeArray.push(edgeRowDataset[i].array[k].species);
                                     // CREATE TREE POINTS FOR MARKERS
@@ -357,10 +357,10 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log("Edge tree markers: " + edgeTreeMarkerArray.length);
                         console.log("Edge trees: " + edgeTreeArray.length);
                         // DO POINT COLLECTION
-                        var edgeTreeCanopyArray = [];
+                        var edgeTreeCanopyArray: any[] = [];
                         // SET MAX LIMIT FOR AMOUNT OF TREES
                         if(edgeTreeMarkerArray.length < 1500){
-                            for(i=0;i<edgeTreeMarkerArray.length;i++){
+                            for(let i=0;i<edgeTreeMarkerArray.length;i++){
                                 var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
                                 edgeTreeCanopyArray.push(circle5);
                             }
@@ -369,14 +369,14 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var edgeTreeCollection = JSON.stringify(edgeTreeMarkers);
                         // COPY ALL EDGE ROW SPECIES
                         var allEdgeSpeciesCopy = [];
-                        for(i=0;edgeTreeArray.length > i;i++){
+                        for(let i=0;edgeTreeArray.length > i;i++){
                             allEdgeSpeciesCopy.push(edgeTreeArray[i]);
                         }
                         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
                         var uniqueEdgeSpecies = unique(allEdgeSpeciesCopy);
                         // UNIQUE ITEM COUNTS
                         var uniqueEdgeSpeciesCount = [];
-                        for(i=0;uniqueEdgeSpecies.length > i;i++){
+                        for(let i=0;uniqueEdgeSpecies.length > i;i++){
                             var edgecount = 0;
                             for(j = 0; j < edgeTreeArray.length; j++){
                                 if(edgeTreeArray[j].nameCommon === uniqueEdgeSpecies[i].nameCommon){
@@ -396,7 +396,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         foundSystem.model.forEach(function(species){
                             allSpecies.push(species.species.nameCommon);
                             var count = 0;
-                            for(i=0;i<dataset.length;i++){
+                            for(let i=0;i<dataset.length;i++){
                                 if(dataset[i].row === species.position[0]){
                                     dataset[i].array.push(species);
                                     count = count + 1;
@@ -416,7 +416,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             }
                             return 0;
                         }
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             dataset[i].array.sort(compare1);
                         }
                         // SAVE DATASET
@@ -424,13 +424,13 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
                         // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
                         var rowWidth = 0;
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             rowWidth = rowWidth + dataset[i].array[0].width;
                         }
-                        var rowWidthArray = [];
+                        var rowWidthArray: any[] = [];
                         var rowWidthArrayCount = 0;
-                        var treeRowWidthArray = [];
-                        for(i=0;i<dataset.length+1;i++){
+                        var treeRowWidthArray: any[] = [];
+                        for(let i=0;i<dataset.length+1;i++){
                             // SET ROW LENGTHS
                             // IF FIRST ROW
                             if(i === 0){
@@ -468,7 +468,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         /*// CREATE LINES FROM GEOMETRY
                         var boundaryLines = [];
                         console.log(polygon.geometry.coordinates[0].length);
-                        for(i=0;i<polygon.geometry.coordinates[0].length;i++){
+                        for(let i=0;i<polygon.geometry.coordinates[0].length;i++){
                             var point1;
                             var point2;
                             if(i === polygon.geometry.coordinates[0].length - 1){
@@ -508,7 +508,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
                             console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
                             var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
-                            console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+                            console.log(turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
                             /!*!// CREATE ANGLED LENGTH LINE
                             var rotatedLine = transformRotate(line, 90);
                             var splitLines = lineSplit(rotatedLine, line);
@@ -516,9 +516,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                             lengthLine = lengthLineSplit.features[1];
                             console.log(splitLines.features[0]);
-                            console.log(Math.floor((length(lengthLine, {units: "meters"}))));*!/
-                            rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
-                            rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                            console.log(Math.floor((turfLength(lengthLine, {units: "meters"}))));*!/
+                            rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
+                            rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                             console.log(rowCount);
                             console.log("rest " + rowRest);
                             // -------- ANGLED ROWS ---------
@@ -529,9 +529,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             // TAKE TOP SIDE OF BOUNDING BOX
                             lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
                             // ESTIMATE AMOUNT OF ROWS
-                            console.log((length(lengthLine, {units: "meters"})));
-                            rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                            rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                            console.log((turfLength(lengthLine, {units: "meters"})));
+                            rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+                            rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                             console.log("rest " + rowRest);
                             console.log(rowCount);
                             // CREATE ROW LINE
@@ -544,9 +544,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             // TAKE TOP SIDE OF BOUNDING BOX
                             lengthLine = turf.lineString([box.geometry.coordinates[0][1],box.geometry.coordinates[0][2]],{name: 'line-0'});
                             // ESTIMATE AMOUNT OF ROWS
-                            console.log((length(lengthLine, {units: "meters"})));
-                            rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                            rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                            console.log((turfLength(lengthLine, {units: "meters"})));
+                            rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+                            rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                             console.log("rest " + rowRest);
                             console.log(rowCount);
                             // CREATE ROW LINE
@@ -554,16 +554,16 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                             // -------- WEST/EAST ROWS ---------
                         }
                         // CREATE ROW ARRAY
-                        var rowArray = [];
+                        var rowArray: any[] = [];
                         var distance = 0;
                         var distanceArray = rowWidthArray;
                         // CREATE ALLEY ARRAY
-                        var bedArray = [];
+                        var bedArray: any[] = [];
                         var bedDistance = 0;
                         // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-                        for(i=0;i<rowCount;i++){
+                        for(let i=0;i<rowCount;i++){
                             // DO IF FIRST COUNT?
-                            for(j=0;j<distanceArray.length;j++){
+                            for(let j=0;j<distanceArray.length;j++){
                                 // DO IF FIRST ROW, DON'T ADD DISTANCE
                                 if(j === distanceArray.length - 1){
                                     distance = distance + distanceArray[j];
@@ -586,7 +586,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                     var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                                     console.log("Row point count: " + rowPoints1.features.length);
                                     // DO IF HERE TO CHECK SEPARATE ROWS
-                                    for(k=0;k<rowPoints1.features.length;k+=2){
+                                    for(let k=0;k<rowPoints1.features.length;k+=2){
                                         if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
                                             var row1 = turf.lineString([[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]],[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]]],{name: "line-0" + i });
                                         } else {
@@ -607,7 +607,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }*/
                         /*// ADD LAST ROWS IF THERE IS SOME MISSING
                         var countWidth = 0;
-                        for(i=0;i<distanceArray.length;i++){
+                        for(let i=0;i<distanceArray.length;i++){
                             countWidth = countWidth + distanceArray[i];
                             if(countWidth < rowRest){
                                 var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
@@ -625,9 +625,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         }
                         console.log("Beds: " + bedArray.length);
                         // SET ROWLENGTH ARRAY
-                        var rowLengthArray = [];
+                        var rowLengthArray: any[] = [];
                         for (i=0;i<rowArray.length;i++){
-                            var rowLength1 = length(rowArray[i], {units: "meters"});
+                            var rowLength1 = turfLength(rowArray[i], {units: "meters"});
                             rowLengthArray.push(rowLength1);
                             /!*
                                                 console.log(rowArray[i].geometry.coordinates);
@@ -640,7 +640,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         /!* var rotatedCheckLine = transformRotate(rowArray[0], 90);
                          var splitCheckLine = lineSplit(rotatedCheckLine, rowArray[0]);
                          var distanceCheckLine = lineSplit(splitCheckLine.features[1], rowArray[1]);
-                         var checkDistance = length(distanceCheckLine.features[0], {units: "meters"});
+                         var checkDistance = turfLength(distanceCheckLine.features[0], {units: "meters"});
                          console.log("Distance check " + checkDistance);*!/
                         // CREATE FEATURECOLLECTION FOR ROWS*/
                         var featurecollection = turf.featureCollection(layout.rowLineArray);
@@ -664,27 +664,27 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                        var stringbox = JSON.stringify(box);*/
                         // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
                         /*var treeRows = [];
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             if(!(dataset[i].array[0].species.form === "grass")){
                                 treeRows.push(dataset[i]);
                             }
                         }
                         // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
                         var systemModelLength = 0;
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
                                 systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
                             }
                         }
                         // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                         var treeRowCount = 0;
-                        var treeCountArray = [];
-                        var treeMarkerArray = [];
-                        var treeArray = [];
+                        var treeCountArray: any[] = [];
+                        var treeMarkerArray: any[] = [];
+                        var treeArray: any[] = [];
                         var treeRowArea = 0;
-                        for(i=0;i<rowArray.length;i++){
+                        for(let i=0;i<rowArray.length;i++){
                             // COUNT SYSTEM MODEL ITERATIONS IN ROW
-                            var rowLength = length(rowArray[i], {units: "meters"});
+                            var rowLength = turfLength(rowArray[i], {units: "meters"});
                             // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
                             /!*var systemModelLength = 0;
                             if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
@@ -704,8 +704,8 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                 treeMarkerArray.push(firstTreeMarker);
                             }
                             // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                            for(j=0;j<systemModelCount;j++){
-                                for(k=0;k<treeRows[treeRowCount].array.length;k++){
+                            for(let j=0;j<systemModelCount;j++){
+                                for(let k=0;k<treeRows[treeRowCount].array.length;k++){
                                     // ADD TREE SPECIES TO COUNT ARRAY
                                     treeArray.push(treeRows[treeRowCount].array[k].species);
                                     // CREATE TREE POINTS FOR MARKERS
@@ -714,7 +714,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                                 }
                             }
                             // ADD REST
-                            for(j=0;j<treeRows[treeRowCount].array.length;j++){
+                            for(let j=0;j<treeRows[treeRowCount].array.length;j++){
                                 if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
                                     treeArray.push(treeRows[treeRowCount].array[j].species);
                                     // ADD POINT MARKER FOR REMAINING TREES
@@ -732,9 +732,9 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         console.log(treeArray.length);
                         console.log(treeMarkerArray.length);
                         // DO POINT COLLECTION
-                        var treeCanopyArray = [];
+                        var treeCanopyArray: any[] = [];
                         if(treeMarkerArray.length < 3000){
-                            for(i=0;i<treeMarkerArray.length;i++){
+                            for(let i=0;i<treeMarkerArray.length;i++){
                                 var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
                                 treeCanopyArray.push(circle1);
                             }
@@ -743,7 +743,7 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         var treeCollection = JSON.stringify(treeMarkers);
                         /*// COPY ALL SPECIES
                         var allSpeciesCopy = [];
-                        for(i=0;allSpecies.length > i;i++){
+                        for(let i=0;allSpecies.length > i;i++){
                             allSpeciesCopy.push(allSpecies[i]);
                         }*/
                         // UNIQUE ITEM COUNTS
@@ -762,12 +762,12 @@ router.get("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
                         if(foundProject.rows && foundProject.rows.length > 0){
                             // DO ROW LENGTH
                             console.log("rows " + foundProject.rows[0]);
-                            for(i=0;i<foundProject.rows.length;i++){
+                            for(let i=0;i<foundProject.rows.length;i++){
                                 var rowGeometry = JSON.parse(foundProject.rows[i].geometry);
-                                foundProject.rows[i].rowlength = length(rowGeometry, {units: 'meters'});
+                                foundProject.rows[i].rowlength = turfLength(rowGeometry, {units: 'meters'});
                             }
                         }
-                        /*for(i=0;i<layout.alleyPolygonArray.length;i++){
+                        /*for(let i=0;i<layout.alleyPolygonArray.length;i++){
                             console.log("area" + i + area(layout.alleyPolygonArray[i]));
                         }*/
                         // TEMP VALUE HERE
@@ -822,7 +822,7 @@ router.get("/projects/:id/viz", middleware.isLoggedIn, function(req, res){
                         console.log(err);
                     } else {
                         // SET VARIABLES HERE
-                        var layout = {};
+                        var layout: any = {};
                         // IF ROWS, DO XXX
                         if(foundProject.rows && foundProject.rows.length > 0){
                             // DO ROW LAYOUT
@@ -934,8 +934,8 @@ router.get("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, r
                     console.log(err);
                 } else {
                     // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems = [];
-                    for(i=0;i<foundSystems.length;i++){
+                    var realSystems: any[] = [];
+                    for(let i=0;i<foundSystems.length;i++){
                         var systemNameSplit = foundSystems[i].name.split(" ");
                         if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
                             realSystems.push(foundSystems[i]);
@@ -980,7 +980,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     console.log(err);
                 } else {
                     // SET VARIABLES HERE
-                    var layout = {};
+                    var layout: any = {};
                     // IF ROWS, DO XXX
                     if(foundProject.rows && foundProject.rows.length > 0){
                         // DO ROW LAYOUT
@@ -1003,7 +1003,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     var rotatedCalibrateLine = transformRotate(lineCalibrate, 90);
                     var splitCalibrateLine = lineSplit(rotatedCalibrateLine, lineCalibrate);
                     var distanceCalibrateLine = lineSplit(splitCalibrateLine.features[1], lineOffsetCalibrate);
-                    var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
+                    var calibrateDistance = 10/(turfLength(distanceCalibrateLine.features[0], {units: "meters"}));
                     console.log("Distance check " + calibrateDistance);
                     // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
                     var headland = foundProject.headland;
@@ -1015,7 +1015,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     foundSystem.model.forEach(function(species){
                         allSpecies.push(species.species.nameCommon);
                         var count = 0;
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             if(dataset[i].row === species.position[0]){
                                 dataset[i].array.push(species);
                                 count = count + 1;
@@ -1035,7 +1035,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         }
                         return 0;
                     }
-                    for(i=0;i<dataset.length;i++){
+                    for(let i=0;i<dataset.length;i++){
                         dataset[i].array.sort(compare1);
                     }
                     // SAVE DATASET
@@ -1043,13 +1043,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
                     // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
                     var rowWidth = 0;
-                    for(i=0;i<dataset.length;i++){
+                    for(let i=0;i<dataset.length;i++){
                         rowWidth = rowWidth + dataset[i].array[0].width;
                     }
-                    var rowWidthArray = [];
+                    var rowWidthArray: any[] = [];
                     var rowWidthArrayCount = 0;
-                    var treeRowWidthArray = [];
-                    for(i=0;i<dataset.length+1;i++){
+                    var treeRowWidthArray: any[] = [];
+                    for(let i=0;i<dataset.length+1;i++){
                         // SET ROW LENGTHS
                         // IF FIRST ROW
                         if(i === 0){
@@ -1105,7 +1105,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
                         console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
                         var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
-                        console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+                        console.log(turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
                         /!*!// CREATE ANGLED LENGTH LINE
                         var rotatedLine = transformRotate(line, 90);
                         var splitLines = lineSplit(rotatedLine, line);
@@ -1113,9 +1113,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
                         lengthLine = lengthLineSplit.features[1];
                         console.log(splitLines.features[0]);
-                        console.log(Math.floor((length(lengthLine, {units: "meters"}))));*!/
-                        rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
-                        rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log(Math.floor((turfLength(lengthLine, {units: "meters"}))));*!/
+                        rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
+                        rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                         console.log(rowCount);
                         console.log("rest " + rowRest);
                         // -------- ANGLED ROWS ---------
@@ -1126,9 +1126,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // TAKE TOP SIDE OF BOUNDING BOX
                         lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
                         // ESTIMATE AMOUNT OF ROWS
-                        console.log((length(lengthLine, {units: "meters"})));
-                        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log((turfLength(lengthLine, {units: "meters"})));
+                        rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+                        rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                         console.log("rest " + rowRest);
                         console.log(rowCount);
                         // CREATE ROW LINE
@@ -1141,9 +1141,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // TAKE TOP SIDE OF BOUNDING BOX
                         lengthLine = turf.lineString([box.geometry.coordinates[0][1],box.geometry.coordinates[0][2]],{name: 'line-0'});
                         // ESTIMATE AMOUNT OF ROWS
-                        console.log((length(lengthLine, {units: "meters"})));
-                        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-                        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+                        console.log((turfLength(lengthLine, {units: "meters"})));
+                        rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+                        rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
                         console.log("rest " + rowRest);
                         console.log(rowCount);
                         // CREATE ROW LINE
@@ -1151,13 +1151,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         // -------- WEST/EAST ROWS ---------
                     }
                     // CREATE ROW ARRAY
-                    var rowArray = [];
+                    var rowArray: any[] = [];
                     var distance = 0;
                     var distanceArray = rowWidthArray;
                     // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-                    for(i=0;i<rowCount;i++){
+                    for(let i=0;i<rowCount;i++){
                         // DO IF FIRST COUNT?
-                        for(j=0;j<distanceArray.length;j++){
+                        for(let j=0;j<distanceArray.length;j++){
                             // DO IF FIRST ROW, DON'T ADD DISTANCE
                             if(j === distanceArray.length - 1){
                                 distance = distance + distanceArray[j];
@@ -1181,7 +1181,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                 var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                                 console.log("Row point count: " + rowPoints1.features.length);
                                 // DO IF HERE TO CHECK SEPARATE ROWS
-                                for(k=0;k<rowPoints1.features.length;k+=2){
+                                for(let k=0;k<rowPoints1.features.length;k+=2){
                                     if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
                                         var row1 = turf.lineString([[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]],[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]]],{name: "line-0" + i });
                                     } else {
@@ -1194,7 +1194,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     }
                     // ADD LAST ROWS IF THERE IS SOME MISSING
                     var countWidth = 0;
-                    for(i=0;i<distanceArray.length;i++){
+                    for(let i=0;i<distanceArray.length;i++){
                         countWidth = countWidth + distanceArray[i];
                         if(countWidth < rowRest){
                             var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
@@ -1211,9 +1211,9 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         }
                     }
                     // SET ROWLENGTH ARRAY
-                    var rowLengthArray = [];
+                    var rowLengthArray: any[] = [];
                     for (i=0;i<rowArray.length;i++){
-                        var rowLength1 = length(rowArray[i], {units: "meters"});
+                        var rowLength1 = turfLength(rowArray[i], {units: "meters"});
                         rowLengthArray.push(rowLength1);
                         /!*
                                             console.log(rowArray[i].geometry.coordinates);
@@ -1226,34 +1226,34 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                     /!* var rotatedCheckLine = transformRotate(rowArray[0], 90);
                      var splitCheckLine = lineSplit(rotatedCheckLine, rowArray[0]);
                      var distanceCheckLine = lineSplit(splitCheckLine.features[1], rowArray[1]);
-                     var checkDistance = length(distanceCheckLine.features[0], {units: "meters"});
+                     var checkDistance = turfLength(distanceCheckLine.features[0], {units: "meters"});
                      console.log("Distance check " + checkDistance);*!/
                     // CREATE FEATURECOLLECTION FOR ROWS
                     var featurecollection = turf.featureCollection(rowArray);
                     var collection = JSON.stringify(featurecollection);
                     // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
                     var treeRows = [];
-                    for(i=0;i<dataset.length;i++){
+                    for(let i=0;i<dataset.length;i++){
                         if(!(dataset[i].array[0].species.form === "grass")){
                             treeRows.push(dataset[i]);
                         }
                     }
                     // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
                     var systemModelLength = 0;
-                    for(i=0;i<dataset.length;i++){
+                    for(let i=0;i<dataset.length;i++){
                         if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
                             systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
                         }
                     }
                     // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                     var treeRowCount = 0;
-                    var treeCountArray = [];
-                    var treeMarkerArray = [];
-                    var treeArray = [];
+                    var treeCountArray: any[] = [];
+                    var treeMarkerArray: any[] = [];
+                    var treeArray: any[] = [];
                     var treeRowArea = 0;
-                    for(i=0;i<rowArray.length;i++){
+                    for(let i=0;i<rowArray.length;i++){
                         // COUNT SYSTEM MODEL ITERATIONS IN ROW
-                        var rowLength = length(rowArray[i], {units: "meters"});
+                        var rowLength = turfLength(rowArray[i], {units: "meters"});
                         // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
                         /!*var systemModelLength = 0;
                         if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
@@ -1276,8 +1276,8 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                         };
                         treeMarkerArray.push(firstAsset);
                         // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                        for(j=0;j<systemModelCount;j++){
-                            for(k=0;k<treeRows[treeRowCount].array.length;k++){
+                        for(let j=0;j<systemModelCount;j++){
+                            for(let k=0;k<treeRows[treeRowCount].array.length;k++){
                                 // CREATE COORDINATES FOR THE TREE
                                 var treeMarker = along(rowArray[i], (j*systemModelLength + treeRows[treeRowCount].array[k].position[1]), {units: "meters"});
                                 // CREATE ASSET OBJECT
@@ -1292,7 +1292,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                             }
                         }
                         // ADD REST
-                        for(j=0;j<treeRows[treeRowCount].array.length;j++){
+                        for(let j=0;j<treeRows[treeRowCount].array.length;j++){
                             if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
                                 treeArray.push(treeRows[treeRowCount].array[j].species);
                                 // ADD POINT MARKER FOR REMAINING TREES
@@ -1344,13 +1344,13 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                         if(err){
                                             console.log(err);
                                         } else {
-                                            for(i=0;i<createdAssets.length;i++){
+                                            for(let i=0;i<createdAssets.length;i++){
                                                 var ref = treeAssetRowRef[i];
                                                 console.log("ref " + ref);
                                                 foundRows[ref].assets.push(createdAssets[i]);
                                             }
                                             // SAVE ROWS INDIVIDUALLY
-                                            for(i=0;i<foundRows.length;i++){
+                                            for(let i=0;i<foundRows.length;i++){
                                                 foundRows[i].save();
                                             }
                                             console.log("Assets added to project");
@@ -1376,8 +1376,8 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
         } else {
             var layout = gisObj.systemBasedLayout(foundProject);
             // CREATE ROWS ON PROJECT
-            var rows = [];
-            for(i=0;i<layout.rowLineArray.length;i++){
+            var rows: any[] = [];
+            for(let i=0;i<layout.rowLineArray.length;i++){
                 var row = {
                     geometry: JSON.stringify(layout.rowLineArray[i]),
                     name: "Row " + i
@@ -1387,8 +1387,8 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
             }
             console.log(rows[0]);
             // CREATE AREAS
-            var areas = [];
-            for(i=0;i<layout.alleyPolygonArray.length;i++){
+            var areas: any[] = [];
+            for(let i=0;i<layout.alleyPolygonArray.length;i++){
                 var alleyGeometry = layout.alleyPolygonArray[i];
                 var alley = {
                     geometry: JSON.stringify(layout.alleyPolygonArray[i]),
@@ -1398,7 +1398,7 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
                 // PUSH TO ARRAY
                 areas.push(alley);
             }
-            for(i=0;i<layout.bedPolygonArray.length;i++){
+            for(let i=0;i<layout.bedPolygonArray.length;i++){
                 var bedGeometry = layout.bedPolygonArray[i];
                 var treeStrip = {
                     geometry: JSON.stringify(layout.bedPolygonArray[i]),
@@ -1469,11 +1469,11 @@ router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         } else {
-            var allTrees = [];
-            var allTreesArray = [];
+            var allTrees: any[] = [];
+            var allTreesArray: any[] = [];
             // GENERATE ASSET CIRCLES
-            var treeCanopyArray = [];
-            for(i=0;foundProject.assets.length > i;i++){
+            var treeCanopyArray: any[] = [];
+            for(let i=0;foundProject.assets.length > i;i++){
                 var point = turf.point([foundProject.assets[i].lat, foundProject.assets[i].lng]);
                 var circle1 = circle(point.geometry.coordinates, 1, {units: "meters"});
                 allTrees.push(foundProject.assets[i].name);
@@ -1485,15 +1485,15 @@ router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
             // UNIQUE TREE SPECIES
             var uniqueSpecies = unique(allTrees);
             // UNIQUE SPECIES COUNTS
-            var uniqueSpeciesCount = [];
-            for(i=0;uniqueSpecies.length > i;i++){
+            var uniqueSpeciesCount: any[] = [];
+            for(let i=0;uniqueSpecies.length > i;i++){
                 var count = 0;
-                for(j = 0; j < allTreesArray.length; j++){
+                for(let j = 0; j < allTreesArray.length; j++){
                     if(allTreesArray[j] === uniqueSpecies[i]){
                         count = count + 1;
                     }
                 }
-                speciesCount = {
+                let speciesCount = {
                     name: uniqueSpecies[i],
                     uniqueCount: count
                 };
@@ -1611,8 +1611,8 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                             foundLayer.save();
                             // Save rows from layer on project - Do it so that they are just blank for now
                             if(req.body.existingrows === "on"){
-                                var newRows = [];
-                                for(i=0;i<foundLayer.rows.length;i++){
+                                var newRows: any[] = [];
+                                for(let i=0;i<foundLayer.rows.length;i++){
                                 var row = {
                                     geometry: foundLayer.rows[i].geometry,
                                     name: foundLayer.rows[i].name
@@ -1650,7 +1650,7 @@ router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, re
             console.log(err);
         } else {
             // FIND ASSETS AND DELETE
-            for(i=0;foundProject.assets.length > i;i++){
+            for(let i=0;foundProject.assets.length > i;i++){
                 foundProject.assets.remove(foundProject.assets[i]);
                 // SAVE PROJECT
                 foundProject.save();
@@ -1694,7 +1694,7 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         res.redirect("back");
     } else {
         // CREATE ROW HERE?
-        var row = {
+        var row: any = {
             geometry: req.body.geometry,
             name: req.body.row.name
         };
@@ -1751,7 +1751,7 @@ router.get("/projects/:id/row/:pid/edit", middleware.isLoggedIn, function(req, r
 // UPDATE ROW
 router.put("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res){
     // CREATE ROW HERE?
-    var row = {
+    var row: any = {
         name: req.body.row.name
     };
     if(!(req.body.sequenceid === "none") && req.body.sequenceid){
@@ -1828,7 +1828,7 @@ router.get("/projects/:id/areas/:pid/edit", middleware.isLoggedIn, function(req,
 // UPDATE AREA
 router.put("/projects/:id/areas/:pid", middleware.isLoggedIn, function(req, res){
     // CREATE AREA HERE?
-    var area = {
+    var area: any = {
         name: req.body.area.name
     };
     if(!(req.body.rotationid === "none") && req.body.rotationid){

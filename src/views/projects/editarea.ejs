@@ -15,7 +15,7 @@
                     <label for="rotationid">Select sub-area crop rotation: </label>
                     <select name="rotationid" id="rotationid">
                         <option value="none">None</option>
-                        <% for(i=0;i<rotations.length;i++){ %>
+                        <% for(let i=0;i<rotations.length;i++){ %>
                         <% if(area.rotation && rotations[i].name === area.rotation.name){ %>
                         <option value="<%= rotations[i]._id %>" selected="selected"><%= rotations[i].name %></option>
                         <% } else { %>

@@ -8,7 +8,7 @@ var rateLimiterIP = require("../models/rateLimiterIP");
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
-var crypto = require("crypto");
+var crypto:Crypto = require("crypto");
 var logger = require("../middleware/logger");
 var Log = require("../models/log");
 
@@ -328,6 +328,7 @@ router.post("/forgot", function(req, res, next){
     async.waterfall([ // AN ARRAY OF FUNCTIONS THAT GETS CALLED ONE AFTER THE OTHER
         function(done) {
             // CREATES A RANDOM UNIQUE TOKEN USED TO RESET THE PASSWORD
+            // @ts-ignore
             crypto.randomBytes(20, function(err, buf){
                 var token = buf.toString('hex');
                 done(err, token);

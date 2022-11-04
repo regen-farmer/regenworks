@@ -43,7 +43,7 @@
                                     <td></td>
                                 </tr>
                                 <% if(layer.rows && layer.rows.length > 0){ %>
-                                <% for(i=0;i<layer.rows.length;i++){ %>
+                                <% for(let i=0;i<layer.rows.length;i++){ %>
                                 <tr>
                                     <td><%= layer.rows[i].name %></td>
                                     <td><%= layer.rows[i].farmflows.length %></td>
@@ -71,7 +71,7 @@
                                     <td></td>
                                 </tr>
                                 <% if(layer.areas && layer.areas.length > 0){ %>
-                                <% for(i=0;i<layer.areas.length;i++){ %>
+                                <% for(let i=0;i<layer.areas.length;i++){ %>
                                 <tr>
                                     <td><%= layer.areas[i].name %></td>
                                     <td><%= layer.areas[i].farmflows.length %></td>

@@ -79,7 +79,7 @@ router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             // MODEL VARIABLES
-            var model = [];
+            var model: any[] = [];
             var length = 0;
             // CHECK IF ARRAY?
             if(!(req.body.model.species instanceof Array)){
@@ -90,7 +90,7 @@ router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
                 model.push(species);
                 length = Number(req.body.model.position);
             } else {
-                for(i=0;i<req.body.model.species.length;i++){
+                for(let i=0;i<req.body.model.species.length;i++){
                     // FIX IF ONLY ONE ITEM IN ROW
                     // IF SPECIES ID IS NULL
                     if(!(req.body.model.species[i] === "")){
@@ -177,14 +177,14 @@ router.get("/layers/:id/sequences/:pid/edit", middleware.isLoggedIn, function(re
                                 length = foundSequence.sequencelength;
                             }
                             // CALCULATE DISTANCE
-                            var distanceArray = [];
-                            for(i=0;i<foundSequence.model.length;i++){
+                            var distanceArray: any[] = [];
+                            for(let i=0;i<foundSequence.model.length;i++){
                                 distanceArray.push(foundSequence.model[i].position);
                             }
                             //
-                            var distanceDifference = [];
-                            for(i=0;i<distanceArray.length;i++){
-                                for(j=0;j<distanceArray.length;j++){
+                            var distanceDifference: any[] = [];
+                            for(let i=0;i<distanceArray.length;i++){
+                                for(let j=0;j<distanceArray.length;j++){
                                     if(distanceArray[i] !== distanceArray[j]){
                                         distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
                                     }
@@ -221,7 +221,7 @@ router.get("/layers/:id/sequences/:pid/edit", middleware.isLoggedIn, function(re
 // SEQUENCE UPDATE
 router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, res){
     // CLEAN MODEL
-    var model = [];
+    var model: any[] = [];
     var length = 0;
     // CHECK IF ARRAY
     if(!(req.body.model.species instanceof Array)){
@@ -232,7 +232,7 @@ router.put("/layers/:id/sequences/:pid", middleware.isLoggedIn, function(req, re
         model.push(species);
         length = Number(req.body.model.position);
     } else {
-        for(i=0;i<req.body.model.species.length;i++){
+        for(let i=0;i<req.body.model.species.length;i++){
             // FIX IF ONLY ONE ITEM IN ROW
             // IF SPECIES ID IS NULL
             if(!(req.body.model.species[i] === "")){
@@ -339,7 +339,7 @@ router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req, res)
         if(err){
             console.log(err);
         } else {
-            var model = [];
+            var model: any[] = [];
             var length = 0;
             // CHECK IF ARRAY
             if(!(req.body.model.species instanceof Array)) {
@@ -350,7 +350,7 @@ router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req, res)
                 model.push(species);
                 length = Number(req.body.model.position);
             } else {
-                for(i=0;i<req.body.model.species.length;i++){
+                for(let i=0;i<req.body.model.species.length;i++){
                     // FIX IF ONLY ONE ITEM IN ROW
                     // IF SPECIES ID IS NULL
                     if(!(req.body.model.species[i] === "")){
@@ -417,14 +417,14 @@ router.get("/projects/:id/sequences/:pid/edit", middleware.isLoggedIn, function(
                                 length = foundSequence.sequencelength;
                             }
                             // CALCULATE DISTANCE
-                            var distanceArray = [];
-                            for(i=0;i<foundSequence.model.length;i++){
+                            var distanceArray: any[] = [];
+                            for(let i=0;i<foundSequence.model.length;i++){
                                 distanceArray.push(foundSequence.model[i].position);
                             }
                             //
-                            var distanceDifference = [];
-                            for(i=0;i<distanceArray.length;i++){
-                                for(j=0;j<distanceArray.length;j++){
+                            var distanceDifference: any[] = [];
+                            for(let i=0;i<distanceArray.length;i++){
+                                for(let j=0;j<distanceArray.length;j++){
                                     if(distanceArray[i] !== distanceArray[j]){
                                         distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
                                     }
@@ -461,7 +461,7 @@ router.get("/projects/:id/sequences/:pid/edit", middleware.isLoggedIn, function(
 // PROJECT SEQUENCE UPDATE
 router.put("/projects/:id/sequences/:pid", middleware.isLoggedIn, function(req, res){
     // CLEAN MODEL
-    var model = [];
+    var model: any[] = [];
     var length = 0;
     // CHECK IF ARRAY
     if(!(req.body.model.species instanceof Array)) {
@@ -472,7 +472,7 @@ router.put("/projects/:id/sequences/:pid", middleware.isLoggedIn, function(req, 
         model.push(species);
         length = Number(req.body.model.position);
     } else {
-        for(i=0;i<req.body.model.species.length;i++){
+        for(let i=0;i<req.body.model.species.length;i++){
             // FIX IF ONLY ONE ITEM IN ROW
             // IF SPECIES ID IS NULL
             if(!(req.body.model.species[i] === "")){

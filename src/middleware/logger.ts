@@ -1,7 +1,7 @@
 var winston = require("winston"); // USE WINSTON FOR LOGGING
 
 // LOGGER CONFIGURATION
-const logger = winston.createLogger({
+const winstonLogger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
     transports: [
@@ -14,4 +14,4 @@ const logger = winston.createLogger({
     ]
 });
 
-module.exports = logger;
+module.exports = winstonLogger;

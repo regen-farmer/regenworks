@@ -10,7 +10,7 @@
                 <div class="form-group">
                     <label for="systemid">Select edge system: </label>
                     <select name="systemid" id="systemid">
-                        <% for(i=0;i<systems.length;i++){ %>
+                        <% for(let i=0;i<systems.length;i++){ %>
                             <option value="<%= systems[i]._id %>"><%= systems[i].name %></option>
                         <% } %>
                     </select>

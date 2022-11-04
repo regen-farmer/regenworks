@@ -2,7 +2,7 @@ var Parcel = require("../models/parcel");
 var User = require("../models/user");
 
 // Define middleware object
-var middlewareObj = {};
+var middlewareObj: any = {};
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
 middlewareObj.checkParcelOwnership = function(req, res, next){

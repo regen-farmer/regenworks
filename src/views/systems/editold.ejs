@@ -36,7 +36,7 @@
             </div>
             <h3>System model</h3>
                 <div class="row">
-                    <% for(j=0;j<system.rows.length;j++){ %>
+                    <% for(let j=0;j<system.rows.length;j++){ %>
                     <div class="col-lg-<%= Math.floor(12/system.rows.length) %>">
                         <h5>Row <%= j + 1 %></h5>
                         <div class="form-group">
@@ -47,7 +47,7 @@
                             <label for="system[model][<%= j %>][distance]">Distance to next row</label>
                             <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" placeholder="Distance in m" required>
                         </div>
-                        <% for(i=0;i<(12/0.5);i++){ %>
+                        <% for(let i=0;i<(12/0.5);i++){ %>
                         <div class="card">
                             <div class="card-body">
                                 <select name="system[model][<%= j %>][species][id]" style="width:100%;max-width:100%;">

@@ -3,7 +3,7 @@ var bbox = require("@turf/bbox");
 var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
 var lineIntersect = require("@turf/line-intersect");
-var length = require("@turf/length");
+var turfLength = require("@turf/length");
 var buffer = require("@turf/buffer");
 var midpoint = require("@turf/midpoint");
 var rhumbBearing = require("@turf/rhumb-bearing");
@@ -20,12 +20,12 @@ var pointToLineDistance = require("@turf/point-to-line-distance");
 var booleanPointOnLine = require("@turf/boolean-point-on-line");
 
 // DEFINE GIS OBJECT
-var gisObj = {};
+var gisObj: any = {};
 
 // SYSTEM BASED LAYOUT
 gisObj.systemBasedLayout = function(project){
     //
-    var layout = {};
+    var layout: any = {};
     // SET TEMP VARIABLES
     var polygon = JSON.parse(project.layer.geometry);
     var headland = project.headland;
@@ -37,15 +37,15 @@ gisObj.systemBasedLayout = function(project){
     var rotatedCalibrateLine = transformRotate(lineCalibrate, 90);
     var splitCalibrateLine = lineSplit(rotatedCalibrateLine, lineCalibrate);
     var distanceCalibrateLine = lineSplit(splitCalibrateLine.features[1], lineOffsetCalibrate);
-    var calibrateDistance = 10/(length(distanceCalibrateLine.features[0], {units: "meters"}));
+    var calibrateDistance = 10/(turfLength(distanceCalibrateLine.features[0], {units: "meters"}));
     console.log("Distance check " + calibrateDistance);
     // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
-    var edgeRowDataset = [];
+    var edgeRowDataset: any[] = [];
     if(project.edgesystem){
         // CALCULATE WIDTH - REFACTOR INTO MIDDLEWARE. USED TWICE IN THIS ROUTE
         project.edgesystem.model.forEach(function(species){
             var count = 0;
-            for(i=0;i<edgeRowDataset.length;i++){
+            for(let i=0;i<edgeRowDataset.length;i++){
                 if(edgeRowDataset[i].row === species.position[0]){
                     edgeRowDataset[i].array.push(species);
                     count = count + 1;
@@ -57,7 +57,7 @@ gisObj.systemBasedLayout = function(project){
         });
         // ADD ALL ROWS TO WIDTH
         var edgeRowWidth = 0;
-        for(i=0;i<edgeRowDataset.length;i++){
+        for(let i=0;i<edgeRowDataset.length;i++){
             edgeRowWidth = edgeRowWidth + edgeRowDataset[i].array[0].width;
         }
         // ADD EDGE SYSTEM WIDTH TO HEADLAND
@@ -66,8 +66,8 @@ gisObj.systemBasedLayout = function(project){
     console.log("headland plus perimeter system: " + headland);
     var offsetPolygon = buffer(polygon, - headland*calibrateDistance, {units: "meters"});
     // CREATE PERIMETER ROWS CENTER
-    var edgeRowWidthArray = [];
-    for(i=0;i<edgeRowDataset.length;i++){
+    var edgeRowWidthArray: any[] = [];
+    for(let i=0;i<edgeRowDataset.length;i++){
         var edgeRowArrayWidth = 0;
         if(i === 0){
             edgeRowArrayWidth = edgeRowDataset[i].array[0].width/2;
@@ -77,30 +77,30 @@ gisObj.systemBasedLayout = function(project){
         edgeRowWidthArray.push(edgeRowArrayWidth);
     }
     // CREATE EDGE ROW LINES
-    var edgeRowArray = [];
+    var edgeRowArray: any[] = [];
     var edgeRowDistance = 0;
-    for(i=0;i<edgeRowWidthArray.length;i++){
+    for(let i=0;i<edgeRowWidthArray.length;i++){
         edgeRowDistance = edgeRowDistance + edgeRowWidthArray[i];
         var offsetEdgeRowPolygon = buffer(polygon, - edgeRowDistance*calibrateDistance, {units: "meters"});
         var offsetEdgeRow = polygonToLine(offsetEdgeRowPolygon);
         edgeRowArray.push(offsetEdgeRow);
     }
     // CREATE EDGE ROW MARKERS AND TREE COUNTS
-    var edgeTreeMarkerArray = [];
-    var edgeTreeArray = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
+    var edgeTreeMarkerArray: any[] = [];
+    var edgeTreeArray: any[] = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
     // CREATE TREES FOR EACH EDGE ROW
-    for(i=0;i<edgeRowArray.length;i++){
+    for(let i=0;i<edgeRowArray.length;i++){
         // COUNT EDGE SYSTEM MODEL ITERATIONS IN ROW
-        var edgeRowLength = length(edgeRowArray[i], {units: "meters"});
+        var edgeRowLength = turfLength(edgeRowArray[i], {units: "meters"});
         // SET LENGTH AS LAST IN ROW SPECIES Y COORDINATE
         var edgeSystemModelLength = 0;
         edgeSystemModelLength = edgeRowDataset[0].array[(edgeRowDataset[0].array.length - 1)].position[1];
         var edgeSystemModelCount = Math.floor(edgeRowLength/edgeSystemModelLength);
         var edgeSystemModelRowRest = ((edgeRowLength/edgeSystemModelLength) - Math.floor(edgeRowLength/edgeSystemModelLength))*edgeSystemModelLength;
         // ITERATE FOR EACH MODEL COUNT
-        for(j=0;j<edgeSystemModelCount;j++){
+        for(let j=0;j<edgeSystemModelCount;j++){
             // CREATE TREE FOR EACH SPECIES IN MODEL
-            for(k=0;k<edgeRowDataset[i].array.length;k++) {
+            for(let k=0;k<edgeRowDataset[i].array.length;k++) {
                 // ADD TREE SPECIES TO COUNT ARRAY
                 edgeTreeArray.push(edgeRowDataset[i].array[k].species);
                 // CREATE TREE POINTS FOR MARKERS
@@ -113,10 +113,10 @@ gisObj.systemBasedLayout = function(project){
     console.log("Edge tree markers: " + edgeTreeMarkerArray.length);
     console.log("Edge trees: " + edgeTreeArray.length);
     // DO POINT COLLECTION
-    var edgeTreeCanopyArray = [];
+    var edgeTreeCanopyArray: any[] = [];
     // SET MAX LIMIT FOR AMOUNT OF TREES
     if(edgeTreeMarkerArray.length < 1500){
-        for(i=0;i<edgeTreeMarkerArray.length;i++){
+        for(let i=0;i<edgeTreeMarkerArray.length;i++){
             var circle5 = circle(edgeTreeMarkerArray[i].geometry.coordinates, 0.5, {units: "meters"});
             edgeTreeCanopyArray.push(circle5);
         }
@@ -124,17 +124,17 @@ gisObj.systemBasedLayout = function(project){
     /*var edgeTreeMarkers = turf.featureCollection(edgeTreeCanopyArray);
     var edgeTreeCollection = JSON.stringify(edgeTreeMarkers);*/
     // COPY ALL EDGE ROW SPECIES
-    var allEdgeSpeciesCopy = [];
-    for(i=0;edgeTreeArray.length > i;i++){
+    var allEdgeSpeciesCopy:any[] = [];
+    for(let i=0;edgeTreeArray.length > i;i++){
         allEdgeSpeciesCopy.push(edgeTreeArray[i]);
     }
     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
     var uniqueEdgeSpecies = unique(allEdgeSpeciesCopy);
     // UNIQUE ITEM COUNTS
-    var uniqueEdgeSpeciesCount = [];
-    for(i=0;uniqueEdgeSpecies.length > i;i++){
+    var uniqueEdgeSpeciesCount: any[] = [];
+    for(let i=0;uniqueEdgeSpecies.length > i;i++){
         var edgecount = 0;
-        for(j = 0; j < edgeTreeArray.length; j++){
+        for(let j = 0; j < edgeTreeArray.length; j++){
             if(edgeTreeArray[j].nameCommon === uniqueEdgeSpecies[i].nameCommon){
                 edgecount = edgecount + 1;
             }
@@ -147,12 +147,12 @@ gisObj.systemBasedLayout = function(project){
     }
     console.log("Unique Species in edge: " + uniqueEdgeSpeciesCount.length);
     // FIND SYSTEM ROWS
-    var allSpecies = [];
-    var dataset = [];
+    var allSpecies: any[] = [];
+    var dataset: any[] = [];
     project.system.model.forEach(function(species){
         allSpecies.push(species.species.nameCommon);
         var count = 0;
-        for(i=0;i<dataset.length;i++){
+        for(let i=0;i<dataset.length;i++){
             if(dataset[i].row === species.position[0]){
                 dataset[i].array.push(species);
                 count = count + 1;
@@ -172,7 +172,7 @@ gisObj.systemBasedLayout = function(project){
         }
         return 0;
     }
-    for(i=0;i<dataset.length;i++){
+    for(let i=0;i<dataset.length;i++){
         dataset[i].array.sort(compare1);
     }
     // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
@@ -180,20 +180,20 @@ gisObj.systemBasedLayout = function(project){
     // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
     // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
     var rowWidth = 0;
-    for(i=0;i<dataset.length;i++){
+    for(let i=0;i<dataset.length;i++){
         rowWidth = rowWidth + dataset[i].array[0].width;
     }
     layout.rowWidth = rowWidth;
     // ROW PARAMETERS
-    var rowWidthArray = [];
+    var rowWidthArray: any[] = [];
     var rowWidthArrayCount = 0;
-    var treeRowWidthArray = [];
+    var treeRowWidthArray: any[] = [];
     var stripWidths = [];
     // ALLEY PARAMETERS
-    var alleyWidthArray = [];
+    var alleyWidthArray: any[] = [];
     var alleyWidthArrayCount = 0;
-    var alleyWidths = [];
-    for(i=0;i<dataset.length+1;i++){
+    var alleyWidths: any[] = [];
+    for(let i=0;i<dataset.length+1;i++){
         // SET ROW LENGTHS
         // IF FIRST ROW
         if(i === 0){
@@ -258,7 +258,7 @@ gisObj.systemBasedLayout = function(project){
     console.log("Widths: " + alleyWidths);
     console.log("Alleys: " + alleyWidthArray);
     // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
-    var tempOffsetArray = [];
+    var tempOffsetArray: any[] = [];
     var lengthLine;
     var line;
     var rowCount = 0;
@@ -266,7 +266,7 @@ gisObj.systemBasedLayout = function(project){
     if(project.alignment === "bearing"){
         // -------- ANGLED ROWS ---------
         // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
-        var lengthLineBearing = {};
+        var lengthLineBearing: any = {};
         if(project.bearingline){
             var bearingline = JSON.parse(project.bearingline);
             lengthLineBearing = bearingline;
@@ -287,14 +287,14 @@ gisObj.systemBasedLayout = function(project){
         console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
         console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
         var lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1],bboxOffsetPolygon.geometry.coordinates[0][2]],{name: 'line-10'});
-        console.log(length(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
+        console.log(turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}) + " meter length");
         // CREATE NEW POLYGON
         var alignPolygon = transformRotate(offsetPolygon, 180-lineBearing);
         // CHECK POINTS ON ROTATED POLYGON
         var offsetPolygonWesternPoint = {};
         var westernPointCount = 0;
         var westernPointIndex = 0;
-        for(i=0;i<alignPolygon.geometry.coordinates[0].length-1;i++){
+        for(let i=0;i<alignPolygon.geometry.coordinates[0].length-1;i++){
             console.log("Coordinate: " + alignPolygon.geometry.coordinates[0][i]);
             if(westernPointCount > alignPolygon.geometry.coordinates[0][i][0]){
                 westernPointIndex = i;
@@ -308,7 +308,7 @@ gisObj.systemBasedLayout = function(project){
         var lineMidpoint = midpoint(lengthLineBearing.geometry.coordinates[0],lengthLineBearing.geometry.coordinates[1]);
         var moveLengthLine = turf.lineString([lineMidpoint.geometry.coordinates, offsetPolygon.geometry.coordinates[0][westernPointIndex]], {name: 'moveline'});
         var moveBearing = rhumbBearing(lineMidpoint, offsetPolygon.geometry.coordinates[0][westernPointIndex]);
-        var moveDistance = length(moveLengthLine, {units: 'meters'});
+        var moveDistance = turfLength(moveLengthLine, {units: 'meters'});
         // SEE OFFSET
         var moveLine = transformTranslate(lengthLineBearing, moveDistance, moveBearing, {units: 'meters'});
         line = transformScale(moveLine, 6);
@@ -324,9 +324,9 @@ gisObj.systemBasedLayout = function(project){
         var lengthLineSplit = lineSplit(splitLines.features[0], offsetPolygon);
         lengthLine = lengthLineSplit.features[1];
         console.log(splitLines.features[0]);
-        console.log(Math.floor((length(lengthLine, {units: "meters"}))));*/
-        rowCount = Math.floor((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
-        rowRest = (((length(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+        console.log(Math.floor((turfLength(lengthLine, {units: "meters"}))));*/
+        rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth);
+        rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
         console.log(rowCount);
         console.log("rest " + rowRest);
         // -------- ANGLED ROWS ---------
@@ -337,9 +337,9 @@ gisObj.systemBasedLayout = function(project){
         // TAKE TOP SIDE OF BOUNDING BOX
         lengthLine = turf.lineString([box.geometry.coordinates[0][2],box.geometry.coordinates[0][3]],{name: 'line-0'});
         // ESTIMATE AMOUNT OF ROWS
-        console.log((length(lengthLine, {units: "meters"})));
-        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+        console.log((turfLength(lengthLine, {units: "meters"})));
+        rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+        rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
         console.log("rest " + rowRest);
         console.log(rowCount);
         // CREATE ROW LINE
@@ -352,9 +352,9 @@ gisObj.systemBasedLayout = function(project){
         // TAKE TOP SIDE OF BOUNDING BOX
         lengthLine = turf.lineString([box.geometry.coordinates[0][1],box.geometry.coordinates[0][2]],{name: 'line-0'});
         // ESTIMATE AMOUNT OF ROWS
-        console.log((length(lengthLine, {units: "meters"})));
-        rowCount = Math.floor((length(lengthLine, {units: "meters"}))/rowWidth);
-        rowRest = (((length(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
+        console.log((turfLength(lengthLine, {units: "meters"})));
+        rowCount = Math.floor((turfLength(lengthLine, {units: "meters"}))/rowWidth);
+        rowRest = (((turfLength(lengthLine, {units: "meters"}))/rowWidth) - rowCount)*rowWidth;
         console.log("rest " + rowRest);
         console.log(rowCount);
         // CREATE ROW LINE
@@ -362,26 +362,26 @@ gisObj.systemBasedLayout = function(project){
         // -------- WEST/EAST ROWS ---------
     }
     // CREATE ROW ARRAY
-    var rowArray = [];
+    var rowArray: any[] = [];
     var distance = 0;
     var distanceArray = rowWidthArray;
     // CREATE ALLEY ARRAY
-    var bedArray = [];
-    var alleyArray = [];
+    var bedArray: any[] = [];
+    var alleyArray: any[] = [];
     var bedDistance = 0;
-    var alleySpeciesArrayCount = [];
-    var alleySpeciesArray = [];
+    var alleySpeciesArrayCount: any[] = [];
+    var alleySpeciesArray: any[] = [];
     // ALLEY SPECIES ARRAY
-    for(i=0;i<dataset.length;i++){
+    for(let i=0;i<dataset.length;i++){
         if(dataset[i].array[0].species.form === "grass"){
             alleySpeciesArrayCount.push(dataset[i].array[0].species);
         }
     }
     console.log(alleySpeciesArrayCount.length + " ---- CHECK ---- " + alleyWidthArray.length);
     // OFFSET AND CREATE NEW LINE FOR EACH ROW - NB. WORKS BECAUSE -1 CANCELS < rowCount BY 1.
-    for(i=0;i<rowCount;i++){
+    for(let i=0;i<rowCount;i++){
         // DO IF FIRST COUNT?
-        for(j=0;j<distanceArray.length;j++){
+        for(let j=0;j<distanceArray.length;j++){
             // DO IF FIRST ROW, DON'T ADD DISTANCE
             if(j === distanceArray.length - 1){
                 distance = distance + distanceArray[j];
@@ -412,7 +412,7 @@ gisObj.systemBasedLayout = function(project){
                     /*var lineA = {};
                 var lineB = {};
                 var polyLine = polygonToLine(offsetPolygon);
-                for(k=0;k<offsetPolygon.geometry.coordinates[0].length - 1;k++){
+                for(let k=0;k<offsetPolygon.geometry.coordinates[0].length - 1;k++){
                     var matchPoint1 = turf.point(row1.geometry.coordinates[0]);
                     var matchPoint2 = turf.point(row1.geometry.coordinates[1]);
                     var matchLine = turf.lineString([polyLine.geometry.coordinates[k], polyLine.geometry.coordinates[k+1]],{name: "matchLine-0" + k })
@@ -427,7 +427,7 @@ gisObj.systemBasedLayout = function(project){
                 var rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
                 console.log("Row point count: " + rowPoints1.features.length);
                 // DO IF HERE TO CHECK SEPARATE ROWS
-                for(k=0;k<rowPoints1.features.length;k+=2){
+                for(let k=0;k<rowPoints1.features.length;k+=2){
                     if((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1])){
                         var row1 = turf.lineString([[rowPoints1.features[k+1].geometry.coordinates[0],rowPoints1.features[k+1].geometry.coordinates[1]],[rowPoints1.features[k].geometry.coordinates[0],rowPoints1.features[k].geometry.coordinates[1]]],{name: "line-0" + i });
                     } else {
@@ -447,7 +447,7 @@ gisObj.systemBasedLayout = function(project){
         }
         // ONLY DO THIS IF ALLEYS ARE THERE - ABOVE 1 MEANS THAT THERE IS AN ALLEY :P
         if(alleyWidthArray && alleyWidthArray.length > 1){
-            for(j=0;j<alleyWidthArray.length;j++){
+            for(let j=0;j<alleyWidthArray.length;j++){
                 if(i === 0 && j === 0){
                     // FIRST ALLEY ON AREA
                     bedDistance = bedDistance + alleyWidthArray[j];
@@ -514,7 +514,7 @@ gisObj.systemBasedLayout = function(project){
     // FIND LAST IF LAST IS ROW OR ALLEY
     var tempWidthAlley = 0;
     var tempWidthAlleyCount = 0;
-    for(i=0;i<alleyWidthArray.length;i++){
+    for(let i=0;i<alleyWidthArray.length;i++){
         tempWidthAlleyCount = tempWidthAlleyCount + alleyWidthArray[i];
         if(tempWidthAlleyCount < rowRest){
             tempWidthAlley = tempWidthAlleyCount;
@@ -522,7 +522,7 @@ gisObj.systemBasedLayout = function(project){
     }
     var tempWidthTree = 0;
     var tempWidthTreeCount = 0;
-    for(i=0;i<rowWidthArray.length;i++){
+    for(let i=0;i<rowWidthArray.length;i++){
         tempWidthTreeCount = tempWidthTreeCount + rowWidthArray[i];
         if(tempWidthTreeCount < rowRest){
             tempWidthTree = tempWidthTreeCount;
@@ -532,7 +532,7 @@ gisObj.systemBasedLayout = function(project){
     console.log("Alley sequence: " + tempWidthAlley);
     // ADD LAST ROWS IF THERE IS SOME MISSING
     var countWidth = 0;
-    for(i=0;i<distanceArray.length;i++){
+    for(let i=0;i<distanceArray.length;i++){
         countWidth = countWidth + distanceArray[i];
         if(countWidth < rowRest){
             var bufferLine2 = buffer(line, ((distance+countWidth)*calibrateDistance), {units: "meters"});
@@ -565,7 +565,7 @@ gisObj.systemBasedLayout = function(project){
     }
     // ADD LAST ALLEYS IF THERE IS SOME MISSING
     /*var alleyCountWidth = 0;
-    for(i=0;i<alleyWidthArray.length;i++){
+    for(let i=0;i<alleyWidthArray.length;i++){
         alleyCountWidth = alleyCountWidth + alleyWidthArray[i];
         // NEED TO CHECK FOR MINUS WIDTH AS WELL? YES
         if(alleyCountWidth < rowRest){
@@ -592,9 +592,9 @@ gisObj.systemBasedLayout = function(project){
     console.log("Alley species array count: " + alleySpeciesArray.length);
     console.log("Alley polygon array count: " + alleyArray.length);
     // SET ROWLENGTH ARRAY
-    var rowLengthArray = [];
-    for (i=0;i<rowArray.length;i++){
-        var rowLength1 = length(rowArray[i], {units: "meters"});
+    var rowLengthArray: any[] = [];
+    for (let i=0;i<rowArray.length;i++){
+        var rowLength1 = turfLength(rowArray[i], {units: "meters"});
         rowLengthArray.push(rowLength1);
         /*
                             console.log(rowArray[i].geometry.coordinates);
@@ -607,11 +607,11 @@ gisObj.systemBasedLayout = function(project){
     /* var rotatedCheckLine = transformRotate(rowArray[0], 90);
      var splitCheckLine = lineSplit(rotatedCheckLine, rowArray[0]);
      var distanceCheckLine = lineSplit(splitCheckLine.features[1], rowArray[1]);
-     var checkDistance = length(distanceCheckLine.features[0], {units: "meters"});
+     var checkDistance = turfLength(distanceCheckLine.features[0], {units: "meters"});
      console.log("Distance check " + checkDistance);*/
     // CREATE FEATURECOLLECTION FOR ROWS
     layout.rowLineArray = rowArray;
-    for(i=0;i<edgeRowArray.length;i++){
+    for(let i=0;i<edgeRowArray.length;i++){
         // ADD EDGEROWS
         layout.rowLineArray.push(edgeRowArray[i]);
     }
@@ -626,30 +626,30 @@ gisObj.systemBasedLayout = function(project){
                    var stringline = JSON.stringify(row);
                    var stringbox = JSON.stringify(box);*/
     // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
-    var treeRows = [];
-    for(i=0;i<dataset.length;i++){
+    var treeRows: any[] = [];
+    for(let i=0;i<dataset.length;i++){
         if(!(dataset[i].array[0].species.form === "grass")){
             treeRows.push(dataset[i]);
         }
     }
     // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
     var systemModelLength = 0;
-    for(i=0;i<dataset.length;i++){
+    for(let i=0;i<dataset.length;i++){
         if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
             systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
         }
     }
     // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
     var treeRowCount = 0;
-    var treeCountArray = [];
-    var treeMarkerArray = [];
-    var treeAssetArray = [];
-    var treeAssetRowRef = [];
-    var treeArray = [];
+    var treeCountArray: any[] = [];
+    var treeMarkerArray: any[] = [];
+    var treeAssetArray: any[] = [];
+    var treeAssetRowRef: any[] = [];
+    var treeArray: any[] = [];
     var treeRowArea = 0;
-    for(i=0;i<rowArray.length;i++){
+    for(let i=0;i<rowArray.length;i++){
         // COUNT SYSTEM MODEL ITERATIONS IN ROW
-        var rowLength = length(rowArray[i], {units: "meters"});
+        var rowLength = turfLength(rowArray[i], {units: "meters"});
         // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
         /*var systemModelLength = 0;
         if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
@@ -678,8 +678,8 @@ gisObj.systemBasedLayout = function(project){
             treeAssetRowRef.push(i);
         }
         // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-        for(j=0;j<systemModelCount;j++){
-            for(k=0;k<treeRows[treeRowCount].array.length;k++){
+        for(let j=0;j<systemModelCount;j++){
+            for(let k=0;k<treeRows[treeRowCount].array.length;k++){
                 // ADD TREE SPECIES TO COUNT ARRAY
                 treeArray.push(treeRows[treeRowCount].array[k].species);
                 // CREATE TREE POINTS FOR MARKERS
@@ -697,7 +697,7 @@ gisObj.systemBasedLayout = function(project){
             }
         }
         // ADD REST
-        for(j=0;j<treeRows[treeRowCount].array.length;j++){
+        for(let j=0;j<treeRows[treeRowCount].array.length;j++){
             if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
                 treeArray.push(treeRows[treeRowCount].array[j].species);
                 // ADD POINT MARKER FOR REMAINING TREES
@@ -724,9 +724,9 @@ gisObj.systemBasedLayout = function(project){
     console.log(treeArray.length);
     console.log(treeMarkerArray.length);
     // DO POINT COLLECTION
-    var treeCanopyArray = [];
+    var treeCanopyArray: any[] = [];
     if(treeMarkerArray.length < 5000){
-        for(i=0;i<treeMarkerArray.length;i++){
+        for(let i=0;i<treeMarkerArray.length;i++){
             var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 2, {units: "meters"});
             treeCanopyArray.push(circle1);
         }
@@ -737,7 +737,7 @@ gisObj.systemBasedLayout = function(project){
     layout.treeAssetArray = treeAssetArray;
     layout.offsetArrayCollection = []; // CAN DELETE THIS AT SOME POINT. JUST USED IT TO ENSURE VIZ OF LINES IN LAYOUT ANGLED WAS WORKING
     // ADD EDGE TREE MARKERS
-    for(i=0;i<edgeTreeCanopyArray.length;i++){
+    for(let i=0;i<edgeTreeCanopyArray.length;i++){
         layout.treeMarkerArray.push(edgeTreeCanopyArray[i]);
     }
     layout.treeMarkerCollection = turf.featureCollection(treeCanopyArray);
@@ -747,17 +747,17 @@ gisObj.systemBasedLayout = function(project){
     var areaGrid = rowWidth * dataset[0].array[(dataset[0].array.length - 1)].position[1]; // CHECK THAT THIS IS WORKING
     var gridCount = areaSize / areaGrid;
     // COPY ALL SPECIES
-    var allSpeciesCopy = [];
-    for(i=0;allSpecies.length > i;i++){
+    var allSpeciesCopy: any[] = [];
+    for(let i=0;allSpecies.length > i;i++){
         allSpeciesCopy.push(allSpecies[i]);
     }
     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
     var uniqueSpecies = unique(allSpeciesCopy);
     // UNIQUE ITEM COUNTS
-    var uniqueSpeciesCount = [];
-    for(i=0;uniqueSpecies.length > i;i++){
+    var uniqueSpeciesCount: any[] = [];
+    for(let i=0;uniqueSpecies.length > i;i++){
         var count = 0;
-        for(j = 0; j < treeArray.length; j++){
+        for(let j = 0; j < treeArray.length; j++){
             if(treeArray[j].nameCommon === uniqueSpecies[i])
                 count = count + 1;
         }
@@ -774,7 +774,7 @@ gisObj.systemBasedLayout = function(project){
 
     /*// CHECK LENGTH OF LINE BEFORE CUTTING
     var checkLine = turf.lineString([polygon.geometry.coordinates[0][1],polygon.geometry.coordinates[0][2]],{name: "checkLine"});
-    var checkLength = length(checkLine, {units: "meters"});
+    var checkLength = turfLength(checkLine, {units: "meters"});
     console.log(checkLength + " meters long");*/
     // CALCULATE MARGIN AREA
     var marginArea = area(polygon) - area(offsetPolygon);
@@ -784,7 +784,7 @@ gisObj.systemBasedLayout = function(project){
 // ROW AND AREA BASED LAYOUT
 gisObj.rowBasedLayout = function(project){
     //
-    var layout = {};
+    var layout: any = {};
     // SORT FIRST ROW ITEMS
     function compare1( a, b ) {
         if ( a.position < b.position ){
@@ -796,10 +796,10 @@ gisObj.rowBasedLayout = function(project){
         return 0;
     }
     // VIZ ROWS
-    var allSpecies = [];
-    var rowArray = [];
-    var placesArray = [];
-    for(i=0;i<project.rows.length;i++){
+    var allSpecies: any[] = [];
+    var rowArray: any[] = [];
+    var placesArray: any[] = [];
+    for(let i=0;i<project.rows.length;i++){
         // ROW VIZ
         var rowGeometry = JSON.parse(project.rows[i].geometry);
         rowArray.push(rowGeometry);
@@ -820,20 +820,20 @@ gisObj.rowBasedLayout = function(project){
     var collection = JSON.stringify(featurecollection);
 */
     // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
-    /*for(i=0;i<foundLayer.rows.length;i++){
-        for(j=0;j<foundLayer.rows[i].system.model.length;j++){
+    /*for(let i=0;i<foundLayer.rows.length;i++){
+        for(let j=0;j<foundLayer.rows[i].system.model.length;j++){
             foundLayer.rows[i].system.populate("model." + j + ".species");
         }
     }*/
     // MAYBE RENAME THIS ONE!?!
-    var treeAssetsArray = [];
+    var treeAssetsArray: any[] = [];
     // SET COLLECTIVE TREE ARRAY
-    var treeMarkerArray = [];
-    var treeAssetArray = [];
-    var treeAssetRowRef = [];
-    var treeArray = [];
+    var treeMarkerArray: any[] = [];
+    var treeAssetArray: any[] = [];
+    var treeAssetRowRef: any[] = [];
+    var treeArray: any[] = [];
     // FIND SYSTEM ROWS
-    for(i=0;i<project.rows.length;i++){
+    for(let i=0;i<project.rows.length;i++){
         // SET ROW DATA
         if(project.rows[i].sequence) {
             var datasetRows = project.rows[i].sequence.model;
@@ -854,7 +854,7 @@ gisObj.rowBasedLayout = function(project){
             datasetRows.sort(compare1);
             // ROW LENGTH
             var rowLine = JSON.parse(project.rows[i].geometry);
-            var rowLength = length(rowLine, {units: "meters"});
+            var rowLength = turfLength(rowLine, {units: "meters"});
             console.log("Row length " + rowLength);
             // SYSTEM MODEL LENGTH
             var systemModelLength = project.rows[i].sequence.sequencelength;
@@ -887,8 +887,8 @@ gisObj.rowBasedLayout = function(project){
             treeAssetRowRef.push(i);
             // ROW MARKERS
             // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-            for (j = 0; j < systemModelCount; j++) {
-                for (k = 0; k < datasetRows.length; k++) {
+            for (let j = 0; j < systemModelCount; j++) {
+                for (let k = 0; k < datasetRows.length; k++) {
                     // CREATE COORDINATES FOR THE TREE
                     var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
                     //
@@ -912,7 +912,7 @@ gisObj.rowBasedLayout = function(project){
                 }
             }
             // ADD REST
-            for (j = 0; j < datasetRows.length; j++) {
+            for (let j = 0; j < datasetRows.length; j++) {
                 if (datasetRows[j].position < systemModelRowRest) {
                     /*
                                                             treeArray.push(treeRows[treeRowCount].array[j].species);
@@ -940,10 +940,10 @@ gisObj.rowBasedLayout = function(project){
         }
     }
     // DO POINT COLLECTION
-    var treeCanopyArray = [];
-    var vegeCanopyArray = [];
+    var treeCanopyArray: any[] = [];
+    var vegeCanopyArray: any[] = [];
     if(treeAssetsArray.length < 5000){
-        for(i=0;i<treeAssetsArray.length;i++){
+        for(let i=0;i<treeAssetsArray.length;i++){
             // FIND TREE DIMENSIONS
             var diameter = 2;
             /*if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
@@ -977,8 +977,8 @@ gisObj.rowBasedLayout = function(project){
     var vegeCollection = JSON.stringify(vegeMarkers);
 */
     // DO TREE NAMES COLLECTION
-    var treenames = [];
-    for(i=0;i<treeAssetsArray.length;i++){
+    var treenames: any[] = [];
+    for(let i=0;i<treeAssetsArray.length;i++){
         var properties1 = {
             'description': treeAssetsArray[i].species.nameCommon.slice(0,3)
         };
@@ -990,18 +990,18 @@ gisObj.rowBasedLayout = function(project){
     var treeNameCollection = JSON.stringify(treenamemarks);
 */
     // VIZ ROWS
-    var alleyPolygonArray = [];
-    var bedPolygonArray = [];
-    var alleySpeciesArray = [];
-    for(i=0;i<project.areas.length;i++){
+    var alleyPolygonArray: any[] = [];
+    var bedPolygonArray: any[] = [];
+    var alleySpeciesArray: any[] = [];
+    for(let i=0;i<project.areas.length;i++){
         // ROW VIZ
         var areaGeometry = JSON.parse(project.areas[i].geometry);
         if(project.areas[i].name.charAt(0) === "A"){
             alleyPolygonArray.push(areaGeometry);
             // ADD SPECIES TO ALLEY ARRAY
             if(project.areas[i].rotation && project.areas[i].rotation.model.length > 0){
-                var alleySpeciesCount = [];
-                for(j=0;j<project.areas[i].rotation.model.length;j++){
+                var alleySpeciesCount: any[] = [];
+                for(let j=0;j<project.areas[i].rotation.model.length;j++){
                     // ADD SPECIES TO ALLEY ARRAY
                     alleySpeciesCount.push(project.areas[i].rotation.model[j].speciesmix[0].species);
                 }
@@ -1025,21 +1025,21 @@ gisObj.rowBasedLayout = function(project){
     // COMBINE ASSETS AND ROW BASED
 
     // COPY ALL SPECIES
-    var allSpeciesCopy = [];
-    for(i=0;allSpecies.length > i;i++){
+    var allSpeciesCopy: any[] = [];
+    for(let i=0;allSpecies.length > i;i++){
         allSpeciesCopy.push(allSpecies[i]);
     }
     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
     var uniqueSpecies = unique(allSpeciesCopy);
     // UNIQUE ITEM COUNTS
-    var uniqueSpeciesCount = [];
-    for(i=0;uniqueSpecies.length > i;i++){
+    var uniqueSpeciesCount: any[] = [];
+    for(let i=0;uniqueSpecies.length > i;i++){
         var count = 0;
-        for(j = 0; j < treeAssetsArray.length; j++){
+        for(let j = 0; j < treeAssetsArray.length; j++){
             if(treeAssetsArray[j].species.nameCommon === uniqueSpecies[i])
                 count = count + 1;
         }
-        speciesCount = {
+        let speciesCount = {
             id: uniqueSpecies[i],
             uniqueCount: count
         };

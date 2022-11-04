@@ -5,7 +5,7 @@ var Layer = require("../models/layer");
 var Project = require("../models/project");
 var Species = require("../models/species");
 var middleware = require("../middleware");
-const Sequence = require("../models/sequence");
+var Sequence = require("../models/sequence");
 
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get("/layers/:id/rotations/steps", middleware.isLoggedIn, function(req, res){
@@ -135,19 +135,19 @@ router.post("/projects/:id/rotations", middleware.isLoggedIn, function(req, res)
         if(err){
             console.log(err);
         } else {
-            var model = [];
+            var model:any[] = [];
             // CHECK IF ARRAY
             if(!(req.body.model.speciesmix.species instanceof Array)) {
-                var speciesmix = {
+                var speciesmix: any = {
                     species: req.body.model.speciesmix.species
                 };
                 model.push(speciesmix);
             } else {
-                for(i=0;i<req.body.model.speciesmix.species.length;i++){
+                for(let i=0;i<req.body.model.speciesmix.species.length;i++){
                     // FIX IF ONLY ONE ITEM IN ROW
                     // IF SPECIES ID IS NULL
                     if(!(req.body.model.speciesmix.species[i] === "")){
-                        var speciesmix = {
+                        var speciesmix: any = {
                             speciesmix: [
                                 {
                                     species: req.body.model.speciesmix.species[i],

@@ -44,8 +44,8 @@ router.post("/systems/:id/flows", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             var flow = req.body.flow;
-            var data = [];
-            for(i=0;i<flow.data.length;i++) {
+            var data: any[] = [];
+            for(let i=0;i<flow.data.length;i++) {
                 if (!(flow.data[i].species === "")) {
                     data.push(flow.data[i]);
                 }

@@ -31,7 +31,7 @@
             <h2>Activities</h2>
             <% if(!(species.activities == "")){ %>
                 <p><strong>Activity amounts:</strong> <%= species.activities.length %> </p>
-                <% for(i=0;i<species.activities.length;i++){ %>
+                <% for(let i=0;i<species.activities.length;i++){ %>
                     <div class="card-body">
                         <p class="card-text"><%= species.activities[i].name %> <%= species.activities[i].activityType %> + <%= species.activities[i].subtype %></p>
                         <a class="btn btn-sm btn-outline-secondary" href="/species/<%= species._id %>/activities/edit?index=<%= i %>">Edit activity</a>

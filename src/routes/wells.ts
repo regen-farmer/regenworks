@@ -3,9 +3,9 @@ var router = express.Router();
 var Well = require("../models/well");
 var Parcel = require("../models/parcel");
 var middleware = require("../middleware");
-const logger = require("../middleware/logger");
-const Species = require("../models/species");
-const Animal = require("../models/animal");
+var logger = require("../middleware/logger");
+var Species = require("../models/species");
+var Animal = require("../models/animal");
 
 // NESTED PARCEL WELL NEW ROUTE
 router.get("/parcels/:id/wells/new", middleware.isLoggedIn, function(req, res){

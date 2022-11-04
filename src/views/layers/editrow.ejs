@@ -15,7 +15,7 @@
                         <label for="sequenceid">Select row sequence pattern: </label>
                         <select name="sequenceid" id="sequenceid">
                             <option value="none">None</option>
-                                <% for(i=0;i<sequences.length;i++){ %>
+                                <% for(let i=0;i<sequences.length;i++){ %>
                                     <% if(row.sequence && sequences[i].name === row.sequence.name){ %>
                                         <option value="<%= sequences[i]._id %>" selected="selected"><%= sequences[i].name %></option>
                                     <% } else { %>

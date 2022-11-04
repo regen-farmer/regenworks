@@ -61,7 +61,7 @@
                             <div class="form-group">
                                 <select name="speciespostings" id="speciespostings">
                                     <option value="none">none</option>
-                                    <% for(i=0;i<species.activities.length;i++){ %>
+                                    <% for(let i=0;i<species.activities.length;i++){ %>
                                         <% if(species.activities[i].subtype === "pruning"){ %>
                                         <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
                                         <% }; %>
@@ -74,7 +74,7 @@
                             <div class="form-group">
                                 <select name="speciespostings" id="speciespostings">
                                     <option value="none">none</option>
-                                    <% for(i=0;i<species.activities.length;i++){ %>
+                                    <% for(let i=0;i<species.activities.length;i++){ %>
                                     <% if(species.activities[i].subtype === "harvest"){ %>
                                     <option value="<%= species._id + ' ' + i %>"><%= species.activities[i].name %></option>
                                     <% }; %>

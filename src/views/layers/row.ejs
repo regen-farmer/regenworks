@@ -17,7 +17,7 @@
                     <label for="sequenceid">Select row sequence: </label>
                     <select name="sequenceid" id="sequenceid">
                         <option value="none">None</option>
-                        <% for(i=0;i<sequences.length;i++){ %>
+                        <% for(let i=0;i<sequences.length;i++){ %>
                         <option value="<%= sequences[i]._id %>"><%= sequences[i].name %></option>
                         <% } %>
                     </select>

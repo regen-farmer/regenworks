@@ -123,7 +123,7 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
             // DO COUNT FOR ROW WIDTH
             var xPosition = 0;
             // ADD SPECIES TO MODEL
-            for(i=0;i<system.model.length;i++){
+            for(let i=0;i<system.model.length;i++){
                 // FIX IF ONLY ONE ITEM IN ROW
                 if(system.model[i].species.id instanceof Array){
                     for(let j=0;j<system.model[i].species.id.length;j++){
@@ -209,7 +209,7 @@ router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
             }
             // CLEAN ARRAY
             var rows = [];
-            for(i=0;i<system.rows.length;i++){
+            for(let i=0;i<system.rows.length;i++){
                 // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
                 for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
                     if(system.rows[i].sequense[j] === ""){
@@ -302,7 +302,7 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                             carb: 0,
                             fat: 0
                         };
-                        for(j=0;j<nutritional.length;j++){
+                        for(let j=0;j<nutritional.length;j++){
                             nutrientvalue.protein = nutrientvalue.protein + nutritional[j].protein;
                             nutrientvalue.carb = nutrientvalue.carb + nutritional[j].carb;
                             nutrientvalue.fat = nutrientvalue.fat + nutritional[j].fat;
@@ -680,7 +680,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
         // DO COUNT FOR ROW WIDTH
         var xPosition = 0;
         // ADD SPECIES TO MODEL
-        for(i=0;i<system.model.length;i++){
+        for(let i=0;i<system.model.length;i++){
             // FIX IF ONLY ONE ITEM IN ROW
             if(system.model[i].species.id instanceof Array){
                 for(let j=0;j<system.model[i].species.id.length;j++){
@@ -802,7 +802,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
         }
         // CLEAN ARRAY
         /!*var rows = [];
-        for(i=0;i<system.rows.length;i++){
+        for(let i=0;i<system.rows.length;i++){
             // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
             for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
                 if(system.rows[i].sequense[j] === ""){
@@ -821,10 +821,10 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
         // DO COUNT FOR ROW WIDTH
         var xPosition = 0;
         // ADD SPECIES TO MODEL
-        for(i=0;i<system.model.length;i++){
+        for(let i=0;i<system.model.length;i++){
             // FIX IF ONLY ONE ITEM IN ROW
             if(system.model[i].species.id instanceof Array){
-                for(j=0;j<system.model[i].species.id.length;j++){
+                for(let j=0;j<system.model[i].species.id.length;j++){
                     // IF SPECIES ID IS NULL
                     if(!(system.model[i].species.id[j] === "")){
                         species = {

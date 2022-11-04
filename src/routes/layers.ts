@@ -16,7 +16,7 @@ var bboxPolygon = require("@turf/bbox-polygon");
 var turf = require("@turf/helpers");
 var lineOffset = require("@turf/line-offset");
 var lineIntersect = require("@turf/line-intersect");
-var length = require("@turf/length");
+var turfLength = require("@turf/length");
 var buffer = require("@turf/buffer");
 var area = require("@turf/area");
 var along = require("@turf/along");
@@ -169,7 +169,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                 console.log(err);
                             } else {
                                 // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
-                                var presentsystem = {
+                                var presentsystem: any = {
                                     name: foundSpecies.nameCommon + " monoculture",
                                     description: "",
                                     model: [
@@ -252,8 +252,8 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
             var string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0].LinearRing[0].coordinates[0];
             var splitString = string.split(" ");
             // CREATE NEW ARRAY HERE? OR IS THIS OBSOLETE?
-            var array = [];
-            for(i=0;i<splitString.length;i++){
+            var array: any[] = [];
+            for(let i=0;i<splitString.length;i++){
                 var apples = JSON.parse("[" + splitString[i] + "]");
                 array.push(apples);
             }
@@ -302,7 +302,7 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                         console.log(err);
                                     } else {
                                         // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
-                                        var presentsystem = {
+                                        var presentsystem: any = {
                                             name: foundSpecies.nameCommon + " monoculture",
                                             description: "",
                                             model: [
@@ -335,9 +335,12 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                                             createdLayer.systems.present = createdSystem;
                                                             createdLayer.save();
                                                             // IF FOREST OR ORCHARD GO TO LAYOUT
+                                                            //@ts-ignore
                                                             if(layer.type === "forestry" || layer.type === "orchard"){
+                                                                //@ts-ignore
                                                                 res.redirect("/layers/" + layer._id + "/layout");
                                                             } else {
+                                                                //@ts-ignore
                                                                 res.redirect("/layers/" + layer._id);
                                                             }
                                                         }
@@ -354,9 +357,12 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                                     createdLayer.systems.present = createdSystem;
                                                     createdLayer.save();
                                                     // IF FOREST OR ORCHARD GO TO LAYOUT
+                                                    //@ts-ignore
                                                     if(layer.type === "forestry" || layer.type === "orchard"){
+                                                        //@ts-ignore
                                                         res.redirect("/layers/" + layer._id + "/layout");
                                                     } else {
+                                                        //@ts-ignore
                                                         res.redirect("/layers/" + layer._id);
                                                     }
                                                 }
@@ -387,12 +393,12 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
                         console.log(err);
                     } else {
                         // FIND ALL SPECIES IN SYSTEM
-                        var allSpecies = [];
-                        var dataset = [];
+                        var allSpecies: any[] = [];
+                        var dataset: any[] = [];
                         foundSystem.model.forEach(function(species){
                             allSpecies.push(species.species);
                             var count = 0;
-                            for(i=0;i<dataset.length;i++){
+                            for(let i=0;i<dataset.length;i++){
                                 if(dataset[i].row === species.position[0]){
                                     dataset[i].array.push(species);
                                     count = count + 1;
@@ -414,7 +420,7 @@ router.get("/layers/:id", middleware.isLoggedIn, function(req, res){ // MAKE LAY
                             }
                             return 0;
                         }
-                        for(i=0;i<dataset.length;i++){
+                        for(let i=0;i<dataset.length;i++){
                             dataset[i].array.sort(compare1);
                             console.log(dataset[i].array[0]);
                         }
@@ -472,9 +478,9 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
                 } else {
                     // CYCLE THROUGH PARCELS
                     var parcelRef = {};
-                    for(i=0;i<foundParcels.length;i++){
+                    for(let i=0;i<foundParcels.length;i++){
                         // CYCLE THROUGH LAYERS
-                        for(j=0;j<foundParcels[i].layers.length;j++){
+                        for(let j=0;j<foundParcels[i].layers.length;j++){
                             if(foundParcels[i].layers[j].equals(foundLayer._id)){
                                 foundParcels[i].layers.remove(foundLayer);
                                 console.log("Layer removed");
@@ -560,7 +566,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                     console.log(err);
                 } else {
                     // FIND ALL SPECIES IN SYSTEM
-                    var allSpecies = [];
+                    var allSpecies: any[] = [];
                     foundSystem.model.forEach(function(species){
                         allSpecies.push(species.species.id);
                     });
@@ -575,10 +581,10 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                         } else {
                             var polygon = JSON.parse(foundLayer.geometry);
                             // FIND SYSTEM ROWS
-                            var dataset = [];
+                            var dataset: any[] = [];
                             foundSystem.model.forEach(function(species){
                                 var count = 0;
-                                for(i=0;i<dataset.length;i++){
+                                for(let i=0;i<dataset.length;i++){
                                     if(dataset[i].row === species.position[0]){
                                         dataset[i].array.push(species);
                                         count = count + 1;
@@ -598,13 +604,13 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                 }
                                 return 0;
                             }
-                            /*for(i=0;i<dataset.length;i++){
+                            /*for(let i=0;i<dataset.length;i++){
                                 dataset[i].array.sort(compare1);
                             }*/
                             // VIZ ROWS
-                            var rowArray = [];
-                            var placesArray = [];
-                            for(i=0;i<foundLayer.rows.length;i++){
+                            var rowArray: any[] = [];
+                            var placesArray: any[] = [];
+                            for(let i=0;i<foundLayer.rows.length;i++){
                                 // ROW VIZ
                                 var rowGeometry = JSON.parse(foundLayer.rows[i].geometry);
                                 rowArray.push(rowGeometry);
@@ -622,17 +628,17 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var featurecollection = turf.featureCollection(rowArray);
                             var collection = JSON.stringify(featurecollection);
                             // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
-                            /*for(i=0;i<foundLayer.rows.length;i++){
-                                for(j=0;j<foundLayer.rows[i].system.model.length;j++){
+                            /*for(let i=0;i<foundLayer.rows.length;i++){
+                                for(let j=0;j<foundLayer.rows[i].system.model.length;j++){
                                     foundLayer.rows[i].system.populate("model." + j + ".species");
                                 }
                             }*/
-                            var treeAssetsArray = [];
+                            var treeAssetsArray: any[] = [];
                             // SET COLLECTIVE TREE ARRAY
-                            var treeMarkerArray = [];
-                            var treeAssetArray = [];
+                            var treeMarkerArray: any[] = [];
+                            var treeAssetArray: any[] = [];
                             // FIND SYSTEM ROWS
-                            for(i=0;i<foundLayer.rows.length;i++){
+                            for(let i=0;i<foundLayer.rows.length;i++){
                                 // SET ROW DATA
                                 if(foundLayer.rows[i].sequence) {
                                     var datasetRows = foundLayer.rows[i].sequence.model;
@@ -652,7 +658,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                     datasetRows.sort(compare1);
                                     // ROW LENGTH
                                     var rowLine = JSON.parse(foundLayer.rows[i].geometry);
-                                    var rowLength = length(rowLine, {units: "meters"});
+                                    var rowLength = turfLength(rowLine, {units: "meters"});
                                     console.log("Row length " + rowLength);
                                     // SYSTEM MODEL LENGTH
                                     var systemModelLength = foundLayer.rows[i].sequence.sequencelength;
@@ -675,8 +681,8 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                     treeAssetsArray.push(firstAsset);
                                     // ROW MARKERS
                                     // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                                    for (j = 0; j < systemModelCount; j++) {
-                                        for (k = 0; k < datasetRows.length; k++) {
+                                    for (let j = 0; j < systemModelCount; j++) {
+                                        for (let k = 0; k < datasetRows.length; k++) {
                                             // CREATE COORDINATES FOR THE TREE
                                             var treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), {units: "meters"});
                                             // CREATE ASSET OBJECT
@@ -697,7 +703,7 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                         }
                                     }
                                     // ADD REST
-                                    for (j = 0; j < datasetRows.length; j++) {
+                                    for (let j = 0; j < datasetRows.length; j++) {
                                         if (datasetRows[j].position < systemModelRowRest) {
                                             /*
                                                                                     treeArray.push(treeRows[treeRowCount].array[j].species);
@@ -715,10 +721,10 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                                 }
                             }
                             // DO POINT COLLECTION
-                            var treeCanopyArray = [];
-                            var vegeCanopyArray = [];
+                            var treeCanopyArray: any[] = [];
+                            var vegeCanopyArray: any[] = [];
                             if(treeAssetsArray.length < 4000){
-                                for(i=0;i<treeAssetsArray.length;i++){
+                                for(let i=0;i<treeAssetsArray.length;i++){
                                     // FIND TREE DIMENSIONS
                                     var diameter = 1;
                                     if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
@@ -741,8 +747,8 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             var vegeMarkers = turf.featureCollection(vegeCanopyArray);
                             var vegeCollection = JSON.stringify(vegeMarkers);
                             // DO TREE NAMES COLLECTION
-                            var treenames = [];
-                            for(i=0;i<treeAssetsArray.length;i++){
+                            var treenames: any[] = [];
+                            for(let i=0;i<treeAssetsArray.length;i++){
                                 var properties1 = {
                                     'description': treeAssetsArray[i].species.nameCommon.slice(0,3)
                                 };
@@ -757,9 +763,9 @@ router.get("/layers/:id/layout", middleware.isLoggedIn, function(req, res){ // M
                             // COMBINE ASSETS AND ROW BASED
 
                             // AREAS
-                            var alleyPolygonArray = [];
-                            var bedPolygonArray = [];
-                            for(i=0;i<foundLayer.areas.length;i++){
+                            var alleyPolygonArray: any[] = [];
+                            var bedPolygonArray: any[] = [];
+                            for(let i=0;i<foundLayer.areas.length;i++){
                                 // ROW VIZ
                                 var areaGeometry = JSON.parse(foundLayer.areas[i].geometry);
                                 if(foundLayer.areas[i].name.charAt(0) === "A"){
@@ -822,10 +828,10 @@ router.post("/layers/:id/split", middleware.isLoggedIn, function(req, res){
             var lineBcount = 0;
             var polyLine = polygonToLine(polygon);
             console.log("length of polyline array: " + polyLine.geometry.coordinates.length);
-            for(k=0;k<polygon.geometry.coordinates[0].length - 1;k++){
+            for(let k=0;k<polygon.geometry.coordinates[0].length - 1;k++){
                 var lineA1 = turf.lineString([polygon.geometry.coordinates[0][k],splitLine.geometry.coordinates[0]], {name: 'line A1'});
                 var lineA2 = turf.lineString([splitLine.geometry.coordinates[0],polygon.geometry.coordinates[0][k+1]], {name: 'line A2'});
-                var lineAdistance = length(lineA1, {units: 'meters'}) + length(lineA2, {units: 'meters'});
+                var lineAdistance = turfLength(lineA1, {units: 'meters'}) + turfLength(lineA2, {units: 'meters'});
                 if(k === 0){
                     lineAcount = lineAdistance;
                 }
@@ -837,7 +843,7 @@ router.post("/layers/:id/split", middleware.isLoggedIn, function(req, res){
                 // LINE B
                 var lineB1 = turf.lineString([polygon.geometry.coordinates[0][k],splitLine.geometry.coordinates[1]], {name: 'line B1'});
                 var lineB2 = turf.lineString([splitLine.geometry.coordinates[1],polygon.geometry.coordinates[0][k+1]], {name: 'line B2'});
-                var lineBdistance = length(lineB1, {units: 'meters'}) + length(lineB2, {units: 'meters'});
+                var lineBdistance = turfLength(lineB1, {units: 'meters'}) + turfLength(lineB2, {units: 'meters'});
                 if(k === 0){
                     lineBcount = lineBdistance;
                 }
@@ -901,7 +907,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
         res.redirect("back");
     } else {
         // CREATE ROW HERE?
-        var row = {
+        var row:any = {
             geometry: req.body.geometry,
             name: req.body.row.name
         };
@@ -957,7 +963,7 @@ router.get("/layers/:id/row/:pid/edit", middleware.isLoggedIn, function(req, res
 // UPDATE ROW
 router.put("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
     // CREATE ROW HERE?
-    var row = {
+    var row:any = {
         name: req.body.row.name
     };
     if(!(req.body.sequenceid === "none") && req.body.sequenceid){
