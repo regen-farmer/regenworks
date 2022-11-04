@@ -8,7 +8,7 @@ var middleware = require("../middleware"); // Will automatically require the mid
 var request = require("request"); // Making REST requests
 var turf = require("@turf/helpers");
 var centroid = require("@turf/centroid");
-var length = require("@turf/length");
+var turfLength = require("@turf/length");
 var along = require("@turf/along");
 var circle = require("@turf/circle");
 
@@ -215,11 +215,11 @@ router.get("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
             console.log(err);
         } else {
             var geometry = turf.polygon([[[0,0],[0,1],[1,0],[0,0]]]);
-            var geometryArray = [];
-            var placesArray = [];
+            var geometryArray: any[] = [];
+            var placesArray:any[] = [];
             geometryArray.push(geometry);
             if(foundParcel.layers.length > 0){
-                for(i=0;foundParcel.layers.length > i;i++){
+                for(let i=0;foundParcel.layers.length > i;i++){
                     // GET GEOMETRY
                     var polygon = JSON.parse(foundParcel.layers[i].geometry);
                     // PUSH TO ARRAY
@@ -313,7 +313,7 @@ router.get("/parcels/:id/composition", middleware.checkParcelOwnership, function
         if(err) {
             console.log(err);
         } else {
-            var layerarray = [];
+            var layerarray:any[] = [];
             foundParcel.layers.forEach(function(layer){
                 layerarray.push(layer._id);
             });
@@ -369,11 +369,11 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             var geometry = turf.polygon([[[0,0],[0,1],[1,0],[0,0]]]);
-            var geometryArray = [];
-            var placesArray = [];
+            var geometryArray:any[] = [];
+            var placesArray:any[] = [];
             geometryArray.push(geometry);
             if(foundParcel.layers.length > 0){
-                for(i=0;foundParcel.layers.length > i;i++){
+                for(let i=0;foundParcel.layers.length > i;i++){
                     // GET GEOMETRY
                     var polygon = JSON.parse(foundParcel.layers[i].geometry);
                     // PUSH TO ARRAY
@@ -395,8 +395,8 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
             var featurecollection = turf.featureCollection(geometryArray);
             var collection = JSON.stringify(featurecollection);
             // GENERATE ROWS AND TREES
-            var treeAssetsArray = [];
-            var treeMarkerArray = [];
+            var treeAssetsArray:any[] = [];
+            var treeMarkerArray:any[] = [];
             // SORT FIRST ROW ITEMS
             function compare1( a, b ) {
                 if ( a.position < b.position ){
@@ -408,9 +408,9 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
                 return 0;
             }
             // CYCLE THROUGH EACH LAYER
-            for(j=0;j<foundParcel.layers.length;j++) {
+            for(let j=0;j<foundParcel.layers.length;j++) {
                 // CYCLE THROUGH EACH ROW OF EACH LAYER
-                for (i = 0; i < foundParcel.layers[j].rows.length; i++) {
+                for (let i = 0; i < foundParcel.layers[j].rows.length; i++) {
                     // SET ROW DATA
                     if (foundParcel.layers[j].rows[i].sequence) {
                         var datasetRows = foundParcel.layers[j].rows[i].sequence.model;
@@ -430,7 +430,7 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
                         datasetRows.sort(compare1);
                         // ROW LENGTH
                         var rowLine = JSON.parse(foundParcel.layers[j].rows[i].geometry);
-                        var rowLength = length(rowLine, {units: "meters"});
+                        var rowLength = turfLength(rowLine, {units: "meters"});
                         console.log("Row length " + rowLength);
                         // SYSTEM MODEL LENGTH
                         var systemModelLength = foundParcel.layers[j].rows[i].sequence.sequencelength;
@@ -453,8 +453,8 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
                         treeAssetsArray.push(firstAsset);
                         // ROW MARKERS
                         // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                        for (l = 0; l < systemModelCount; l++) {
-                            for (k = 0; k < datasetRows.length; k++) {
+                        for (let l = 0; l < systemModelCount; l++) {
+                            for (let k = 0; k < datasetRows.length; k++) {
                                 // CREATE COORDINATES FOR THE TREE
                                 var treeMarker = along(rowLine, (l * systemModelLength + datasetRows[k].position), {units: "meters"});
                                 // CREATE ASSET OBJECT
@@ -475,7 +475,7 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
                             }
                         }
                         // ADD REST
-                        for (l = 0; l < datasetRows.length; l++) {
+                        for (let l = 0; l < datasetRows.length; l++) {
                             if (datasetRows[l].position < systemModelRowRest) {
                                 /*
                                                                         treeArray.push(treeRows[treeRowCount].array[j].species);
@@ -494,9 +494,9 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
                 }
             }
             // DO POINT COLLECTION
-            var treeCanopyArray = [];
+            var treeCanopyArray: any[] = [];
             if(treeAssetsArray.length < 4000){
-                for(i=0;i<treeAssetsArray.length;i++){
+                for(let i=0;i<treeAssetsArray.length;i++){
                     // FIND TREE DIMENSIONS
                     var diameter = 1;
                     var circle1 = circle(treeAssetsArray[i].marker.geometry.coordinates, diameter, {units: "meters"});
@@ -506,10 +506,10 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
             var treeMarkers = turf.featureCollection(treeCanopyArray);
             var treeCollection = JSON.stringify(treeMarkers);
             // GENERATE AREAS
-            var alleyPolygonArray = [];
-            var bedPolygonArray = [];
-            for(j=0;j<foundParcel.layers.length;j++){
-                for(i=0;i<foundParcel.layers[j].areas.length;i++){
+            var alleyPolygonArray:any[] = [];
+            var bedPolygonArray:any[] = [];
+            for(let j=0;j<foundParcel.layers.length;j++){
+                for(let i=0;i<foundParcel.layers[j].areas.length;i++){
                     // ROW VIZ
                     var areaGeometry = JSON.parse(foundParcel.layers[j].areas[i].geometry);
                     if(foundParcel.layers[j].areas[i].name.charAt(0) === "A"){

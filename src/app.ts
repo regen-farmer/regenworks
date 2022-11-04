@@ -38,11 +38,13 @@ var saptestRoutes = require("./routes/saptests");
 var farmflowRoutes = require("./routes/farmflows");
 var rotationRoutes = require("./routes/rotations");
 var varietyRoutes = require("./routes/varieties");
+var path = require('path');
 
 // APP SETUP
 mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
 app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
+app.set('views', path.join(__dirname, '/views'));
 app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
 app.use(flash());
