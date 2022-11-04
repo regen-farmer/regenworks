@@ -1,0 +1,93 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Logs <em>by field</em></h2>
+    </div>
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <% parcel.layers.forEach(function(layer, i){ %>
+            <% if(i === 0){ %>
+            <li class="nav-item">
+                <a class="nav-link active" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="true"><%= layer.name %></a>
+            </li>
+            <% } else { %>
+            <li class="nav-item">
+                <a class="nav-link" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="false"><%= layer.name %></a>
+            </li>
+            <% } %>
+            <% }); %>
+
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <% parcel.layers.forEach(function(layer, i){ %>
+            <% if(i === 0){ %>
+            <div class="tab-pane fade show active" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                <% } else { %>
+                <div class="tab-pane fade" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                    <% } %>
+                    <div class="card">
+
+                        <div class="card-body">
+                            <h2>Row/block notes</h2>
+                    <table class="table small">
+                        <tr class="table-secondary">
+                            <td>Row ref</td>
+                            <td>Row notes</td>
+                            <td>Add note</td>
+                        </tr>
+                        <% if(layer.rows && layer.rows.length > 0){ %>
+                        <% for(let i=0;i<layer.rows.length;i++){ %>
+                        <tr>
+                            <td><%= layer.rows[i].name %></td>
+                            <td><%= layer.rows[i].notes.length %></td>
+                            <td>
+                                <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/notes/new" class="btn btn-sm btn-outline-primary">Add note <i class="fas fa-plus"></i></a>
+<!--
+                                <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/notes" class="btn btn-sm btn-outline-primary">View notes</a>
+-->
+                            </td>
+                        </tr>
+                        <% } %>
+                        <% } else { %>
+                        <p><em>No rows/blocks on this field.</em></p>
+                        <% } %>
+                    </table>
+                        </div>
+                        <div class="card-body">
+                            <h2>Sub-area notes</h2>
+                            <table class="table small">
+                                <tr class="table-secondary">
+                                    <td>Area ref</td>
+                                    <td>Area notes</td>
+                                    <td>Add note</td>
+                                </tr>
+                                <% if(layer.areas && layer.areas.length > 0){ %>
+                                <% for(let i=0;i<layer.areas.length;i++){ %>
+                                <tr>
+                                    <td><%= layer.areas[i].name %></td>
+                                    <td><%= layer.areas[i].notes.length %></td>
+                                    <td>
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/notes/new" class="btn btn-sm btn-outline-primary">Add note <i class="fas fa-plus"></i></a>
+                                        <!--
+                                <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/notes" class="btn btn-sm btn-outline-primary">View notes</a>
+-->
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } else { %>
+                                <p><em>No sub-areas on this field.</em></p>
+                                <% } %>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+<% include ../partials/footer %>

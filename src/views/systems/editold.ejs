@@ -1,0 +1,75 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-lg-2"></div>
+    <div class="col-lg-8">
+        <h1>Update agroforestry system model "<%= system.name %>"</h1>
+        <p>This page lets you update your agroforestry system model.</p>
+        <form action="/systems/<%= system._id %>?_method=PUT" method="POST">
+            <div class="form-group">
+                <label for="system[name]">System name</label>
+                <input type="text" class="form-control" name="system[name]" value="<%= system.name %>" required>
+            </div>
+            <div class="form-group">
+                <label for="system[description]">Description</label>
+                <input type="text" class="form-control" name="system[description]" value="<%= system.description %>">
+            </div>
+            <div class="form-group">
+                <label for="system[animals][0]">Animals in system (If any)</label>
+                <select name="system[animals][0]">
+                    <option value="">none</option>
+                    <% system.animals.forEach(function(animal){ %>
+                    <option value="<%= animal._id %>" selected="selected"><%= animal.name %> (existing)</option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="form-check">
+                <% if(system.shared === true){ %>
+                <input type="checkbox" name="system[shared]" id="exampleRadios1" class="form-check-input" checked="checked" autocomplete="off">
+                <% } else { %>
+                <input type="checkbox" name="system[shared]" id="exampleRadios1" class="form-check-input" autocomplete="off">
+                <% } %>
+                <label class="form-check-label" for="exampleRadios1">
+                    Share this system with other farmers
+                </label>
+            </div>
+            <h3>System model</h3>
+                <div class="row">
+                    <% for(let j=0;j<system.rows.length;j++){ %>
+                    <div class="col-lg-<%= Math.floor(12/system.rows.length) %>">
+                        <h5>Row <%= j + 1 %></h5>
+                        <div class="form-group">
+                            <label for="system[model][<%= j %>][width]">Row width</label>
+                            <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][width]" placeholder="Width in m" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="system[model][<%= j %>][distance]">Distance to next row</label>
+                            <input type="number" step=".01" class="form-control" name="system[model][<%= j %>][distance]" placeholder="Distance in m" required>
+                        </div>
+                        <% for(let i=0;i<(12/0.5);i++){ %>
+                        <div class="card">
+                            <div class="card-body">
+                                <select name="system[model][<%= j %>][species][id]" style="width:100%;max-width:100%;">
+                                    <option value="">none</option>
+                                    <% species.forEach(function(species){ %>
+                                    <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                                    <% }); %>
+                                </select>
+                                <input type="hidden" name="system[model][<%= j %>][species][y]" value="<%= 12 - i*0.5 %>">
+                                <p>Row position: <%= 12 - i*0.5 %> m</p>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+                    <% } %>
+                </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-lg mt-3">Update system</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-2"></div>
+</div>
+
+<% include ../partials/footer %>

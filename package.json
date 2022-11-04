@@ -2,7 +2,7 @@
   "name": "grownlocal",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "dist/app.js",
   "dependencies": {
     "@turf/bearing": "^6.0.1",
     "@turf/boolean-point-on-line": "^6.2.0",
@@ -33,13 +33,21 @@
     "passport-local-mongoose": "^5.0.0",
     "pdfkit": "^0.11.0",
     "request": "^2.88.2",
+    "save-dev": "^0.0.1-security",
     "winston": "^3.1.0",
     "xml2js": "^0.4.23"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "build": "tsc",
+    "copy:assets": "cpx 'src/views/**' 'dist/views' && cpx 'src/public/**' 'dist/public'",
+    "start": "npm run build && npm run copy:assets && node dist/app.js"
   },
   "author": "grownlocal",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "cpx": "^1.5.0",
+    "typescript": "^4.8.4"
+  }
 }
