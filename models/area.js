@@ -1,40 +1,40 @@
-const mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
 // AREA SCHEMA SETUP
-const areaSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-  geometry: String,
-  size: Number,
-  rotation: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Rotation',
-  },
-  owner: {
-    id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+var areaSchema = new mongoose.Schema({
+    name: String,
+    description: String,
+    geometry: String,
+    size: Number,
+    rotation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Rotation"
     },
-    username: String,
-  },
-  activities: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Activity',
+    owner: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        username: String
     },
-  ],
-  farmflows: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Farmflow',
-    },
-  ],
-  notes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Note',
-    },
-  ],
+    activities: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Activity"
+        }
+    ],
+    farmflows: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Farmflow"
+        }
+    ],
+    notes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Note"
+        }
+    ]
 });
 
-module.exports = mongoose.model('Area', areaSchema);
+module.exports = mongoose.model("Area", areaSchema);
