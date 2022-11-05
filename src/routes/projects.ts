@@ -1,3 +1,4 @@
+// <<<<<<< HEAD
 import express from 'express';
 import unique from 'array-unique';
 import {
@@ -19,6 +20,45 @@ import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
 import { IUserSchema } from '../models/user';
+// =======
+// var express = require("express");
+// var router = express.Router();
+// var unique = require("array-unique");
+// import Parcel from "../models/parcel";
+// import Project from "../models/project";
+// import Practice from "../models/practice";
+// import Layer from "../models/layer";
+// import System from "../models/system";
+// import Budget from "../models/budget";
+// import Activity from "../models/activity";
+// import Species from "../models/species";
+// import Asset from "../models/asset";
+// import Posting from "../models/posting";
+// import Sequence from "../models/sequence";
+// import Rotation from "../models/rotation";
+// import Row from "../models/row";
+// import Area from "../models/area";
+// var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
+// var middleware = require("../middleware");
+// var gisObj = require("../middleware/gis");
+// var dyFiMo = require("../middleware/financials")
+// var bbox = require("@turf/bbox");
+// var bboxPolygon = require("@turf/bbox-polygon");
+// var turf = require("@turf/helpers");
+// var lineOffset = require("@turf/line-offset");
+// var lineIntersect = require("@turf/line-intersect");
+// var turfLength = require("@turf/length");
+// var buffer = require("@turf/buffer");
+// var rhumbBearing = require("@turf/rhumb-bearing");
+// var transformScale = require("@turf/transform-scale");
+// var transformRotate = require("@turf/transform-rotate");
+// var lineSplit = require("@turf/line-split");
+// var along = require("@turf/along");
+// var circle = require("@turf/circle");
+// var area = require("@turf/area");
+// var polygonToLine = require("@turf/polygon-to-line");
+// const PDFDocument = require("pdfkit");
+// >>>>>>> ace12b8 (activity params in AF system model, created middleware for dynamic financial modelling, establishment budget and cash-flow budget added to new middleware)
 
 // NODE GEOCODER CODE
 
@@ -1477,40 +1517,40 @@ router.put(
 
 // ALIGNMENT NEW ROUTE
 router.get(
-    '/projects/:id/alignmentrow/new',
-    middleware.isLoggedIn,
-    async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-      // FIND PROJECT
-      try {
-        const foundProject = await Project.findById(req.params.id)
-            .populate('layer')
-            .exec();
-        if (foundProject) {
-          // FIND MY SYSTEMS
-          try {
-            const foundSequences = await Sequence.find(
-                { 'owner.id': req.user?._id },
-            );
-            res.render('projects/alignmentrow', {
-              project: foundProject,
-              sequences: foundSequences,
-            });
-          } catch (err) {
-            console.log(err);
-          }
+  '/projects/:id/alignmentrow/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    // FIND PROJECT
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate('layer')
+        .exec();
+      if (foundProject) {
+        // FIND MY SYSTEMS
+        try {
+          const foundSequences = await Sequence.find(
+            { 'owner.id': req.user?._id },
+          );
+          res.render('projects/alignmentrow', {
+            project: foundProject,
+            sequences: foundSequences,
+          });
+        } catch (err) {
+          console.log(err);
         }
-      } catch (err) {
-        console.log(err);
       }
-    },
+    } catch (err) {
+      console.log(err);
+    }
+  },
 );
 
 // UPDATE PROJECT ALIGNMENT
 router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
-        req.params.id,
-        {alignment: "bearing", bearingline: req.body.geometry},
+      req.params.id,
+      { alignment: 'bearing', bearingline: req.body.geometry },
     );
     // req.flash("success", "Successfully added service");
     res.redirect(`/projects/${req.params.id}/layout`);

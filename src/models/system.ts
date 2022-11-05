@@ -22,7 +22,15 @@ export interface ISystemSchema extends Document {
         {
             species: ISpeciesSchema,
             position: number[],
-            width: number
+            width: number,
+            activities: [
+              {
+                  activityType: string,
+                  subtype: string,
+                  name: string
+              }
+          ],
+
         }
     ],
     animals: [
