@@ -21,6 +21,13 @@ var systemSchema = new mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Species"
             },
+            activities: [
+                {
+                    activityType: String,
+                    subtype: String,
+                    name: String
+                }
+            ],
             position: [Number],
             width: Number
         }
