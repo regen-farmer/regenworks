@@ -8,7 +8,7 @@ import Area from "../models/area";
 import Species from "../models/species";
 var middleware = require("../middleware");
 var unique = require("array-unique");
-var turfLength = require("@turf/length");
+import {length as turfLength, helpers as turf, along} from "@turf/turf"
 
 function compare1( a, b ) {
     if ( a.position[1] < b.position[1] ){
