@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // NOTE SCHEMA SETUP
 var noteSchema = new mongoose.Schema({
@@ -13,4 +13,4 @@ var noteSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Note", noteSchema);
+export default mongoose.model("Note", noteSchema);

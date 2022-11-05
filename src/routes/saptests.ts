@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var Parcel = require("../models/parcel");
-var Layer = require("../models/layer");
-var Saptest = require("../models/saptest");
+import Parcel from "../models/parcel";
+import Layer from "../models/layer";
+import Saptest from "../models/saptest";
 var middleware = require("../middleware");
 
 

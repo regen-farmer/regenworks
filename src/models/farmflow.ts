@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // FLOW SCHEMA SETUP
 var farmflowSchema = new mongoose.Schema({
@@ -16,4 +16,4 @@ var farmflowSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Farmflow", farmflowSchema);
+export default mongoose.model("Farmflow", farmflowSchema);

@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // AREA SCHEMA SETUP
 var areaSchema = new mongoose.Schema({
@@ -37,4 +37,4 @@ var areaSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model("Area", areaSchema);
+export default mongoose.model("Area", areaSchema);

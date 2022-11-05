@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
-var Practice = require("../models/practice");
-var Parcel = require("../models/parcel");
+import Practice from "../models/practice";
+import Parcel from "../models/parcel";
 var middleware = require("../middleware");
 
 // PRACTICE INDEX ROUTE

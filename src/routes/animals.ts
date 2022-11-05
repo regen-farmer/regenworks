@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-var Animal = require("../models/animal");
+import Animal from "../models/animal";
 var middleware = require("../middleware");
 
 // ANIMAL INDEX

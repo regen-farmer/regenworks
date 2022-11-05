@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
-var Well = require("../models/well");
-var Parcel = require("../models/parcel");
+import Well from "../models/well";
+import Parcel from "../models/parcel";
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
-var Species = require("../models/species");
-var Animal = require("../models/animal");
+import Species from "../models/species";
+import Animal from "../models/animal";
 
 // NESTED PARCEL WELL NEW ROUTE
 router.get("/parcels/:id/wells/new", middleware.isLoggedIn, function(req, res){

@@ -9,9 +9,9 @@ var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT P
 var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
-var Parcel = require("./models/parcel");
+import Parcel from "./models/parcel";
 //var seedDB = require("./seeds");
-var User = require("./models/user");
+import User from "./models/user";
 
 // REQUIRE ROUTE FILES
 var parcelRoutes = require("./routes/parcels");

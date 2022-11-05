@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var Asset = require("../models/asset");
-var Layer = require("../models/layer");
-var Project = require("../models/project");
-var Species = require("../models/species");
+import Asset from "../models/asset";
+import Layer from "../models/layer";
+import Project from "../models/project";
+import Species from "../models/species";
 var middleware = require("../middleware");
 
 // ASSET INDEX ROUTE

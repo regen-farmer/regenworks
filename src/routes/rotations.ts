@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
-var Rotation = require("../models/rotation");
-var Layer = require("../models/layer");
-var Project = require("../models/project");
-var Species = require("../models/species");
+import Rotation from "../models/rotation";
+import Layer from "../models/layer";
+import Project from "../models/project";
+import Species from "../models/species";
 var middleware = require("../middleware");
-var Sequence = require("../models/sequence");
+import Sequence from "../models/sequence";
 
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get("/layers/:id/rotations/steps", middleware.isLoggedIn, function(req, res){

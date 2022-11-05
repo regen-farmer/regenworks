@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // IP RATE LIMITER SCHEMA SETUP
 var rateLimiterIPSchema = new mongoose.Schema({
@@ -21,4 +21,4 @@ var rateLimiterIPSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("RateLimiterIP", rateLimiterIPSchema);
+export default mongoose.model("RateLimiterIP", rateLimiterIPSchema);

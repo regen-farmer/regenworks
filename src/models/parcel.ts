@@ -1,5 +1,5 @@
-var mongoose = require("mongoose");
-var GeoJSON = require("mongoose-geojson-schema");
+import mongoose from "mongoose";
+// var GeoJSON = require("mongoose-geojson-schema");
 
 // PARCEL SCHEMA SETUP
 var parcelSchema = new mongoose.Schema({
@@ -79,4 +79,4 @@ var parcelSchema = new mongoose.Schema({
     measurement: String
 });
 
-module.exports = mongoose.model("Parcel", parcelSchema);
+export default mongoose.model("Parcel", parcelSchema);

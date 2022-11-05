@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SPECIES SCHEMA SETUP
 var speciesSchema = new mongoose.Schema({
@@ -56,4 +56,4 @@ var speciesSchema = new mongoose.Schema({
     price: Number
 });
 
-module.exports = mongoose.model("Species", speciesSchema);
+export default mongoose.model("Species", speciesSchema);

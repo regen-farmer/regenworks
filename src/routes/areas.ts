@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var Project = require("../models/project");
-var Layer = require("../models/layer");
-var Area = require("../models/area");
+import Project from "../models/project";
+import Layer from "../models/layer";
+import Area from "../models/area";
 var middleware = require("../middleware");
 
 // NEW AREA ON PROJECT

@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SOIL TEST SCHEMA SETUP
 var soiltestSchema = new mongoose.Schema({
@@ -42,4 +42,4 @@ var soiltestSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Soiltest", soiltestSchema);
+export default mongoose.model("Soiltest", soiltestSchema);

@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
-var Parcel = require("../models/parcel");
-var Activity = require("../models/activity");
-var Layer = require("../models/layer");
-var Project = require("../models/project");
-var Row = require("../models/row");
-var Area = require("../models/area");
+import Parcel from "../models/parcel";
+import Activity from "../models/activity";
+import Layer from "../models/layer";
+import Project from "../models/project";
+import Row from "../models/row";
+import Area from "../models/area";
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 

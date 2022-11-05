@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // PROJECT SCHEMA SETUP
 var projectSchema = new mongoose.Schema({
@@ -72,4 +72,4 @@ var projectSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model("Project", projectSchema);
+export default mongoose.model("Project", projectSchema);

@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var Systemflow = require("../models/systemflow");
-var System = require("../models/system");
-var Species = require("../models/species");
+import Systemflow from "../models/systemflow";
+import System from "../models/system";
+import Species from "../models/species";
 var middleware = require("../middleware");
 
 // SYSTEMFLOW INDEX ROUTE
