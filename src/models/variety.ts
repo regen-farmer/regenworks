@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // VARIETY SCHEMA SETUP
 var varietySchema = new mongoose.Schema({
@@ -31,4 +31,4 @@ var varietySchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model("Variety", varietySchema);
+export default mongoose.model("Variety", varietySchema);

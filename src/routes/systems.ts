@@ -1,12 +1,12 @@
 var express = require("express");
 var router = express.Router();
 var unique = require("array-unique");
-var System = require("../models/system");
-var Layer = require("../models/layer");
-var Species = require("../models/species");
-var Parcel = require("../models/parcel");
-var Animal = require("../models/animal");
-var Project = require("../models/project");
+import System from "../models/system";
+import Layer from "../models/layer";
+import Species from "../models/species";
+import Parcel from "../models/parcel";
+import Animal from "../models/animal";
+import Project from "../models/project";
 var middleware = require("../middleware");
 
 // SYSTEM INDEX

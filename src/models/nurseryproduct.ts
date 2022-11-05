@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // NURSERY PRODUCT SCHEMA SETUP
 var nurseryProductSchema = new mongoose.Schema({
@@ -36,4 +36,4 @@ var nurseryProductSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Nurseryproduct", nurseryProductSchema);
+export default mongoose.model("Nurseryproduct", nurseryProductSchema);

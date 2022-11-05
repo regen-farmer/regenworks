@@ -1,16 +1,16 @@
 var express = require("express");
 var router = express.Router();
 var passport = require("passport");
-var User = require("../models/user");
-var Parcel = require("../models/parcel");
-var Activity = require("../models/activity");
-var rateLimiterIP = require("../models/rateLimiterIP");
+import User from "../models/user";
+import Parcel from "../models/parcel";
+import Activity from "../models/activity";
+import rateLimiterIP from "../models/rateLimiterIP";
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 var nodemailer = require("nodemailer"); // used to send emails from node.js - for example via gmail.
 var crypto:Crypto = require("crypto");
 var logger = require("../middleware/logger");
-var Log = require("../models/log");
+import Log from "../models/log";
 
 // ROOT ROUTE
 router.get("/", function(req, res){

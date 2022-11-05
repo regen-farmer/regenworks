@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // ANIMAL SCHEMA SETUP
 var animalSchema = new mongoose.Schema({
@@ -8,4 +8,4 @@ var animalSchema = new mongoose.Schema({
     species: String
 });
 
-module.exports = mongoose.model("Animal", animalSchema);
+export default mongoose.model("Animal", animalSchema);

@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var Posting = require("../models/posting");
-var Budget = require("../models/budget");
-var Parcel = require("../models/parcel");
-var Layer = require("../models/layer");
+import Posting from "../models/posting";
+import Budget from "../models/budget";
+import Parcel from "../models/parcel";
+import Layer from "../models/layer";
 var middleware = require("../middleware");
 
 // POSTING EDIT ROUTE

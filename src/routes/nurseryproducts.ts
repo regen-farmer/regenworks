@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var NurseryProduct = require("../models/nurseryproduct");
-var Nursery = require("../models/nursery");
-var Species = require("../models/species");
+import NurseryProduct from "../models/nurseryproduct";
+import Nursery from "../models/nursery";
+import Species from "../models/species";
 var middleware = require("../middleware");
 
 // ADMIN ALL VARIETIES

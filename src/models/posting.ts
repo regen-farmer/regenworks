@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // POSTING SCHEMA SETUP
 var postingSchema = new mongoose.Schema({
@@ -11,4 +11,4 @@ var postingSchema = new mongoose.Schema({
     date: Number
 });
 
-module.exports = mongoose.model("Posting", postingSchema);
+export default mongoose.model("Posting", postingSchema);

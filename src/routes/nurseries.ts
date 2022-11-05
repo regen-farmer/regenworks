@@ -1,8 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var Nursery = require("../models/nursery");
-var NurseryProduct = require("../models/nurseryproduct");
-var User = require("../models/user");
+import Nursery from "../models/nursery";
+import NurseryProduct from "../models/nurseryproduct";
+import User from "../models/user";
 var middleware = require("../middleware");
 
 // NODE GEOCODER CODE

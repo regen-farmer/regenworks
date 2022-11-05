@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
-var Variety = require("../models/variety");
-var Species = require("../models/species");
+import Variety from "../models/variety";
+import Species from "../models/species";
 var middleware = require("../middleware");
 
 // VARIETY INDEX

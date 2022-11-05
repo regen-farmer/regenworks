@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var Parcel = require("../models/parcel");
-var Note = require("../models/note");
-var Row = require("../models/row");
-var Area = require("../models/area");
+import Parcel from "../models/parcel";
+import Note from "../models/note";
+import Row from "../models/row";
+import Area from "../models/area";
 var middleware = require("../middleware");
 
 

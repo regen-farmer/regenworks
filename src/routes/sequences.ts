@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var Sequence = require("../models/sequence");
-var Layer = require("../models/layer");
-var Project = require("../models/project");
-var Species = require("../models/species");
+import Sequence from "../models/sequence";
+import Layer from "../models/layer";
+import Project from "../models/project";
+import Species from "../models/species";
 var middleware = require("../middleware");
 
 

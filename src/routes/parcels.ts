@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var User = require("../models/user");
-var Parcel = require("../models/parcel");
-var Practice = require("../models/practice");
-var Layer = require("../models/layer");
+import User from "../models/user";
+import Parcel from "../models/parcel";
+import Practice from "../models/practice";
+import Layer from "../models/layer";
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var request = require("request"); // Making REST requests
 var turf = require("@turf/helpers");

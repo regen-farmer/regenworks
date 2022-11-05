@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // BUDGET SCHEMA SETUP
 var budgetSchema = new mongoose.Schema({
@@ -19,4 +19,4 @@ var budgetSchema = new mongoose.Schema({
     name: String
 });
 
-module.exports = mongoose.model("Budget", budgetSchema);
+export default mongoose.model("Budget", budgetSchema);

@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // ROTATION SCHEMA SETUP
 var rotationSchema = new mongoose.Schema({
@@ -34,4 +34,4 @@ var rotationSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Rotation", rotationSchema);
+export default mongoose.model("Rotation", rotationSchema);

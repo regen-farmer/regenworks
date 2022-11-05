@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // LOG SCHEMA SETUP
 var logSchema = new mongoose.Schema({
@@ -7,4 +7,4 @@ var logSchema = new mongoose.Schema({
     timestamp: Number
 });
 
-module.exports = mongoose.model("Log", logSchema);
+export default mongoose.model("Log", logSchema);
