@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // ROW SCHEMA SETUP
 var rowSchema = new mongoose.Schema({
@@ -34,4 +34,4 @@ var rowSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model("Row", rowSchema);
+export default mongoose.model("Row", rowSchema);

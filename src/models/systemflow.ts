@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SYSTEM FLOW SCHEMA SETUP
 var systemflowSchema = new mongoose.Schema({
@@ -23,4 +23,4 @@ var systemflowSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Systemflow", systemflowSchema);
+export default mongoose.model("Systemflow", systemflowSchema);

@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // ASSET SCHEMA SETUP
 var assetSchema = new mongoose.Schema({
@@ -24,4 +24,4 @@ var assetSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Asset", assetSchema);
+export default mongoose.model("Asset", assetSchema);

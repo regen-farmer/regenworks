@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // ACTIVITY SCHEMA SETUP
 var activitySchema = new mongoose.Schema({
@@ -34,4 +34,4 @@ var activitySchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Activity", activitySchema);
+export default mongoose.model("Activity", activitySchema);

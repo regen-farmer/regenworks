@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-var Flow = require("../models/flow");
-var Species = require("../models/species");
-var Parcel = require("../models/parcel");
-var System = require("../models/system");
+import Flow from "../models/flow";
+import Species from "../models/species";
+import Parcel from "../models/parcel";
+import System from "../models/system";
 var middleware = require("../middleware");
 
 // PARCEL FLOWS

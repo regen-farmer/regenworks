@@ -1,5 +1,5 @@
-var mongoose = require("mongoose");
-var GeoJSON = require("mongoose-geojson-schema");
+import mongoose from "mongoose";
+// var GeoJSON = require("mongoose-geojson-schema");
 
 // LAYER SCHEMA SETUP
 var layerSchema = new mongoose.Schema({
@@ -111,4 +111,4 @@ var layerSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Layer", layerSchema);
+export default mongoose.model("Layer", layerSchema);

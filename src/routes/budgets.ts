@@ -1,11 +1,11 @@
 var express = require("express");
 var router = express.Router();
 var unique = require("array-unique");
-var Budget = require("../models/budget");
-var Project = require("../models/project");
-var System = require("../models/system");
-var posting: any = require("../models/posting");
-var Parcel = require("../models/parcel");
+import Budget from "../models/budget";
+import Project from "../models/project";
+import System from "../models/system";
+import Posting from "../models/posting";
+import Parcel from "../models/parcel";
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
 var area = require("@turf/area");

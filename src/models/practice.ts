@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // PRACTICE SCHEMA SETUP
 var practicesSchema = new mongoose.Schema({
@@ -14,4 +14,4 @@ var practicesSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Practice", practicesSchema);
+export default mongoose.model("Practice", practicesSchema);

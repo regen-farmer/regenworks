@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SYSTEM SCHEMA SETUP
 var systemSchema = new mongoose.Schema({
@@ -62,4 +62,4 @@ var systemSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model("System", systemSchema);
+export default mongoose.model("System", systemSchema);

@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
-var Species = require("../models/species");
-var Flow = require("../models/flow");
+import Species from "../models/species";
+import Flow from "../models/flow";
 var middleware = require("../middleware");
 
 // SPECIES INDEX

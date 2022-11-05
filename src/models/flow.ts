@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // FLOW SCHEMA SETUP
 var flowSchema = new mongoose.Schema({
@@ -10,4 +10,4 @@ var flowSchema = new mongoose.Schema({
     source: String
 });
 
-module.exports = mongoose.model("Flow", flowSchema);
+export default mongoose.model("Flow", flowSchema);

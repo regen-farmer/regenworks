@@ -1,5 +1,5 @@
-var Parcel = require("../models/parcel");
-var User = require("../models/user");
+import Parcel from "../models/parcel";
+import User from "../models/user";
 
 // Define middleware object
 var middlewareObj: any = {};

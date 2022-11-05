@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SAP TEST SCHEMA SETUP
 var saptestSchema = new mongoose.Schema({
@@ -29,4 +29,4 @@ var saptestSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Saptest", saptestSchema);
+export default mongoose.model("Saptest", saptestSchema);

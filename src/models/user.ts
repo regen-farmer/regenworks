@@ -1,5 +1,5 @@
-var mongoose = require("mongoose");
-var passportLocalMongoose = require("passport-local-mongoose"); // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
+import mongoose from "mongoose";
+import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
 
 var UserSchema = new mongoose.Schema({
     username: {type: String, unique: true, require: true},
@@ -35,4 +35,4 @@ var UserSchema = new mongoose.Schema({
 
 UserSchema.plugin(passportLocalMongoose);
 
-module.exports = mongoose.model("User", UserSchema);
+export default mongoose.model("User", UserSchema);

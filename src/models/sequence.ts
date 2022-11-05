@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // SEQUENCE SCHEMA SETUP
 var sequenceSchema = new mongoose.Schema({
@@ -23,4 +23,4 @@ var sequenceSchema = new mongoose.Schema({
     sequencelength: Number
 });
 
-module.exports = mongoose.model("Sequence", sequenceSchema);
+export default mongoose.model("Sequence", sequenceSchema);

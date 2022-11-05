@@ -1,4 +1,4 @@
-var mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // WELL SCHEMA SETUP
 var wellSchema = new mongoose.Schema({
@@ -14,4 +14,4 @@ var wellSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Well", wellSchema);
+export default mongoose.model("Well", wellSchema);
