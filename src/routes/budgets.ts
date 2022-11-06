@@ -8,18 +8,9 @@ import Posting from "../models/posting";
 import Parcel from "../models/parcel";
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
-var area = require("@turf/area");
-var bbox = require("@turf/bbox");
-var bboxPolygon = require("@turf/bbox-polygon");
-var turf = require("@turf/helpers");
-var lineIntersect = require("@turf/line-intersect");
-var turfLength = require("@turf/length");
-var buffer = require("@turf/buffer");
-var rhumbBearing = require("@turf/rhumb-bearing");
-var transformScale = require("@turf/transform-scale");
-var transformRotate = require("@turf/transform-rotate");
-var lineSplit = require("@turf/line-split");
-var along = require("@turf/along");
+
+import {area} from "@turf/turf"
+
 
 // BUDGET INDEX ROUTE
 

@@ -1,23 +1,21 @@
 var unique = require("array-unique");
-var bbox = require("@turf/bbox");
-var bboxPolygon = require("@turf/bbox-polygon");
-var turf = require("@turf/helpers");
-var lineIntersect = require("@turf/line-intersect");
-var turfLength = require("@turf/length");
-var buffer = require("@turf/buffer");
-var midpoint = require("@turf/midpoint");
-var rhumbBearing = require("@turf/rhumb-bearing");
-var rhumbDistance = require("@turf/rhumb-distance");
-var transformScale = require("@turf/transform-scale");
-var transformRotate = require("@turf/transform-rotate");
-var transformTranslate = require("@turf/transform-translate");
-var lineSplit = require("@turf/line-split");
-var along = require("@turf/along");
-var circle = require("@turf/circle");
-var area = require("@turf/area");
-var polygonToLine = require("@turf/polygon-to-line");
-var pointToLineDistance = require("@turf/point-to-line-distance");
-var booleanPointOnLine = require("@turf/boolean-point-on-line");
+
+import {bbox,
+    bboxPolygon,
+    helpers as turf,
+    lineIntersect,
+    length as turfLength,
+    buffer,
+    midpoint,
+    rhumbBearing,
+    transformScale,
+    transformRotate,
+    transformTranslate,
+    lineSplit,
+    along,
+    circle,
+    area,
+    polygonToLine} from "@turf/turf"
 
 // DEFINE GIS OBJECT
 var gisObj: any = {};

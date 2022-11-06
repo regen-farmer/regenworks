@@ -6,11 +6,8 @@ import Practice from "../models/practice";
 import Layer from "../models/layer";
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
 var request = require("request"); // Making REST requests
-var turf = require("@turf/helpers");
-var centroid = require("@turf/centroid");
-var turfLength = require("@turf/length");
-var along = require("@turf/along");
-var circle = require("@turf/circle");
+
+import {centroid, helpers as turf, length as turfLength, circle, along} from "@turf/turf"
 
 // NODE GEOCODER CODE
 var NodeGeocoder = require("node-geocoder");
