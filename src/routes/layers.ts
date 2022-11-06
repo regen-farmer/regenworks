@@ -10,19 +10,9 @@ import Row from "../models/row";
 var middleware = require("../middleware");
 var logger = require("../middleware/logger");
 var unique = require("array-unique");
-var centroid = require("@turf/centroid");
-var bbox = require("@turf/bbox");
-var bboxPolygon = require("@turf/bbox-polygon");
-var turf = require("@turf/helpers");
-var lineOffset = require("@turf/line-offset");
-var lineIntersect = require("@turf/line-intersect");
-var turfLength = require("@turf/length");
-var buffer = require("@turf/buffer");
-var area = require("@turf/area");
-var along = require("@turf/along");
-var circle = require("@turf/circle");
-var polygonToLine = require("@turf/polygon-to-line");
-var pointToLineDistance = require("@turf/point-to-line-distance");
+
+import {centroid, helpers as turf, length as turfLength,along,  circle, area, polygonToLine} from "@turf/turf"
+
 // SETUP MULTER
 var multer = require("multer");
 var storage = multer.memoryStorage();
@@ -827,6 +817,7 @@ router.post("/layers/:id/split", middleware.isLoggedIn, function(req, res){
             var lineB = 0;
             var lineBcount = 0;
             var polyLine = polygonToLine(polygon);
+            // @ts-ignore
             console.log("length of polyline array: " + polyLine.geometry.coordinates.length);
             for(let k=0;k<polygon.geometry.coordinates[0].length - 1;k++){
                 var lineA1 = turf.lineString([polygon.geometry.coordinates[0][k],splitLine.geometry.coordinates[0]], {name: 'line A1'});

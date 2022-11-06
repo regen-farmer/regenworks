@@ -15,24 +15,10 @@ import Sequence from "../models/sequence";
 import Rotation from "../models/rotation";
 import Row from "../models/row";
 import Area from "../models/area";
-var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
+// var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
-var bbox = require("@turf/bbox");
-var bboxPolygon = require("@turf/bbox-polygon");
-var turf = require("@turf/helpers");
-var lineOffset = require("@turf/line-offset");
-var lineIntersect = require("@turf/line-intersect");
-var turfLength = require("@turf/length");
-var buffer = require("@turf/buffer");
-var rhumbBearing = require("@turf/rhumb-bearing");
-var transformScale = require("@turf/transform-scale");
-var transformRotate = require("@turf/transform-rotate");
-var lineSplit = require("@turf/line-split");
-var along = require("@turf/along");
-var circle = require("@turf/circle");
-var area = require("@turf/area");
-var polygonToLine = require("@turf/polygon-to-line");
+import {helpers as turf, length as turfLength, circle, area} from "@turf/turf"
 const PDFDocument = require("pdfkit");
 
 // NODE GEOCODER CODE

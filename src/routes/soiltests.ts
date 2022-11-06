@@ -4,8 +4,7 @@ import Parcel from "../models/parcel";
 import Layer from "../models/layer";
 import Soiltest from "../models/soiltest";
 var middleware = require("../middleware");
-var turf = require("@turf/helpers");
-var centroid = require("@turf/centroid");
+import {centroid, helpers as turf} from "@turf/turf";
 
 
 // PARCEL LAYER SOIL TEST NEW
