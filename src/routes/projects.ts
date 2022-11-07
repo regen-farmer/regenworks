@@ -876,37 +876,38 @@ router.put("/projects/:id/retire", middleware.isLoggedIn, function(req, res){
 });
 
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
-router.put("/projects/:id/complete", middleware.isLoggedIn, function(req, res){
-    Project.findByIdAndUpdate(req.params.id, { $set: { status: "Completed"} }, function(err, completedProject){
-        if(err){
+router.put("/projects/:id/complete", middleware.isLoggedIn, async function(req, res){
+    try {
+        let completedProject = await Project.findByIdAndUpdate(req.params.id, { $set: { status: "Completed"} });
+
+        // FIND AREA, UPDATE PRESENT SYSTEM AND PUSH OLD PRESENT SYSTEM TO PAST SYSTEMS
+        try {
+            let projectArea = await Layer.findById(completedProject.layer);
+             
+            projectArea.systems.past.push(projectArea.systems.present);
+            projectArea.systems.present = completedProject.system;
+            // CLEAR FUTURE DRAFTS?
+            // ADD ASSETS AND ROWS TO LAYER
+            if(completedProject.rows && completedProject.rows.length > 0){
+                projectArea.rows = completedProject.rows;
+            }
+            if(completedProject.assets && completedProject.assets.length > 0){
+                projectArea.assets = completedProject.assets;
+            }
+            if(completedProject.areas && completedProject.areas.length > 0){
+                projectArea.areas = completedProject.areas;
+            }
+            // SAVE AREA
+            projectArea.save();
+            // REDIRECT
+            res.redirect("/projects/" + req.params.id);
+
+        } catch (err){
             console.log(err);
-        } else {
-            // FIND AREA, UPDATE PRESENT SYSTEM AND PUSH OLD PRESENT SYSTEM TO PAST SYSTEMS
-            Layer.findById(completedProject.layer, function(err, projectArea){
-                if(err){
-                    console.log(err);
-                } else {
-                    projectArea.systems.past.push(projectArea.systems.present);
-                    projectArea.systems.present = completedProject.system;
-                    // CLEAR FUTURE DRAFTS?
-                    // ADD ASSETS AND ROWS TO LAYER
-                    if(completedProject.rows && completedProject.rows.length > 0){
-                        projectArea.rows = completedProject.rows;
-                    }
-                    if(completedProject.assets && completedProject.assets.length > 0){
-                        projectArea.assets = completedProject.assets;
-                    }
-                    if(completedProject.areas && completedProject.areas.length > 0){
-                        projectArea.areas = completedProject.areas;
-                    }
-                    // SAVE AREA
-                    projectArea.save();
-                    // REDIRECT
-                    res.redirect("/projects/" + req.params.id);
-                }
-            });
-        }
-    });
+        }  
+    } catch (err){
+        console.log(err);
+    }
 });
 
 // ADD PROJECT EDGE SYSTEM NEW
@@ -935,22 +936,24 @@ router.get("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, r
 });
 
 // ADD PROJECT EDGE SYSTEM UPDATE
-router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, res){
+router.post("/projects/:id/addedgesystem", middleware.isLoggedIn, async function(req, res){
+
     // FIND SYSTEM
-    System.findById(req.body.systemid, function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND PROJECT
-            Project.findByIdAndUpdate(req.params.id, { $set: { edgesystem: foundSystem} }, function(err, foundProject){
-                if(err){
-                    console.log(err);
-                } else {
-                    res.redirect("/projects/" + foundProject._id);
-                }
-            });
+    try {
+        let foundSystem = await System.findById(req.body.systemid);
+    
+        // FIND PROJECT
+        try {
+            let foundProject = await Project.findByIdAndUpdate(req.params.id, { $set: { edgesystem: foundSystem} });
+            res.redirect("/projects/" + foundProject._id);
         }
-    });
+        catch (err){
+            console.log(err);
+        }
+    }
+    catch (err){
+        console.log(err);
+    }
 });
 
 // PROJECT ASSET CREATION
@@ -961,7 +964,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
             console.log(err);
         } else {
             // FIND SYSTEM
-            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
+            System.findById(foundProject.system).populate("model.species").exec(async function(err, foundSystem){
                 if(err){
                     console.log(err);
                 } else {
@@ -1316,37 +1319,41 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
                                         res.redirect("/projects/" + req.params.id);
                     */
                     // CREATE ASSETS
-                    Asset.insertMany(treeAssetArray, function(err, createdAssets){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(createdAssets.length);
-                            Project.findByIdAndUpdate(foundProject._id, { $push: { assets: { $each: createdAssets } } }, function(err, updatedProject){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
-                                    Row.find({ _id : { $in : updatedProject.rows } }, function(err, foundRows){
-                                        if(err){
-                                            console.log(err);
-                                        } else {
-                                            for(let i=0;i<createdAssets.length;i++){
-                                                var ref = treeAssetRowRef[i];
-                                                console.log("ref " + ref);
-                                                foundRows[ref].assets.push(createdAssets[i]);
-                                            }
-                                            // SAVE ROWS INDIVIDUALLY
-                                            for(let i=0;i<foundRows.length;i++){
-                                                foundRows[i].save();
-                                            }
-                                            console.log("Assets added to project");
-                                            res.redirect("/projects/" + req.params.id);
-                                        }
-                                    });
+                    try {
+                        let createdAssets = await Asset.insertMany(treeAssetArray);
+                            
+                        console.log(createdAssets.length);
+                        try {
+                            let updatedProject = await Project.findByIdAndUpdate(foundProject._id, { $push: { assets: { $each: createdAssets } } });
+
+                            // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
+                            try {
+                                let foundRows = await Row.find({ _id : { $in : updatedProject.rows } });
+                                    
+                                for(let i=0;i<createdAssets.length;i++){
+                                    var ref = treeAssetRowRef[i];
+                                    console.log("ref " + ref);
+                                    foundRows[ref].assets.push(createdAssets[i]);
                                 }
-                            });
+                                // SAVE ROWS INDIVIDUALLY
+                                for(let i=0;i<foundRows.length;i++){
+                                    foundRows[i].save();
+                                }
+                                console.log("Assets added to project");
+                                res.redirect("/projects/" + req.params.id);
+                                    
+                            } catch (err){
+                                console.log(err);
+                            }
+                            
                         }
-                    });
+                        catch (err){
+                            console.log(err);
+                        } 
+                        
+                    } catch(err){
+                        console.log(err);
+                    }
                 }
             });
         }
@@ -1356,7 +1363,7 @@ router.get("/projects/:id/generateassets", middleware.isLoggedIn, function(req, 
 // PROJECT LAYOUT EXPLODE ROUTE
 router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate({path:'edgesystem', populate:{path:'model.species'}}).populate("layer").exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate({path:'edgesystem', populate:{path:'model.species'}}).populate("layer").exec(async function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -1398,54 +1405,53 @@ router.get("/projects/:id/explode", middleware.isLoggedIn, function(req, res){
             // CREATE AREAS ON AREA
             var alleyCollection = JSON.stringify(layout.bedPolygonCollection);
             // CREATE ROWS
-            Row.insertMany(rows, function(err, createdRows){
-                if(err){
-                    console.log(err);
-                } else {
-                    // CREATE AREAS
-                    Area.insertMany(areas, function(err, createdAreas){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: createdRows }, areas: { $each: createdAreas } } }, function(err, updatedProject){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    res.redirect("/projects/" + updatedProject._id + "/layout");
-                                }
-                            });
-                        }
-                    });
+            try {
+                let createdRows = await Row.insertMany(rows);
+                // CREATE AREAS
+                try {
+                    let createdAreas = await Area.insertMany(areas);
+                    try {
+                        let updatedProject = await Project.findByIdAndUpdate(req.params.id, { $push: { rows: { $each: createdRows }, areas: { $each: createdAreas } } });
+                        res.redirect("/projects/" + updatedProject._id + "/layout");
+                    }
+                    catch (err){
+                        console.log(err);
+                    }
                 }
-            });
+                catch (err){
+                    console.log(err);
+                } 
+            } catch (err){
+                console.log(err);
+            }
+            
         }
     });
 });
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
-router.get("/projects/:id/deleterows", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/deleterows", middleware.isLoggedIn, async function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id, function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            Row.deleteMany ({_id: {$in: foundProject.rows}}, function(err){
-                if(err){
-                    console.log(err);
-                } else {
-                    // DELETE ROWS
-                    Project.findByIdAndUpdate(req.params.id, { $set: { rows: [] }}, function(err, updatedProject){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // REDIRECT
-                            res.redirect("/projects/" + updatedProject._id + "/layout");
-                        }
-                    });
-                }
-            });
+    try {
+        let foundProject = await Project.findById(req.params.id);
+        try {
+            await Row.deleteMany ({_id: {$in: foundProject.rows}})
+            // DELETE ROWS
+            try {
+                let updatedProject = await Project.findByIdAndUpdate(req.params.id, { $set: { rows: [] }});
+                // REDIRECT
+                res.redirect("/projects/" + updatedProject._id + "/layout");
+            } catch (err){
+                console.log(err);
+            }    
         }
-    });
+        catch (err){
+            console.log(err);
+        }
+    }
+    catch (err){
+        console.log(err);
+    }
 });
 
 // PROJECT ASSET SHOW PAGE
@@ -1492,55 +1498,63 @@ router.get("/projects/:id/assets", middleware.isLoggedIn, function(req, res){
 });
 
 // SERVICES DELETE ROUTE
-router.delete("/projects/:id", middleware.isLoggedIn, function(req, res){ // MAKE PROJECT OWNERSHIP MIDDLEWARE
+router.delete("/projects/:id", middleware.isLoggedIn, async function(req, res){ // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
-    Project.findById(req.params.id, function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            // REMOVE PROJECT REFERENCE FROM LAYER
-            Layer.findByIdAndUpdate(foundProject.layer, { $pull: {projects: foundProject._id}}, function(err, updatedLayer){
-                if(err){
-                    console.log(err);
-                } else {
-                    console.log("project removed from layer");
-                    // DELETE BUDGET(S)
-                    Budget.findByIdAndRemove(foundProject.budgets.establishment, function(err){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log("establishment budget deleted from project");
-                            Budget.findByIdAndRemove(foundProject.budgets.management, function(err){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    console.log("management budget deleted from project");
-                                    // DELETE ACTIVITIES
-                                    foundProject.activities.forEach(function(activity){
-                                        Activity.findByIdAndRemove(activity, function(err){
-                                            if(err){
-                                                console.log(err);
-                                            }
-                                        });
-                                    });
-                                    // DELETE PROJECT
-                                    Project.findByIdAndRemove(req.params.id, function(err){
-                                        if(err){
-                                            console.log(err);
-                                            res.redirect("/projects");
-                                        } else {
-                                            console.log("project deleted");
-                                            res.redirect("/projects");
-                                        }
-                                    });
-                                }
-                            });
+    try {
+        let foundProject = await Project.findById(req.params.id);
+
+        // REMOVE PROJECT REFERENCE FROM LAYER
+        try {
+            let updatedLayer = await Layer.findByIdAndUpdate(foundProject.layer, { $pull: {projects: foundProject._id}});
+            console.log("project removed from layer");
+            
+            // DELETE BUDGET(S)
+            try {
+
+                await Budget.findByIdAndRemove(foundProject.budgets.establishment);
+                console.log("establishment budget deleted from project");
+
+                try {
+                    await Budget.findByIdAndRemove(foundProject.budgets.management);    
+                    console.log("management budget deleted from project");
+                    // DELETE ACTIVITIES
+                    foundProject.activities.forEach(async function(activity){
+                        try {
+                            await Activity.findByIdAndRemove(activity);
                         }
+                        catch (err){
+                            console.log(err);
+                        }
+                    
                     });
+                    
+                    // DELETE PROJECT
+                    try {
+                        await Project.findByIdAndRemove(req.params.id);
+                        console.log("project deleted");
+                        res.redirect("/projects");                        
+                    }
+                    catch (err){
+                        console.log(err);
+                        res.redirect("/projects");
+                    }
                 }
-            });
+                
+                catch (err){
+                    console.log(err);
+                }
+
+            }
+            catch (err){
+                console.log(err);
+            }
         }
-    });
+        catch (err){
+            console.log(err);
+        }
+    } catch (err){
+        console.log(err);
+    }
 });
 
 // --------------- NESTED ROUTES ---------------- //
@@ -1577,7 +1591,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                     console.log(err);
                 } else {
                     // FIND SYSTEM AND ADD TO PROJECT
-                    System.findById(req.body.systemid).populate("model.species").exec(function(err, foundSystem){
+                    System.findById(req.body.systemid).populate("model.species").exec(async function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
@@ -1605,16 +1619,19 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
                                 };
                                 newRows.push(row);
                                 }
-                                Row.insertMany(newRows, function(err, createdRows){
-                                    if(err){
-                                        console.log(err);
-                                    } else {
-                                        createdProject.rows = createdRows;
-                                        // Save the project
-                                        createdProject.save();
-                                        res.redirect("/projects/" + createdProject._id);
-                                    }
-                                });
+                                try {
+                                    let createdRows = await Row.insertMany(newRows);
+                                        
+                                    createdProject.rows = createdRows;
+                                    // Save the project
+                                    createdProject.save();
+                                    res.redirect("/projects/" + createdProject._id);
+                                
+                                }
+                                catch (err){
+                                    console.log(err);
+                                }
+                                
                             } else {
                                 // Save the project
                                 createdProject.save();
@@ -1631,7 +1648,7 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
 // PROJECT ASSETS DELETE ROUTE
 router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id, function(err, foundProject){
+    Project.findById(req.params.id, async function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -1641,13 +1658,13 @@ router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, re
                 // SAVE PROJECT
                 foundProject.save();
                 // DELETE ASSET
-                Asset.findByIdAndRemove(foundProject.assets[i], function(err){
-                    if(err){
-                        console.log(err);
-                    } else {
-                        console.log("Deleted asset");
-                    }
-                });
+                try {
+                    await Asset.findByIdAndRemove(foundProject.assets[i]);
+                    console.log("Deleted asset");
+                }
+                catch (err){
+                    console.log(err);
+                }
             }
             res.redirect("/projects/" + foundProject.id);
         }
@@ -1689,20 +1706,20 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
         }
         console.log(row);
         // CREATE ROW
-        Row.create(row, function(err, createdRow){
+        Row.create(row, async function(err, createdRow){
             if(err){
                 console.log(err);
             } else {
                 // FIND PROJECT
-                Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, foundProject){
-                    if(err){
-                        console.log(err);
-                    } else {
-                        // CREATE ROW
-                        console.log("Row has been added to project");
-                        res.redirect("/projects/" + foundProject.id + "/layout");
-                    }
-                });
+                try {
+                    let foundProject = await Project.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}});
+                    // CREATE ROW
+                    console.log("Row has been added to project");
+                    res.redirect("/projects/" + foundProject.id + "/layout");
+                }
+                catch (err){
+                    console.log(err);
+                }
             }
         });
     }
@@ -1763,7 +1780,7 @@ router.put("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res){
 // DELETE ROW
 router.delete("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res){
     // FIND LAYER
-    Project.findById(req.params.id, function(err, updatedProject){
+    Project.findById(req.params.id, async function(err, updatedProject){
         if(err){
             console.log(err);
         } else {
@@ -1771,14 +1788,13 @@ router.delete("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res
             console.log("Length before " + updatedProject.rows.length);
             updatedProject.rows.remove(req.params.pid);
             // DELETE ROW
-            Row.findByIdAndRemove(req.params.pid, function(err){
-                if(err){
-                    console.log(err);
-                } else {
-                    console.log("Length after " + updatedProject.rows.length);
-                    res.redirect("/projects/" + updatedProject._id + "/layout");
-                }
-            });
+            try {
+                await Row.findByIdAndRemove(req.params.pid);
+                console.log("Length after " + updatedProject.rows.length);
+                res.redirect("/projects/" + updatedProject._id + "/layout");
+            } catch(err) {
+                console.log(err);
+            }
         }
     });
 });

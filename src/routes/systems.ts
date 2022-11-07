@@ -667,7 +667,7 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
 
 // SYSTEM UPDATE ROUTE
 router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
-    System.findById(req.params.id, function(err, foundSystem){
+    System.findById(req.params.id, async function(err, foundSystem){
         // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
         // GET SYSTEM
         var system = req.body.system;
@@ -716,13 +716,13 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
         // does user own the system?
         if(foundSystem.owner.id.equals(req.user._id)){
             // if true, update existing system
-            System.findByIdAndUpdate(req.params.id, system, function(err, updatedSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    res.redirect("/systems/" + updatedSystem._id);
-                }
-            });
+            try {
+                let updatedSystem = await System.findByIdAndUpdate(req.params.id, system);
+                res.redirect("/systems/" + updatedSystem._id);
+            } catch (err){
+                console.log(err);
+            } 
+                  
         } else {
             // if false, create a new system and add current user as owner
             System.create(system, function(err, createdSystem){
@@ -759,6 +759,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
                             if(foundLayersFuture.length > 0){
                                 foundLayersFuture.forEach(function(layer){
                                     // REMOVE ORIGINAL SYSTEM
+                                    // @ts-ignore
                                     layer.systems.future.remove(foundSystem);
                                     // ADD NEW SYSTEM
                                     layer.systems.future.push(createdSystem);
@@ -959,7 +960,7 @@ router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req, r
                                 } else {
                                     // CHECK EDGE SYSTEM!?
                                     // DELETE IN FUTURE DRAFT
-                                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
+                                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, async function(err, foundLayersFuture){
                                         if(err){
                                             console.log(err);
                                         } else {
@@ -967,19 +968,18 @@ router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req, r
                                             if(foundLayersFuture.length > 0){
                                                 foundLayersFuture.forEach(function(layer){
                                                     // REMOVE ORIGINAL SYSTEM
+                                                    //@ts-ignore
                                                     layer.systems.future.remove(foundSystem);
                                                     // ADD NEW SYSTEM
                                                     layer.save();
                                                 });
                                             }
                                             // DELETE SYSTEM NOW
-                                            System.findByIdAndRemove(req.params.pid, function(err){
-                                                if(err){
-                                                    console.log(err);
-                                                } else {
-                                                    res.redirect("/layers/" + req.params.id);
-                                                }
-                                            });
+                                            try {
+                                                await System.findByIdAndRemove(req.params.pid)
+                                            } catch (err){
+                                                console.log(err);
+                                            } 
                                         }
                                     });
                                 }
@@ -1219,15 +1219,15 @@ router.get("/systems/:id/occurrences/new", middleware.isLoggedIn, function(req, 
 });
 
 // SYSTEM OCCURRANCE CREATE ROUTE
-router.put("/systems/:id/occurrences", middleware.isLoggedIn, function(req, res){
-    System.findByIdAndUpdate(req.params.id, {$addToSet: {occurrences: req.body.occurrence}}, function(err, updatedSystem){
-        if(err){
-            console.log(err);
-        } else {
-            console.log(req.body.occurrence + " has been added to the system");
-            res.redirect("/systems/" + updatedSystem._id);
-        }
-    });
+router.put("/systems/:id/occurrences", middleware.isLoggedIn, async function(req, res){
+    try {
+
+        let updatedSystem = await System.findByIdAndUpdate(req.params.id, {$addToSet: {occurrences: req.body.occurrence}});
+        console.log(req.body.occurrence + " has been added to the system");
+        res.redirect("/systems/" + updatedSystem._id);
+    } catch (err){
+        console.log(err);
+    }
 });
 
 module.exports = router;

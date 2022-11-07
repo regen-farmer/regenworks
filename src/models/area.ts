@@ -1,40 +1,55 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IAreaSchema extends Document {
+    name: String,
+    description: String,
+    geometry: String,
+    size: Number,
+    rotation: Types.ObjectId,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+    activities: Types.ObjectId[],
+    farmflows: Types.ObjectId[],
+    notes: Types.ObjectId[]
+}
 
 // AREA SCHEMA SETUP
-var areaSchema = new mongoose.Schema({
+var areaSchema = new Schema<IAreaSchema>({
     name: String,
     description: String,
     geometry: String,
     size: Number,
     rotation: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Rotation"
     },
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     },
     activities: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Activity"
         }
     ],
     farmflows: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Farmflow"
         }
     ],
     notes: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Note"
         }
     ]
 });
 
-export default mongoose.model("Area", areaSchema);
+export default model("Area", areaSchema);

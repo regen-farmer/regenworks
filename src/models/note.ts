@@ -1,16 +1,25 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface INoteSchema extends Document {
+    name: String,
+    description: String,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    }
+}
 
 // NOTE SCHEMA SETUP
-var noteSchema = new mongoose.Schema({
+var noteSchema = new Schema<INoteSchema>({
     name: String,
     description: String,
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     }
 });
 
-export default mongoose.model("Note", noteSchema);
+export default model("Note", noteSchema);

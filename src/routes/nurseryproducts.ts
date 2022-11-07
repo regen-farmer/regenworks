@@ -144,7 +144,7 @@ router.get("/nurseries/:id/nurseryproducts/:pid/edit", middleware.isLoggedIn, fu
 });
 
 // NURSERY PRODUCT UPDATE
-router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, function(req, res){
+router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, async function(req, res){
     // CLEAN NONE OPTIONS
     var product = req.body.product;
     if(req.body.product.species === ""){
@@ -163,10 +163,8 @@ router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, functio
     }
     console.log(req.body.product.availability);
     console.log(typeof req.body.product.availability);
-    NurseryProduct.findByIdAndUpdate(req.params.pid, product, function(err, updatedProduct){
-        if(err){
-            console.log(err);
-        } else {
+    try {
+        let updatedProduct = await NurseryProduct.findByIdAndUpdate(req.params.pid, product);
             // REDIRECT TO PRODUCT
             /*if(req.body.product.hybrid === ""){
                 updatedProduct.hybrid = {};
@@ -177,8 +175,10 @@ router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, functio
                 updatedProduct.save();
             }*/
             res.redirect("/nurseries/" + req.params.id + "/nurseryproducts/" + updatedProduct._id);
-        }
-    });
+    }
+    catch (err){
+        console.log(err);
+    }
 });
 
 

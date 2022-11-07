@@ -1,10 +1,28 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IVarietySchema extends Document {
+    name: String,
+    species: Types.ObjectId,
+    price: Number,
+    description: String,
+    class: String,
+    pollination: String,
+    rootstock: {
+        name: String,
+        species: Types.ObjectId
+    },
+    hybrid: Types.ObjectId,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+}
 
 // VARIETY SCHEMA SETUP
-var varietySchema = new mongoose.Schema({
+var varietySchema = new Schema<IVarietySchema>({
     name: String,
     species: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Species"
     },
     price: Number,
@@ -14,21 +32,21 @@ var varietySchema = new mongoose.Schema({
     rootstock: {
         name: String,
         species: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Species"
         }
     },
     hybrid: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Species"
     },
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     },
 });
 
-export default mongoose.model("Variety", varietySchema);
+export default model("Variety", varietySchema);

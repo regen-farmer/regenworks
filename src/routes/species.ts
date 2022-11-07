@@ -93,14 +93,13 @@ router.post("/species/:id/activities", middleware.isLoggedIn, function(req, res)
         },
         price: req.body.activity.price
     };
-    Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: activity}}, function(err, updatedSpecies){
-        if(err){
-            console.log(err);
-        } else {
-            console.log(req.body.activity.name + " has been added to the species");
-            res.redirect("/species/" + updatedSpecies._id);
-        }
-    });
+    try {
+        let updatedSpecies = Species.findByIdAndUpdate(req.params.id, {$addToSet: {activities: activity}});
+        console.log(req.body.activity.name + " has been added to the species");
+        res.redirect("/species/" + updatedSpecies._id);
+    } catch (err){
+        console.log(err);
+    }
 });
 
 
@@ -155,14 +154,13 @@ router.get("/species/:id/nutrients/new", middleware.isLoggedIn, function(req, re
 });
 
 // SPECIES NUTRIENTS UPDATE ROUTE
-router.put("/species/:id/nutrients", middleware.isLoggedIn, function(req, res){
-    Species.findByIdAndUpdate(req.params.id, {$set: {nutrients: req.body.nutrients}}, function(err, updatedSpecies){
-        if(err){
-            console.log(err);
-        } else {
-            res.redirect("/species/" + updatedSpecies._id);
-        }
-    });
+router.put("/species/:id/nutrients", middleware.isLoggedIn, async function(req, res){
+    try {
+        let updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {$set: {nutrients: req.body.nutrients}});
+        res.redirect("/species/" + updatedSpecies._id);
+    } catch(err) {
+        console.log(err);
+    }
 });
 
 module.exports = router;

@@ -1,13 +1,30 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+// @ts-ignore
+interface ISequenceSchema extends Document {
+    name: String,
+    description: String,
+    model: [
+        {
+            species: Types.ObjectId,
+            position: Number
+        }
+    ],
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+    sequencelength: Number
+}
 
 // SEQUENCE SCHEMA SETUP
-var sequenceSchema = new mongoose.Schema({
+var sequenceSchema = new Schema<ISequenceSchema>({
     name: String,
     description: String,
     model: [
         {
             species: {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Species"
             },
             position: Number
@@ -15,7 +32,7 @@ var sequenceSchema = new mongoose.Schema({
     ],
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
@@ -23,4 +40,4 @@ var sequenceSchema = new mongoose.Schema({
     sequencelength: Number
 });
 
-export default mongoose.model("Sequence", sequenceSchema);
+export default model("Sequence", sequenceSchema);

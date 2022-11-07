@@ -1,7 +1,24 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface INurserySchema extends Document {
+    name: String,
+    location: String,
+    currency: String,
+    description: String,
+    lat: Number,
+    lng: Number,
+    range: Number,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+    products: [
+        Types.ObjectId
+    ]
+}
 
 // NURSERY SCHEMA SETUP
-var nurserySchema = new mongoose.Schema({
+var nurserySchema = new Schema<INurserySchema>({
     name: String,
     location: String,
     currency: String,
@@ -11,17 +28,17 @@ var nurserySchema = new mongoose.Schema({
     range: Number,
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     },
     products: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Nurseryproduct"
         }
     ]
 });
 
-export default mongoose.model("Nursery", nurserySchema);
+export default model("Nursery", nurserySchema);

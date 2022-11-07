@@ -1,7 +1,30 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
 import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
 
-var UserSchema = new mongoose.Schema({
+interface IUserSchema extends Document {
+    username: {type: String, unique: true, require: true},
+    password: String,
+    email: {type: String, unique: true, require: true},
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+    parcels: [
+        Types.ObjectId
+    ],
+    currentProject: Types.ObjectId,
+    registrationDate: Number,
+    membership: Number,
+    farmLimit: Number,
+    haLimit: {type: Number, default: 5},
+    isAdmin: {type: Boolean, default: false},
+    isNursery: {type: Boolean, default: false},
+    isManagement: {type: Boolean, default: false},
+    isProject: {type: Boolean, default: false},
+    nurseries: [
+        Types.ObjectId
+    ]
+}
+
+var UserSchema = new Schema({
     username: {type: String, unique: true, require: true},
     password: String,
     email: {type: String, unique: true, require: true},
@@ -9,12 +32,12 @@ var UserSchema = new mongoose.Schema({
     resetPasswordExpires: Date,
     parcels: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Parcel"
         }
     ],
     currentProject: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Parcel"
     },
     registrationDate: Number,
@@ -27,7 +50,7 @@ var UserSchema = new mongoose.Schema({
     isProject: {type: Boolean, default: false},
     nurseries: [
             {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Nursery"
         }
     ]
@@ -35,4 +58,4 @@ var UserSchema = new mongoose.Schema({
 
 UserSchema.plugin(passportLocalMongoose);
 
-export default mongoose.model("User", UserSchema);
+export default model<IUserSchema>("User", UserSchema);
