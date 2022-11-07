@@ -1,18 +1,23 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IActivitySchema } from './activity';
+import { IFarmFlowSchema } from './farmflow';
+import { INoteSchema } from './note';
+import { IRotationSchema } from './rotation';
+import { IUserSchema } from './user';
 
-interface IAreaSchema extends Document {
+export interface IAreaSchema extends Document {
     name: String,
     description: String,
     geometry: String,
     size: Number,
-    rotation: Types.ObjectId,
+    rotation: IRotationSchema,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
-    activities: Types.ObjectId[],
-    farmflows: Types.ObjectId[],
-    notes: Types.ObjectId[]
+    activities: IActivitySchema[],
+    farmflows: IFarmFlowSchema[],
+    notes: INoteSchema[]
 }
 
 // AREA SCHEMA SETUP

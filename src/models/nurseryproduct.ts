@@ -1,19 +1,21 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { ISpeciesSchema } from './species';
+import { IUserSchema } from './user';
 
-interface INurseryProductSchema extends Document {
+export interface INurseryProductSchema extends Document {
     name: String,
     variety: String,
-    species: Types.ObjectId,
+    species: ISpeciesSchema,
     price: Number,
     description: String,
     stock: Number,
     class: String,
     pollination: String,
     orderlimit: Number,
-    rootstock: Types.ObjectId,
-    hybrid: Types.ObjectId,
+    rootstock: ISpeciesSchema,
+    hybrid: ISpeciesSchema,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
     availability: {type: Boolean, default: false},

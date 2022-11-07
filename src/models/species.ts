@@ -1,6 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IFlowSchema } from './flow';
 
-interface ISpeciesSchema extends Document {
+export interface ISpeciesSchema extends Document {
     nameCommon: String,
     genus: String,
     species: String,
@@ -29,7 +30,7 @@ interface ISpeciesSchema extends Document {
     height: Number,
     width: Number,
     flows: [
-        Types.ObjectId
+        IFlowSchema
     ],
     utilities: [String],
     nutrients: {

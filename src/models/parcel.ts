@@ -1,7 +1,11 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { ILayerSchema } from './layer';
+import { IPracticesSchema } from './practice';
+import { IProjectSchema } from './project';
+import { IUserSchema } from './user';
 // var GeoJSON = require("mongoose-geojson-schema");
 
-interface IParcelSchema extends Document {
+export interface IParcelSchema extends Document {
     name: String,
     agType: [
         {
@@ -16,17 +20,17 @@ interface IParcelSchema extends Document {
     lng: Number,
     geometry: String,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
     practices: [
-        Types.ObjectId
+        IPracticesSchema
      ],
     layers: [
-        Types.ObjectId
+        ILayerSchema
     ],
     projects: [
-        Types.ObjectId
+        IProjectSchema
     ],
     climate: {
         monthlyaveragetemp: {

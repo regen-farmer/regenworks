@@ -1,6 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 
-interface IFlowSchema extends Document {
+export interface IFlowSchema extends Document {
     name: String,
     type: String,
     unit: String,

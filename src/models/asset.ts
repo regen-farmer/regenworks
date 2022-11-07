@@ -1,18 +1,20 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { ISpeciesSchema } from './species';
+import { IUserSchema } from './user';
 
-interface IAssetSchema extends Document {
+export interface IAssetSchema extends Document {
     name: String,
     description: String,
     typeAsset: String,
     amount: Number,
-    species: Types.ObjectId,
+    species: ISpeciesSchema,
     value: Number,
     creation: Number,
     determination: Number,
     lat: Number,
     lng: Number,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     }
 }

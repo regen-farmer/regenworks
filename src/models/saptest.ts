@@ -1,6 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IUserSchema } from './user';
 
-interface ISaptestSchema extends Document {
+export interface ISaptestSchema extends Document {
     name: String,
     description: String,
     lat: Number,
@@ -20,7 +21,7 @@ interface ISaptestSchema extends Document {
     chloride: Number,
     sulfur: Number,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     }
 }

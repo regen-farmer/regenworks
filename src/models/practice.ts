@@ -1,6 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 
-interface IPracticesSchema extends Document {
+export interface IPracticesSchema extends Document {
     name: String,
     type: String,
     description: String,

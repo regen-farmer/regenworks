@@ -1,9 +1,11 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IPostingSchema } from './posting';
+import { IUserSchema } from './user';
 
-interface IBudgetSchema extends Document {
-    postings: Types.ObjectId[],
+export interface IBudgetSchema extends Document {
+    postings: IPostingSchema[],
     owner: {
-        id: Types.ObjectId[],
+        id: IUserSchema[],
         username: String
     },
     currency: String,

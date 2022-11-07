@@ -1,7 +1,7 @@
 import { Document, model, Schema } from 'mongoose';
 
 
-interface IAnimalSchema extends Document {
+export interface IAnimalSchema extends Document {
     name: String,
     family: String,
     genus: String,

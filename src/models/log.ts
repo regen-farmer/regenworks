@@ -1,6 +1,6 @@
 import { Document, model, Schema, Types } from 'mongoose';
 
-interface ILogSchema extends Document {
+export interface ILogSchema extends Document {
     message: String,
     level: String,
     timestamp: Number

@@ -1,11 +1,12 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IUserSchema } from './user';
 
-interface IWellSchema extends Document {
+export interface IWellSchema extends Document {
     name: String,
     description: String,
     geometry: String,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     }
 }

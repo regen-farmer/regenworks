@@ -1,27 +1,33 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IActivitySchema } from './activity';
+import { IAreaSchema } from './area';
+import { IAssetSchema } from './asset';
+import { IBudgetSchema } from './budget';
+import { ILayerSchema } from './layer';
+import { IRowSchema } from './row';
+import { ISystemSchema } from './system';
+import { IUserSchema } from './user';
 
-interface IProjectSchema extends Document {
+export interface IProjectSchema extends Document {
     name: String,
     description: String,
     location: String,
     lat: Number,
     lng: Number,
     assets: [
-        Types.ObjectId
+        IAssetSchema
     ],
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
-    layer: Types.ObjectId,
-    activities: [
-        Types.ObjectId
-    ],
-    system: Types.ObjectId,
-    edgesystem:Types.ObjectId,
+    layer: ILayerSchema,
+    activities: IActivitySchema[],
+    system: ISystemSchema,
+    edgesystem:ISystemSchema,
     budgets: {
-        establishment: Types.ObjectId,
-        management: Types.ObjectId
+        establishment: IBudgetSchema,
+        management: IBudgetSchema
     },
     financial: {
         discountRate: Number,
@@ -34,10 +40,10 @@ interface IProjectSchema extends Document {
     bearingline: String,
     status: String,
     rows: [
-        Types.ObjectId
+        IRowSchema
     ],
     areas: [
-        Types.ObjectId
+        IAreaSchema
     ]
 }
 

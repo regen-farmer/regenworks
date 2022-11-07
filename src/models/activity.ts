@@ -1,6 +1,9 @@
 import { model, Types, Schema, Document } from 'mongoose';
+import { ILayerSchema } from './layer';
+import { ISpeciesSchema } from './species';
+import { IUserSchema } from './user';
 
-interface IActivitySchema extends Document {
+export interface IActivitySchema extends Document {
     name: String,
     description: String,
     start: {
@@ -17,11 +20,11 @@ interface IActivitySchema extends Document {
     subtype: String,
     automated: Boolean,
     owner: {
-        id: Types.ObjectId
+        id: IUserSchema
         username: String
     },
-    layer: Types.ObjectId,
-    species: Types.ObjectId
+    layer: ILayerSchema
+    species: ISpeciesSchema
 }
 
 // ACTIVITY SCHEMA SETUP
