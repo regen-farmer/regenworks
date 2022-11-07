@@ -130,8 +130,6 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     // Add username and ID to Layer.
                     layer.owner.id = req.user._id;
                     layer.owner.username = req.user.username;
-                    // Save the layer
-                    // layer.save();
                     // Save JSON file to geometry
                     layer.geometry = req.body.geometry;
                     layer.size = req.body.layersize;
