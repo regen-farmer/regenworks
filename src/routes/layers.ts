@@ -472,8 +472,6 @@ router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK
                         // CYCLE THROUGH LAYERS
                         for(let j=0;j<foundParcels[i].layers.length;j++){
                             if(foundParcels[i].layers[j].equals(foundLayer._id)){
-                                
-                                //@ts-ignore TODO: Remove not present? 
                                 foundParcels[i].layers.remove(foundLayer);
                                 console.log("Layer removed");
                                 foundParcels[i].save();
@@ -894,7 +892,7 @@ router.get("/layers/:id/row/new", middleware.isLoggedIn, function(req, res){
 });
 
 // ROW CREATE ROUTE
-router.post("/layers/:id/row", middleware.isLoggedIn, async function(req, res){
+router.post("/layers/:id/row", middleware.isLoggedIn, function(req, res){
     // IF NO GEOMETRY
     if(req.body.geometry === ""){
         res.redirect("back");
@@ -909,21 +907,21 @@ router.post("/layers/:id/row", middleware.isLoggedIn, async function(req, res){
         }
         console.log(row);
         // CREATE ROW
-        try {
-            let createdRow = await Row.create(row);
-            try {
-                let updatedLayer = await Layer.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}});
-
-                // CREATE ROW
-                console.log("Row has been added to layer");
-                res.redirect("/layers/" + updatedLayer.id + "/layout");
-            }
-            catch (err){
+        Row.create(row, function(err, createdRow){
+            if(err){
                 console.log(err);
-            } 
-        } catch (err){
-            console.log(err);
-        } 
+            } else {
+                Layer.findByIdAndUpdate(req.params.id, {$addToSet: {rows: createdRow}}, function(err, updatedLayer){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        // CREATE ROW
+                        console.log("Row has been added to layer");
+                        res.redirect("/layers/" + updatedLayer.id + "/layout");
+                    }
+                });
+            }
+        });
     }
 });
 
@@ -983,7 +981,7 @@ router.put("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
 router.delete("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
     // FIND ROW
     // FIND LAYER
-    Layer.findById(req.params.id, async function(err, updatedLayer){
+    Layer.findById(req.params.id, function(err, updatedLayer){
         if(err){
             console.log(err);
         } else {
@@ -991,16 +989,14 @@ router.delete("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
             console.log("Length before " + updatedLayer.rows.length);
             updatedLayer.rows.remove(req.params.pid);
             // DELETE ROW
-            try {
-
-                await Row.findByIdAndRemove(req.params.pid);
-
-                console.log("Length after " + updatedLayer.rows.length);
-                res.redirect("/layers/" + updatedLayer._id + "/layout");
-            }
-            catch (err){
-                console.log(err);
-            } 
+            Row.findByIdAndRemove(req.params.pid, function(err){
+                if(err){
+                    console.log(err);
+                } else {
+                    console.log("Length after " + updatedLayer.rows.length);
+                    res.redirect("/layers/" + updatedLayer._id + "/layout");
+                }
+            });
         }
     });
 });

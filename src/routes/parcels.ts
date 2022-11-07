@@ -284,15 +284,15 @@ router.put("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
 });
 
 // PLACES DESTROY ROUTE
-router.delete("/parcels/:id", middleware.checkParcelOwnership,async function(req, res){
-    try {
-        await Parcel.findByIdAndRemove(req.params.id)
-        res.redirect('/users/' + req.user.id);
-
-    }catch (err){
-        console.log(err);
-        res.redirect('/users/' + req.user.id);
-    } 
+router.delete("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
+    Parcel.findByIdAndRemove(req.params.id, function(err){
+        if(err){
+            console.log(err);
+            res.redirect('/users/' + req.user.id);
+        } else {
+            res.redirect('/users/' + req.user.id);
+        }
+    });
 });
 
 // ANALYSIS ROUTE FOR ALL PARCEL LAYERS

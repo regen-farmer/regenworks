@@ -1,34 +1,11 @@
-import { Document, model, Schema, Types } from 'mongoose';
-
-interface INurseryProductSchema extends Document {
-    name: String,
-    variety: String,
-    species: Types.ObjectId,
-    price: Number,
-    description: String,
-    stock: Number,
-    class: String,
-    pollination: String,
-    orderlimit: Number,
-    rootstock: Types.ObjectId,
-    hybrid: Types.ObjectId,
-    owner: {
-        id: Types.ObjectId,
-        username: String
-    },
-    availability: {type: Boolean, default: false},
-    season: {
-        start: String,
-        end: String
-    }
-}
+import mongoose from "mongoose";
 
 // NURSERY PRODUCT SCHEMA SETUP
-var nurseryProductSchema = new Schema<INurseryProductSchema>({
+var nurseryProductSchema = new mongoose.Schema({
     name: String,
     variety: String,
     species: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Species"
     },
     price: Number,
@@ -38,16 +15,16 @@ var nurseryProductSchema = new Schema<INurseryProductSchema>({
     pollination: String,
     orderlimit: Number,
     rootstock: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Species"
     },
     hybrid: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Species"
     },
     owner: {
         id: {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
@@ -59,4 +36,4 @@ var nurseryProductSchema = new Schema<INurseryProductSchema>({
     }
 });
 
-export default model("Nurseryproduct", nurseryProductSchema);
+export default mongoose.model("Nurseryproduct", nurseryProductSchema);

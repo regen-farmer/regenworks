@@ -58,11 +58,8 @@ app.use(require("express-session")({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-// @ts-ignore
 passport.use(new LocalStrategy(User.authenticate()));
-// @ts-ignore
 passport.serializeUser(User.serializeUser());
-// @ts-ignore
 passport.deserializeUser(User.deserializeUser());
 
 // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes

@@ -1,16 +1,10 @@
-import { Document, model, Schema, Types } from 'mongoose';
-
-interface ILogSchema extends Document {
-    message: String,
-    level: String,
-    timestamp: Number
-}
+import mongoose from "mongoose";
 
 // LOG SCHEMA SETUP
-var logSchema = new Schema<ILogSchema>({
+var logSchema = new mongoose.Schema({
     message: String,
     level: String,
     timestamp: Number
 });
 
-export default model("Log", logSchema);
+export default mongoose.model("Log", logSchema);

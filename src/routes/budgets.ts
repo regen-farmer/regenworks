@@ -75,13 +75,14 @@ router.get("/budgets/:id/edit", middleware.isLoggedIn, function(req, res){
 });
 
 // BUDGET UPDATE ROUTE
-router.post("/budgets/:id", middleware.isLoggedIn, async function(req, res){
-    try {
-        let updatedBudget = await Budget.findByIdAndUpdate(req.params.id, req.body.budget);
-        res.redirect("/budgets/" + updatedBudget._id);
-    } catch (err){
-        console.log(err);
-    }
+router.post("/budgets/:id", middleware.isLoggedIn, function(req, res){
+    Budget.findByIdAndUpdate(req.params.id, req.body.budget, function(err, updatedBudget){
+        if(err){
+            console.log(err);
+        } else {
+            res.redirect("/budgets/" + updatedBudget._id);
+        }
+    });
 });
 
 // BUDGET DELETE ROUTE
@@ -216,7 +217,7 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                     }
                     console.log(speciesPostingsArray);
                     // FIND SYSTEM
-                    System.findById(foundProject.system).populate("model.species").exec(async function(err, foundSystem){
+                    System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
@@ -591,19 +592,21 @@ router.post("/projects/:id/generateestablishment", middleware.isLoggedIn, functi
                             // SETUP POSTINGS FOR AREA ACTIVITIES - HOW TO GET VALUES FOR THESE?!
 
                             // CREATE POSTINGS
-                            try {
-                                let createdPostings = await Posting.insertMany(postings);
-                                Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
-                                    if(err){
-                                        console.log(err);
-                                    } else {
-                                        console.log("Postings added to budget");
-                                        res.redirect("/projects/" + foundProject._id);
-                                    }
-                                });
-                            } catch (err){
-                                console.log(err);
-                            }
+                            Posting.insertMany(postings, function(err, createdPostings){
+                                if(err){
+                                    console.log(err);
+                                } else {
+                                    // ADD POSTINGS TO BUDGET
+                                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            console.log("Postings added to budget");
+                                            res.redirect("/projects/" + foundProject._id);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 }
@@ -690,7 +693,7 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                     }
                     console.log(speciesPostingsArray);
                     // FIND SYSTEM
-                    System.findById(foundProject.system).populate({path:'model.species',populate:{path:'flows'}}).exec(async function(err, foundSystem){
+                    System.findById(foundProject.system).populate({path:'model.species',populate:{path:'flows'}}).exec(function(err, foundSystem){
                         if(err){
                             console.log(err);
                         } else {
@@ -1168,20 +1171,21 @@ router.post("/projects/:id/generatemanagement", middleware.isLoggedIn, function(
                             // POSTINGS FOR AREAS SIZES?
 
                             // CREATE POSTINGS
-                            try {
-                                let createdPostings = await Posting.insertMany(postings);
-                                // ADD POSTINGS TO BUDGET
-                                Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
-                                    if(err){
-                                        console.log(err);
-                                    } else {
-                                        console.log("Postings added to budget");
-                                        res.redirect("/projects/" + foundProject._id);
-                                    }
-                                });
-                            } catch (err){
+                            Posting.insertMany(postings, function(err, createdPostings){
+                                if(err){
                                     console.log(err);
-                            }
+                                } else {
+                                    // ADD POSTINGS TO BUDGET
+                                    Budget.findByIdAndUpdate(createdBudget._id, { $push: { postings: { $each: createdPostings } } }, function(err, updatedBudget){
+                                        if(err){
+                                            console.log(err);
+                                        } else {
+                                            console.log("Postings added to budget");
+                                            res.redirect("/projects/" + foundProject._id);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 }

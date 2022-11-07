@@ -1,19 +1,7 @@
-import { Document, model, Schema, Types } from 'mongoose';
-
-interface IFarmFlowSchema extends Document {
-    name: String,
-    description: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    source: String,
-    timestamp: Date,
-    amount: Number,
-    species: Types.ObjectId
-}
+import mongoose from "mongoose";
 
 // FLOW SCHEMA SETUP
-var farmflowSchema = new Schema<IFarmFlowSchema>({
+var farmflowSchema = new mongoose.Schema({
     name: String,
     description: String,
     type: String,
@@ -23,9 +11,9 @@ var farmflowSchema = new Schema<IFarmFlowSchema>({
     timestamp: Date,
     amount: Number,
     species: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Species"
     }
 });
 
-export default model("Farmflow", farmflowSchema);
+export default mongoose.model("Farmflow", farmflowSchema);
