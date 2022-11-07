@@ -108,7 +108,7 @@ router.put("/nurseries/:id", middleware.isLoggedIn, function(req, res){
     // SET INITIAL VARIABLE
     var newNursery = req.body.nursery;
     // GEOLOCATION
-    geocoder.geocode(req.body.nursery.location, function(err, data) {
+    geocoder.geocode(req.body.nursery.location, async function(err, data) {
         if (err || !data.length) {
             console.log(err);
             console.log(data);
@@ -118,15 +118,15 @@ router.put("/nurseries/:id", middleware.isLoggedIn, function(req, res){
         newNursery.lat = data[0].latitude;
         newNursery.lng = data[0].longitude;
         newNursery.location = data[0].formattedAddress;
-        Nursery.findByIdAndUpdate(req.params.id, newNursery, function (err, updateNursery) {
-            if (err) {
+        try {
+            let updateNursery = await Nursery.findByIdAndUpdate(req.params.id, newNursery);
+            // REDIRECT
+            console.log("Nursery update: " + updateNursery);
+            res.redirect("/nurseries/" + updateNursery._id);
+        } catch (err) {
                 console.log(err);
-            } else {
-                // REDIRECT
-                console.log("Nursery update: " + updateNursery);
-                res.redirect("/nurseries/" + updateNursery._id);
-            }
-        });
+        } 
+        
     });
 });
 

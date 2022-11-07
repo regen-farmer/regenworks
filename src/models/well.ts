@@ -1,17 +1,27 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IWellSchema extends Document {
+    name: String,
+    description: String,
+    geometry: String,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    }
+}
 
 // WELL SCHEMA SETUP
-var wellSchema = new mongoose.Schema({
+var wellSchema = new Schema<IWellSchema>({
     name: String,
     description: String,
     geometry: String,
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     }
 });
 
-export default mongoose.model("Well", wellSchema);
+export default model("Well", wellSchema);

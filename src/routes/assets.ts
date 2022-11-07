@@ -84,47 +84,49 @@ router.get("/assets/:id/edit", middleware.isLoggedIn, function(req, res){
 });
 
 // ASSET UPDATE ROUTE
-router.put("/assets/:id", middleware.isLoggedIn, function(req, res){
+router.put("/assets/:id", middleware.isLoggedIn, async function(req, res){
     // UPDATE ASSET
-    Asset.findByIdAndUpdate(req.params.id, req.body.asset, function(err, updatedAsset){
-        if(err){
-            console.log(err);
-        } else {
-            res.redirect("/assets/" + updatedAsset._id);
-        }
-    });
+    try {
+        let updatedAsset = await Asset.findByIdAndUpdate(req.params.id, req.body.asset);
+        res.redirect("/assets/" + updatedAsset._id);
+    } catch (err){
+        console.log(err);
+    } 
+    
 });
 
 // ASSET DELETE ROUTE
 router.delete("/assets/:id", middleware.isLoggedIn, function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     // FIND ASSET
-    Asset.findById(req.params.id, function(err, foundAsset){
+    Asset.findById(req.params.id, async function(err, foundAsset){
         if(err){
             console.log(err);
         } else {
             console.log(foundAsset);
             // REMOVE ASSET FROM PROJECT
-            Project.find({"assets": foundAsset._id}, function(err, foundProject){
-                if(err){
+            try {
+                let foundProject = await Project.find({"assets": foundAsset._id});
+
+                try {
+                    let updatedProject = await Project.findByIdAndUpdate(foundProject._id, {$pull: {assets: foundAsset._id}});
+                    
+                    // DELETE ASSET
+                    try {
+                        await Asset.findByIdAndRemove(req.params.id);
+                        res.redirect("/projects/" + foundProject._id);
+                    } catch(err){
+                        console.log(err);
+                        res.redirect("/assets");
+                    } 
+                    
+                } catch (err){
                     console.log(err);
-                } else {
-                    Project.findByIdAndUpdate(foundProject._id, {$pull: {assets: foundAsset._id}}, function(err, updatedProject){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // DELETE ASSET
-                            Asset.findByIdAndRemove(req.params.id, function(err){
-                                if(err){
-                                    console.log(err);
-                                    res.redirect("/assets");
-                                } else {
-                                    res.redirect("/projects/" + foundProject._id);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+                } 
+                
+            } catch {
+                console.log(err);
+            }
+                
         }
     });
 });

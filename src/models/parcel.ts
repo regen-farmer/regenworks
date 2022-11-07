@@ -1,8 +1,73 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
 // var GeoJSON = require("mongoose-geojson-schema");
 
+interface IParcelSchema extends Document {
+    name: String,
+    agType: [
+        {
+            type: String
+        }
+    ],
+    description: String,
+    soilType: String,
+    size: Number,
+    location: String,
+    lat: Number,
+    lng: Number,
+    geometry: String,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+    practices: [
+        Types.ObjectId
+     ],
+    layers: [
+        Types.ObjectId
+    ],
+    projects: [
+        Types.ObjectId
+    ],
+    climate: {
+        monthlyaveragetemp: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        },
+        annualaverageprec: Number,
+        monthlyaverageprec: {
+            january: Number,
+            february: Number,
+            march: Number,
+            april: Number,
+            may: Number,
+            june: Number,
+            july: Number,
+            august: Number,
+            september: Number,
+            october: Number,
+            november: Number,
+            december: Number
+        },
+        hardiness: {
+            low: Number,
+            high: Number
+        }
+    },
+    measurement: String
+}
+
 // PARCEL SCHEMA SETUP
-var parcelSchema = new mongoose.Schema({
+var parcelSchema = new Schema<IParcelSchema>({
     name: String,
     agType: [
         {
@@ -18,26 +83,26 @@ var parcelSchema = new mongoose.Schema({
     geometry: String,
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     },
     practices: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Practice"
         }
      ],
     layers: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Layer"
         }
     ],
     projects: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Project"
         }
     ],
@@ -79,4 +144,4 @@ var parcelSchema = new mongoose.Schema({
     measurement: String
 });
 
-export default mongoose.model("Parcel", parcelSchema);
+export default model("Parcel", parcelSchema);

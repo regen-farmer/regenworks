@@ -1,16 +1,26 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IBudgetSchema extends Document {
+    postings: Types.ObjectId[],
+    owner: {
+        id: Types.ObjectId[],
+        username: String
+    },
+    currency: String,
+    name: String
+}
 
 // BUDGET SCHEMA SETUP
-var budgetSchema = new mongoose.Schema({
+var budgetSchema = new Schema<IBudgetSchema>({
     postings: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Posting"
         }
     ],
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
@@ -19,4 +29,4 @@ var budgetSchema = new mongoose.Schema({
     name: String
 });
 
-export default mongoose.model("Budget", budgetSchema);
+export default model("Budget", budgetSchema);

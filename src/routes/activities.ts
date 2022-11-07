@@ -30,7 +30,7 @@ router.get("/activities", middleware.isLoggedIn, function(req, res){
             console.log(err);
         } else {
             allActivities.sort(function(a, b){
-                return Date.parse(a.start.date) - Date.parse(b.start.date);
+                return Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString());
             });
             allActivities.slice(0,4);
             res.render("activities/index", {activities: allActivities});
@@ -130,15 +130,14 @@ router.put("/activities/:id", middleware.isLoggedIn, function(req, res){
 
 
 // ACTIVITY DELETE ROUTE
-router.delete("/activities/:id", middleware.isLoggedIn, function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
-    Activity.findByIdAndRemove(req.params.id, function(err){
-        if(err){
-            console.log(err);
-            res.redirect("/activities");
-        } else {
-            res.redirect("/activities");
-        }
-    });
+router.delete("/activities/:id", middleware.isLoggedIn, async function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+    try {
+        await Activity.findByIdAndRemove(req.params.id);
+        res.redirect("/activities");
+    } catch(err) {
+        console.log(err);
+        res.redirect("/activities");
+    }
 });
 
 
@@ -251,7 +250,7 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res
 // GENERATE ACTIVITIES
 router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec(function(err, foundProject){
+    Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec(async function(err, foundProject){
         if(err){
             console.log(err);
         } else {
@@ -270,20 +269,19 @@ router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(r
                 activityArray.push(activity);
             }
             console.log("Activity array length" + activityArray.length);
-            Activity.insertMany(activityArray, function(err, createdActivities){
-                if(err){
-                    console.log(err);
-                } else {
-                    Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } }, function(err, updatedBudget){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log("Activities added to project implementation plan");
-                            res.redirect("/projects/" + foundProject._id);
-                        }
-                    });
-                }
-            });
+            try {
+                let createdActivities = await Activity.insertMany(activityArray);
+                Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } }, function(err, updatedBudget){
+                    if(err){
+                        console.log(err);
+                    } else {
+                        console.log("Activities added to project implementation plan");
+                        res.redirect("/projects/" + foundProject._id);
+                    }
+                });
+            } catch (err){
+                console.log(err);
+            } 
         }
     });
 });
@@ -328,7 +326,7 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
             console.log(err);
         } else {
             // FIND PROJECT
-            Project.findById(req.params.id, function(err, updatedProject){
+            Project.findById(req.params.id, async function(err, updatedProject){
                 if(err){
                     console.log(err)
                 } else {
@@ -336,14 +334,12 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
                     updatedProject.activities.remove(foundActivity);
                     updatedProject.save();
                     // DELETE ACTIVITY
-                    Activity.findByIdAndRemove(req.params.pid, function(err){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // REDIRECT TO PROJECT AGAIN
-                            res.redirect("/projects/" + updatedProject._id);
-                        }
-                    });
+                    try {
+                        await Activity.findByIdAndRemove(req.params.pid);
+                        res.redirect("/projects/" + updatedProject._id);
+                    } catch(err){
+                        console.log(err);
+                    }
                 }
             });
         }

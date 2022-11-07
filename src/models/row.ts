@@ -1,37 +1,54 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IRowSchema extends Document {
+    geometry: String,
+    sequence: Types.ObjectId,
+    name: String,
+    assets: [
+        Types.ObjectId
+    ],
+    activities: [
+        Types.ObjectId    ],
+    farmflows: [
+        Types.ObjectId
+    ],
+    notes: [
+        Types.ObjectId
+    ]
+}
 
 // ROW SCHEMA SETUP
-var rowSchema = new mongoose.Schema({
+var rowSchema = new Schema<IRowSchema>({
     geometry: String,
     sequence: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Sequence"
     },
     name: String,
     assets: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Asset"
         }
     ],
     activities: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Activity"
         }
     ],
     farmflows: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Farmflow"
         }
     ],
     notes: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Note"
         }
     ]
 });
 
-export default mongoose.model("Row", rowSchema);
+export default model("Row", rowSchema);
