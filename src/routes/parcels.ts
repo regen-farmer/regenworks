@@ -67,7 +67,7 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         username: req.user.username
     };
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.parcel.location, function(err, data){
+    geocoder.geocode(req.body.parcel.location, async function(err, data){
         if(err || !data.length){
             console.log(err);
             console.log(data);
@@ -176,32 +176,34 @@ router.post("/parcels", middleware.isLoggedIn, function(req, res){
         // Create new parcel
         var newParcel = {name: name, soilType: soilType, agType: agType, size: size, description: description, location: location, lat: lat, lng: lng, practices: practices, owner: owner, climate: climate, measurement: measurement};
         // Create a new parcel and save it to the database
-        Parcel.create(newParcel, function(err, newlyCreated){
-            if(err){
-                // req.flash("error", "Something went wrong");
-                console.log(err);
-            } else {
-                console.log(newlyCreated + " added");
-                // Find user based on ID
-                User.findById(newlyCreated.owner.id, function(err, foundUser){
-                    if(err) {
-                        console.log(err);
-                    } else {
-                        // Add the parcel to the users parcels for referencing
-                        foundUser.parcels.push(newlyCreated);
-                        foundUser.currentProject = newlyCreated;
-                        foundUser.save();
-                        // Save JSON file to geometry
-                        newlyCreated.geometry = req.body.geometry;
-                        // Save the layer
-                        newlyCreated.save();
-                        // ADD PRECIPITATION?HARDINESS?
-                        // req.flash("success", "You have successfully created a new parcel");
-                        res.redirect("/parcels/" + newlyCreated._id + "/layers/new");
-                    }
-                });
-            }
-        });
+        try {
+            let newlyCreated = await Parcel.create(newParcel);
+
+            console.log(newlyCreated + " added");
+            // Find user based on ID
+            User.findById(newlyCreated.owner.id, function(err, foundUser){
+                if(err) {
+                    console.log(err);
+                } else {
+                    // Add the parcel to the users parcels for referencing
+                    foundUser.parcels.push(newlyCreated);
+                    foundUser.currentProject = newlyCreated;
+                    foundUser.save();
+                    // Save JSON file to geometry
+                    newlyCreated.geometry = req.body.geometry;
+                    // Save the layer
+                    newlyCreated.save();
+                    // ADD PRECIPITATION?HARDINESS?
+                    // req.flash("success", "You have successfully created a new parcel");
+                    res.redirect("/parcels/" + newlyCreated._id + "/layers/new");
+                }
+            });
+        
+        }
+        catch (err){
+            // req.flash("error", "Something went wrong");
+            console.log(err);
+        }
     });
 });
 

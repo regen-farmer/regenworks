@@ -2,7 +2,7 @@ require("dotenv").config();
 var express = require("express");
 var app = express();
 var bodyParser = require("body-parser"); // USED TO PARSE DATA FROM POST ROUTE
-var mongoose = require("mongoose"); // REQUIRE MONGOOSE PACKAGE
+import {connect} from "mongoose"; // REQUIRE MONGOOSE PACKAGE
 var flash = require("connect-flash"); // ENABLES FLASH MESSAGES
 var passport = require("passport"); // REQUIRE PASSPORT PACKAGE
 var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
@@ -41,7 +41,7 @@ var varietyRoutes = require("./routes/varieties");
 var path = require('path');
 
 // APP SETUP
-mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
+connect(process.env.DATABASEURL as string, {useNewUrlParser: true, useUnifiedTopology: true}); // CONNECTS TO MLAB MONGODB
 app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.set('views', path.join(__dirname, '/views'));
