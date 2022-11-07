@@ -1,6 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IUserSchema } from './user';
 
-interface ISoiltestSchema {
+export interface ISoiltestSchema {
     name: String,
     description: String,
     lat: Number,
@@ -33,7 +34,7 @@ interface ISoiltestSchema {
         zinc: Number
     },
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     }
 }

@@ -81,137 +81,143 @@ router.post("/projects", middleware.isLoggedIn, function(req, res){
 });
 
 // PROJECT SHOW ROUTE
-router.get("/projects/:id", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate("layer").populate("assets").populate("budgets.establishment").populate("budgets.management").populate("system").populate("edgesystem").populate("activities").exec(function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            // TEST WITH BLANK
-            var estPostings = [];
-            if(foundProject.budgets.establishment){
-                estPostings = foundProject.budgets.establishment.postings
-            }
-            Posting.find({"_id": estPostings}, function(err, establishementPostings){
-                if(err){
-                    console.log(err);
-                } else {
-                    console.log("Establishment postings: " + establishementPostings.length);
-                    // TEST WITH BLANK
-                    var manPostings = [];
-                    if(foundProject.budgets.management){
-                        manPostings = foundProject.budgets.management.postings
-                    }
-                    Posting.find({"_id": manPostings}, function(err, managementPostings){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log("Management postings: " + managementPostings.length);
-                            var irr = 0;
-                            // SET YEARS VARIABLE FOR BOTH GRAPH AND BUDGET
-                            var years = 0;
-                            if(foundProject.budgets.establishment || foundProject.budgets.management){
-                                var totalEstablishment = 0;
-                                if(establishementPostings.length > 0){
-                                    for(let i=0;i<establishementPostings.length;i++){
-                                        /*if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
-                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
-                                        } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
-                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
-                                        }*/
-                                        if(establishementPostings[i].year){
-                                            if(establishementPostings[i].year > years){
-                                                years = establishementPostings[i].year;
-                                            }
-                                        }
-                                    }
+router.get("/projects/:id", middleware.isLoggedIn, async function(req, res){
+    try {
 
-                                }
-                                if(managementPostings.length > 0){
-                                    for(let i=0;i<managementPostings.length;i++){
-                                        /*if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
-                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
-                                        } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
-                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
-                                        }*/
-                                        if(managementPostings[i].year){
-                                            if(managementPostings[i].year > years){
-                                                years = managementPostings[i].year;
-                                            }
-                                        }
-                                    }
-                                }
-                                /*for(let i=0;i<foundProject.financial.period;i++){
-                                    irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                                }
-                                irr = irr - totalEstablishment;*/
-                            }
-                            console.log(irr);
-                            console.log("Years: " + years);
-                            // SET UP
-                            var YoY: any[] = [];
-                            var labels: any[] = [];
-                            for(let i=1;i<years+1;i++){
-                                var label = i;
-                                labels.push(label);
-                                YoY.push(0);
-                            }
-                            // SET UP
-                            if(foundProject.budgets.establishment || foundProject.budgets.management){
-                                var totalEstablishment = 0;
-                                if(establishementPostings.length > 0){
-                                    for(let i=0;i<establishementPostings.length;i++){
-                                        if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
-                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
-                                        } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
-                                            YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
-                                        }
-                                    }
-
-                                }
-                                if(managementPostings.length > 0){
-                                    for(let i=0;i<managementPostings.length;i++){
-                                        if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
-                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
-                                        } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
-                                            YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
-                                        }
-                                    }
-                                }
-                                /*for(let i=0;i<foundProject.financial.period;i++){
-                                    irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                                }
-                                irr = irr - totalEstablishment;*/
-                            }
-                            var parsedLabels = JSON.stringify(labels);
-                            // GENERATE DATA FOR GRAPH
-
-                            // ROI
-                            var roi = 0;
-/*
-                            var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
-*/
-                            // CALCULATE DATASET
-                            var sumArray: any[] = [];
-                            var sum = 0;
-                            for(let i=0;i<years;i++){
-                                sum = sum + YoY[i];
-                                sumArray.push(sum);
-                            }
-/*
-                            var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
-*/
-                            console.log(YoY[0]);
-                            console.log(YoY.length);
-                            var parseddataset = JSON.stringify(YoY);
-                            var parsedsum = JSON.stringify(sumArray);
-                            // CHECK LENGTH IS IDENTICAL
-                            res.render("projects/show", {project: foundProject, years: years, roi: roi, irr: irr, labels: parsedLabels, dataset: parseddataset, sum: parsedsum});
-                        }
-                    });
-                }
-            });
+        let foundProject = await Project.findById(req.params.id).populate("layer").populate("assets").populate("budgets.establishment").populate("budgets.management").populate("system").populate("edgesystem").populate("activities").exec();
+        
+        // TEST WITH BLANK
+        var estPostings = [];
+        if(foundProject.budgets.establishment){
+            estPostings = foundProject.budgets.establishment.postings
         }
-    });
+
+        try {
+
+            let establishementPostings = await Posting.find({"_id": estPostings});
+
+            console.log("Establishment postings: " + establishementPostings.length);
+            // TEST WITH BLANK
+            var manPostings = [];
+            if(foundProject.budgets.management){
+                manPostings = foundProject.budgets.management.postings
+            }
+
+            try {
+                let managementPostings = await Posting.find({"_id": manPostings});
+                console.log("Management postings: " + managementPostings.length);
+                var irr = 0;
+                // SET YEARS VARIABLE FOR BOTH GRAPH AND BUDGET
+                var years = 0;
+                if(foundProject.budgets.establishment || foundProject.budgets.management){
+                    var totalEstablishment = 0;
+                    if(establishementPostings.length > 0){
+                        for(let i=0;i<establishementPostings.length;i++){
+                            /*if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
+                            } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                            }*/
+                            if(establishementPostings[i].year){
+                                if(establishementPostings[i].year > years){
+                                    years = establishementPostings[i].year;
+                                }
+                            }
+                        }
+
+                    }
+                    if(managementPostings.length > 0){
+                        for(let i=0;i<managementPostings.length;i++){
+                            /*if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
+                            } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                            }*/
+                            if(managementPostings[i].year){
+                                if(managementPostings[i].year > years){
+                                    years = managementPostings[i].year;
+                                }
+                            }
+                        }
+                    }
+                    /*for(let i=0;i<foundProject.financial.period;i++){
+                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                    }
+                    irr = irr - totalEstablishment;*/
+                }
+                console.log(irr);
+                console.log("Years: " + years);
+                // SET UP
+                var YoY: any[] = [];
+                var labels: any[] = [];
+                for(let i=1;i<years+1;i++){
+                    var label = i;
+                    labels.push(label);
+                    YoY.push(0);
+                }
+                // SET UP
+                if(foundProject.budgets.establishment || foundProject.budgets.management){
+                    var totalEstablishment = 0;
+                    if(establishementPostings.length > 0){
+                        for(let i=0;i<establishementPostings.length;i++){
+                            if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
+                            } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                            }
+                        }
+
+                    }
+                    if(managementPostings.length > 0){
+                        for(let i=0;i<managementPostings.length;i++){
+                            if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
+                            } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                            }
+                        }
+                    }
+                    /*for(let i=0;i<foundProject.financial.period;i++){
+                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                    }
+                    irr = irr - totalEstablishment;*/
+                }
+                var parsedLabels = JSON.stringify(labels);
+                // GENERATE DATA FOR GRAPH
+
+                // ROI
+                var roi = 0;
+/*
+                var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
+*/
+                // CALCULATE DATASET
+                var sumArray: any[] = [];
+                var sum = 0;
+                for(let i=0;i<years;i++){
+                    sum = sum + YoY[i];
+                    sumArray.push(sum);
+                }
+/*
+                var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
+*/
+                console.log(YoY[0]);
+                console.log(YoY.length);
+                var parseddataset = JSON.stringify(YoY);
+                var parsedsum = JSON.stringify(sumArray);
+                // CHECK LENGTH IS IDENTICAL
+                res.render("projects/show", {project: foundProject, years: years, roi: roi, irr: irr, labels: parsedLabels, dataset: parseddataset, sum: parsedsum});
+            } catch (err){
+                console.log(err);
+            } 
+        }
+        catch (err){
+            console.log(err);
+        } 
+    }
+    catch (err){
+        console.log(err);
+    }
+         
 });
 
 // PROJECT EDIT ROUTE
@@ -791,60 +797,68 @@ router.put("/projects/:id/layout", middleware.isLoggedIn, function(req, res){
 });
 
 // PROJECT VIZ ROUTE
-router.get("/projects/:id/viz", middleware.isLoggedIn, function(req, res){
-    Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec(function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
-            System.findById(foundProject.system).populate("model.species").exec(function(err, foundSystem){
-                // EDGE SYSTEM FIND, IF ONE
-                var edgesystem = "5e6639bc8add4f22f0820200";
-                if(foundProject.edgesystem){
-                    edgesystem = foundProject.edgesystem;
+router.get("/projects/:id/viz", middleware.isLoggedIn, async function(req, res){
+    try {
+
+        let foundProject = await Project.findById(req.params.id).populate({path:'system', populate:{path:'model.species'}}).populate("edgesystem").populate("layer").populate({path:'rows', populate:{path:'sequence', populate:{path:'model.species'}}}).populate("areas").exec();
+        // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
+        try {
+
+            let foundSystem = await System.findById(foundProject.system).populate("model.species").exec();
+            // EDGE SYSTEM FIND, IF ONE
+            var edgesystem = "5e6639bc8add4f22f0820200";
+            if(foundProject.edgesystem){
+                edgesystem = foundProject.edgesystem;
+            }
+
+            try {
+                let foundEdgeSystem = await System.findById(edgesystem).populate("model.species").exec();
+                // SET VARIABLES HERE
+                var layout: any = {};
+                // IF ROWS, DO XXX
+                if(foundProject.rows && foundProject.rows.length > 0){
+                    // DO ROW LAYOUT
+                    layout = gisObj.rowBasedLayout(foundProject);
+                } else {
+                    // DO PARAMETRIC LAYOUT
+                    layout = gisObj.systemBasedLayout(foundProject);
                 }
-                System.findById(edgesystem).populate("model.species").exec(function(err, foundEdgeSystem){
-                    if(err){
-                        console.log(err);
-                    } else {
-                        // SET VARIABLES HERE
-                        var layout: any = {};
-                        // IF ROWS, DO XXX
-                        if(foundProject.rows && foundProject.rows.length > 0){
-                            // DO ROW LAYOUT
-                            layout = gisObj.rowBasedLayout(foundProject);
-                        } else {
-                            // DO PARAMETRIC LAYOUT
-                            layout = gisObj.systemBasedLayout(foundProject);
-                        }
-                        var featurecollection = turf.featureCollection(layout.rowLineArray);
-                        var collection = JSON.stringify(featurecollection);
-                        var bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
-                        var stripsCollection = JSON.stringify(bedArrayPolygons);
-                        var alleyArrayPolygons = turf.featureCollection(layout.alleyPolygonArray);
-                        var alleysCollection = JSON.stringify(alleyArrayPolygons);
-                        var treeMarkers = turf.featureCollection(layout.treeMarkerArray);
-                        var treeCollection = JSON.stringify(treeMarkers);
-                        // UNIQUE ITEM COUNTS
-                        var rowWidth = 0;
-                        if(layout.rowWidth){
-                            // ONLY USED FOR SYSTEM BASED
-                            rowWidth = layout.rowWidth;
-                        }
-                        var uniqueSpeciesCount = [];
-                        if(layout.uniqueSpeciesCount) {
-                            uniqueSpeciesCount = layout.uniqueSpeciesCount;
-                        }
-                        // CALCULATE AREA SIZES
-                        var treeRowArea = layout.treeRowArea;
-                        // TEMP VALUE HERE
-                        var marginArea = 0;
-                        res.render("projects/viz", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection});
-                    }
-                });
-            });
+                var featurecollection = turf.featureCollection(layout.rowLineArray);
+                var collection = JSON.stringify(featurecollection);
+                var bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
+                var stripsCollection = JSON.stringify(bedArrayPolygons);
+                var alleyArrayPolygons = turf.featureCollection(layout.alleyPolygonArray);
+                var alleysCollection = JSON.stringify(alleyArrayPolygons);
+                var treeMarkers = turf.featureCollection(layout.treeMarkerArray);
+                var treeCollection = JSON.stringify(treeMarkers);
+                // UNIQUE ITEM COUNTS
+                var rowWidth = 0;
+                if(layout.rowWidth){
+                    // ONLY USED FOR SYSTEM BASED
+                    rowWidth = layout.rowWidth;
+                }
+                var uniqueSpeciesCount = [];
+                if(layout.uniqueSpeciesCount) {
+                    uniqueSpeciesCount = layout.uniqueSpeciesCount;
+                }
+                // CALCULATE AREA SIZES
+                var treeRowArea = layout.treeRowArea;
+                // TEMP VALUE HERE
+                var marginArea = 0;
+                res.render("projects/viz", {project: foundProject, system: foundSystem, collection: collection, trees: treeCollection, species: uniqueSpeciesCount, rowWidth: rowWidth, treeArea: treeRowArea, marginArea: marginArea, strips: stripsCollection, alleys: alleysCollection});
+                
+            }
+            catch (err){
+                console.log(err);
+            } 
         }
-    });
+        catch(err) {
+            console.log(err);    
+        }
+            
+    } catch (err){
+        console.log(err);
+    } 
 });
 
 // PROJECT 3D VIZ
@@ -1646,29 +1660,28 @@ router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
 });
 
 // PROJECT ASSETS DELETE ROUTE
-router.delete("/projects/:id/allassets", middleware.isLoggedIn, function(req, res){
+router.delete("/projects/:id/allassets", middleware.isLoggedIn, async function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id, async function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND ASSETS AND DELETE
-            for(let i=0;foundProject.assets.length > i;i++){
-                foundProject.assets.remove(foundProject.assets[i]);
-                // SAVE PROJECT
-                foundProject.save();
-                // DELETE ASSET
-                try {
-                    await Asset.findByIdAndRemove(foundProject.assets[i]);
-                    console.log("Deleted asset");
-                }
-                catch (err){
-                    console.log(err);
-                }
+    try {
+        let foundProject = await Project.findById(req.params.id);
+        // FIND ASSETS AND DELETE
+        for(let i=0;foundProject.assets.length > i;i++){
+            foundProject.assets.remove(foundProject.assets[i]);
+            // SAVE PROJECT
+            foundProject.save();
+            // DELETE ASSET
+            try {
+                await Asset.findByIdAndRemove(foundProject.assets[i]);
+                console.log("Deleted asset");
             }
-            res.redirect("/projects/" + foundProject.id);
+            catch (err){
+                console.log(err);
+            }
         }
-    });
+        res.redirect("/projects/" + foundProject.id);
+    }catch (err){
+        console.log(err);
+    }
 });
 
 // ROW NEW ROUTE

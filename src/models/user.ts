@@ -1,16 +1,18 @@
 import { Document, model, Schema, Types } from 'mongoose';
 import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
+import { INurserySchema } from './nursery';
+import { IParcelSchema } from './parcel';
 
-interface IUserSchema extends Document {
+export interface IUserSchema extends Document {
     username: {type: String, unique: true, require: true},
     password: String,
     email: {type: String, unique: true, require: true},
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     parcels: [
-        Types.ObjectId
+        IParcelSchema
     ],
-    currentProject: Types.ObjectId,
+    currentProject: IParcelSchema,
     registrationDate: Number,
     membership: Number,
     farmLimit: Number,
@@ -20,7 +22,7 @@ interface IUserSchema extends Document {
     isManagement: {type: Boolean, default: false},
     isProject: {type: Boolean, default: false},
     nurseries: [
-        Types.ObjectId
+        INurserySchema
     ]
 }
 

@@ -1,6 +1,8 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { ISpeciesSchema } from './species';
+import { ISystemSchema } from './system';
 
-interface ISystemflowSchema extends Document {
+export interface ISystemflowSchema extends Document {
     name: String,
     type: String,
     unit: String,
@@ -8,12 +10,12 @@ interface ISystemflowSchema extends Document {
     location: String,
     data: [
         {
-            species: Types.ObjectId,
+            species: ISpeciesSchema,
             data: [Number]
         }
     ],
     source: String,
-    systemref: Types.ObjectId
+    systemref: ISystemSchema
 }
 
 // SYSTEM FLOW SCHEMA SETUP

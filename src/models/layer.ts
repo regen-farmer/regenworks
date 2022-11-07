@@ -1,12 +1,21 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IAreaSchema } from './area';
+import { IAssetSchema } from './asset';
+import { IBudgetSchema } from './budget';
+import { IProjectSchema } from './project';
+import { IRowSchema } from './row';
+import { ISaptestSchema } from './saptest';
+import { ISoiltestSchema } from './soiltest';
+import { ISystemSchema } from './system';
+import { IUserSchema } from './user';
 // var GeoJSON = require("mongoose-geojson-schema");
 
-interface ILayerSchema extends Document {
+export interface ILayerSchema extends Document {
     name: String,
     description: String,
     type: String,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
     climate: {
@@ -46,35 +55,35 @@ interface ILayerSchema extends Document {
     size: Number,
     systems: {
         past: [
-            Types.ObjectId
+            ISystemSchema
         ],
-        present: Types.ObjectId,
+        present: ISystemSchema,
         future: [
-            Types.ObjectId
+            ISystemSchema
         ]
     },
     projects: [
-        Types.ObjectId
+        IProjectSchema
     ],
     assets: [
-        Types.ObjectId
+        IAssetSchema
     ],
     alignment: String,
     layout: String,
     headland: Number,
     rows: [
-        Types.ObjectId
+        IRowSchema
     ],
     areas: [
-        Types.ObjectId
+        IAreaSchema
     ],
     soiltests: [
-        Types.ObjectId
+        ISoiltestSchema
     ],
     saptests: [
-        Types.ObjectId
+        ISaptestSchema
     ],
-    accounts: Types.ObjectId
+    accounts: IBudgetSchema
 }
 
 // LAYER SCHEMA SETUP

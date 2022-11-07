@@ -1,31 +1,36 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IAnimalSchema } from './animal';
+import { ISequenceSchema } from './sequence';
+import { ISpeciesSchema } from './species';
+import { ISystemflowSchema } from './systemflow';
+import { IUserSchema } from './user';
 
 // SYSTEM SCHEMA SETUP
 
 // @ts-ignore
-interface ISystemSchema extends Document {
+export interface ISystemSchema extends Document {
     name: String,
     description: String,
     rows: [
         { width: Number,
           sequense: [
-            Types.ObjectId
+            ISequenceSchema
           ]
         }
 
     ],
     model: [
         {
-            species: Types.ObjectId,
+            species: ISpeciesSchema,
             position: [Number],
             width: Number
         }
     ],
     animals: [
-        Types.ObjectId
+        IAnimalSchema
     ],
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
     shared: {
@@ -33,7 +38,7 @@ interface ISystemSchema extends Document {
         default: false
     },
     flows: [
-        Types.ObjectId
+        ISystemflowSchema
     ],
     occurrences: [
         {

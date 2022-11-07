@@ -1,19 +1,24 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IActivitySchema } from './activity';
+import { IAssetSchema } from './asset';
+import { IFarmFlowSchema } from './farmflow';
+import { INoteSchema } from './note';
+import { ISequenceSchema } from './sequence';
 
-interface IRowSchema extends Document {
+export interface IRowSchema extends Document {
     geometry: String,
-    sequence: Types.ObjectId,
+    sequence: ISequenceSchema,
     name: String,
     assets: [
-        Types.ObjectId
+        IAssetSchema
     ],
     activities: [
-        Types.ObjectId    ],
+        IActivitySchema    ],
     farmflows: [
-        Types.ObjectId
+        IFarmFlowSchema
     ],
     notes: [
-        Types.ObjectId
+        INoteSchema
     ]
 }
 

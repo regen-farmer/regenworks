@@ -1,6 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 
-interface IRateLimiterIPSchema extends Document {
+export interface IRateLimiterIPSchema extends Document {
     createdAt: {
         type: Date,
         required: boolean,
