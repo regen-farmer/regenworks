@@ -1,6 +1,7 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { ISpeciesSchema } from './species';
 
-interface IFarmFlowSchema extends Document {
+export interface IFarmFlowSchema extends Document {
     name: String,
     description: String,
     type: String,
@@ -9,7 +10,7 @@ interface IFarmFlowSchema extends Document {
     source: String,
     timestamp: Date,
     amount: Number,
-    species: Types.ObjectId
+    species: ISpeciesSchema
 }
 
 // FLOW SCHEMA SETUP

@@ -1,10 +1,10 @@
 var express = require("express");
 var router = express.Router();
 import Parcel from "../models/parcel";
-import Activity from "../models/activity";
+import Activity, { IActivitySchema } from "../models/activity";
 import Layer from "../models/layer";
-import Project from "../models/project";
-import Row from "../models/row";
+import Project, { IProjectSchema } from "../models/project";
+import Row, { IRowSchema } from "../models/row";
 import Area from "../models/area";
 var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 var middleware = require("../middleware");
@@ -248,14 +248,12 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res
 });
 
 // GENERATE ACTIVITIES
-router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/generateactivities", middleware.isLoggedIn, async function(req, res){
     // FIND PROJECT
-    Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec(async function(err, foundProject){
-        if(err){
-            console.log(err);
-        } else {
-            //
-            var activityArray: any[] = [];
+    try {
+        let foundProject: IProjectSchema = await Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec();    
+        if (foundProject){
+        var activityArray: any[] = [];
             for(let i=0;i<foundProject.budgets.establishment.postings.length;i++){
                 var activity:any = {
                     status: false,
@@ -271,25 +269,31 @@ router.get("/projects/:id/generateactivities", middleware.isLoggedIn, function(r
             console.log("Activity array length" + activityArray.length);
             try {
                 let createdActivities = await Activity.insertMany(activityArray);
-                Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } }, function(err, updatedBudget){
-                    if(err){
-                        console.log(err);
-                    } else {
-                        console.log("Activities added to project implementation plan");
-                        res.redirect("/projects/" + foundProject._id);
-                    }
-                });
+                try {
+                    let updatedBudget = await Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } });
+                    console.log("Activities added to project implementation plan");
+                    res.redirect("/projects/" + foundProject._id);
+                }
+                catch (err){
+                    console.log(err);
+                }
+                
             } catch (err){
                 console.log(err);
             } 
         }
-    });
+    } catch (err){
+        console.log(err);
+    }
+    
+            
+       
 });
 
 // PROJECT EDIT ACTIVITY ROUTE
 router.get("/projects/:id/activities/:pid/edit", middleware.isLoggedIn, function(req, res){
     // FIND PROJECT WITH ACTIVITY
-    Project.findById(req.params.id, function(err, foundProject){
+    Project.findById(req.params.id, function(err, foundProject: IProjectSchema){
         if(err){
             console.log(err);
         } else {
@@ -306,15 +310,16 @@ router.get("/projects/:id/activities/:pid/edit", middleware.isLoggedIn, function
 });
 
 // PROJECT UPDATE ACTIVITY ROUTE
-router.put("/projects/:id/activities/:pid", middleware.isLoggedIn, function(req, res){
+router.put("/projects/:id/activities/:pid", middleware.isLoggedIn, async function(req, res){
    // FIND ACTIVITY AND UPDATE
-    Activity.findByIdAndUpdate(req.params.pid, req.body.activity, function(err, updatedActivity){
-        if(err){
-            console.log(err);
-        } else {
-            res.redirect("/projects/" + req.params.id);
-        }
-    });
+   try {
+
+       let updatedActivity: IActivitySchema = await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
+       res.redirect("/projects/" + req.params.id);
+   }
+    catch (err){
+        console.log(err);
+    } 
 });
 
 
@@ -326,11 +331,12 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
             console.log(err);
         } else {
             // FIND PROJECT
-            Project.findById(req.params.id, async function(err, updatedProject){
+            Project.findById(req.params.id, async function(err, updatedProject: IProjectSchema){
                 if(err){
                     console.log(err)
                 } else {
                     // REMOVE ACTIVITY FROM PROJECT
+                    // @ts-ignore
                     updatedProject.activities.remove(foundActivity);
                     updatedProject.save();
                     // DELETE ACTIVITY
@@ -351,7 +357,7 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
 
 router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLoggedIn, function(req, res){
     // FIND ROW SEQUENCE SPECIES
-    Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec(function(err, foundRow){
+    Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec(function(err, foundRow: IRowSchema){
         if(err){
             console.log(err);
         } else {
@@ -373,7 +379,7 @@ router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLog
     });
 });
 
-router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, function(req, res){
+router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, async function(req, res){
    // CREATE ACTIVITY
     var types = req.body.activityType.split(" ");
     var activity = {
@@ -387,19 +393,24 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
         time: req.body.activity.time,
         species: req.body.activity.species
     };
-   Activity.create(activity, function(err, createdActivity){
-       if(err){
-           console.log(err);
-       } else {
-            Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } }, function(err, updatedRow){
-                if(err){
-                    console.log(err);
-                } else {
-                    res.redirect("/parcels/" + req.params.id + "/activities")
-                }
-            });
-       }
-   });
+    try {
+        let createdActivity = await Activity.create(activity);
+        try {
+
+            let updatedRow: IRowSchema = Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } })
+            res.redirect("/parcels/" + req.params.id + "/activities")
+        }
+        catch(err){
+            console.log(err);
+        } 
+    }
+    catch(err){
+        console.log(err);
+    }
+   
+   
+            
+       
 });
 
 

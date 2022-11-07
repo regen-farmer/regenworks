@@ -1,10 +1,11 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { IUserSchema } from './user';
 
-interface INoteSchema extends Document {
+export interface INoteSchema extends Document {
     name: String,
     description: String,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     }
 }

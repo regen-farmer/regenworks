@@ -1,6 +1,8 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { INurseryProductSchema } from './nurseryproduct';
+import { IUserSchema } from './user';
 
-interface INurserySchema extends Document {
+export interface INurserySchema extends Document {
     name: String,
     location: String,
     currency: String,
@@ -9,11 +11,11 @@ interface INurserySchema extends Document {
     lng: Number,
     range: Number,
     owner: {
-        id: Types.ObjectId,
+        id: IUserSchema,
         username: String
     },
     products: [
-        Types.ObjectId
+        INurseryProductSchema
     ]
 }
 

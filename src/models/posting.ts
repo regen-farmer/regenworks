@@ -1,6 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 
-interface IPostingSchema extends Document {
+export interface IPostingSchema extends Document {
     name: string,
     postType: string,
     amount: number,
