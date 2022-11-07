@@ -1,14 +1,64 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
 
 // SYSTEM SCHEMA SETUP
-var systemSchema = new mongoose.Schema({
+
+// @ts-ignore
+interface ISystemSchema extends Document {
+    name: String,
+    description: String,
+    rows: [
+        { width: Number,
+          sequense: [
+            Types.ObjectId
+          ]
+        }
+
+    ],
+    model: [
+        {
+            species: Types.ObjectId,
+            position: [Number],
+            width: Number
+        }
+    ],
+    animals: [
+        Types.ObjectId
+    ],
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    },
+    shared: {
+        type: Boolean,
+        default: false
+    },
+    flows: [
+        Types.ObjectId
+    ],
+    occurrences: [
+        {
+            name: String,
+            lat: Number,
+            lng: Number,
+            alt: Number,
+            country: String,
+            source: String,
+            eco: Number,
+            koppen: String
+        }
+    ]
+}
+
+  
+
+var systemSchema = new Schema<ISystemSchema>({
     name: String,
     description: String,
     rows: [
         { width: Number,
           sequense: [
               {
-                  type: mongoose.Schema.Types.ObjectId,
+                  type: Schema.Types.ObjectId,
                   ref: "Species"
               }
           ]
@@ -18,7 +68,7 @@ var systemSchema = new mongoose.Schema({
     model: [
         {
             species: {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Species"
             },
             position: [Number],
@@ -27,13 +77,13 @@ var systemSchema = new mongoose.Schema({
     ],
     animals: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Animal"
         }
     ],
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
@@ -44,7 +94,7 @@ var systemSchema = new mongoose.Schema({
     },
     flows: [
         {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Systemflow"
         }
     ],
@@ -62,4 +112,4 @@ var systemSchema = new mongoose.Schema({
     ]
 });
 
-export default mongoose.model("System", systemSchema);
+export default model("System", systemSchema);

@@ -1,7 +1,35 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+// @ts-ignore
+interface IRotationSchema extends Document {
+    name: String,
+    description: String,
+    model: [
+        {
+            speciesmix: [
+                {
+                    species: Types.ObjectId,
+                    amount: Number
+                }
+            ],
+            planting: {
+                year: Number,
+                month: Number
+            },
+            harvest: {
+                year: Number,
+                month: Number
+            }
+        }
+    ],
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    }
+}
 
 // ROTATION SCHEMA SETUP
-var rotationSchema = new mongoose.Schema({
+var rotationSchema = new Schema<IRotationSchema>({
     name: String,
     description: String,
     model: [
@@ -9,7 +37,7 @@ var rotationSchema = new mongoose.Schema({
             speciesmix: [
                 {
                     species: {
-                        type: mongoose.Schema.Types.ObjectId,
+                        type: Schema.Types.ObjectId,
                         ref: "Species"
                     },
                     amount: Number
@@ -27,11 +55,11 @@ var rotationSchema = new mongoose.Schema({
     ],
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     }
 });
 
-export default mongoose.model("Rotation", rotationSchema);
+export default model("Rotation", rotationSchema);

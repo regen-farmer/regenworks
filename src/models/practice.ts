@@ -1,7 +1,20 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+
+interface IPracticesSchema extends Document {
+    name: String,
+    type: String,
+    description: String,
+    tasks: String,
+    regenScores: {
+        soilScore: Number,
+        bioScore: Number,
+        waterScore: Number,
+        climateScore: Number
+    }
+}
 
 // PRACTICE SCHEMA SETUP
-var practicesSchema = new mongoose.Schema({
+var practicesSchema = new Schema<IPracticesSchema>({
     name: String,
     type: String,
     description: String,
@@ -14,4 +27,4 @@ var practicesSchema = new mongoose.Schema({
     }
 });
 
-export default mongoose.model("Practice", practicesSchema);
+export default model("Practice", practicesSchema);

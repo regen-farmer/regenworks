@@ -1,13 +1,30 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface IAssetSchema extends Document {
+    name: String,
+    description: String,
+    typeAsset: String,
+    amount: Number,
+    species: Types.ObjectId,
+    value: Number,
+    creation: Number,
+    determination: Number,
+    lat: Number,
+    lng: Number,
+    owner: {
+        id: Types.ObjectId,
+        username: String
+    }
+}
 
 // ASSET SCHEMA SETUP
-var assetSchema = new mongoose.Schema({
+var assetSchema = new Schema<IAssetSchema>({
     name: String,
     description: String,
     typeAsset: String,
     amount: Number,
     species: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Species"
     },
     value: Number,
@@ -17,11 +34,11 @@ var assetSchema = new mongoose.Schema({
     lng: Number,
     owner: {
         id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "User"
         },
         username: String
     }
 });
 
-export default mongoose.model("Asset", assetSchema);
+export default model("Asset", assetSchema);

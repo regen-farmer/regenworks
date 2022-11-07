@@ -73,7 +73,7 @@ router.get("/dashboard", middleware.isLoggedIn, function(req, res){
                     console.log(err);
                 } else {
                     allActivities.sort(function(a, b){
-                        return Date.parse(a.start.date) - Date.parse(b.start.date);
+                        return Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString());
                     });
                     allActivities.slice(0,4);
                     res.render("dashboard", {activities: allActivities, parcels: allParcels});
@@ -107,6 +107,7 @@ router.post("/users", function(req, res){
     if (req.body.secret === "899af01m4maiq5k3" || req.body.secret === "9afa81hf1flqmfah2" || req.body.secret === "jf18af910f87ah1jnn" || req.body.secret === "9aoqi1k3uaf7q8qh1a"){
         logger.info("Secret correct", {timestamp: Date.now()});
         var newUser = new User({username: req.body.username, email: req.body.email, registrationDate: Date.now(), membership: 1209600000, farmLimit: 1});
+        // @ts-ignore
         User.register(newUser, req.body.password, function(err, user){
             if(err) {
                 // req.flash("error", err.message);
@@ -180,18 +181,20 @@ router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
 });
 
 // USER DELETE ROUTE
-router.delete("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findByIdAndRemove(req.params.id, function(err, user){
-        if(err){
-            console.log(err);
-            // Flash message
-            res.redirect("/parcels");
-        } else {
-            // Flash message
-            logger.info('User "' + user.username + '" was deleted', {timestamp: Date.now()});
-            res.redirect("/parcels");
-        }
-    });
+router.delete("/users/:id", middleware.checkUserOwnership, async function(req, res){
+    try {
+
+        let user = await User.findByIdAndRemove(req.params.id);
+        
+        // Flash message
+        logger.info('User "' + user?.username + '" was deleted', {timestamp: Date.now()});
+        res.redirect("/parcels");
+    }
+    catch (err){
+        console.log(err);
+        // Flash message
+        res.redirect("/parcels");
+    } 
 });
 
 // SHOW LOGIN FORM
@@ -377,6 +380,7 @@ router.post("/forgot", function(req, res, next){
 
 // SHOW NEW PASSWORD PAGE
 router.get("/reset/:token", function(req, res){
+    // @ts-ignore
     User.findOne({resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now()}}, function(err, user){
         if(!user){
             // req.flash("error", "Password reset token invalid or expired.");
@@ -390,6 +394,7 @@ router.get("/reset/:token", function(req, res){
 router.post("/reset/:token", function(req, res){
     async.waterfall([
         function(done){
+            // @ts-ignore
             User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now()}}, function(err, user){
                 if(!user) {
                     req.flash("error", "Password reset token invalid or has expired");

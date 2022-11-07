@@ -1,7 +1,23 @@
-import mongoose from "mongoose";
+import { Document, model, Schema, Types } from 'mongoose';
+
+interface ISystemflowSchema extends Document {
+    name: String,
+    type: String,
+    unit: String,
+    timeframe: String,
+    location: String,
+    data: [
+        {
+            species: Types.ObjectId,
+            data: [Number]
+        }
+    ],
+    source: String,
+    systemref: Types.ObjectId
+}
 
 // SYSTEM FLOW SCHEMA SETUP
-var systemflowSchema = new mongoose.Schema({
+var systemflowSchema = new Schema<ISystemflowSchema>({
     name: String,
     type: String,
     unit: String,
@@ -10,7 +26,7 @@ var systemflowSchema = new mongoose.Schema({
     data: [
         {
             species: {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Species"
             },
             data: [Number]
@@ -18,9 +34,9 @@ var systemflowSchema = new mongoose.Schema({
     ],
     source: String,
     systemref: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "System"
     }
 });
 
-export default mongoose.model("Systemflow", systemflowSchema);
+export default model("Systemflow", systemflowSchema);

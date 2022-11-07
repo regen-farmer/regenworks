@@ -1,7 +1,27 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+
+interface IRateLimiterIPSchema extends Document {
+    createdAt: {
+        type: Date,
+        required: boolean,
+        default: Date,
+    },
+    ip: {
+        type: String,
+        required: boolean,
+        trim: boolean,
+        match: RegExp
+    },
+    hits: {
+        type: Number,
+        default: Number,
+        required: boolean,
+        min: Number
+    }
+}
 
 // IP RATE LIMITER SCHEMA SETUP
-var rateLimiterIPSchema = new mongoose.Schema({
+var rateLimiterIPSchema = new Schema<IRateLimiterIPSchema>({
     createdAt: {
         type: Date,
         required: true,
@@ -21,4 +41,4 @@ var rateLimiterIPSchema = new mongoose.Schema({
     }
 });
 
-export default mongoose.model("RateLimiterIP", rateLimiterIPSchema);
+export default model("RateLimiterIP", rateLimiterIPSchema);

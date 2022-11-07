@@ -1,7 +1,17 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+
+interface IPostingSchema extends Document {
+    name: string,
+    postType: string,
+    amount: number,
+    value: number,
+    year: number,
+    month: number,
+    date: number
+}
 
 // POSTING SCHEMA SETUP
-var postingSchema = new mongoose.Schema({
+var postingSchema = new Schema<IPostingSchema>({
     name: String,
     postType: String,
     amount: Number,
@@ -11,4 +21,4 @@ var postingSchema = new mongoose.Schema({
     date: Number
 });
 
-export default mongoose.model("Posting", postingSchema);
+export default model("Posting", postingSchema);
