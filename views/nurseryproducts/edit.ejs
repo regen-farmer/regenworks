@@ -1,0 +1,263 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Update product</h2>
+        <div>
+            <form action="/nurseries/<%= nursery._id %>/nurseryproducts/<%= product._id %>?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="product[name]">Name</label>
+                    <input type="text" class="form-control" name="product[name]" value="<%= product.name %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="product[description]">Description</label>
+                    <input type="text" class="form-control" name="product[description]" value="<%= product.description %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[price]">Price (In <%= nursery.currency %>)</label>
+                    <input type="number" class="form-control" name="product[price]" value="<%= product.price %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="product[stock]">Stock</label>
+                    <input type="number" class="form-control" name="product[stock]" value="<%= product.stock %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[orderlimit]">Max order limit</label>
+                    <input type="number" class="form-control" name="product[orderlimit]" value="<%= product.orderlimit %>" >
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="product[season][start]">Delivery season start</label>
+                            <select class="form-control" name="product[season][start]">
+                                <% if(product.season.start === "January"){ %>
+                                <option value="January" selected="selected">January</option>
+                                <% } else { %>
+                                <option value="January" >January</option>
+                                <% } %>
+                                <% if(product.season.start === "February"){ %>
+                                <option value="February" selected="selected">February</option>
+                                <% } else { %>
+                                <option value="February" >February</option>
+                                <% } %>
+                                <% if(product.season.start === "March"){ %>
+                                <option value="March" selected="selected">March</option>
+                                <% } else { %>
+                                <option value="March" >March</option>
+                                <% } %>
+                                <% if(product.season.start === "April"){ %>
+                                <option value="April" selected="selected">April</option>
+                                <% } else { %>
+                                <option value="April" >April</option>
+                                <% } %>
+                                <% if(product.season.start === "May"){ %>
+                                <option value="May" selected="selected">May</option>
+                                <% } else { %>
+                                <option value="May" >May</option>
+                                <% } %>
+                                <% if(product.season.start === "June"){ %>
+                                <option value="June" selected="selected">June</option>
+                                <% } else { %>
+                                <option value="June" >June</option>
+                                <% } %>
+                                <% if(product.season.start === "July"){ %>
+                                <option value="July" selected="selected">July</option>
+                                <% } else { %>
+                                <option value="July" >July</option>
+                                <% } %>
+                                <% if(product.season.start === "August"){ %>
+                                <option value="August" selected="selected">August</option>
+                                <% } else { %>
+                                <option value="August" >August</option>
+                                <% } %>
+                                <% if(product.season.start === "September"){ %>
+                                <option value="September" selected="selected">September</option>
+                                <% } else { %>
+                                <option value="September" >September</option>
+                                <% } %>
+                                <% if(product.season.start === "October"){ %>
+                                <option value="October" selected="selected">October</option>
+                                <% } else { %>
+                                <option value="October" >October</option>
+                                <% } %>
+                                <% if(product.season.start === "November"){ %>
+                                <option value="November" selected="selected">November</option>
+                                <% } else { %>
+                                <option value="November" >November</option>
+                                <% } %>
+                                <% if(product.season.start === "December"){ %>
+                                <option value="December" selected="selected">December</option>
+                                <% } else { %>
+                                <option value="December" >December</option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="product[season][end]">End</label>
+                            <select class="form-control" name="product[season][end]">
+                                <% if(product.season.end === "January"){ %>
+                                <option value="January" selected="selected">January</option>
+                                <% } else { %>
+                                <option value="January" >January</option>
+                                <% } %>
+                                <% if(product.season.end === "February"){ %>
+                                <option value="February" selected="selected">February</option>
+                                <% } else { %>
+                                <option value="February" >February</option>
+                                <% } %>
+                                <% if(product.season.end === "March"){ %>
+                                <option value="March" selected="selected">March</option>
+                                <% } else { %>
+                                <option value="March" >March</option>
+                                <% } %>
+                                <% if(product.season.end === "April"){ %>
+                                <option value="April" selected="selected">April</option>
+                                <% } else { %>
+                                <option value="April" >April</option>
+                                <% } %>
+                                <% if(product.season.end === "May"){ %>
+                                <option value="May" selected="selected">May</option>
+                                <% } else { %>
+                                <option value="May" >May</option>
+                                <% } %>
+                                <% if(product.season.end === "June"){ %>
+                                <option value="June" selected="selected">June</option>
+                                <% } else { %>
+                                <option value="June" >June</option>
+                                <% } %>
+                                <% if(product.season.end === "July"){ %>
+                                <option value="July" selected="selected">July</option>
+                                <% } else { %>
+                                <option value="July" >July</option>
+                                <% } %>
+                                <% if(product.season.end === "August"){ %>
+                                <option value="August" selected="selected">August</option>
+                                <% } else { %>
+                                <option value="August" >August</option>
+                                <% } %>
+                                <% if(product.season.end === "September"){ %>
+                                <option value="September" selected="selected">September</option>
+                                <% } else { %>
+                                <option value="September" >September</option>
+                                <% } %>
+                                <% if(product.season.end === "October"){ %>
+                                <option value="October" selected="selected">October</option>
+                                <% } else { %>
+                                <option value="October" >October</option>
+                                <% } %>
+                                <% if(product.season.end === "November"){ %>
+                                <option value="November" selected="selected">November</option>
+                                <% } else { %>
+                                <option value="November" >November</option>
+                                <% } %>
+                                <% if(product.season.end === "December"){ %>
+                                <option value="December" selected="selected">December</option>
+                                <% } else { %>
+                                <option value="December" >December</option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="product[class]">Classification</label>
+                    <select class="form-control" name="product[class]">
+                        <% if(product.class === "nut"){ %>
+                        <option value="nut" selected="selected">Nuts</option>
+                        <% } else { %>
+                        <option value="nut" >Nuts</option>
+                        <% } %>
+                        <% if(product.class === "fruit"){ %>
+                        <option value="fruit" selected="selected">Fruit</option>
+                        <% } else { %>
+                        <option value="fruit" >Fruit</option>
+                        <% } %>
+                        <% if(product.class === "woodland"){ %>
+                        <option value="woodland" selected="selected">Woodland</option>
+                        <% } else { %>
+                        <option value="woodland" >Woodland</option>
+                        <% } %>
+                        <% if(product.class === "ornamental"){ %>
+                        <option value="ornamental" selected="selected">Ornamental</option>
+                        <% } else { %>
+                        <option value="ornamental" >Ornamental</option>
+                        <% } %>
+                        <% if(product.class === "vegetable"){ %>
+                        <option value="vegetable" selected="selected">Vegetable</option>
+                        <% } else { %>
+                        <option value="vegetable" >Vegetable</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[species]">Species (<em>botanical</em>)</label>
+                    <select class="form-control" name="product[species]" style="width:100%;max-width:100%;" >
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.species && species.nameCommon === product.species.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[variety]">Variety/Cultivar name</label>
+                    <input type="text" class="form-control" name="product[variety]" value="<%= product.variety %>" >
+                </div>
+                <div class="form-group">
+                    <label for="product[rootstock]">Rootstock (Optional. Only select if grafted)</label>
+                    <select class="form-control" name="product[rootstock]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.rootstock && species.nameCommon === product.rootstock.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product[hybrid]">Hybrid (Optional. Only select if hybrid variety)</label>
+                    <select class="form-control" name="product[hybrid]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                            <% if(product.hybrid && species.nameCommon === product.hybrid.nameCommon){ %>
+                                <option value="<%= species._id %>" selected="selected"><%= species.genus %> <%= species.species %></option>
+                            <% } else { %>
+                                <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                            <% } %>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-check btn-group-toggle">
+                    <div class="card-body">
+                    <% if(product.availability === true){ %>
+                    <input type="checkbox" name="product[availability]" id="exampleRadios1" class="form-check-input" checked="checked" autocomplete="off">
+                    <% } else { %>
+                    <input type="checkbox" name="product[availability]" id="exampleRadios1" class="form-check-input" autocomplete="off">
+                    <% } %>
+                    <label class="form-check-label" for="exampleRadios1">
+                        Product available for sale
+                    </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+<% include ../partials/footer %>

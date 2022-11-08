@@ -1,0 +1,36 @@
+<% include ./partials/header %>
+<% include ./partials/navbar %>
+
+<div class="container">
+    <h1>Farm area agroforestry suitability assessment</h1>
+    <% if(!(parcel.layers == "")){ %>
+        <div class="row">
+            <% for(i=0;i<3;i++){ %>
+            <div class="col-lg-4">
+                <div class="thumbnail">
+                    <div class="row">
+                        <% parcel.forEach(function(row){ %>
+                        <div class="col-sm-3">
+                            <% if(row.sequense[0].family === "pinaceae"){ %>
+                                <img class="img-responsive" src="/images/conifer.svg">
+                            <% } else { %>
+                                <img class="img-responsive" src="/images/<%= row.sequense[0].form %>.svg">
+                            <% } %>
+                        </div>
+                        <% }); %>
+                    </div>
+                    <div class="caption">
+                        <p><%= systems[i].name %></p>
+                        <p>LERP: N/A, LERS: N/A</p>
+                        <button class="btn btn-success btn">Add system to future drafts</button>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <p>There currently is no defined areas for this farm/project.</p>
+    <% } %>
+</div>
+
+<% include ./partials/footer %>

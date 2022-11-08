@@ -1,0 +1,64 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<h1>System comparison</h1>
+<p>Comparison of future system drafts for area "<%= layer.name %>". </p>
+<% systems.forEach(function(system){ %>
+    <div class="card text-center">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="row p-3 justify-content-center">
+                    <% system.sortedrows.forEach(function(row){ %>
+                        <div class="col-sm-3">
+                            <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                        </div>
+                    <% }); %>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title"><%= system.name %></h5>
+                    <p><strong>Species: </strong>
+                        <% system.uniqueSpecies.forEach(function(species){ %>
+                            <%= species %>,
+                        <% }); %>
+                    </p>
+                    <p><strong>System width: </strong>
+                        <%= system.grid %> m
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="row">
+                    <div class="col-md-3 card-body">
+                        <p><strong>Utility and productivity</strong></p>
+                        <p><strong>Utilities: </strong>
+                            <% system.uniqueUtilities.forEach(function(utility){ %>
+                            <%= utility %>,
+                            <% }); %>
+                        </p>
+                        <% if(system.flows.length > 0){ %>
+                            <% system.flows.forEach(function(flow){ %>
+                                <p><strong>LER: </strong><%= flow.data[0].data[0] %></p>
+                            <% }); %>
+                        <% }; %>
+                    </div>
+                    <div class="col-md-3 card-body">
+                        <p><strong>Resilience and food security</strong></p>
+                        <p><strong>Protein: </strong><%= system.nutritional.protein %> %</p>
+                        <p><strong>Fat: </strong><%= system.nutritional.fat %> %</p>
+                        <p><strong>Carbs: </strong><%= system.nutritional.carb %> %</p>
+                    </div>
+                    <div class="col-md-3 card-body">
+                        <p><strong>Environment</strong></p>
+                        <p>- Coming soon -</p>
+                    </div>
+                    <div class="col-md-3 card-body">
+                        <p><strong>Labor and workflows</strong></p>
+                        <p>- Coming soon -</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<% }); %>
+
+<% include ../partials/footer %>

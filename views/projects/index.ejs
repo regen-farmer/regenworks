@@ -1,0 +1,57 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+    <h1>Projects</h1>
+    <p>It is through projects that you implement agroforestry systems and changes to your land. Projects are tailor made implementation plans that ensures a smooth integration of new practices with your existing daily activities.</p>
+    <% if(projects.length > 0){ %>
+        <h2>Project in planning phase</h2>
+        <div class="row" style="display:flex; flex-wrap: wrap;">
+            <% projects.forEach(function(project){ %>
+                <% if(project.status === "planning"){ %>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><%= project.name %></h5>
+                                <a href="/projects/<%= project.id %>" class="btn btn-success">Go to project</a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            <% }); %>
+        </div>
+        <h2>Projects under implementation</h2>
+        <div class="row" style="display:flex; flex-wrap: wrap;">
+            <% projects.forEach(function(project){ %>
+                <% if(project.status === "Implementation"){ %>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><%= project.name %></h5>
+                                <a href="/projects/<%= project.id %>" class="btn btn-success">Go to project</a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            <% }); %>
+        </div>
+        <h2>Completed projects</h2>
+        <div class="row" style="display:flex; flex-wrap: wrap;">
+            <% projects.forEach(function(project){ %>
+                <% if(project.status === "Completed"){ %>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><%= project.name %></h5>
+                                <a href="/projects/<%= project.id %>" class="btn btn-success">Go to project</a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            <% }); %>
+        </div>
+    <% } else { %>
+    <p><i>--- CURRENTLY NO PROJECTS DEFINED. GO TO AREA PAGE TO CREATE AN IMPLEMENTATION PROJECT FOR A SPECIFIC AGROFORESTRY SYSTEM ---</i></p>
+    <% } %>
+    </div>
+
+<% include ../partials/footer %>

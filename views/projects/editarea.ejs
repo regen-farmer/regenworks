@@ -1,0 +1,49 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h2>Edit sub-area</h2>
+        <div>
+            <form action="/projects/<%= project._id %>/areas/<%= area._id %>?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="area[name]">sub-area name/ref</label>
+                    <input type="text" class="form-control" name="area[name]" value="<%= area.name %>" required>
+                </div>
+                <% if(rotations && rotations.length > 0){ %>
+                <div class="form-group">
+                    <label for="rotationid">Select sub-area crop rotation: </label>
+                    <select name="rotationid" id="rotationid">
+                        <option value="none">None</option>
+                        <% for(i=0;i<rotations.length;i++){ %>
+                        <% if(area.rotation && rotations[i].name === area.rotation.name){ %>
+                        <option value="<%= rotations[i]._id %>" selected="selected"><%= rotations[i].name %></option>
+                        <% } else { %>
+                        <option value="<%= rotations[i]._id %>"><%= rotations[i].name %></option>
+                        <% } %>
+                        <% } %>
+                    </select>
+                </div>
+                <% } %>
+                <!--   <div class="form-group">
+                       <label for="[rowCoordinates]">Row geometry</label>
+                       <p>Please draw the outline of your new row. Press first point or "Finish" to close the shape.</p>
+                   </div>
+                   <div id="rowMapNew"></div>
+                   <input type="hidden" id="geometry" name="geometry">
+                   <input type="hidden" id="layersize" name="layersize">
+                   <div id="coordinates"></div>
+                   <hr>-->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Update area</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var areaLat = "<%= project.layer.lat %>";
+        var areaLng = "<%= project.layer.lng %>";
+    </script>
+
+<% include ../partials/footer %>
