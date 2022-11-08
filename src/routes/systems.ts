@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 var unique = require("array-unique");
 import System from "../models/system";

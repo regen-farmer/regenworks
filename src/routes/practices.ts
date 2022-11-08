@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Practice from "../models/practice";
 import Parcel from "../models/parcel";

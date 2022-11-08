@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Asset from "../models/asset";
 import Layer from "../models/layer";

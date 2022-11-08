@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Variety from "../models/variety";
 import Species from "../models/species";

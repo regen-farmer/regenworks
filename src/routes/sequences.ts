@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Sequence from "../models/sequence";
 import Layer from "../models/layer";

@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import passport from "passport";
 import User from "../models/user";
@@ -64,10 +64,12 @@ router.get("/planning", middleware.isLoggedIn, function(req, res){
 
 // DASHBOARD ROUTE
 router.get("/dashboard", middleware.isLoggedIn, function(req, res){
+    //@ts-ignore
     Parcel.find({'owner.id': req.user._id}, function(err, allParcels){
         if(err) {
             console.log(err);
         } else {
+            //@ts-ignore
             Activity.find({'owner.id': req.user._id}, function(err, allActivities){
                 if(err) {
                     console.log(err);
@@ -211,6 +213,7 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
     logger.info(req.user.username + " has logged in", {timestamp: Date.now()});
 */
     var newLog = {
+        //@ts-ignore
         message: req.user.username + " logged in",
         level: "info",
         timestamp: Date.now()
@@ -219,12 +222,15 @@ router.post("/login", passport.authenticate("local", {failureRedirect: '/login'}
         if(err){
             console.log(err);
         } else {
+            //@ts-ignore
             if((req.user.membership + req.user.registrationDate) > Date.now()){
                 console.log("membership test passed");
             }
+            //@ts-ignore
             if(req.user.isNursery && req.user.isNursery === true){
                 res.redirect('/nurseries');
             } else {
+                //@ts-ignore
                 res.redirect('/users/' + req.user.id);
             }
         }
@@ -315,7 +321,7 @@ router.post("/login", function (req, res) {
 // LOGOUT ROUTE
 router.get("/logout", function(req, res) {
     logger.info("User requested to log out", {timestamp: Date.now()});
-    req.logout();
+    req.logout({}, ()=>{});
     logger.info("User was logged out", {timestamp: Date.now()});
     // req.flash("success", "Logged you out!");
     res.redirect("/login");
@@ -447,6 +453,7 @@ router.post("/reset/:token", function(req, res){
 
 // SET CURRENTPROJECT //
 router.post("/users/:id/currentproject/", middleware.checkUserOwnership, function(req, res){
+    //@ts-ignore
     User.findById(req.user._id, function(err, foundUser){
         if(err) {
             console.log(err);
