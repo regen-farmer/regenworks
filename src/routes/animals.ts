@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Animal from "../models/animal";
 var middleware = require("../middleware");

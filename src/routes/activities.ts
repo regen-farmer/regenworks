@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Parcel from "../models/parcel";
 import Activity, { IActivitySchema } from "../models/activity";
@@ -23,7 +23,7 @@ var options = {
 var geocoder = NodeGeocoder(options);
 
 // ACTIVITY INDEX ROUTE
-router.get("/activities", middleware.isLoggedIn, function(req, res){
+router.get("/activities", middleware.isLoggedIn, function(req:any, res){
     // Get all activities from DB
     Activity.find({'owner.id': req.user._id}, function(err, allActivities){
         if(err) {
@@ -39,7 +39,7 @@ router.get("/activities", middleware.isLoggedIn, function(req, res){
 });
 
 // ACTIVITY NEW ROUTE
-router.get("/activities/new", middleware.isLoggedIn, function(req, res){
+router.get("/activities/new", middleware.isLoggedIn, function(req:any, res){
     var parcel = undefined;
     console.log(req.body.picked);
     Layer.find({'owner.id': req.user._id}, function(err, foundLayers){
@@ -56,7 +56,7 @@ router.get("/activities/new", middleware.isLoggedIn, function(req, res){
 });
 
 // ACTIVITY CREATE ROUTE
-router.post("/activities", middleware.isLoggedIn, function(req, res){
+router.post("/activities", middleware.isLoggedIn, function(req:any, res){
     // Create a new experience
     Activity.create(req.body.activity, function(err, createdActivity){
         if(err){
@@ -93,7 +93,7 @@ router.get("/activities/:id", middleware.isLoggedIn, function(req, res){
 });
 
 // ACTIVITY EDIT ROUTE
-router.get("/activities/:id/edit", middleware.isLoggedIn, function(req, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+router.get("/activities/:id/edit", middleware.isLoggedIn, function(req:any, res){ // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     // Find specific activity in database
     Activity.findById(req.params.id, function(err, foundActivity){
         if(err){
@@ -180,7 +180,7 @@ router.get("/parcels/:id/activities/new", middleware.isLoggedIn, function(req, r
 });
 
 // PLACE EXPERIENCES CREATE ROUTE
-router.post("/parcels/:id/activities", middleware.isLoggedIn, function(req, res){
+router.post("/parcels/:id/activities", middleware.isLoggedIn, function(req:any, res){
     // Lookup place using id
     Parcel.findById(req.params.id, function(err, foundParcel){
         if(err) {
@@ -221,7 +221,7 @@ router.get("/projects/:id/activities/new", middleware.isLoggedIn, function(req, 
 });
 
 // PROJECT ACTIVITY CREATE ROUTE
-router.post("/projects/:id/activities", middleware.isLoggedIn, function(req, res){
+router.post("/projects/:id/activities", middleware.isLoggedIn, function(req:any, res){
     Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);

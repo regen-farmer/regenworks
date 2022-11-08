@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import NurseryProduct from "../models/nurseryproduct";
 import Nursery from "../models/nursery";
@@ -47,7 +47,7 @@ router.get("/nurseries/:id/nurseryproducts/new", middleware.isLoggedIn, function
 });
 
 // NURSERY PRODUCT NURSERY CREATE
-router.post("/nurseries/:id/nurseryproducts", middleware.isLoggedIn, function(req, res){
+router.post("/nurseries/:id/nurseryproducts", middleware.isLoggedIn, function(req:any, res){
     // CLEAN NONE OPTIONS
     var product = req.body.product;
     if(req.body.product.species === ""){

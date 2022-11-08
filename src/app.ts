@@ -1,18 +1,19 @@
 require("dotenv").config();
-var express = require("express");
-var app = express();
-var bodyParser = require("body-parser"); // USED TO PARSE DATA FROM POST ROUTE
+import express from "express";
+import bodyParser from "body-parser"; // USED TO PARSE DATA FROM POST ROUTE
 import {connect} from "mongoose"; // REQUIRE MONGOOSE PACKAGE
-var flash = require("connect-flash"); // ENABLES FLASH MESSAGES
+import flash from "connect-flash"; // ENABLES FLASH MESSAGES
 import passport from "passport"; // REQUIRE PASSPORT PACKAGE
 import LocalStrategy from "passport-local"; // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
-var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
+import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
 import Parcel from "./models/parcel";
 //var seedDB = require("./seeds");
 import User from "./models/user";
+import expressSession from "express-session";
 
+var app = express();
 // REQUIRE ROUTE FILES
 var parcelRoutes = require("./routes/parcels");
 var indexRoutes = require("./routes/index");
@@ -51,7 +52,7 @@ app.use(flash());
 //seedDB(); // USE ONLY FOR SEEDING DATABAS
 
 // PASSPORT CONFIGURATION
-app.use(require("express-session")({
+app.use(expressSession({
     secret: "If found non we go down!",
     resave: false,
     saveUninitialized: false
@@ -103,7 +104,7 @@ app.get('*', function(req, res){
     res.status(404).render('404');
 });
 
-// SETUP THE EXPRESS LISTENER ON LOCAL HOST
+// @ts-ignore
 app.listen(process.env.PORT, process.env.IP, function(){
     console.log("The grown local Server Has Started!");
 });

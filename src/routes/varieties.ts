@@ -1,11 +1,11 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Variety from "../models/variety";
 import Species from "../models/species";
 var middleware = require("../middleware");
 
 // VARIETY INDEX
-router.get("/varieties", middleware.isLoggedIn, function(req, res){
+router.get("/varieties", middleware.isLoggedIn, function(req:any, res){
     // Get all varieties from DB
     Variety.find({'owner.id': req.user._id}).populate("species").exec(function(err, allUserVarieties){
         if(err) {
@@ -40,7 +40,7 @@ router.get("/varieties/new", middleware.isLoggedIn, function(req, res){
 });
 
 // VATERTY CREATE
-router.post("/varieties", middleware.isLoggedIn, function(req, res){
+router.post("/varieties", middleware.isLoggedIn, function(req:any, res){
     // CLEAN NONE OPTIONS
     var variety = req.body.variety;
     if(req.body.variety.species === ""){

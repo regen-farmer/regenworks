@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Asset from "../models/asset";
 import Layer from "../models/layer";
@@ -7,7 +7,7 @@ import Species from "../models/species";
 var middleware = require("../middleware");
 
 // ASSET INDEX ROUTE
-router.get("/assets", middleware.adminIsLoggedIn, function(req, res){
+router.get("/assets", middleware.adminIsLoggedIn, function(req:any, res){
     // Get all assets from DB
     Asset.find({'owner.id': req.user._id}, function(err, allAssets){
         if(err) {
@@ -19,7 +19,7 @@ router.get("/assets", middleware.adminIsLoggedIn, function(req, res){
 });
 
 // ASSET NEW ROUTE
-router.get("/assets/new", middleware.isLoggedIn, function(req, res){
+router.get("/assets/new", middleware.isLoggedIn, function(req:any, res){
     Layer.find({'owner.id': req.user._id}, function(err, foundLayers){
         if(err){
             console.log(err);
@@ -34,7 +34,7 @@ router.get("/assets/new", middleware.isLoggedIn, function(req, res){
 });
 
 // ASSET CREATE ROUTE
-router.post("/assets", middleware.isLoggedIn, function(req, res){
+router.post("/assets", middleware.isLoggedIn, function(req:any, res){
     // Create a new experience
     Asset.create(req.body.asset, function(err, createdAsset){
         if(err){
@@ -143,7 +143,7 @@ router.get("/layers/:id/assets/new", middleware.isLoggedIn, function(req, res){
 });
 
 // AREA ASSET CREATE ROUTE
-router.post("/layers/:id/assets", middleware.isLoggedIn, function(req, res){
+router.post("/layers/:id/assets", middleware.isLoggedIn, function(req:any, res){
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
