@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 import Practice from "../models/practice";
 import Parcel from "../models/parcel";
@@ -11,7 +11,7 @@ var middleware = require("../middleware");
 // PRACTICE CREATE ROUTE
 
 // PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
-router.get("/practices/:id", middleware.isLoggedIn, function(req, res){
+router.get("/practices/:id", middleware.isLoggedIn, function(req:any, res){
     Practice.findById(req.params.id, function(err, foundPractice){
         if(err){
             console.log(err);

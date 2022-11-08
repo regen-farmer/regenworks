@@ -1,4 +1,4 @@
-var express = require("express");
+import express from "express";
 var router = express.Router();
 var unique = require("array-unique");
 import Parcel from "../models/parcel";
@@ -34,7 +34,7 @@ var options = {
 var geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get("/projects", middleware.isLoggedIn, function(req, res){
+router.get("/projects", middleware.isLoggedIn, function(req:any, res){
     // GET ALL USERS PROJECTS IN DB
     Project.find({'owner.id': req.user._id}, function(err, allProjects){
         if(err) {
@@ -52,7 +52,7 @@ router.get("/projects/new", middleware.isLoggedIn, function(req, res){
 });
 
 // SERVICES CREATE ROUTE
-router.post("/projects", middleware.isLoggedIn, function(req, res){
+router.post("/projects", middleware.isLoggedIn, function(req:any, res){
     // Create a new project
     Project.create(req.body.project, function(err, service){
         if(err){
@@ -925,7 +925,7 @@ router.put("/projects/:id/complete", middleware.isLoggedIn, async function(req, 
 });
 
 // ADD PROJECT EDGE SYSTEM NEW
-router.get("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/addedgesystem", middleware.isLoggedIn, function(req:any, res){
     Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);
@@ -1593,7 +1593,7 @@ router.get("/layers/:id/projects/new/:system", middleware.isLoggedIn, function(r
 });
 
 // LAYER PROJECT CREATE ROUTE
-router.post("/layers/:id/projects", middleware.isLoggedIn, function(req, res){
+router.post("/layers/:id/projects", middleware.isLoggedIn, function(req:any, res){
     // Lookup place using id
     Layer.findById(req.params.id).populate("rows").exec(function(err, foundLayer){
         if(err) {
@@ -1685,7 +1685,7 @@ router.delete("/projects/:id/allassets", middleware.isLoggedIn, async function(r
 });
 
 // ROW NEW ROUTE
-router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/row/new", middleware.isLoggedIn, function(req:any, res){
     // FIND PROJECT
     Project.findById(req.params.id).populate("layer").exec(function(err, foundProject){
         if(err){
@@ -1739,7 +1739,7 @@ router.post("/projects/:id/row", middleware.isLoggedIn, function(req, res){
 });
 
 // EDIT ROW
-router.get("/projects/:id/row/:pid/edit", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/row/:pid/edit", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Project.findById(req.params.id).populate({path:'rows', populate:{path:'sequence'}}).populate("layer").exec(function(err, foundProject){
         if(err){
@@ -1815,7 +1815,7 @@ router.delete("/projects/:id/row/:pid", middleware.isLoggedIn, function(req, res
 // ---------------- AREAS
 
 // EDIT AREA
-router.get("/projects/:id/areas/:pid/edit", middleware.isLoggedIn, function(req, res){
+router.get("/projects/:id/areas/:pid/edit", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Project.findById(req.params.id).populate({path:'areas', populate:{path:'rotation'}}).populate("layer").exec(function(err, foundProject){
         if(err){
