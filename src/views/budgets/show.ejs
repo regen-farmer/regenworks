@@ -1,5 +1,5 @@
-<% include ../partials/header %>
-<% include ../partials/navbar %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
 <div>
     <h1><%= budget.name %></h1>
@@ -92,4 +92,4 @@
     <a href="/budgets/<%= budget._id %>/postings/new" class="btn btn-outline-primary">Add new posting</a>
 </div>
 
-<% include ../partials/footer %>
+<%- include('../partials/footer') %>
