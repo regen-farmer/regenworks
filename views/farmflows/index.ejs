@@ -1,0 +1,125 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Flows <em>by field</em></h2>
+    </div>
+    <div class="col-md-12">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <% parcel.layers.forEach(function(layer, i){ %>
+            <% if(i === 0){ %>
+            <li class="nav-item">
+                <a class="nav-link active" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="true"><%= layer.name %></a>
+            </li>
+            <% } else { %>
+            <li class="nav-item">
+                <a class="nav-link" id="layer<%= i %>-tab" data-toggle="tab" href="#layer<%= i %>" role="tab" aria-controls="layout-tab" aria-selected="false"><%= layer.name %></a>
+            </li>
+            <% } %>
+            <% }); %>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <% parcel.layers.forEach(function(layer, i){ %>
+            <% if(i === 0){ %>
+            <div class="tab-pane fade show active" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                <% } else { %>
+                <div class="tab-pane fade" id="layer<%= i %>" role="tabpanel" aria-labelledby="layer<%= i %>-tab">
+
+                    <% } %>
+                    <div class="card">
+<!--
+                        <div class="col-sm-12" ><canvas height="60vh" id="lineChartRowFlows"></canvas></div>
+-->
+
+                        <div class="card-body">
+                            <h2>Row/block flows</h2>
+                            <table class="table small">
+                                <tr class="table-secondary">
+                                    <td>Row ref</td>
+                                    <td>Row inputs logs</td>
+                                    <td>Row outputs logs</td>
+                                    <td></td>
+                                </tr>
+                                <% if(layer.rows && layer.rows.length > 0){ %>
+                                <% for(i=0;i<layer.rows.length;i++){ %>
+                                <tr>
+                                    <td><%= layer.rows[i].name %></td>
+                                    <td><%= layer.rows[i].farmflows.length %></td>
+                                    <td><%= layer.rows[i].farmflows.length %></td>
+                                    <td>
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/farmflows/new" class="btn btn-sm btn-outline-primary">Add input/output <i class="fas fa-plus"></i></a>
+<!--
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/rows/<%= layer.rows[i]._id %>/farmflows" class="btn btn-sm btn-outline-primary">view flows</a>
+-->
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } else { %>
+                                <p><em>No rows/blocks on this field.</em></p>
+                                <% } %>
+                            </table>
+                        </div>
+                        <div class="card-body">
+                            <h2>Sub-area flows</h2>
+                            <table class="table small">
+                                <tr class="table-secondary">
+                                    <td>Area ref</td>
+                                    <td>Area inputs</td>
+                                    <td>Area outputs</td>
+                                    <td></td>
+                                </tr>
+                                <% if(layer.areas && layer.areas.length > 0){ %>
+                                <% for(i=0;i<layer.areas.length;i++){ %>
+                                <tr>
+                                    <td><%= layer.areas[i].name %></td>
+                                    <td><%= layer.areas[i].farmflows.length %></td>
+                                    <td><%= layer.areas[i].farmflows.length %></td>
+                                    <td>
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/farmflows/new" class="btn btn-sm btn-outline-primary">Add input/output <i class="fas fa-plus"></i></a>
+<!--
+                                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/farmflows" class="btn btn-sm btn-outline-primary">view flows</a>
+-->
+                                    </td>
+                                </tr>
+                                <% } %>
+                                <% } else { %>
+                                <p><em>No sub-areas on this field.</em></p>
+                                <% } %>
+                            </table>
+                        </div>
+<!--
+                        <a href="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/farmflows/viz" class="btn btn-sm btn-outline-primary">View flow-map</a>
+-->
+                    </div>
+
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var ctx = document.getElementById('lineChartRowFlows').getContext('2d');
+        var myChartRowFlows = new Chart(ctx, {
+            // The type of chart we want to create
+            type: 'line',
+
+            // The data for our dataset
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+                datasets: [{
+                    label: 'Average yield/tree/year',
+                    backgroundColor: 'rgb(110, 188, 74)',
+                    borderColor: 'rgb(77, 131, 51)',
+                    data: [0, 0, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5]
+                }]
+            },
+
+            // Configuration options go here
+            options: {}
+        });
+    </script>
+
+<% include ../partials/footer %>

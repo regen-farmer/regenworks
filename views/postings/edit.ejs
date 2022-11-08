@@ -1,0 +1,64 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+    <div class="col-lg-2"></div>
+    <div class="col-lg-8">
+        <h2>Create posting for budget</h2>
+        <form action="/budgets/<%= budget._id %>/postings/<%= posting._id %>?_method=PUT" method="POST">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label for="posting[name]">Name</label>
+                    <input type="text" class="form-control" name="posting[name]" id="posting[name]" value="<%= posting.name %>">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[postType]">Type</label>
+                    <select class="form-control" name="posting[postType]" id="posting[postType]">
+                        <% if(posting.postType === "product") { %>
+                            <option selected="selected" value="product">Product sales</option>
+                        <% } else { %>
+                            <option value="product">Product sales</option>
+                        <% } %>
+                        <% if(posting.postType === "service") { %>
+                            <option selected="selected" value="service">Service sales</option>
+                        <% } else { %>
+                            <option value="service">Service sales</option>
+                        <% } %>
+                        <% if(posting.postType === "material") { %>
+                            <option selected="selected" value="material">Material costs</option>
+                        <% } else { %>
+                            <option value="material">Material costs</option>
+                        <% } %>
+                        <% if(posting.postType === "labor") { %>
+                            <option selected="selected" value="labor">Labor costs</option>
+                        <% } else { %>
+                            <option value="labor">Labor costs</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[amount]">Amount</label>
+                    <input type="number" step=".01" class="form-control" name="posting[amount]" id="posting[amount]" value="<%= posting.amount %>">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[value]">Value</label>
+                    <input type="number" step=".01" class="form-control" name="posting[value]" id="posting[value]" value="<%= posting.value %>">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[month]">Month</label>
+                    <input type="number" step=".01" class="form-control" name="posting[month]" id="posting[month]" value="<%= posting.month %>">
+                </div>
+                <div class="form-group col-md-3">
+                    <label for="posting[year]">Year</label>
+                    <input type="number" step=".01" class="form-control" name="posting[year]" id="posting[year]" value="<%= posting.year %>">
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">Update posting</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-2"></div>
+</div>
+
+<% include ../partials/footer %>

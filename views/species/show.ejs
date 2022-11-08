@@ -1,0 +1,102 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="container">
+    <h1><%= species.nameCommon %></h1>
+    <a class="btn btn-outline-secondary" href="/species/">Species index</a>
+    <div class="row">
+        <div class="col-sm-2">
+            <img class="img-responsive" src="/images/<%= species.form %>.svg">
+            <a class="btn btn-outline-primary" href="/species/<%= species._id %>/edit">Edit species details</a>
+            <form class="delete-form" action="/species/<%= species._id %>?_method=DELETE" method="POST">
+                <button class="btn btn-danger">Delete species</button>
+            </form>
+            <a class="btn btn-outline-secondary" href="/species/<%= species._id %>/activities/new">Add new activity to species</a>
+            <a class="btn btn-outline-warning" href="/species/<%= species._id %>/nutrients/new">Update nutrients profile</a>
+        </div>
+        <div class="col-sm-2">
+            <p>Name: <%= species.genus %> <%= species.species %></p>
+            <p>Type: <%= species.form %></p>
+            <p>Mature height: <%= species.height %> m</p>
+            <% if(!(species.flows == "")){ %>
+                <p><%= species.flows[0].data %></p>
+            <% } %>
+
+        </div>
+        <!--<div class="col-sm-2">
+            <h2>Yield</h2>
+            <p>Yield type: Nuts</p>
+        </div>-->
+        <div class="col-sm-8 card">
+            <h2>Activities</h2>
+            <% if(!(species.activities == "")){ %>
+                <p><strong>Activity amounts:</strong> <%= species.activities.length %> </p>
+                <% for(i=0;i<species.activities.length;i++){ %>
+                    <div class="card-body">
+                        <p class="card-text"><%= species.activities[i].name %> <%= species.activities[i].activityType %> + <%= species.activities[i].subtype %></p>
+                        <a class="btn btn-sm btn-outline-secondary" href="/species/<%= species._id %>/activities/edit?index=<%= i %>">Edit activity</a>
+                    </div>
+                <% } %>
+            <% } %>
+        </div>
+<!--
+        <div class="col-sm-6"><canvas id="lineChart"></canvas></div>
+-->
+    </div>
+    <!--<div class="row">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-2">
+            <h2>Carbon</h2>
+            <p>Metric: co2</p>
+        </div>
+        <div class="col-sm-6"><canvas id="lineChartCarbon"></canvas></div>
+    </div>
+    <h2>Annual yield profile for species</h2>
+    <p>The annual yield profile makes it possible to assess labor peaks and plan systems where labor is spread out accross the year. Furthermore, it can help to assess and optimize early cash flows. More diverse and spread out yields can help to mitigate market votality etc. </p>
+--></div>
+
+<script>
+    var ctx = document.getElementById('lineChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            datasets: [{
+                label: 'Average yield/plant/year',
+                backgroundColor: 'rgb(110, 188, 74)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: [0, 0, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5]
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+    var ctx = document.getElementById('lineChartCarbon').getContext('2d');
+    var myChartCarbon = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+            datasets: [{
+                label: 'Average co2/plant/year',
+                backgroundColor: 'rgb(35, 88, 147)',
+                borderColor: 'rgb(11, 51, 95)',
+                data: [1.4, 3.1, 4.1, 5, 6, 7.1, 8.3, 9.4, 11, 12, 13, 14, 15.6, 17]
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+</script>
+
+<% include ../partials/footer %>

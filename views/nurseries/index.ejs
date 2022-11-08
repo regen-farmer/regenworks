@@ -1,0 +1,39 @@
+<% include ../partials/header %>
+<% include ../partials/nurserynav %>
+
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        <h1>Nursery</h1>
+        <div class="row">
+
+        <% if(nurseries){ %>
+            <% nurseries.forEach(function(nursery){ %>
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <h2><%= nursery.name %></h2>
+                                </div>
+                                <div class="col-lg-6">
+                                    <a href="/nurseries/<%= nursery._id %>" class="btn btn-outline-success float-right">Go to nursery</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        <% } %>
+        <% if(nurseries && nurseries.length < 1){ %>
+            <a href="/nurseries/new" class="btn btn-outline-success">
+                Add your nursery
+            </a>
+        <% } %>
+        </div>
+
+    </div>
+    <div class="col-lg-3"></div>
+</div>
+
+<% include ../partials/footer %>

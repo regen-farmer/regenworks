@@ -1,0 +1,65 @@
+<% include ../partials/header %>
+<% include ../partials/navbar %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Create new variety/cultivar</h2>
+        <div>
+            <form action="/varieties" method="POST">
+                <div class="form-group">
+                    <label for="variety[name]">Name</label>
+                    <input type="text" class="form-control" name="variety[name]" required>
+                </div>
+                <div class="form-group">
+                    <label for="variety[description]">Description</label>
+                    <input type="text" class="form-control" name="variety[description]" >
+                </div>
+                <div class="form-group">
+                    <label for="variety[price]">Price</label>
+                    <input type="number" class="form-control" name="variety[price]" required>
+                </div>
+                <div class="form-group">
+                    <label for="variety[species]">Species (<em>botanical</em>)</label>
+                    <select class="form-control" name="variety[species]" style="width:100%;max-width:100%;" >
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="variety[rootstock][species]">Rootstock species (Optional. Only select if grafted)</label>
+                    <select class="form-control" name="variety[rootstock][species]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="variety[rootstock][name]">Rootstock name (Optional. Only select if grafted)</label>
+                    <input type="text" class="form-control" name="variety[rootstock][name]" >
+                </div>
+                <div class="form-group">
+                    <label for="variety[hybrid]">Hybrid (Optional. Only select if hybrid variety)</label>
+                    <select class="form-control" name="variety[hybrid]" style="width:100%;max-width:100%;">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.genus %> <%= species.species %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Create variety/cultivar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+<% include ../partials/footer %>
