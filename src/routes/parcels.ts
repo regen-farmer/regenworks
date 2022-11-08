@@ -10,11 +10,10 @@ var request = require("request"); // Making REST requests
 import {centroid, helpers as turf, length as turfLength, circle, along} from "@turf/turf"
 
 // NODE GEOCODER CODE
-var NodeGeocoder = require("node-geocoder");
+import NodeGeocoder from "node-geocoder";
 
-var options = {
-    provier: "google",
-    httpAdapter: "https",
+var options: NodeGeocoder.Options = {
+    provider: "google",
     apiKey: process.env.GEOCODER_API_KEY,
     formatter: null
 };
@@ -340,7 +339,7 @@ router.get("/parcels/:id/climate", middleware.checkParcelOwnership, function(req
                     return res.redirect("back");
                 }
                 console.log(data[0].country);
-                console.log(data[0].administrativeLevels.level1long);
+                console.log(data[0].administrativeLevels?.level1long);
                 console.log(data[0].city);
                 request("https://restcountries.eu/rest/v2/name/" + data[0].country + "?fullText=true&fields=alpha3Code", function(error, response, body){
                     console.log('error:', error);
