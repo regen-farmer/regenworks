@@ -22,11 +22,10 @@ import {helpers as turf, length as turfLength, circle, area} from "@turf/turf"
 const PDFDocument = require("pdfkit");
 
 // NODE GEOCODER CODE
-var NodeGeocoder = require("node-geocoder");
+import NodeGeocoder from "node-geocoder";
 
-var options = {
-    provier: "google",
-    httpAdapter: "https",
+var options: NodeGeocoder.Options = {
+    provider: "google",
     apiKey: process.env.GEOCODER_API_KEY,
     formatter: null
 };

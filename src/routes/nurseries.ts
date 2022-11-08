@@ -6,11 +6,10 @@ import User from "../models/user";
 var middleware = require("../middleware");
 
 // NODE GEOCODER CODE
-var NodeGeocoder = require("node-geocoder");
+import NodeGeocoder from "node-geocoder";
 
-var options = {
-    provier: "google",
-    httpAdapter: "https",
+var options: NodeGeocoder.Options = {
+    provider: "google",
     apiKey: process.env.GEOCODER_API_KEY,
     formatter: null
 };
