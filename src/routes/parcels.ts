@@ -22,7 +22,7 @@ var options = {
 var geocoder = NodeGeocoder(options);
 
 // PARCEL INDEX ROUTE
-router.get("/parcels", middleware.isLoggedIn, function(req, res){
+router.get("/parcels", middleware.isLoggedIn, function(req:any, res){
     // Get all parcels from DB
     Parcel.find({'owner.id': req.user._id}, function(err, allUserParcels){
         if(err) {
@@ -46,7 +46,7 @@ router.get("/parcels/new", middleware.isLoggedIn, function (req, res){
 });
 
 // PARCEL CREATE ROUTE
-router.post("/parcels", middleware.isLoggedIn, function(req, res){
+router.post("/parcels", middleware.isLoggedIn, function(req:any, res){
     // Create variable with new place posted from place form
     var name = req.body.parcel.name;
     var climate = {
@@ -284,7 +284,7 @@ router.put("/parcels/:id", middleware.checkParcelOwnership, function(req, res){
 });
 
 // PLACES DESTROY ROUTE
-router.delete("/parcels/:id", middleware.checkParcelOwnership,async function(req, res){
+router.delete("/parcels/:id", middleware.checkParcelOwnership,async function(req:any, res){
     try {
         await Parcel.findByIdAndRemove(req.params.id)
         res.redirect('/users/' + req.user.id);

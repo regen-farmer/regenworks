@@ -124,7 +124,7 @@ router.get("/projects/:id/budgets/new", middleware.isLoggedIn, function(req, res
 });
 
 // PROJECT BUDGET CREATE ROUTE
-router.post("/projects/:id/budgets", middleware.isLoggedIn, function(req, res){
+router.post("/projects/:id/budgets", middleware.isLoggedIn, function(req:any, res){
     Project.findById(req.params.id, function(err, foundProject){
         if(err){
             console.log(err);

@@ -18,7 +18,7 @@ var options = {
 var geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get("/nurseries", middleware.isLoggedIn, function(req, res){
+router.get("/nurseries", middleware.isLoggedIn, function(req:any, res){
     // FIND NURSERY BASED ON USER
     Nursery.find({'owner.id': req.user._id}, function(err, foundNurseries){
         if(err){
@@ -36,7 +36,7 @@ router.get("/nurseries/new", middleware.isLoggedIn, function(req, res){ // ADMIN
 });
 
 // ANIMAL CREATE
-router.post("/nurseries", middleware.isLoggedIn, function(req, res){
+router.post("/nurseries", middleware.isLoggedIn, function(req:any, res){
     // SET INITIAL VARIABLE
     var newNursery = req.body.nursery;
     // GEOLOCATION

@@ -112,7 +112,7 @@ router.get("/layers/:id/systems/new", middleware.isLoggedIn, function(req, res){
 });
 
 // NESTED AREA SYSTEM CREATE ROUTE
-router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
+router.post("/layers/:id/systems", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
@@ -399,7 +399,7 @@ router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
 });
 
 // SYSTEM EDIT ROUTE
-router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
+router.get("/systems/:id/edit", middleware.isLoggedIn, function(req:any, res){
     System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
@@ -571,7 +571,7 @@ router.get("/systems/:id/editold", middleware.isLoggedIn, function(req, res){
 });
 
 // SYSTEM EDIT W. SPECIES ROUTE
-router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
+router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req:any, res){
     System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
         if(err){
             console.log(err);
@@ -666,7 +666,7 @@ router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, 
 });
 
 // SYSTEM UPDATE ROUTE
-router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
+router.put("/systems/:id", middleware.isLoggedIn, function(req:any, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
     System.findById(req.params.id, async function(err, foundSystem){
         // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
         // GET SYSTEM
@@ -932,7 +932,7 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
 });*/
 
 // SYSTEM DELETE ROUTE
-router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req, res){
+router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req:any, res){
     // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
     System.findById(req.params.pid, function(err, foundSystem){
         if(err){
@@ -1004,7 +1004,7 @@ router.get("/systems/:id/succession", middleware.isLoggedIn, function (req, res)
 });
 
 // SYSTEM COMPOSITION ROUTE
-router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res) {
+router.get("/systems/:id/composition", middleware.isLoggedIn, function (req:any, res) {
     System.findById(req.params.id).populate("model.species").exec(function(err, foundSystem){
         if(err) {
             console.log(err);
@@ -1042,7 +1042,7 @@ router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res
 });
 
 // SYSTEM ASSESSMENT ROUTE
-router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req:any, res){
     System.find().populate("model.species").populate("flows").populate("animals").exec(function(err, foundSystems){
         if(err){
             console.log(err);
@@ -1183,7 +1183,7 @@ router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
 });
 
 // LAYER MY SYSTEMS FIND
-router.get("/layers/:id/mysystems", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/mysystems", middleware.isLoggedIn, function(req:any, res){
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);

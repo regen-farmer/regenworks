@@ -129,7 +129,7 @@ router.get("/projects/:id/rotations/new", middleware.isLoggedIn, function(req, r
 });
 
 // CREATE PROJECT ROTATION
-router.post("/projects/:id/rotations", middleware.isLoggedIn, function(req, res){
+router.post("/projects/:id/rotations", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Project.findById(req.params.id, function(err, foundProject){
         if(err){

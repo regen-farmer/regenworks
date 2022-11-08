@@ -72,7 +72,7 @@ router.get("/layers/:id/sequences/new", middleware.isLoggedIn, function(req, res
 });
 
 // SEQUENCE CREATE
-router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req, res){
+router.post("/layers/:id/sequences", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
@@ -333,7 +333,7 @@ router.get("/projects/:id/sequences/new", middleware.isLoggedIn, function(req, r
 });
 
 // SEQUENCE CREATE
-router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req, res){
+router.post("/projects/:id/sequences", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Project.findById(req.params.id, function(err, foundProject){
         if(err){

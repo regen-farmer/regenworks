@@ -121,6 +121,7 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
     Parcel.findById(req.params.id, function(err, foundParcel){
         if(err) {
             console.log(err);
+            // @ts-ignore
             res.redirect('/users/' + req.user.id);
         } else {
             Layer.create(req.body.layer, function (err, layer) {
@@ -128,7 +129,9 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                     console.log(err);
                 } else {
                     // Add username and ID to Layer.
+                    // @ts-ignore
                     layer.owner.id = req.user._id;
+                    // @ts-ignore
                     layer.owner.username = req.user.username;
                     // Save JSON file to geometry
                     layer.geometry = req.body.geometry;
@@ -169,7 +172,9 @@ router.post("/parcels/:id/layers", middleware.checkParcelOwnership, function(req
                                     ],
                                     shared: false,
                                     owner: {
+                                        // @ts-ignore
                                         id: req.user._id,
+                                        // @ts-ignore
                                         username: req.user.username
                                     },
                                     animals: []
@@ -231,6 +236,7 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
     // CHECK EXISTING AREAS SIZE!?
 
     // PARSE UPLOADED FILE AND CREATE POLYGON
+    // @ts-ignore
     parser.parseString(req.file.buffer, function(err, result){
         if(err){
             req.flash("error", err.message);
@@ -263,7 +269,9 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                         if(err){
                             console.log(err);
                         } else {
+                            // @ts-ignore
                             createdLayer.owner.id = req.user._id;
+                            // @ts-ignore
                             createdLayer.owner.username = req.user.username;
                             createdLayer.geometry = geometry;
                             // CALCULATE LAYER SIZE
@@ -302,7 +310,9 @@ router.post("/parcels/:id/layersuploadkml", middleware.checkParcelOwnership, upl
                                             ],
                                             shared: false,
                                             owner: {
+                                                // @ts-ignore
                                                 id: req.user._id,
+                                                // @ts-ignore
                                                 username: req.user.username
                                             },
                                             animals: []
@@ -452,7 +462,7 @@ router.put("/layers/:id", middleware.isLoggedIn, function(req, res){
 });
 
 // LAYER DELETE ROUTE
-router.delete("/layers/:id", middleware.isLoggedIn, function(req, res){ // CHECK OWNERSHIP
+router.delete("/layers/:id", middleware.isLoggedIn, function(req:any, res){ // CHECK OWNERSHIP
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
             console.log(err);
@@ -873,7 +883,7 @@ router.post("/layers/:id/split", middleware.isLoggedIn, function(req, res){
 });
 
 // ROW NEW ROUTE
-router.get("/layers/:id/row/new", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/row/new", middleware.isLoggedIn, function(req:any, res){
     // FIND PROJECT
     Layer.findById(req.params.id, function(err, foundLayer){
         if(err){
@@ -914,7 +924,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, async function(req, res){
 
                 // CREATE ROW
                 console.log("Row has been added to layer");
-                res.redirect("/layers/" + updatedLayer.id + "/layout");
+                res.redirect("/layers/" + updatedLayer?.id + "/layout");
             }
             catch (err){
                 console.log(err);
@@ -926,7 +936,7 @@ router.post("/layers/:id/row", middleware.isLoggedIn, async function(req, res){
 });
 
 // EDIT ROW
-router.get("/layers/:id/row/:pid/edit", middleware.isLoggedIn, function(req, res){
+router.get("/layers/:id/row/:pid/edit", middleware.isLoggedIn, function(req:any, res){
     // FIND LAYER
     Layer.findById(req.params.id).populate({path:'rows', populate:{path:'sequence'}}).exec(function(err, foundLayer){
         if(err){

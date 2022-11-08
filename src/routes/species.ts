@@ -104,7 +104,7 @@ router.post("/species/:id/activities", middleware.isLoggedIn, function(req, res)
 
 
 // SPECIES ACTIVITY EDIT ROUTE
-router.get("/species/:id/activities/edit", middleware.isLoggedIn, function(req, res){
+router.get("/species/:id/activities/edit", middleware.isLoggedIn, function(req:any, res){
     Species.findById(req.params.id, function(err, foundSpecies){
         if(err){
             console.log(err);
@@ -116,7 +116,7 @@ router.get("/species/:id/activities/edit", middleware.isLoggedIn, function(req, 
 });
 
 // SPECIES ACTIVITY UPDATE ROUTE
-router.put("/species/:id/activities", middleware.isLoggedIn, function(req, res){
+router.put("/species/:id/activities", middleware.isLoggedIn, function(req:any, res){
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     var types = req.body.activity.activityType.split(" ");
     var activity = {
