@@ -6,7 +6,7 @@ import Parcel from "../models/parcel";
 import Activity from "../models/activity";
 import rateLimiterIP from "../models/rateLimiterIP";
 var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
-var async = require("async"); // “waterfall” - makes sure the function are called in sequence without using any callbacks.
+import async from "async"; // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 import nodemailer from "nodemailer"; // used to send emails from node.js - for example via gmail.
 var crypto:Crypto = require("crypto");
 var logger = require("../middleware/logger");
