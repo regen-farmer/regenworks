@@ -4,8 +4,8 @@ var app = express();
 var bodyParser = require("body-parser"); // USED TO PARSE DATA FROM POST ROUTE
 import {connect} from "mongoose"; // REQUIRE MONGOOSE PACKAGE
 var flash = require("connect-flash"); // ENABLES FLASH MESSAGES
-var passport = require("passport"); // REQUIRE PASSPORT PACKAGE
-var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
+import passport from "passport"; // REQUIRE PASSPORT PACKAGE
+import LocalStrategy from "passport-local"; // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
 var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
@@ -62,7 +62,6 @@ app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 // @ts-ignore
 passport.serializeUser(User.serializeUser());
-// @ts-ignore
 passport.deserializeUser(User.deserializeUser());
 
 // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes

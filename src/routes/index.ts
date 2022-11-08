@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-var passport = require("passport");
+import passport from "passport";
 import User from "../models/user";
 import Parcel from "../models/parcel";
 import Activity from "../models/activity";
