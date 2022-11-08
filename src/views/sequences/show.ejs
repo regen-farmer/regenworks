@@ -1,5 +1,5 @@
-<% include ../partials/header %>
-<% include ../partials/navbar %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
 <h1>Sequence: <%= sequence.name %></h1>
 <div class="row">
@@ -23,17 +23,17 @@
             <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="<%= width %>px" y="<%= systemlength - (rows[i].array[j].position[1])%>px"
                  width="2px" height="2px" viewBox="89 89 2 2" enable-background="new 89 89 2 2" xml:space="preserve">
                 <% if(rows[i].array[j].species.form === "palm"){ %>
-                <% include ../graphics/palmtop %>
+                <%- include('../graphics/palmtop') %>
                 <% } else if(rows[i].array[j].species.form === "giantherb"){ %>
-                <% include ../graphics/giantherbtop %>
+                <%- include('../graphics/giantherbtop') %>
                 <% } else if(rows[i].array[j].species.form === "succulent"){ %>
-                <% include ../graphics/succulenttop %>
+                <%- include('../graphics/succulenttop') %>
                 <% } else if(rows[i].array[j].species.form === "tree"){ %>
-                <% include ../graphics/treetop %>
+                <%- include('../graphics/treetop') %>
                 <% } else if(rows[i].array[j].species.form === "shrub"){ %>
-                <% include ../graphics/shrubtop %>
+                <%- include('../graphics/shrubtop') %>
                 <% } else { %>
-                <% include ../graphics/treetop %>
+                <%- include('../graphics/treetop') %>
                 <% } %>
             </svg>
             <text x="<%= width + 1 %>" y="<%= systemlength - (rows[i].array[j].position[1] - 2)%>" class="smallspeciesname"><%= rows[i].array[j].species.nameCommon %></text>
@@ -51,4 +51,4 @@
     </div>
 </div>
 
-<% include ../partials/footer %>
+<%- include('../partials/footer') %>
