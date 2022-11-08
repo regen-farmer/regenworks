@@ -1,0 +1,98 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+            <h2>Add flow to species/system: </h2>
+            <form action="/systems/<%= system._id %>/flows" method="POST">
+                <div class="form-group">
+                    <label for="flow[name]">Flow name</label>
+                    <input type="text" class="form-control" name="flow[name]" placeholder="Give the layer a name - Descriptive is often best" required>
+                </div>
+                <div class="form-group">
+                    <label for="flow[type]">Flow type</label>
+                    <select class="form-control" name="flow[type]">
+                        <option value="output">Output</option>
+                        <option value="input">Input</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="flow[unit]">Flow unit</label>
+                    <select class="form-control" name="flow[unit]">
+                        <option value="fiber">Fiber</option>
+                        <option value="food">Food</option>
+                        <option value="timber">Timber</option>
+                        <option value="biomass">Biomass</option>
+                        <option value="co2">co2</option>
+                        <option value="ler">LER</option>
+                        <option value="lerp">LERP</option>
+                        <option value="lers">LERS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="flow[timeframe]">Flow timeframe</label>
+                    <select class="form-control" name="flow[timeframe]">
+                        <option value="day">Days</option>
+                        <option value="month">Months</option>
+                        <option value="year">Years</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="flow[source]">Data source</label>
+                    <input type="text" class="form-control" name="flow[source]" placeholder="Source of the data" required>
+                </div>
+                <div class="form-group">
+                    <label for="flow[data][0]">Data</label>
+                    <select name="flow[data][0][species]">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                        <% }); %>
+                    </select>
+                    <input type="number" step=".01" class="form-control" name="flow[data][0][data]" placeholder="Source of the data">
+                    <div id="container"></div>
+                    <button type="button" class="btn btn-primary add_form_field" onclick="addFields()">Add New Field &nbsp;
+                        <span style="font-size:16px; font-weight:bold;">+ </span>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="flow[data][1]">Data</label>
+                    <select name="flow[data][1][species]">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                        <% }); %>
+                    </select>
+                    <input type="number" step=".01" class="form-control" name="flow[data][1][data]" placeholder="Source of the data">
+                    <div id="container"></div>
+                    <button type="button" class="btn btn-primary add_form_field" onclick="addFields()">Add New Field &nbsp;
+                        <span style="font-size:16px; font-weight:bold;">+ </span>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="flow[data][2]">Data</label>
+                    <select name="flow[data][2][species]">
+                        <option value="">none</option>
+                        <% species.forEach(function(species){ %>
+                        <option value="<%= species._id %>"><%= species.nameCommon %></option>
+                        <% }); %>
+                    </select>
+                    <input type="number" step=".01" class="form-control" name="flow[data][2][data]" placeholder="Source of the data">
+                    <div id="container"></div>
+                    <button type="button" class="btn btn-primary add_form_field" onclick="addFields()">Add New Field &nbsp;
+                        <span style="font-size:16px; font-weight:bold;">+ </span>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Add flow data</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-3"></div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

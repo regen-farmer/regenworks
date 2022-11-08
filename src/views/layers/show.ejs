@@ -1,0 +1,317 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-md-12">
+        </div>
+        <div class="col-md-4">
+            <div>
+                <div id="layerMapShow"></div>
+                <h2>Field: "<%= layer.name %>"</h2>
+                <p><%= layer.description %></p>
+                <hr>
+                <% if(currentUser && layer.owner.id.equals(currentUser._id)){ %>
+                <a class="btn btn-outline-primary" href="/layers/<%= layer._id %>/edit">Edit field details</a>
+                <% if(layer.projects == "" && !(layer.rows && layer.rows.length > 0) && !(layer.areas && layer.areas.length > 0)){ %>
+<!--
+                    <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModalSplitArea">Split Field</button>
+-->
+                <% } %>
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea">Delete Field</button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalDeleteArea" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm deletion of field</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you delete your field, all information connected to it like saved systems, projects and budgets will be permanently deleted and it will not be able to be restored.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form class="delete-form" action="/layers/<%= layer._id %>?_method=DELETE" method="POST">
+                                    <button class="btn btn-danger">Delete field</button>
+                                </form>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalSplitArea" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm field split</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you split a field, all information connected to it like saved systems, rows and sub-areas will be transfered to the first of the two new split areas.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <a class="btn btn-outline-warning" href="/layers/<%= layer._id %>/split">Split field</a>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <h2>Field production system</h2>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Current system and assets</a>
+                </li>
+                <!--<li class="nav-item">
+                    <a class="nav-link" id="layout-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="false">Current layout and assets</a>
+                </li>-->
+                <% if(currentUser.isProject === true){ %>
+                <li class="nav-item">
+                    <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Plan new agroforestry system</a>
+                </li>
+                <% } %>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <% if(!(layer.systems.present == "")){ %>
+                            <div class="row">
+                                <% if(rows){ %>
+                                    <% rows.forEach(function(row, i){ %>
+                                        <% if(row.array[0].species.form === "tree"){ %>
+                                            <% if(row.array[0].species.height > 12){ %>
+                                                <div class="col-sm-3">
+                                                    <img class="img-fluid" src="/images/treehigh.svg">
+                                                    <p class="text-center">Row <%= i + 1 %></p>
+                                                    <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="col-sm-3">
+                                                    <img class="img-fluid" src="/images/treelow.svg">
+                                                    <p class="text-center">Row <%= i + 1 %></p>
+                                                    <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                                </div>
+                                            <% } %>
+                                        <% } else { %>
+                                            <div class="col-sm-3">
+                                                <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                                                <p class="text-center">Row <%= i + 1 %></p>
+                                                <p class="text-center"><%= row.array[0].width %> m wide</p>
+                                            </div>
+                                        <% } %>
+                                    <% }); %>
+                                <% } %>
+                            </div>
+                            <div class="row">
+                                <% if(presentsystem.rows){ %>
+                                <% presentsystem.rows.forEach(function(row){ %>
+                                <div class="col-sm-3">
+                                    <% row.sequense.reverse().forEach(function(sequense){ %>
+                                    <img class="img-fluid" src="/images/<%= sequense.form %>top.svg">
+                                    <p class="text-center"><%= sequense.nameCommon %></p>
+                                    <% }); %>
+                                </div>
+                                <% }); %>
+                                <% } %>
+                            </div>
+                            <p>The current production system has been defined as "<%= layer.type %>" - <i><%= layer.systems.present.name %></i></p>
+                            <p></p>
+                            <% if(presentsystem.animals.length > 0){ %>
+                            <p>Animals: <%= presentsystem.animals[0].name %></p>
+                            <% } %>
+                            <!--<a class="btn btn-outline-secondary" href="/systems/<%= layer.systems.present._id %>">See more details on current system</a>
+                            <a class="btn btn-outline-warning mt-2" href="/systems/<%= layer.systems.present._id %>/edit">Edit current system model</a>
+                            --><% } %>
+                        </div>
+                        <div class="col-md-6">
+                            <% if((layer.rows && layer.rows.length > 0) || layer.type === "agroforestry" || layer.type === "orchard"){ %>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>Rows and tree assets</h4>
+                                    <a href="/layers/<%= layer._id %>/layout" class="btn btn-outline-primary">View layout map</a>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="layout" role="tabpanel" aria-labelledby="layout-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Current layout and assets on field</h5>
+                            <p class="card-text">Area size:
+                                <% if(layer.size > 5000){ %>
+                                    <%= (layer.size * 0.0001).toFixed(2) %> hectare(s)
+                                <% } else { %>
+                                    <%= layer.size.toFixed(0) %> m2
+                                <% } %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <% if(!(layer.projects == "")){ %>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Field projects</h5>
+                                <% layer.projects.forEach(function(project){ %>
+                                    <% if(!(project.status == "Retired")){ %>
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <p class="card-text"><%= project.name %></p>
+                                                <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                            </div>
+                                        </div>
+                                    <% }; %>
+                                <% }); %>
+                                <button class="btn btn-outline-primary mt-2 mb-2" type="button" data-toggle="collapse" data-target="#collapseRetired" aria-expanded="false" aria-controls="collapseExample">
+                                    Show/hide retired projects
+                                </button>
+                                <div class="collapse" id="collapseRetired">
+                                    <div class="card card-body">
+                                        <% layer.projects.forEach(function(project){ %>
+                                            <% if(project.status == "Retired"){ %>
+                                                <div class="card bg-light">
+                                                    <div class="card-body">
+                                                        <p class="card-text"><%= project.name %></p>
+                                                        <a class="btn btn-outline-primary" href="/projects/<%= project._id %>">View more details</a>
+                                                    </div>
+                                                </div>
+                                            <% }; %>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                    <% if(!(layer.systems.future == "")){ %>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Saved future agroforestry system drafts</h5>
+                            <% layer.systems.future.forEach(function(system, i){ %>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="card-text"><Strong>System name: </Strong><%= system.name %></p>
+                                    <a class="btn btn-outline-primary" href="/systems/<%= system._id %>">View more details</a>
+                                    <button class="btn btn-outline-warning" data-toggle="modal" data-target="#setCurrentModal<%= system._id %>">Create implementation project for this system</button>
+                                    <% if(currentUser && system.owner.id.equals(currentUser._id)){ %>
+                                        <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteSystem<%= i %>">Delete <i class="far fa-trash-alt"></i></button>
+                                    <% } %>
+                                    <!-- Project Modal -->
+                                    <div class="modal fade" id="setCurrentModal<%= system._id %>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title" id="exampleModalLabel">Implement "<%= system.name %>" on area</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Create a project to plan and implement the new agroforestry system. This includes system layout, budgeting and creation of implementation plans.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <a class="btn btn-success" href="/layers/<%= layer._id %>/projects/new/<%= system._id %>">Create project</a>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Project Modal -->
+                                    <!-- Delete system Modal -->
+                                    <div class="modal fade" id="myModalDeleteSystem<%= i %>" role="dialog">
+                                        <div class="modal-dialog">
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    <h4 class="modal-title">Confirm deletion of system</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Confirm deletion of system: "<%= system.name %>". This will delete the system and it will not be possible to retrieve. Please check that you are not using the system in any projects before you delete it. </p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <form class="delete-form" action="/layers/<%= layer._id %>/systems/<%= system._id %>?_method=DELETE" method="POST">
+                                                        <button class="btn btn-sm btn-outline-danger">Delete system <i class="far fa-trash-alt"></i></button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Delete system Modal -->
+                                </div>
+                            </div>
+                            <% }); %>
+                            <% if(layer.systems.future.length > 1){ %>
+                                <a class="btn btn-outline-secondary mt-2" href="/layers/<%= layer._id %>/systems/compare">Compare future systems</a>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% } %>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="card-text">Pick one of the options below to start adding possible future agroforestry systems to this field.</p>
+                            <a class="btn btn-success mt-2" href="/layers/<%= layer._id %>/systems/newgrid">Define new agroforestry system</a>
+                            <a class="btn btn-primary mt-2" href="/layers/<%= layer._id %>/analysis">Explore systems in the RegenWorks database</a>
+                            <a class="btn btn-secondary mt-2" href="/layers/<%= layer._id %>/mysystems">My systems</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    var areaLat = "<%= layer.lat %>";
+    var areaLng = "<%= layer.lng %>";
+
+    var getgeometry = "<%= layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'layerMapShow',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [areaLng, areaLat],
+        zoom: 15,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7F22C0',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

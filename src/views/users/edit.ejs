@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-lg-4"></div>
+        <div class="col-lg-4">
+            <h2>Update profile</h2>
+            <form action="/users/<%= user._id %>?_method=PUT" method="POST">
+                <div class="input-group center-block">
+                    <label for="user[username]">Username</label>
+                    <input class="form-control" type="text" name="user[username]" value="<%= user.username %>">
+                </div>
+                <button type="submit" class="btn btn-success center-block">Update profile</button>
+            </form>
+        </div>
+        <div class="col-lg-4"></div>
+    </div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,79 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-md-7">
+        <div id="assetMapShow"></div>
+        <a href="/projects/<%= project._id %>" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to project page</a>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Digital Tree Asset Count</h2>
+                <% treecounts.forEach(function(count){ %>
+                        <p class="card-text"><%= count.name %> assets: <%= count.uniqueCount %></p>
+                <% }); %>
+                <p> Total tree assets: <%= project.assets.length %> </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var areaLat = "<%= project.layer.lat %>";
+    var areaLng = "<%= project.layer.lng %>";
+
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= project.layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
+    var map = new mapboxgl.Map({
+        container: 'assetMapShow',
+        style: 'mapbox://styles/mapbox/satellite-v9',
+        center: [areaLng, areaLat],
+        zoom: 15,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#fff1ff',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#002eff'
+            }
+        });
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

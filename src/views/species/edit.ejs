@@ -1,0 +1,340 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+            <h1>Update species <%= species.nameCommon %></h1>
+            <form action="/species/<%= species._id %>?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="species[nameCommon]">Species common name</label>
+                    <input type="text" class="form-control" name="species[nameCommon]" value="<%= species.nameCommon %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="species[genus]">Genus</label>
+                    <input type="text" class="form-control" name="species[genus]" value="<%= species.genus %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="species[species]">Species</label>
+                    <input type="text" class="form-control" name="species[species]" value="<%= species.species %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="species[family]">Family</label>
+                    <input type="text" class="form-control" name="species[family]" value="<%= species.family %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="species[climate]">Climate</label>
+                    <select class="form-control" name="species[climate]">
+                        <% if(species.climate === "boreal") { %>
+                            <option selected="selected" value="boreal">Boreal</option>
+                        <% } else { %>
+                            <option value="boreal">Boreal</option>
+                        <% } %>
+                        <% if(species.climate === "temperate") { %>
+                            <option selected="selected" value="temperate">Temperate</option>
+                        <% } else { %>
+                            <option value="temperate">Temperate</option>
+                        <% } %>
+                        <% if(species.climate === "subtropic") { %>
+                            <option selected="selected" value="subtropic">Subtropic</option>
+                        <% } else { %>
+                            <option value="subtropic">Subtropic</option>
+                        <% } %>
+                        <% if(species.climate === "tropic") { %>
+                            <option selected="selected" value="tropic">Tropic</option>
+                        <% } else { %>
+                            <option value="tropic">Tropic</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="species[humidity]">Humidity</label>
+                    <select class="form-control" name="species[humidity]">
+                        <% if(species.humidity === "arid") { %>
+                            <option selected="selected" value="arid">Arid</option>
+                        <% } else { %>
+                            <option value="arid">Arid</option>
+                        <% } %>
+                        <% if(species.humidity === "semiarid") { %>
+                            <option selected="selected" value="semiarid">Semi-arid</option>
+                        <% } else { %>
+                            <option value="semiarid">Semi-arid</option>
+                        <% } %>
+                        <% if(species.humidity === "humid") { %>
+                            <option selected="selected" value="humid">Humid</option>
+                        <% } else { %>
+                            <option value="humid">Humid</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="species[form]">Form</label>
+                    <select class="form-control" name="species[form]">
+                        <% if(species.form === "bamboo") { %>
+                            <option selected="selected" value="bamboo">Bamboo</option>
+                        <% } else { %>
+                            <option value="bamboo">Bamboo</option>
+                        <% } %>
+                        <% if(species.form === "cactus") { %>
+                            <option selected="selected" value="cactus">Cactus</option>
+                        <% } else { %>
+                            <option value="cactus">Cactus</option>
+                        <% } %>
+                        <% if(species.form === "cycad") { %>
+                            <option selected="selected" value="cycad">Cycad</option>
+                        <% } else { %>
+                            <option value="cycad">Cycad</option>
+                        <% } %>
+                        <% if(species.form === "giantherb") { %>
+                            <option selected="selected" value="giantherb">Giant herb</option>
+                        <% } else { %>
+                            <option value="giantherb">Giant Herb</option>
+                        <% } %>
+                        <% if(species.form === "grass") { %>
+                            <option selected="selected" value="grass">Grass</option>
+                        <% } else { %>
+                            <option value="grass">Grass</option>
+                        <% } %>
+                        <% if(species.form === "herb") { %>
+                            <option selected="selected" value="herb">Herb</option>
+                        <% } else { %>
+                            <option value="herb">Herb</option>
+                        <% } %>
+                        <% if(species.form === "palm") { %>
+                            <option selected="selected" value="palm">Palm</option>
+                        <% } else { %>
+                            <option value="palm">Palm</option>
+                        <% } %>
+                        <% if(species.form === "shrub") { %>
+                            <option selected="selected" value="shrub">Shrub</option>
+                        <% } else { %>
+                            <option value="shrub">Shrub</option>
+                        <% } %>
+                        <% if(species.form === "succulent") { %>
+                        <option selected="selected" value="succulent">Succulent</option>
+                        <% } else { %>
+                        <option value="succulent">Succulent</option>
+                        <% } %>
+                        <% if(species.form === "tree") { %>
+                            <option selected="selected" value="tree">Tree</option>
+                        <% } else { %>
+                            <option value="tree">Tree</option>
+                        <% } %>
+                        <% if(species.form === "vine") { %>
+                            <option selected="selected" value="vine">Vine</option>
+                        <% } else { %>
+                            <option value="vine">Vine</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="species[precipitation][min]">Min precipitation</label>
+                    <input type="number" class="form-control" name="species[precipitation][min]" value="<%= species.precipitation.min %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[precipitation][max]">Max precipitation</label>
+                    <input type="number" class="form-control" name="species[precipitation][max]" value="<%= species.precipitation.max %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[temperature][min]">Min temp</label>
+                    <input type="number" class="form-control" name="species[temperature][min]" value="<%= species.temperature.min %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[temperature][max]">Max temp</label>
+                    <input type="number" class="form-control" name="species[temperature][max]" value="<%= species.temperature.max %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[height]">Mature height</label>
+                    <input type="number" step=".01" class="form-control" name="species[height]" value="<%= species.height %>">
+                </div>
+                <div class="form-group">
+                    <label for="species[classsyntropic][strata]">Syntropic strata</label>
+                    <select class="form-control" name="species[classsyntropic][strata]">
+                        <% if(species.classsyntropic.strata === "emergent") { %>
+                            <option selected="selected" value="emergent">Emergent</option>
+                        <% } else { %>
+                            <option value="emergent">Emergent</option>
+                        <% } %>
+                        <% if(species.classsyntropic.strata === "high") { %>
+                            <option selected="selected" value="high">High</option>
+                        <% } else { %>
+                            <option value="high">High</option>
+                        <% } %>
+                        <% if(species.classsyntropic.strata === "medium") { %>
+                            <option selected="selected" value="medium">Medium</option>
+                        <% } else { %>
+                            <option value="medium">Medium</option>
+                        <% } %>
+                        <% if(species.classsyntropic.strata === "low") { %>
+                            <option selected="selected" value="low">Low</option>
+                        <% } else { %>
+                            <option value="low">Low</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="species[classsyntropic][lifecycle]">Syntropic lifecycle</label>
+                    <select class="form-control" name="species[classsyntropic][lifecycle]">
+                        <% if(species.classsyntropic.lifecycle === "placenta") { %>
+                            <option selected="selected" value="placenta">Placenta</option>
+                        <% } else { %>
+                            <option value="placenta">Placenta</option>
+                        <% } %>
+                        <% if(species.classsyntropic.lifecycle === "secondary") { %>
+                            <option selected="selected" value="secondary">Secondary</option>
+                        <% } else { %>
+                            <option value="secondary">Secondary</option>
+                        <% } %>
+                        <% if(species.classsyntropic.lifecycle === "climax") { %>
+                            <option selected="selected" value="climax">Climax</option>
+                        <% } else { %>
+                            <option value="climax">Climax</option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="species[lifespan]">Species lifespan</label>
+                    <input type="number" class="form-control" name="species[lifespan]" value="<%= species.lifespan %>">
+                </div>
+                <label for="species[utilities]">Species utility</label>
+                <p>Choose all that apply</p>
+                <div class="form-check btn-group btn-group-toggle" data-toggle="buttons">
+                    <div class="card">
+                        <div class="card-body">
+                            <% if(species.utilities.indexOf("fodder") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="fodder" autocomplete="off"> Fodder
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="fodder" autocomplete="off"> Fodder
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("timber") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="timber" autocomplete="off"> Timber
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="timber" autocomplete="off"> Timber
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("food") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="food" autocomplete="off"> Food
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="food" autocomplete="off"> Food
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("biomass") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="biomass" autocomplete="off"> Biomass
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="biomass" autocomplete="off"> Biomass
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("nitrogen") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="nitrogen" autocomplete="off"> Nitrogen
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="nitrogen" autocomplete="off"> Nitrogen
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("shade") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="shade" autocomplete="off"> Shade
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="shade" autocomplete="off"> Shade
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("fiber") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="fiber" autocomplete="off"> Fiber
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="fiber" autocomplete="off"> Fiber
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("spice") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="spice" autocomplete="off"> Spice/Scent
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="spice" autocomplete="off"> Spice/Scent
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("medicinal") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="medicinal" autocomplete="off"> Medicinal
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="medicinal" autocomplete="off"> Medicinal
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("oil") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="oil" autocomplete="off"> Oil
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="oil" autocomplete="off"> Oil
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("wax") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="wax" autocomplete="off"> Wax
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="wax" autocomplete="off"> Wax
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("gum") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="gum" autocomplete="off"> Gum
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="gum" autocomplete="off"> Gum
+                            </label>
+                            <% } %>
+                            <% if(species.utilities.indexOf("pesticide") > -1){ %>
+                            <label class="btn btn-outline-primary active">
+                                <input type="checkbox" name="species[utilities]" checked="checked" value="pesticide" autocomplete="off"> Pesticide
+                            </label>
+                            <% } else { %>
+                            <label class="btn btn-outline-primary">
+                                <input type="checkbox" name="species[utilities]" value="pesticide" autocomplete="off"> Pesticide
+                            </label>
+                            <% } %>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="form-group">
+                    <label for="species[price]">Price</label>
+                    <input type="number" class="form-control" name="species[price]" value="<%= species.price %>">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Update species</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-3"></div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-lg-2"></div>
+    <div class="col-lg-8">
+        <h1>New crop rotation</h1>
+        <% if(project){ %>
+        <form action="/projects/<%= project._id %>/rotations/steps" method="POST">
+            <% } else { %>
+            <form action="/layers/<%= layer._id %>/rotations/steps" method="POST">
+                <% } %>
+                <div class="form-group">
+                    <label for="steps">Choose number of steps in rotation</label>
+                    <input type="number" max="20" class="form-control" name="steps" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg mt-3">Proceed to crop rotation planner</button>
+                </div>
+            </form>
+    </div>
+    <div class="col-lg-2"></div>
+</div>
+
+<%- include('../partials/footer') %>

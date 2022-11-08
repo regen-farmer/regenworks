@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Create plant sap test</h2>
+        <div>
+            <form action="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/saptests" method="POST">
+                <div class="form-group">
+                    <label for="saptest[name]">Name</label>
+                    <input type="text" class="form-control" name="saptest[name]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[description]">Note</label>
+                    <input type="text" class="form-control" name="saptest[description]" >
+                </div>
+                <!--<div class="form-group">
+                    <label for="saptest[sampleDate]">Date of sample</label>
+                    <input type="date" class="form-control" name="saptest[sampleDate]" required>
+                </div>-->
+                <div class="form-group">
+                    <label for="saptest[sugars]">Sugars [%]</label>
+                    <input type="number" class="form-control" name="saptest[sugars]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[pH]">pH</label>
+                    <input type="number" min="0" max="14" step=".01" class="form-control" name="saptest[pH]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[EC]">EC [mS/cm]</label>
+                    <input type="number" class="form-control" name="saptest[EC]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[potassium]">K - Potassium [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[potassium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[calcium]">Ca - Calcium [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[calcium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[magnesium]">Mg - Magnesium [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[magnesium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[sodium]">Na - Sodium [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[sodium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[ammonium]">NH4 - Ammonium [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[ammonium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[nitrate]">NO3 - Nitrate [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[nitrate]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[nInNitrate]">N in Nitrate [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[nInNitrate]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[totalN]">N - Nitrogren [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[totalN]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[chloride]">Cl - Chloride [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[chloride]" required>
+                </div>
+                <div class="form-group">
+                    <label for="saptest[sulfur]">S - Sulfur [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="saptest[sulfur]" required>
+                </div>
+                <!--<div class="form-group">
+                    <label for="coordinates">Location coordinates</label>
+                    <input type="text" class="form-control" name="coordinates" >
+                </div>-->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Create plant sap test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+<%- include('../partials/footer') %>

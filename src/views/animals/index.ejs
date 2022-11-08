@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <h1>Animals</h1>
+    <a href="/animals/new" class="btn btn-success">Add new animal</a>
+    <p>Count: <%= animals.length %></p>
+    <table class="table table-striped">
+        <tr>
+            <td>name</td>
+            <td>Latin</td>
+            <td></td>
+        </tr>
+        <% animals.forEach(function(animal){ %>
+        <tr>
+            <td><%= animal.name %></td>
+            <td><%= animal.genus %> <%= animal.species %></td>
+            <td><a href="/animals/<%= animal._id %>" class="btn btn-success">Show more</a></td>
+        </tr>
+        <% }); %>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

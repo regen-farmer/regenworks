@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <h1>Farms</h1>
+            <p>Here you can browse the farms you manage. Select a farm and proceed to plan. If this is the first time you login, please proceed and create your farm.</p>
+            <div class="row">
+                <% user.parcels.forEach(function(parcel){ %>
+                <div class="col-md-4 col-sm-4 col-xs-12 mb-2">
+                    <div class="card">
+                        <img class="img-fluid" src="/images/parcel.svg">
+                        <div class="card-body">
+                            <h5 class="card-title"> <%= parcel.name %> </h5>
+                            <p><%= parcel.size %> Hectares</p>
+                            <p>
+                                <a href="/parcels/<%= parcel._id %>" class="btn btn-outline-primary">More info</a>
+                            </p>
+                            <% if(parcel._id.equals(currentUser.currentProject)){ %>
+                            <p>This farm is set as current project.</p>
+                            <% } else {%>
+                            <form action="/users/<%= currentUser._id %>/currentproject" method="POST">
+                                <input type="hidden" id="parcelid" name="parcelid" value="<%= parcel._id %>">
+                                <button class="btn btn-outline-warning">Set as active farm</button>
+                            </form>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+                <% if(user.parcels.length < currentUser.farmLimit){ %>
+                <div class="card">
+                    <a href="/parcels/new">
+                        <div class="col-md-4 col-sm-4 col-xs-12">
+                            <div class="thumbnail" align="center">
+                                <i class="fas fa-plus fa-8x"></i>
+                                <div class="caption text-center">
+                                    <h4>Add new farm</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <h1><i class="fas fa-user" style="color:#5cb85c"></i> Profile</h1>
+            <hr>
+            <p>Username: <%= user.username %></p>
+            <hr>
+            <!--<a class="btn btn-default" href="/forgot">Reset password</a>
+            <hr>-->
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModalDeleteUser">Delete profile</button>
+            <!-- Modal -->
+            <div class="modal fade" id="myModalDeleteUser" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Confirm deletion of profile</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>When you delete your profile, all information connected to it will be permanently deleted and we will not be able to recreate your data.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form class="delete-form" action="/users/<%= user._id %>?_method=DELETE" method="POST">
+                                <button class="btn btn-danger">Delete profile</button>
+                            </form>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <a href="/varieties" class="btn btn-outline-secondary">My varieties/cultivars</a>
+        </div>
+    </div>
+
+<%- include('../partials/footer') %>
