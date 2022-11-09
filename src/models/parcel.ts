@@ -3,7 +3,6 @@ import { ILayerSchema } from './layer';
 import { IPracticesSchema } from './practice';
 import { IProjectSchema } from './project';
 import { IUserSchema } from './user';
-// var GeoJSON = require("mongoose-geojson-schema");
 
 export interface IParcelSchema extends Document {
     name: String,

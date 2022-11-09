@@ -8,7 +8,6 @@ import { ISaptestSchema } from './saptest';
 import { ISoiltestSchema } from './soiltest';
 import { ISystemSchema } from './system';
 import { IUserSchema } from './user';
-// var GeoJSON = require("mongoose-geojson-schema");
 
 export interface ILayerSchema extends Document {
     name: String,
