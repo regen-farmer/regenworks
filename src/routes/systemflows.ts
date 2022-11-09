@@ -3,7 +3,7 @@ var router = express.Router();
 import Systemflow from "../models/systemflow";
 import System from "../models/system";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // SYSTEMFLOW INDEX ROUTE
 
@@ -64,4 +64,4 @@ router.post("/systems/:id/flows", middleware.isLoggedIn, function(req, res){
     })
 })
 
-module.exports = router;
+export default router;

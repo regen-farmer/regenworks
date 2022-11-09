@@ -2,7 +2,7 @@ import express from "express";
 var router = express.Router();
 // import Well from "../models/well";
 import Parcel from "../models/parcel";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 import logger from "../middleware/logger";
 // import Species from "../models/species";
 // import Animal from "../models/animal";
@@ -24,4 +24,4 @@ router.get("/parcels/:id/wells/new", middleware.isLoggedIn, function(req, res){
 // NESTED PARCEL WELL CREATE ROUTE
 
 
-module.exports = router;
+export default router;

@@ -2,7 +2,7 @@ import express from "express";
 var router = express.Router();
 import Practice from "../models/practice";
 import Parcel from "../models/parcel";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // PRACTICE INDEX ROUTE
 
@@ -37,4 +37,4 @@ router.get("/practices/:id", middleware.isLoggedIn, function(req:any, res){
 
 // PRACTICE DELETE ROUTE
 
-module.exports = router;
+export default router;

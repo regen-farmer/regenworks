@@ -3,7 +3,7 @@ var router = express.Router();
 import NurseryProduct from "../models/nurseryproduct";
 import Nursery from "../models/nursery";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // ADMIN ALL VARIETIES
 router.get("/nurseryproducts", middleware.adminIsLoggedIn, function(req, res){
@@ -185,4 +185,4 @@ router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, async f
 // NURSERY PRODUCT DUPLICATE
 
 
-module.exports = router;
+export default router;

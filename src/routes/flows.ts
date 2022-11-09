@@ -4,7 +4,7 @@ import Flow from "../models/flow";
 import Species from "../models/species";
 import Parcel from "../models/parcel";
 import System from "../models/system";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // PARCEL FLOWS
 router.get("/parcels/:id/flows", middleware.isLoggedIn, function(req, res){
@@ -57,4 +57,4 @@ router.post("/species/:id/flows", middleware.isLoggedIn, function(req, res){
 
 // NESTED SYSTEM FLOW CREATE ROUTE
 
-module.exports = router;
+export default router;

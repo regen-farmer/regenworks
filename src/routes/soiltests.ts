@@ -3,7 +3,7 @@ var router = express.Router();
 import Parcel from "../models/parcel";
 import Layer from "../models/layer";
 import Soiltest from "../models/soiltest";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 import {centroid, helpers as turf} from "@turf/turf";
 
 
@@ -130,4 +130,4 @@ router.get("/parcels/:id/soiltests/viz", middleware.isLoggedIn, function(req, re
     });
 });
 
-module.exports = router;
+export default router;

@@ -1,9 +1,8 @@
-var express = require('express')
+import express from 'express';
 var router = express.Router()
-import Project from '../models/project'
-import Layer from '../models/layer'
-import Area from '../models/area'
-var middleware = require('../middleware')
+import Project from '../models/project';
+import Area from '../models/area';
+import middleware from '../middleware';
 
 // NEW AREA ON PROJECT
 router.get(
@@ -107,4 +106,4 @@ router.get(
   }
 )
 
-module.exports = router
+export default router

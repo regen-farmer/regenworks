@@ -3,7 +3,7 @@ var router = express.Router();
 import Parcel from "../models/parcel";
 import Layer from "../models/layer";
 import Saptest from "../models/saptest";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 
 // PARCEL LAYER SAP TEST NEW
@@ -52,4 +52,4 @@ router.post("/parcels/:id/layers/:pid/saptests", middleware.isLoggedIn, function
     });
 });
 
-module.exports = router;
+export default router;

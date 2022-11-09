@@ -3,7 +3,7 @@ var router = express.Router();
 import Nursery from "../models/nursery";
 import NurseryProduct from "../models/nurseryproduct";
 import User from "../models/user";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // NODE GEOCODER CODE
 import NodeGeocoder from "node-geocoder";
@@ -130,4 +130,4 @@ router.put("/nurseries/:id", middleware.isLoggedIn, function(req, res){
 });
 
 
-module.exports = router;
+export default router;
