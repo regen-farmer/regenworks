@@ -8,7 +8,7 @@ import Animal from "../models/animal";
 import Sequence from "../models/sequence";
 import Row from "../models/row";
 var middleware = require("../middleware");
-var logger = require("../middleware/logger");
+import logger from "../middleware/logger";
 var unique = require("array-unique");
 
 import {centroid, helpers as turf, length as turfLength,along,  circle, area, polygonToLine} from "@turf/turf"

@@ -3,7 +3,7 @@ var router = express.Router();
 // import Well from "../models/well";
 import Parcel from "../models/parcel";
 var middleware = require("../middleware");
-var logger = require("../middleware/logger");
+import logger from "../middleware/logger";
 // import Species from "../models/species";
 // import Animal from "../models/animal";
 
