@@ -6,8 +6,8 @@ import Layer from "../models/layer";
 import Row from "../models/row";
 import Area from "../models/area";
 import Species from "../models/species";
-var middleware = require("../middleware");
-var unique = require("array-unique");
+import middleware from "../middleware";
+import unique from "array-unique";
 import {length as turfLength, helpers as turf, along} from "@turf/turf"
 
 function compare1( a, b ) {
@@ -263,4 +263,4 @@ router.get("/parcels/:id/layers/:pid/farmflows/viz", middleware.isLoggedIn, func
     });
 });
 
-module.exports = router;
+export default router;

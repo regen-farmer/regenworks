@@ -7,18 +7,18 @@ import Species from "../models/species";
 import Animal from "../models/animal";
 import Sequence from "../models/sequence";
 import Row from "../models/row";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 import logger from "../middleware/logger";
-var unique = require("array-unique");
+import unique from "array-unique";
 
 import {centroid, helpers as turf, length as turfLength,along,  circle, area, polygonToLine} from "@turf/turf"
 
 // SETUP MULTER
-var multer = require("multer");
+import multer from "multer";
 var storage = multer.memoryStorage();
 var uploadMem = multer({storage: storage});
 // XML2JS
-var xml2js = require('xml2js');
+import xml2js from 'xml2js';
 var parser = new xml2js.Parser();
 
 // LAYER INDEX ROUTE
@@ -1014,4 +1014,4 @@ router.delete("/layers/:id/row/:pid", middleware.isLoggedIn, function(req, res){
 });
 
 
-module.exports = router;
+export default router;

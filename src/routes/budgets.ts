@@ -1,13 +1,13 @@
 import express from "express";
 var router = express.Router();
-var unique = require("array-unique");
+import unique from "array-unique";
 import Budget from "../models/budget";
 import Project from "../models/project";
 import System from "../models/system";
 import Posting from "../models/posting";
 import Parcel from "../models/parcel";
-var middleware = require("../middleware");
-var gisObj = require("../middleware/gis");
+import middleware from "../middleware";
+import gisObj from "../middleware/gis";
 
 import {area} from "@turf/turf"
 
@@ -1310,4 +1310,4 @@ router.put("/budgets/:id/postings", middleware.isLoggedIn, function(req, res){
     });
 });*/
 
-module.exports = router;
+export default router;

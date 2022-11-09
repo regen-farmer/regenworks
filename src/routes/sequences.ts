@@ -4,7 +4,7 @@ import Sequence from "../models/sequence";
 import Layer from "../models/layer";
 import Project from "../models/project";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 
 // SEQUENCE INDEX
@@ -506,4 +506,4 @@ router.put("/projects/:id/sequences/:pid", middleware.isLoggedIn, function(req, 
     });
 });
 
-module.exports = router;
+export default router;

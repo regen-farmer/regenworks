@@ -2,7 +2,7 @@ import express from "express";
 var router = express.Router();
 import Variety from "../models/variety";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // VARIETY INDEX
 router.get("/varieties", middleware.isLoggedIn, function(req:any, res){
@@ -67,4 +67,4 @@ router.post("/varieties", middleware.isLoggedIn, function(req:any, res){
     });
 });
 
-module.exports = router;
+export default router;
