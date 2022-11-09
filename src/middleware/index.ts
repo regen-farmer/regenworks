@@ -96,4 +96,4 @@ middlewareObj.throttler = function(req, res, next){
 };*/
 
 // Export middleware object
-module.exports = middlewareObj;
+export default middlewareObj;

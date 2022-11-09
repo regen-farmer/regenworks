@@ -1,13 +1,13 @@
 import express from "express";
 var router = express.Router();
-var unique = require("array-unique");
+import unique from "array-unique";
 import System from "../models/system";
 import Layer from "../models/layer";
 import Species from "../models/species";
 import Parcel from "../models/parcel";
 import Animal from "../models/animal";
 import Project from "../models/project";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // SYSTEM INDEX
 router.get("/systems", middleware.adminIsLoggedIn, function(req, res){
@@ -1230,4 +1230,4 @@ router.put("/systems/:id/occurrences", middleware.isLoggedIn, async function(req
     }
 });
 
-module.exports = router;
+export default router;

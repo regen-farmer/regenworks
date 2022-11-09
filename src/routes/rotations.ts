@@ -4,7 +4,7 @@ import Rotation from "../models/rotation";
 import Layer from "../models/layer";
 import Project from "../models/project";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 import Sequence from "../models/sequence";
 
 // NEW AREA SYSTEM GRID NEW ROUTE
@@ -223,4 +223,4 @@ router.put("/projects/:id/rotations/:pid", middleware.isLoggedIn, function(req, 
         }
     });
 });
-module.exports = router;
+export default router;

@@ -4,8 +4,8 @@ import User from "../models/user";
 import Parcel from "../models/parcel";
 import Practice from "../models/practice";
 import Layer from "../models/layer";
-var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
-var request = require("request"); // Making REST requests
+import middleware from "../middleware"; // Will automatically require the middleware "index" file as the standard
+import request from "request"; // Making REST requests
 
 import {centroid, helpers as turf, length as turfLength, circle, along} from "@turf/turf"
 
@@ -528,4 +528,4 @@ router.get("/parcels/:id/layout", middleware.isLoggedIn, function(req, res){
     });
 });
 
-module.exports = router;
+export default router;

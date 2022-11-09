@@ -2,7 +2,7 @@ import express from "express";
 var router = express.Router();
 import Species from "../models/species";
 import Flow from "../models/flow";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // SPECIES INDEX
 router.get("/species", middleware.adminIsLoggedIn, function(req, res){
@@ -163,4 +163,4 @@ router.put("/species/:id/nutrients", middleware.isLoggedIn, async function(req, 
     }
 });
 
-module.exports = router;
+export default router;

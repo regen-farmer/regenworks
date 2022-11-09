@@ -1,7 +1,7 @@
 import express from "express";
 var router = express.Router();
 import Animal from "../models/animal";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // ANIMAL INDEX
 router.get("/animals", middleware.isLoggedIn, function(req, res){
@@ -31,4 +31,4 @@ router.post("/animals", middleware.isLoggedIn, function(req, res){
     });
 });
 
-module.exports = router;
+export default router;

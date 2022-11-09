@@ -4,7 +4,7 @@ import Asset from "../models/asset";
 import Layer from "../models/layer";
 import Project from "../models/project";
 import Species from "../models/species";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // ASSET INDEX ROUTE
 router.get("/assets", middleware.adminIsLoggedIn, function(req:any, res){
@@ -162,4 +162,4 @@ router.post("/layers/:id/assets", middleware.isLoggedIn, function(req:any, res){
     });
 });
 
-module.exports = router;
+export default router;

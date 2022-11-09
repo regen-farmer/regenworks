@@ -6,12 +6,11 @@ import Layer from "../models/layer";
 import Project, { IProjectSchema } from "../models/project";
 import Row, { IRowSchema } from "../models/row";
 import Area from "../models/area";
-var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // NODE GEOCODER CODE
 import NodeGeocoder from "node-geocoder";
-var unique = require("array-unique");
+import unique from "array-unique";
 
 var options:NodeGeocoder.Options = {
     provider: "google",
@@ -469,4 +468,4 @@ router.post("/parcels/:id/layers/:pid/areas/:rid/activities", middleware.isLogge
     });
 });
 
-module.exports = router;
+export default router;

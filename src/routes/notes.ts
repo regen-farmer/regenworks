@@ -4,7 +4,7 @@ import Parcel from "../models/parcel";
 import Note from "../models/note";
 import Row from "../models/row";
 import Area from "../models/area";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 
 // PARCEL NOTES
@@ -73,4 +73,4 @@ router.post("/parcels/:id/layers/:pid/areas/:rid/notes", middleware.isLoggedIn, 
     });
 });
 
-module.exports = router;
+export default router;

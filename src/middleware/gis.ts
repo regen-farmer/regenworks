@@ -1,4 +1,4 @@
-var unique = require("array-unique");
+import unique from "array-unique";
 
 import {bbox,
     bboxPolygon,
@@ -1052,4 +1052,4 @@ gisObj.rowBasedLayout = function(project){
     return (layout);
 };
 
-module.exports = gisObj;
+export default gisObj;

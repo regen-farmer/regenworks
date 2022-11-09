@@ -1,6 +1,6 @@
 import express from "express";
 var router = express.Router();
-var unique = require("array-unique");
+import unique from "array-unique";
 import Parcel from "../models/parcel";
 import Project from "../models/project";
 import Practice from "../models/practice";
@@ -15,9 +15,8 @@ import Sequence from "../models/sequence";
 import Rotation from "../models/rotation";
 import Row from "../models/row";
 import Area from "../models/area";
-// var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
-var middleware = require("../middleware");
-var gisObj = require("../middleware/gis");
+import middleware from "../middleware";
+import gisObj from "../middleware/gis";
 import {helpers as turf, length as turfLength, circle, area} from "@turf/turf"
 import PDFDocument from "pdfkit";
 
@@ -1897,4 +1896,4 @@ router.get("/projects/:id/budgetpdf", middleware.isLoggedIn, async function(req,
 
 // --------------- NESTED ROUTES ---------------- //
 
-module.exports = router;
+export default router;

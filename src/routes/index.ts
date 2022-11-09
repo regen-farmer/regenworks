@@ -4,11 +4,10 @@ import passport from "passport";
 import User from "../models/user";
 import Parcel from "../models/parcel";
 import Activity from "../models/activity";
-import rateLimiterIP from "../models/rateLimiterIP";
-var middleware = require("../middleware"); // Will automatically require the middleware "index" file as the standard
+import middleware from "../middleware"; // Will automatically require the middleware "index" file as the standard
 import async from "async"; // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 import nodemailer from "nodemailer"; // used to send emails from node.js - for example via gmail.
-var crypto:Crypto = require("crypto");
+import crypto from "crypto";
 import logger from "../middleware/logger";
 import Log from "../models/log";
 
@@ -485,4 +484,4 @@ router.get("/parcels/:id/status", middleware.isLoggedIn, function(req, res){
     });
 });
 
-module.exports = router;
+export default router;

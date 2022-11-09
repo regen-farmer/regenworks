@@ -9,38 +9,38 @@ import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUEST
 
 // REQUIRE MODELS
 import Parcel from "./models/parcel";
-//var seedDB = require("./seeds");
+//import seedDB from "./seeds";
 import User from "./models/user";
 import expressSession from "express-session";
 
 dotenv.config();
 var app = express();
 // REQUIRE ROUTE FILES
-var parcelRoutes = require("./routes/parcels");
-var indexRoutes = require("./routes/index");
-var activityRoutes = require("./routes/activities");
-var projectRoutes = require("./routes/projects");
-var layerRoutes = require("./routes/layers");
-var practiceRoutes = require("./routes/practices");
-var assetRoutes = require("./routes/assets");
-var systemRoutes = require("./routes/systems");
-var speciesRoutes = require("./routes/species");
-var flowRoutes = require("./routes/flows");
-var systemflowRoutes = require("./routes/systemflows");
-var animalRoutes = require("./routes/animals");
-var budgetRoutes = require("./routes/budgets");
-var postingRoutes = require("./routes/postings");
-var nurseryRoutes = require("./routes/nurseries");
-var nurseryproductRoutes = require("./routes/nurseryproducts");
-var sequenceRoutes = require("./routes/sequences");
-var areaRoutes = require("./routes/areas");
-var noteRoutes = require("./routes/notes");
-var soiltestRoutes = require("./routes/soiltests");
-var saptestRoutes = require("./routes/saptests");
-var farmflowRoutes = require("./routes/farmflows");
-var rotationRoutes = require("./routes/rotations");
-var varietyRoutes = require("./routes/varieties");
-var path = require('path');
+import parcelRoutes from "./routes/parcels";
+import indexRoutes from "./routes/index";
+import activityRoutes from "./routes/activities";
+import projectRoutes from "./routes/projects";
+import layerRoutes from "./routes/layers";
+import practiceRoutes from "./routes/practices";
+import assetRoutes from "./routes/assets";
+import systemRoutes from "./routes/systems";
+import speciesRoutes from "./routes/species";
+import flowRoutes from "./routes/flows";
+import systemflowRoutes from "./routes/systemflows";
+import animalRoutes from "./routes/animals";
+import budgetRoutes from "./routes/budgets";
+import postingRoutes from "./routes/postings";
+import nurseryRoutes from "./routes/nurseries";
+import nurseryproductRoutes from "./routes/nurseryproducts";
+import sequenceRoutes from "./routes/sequences";
+import areaRoutes from "./routes/areas";
+import noteRoutes from "./routes/notes";
+import soiltestRoutes from "./routes/soiltests";
+import saptestRoutes from "./routes/saptests";
+import farmflowRoutes from "./routes/farmflows";
+import rotationRoutes from "./routes/rotations";
+import varietyRoutes from "./routes/varieties";
+import path from 'path';
 
 // APP SETUP
 connect(process.env.DATABASEURL as string, {useNewUrlParser: true, useUnifiedTopology: true}); // CONNECTS TO MLAB MONGODB

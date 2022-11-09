@@ -4,7 +4,7 @@ import Posting from "../models/posting";
 import Budget from "../models/budget";
 import Parcel from "../models/parcel";
 import Layer from "../models/layer";
-var middleware = require("../middleware");
+import middleware from "../middleware";
 
 // POSTING EDIT ROUTE
 
@@ -122,4 +122,4 @@ router.post("/parcels/:id/layers/:bid/accounts/postings", middleware.isLoggedIn,
 
 // POSTING
 
-module.exports = router;
+export default router;
