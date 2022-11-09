@@ -9,7 +9,7 @@ var middleware = require("../middleware"); // Will automatically require the mid
 import async from "async"; // “waterfall” - makes sure the function are called in sequence without using any callbacks.
 import nodemailer from "nodemailer"; // used to send emails from node.js - for example via gmail.
 var crypto:Crypto = require("crypto");
-var logger = require("../middleware/logger");
+import logger from "../middleware/logger";
 import Log from "../models/log";
 
 // ROOT ROUTE
