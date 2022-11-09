@@ -19,7 +19,7 @@ import Area from "../models/area";
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
 import {helpers as turf, length as turfLength, circle, area} from "@turf/turf"
-const PDFDocument = require("pdfkit");
+import PDFDocument from "pdfkit";
 
 // NODE GEOCODER CODE
 import NodeGeocoder from "node-geocoder";
@@ -1876,7 +1876,7 @@ router.get("/projects/:id/budgetpdf", middleware.isLoggedIn, async function(req,
     // GENERATE PDF TEST
     var myDoc = new PDFDocument({bufferPages: true});
 
-    let buffers = [];
+    let buffers:any[] = [];
     myDoc.on('data', buffers.push.bind(buffers));
     myDoc.on('end', () => {
 
