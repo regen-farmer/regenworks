@@ -1,4 +1,4 @@
-require("dotenv").config();
+import dotenv from "dotenv";
 import express from "express";
 import bodyParser from "body-parser"; // USED TO PARSE DATA FROM POST ROUTE
 import {connect} from "mongoose"; // REQUIRE MONGOOSE PACKAGE
@@ -13,6 +13,7 @@ import Parcel from "./models/parcel";
 import User from "./models/user";
 import expressSession from "express-session";
 
+dotenv.config();
 var app = express();
 // REQUIRE ROUTE FILES
 var parcelRoutes = require("./routes/parcels");
