@@ -1,4 +1,4 @@
-var winston = require("winston"); // USE WINSTON FOR LOGGING
+import winston from "winston"; // USE WINSTON FOR LOGGING
 
 // LOGGER CONFIGURATION
 const winstonLogger = winston.createLogger({
@@ -14,4 +14,4 @@ const winstonLogger = winston.createLogger({
     ]
 });
 
-module.exports = winstonLogger;
+export default winstonLogger;
