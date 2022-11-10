@@ -28,10 +28,34 @@
 
     var getgeometry = "<%= project.layer.geometry %>";
     var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
-    mapboxgl.accessToken = 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA';
-    var map = new mapboxgl.Map({
+    var map = new maplibregl.Map({
         container: 'assetMapShow',
-        style: 'mapbox://styles/mapbox/satellite-v9',
+        style: {
+        'version': 8,
+        'sources': {
+        'raster-tiles': {
+        'type': 'raster',
+        'tiles': [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+        ],
+        'tileSize': 256,
+        'attribution':
+        '<a target="_top" rel="noopener" href="https://maplibre.org">MapLibre</a>, <a target="_top" rel="noopener" href="https://google.com">Google</a>'
+        }
+        },
+        'layers': [
+        {
+        'id': 'simple-tiles',
+        'type': 'raster',
+        'source': 'raster-tiles',
+        'minzoom': 0,
+        'maxzoom': 21
+        }
+        ]
+        },
         center: [areaLng, areaLat],
         zoom: 15,
     });
