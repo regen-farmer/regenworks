@@ -22,7 +22,7 @@ export interface ISystemSchema extends Document {
     model: [
         {
             species: ISpeciesSchema,
-            position: [number],
+            position: number[],
             width: number
         }
     ],
@@ -33,10 +33,7 @@ export interface ISystemSchema extends Document {
         id: IUserSchema,
         username: string
     },
-    shared: {
-        type: boolean,
-        default: false
-    },
+    shared: boolean,
     flows: [
         ISystemflowSchema
     ],

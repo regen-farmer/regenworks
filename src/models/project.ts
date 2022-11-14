@@ -33,10 +33,10 @@ export interface IProjectSchema extends Document {
         discountRate: number,
         period: number
     },
-    layout: {type: string, default: "straight"},
-    alignment: {type: string, default: "north"},
-    bearing: {type: number, default: 0},
-    headland: {type: number, default: 0},
+    layout: string,
+    alignment: string,
+    bearing: number,
+    headland: number,
     bearingline: string,
     status: string,
     rows: [

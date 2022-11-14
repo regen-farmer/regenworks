@@ -1203,6 +1203,7 @@ router.delete(
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = 0; foundProject.assets.length > i; i++) {
+          // @ts-ignore
           foundProject.assets.remove(foundProject.assets[i])
           // SAVE PROJECT
           foundProject.save()

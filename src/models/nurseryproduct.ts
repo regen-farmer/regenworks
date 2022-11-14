@@ -18,7 +18,7 @@ export interface INurseryProductSchema extends Document {
         id: IUserSchema,
         username: string
     },
-    availability: {type: boolean, default: false},
+    availability: boolean,
     season: {
         start: string,
         end: string

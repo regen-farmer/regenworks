@@ -466,17 +466,29 @@ router.get(
   '/systems/:id/edit',
   middleware.isLoggedIn,
   async function (req: any, res) {
-    let foundSystem = System.findById(req.params.id)
+    let foundSystem = await System.findById(req.params.id)
       .populate('model.species')
       .populate('animals')
       .exec()
     if (foundSystem) {
-      Species.find(function (err, foundSpecies) {
-        if (err) {
-          console.log(err)
-        } else {
+      let foundSpecies = await Species.find();
+      if (foundSpecies) {
+        // SORT SPECIES
+        function compare(a, b) {
+          if (a.nameCommon < b.nameCommon) {
+            return -1
+          }
+          if (a.nameCommon > b.nameCommon) {
+            return 1
+          }
+          return 0
+        }
+        foundSpecies.sort(compare)
+        // FIND ALL ANIMALS AND SORT
+        let foundAnimals = await Animal.find();
+        if (foundAnimals) {
           // SORT SPECIES
-          function compare(a, b) {
+          function compare1(a, b) {
             if (a.nameCommon < b.nameCommon) {
               return -1
             }
@@ -485,124 +497,107 @@ router.get(
             }
             return 0
           }
-          foundSpecies.sort(compare)
-          // FIND ALL ANIMALS AND SORT
-          Animal.find(function (err, foundAnimals) {
-            if (err) {
-              console.log(err)
-            } else {
-              // SORT SPECIES
-              function compare1(a, b) {
-                if (a.nameCommon < b.nameCommon) {
-                  return -1
-                }
-                if (a.nameCommon > b.nameCommon) {
-                  return 1
-                }
-                return 0
+          foundAnimals.sort(compare1)
+          // FIND ROWS IN SYSTEM
+          var allSpecies: any[] = []
+          var dataset: any[] = []
+          var distanceArray: any[] = []
+          foundSystem.model.forEach(function (species) {
+            allSpecies.push(species.species)
+            distanceArray.push(species.position[1])
+            var count = 0
+            for (let i = 0; i < dataset.length; i++) {
+              if (dataset[i].row === species.position[0]) {
+                dataset[i].array.push(species)
+                count = count + 1
               }
-              foundAnimals.sort(compare1)
-              // FIND ROWS IN SYSTEM
-              var allSpecies: any[] = []
-              var dataset: any[] = []
-              var distanceArray: any[] = []
-              foundSystem.model.forEach(function (species) {
-                allSpecies.push(species.species)
-                distanceArray.push(species.position[1])
-                var count = 0
-                for (let i = 0; i < dataset.length; i++) {
-                  if (dataset[i].row === species.position[0]) {
-                    dataset[i].array.push(species)
-                    count = count + 1
-                  }
-                }
-                if (count === 0) {
-                  dataset.push({
-                    row: species.position[0],
-                    array: [species],
-                  })
-                }
-              })
-              // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-              var uniqueSpecies = unique(allSpecies)
-              // SORT FIRST ROW ITEMS
-              function compare2(a, b) {
-                if (a.position[1] < b.position[1]) {
-                  return -1
-                }
-                if (a.position[1] > b.position[1]) {
-                  return 1
-                }
-                return 0
-              }
-              for (let i = 0; i < dataset.length; i++) {
-                dataset[i].array.sort(compare2)
-                console.log(dataset[i].array[0])
-              }
-              var rows = dataset
-              // CALCULATE DISTANCE
-              var distanceDifference: any[] = []
-              for (let i = 0; i < distanceArray.length; i++) {
-                for (let j = 0; j < distanceArray.length; j++) {
-                  if (distanceArray[i] !== distanceArray[j]) {
-                    distanceDifference.push(
-                      Math.abs(distanceArray[i] - distanceArray[j])
-                    )
-                  }
-                }
-              }
-              // SORT DIFFERENCE IN DISTANCE
-              function compare3(a, b) {
-                if (a < b) {
-                  return -1
-                }
-                if (a > b) {
-                  return 1
-                }
-                return 0
-              }
-              // CALCULATE LENGTH
-              distanceArray.sort(compare3)
-              console.log(distanceArray[distanceArray.length - 1])
-              // SET LENGTH TO HIGHEST Y COORDINATE
-              var length = distanceArray[distanceArray.length - 1]
-              // FIND DISTANCE Y MIN
-              distanceDifference.sort(compare3)
-              var distance = 0
-              if (
-                distanceDifference[0] > distanceArray[0] ||
-                distanceDifference.length === 0
-              ) {
-                distance = distanceArray[0]
-              } else {
-                distance = distanceDifference[0]
-              }
-              console.log(distance)
-              if (req.query.distance) {
-                console.log('Distance query')
-                distance = distance / req.query.distance
-              }
-              // JUST SET NEW VARIABLE TO CONTROL NEW ROW
-              var newRow = -1
-              if (req.query.row) {
-                console.log('Row query ' + req.query.row)
-                newRow = parseInt(req.query.row)
-                console.log(typeof newRow)
-              }
-              // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
-              res.render('systems/edit', {
-                system: foundSystem,
-                species: foundSpecies,
-                animals: foundAnimals,
-                rows: rows,
-                distance: distance,
-                length: length,
-                newrow: newRow,
+            }
+            if (count === 0) {
+              dataset.push({
+                row: species.position[0],
+                array: [species],
               })
             }
           })
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          var uniqueSpecies = unique(allSpecies)
+          // SORT FIRST ROW ITEMS
+          function compare2(a, b) {
+            if (a.position[1] < b.position[1]) {
+              return -1
+            }
+            if (a.position[1] > b.position[1]) {
+              return 1
+            }
+            return 0
+          }
+          for (let i = 0; i < dataset.length; i++) {
+            dataset[i].array.sort(compare2)
+            console.log(dataset[i].array[0])
+          }
+          var rows = dataset
+          // CALCULATE DISTANCE
+          var distanceDifference: any[] = []
+          for (let i = 0; i < distanceArray.length; i++) {
+            for (let j = 0; j < distanceArray.length; j++) {
+              if (distanceArray[i] !== distanceArray[j]) {
+                distanceDifference.push(
+                  Math.abs(distanceArray[i] - distanceArray[j])
+                )
+              }
+            }
+          }
+          // SORT DIFFERENCE IN DISTANCE
+          function compare3(a, b) {
+            if (a < b) {
+              return -1
+            }
+            if (a > b) {
+              return 1
+            }
+            return 0
+          }
+          // CALCULATE LENGTH
+          distanceArray.sort(compare3)
+          console.log(distanceArray[distanceArray.length - 1])
+          // SET LENGTH TO HIGHEST Y COORDINATE
+          var length = distanceArray[distanceArray.length - 1]
+          // FIND DISTANCE Y MIN
+          distanceDifference.sort(compare3)
+          var distance = 0
+          if (
+            distanceDifference[0] > distanceArray[0] ||
+            distanceDifference.length === 0
+          ) {
+            distance = distanceArray[0]
+          } else {
+            distance = distanceDifference[0]
+          }
+          console.log(distance)
+          if (req.query.distance) {
+            console.log('Distance query')
+            distance = distance / req.query.distance
+          }
+          // JUST SET NEW VARIABLE TO CONTROL NEW ROW
+          var newRow = -1
+          if (req.query.row) {
+            console.log('Row query ' + req.query.row)
+            newRow = parseInt(req.query.row)
+            console.log(typeof newRow)
+          }
+          // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
+          res.render('systems/edit', {
+            system: foundSystem,
+            species: foundSpecies,
+            animals: foundAnimals,
+            rows: rows,
+            distance: distance,
+            length: length,
+            newrow: newRow,
+          })
         }
-      })
+      
+      }
     }
   }
 )
@@ -693,81 +688,78 @@ router.get(
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
       var uniqueSpecies = unique(allSpecies)
       // FIND ALL SPECIES IN SYSTEM
-      Species.find({ _id: uniqueSpecies }, function (err, foundSpecies) {
-        if (err) {
-          console.log(err)
-        } else {
-          // SORT FIRST ROW ITEMS
-          function compare2(a, b) {
-            if (a.position[1] < b.position[1]) {
-              return -1
-            }
-            if (a.position[1] > b.position[1]) {
-              return 1
-            }
-            return 0
+      let foundSpecies = await Species.find({ _id: uniqueSpecies })
+      if (foundSpecies) {
+        // SORT FIRST ROW ITEMS
+        function compare2(a, b) {
+          if (a.position[1] < b.position[1]) {
+            return -1
           }
-          // SORT ROWS
-          for (let i = 0; i < dataset.length; i++) {
-            dataset[i].array.sort(compare2)
-            console.log(dataset[i].array[0])
+          if (a.position[1] > b.position[1]) {
+            return 1
           }
-          var rows = dataset
-          // CALCULATE DISTANCE
-          var distanceDifference: any[] = []
-          for (let i = 0; i < distanceArray.length; i++) {
-            for (let j = 0; j < distanceArray.length; j++) {
-              if (distanceArray[i] !== distanceArray[j]) {
-                distanceDifference.push(
-                  Math.abs(distanceArray[i] - distanceArray[j])
-                )
-              }
-            }
-          }
-          // SORT DIFFERENCE IN DISTANCE
-          function compare3(a, b) {
-            if (a < b) {
-              return -1
-            }
-            if (a > b) {
-              return 1
-            }
-            return 0
-          }
-          // CALCULATE LENGTH
-          distanceArray.sort(compare3)
-          console.log(distanceArray[distanceArray.length - 1])
-          // SET LENGTH TO HIGHEST Y COORDINATE
-          var length = distanceArray[distanceArray.length - 1]
-          // FIND DISTANCE Y MIN
-          distanceDifference.sort(compare3)
-          var distance = 0
-          if (
-            distanceDifference[0] > distanceArray[0] ||
-            distanceDifference.length === 0
-          ) {
-            distance = distanceArray[0]
-          } else {
-            distance = distanceDifference[0]
-          }
-          // NEWROW
-          var newRow = -1
-          if (req.query.row) {
-            console.log('Row query ' + req.query.row)
-            newRow = parseInt(req.query.row)
-            console.log(typeof newRow)
-          }
-          res.render('systems/edit', {
-            system: foundSystem,
-            species: foundSpecies,
-            animals: foundSystem.animals,
-            rows: rows,
-            distance: distance,
-            length: length,
-            newrow: newRow,
-          })
+          return 0
         }
-      })
+        // SORT ROWS
+        for (let i = 0; i < dataset.length; i++) {
+          dataset[i].array.sort(compare2)
+          console.log(dataset[i].array[0])
+        }
+        var rows = dataset
+        // CALCULATE DISTANCE
+        var distanceDifference: any[] = []
+        for (let i = 0; i < distanceArray.length; i++) {
+          for (let j = 0; j < distanceArray.length; j++) {
+            if (distanceArray[i] !== distanceArray[j]) {
+              distanceDifference.push(
+                Math.abs(distanceArray[i] - distanceArray[j])
+              )
+            }
+          }
+        }
+        // SORT DIFFERENCE IN DISTANCE
+        function compare3(a, b) {
+          if (a < b) {
+            return -1
+          }
+          if (a > b) {
+            return 1
+          }
+          return 0
+        }
+        // CALCULATE LENGTH
+        distanceArray.sort(compare3)
+        console.log(distanceArray[distanceArray.length - 1])
+        // SET LENGTH TO HIGHEST Y COORDINATE
+        var length = distanceArray[distanceArray.length - 1]
+        // FIND DISTANCE Y MIN
+        distanceDifference.sort(compare3)
+        var distance = 0
+        if (
+          distanceDifference[0] > distanceArray[0] ||
+          distanceDifference.length === 0
+        ) {
+          distance = distanceArray[0]
+        } else {
+          distance = distanceDifference[0]
+        }
+        // NEWROW
+        var newRow = -1
+        if (req.query.row) {
+          console.log('Row query ' + req.query.row)
+          newRow = parseInt(req.query.row)
+          console.log(typeof newRow)
+        }
+        res.render('systems/edit', {
+          system: foundSystem,
+          species: foundSpecies,
+          animals: foundSystem.animals,
+          rows: rows,
+          distance: distance,
+          length: length,
+          newrow: newRow,
+        })
+      }
     }
   }
 )
@@ -1161,68 +1153,65 @@ router.get(
 router.get(
   '/systems/:id/composition',
   middleware.isLoggedIn,
-  function (req: any, res) {
-    System.findById(req.params.id)
+  async function (req: any, res) {
+    let foundSystem = await System.findById(req.params.id)
       .populate('model.species')
-      .exec(function (err, foundSystem) {
-        if (err) {
-          console.log(err)
-        } else {
-          // FIND ALL SPECIES IN SYSTEM
-          var allSpecies: any[] = []
-          foundSystem.model.forEach(function (species) {
-            allSpecies.push(species.species)
-          })
-          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-          var uniqueSpecies = unique(allSpecies)
-          // FIND SPECIES AND POPULATE FLOWS
-          Species.find({ _id: uniqueSpecies })
-            .populate('flows')
-            .exec(function (err, foundSpecies) {
-              if (err) {
-                console.log(err)
-              } else {
-                Parcel.findById(
-                  req.user.currentProject,
-                  function (err, foundParcel) {
-                    if (err) {
-                      console.log(err)
-                    } else {
-                      Species.find(
-                        {
-                          'precipitation.max': {
-                            $gt: foundParcel.climate.annualaverageprec,
-                          },
-                          'precipitation.min': {
-                            $lt: foundParcel.climate.annualaverageprec,
-                          },
-                          'temperature.min': {
-                            $lt: foundParcel.climate.hardiness.high,
-                          },
-                          'temperature.max': {
-                            $gt: foundParcel.climate.hardiness.low,
-                          },
-                        },
-                        function (err, foundSuitableSpecies) {
-                          if (err) {
-                            console.log(err)
-                          } else {
-                            console.log(foundSuitableSpecies)
-                            res.render('composition', {
-                              system: foundSystem,
-                              species: foundSpecies,
-                              suitablespecies: foundSuitableSpecies,
-                            })
-                          }
-                        }
-                      )
-                    }
-                  }
-                )
-              }
-            })
-        }
+      .exec()
+    if (foundSystem) {
+      // FIND ALL SPECIES IN SYSTEM
+      var allSpecies: any[] = []
+      foundSystem.model.forEach(function (species) {
+        allSpecies.push(species.species)
       })
+      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      var uniqueSpecies = unique(allSpecies)
+      // FIND SPECIES AND POPULATE FLOWS
+      Species.find({ _id: uniqueSpecies })
+        .populate('flows')
+        .exec(function (err, foundSpecies) {
+          if (err) {
+            console.log(err)
+          } else {
+            Parcel.findById(
+              req.user.currentProject,
+              function (err, foundParcel) {
+                if (err) {
+                  console.log(err)
+                } else {
+                  Species.find(
+                    {
+                      'precipitation.max': {
+                        $gt: foundParcel.climate.annualaverageprec,
+                      },
+                      'precipitation.min': {
+                        $lt: foundParcel.climate.annualaverageprec,
+                      },
+                      'temperature.min': {
+                        $lt: foundParcel.climate.hardiness.high,
+                      },
+                      'temperature.max': {
+                        $gt: foundParcel.climate.hardiness.low,
+                      },
+                    },
+                    function (err, foundSuitableSpecies) {
+                      if (err) {
+                        console.log(err)
+                      } else {
+                        console.log(foundSuitableSpecies)
+                        res.render('composition', {
+                          system: foundSystem,
+                          species: foundSpecies,
+                          suitablespecies: foundSuitableSpecies,
+                        })
+                      }
+                    }
+                  )
+                }
+              }
+            )
+          }
+        })
+    }
   }
 )
 
@@ -1267,7 +1256,7 @@ router.get(
             })
             console.log(commodityName)
             // CHECK IF SYSTEM HAS ANIMALS
-            var animals = ''
+            var animals
             if (foundSystem.animals.length > 0) {
               animals = foundSystem.animals[0]
             }
@@ -1278,8 +1267,8 @@ router.get(
                 foundSystems[i].model.length > 0
               ) {
                 // FIND ALL SPECIES IN SYSTEM
-                var allSpecies: any[] = []
-                var allUtilities: any[] = []
+                var allSpecies: string[] = []
+                var allUtilities: string[] = []
                 var grid = 0
                 var dataset: any[] = []
                 foundSystems[i].model.forEach(function (species) {

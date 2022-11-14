@@ -2,12 +2,12 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { IFlowSchema } from './flow';
 
 export interface ISpeciesSchema extends Document {
-    nameCommon: String,
-    genus: String,
-    species: String,
-    family: String,
-    origin: String,
-    invasive: String,
+    nameCommon: string,
+    genus: string,
+    species: string,
+    family: string,
+    origin: string,
+    invasive: string,
     temperature: {
         min: number,
         max: number
@@ -16,15 +16,15 @@ export interface ISpeciesSchema extends Document {
         min: number,
         max: number
     },
-    cultivation: String,
-    form: String,
-    management: String,
-    stapleCrop: String,
-    industrialCrop: String,
-    fodder: String,
+    cultivation: string,
+    form: string,
+    management: string,
+    stapleCrop: string,
+    industrialCrop: string,
+    fodder: string,
     classsyntropic: {
-        strata: String,
-        lifecycle: String
+        strata: string,
+        lifecycle: string
     },
     lifespan: number,
     height: number,
@@ -32,7 +32,7 @@ export interface ISpeciesSchema extends Document {
     flows: [
         IFlowSchema
     ],
-    utilities: [String],
+    utilities: [string],
     nutrients: {
         fat: number,
         carb: number,
@@ -40,14 +40,14 @@ export interface ISpeciesSchema extends Document {
     },
     activities: [
         {
-            activityType: String,
-            subtype: String,
-            name: String,
+            activityType: string,
+            subtype: string,
+            name: string,
             time: {
                 startMonth: number,
                 endMonth: number
             },
-            price: {type: number, default: number }
+            price: number
         }
     ],
     price: number
