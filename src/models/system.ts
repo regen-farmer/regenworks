@@ -48,7 +48,10 @@ export interface ISystemSchema extends Document {
             eco: number,
             koppen: string
         }
-    ]
+    ],
+    grid: number,
+    uniqueSpecies: string[],
+    uniqueUtilities: string[],
 }
 
   
@@ -111,7 +114,10 @@ var systemSchema = new Schema<ISystemSchema>({
             eco: Number,
             koppen: String
         }
-    ]
+    ],
+    grid: Number,
+    uniqueSpecies: [String],
+    uniqueUtilities: [String],
 });
 
 export default model("System", systemSchema);

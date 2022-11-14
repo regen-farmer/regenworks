@@ -383,7 +383,9 @@ router.get(
           var uniqueUtilities = unique(allUtilities)
           foundSystems[i].uniqueUtilities = uniqueUtilities
           foundSystems[i].grid = grid
+          // @ts-ignore
           foundSystems[i].sortedrows = dataset
+          // @ts-ignore
           foundSystems[i].nutritional = nutritional[0]
         }
         res.render('systems/compare', {
@@ -1298,7 +1300,6 @@ router.get(
                 foundSystems[i].uniqueSpecies = uniqueSpecies
                 var uniqueUtilities = unique(allUtilities)
                 foundSystems[i].uniqueUtilities = uniqueUtilities
-                // SORT FIRST ROW ITEMS
                 function compare1(a, b) {
                   if (a.position[1] < b.position[1]) {
                     return -1
@@ -1314,8 +1315,9 @@ router.get(
                   grid = grid + dataset[j].array[0].width
                 }
                 // SAVE ROWS
+                // @ts-ignore
                 foundSystems[i].sortedrows = dataset
-                foundSystems[i].grid = grid
+                // @ts-ignorefoundSystems[i].grid = grid
                 systems.push(foundSystems[i])
               }
             }

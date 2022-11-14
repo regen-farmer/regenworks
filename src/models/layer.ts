@@ -70,9 +70,7 @@ export interface ILayerSchema extends Document {
     alignment: string,
     layout: string,
     headland: number,
-    rows: [
-        IRowSchema
-    ],
+    rows: IRowSchema[],
     areas: [
         IAreaSchema
     ],

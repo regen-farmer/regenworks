@@ -19,7 +19,8 @@ export interface IRowSchema extends Document {
     ],
     notes: [
         INoteSchema
-    ]
+    ],
+    rowlength: number
 }
 
 // ROW SCHEMA SETUP
@@ -53,7 +54,8 @@ var rowSchema = new Schema<IRowSchema>({
             type: Schema.Types.ObjectId,
             ref: "Note"
         }
-    ]
+    ],
+    rowlength: Number
 });
 
 export default model("Row", rowSchema);
