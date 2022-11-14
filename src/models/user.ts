@@ -4,23 +4,23 @@ import { INurserySchema } from './nursery';
 import { IParcelSchema } from './parcel';
 
 export interface IUserSchema extends Document {
-    username: {type: String, unique: true, require: true},
-    password: String,
-    email: {type: String, unique: true, require: true},
-    resetPasswordToken: String,
+    username: {type: string, unique: true, require: true},
+    password: string,
+    email: {type: string, unique: true, require: true},
+    resetPasswordToken: string,
     resetPasswordExpires: Date,
     parcels: [
         IParcelSchema
     ],
     currentProject: IParcelSchema,
-    registrationDate: Number,
-    membership: Number,
-    farmLimit: Number,
-    haLimit: {type: Number, default: 5},
-    isAdmin: {type: Boolean, default: false},
-    isNursery: {type: Boolean, default: false},
-    isManagement: {type: Boolean, default: false},
-    isProject: {type: Boolean, default: false},
+    registrationDate: number,
+    membership: number,
+    farmLimit: number,
+    haLimit: {type: number, default: 5},
+    isAdmin: {type: boolean, default: false},
+    isNursery: {type: boolean, default: false},
+    isManagement: {type: boolean, default: false},
+    isProject: {type: boolean, default: false},
     nurseries: [
         INurserySchema
     ]

@@ -4,24 +4,24 @@ import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
 export interface IActivitySchema extends Document {
-    name: String,
-    description: String,
+    name: string,
+    description: string,
     start: {
-        date: String,
-        time: String
+        date: string,
+        time: string
     },
     end:  {
-        date: String,
-        time: String
+        date: string,
+        time: string
     },
-    time: Number,
-    status: Boolean,
-    activityType: String,
-    subtype: String,
-    automated: Boolean,
+    time: number,
+    status: boolean,
+    activityType: string,
+    subtype: string,
+    automated: boolean,
     owner: {
         id: IUserSchema
-        username: String
+        username: string
     },
     layer: ILayerSchema
     species: ISpeciesSchema

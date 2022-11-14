@@ -3,20 +3,20 @@ import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
 export interface IVarietySchema extends Document {
-    name: String,
+    name: string,
     species: ISpeciesSchema,
-    price: Number,
-    description: String,
-    class: String,
-    pollination: String,
+    price: number,
+    description: string,
+    class: string,
+    pollination: string,
     rootstock: {
-        name: String,
+        name: string,
         species: ISpeciesSchema
     },
     hybrid: ISpeciesSchema,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
 }
 

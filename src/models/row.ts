@@ -6,9 +6,9 @@ import { INoteSchema } from './note';
 import { ISequenceSchema } from './sequence';
 
 export interface IRowSchema extends Document {
-    geometry: String,
+    geometry: string,
     sequence: ISequenceSchema,
-    name: String,
+    name: string,
     assets: [
         IAssetSchema
     ],

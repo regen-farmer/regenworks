@@ -2,14 +2,14 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { ISpeciesSchema } from './species';
 
 export interface IFarmFlowSchema extends Document {
-    name: String,
-    description: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    source: String,
+    name: string,
+    description: string,
+    type: string,
+    unit: string,
+    timeframe: string,
+    source: string,
     timestamp: Date,
-    amount: Number,
+    amount: number,
     species: ISpeciesSchema
 }
 

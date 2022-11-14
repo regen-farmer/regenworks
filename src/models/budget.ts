@@ -6,10 +6,10 @@ export interface IBudgetSchema extends Document {
     postings: IPostingSchema[],
     owner: {
         id: IUserSchema[],
-        username: String
+        username: string
     },
-    currency: String,
-    name: String
+    currency: string,
+    name: string
 }
 
 // BUDGET SCHEMA SETUP

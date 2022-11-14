@@ -10,48 +10,48 @@ import { ISystemSchema } from './system';
 import { IUserSchema } from './user';
 
 export interface ILayerSchema extends Document {
-    name: String,
-    description: String,
-    type: String,
+    name: string,
+    description: string,
+    type: string,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
     climate: {
         monthlyaveragetemp: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
+            january: number,
+            february: number,
+            march: number,
+            april: number,
+            may: number,
+            june: number,
+            july: number,
+            august: number,
+            september: number,
+            october: number,
+            november: number,
+            december: number
         },
-        annualaverageprec: Number,
+        annualaverageprec: number,
         monthlyaverageprec: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
+            january: number,
+            february: number,
+            march: number,
+            april: number,
+            may: number,
+            june: number,
+            july: number,
+            august: number,
+            september: number,
+            october: number,
+            november: number,
+            december: number
         }
     },
-    geometry: String,
-    lat: Number,
-    lng: Number,
-    size: Number,
+    geometry: string,
+    lat: number,
+    lng: number,
+    size: number,
     systems: {
         past: [
             ISystemSchema
@@ -67,9 +67,9 @@ export interface ILayerSchema extends Document {
     assets: [
         IAssetSchema
     ],
-    alignment: String,
-    layout: String,
-    headland: Number,
+    alignment: string,
+    layout: string,
+    headland: number,
     rows: [
         IRowSchema
     ],

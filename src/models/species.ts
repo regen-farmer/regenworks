@@ -9,12 +9,12 @@ export interface ISpeciesSchema extends Document {
     origin: String,
     invasive: String,
     temperature: {
-        min: Number,
-        max: Number
+        min: number,
+        max: number
     },
     precipitation: {
-        min: Number,
-        max: Number
+        min: number,
+        max: number
     },
     cultivation: String,
     form: String,
@@ -26,17 +26,17 @@ export interface ISpeciesSchema extends Document {
         strata: String,
         lifecycle: String
     },
-    lifespan: Number,
-    height: Number,
-    width: Number,
+    lifespan: number,
+    height: number,
+    width: number,
     flows: [
         IFlowSchema
     ],
     utilities: [String],
     nutrients: {
-        fat: Number,
-        carb: Number,
-        protein: Number
+        fat: number,
+        carb: number,
+        protein: number
     },
     activities: [
         {
@@ -44,13 +44,13 @@ export interface ISpeciesSchema extends Document {
             subtype: String,
             name: String,
             time: {
-                startMonth: Number,
-                endMonth: Number
+                startMonth: number,
+                endMonth: number
             },
-            price: {type: Number, default: Number}
+            price: {type: number, default: number }
         }
     ],
-    price: Number
+    price: number
 }
 
 // SPECIES SCHEMA SETUP

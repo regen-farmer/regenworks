@@ -3,19 +3,19 @@ import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
 export interface IAssetSchema extends Document {
-    name: String,
-    description: String,
-    typeAsset: String,
-    amount: Number,
+    name: string,
+    description: string,
+    typeAsset: string,
+    amount: number,
     species: ISpeciesSchema,
-    value: Number,
-    creation: Number,
-    determination: Number,
-    lat: Number,
-    lng: Number,
+    value: number,
+    creation: number,
+    determination: number,
+    lat: number,
+    lng: number,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     }
 }
 

@@ -3,25 +3,25 @@ import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
 export interface INurseryProductSchema extends Document {
-    name: String,
-    variety: String,
+    name: string,
+    variety: string,
     species: ISpeciesSchema,
-    price: Number,
-    description: String,
-    stock: Number,
-    class: String,
-    pollination: String,
-    orderlimit: Number,
+    price: number,
+    description: string,
+    stock: number,
+    class: string,
+    pollination: string,
+    orderlimit: number,
     rootstock: ISpeciesSchema,
     hybrid: ISpeciesSchema,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
-    availability: {type: Boolean, default: false},
+    availability: {type: boolean, default: false},
     season: {
-        start: String,
-        end: String
+        start: string,
+        end: string
     }
 }
 

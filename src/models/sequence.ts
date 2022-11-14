@@ -4,19 +4,19 @@ import { IUserSchema } from './user';
 
 // @ts-ignore
 export interface ISequenceSchema extends Document {
-    name: String,
-    description: String,
+    name: string,
+    description: string,
     model: [
         {
             species: ISpeciesSchema,
-            position: Number
+            position: number
         }
     ],
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
-    sequencelength: Number
+    sequencelength: number
 }
 
 // SEQUENCE SCHEMA SETUP

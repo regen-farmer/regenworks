@@ -2,40 +2,40 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { IUserSchema } from './user';
 
 export interface ISoiltestSchema {
-    name: String,
-    description: String,
-    lat: Number,
-    lng: Number,
-    depth: Number,
+    name: string,
+    description: string,
+    lat: number,
+    lng: number,
+    depth: number,
     physical: {
-        clay: Number,
-        silt: Number,
-        sand: Number
+        clay: number,
+        silt: number,
+        sand: number
     },
     sampleDate: Date,
-    compaction: Number,
+    compaction: number,
     fertility: {
-        conductivity: Number,
-        pH: Number,
-        SOM: Number,
-        nitrogen: Number,
-        phosphorus: Number,
-        lime: Number,
-        calcium: Number,
-        magnesium: Number,
-        potasium: Number,
-        sodium: Number
+        conductivity: number,
+        pH: number,
+        SOM: number,
+        nitrogen: number,
+        phosphorus: number,
+        lime: number,
+        calcium: number,
+        magnesium: number,
+        potasium: number,
+        sodium: number
     },
     microelements: {
-        boron: Number,
-        iron: Number,
-        magnezium: Number,
-        copper: Number,
-        zinc: Number
+        boron: number,
+        iron: number,
+        magnezium: number,
+        copper: number,
+        zinc: number
     },
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     }
 }
 

@@ -7,16 +7,16 @@ export interface IRateLimiterIPSchema extends Document {
         default: Date,
     },
     ip: {
-        type: String,
+        type: string,
         required: boolean,
         trim: boolean,
         match: RegExp
     },
     hits: {
-        type: Number,
-        default: Number,
+        type: number,
+        default: number,
         required: boolean,
-        min: Number
+        min: number
     }
 }
 
