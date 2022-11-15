@@ -40,8 +40,12 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, function (req, res) {
         let updatedProject = await Project.findByIdAndUpdate(
             req.params.id,
             { $addToSet: { areas: createdArea } });
+            if (updatedProject) {
         console.log('Area has been added to project')
         res.redirect('/projects/' + updatedProject.id + '/layout')
+      } else {
+        console.log('Project wasn\'t updated')
+      }
       } 
       catch (err) {
             console.log(err)
@@ -86,6 +90,7 @@ router.get(
     try {
       let foundProject = await Project.findById(req.params.id)
       // DELETE AREAS
+      if(foundProject){
       try {
         await Area.deleteMany({ _id: { $in: foundProject.areas } })
         // CLEAR AREA ARRAY ON PROJECT
@@ -93,13 +98,19 @@ router.get(
           let updatedProject = await Project.findByIdAndUpdate(req.params.id, {
             $set: { areas: [] },
           })
-          res.redirect('/projects/' + updatedProject._id + '/layout')
+          if (updatedProject){
+            res.redirect('/projects/' + updatedProject._id + '/layout')
+          } else {
+            console.log('project wasn\'t updated');
+          }
         } catch (err) {
           console.log(err)
         }
+      
       } catch (err) {
         console.log(err)
       }
+    }
     } catch (err) {
       console.log(err)
     }

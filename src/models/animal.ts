@@ -2,10 +2,10 @@ import { Document, model, Schema } from 'mongoose';
 
 
 export interface IAnimalSchema extends Document {
-    name: String,
-    family: String,
-    genus: String,
-    species: String
+    name: string,
+    family: string,
+    genus: string,
+    species: string
 }
 
 // ANIMAL SCHEMA SETUP

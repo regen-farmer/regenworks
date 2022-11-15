@@ -1,9 +1,9 @@
 import { Document, model, Schema, Types } from 'mongoose';
 
 export interface ILogSchema extends Document {
-    message: String,
-    level: String,
-    timestamp: Number
+    message: string,
+    level: string,
+    timestamp: number
 }
 
 // LOG SCHEMA SETUP

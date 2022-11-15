@@ -73,12 +73,11 @@ router.post("/activities", middleware.isLoggedIn, function(req:any, res){
 });
 
 // ACTIVITY SHOW ROUTES
-router.get("/activities/:id", middleware.isLoggedIn, function(req, res){
-    Activity.findById(req.params.id).populate("layer").exec(function(err, foundActivity){
-        if(err){
-            console.log(err);
-        } else {
-            var dateParts = foundActivity.start.date.split("-");
+router.get("/activities/:id", middleware.isLoggedIn, async function(req, res){
+    try {
+        let foundActivity = await Activity.findById(req.params.id).populate("layer").exec();
+        if(foundActivity) {
+            var dateParts = foundActivity?.start.date.split("-");
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
             ];
@@ -86,8 +85,12 @@ router.get("/activities/:id", middleware.isLoggedIn, function(req, res){
             var month = monthNames[monthNumber];
             var day = parseInt(dateParts[2], 10);
             res.render("activities/show", {activity: foundActivity, month: month, day: day});
+        } else {
+            console.log("No activity found");
         }
-    });
+    } catch(err) {
+        console.log(err);
+    }
 });
 
 // ACTIVITY EDIT ROUTE
@@ -249,7 +252,7 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req:any,
 router.get("/projects/:id/generateactivities", middleware.isLoggedIn, async function(req, res){
     // FIND PROJECT
     try {
-        let foundProject: IProjectSchema = await Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec();    
+        let foundProject = await Project.findById(req.params.id).populate({path:'budgets.establishment', populate:{path:'postings'}}).exec();    
         if (foundProject){
         var activityArray: any[] = [];
             for(let i=0;i<foundProject.budgets.establishment.postings.length;i++){
@@ -311,8 +314,7 @@ router.get("/projects/:id/activities/:pid/edit", middleware.isLoggedIn, function
 router.put("/projects/:id/activities/:pid", middleware.isLoggedIn, async function(req, res){
    // FIND ACTIVITY AND UPDATE
    try {
-
-       let updatedActivity: IActivitySchema = await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
+       let updatedActivity = await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
        res.redirect("/projects/" + req.params.id);
    }
     catch (err){
@@ -353,28 +355,27 @@ router.delete("/projects/:id/activities/:pid", middleware.isLoggedIn, function(r
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
 
-router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLoggedIn, function(req, res){
+router.get("/parcels/:id/layers/:pid/rows/:rid/activities/new", middleware.isLoggedIn, async function(req, res){
     // FIND ROW SEQUENCE SPECIES
-    Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec(function(err, foundRow: IRowSchema){
-        if(err){
-            console.log(err);
+    try {
+        let foundRow = await Row.findById(req.params.rid).populate({path:'sequence', populate:{path:'model.species'}}).exec();
+        // FIND ALL SPECIES
+        if(foundRow && foundRow.sequence){
+            console.log("species there");
+            var allSpecies:any[] = [];
+            foundRow.sequence.model.forEach(function(species){
+                allSpecies.push(species.species);
+            });
+            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+            var uniqueSpecies = unique(allSpecies);
+            console.log(uniqueSpecies);
+            res.render("activities/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid, row: foundRow, species: uniqueSpecies})
         } else {
-            // FIND ALL SPECIES
-            if(foundRow.sequence){
-                console.log("species there");
-                var allSpecies:any[] = [];
-                foundRow.sequence.model.forEach(function(species){
-                    allSpecies.push(species.species);
-                });
-                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                var uniqueSpecies = unique(allSpecies);
-                console.log(uniqueSpecies);
-                res.render("activities/rownew", {parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid, row: foundRow, species: uniqueSpecies})
-            } else {
-                res.redirect("back");
-            }
+            res.redirect("back");
         }
-    });
+    } catch(err){
+        console.log(err);
+    }
 });
 
 router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLoggedIn, async function(req, res){
@@ -395,7 +396,7 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
         let createdActivity = await Activity.create(activity);
         try {
 
-            let updatedRow: IRowSchema = Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } })
+            let updatedRow = Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } })
             res.redirect("/parcels/" + req.params.id + "/activities")
         }
         catch(err){
@@ -415,28 +416,30 @@ router.post("/parcels/:id/layers/:pid/rows/:rid/activities", middleware.isLogged
 // --------------- NESTED ROUTES AREA BASED ---------------- //
 
 
-router.get("/parcels/:id/layers/:pid/areas/:rid/activities/new", middleware.isLoggedIn, function(req, res){
+router.get("/parcels/:id/layers/:pid/areas/:rid/activities/new", middleware.isLoggedIn, async function(req, res){
     // FIND AREA ROTATION SPECIES
-    Area.findById(req.params.rid).populate({path:'rotation', populate:{path:'model.speciesmix.species'}}).exec(function(err, foundArea){
-        if(err){
-            console.log(err);
+    
+    try{
+        let foundArea = await Area.findById(req.params.rid).populate({path:'rotation', populate:{path:'model.speciesmix.species'}}).exec()
+        // FIND ALL SPECIES
+        if(foundArea && foundArea.rotation){
+            console.log("species there");
+            var allSpecies:any[] = [];
+            foundArea.rotation.model.forEach(function(speciesmix){
+                allSpecies.push(speciesmix.speciesmix[0].species);
+            });
+            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+            var uniqueSpecies = unique(allSpecies);
+            console.log(uniqueSpecies);
+            res.render("activities/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid, area: foundArea, species: uniqueSpecies})
         } else {
-            // FIND ALL SPECIES
-            if(foundArea.rotation){
-                console.log("species there");
-                var allSpecies:any[] = [];
-                foundArea.rotation.model.forEach(function(speciesmix){
-                    allSpecies.push(speciesmix.speciesmix[0].species);
-                });
-                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                var uniqueSpecies = unique(allSpecies);
-                console.log(uniqueSpecies);
-                res.render("activities/areanew", {parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid, area: foundArea, species: uniqueSpecies})
-            } else {
-                res.redirect("back");
-            }
+            res.redirect("back");
         }
-    });
+    }
+        catch (err){
+            console.log(err);
+        } 
+            
 });
 
 router.post("/parcels/:id/layers/:pid/areas/:rid/activities", middleware.isLoggedIn, function(req, res){

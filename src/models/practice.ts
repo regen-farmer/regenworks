@@ -1,15 +1,15 @@
 import { Document, model, Schema } from 'mongoose';
 
 export interface IPracticesSchema extends Document {
-    name: String,
-    type: String,
-    description: String,
-    tasks: String,
+    name: string,
+    type: string,
+    description: string,
+    tasks: string,
     regenScores: {
-        soilScore: Number,
-        bioScore: Number,
-        waterScore: Number,
-        climateScore: Number
+        soilScore: number,
+        bioScore: number,
+        waterScore: number,
+        climateScore: number
     }
 }
 

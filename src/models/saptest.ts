@@ -2,27 +2,27 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { IUserSchema } from './user';
 
 export interface ISaptestSchema extends Document {
-    name: String,
-    description: String,
-    lat: Number,
-    lng: Number,
+    name: string,
+    description: string,
+    lat: number,
+    lng: number,
     sampleDate: Date,
-    sugars: Number,
-    pH: Number,
-    EC: Number,
-    potassium: Number,
-    calcium: Number,
-    magnesium: Number,
-    sodium: Number,
-    ammonium: Number,
-    nitrate: Number,
-    nInNitrate: Number,
-    totalN: Number,
-    chloride: Number,
-    sulfur: Number,
+    sugars: number,
+    pH: number,
+    EC: number,
+    potassium: number,
+    calcium: number,
+    magnesium: number,
+    sodium: number,
+    ammonium: number,
+    nitrate: number,
+    nInNitrate: number,
+    totalN: number,
+    chloride: number,
+    sulfur: number,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     }
 }
 

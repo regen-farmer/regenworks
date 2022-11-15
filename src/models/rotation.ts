@@ -4,29 +4,29 @@ import { IUserSchema } from './user';
 
 // @ts-ignore
 export interface IRotationSchema extends Document {
-    name: String,
-    description: String,
+    name: string,
+    description: string,
     model: [
         {
             speciesmix: [
                 {
                     species:ISpeciesSchema,
-                    amount: Number
+                    amount: number
                 }
             ],
             planting: {
-                year: Number,
-                month: Number
+                year: number,
+                month: number
             },
             harvest: {
-                year: Number,
-                month: Number
+                year: number,
+                month: number
             }
         }
     ],
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     }
 }
 
