@@ -3,16 +3,16 @@ import { INurseryProductSchema } from './nurseryproduct';
 import { IUserSchema } from './user';
 
 export interface INurserySchema extends Document {
-    name: String,
-    location: String,
-    currency: String,
-    description: String,
-    lat: Number,
-    lng: Number,
-    range: Number,
+    name: string,
+    location: string,
+    currency: string,
+    description: string,
+    lat: number,
+    lng: number,
+    range: number,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
     products: [
         INurseryProductSchema

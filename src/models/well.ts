@@ -2,12 +2,12 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { IUserSchema } from './user';
 
 export interface IWellSchema extends Document {
-    name: String,
-    description: String,
-    geometry: String,
+    name: string,
+    description: string,
+    geometry: string,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     }
 }
 

@@ -43,7 +43,7 @@ import varietyRoutes from "./routes/varieties";
 import path from 'path';
 
 // APP SETUP
-connect(process.env.DATABASEURL as string, {useNewUrlParser: true, useUnifiedTopology: true}); // CONNECTS TO MLAB MONGODB
+connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
 app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.set('views', path.join(__dirname, '/views'));

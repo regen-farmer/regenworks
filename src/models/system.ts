@@ -9,10 +9,10 @@ import { IUserSchema } from './user';
 
 // @ts-ignore
 export interface ISystemSchema extends Document {
-    name: String,
-    description: String,
+    name: string,
+    description: string,
     rows: [
-        { width: Number,
+        { width: number,
           sequense: [
             ISequenceSchema
           ]
@@ -22,8 +22,8 @@ export interface ISystemSchema extends Document {
     model: [
         {
             species: ISpeciesSchema,
-            position: [Number],
-            width: Number
+            position: number[],
+            width: number
         }
     ],
     animals: [
@@ -31,27 +31,27 @@ export interface ISystemSchema extends Document {
     ],
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
-    shared: {
-        type: Boolean,
-        default: false
-    },
+    shared: boolean,
     flows: [
         ISystemflowSchema
     ],
     occurrences: [
         {
-            name: String,
-            lat: Number,
-            lng: Number,
-            alt: Number,
-            country: String,
-            source: String,
-            eco: Number,
-            koppen: String
+            name: string,
+            lat: number,
+            lng: number,
+            alt: number,
+            country: string,
+            source: string,
+            eco: number,
+            koppen: string
         }
-    ]
+    ],
+    grid: number,
+    uniqueSpecies: string[],
+    uniqueUtilities: string[],
 }
 
   
@@ -114,7 +114,10 @@ var systemSchema = new Schema<ISystemSchema>({
             eco: Number,
             koppen: String
         }
-    ]
+    ],
+    grid: Number,
+    uniqueSpecies: [String],
+    uniqueUtilities: [String],
 });
 
 export default model("System", systemSchema);

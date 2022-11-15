@@ -3,18 +3,18 @@ import { ISpeciesSchema } from './species';
 import { ISystemSchema } from './system';
 
 export interface ISystemflowSchema extends Document {
-    name: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    location: String,
+    name: string,
+    type: string,
+    unit: string,
+    timeframe: string,
+    location: string,
     data: [
         {
             species: ISpeciesSchema,
-            data: [Number]
+            data: [number]
         }
     ],
-    source: String,
+    source: string,
     systemref: ISystemSchema
 }
 

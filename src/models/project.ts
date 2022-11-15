@@ -9,17 +9,17 @@ import { ISystemSchema } from './system';
 import { IUserSchema } from './user';
 
 export interface IProjectSchema extends Document {
-    name: String,
-    description: String,
-    location: String,
-    lat: Number,
-    lng: Number,
+    name: string,
+    description: string,
+    location: string,
+    lat: number,
+    lng: number,
     assets: [
         IAssetSchema
     ],
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
     layer: ILayerSchema,
     activities: IActivitySchema[],
@@ -30,18 +30,16 @@ export interface IProjectSchema extends Document {
         management: IBudgetSchema
     },
     financial: {
-        discountRate: Number,
-        period: Number
+        discountRate: number,
+        period: number
     },
-    layout: {type: String, default: "straight"},
-    alignment: {type: String, default: "north"},
-    bearing: {type: Number, default: 0},
-    headland: {type: Number, default: 0},
-    bearingline: String,
-    status: String,
-    rows: [
-        IRowSchema
-    ],
+    layout: string,
+    alignment: string,
+    bearing: number,
+    headland: number,
+    bearingline: string,
+    status: string,
+    rows: IRowSchema[],
     areas: [
         IAreaSchema
     ]

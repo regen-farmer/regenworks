@@ -6,14 +6,14 @@ import { IRotationSchema } from './rotation';
 import { IUserSchema } from './user';
 
 export interface IAreaSchema extends Document {
-    name: String,
-    description: String,
-    geometry: String,
-    size: Number,
+    name: string,
+    description: string,
+    geometry: string,
+    size: number,
     rotation: IRotationSchema,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
     activities: IActivitySchema[],
     farmflows: IFarmFlowSchema[],

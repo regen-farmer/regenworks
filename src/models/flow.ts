@@ -1,12 +1,12 @@
 import { Document, model, Schema } from 'mongoose';
 
 export interface IFlowSchema extends Document {
-    name: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    data: Number[],
-    source: String
+    name: string,
+    type: string,
+    unit: string,
+    timeframe: string,
+    data: number[],
+    source: string
 }
 
 // FLOW SCHEMA SETUP

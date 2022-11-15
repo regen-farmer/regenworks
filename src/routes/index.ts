@@ -148,7 +148,7 @@ router.post("/users", function(req, res){
 
 // SHOW USER ROUTE
 router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id).populate("favorites").populate("parcels").exec(function(err, foundUser){
+    User.findById(req.params.id).populate("parcels").exec(function(err, foundUser){
         if(err) {
             console.log(err);
         } else {

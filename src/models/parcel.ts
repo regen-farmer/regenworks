@@ -5,22 +5,22 @@ import { IProjectSchema } from './project';
 import { IUserSchema } from './user';
 
 export interface IParcelSchema extends Document {
-    name: String,
+    name: string,
     agType: [
         {
-            type: String
+            type: string
         }
     ],
-    description: String,
-    soilType: String,
-    size: Number,
-    location: String,
-    lat: Number,
-    lng: Number,
-    geometry: String,
+    description: string,
+    soilType: string,
+    size: number,
+    location: string,
+    lat: number,
+    lng: number,
+    geometry: string,
     owner: {
         id: IUserSchema,
-        username: String
+        username: string
     },
     practices: [
         IPracticesSchema
@@ -33,40 +33,40 @@ export interface IParcelSchema extends Document {
     ],
     climate: {
         monthlyaveragetemp: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
+            january: number,
+            february: number,
+            march: number,
+            april: number,
+            may: number,
+            june: number,
+            july: number,
+            august: number,
+            september: number,
+            october: number,
+            november: number,
+            december: number
         },
-        annualaverageprec: Number,
+        annualaverageprec: number,
         monthlyaverageprec: {
-            january: Number,
-            february: Number,
-            march: Number,
-            april: Number,
-            may: Number,
-            june: Number,
-            july: Number,
-            august: Number,
-            september: Number,
-            october: Number,
-            november: Number,
-            december: Number
+            january: number,
+            february: number,
+            march: number,
+            april: number,
+            may: number,
+            june: number,
+            july: number,
+            august: number,
+            september: number,
+            october: number,
+            november: number,
+            december: number
         },
         hardiness: {
-            low: Number,
-            high: Number
+            low: number,
+            high: number
         }
     },
-    measurement: String
+    measurement: string
 }
 
 // PARCEL SCHEMA SETUP
