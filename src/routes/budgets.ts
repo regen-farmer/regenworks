@@ -5,7 +5,7 @@ import Budget from "../models/budget";
 import Project from "../models/project";
 import System from "../models/system";
 import Posting from "../models/posting";
-import Parcel from "../models/parcel";()
+import Parcel from "../models/parcel";
 var middleware = require("../middleware");
 var gisObj = require("../middleware/gis");
 var area = require("@turf/area");

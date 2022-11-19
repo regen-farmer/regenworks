@@ -1,7 +1,7 @@
-// DEFINE OBJECT TO HOLD FUNCTIONS FOR DYNAMIC FINANCIAL MODELLING
-import gisObj from "./gis";
-import area from "@turf/area";
+var gisObj = require("../middleware/gis");
+var area = require("@turf/area");
 
+// DEFINE OBJECT TO HOLD FUNCTIONS FOR DYNAMIC FINANCIAL MODELLING
 var dyFiMo: any = {};
 
 // ESTABLISHMENT BUDGET
@@ -239,14 +239,14 @@ dyFiMo.management = function(project){
 // FINANCIAL ANALYSIS
 dyFiMo.financialAnalysis = function(project){
     // CREATE BOTH BUDGETS
-    var financialAnalysis = any = {};
+    var financialAnalysis: any = {};
     var establishmentBudget = dyFiMo.establishment;
     var managementBudget = dyFiMo.management;
 
 
 
-    financialAnalysis.irr = irr;
-    financialAnalysis.npv = npv;
+/*    financialAnalysis.irr = irr;
+    financialAnalysis.npv = npv;*/
     return (financialAnalysis);
 }
 
