@@ -1,4 +1,3 @@
-// <<<<<<< HEAD
 import express from 'express';
 import unique from 'array-unique';
 import { area } from '@turf/turf';
@@ -13,30 +12,6 @@ import { IUserSchema } from '../models/user';
 import { ISpeciesSchema } from '../models/species';
 
 const router = express.Router();
-// =======
-// var express = require("express");
-// var router = express.Router();
-// var unique = require("array-unique");
-// import Budget from "../models/budget";
-// import Project from "../models/project";
-// import System from "../models/system";
-// import Posting from "../models/posting";
-// import Parcel from "../models/parcel";()
-// var middleware = require("../middleware");
-// var gisObj = require("../middleware/gis");
-// var area = require("@turf/area");
-// var bbox = require("@turf/bbox");
-// var bboxPolygon = require("@turf/bbox-polygon");
-// var turf = require("@turf/helpers");
-// var lineIntersect = require("@turf/line-intersect");
-// var turfLength = require("@turf/length");
-// var buffer = require("@turf/buffer");
-// var rhumbBearing = require("@turf/rhumb-bearing");
-// var transformScale = require("@turf/transform-scale");
-// var transformRotate = require("@turf/transform-rotate");
-// var lineSplit = require("@turf/line-split");
-// var along = require("@turf/along");
-// >>>>>>> ace12b8 (activity params in AF system model, created middleware for dynamic financial modelling, establishment budget and cash-flow budget added to new middleware)
 
 // BUDGET INDEX ROUTE
 
