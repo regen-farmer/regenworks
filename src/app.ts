@@ -3,15 +3,12 @@ import express from "express";
 import bodyParser from "body-parser"; // USED TO PARSE DATA FROM POST ROUTE
 import {connect} from "mongoose"; // REQUIRE MONGOOSE PACKAGE
 import flash from "connect-flash"; // ENABLES FLASH MESSAGES
-import passport from "passport"; // REQUIRE PASSPORT PACKAGE
-import LocalStrategy from "passport-local"; // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
 import Parcel from "./models/parcel";
 //import seedDB from "./seeds";
 import User from "./models/user";
-import expressSession from "express-session";
 
 dotenv.config();
 var app = express();
@@ -41,6 +38,7 @@ import farmflowRoutes from "./routes/farmflows";
 import rotationRoutes from "./routes/rotations";
 import varietyRoutes from "./routes/varieties";
 import path from 'path';
+import { auth } from 'express-openid-connect';
 
 // APP SETUP
 connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
@@ -52,25 +50,57 @@ app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQU
 app.use(flash());
 //seedDB(); // USE ONLY FOR SEEDING DATABAS
 
-// PASSPORT CONFIGURATION
-app.use(expressSession({
-    secret: "If found non we go down!",
-    resave: false,
-    saveUninitialized: false
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-// @ts-ignore
-passport.use(new LocalStrategy(User.authenticate()));
-// @ts-ignore
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
 
-// Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
-app.use(function(req, res, next){
+const config = {
+    authRequired: false,
+    auth0Logout: true,
+    baseURL: 'http://localhost:400',
+    clientID: 'Saqec8Jjaqqta9c2f0i3l24nVB8zsKhP',
+    issuerBaseURL: 'https://dev-3z62raqcp4wcxmkb.eu.auth0.com',
+    secret: 'iwej909gjwe98jijo32'
+  };
+
+
+app.use(auth(config));
+
+
+// // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
+app.use(async function(req, res, next){
+
+    res.locals.currentUser = undefined;
+
+    if (req.oidc.user && req.oidc.user.email) {
+
+        // Find any existing user
+        let user = await User.findOne({'email': req.oidc.user.email}).exec();
+
+        if (user) {
+            // @ts-ignore
+            req.user = user
+        } else {
+            // Create a new user if none exist
+            let newUser = await User.create({
+                externalId: req.oidc.user.sub,
+                email: req.oidc.user.email,
+                registrationDate: Date.now(),
+                membership: 1209600000,
+                farmLimit: 1,
+                isProject: true
+            });
+
+            let savedUser = await newUser.save()
+
+            // @ts-ignore
+            req.user = savedUser;
+        }
+
+    } else {
+        console.log("No oidc user")
+    }
+
+    // @ts-ignore
     res.locals.currentUser = req.user;
-    res.locals.error = req.flash("error");
-    res.locals.success = req.flash("success");
+
     next();
 });
 
@@ -104,6 +134,7 @@ app.use("", varietyRoutes);
 app.get('*', function(req, res){
     res.status(404).render('404');
 });
+app.set('trust proxy', true);
 
 // @ts-ignore
 app.listen(process.env.PORT, process.env.IP, function(){

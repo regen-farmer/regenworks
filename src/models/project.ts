@@ -18,8 +18,7 @@ export interface IProjectSchema extends Document {
         IAssetSchema
     ],
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     layer: ILayerSchema,
     activities: IActivitySchema[],
@@ -62,8 +61,7 @@ var projectSchema = new Schema<IProjectSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     layer: {
         type: Schema.Types.ObjectId,

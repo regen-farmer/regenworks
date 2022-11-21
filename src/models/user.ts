@@ -1,9 +1,10 @@
 import { Document, model, Schema, Types } from 'mongoose';
-import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
+// import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
 import { INurserySchema } from './nursery';
 import { IParcelSchema } from './parcel';
 
 export interface IUserSchema extends Document {
+    externalId: string,
     username: string,
     password: string,
     email: string,
@@ -27,7 +28,8 @@ export interface IUserSchema extends Document {
 }
 
 var UserSchema = new Schema({
-    username: {type: String, unique: true, require: true},
+    externalId: {type: String, unique: true, require: false},
+    username: {type: String, unique: false, require: false},
     password: String,
     email: {type: String, unique: true, require: true},
     resetPasswordToken: String,
@@ -58,6 +60,6 @@ var UserSchema = new Schema({
     ]
 });
 
-UserSchema.plugin(passportLocalMongoose);
+// UserSchema.plugin(passportLocalMongoose);
 
 export default model<IUserSchema>("User", UserSchema);

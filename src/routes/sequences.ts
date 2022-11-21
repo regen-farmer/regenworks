@@ -142,7 +142,6 @@ router.post(
           } else {
             // SAVE SEQUENCE ON LAYER?
             createdSequence.owner.id = req.user._id
-            createdSequence.owner.username = req.user.username
             createdSequence.save()
             res.redirect('/layers/' + foundLayer._id + '/layout')
           }
@@ -464,7 +463,6 @@ router.post(
           } else {
             // SAVE SEQUENCE ON LAYER?
             createdSequence.owner.id = req.user._id
-            createdSequence.owner.username = req.user.username
             createdSequence.save()
             res.redirect('/projects/' + foundProject._id + '/layout')
           }

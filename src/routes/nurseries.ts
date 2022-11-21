@@ -56,7 +56,6 @@ router.post('/nurseries', middleware.isLoggedIn, function (req: any, res) {
       } else {
         // SET OWNERSHIP
         createdNursery.owner.id = req.user._id
-        createdNursery.owner.username = req.user.username
         createdNursery.save()
         // ADD TO USER
         User.findById(req.user._id, function (err, foundUser) {

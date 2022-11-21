@@ -6,7 +6,7 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="navbar-nav ml-auto">
                 <% if(!currentUser){ %>
-                <li><a class="nav-link" class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
+                <!-- <li><a class="nav-link" class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li> -->
                 <li><a class="nav-link" href="/login">Sign in</i></a></li>
                 <% } else { %>
                     <% if(currentUser.isNursery && currentUser.isNursery == true){ %>
@@ -21,18 +21,7 @@
     </div><!-- /.container-fluid -->
 </nav>
 
-<div class="container">
-    <% if(error && error.length > 0){ %>
-        <div class="alert alert-danger" role="alert">
-            <%= error %>
-        </div>
-    <% } %>
-    <% if(success && success.length > 0){ %>
-        <div class="alert alert-success" role="alert">
-            <%= success %>
-        </div>
-    <% } %>
-</div>
+
 
 <div>
     <div>

@@ -5,8 +5,13 @@
     <div class="row">
         <div class="col-lg-4"></div>
         <div class="col-lg-4">
-            <h2 class="text-center mt-5">Please sign in</h2>
-            <form action="/login" method="POST">
+            <br />
+            <% if(user && !user.email_verified) { %>
+                We've sent you a link to verify your email address. Click it and sign in again.
+            <% }; %>
+
+            <!-- <h2 class="text-center mt-5">Please sign in</h2> -->
+            <!-- <form action="/login" method="POST">
                 <div class="form-group center-block">
                     <input class="form-control" type="text" name="username" placeholder="username">
                 </div>
@@ -15,7 +20,7 @@
                 </div>
                 <p>Don't have an account? Register <a href="/users/new">Here</a></p>
                 <input class="btn btn-success center-block" type="submit" value="Sign in">
-            </form>
+            </form> -->
         </div>
         <div class="col-lg-4"></div>
     </div>

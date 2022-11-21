@@ -21,8 +21,7 @@ export interface ISaptestSchema extends Document {
     chloride: number,
     sulfur: number,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -50,8 +49,7 @@ var saptestSchema = new Schema<ISaptestSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     }
 });
 

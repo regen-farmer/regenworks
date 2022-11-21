@@ -15,8 +15,7 @@ export interface IVarietySchema extends Document {
     },
     hybrid: ISpeciesSchema,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
 }
 
@@ -46,8 +45,7 @@ var varietySchema = new Schema<IVarietySchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
 });
 
