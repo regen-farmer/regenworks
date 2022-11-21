@@ -136,21 +136,21 @@ router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
 });
 
 // USER DELETE ROUTE
-router.delete("/users/:id", middleware.checkUserOwnership, async function(req, res){
-    try {
+// router.delete("/users/:id", middleware.checkUserOwnership, async function(req, res){
+//     try {
 
-        let user = await User.findByIdAndRemove(req.params.id);
+//         let user = await User.findByIdAndRemove(req.params.id);
         
-        // Flash message
-        logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
-        res.redirect("/parcels");
-    }
-    catch (err){
-        console.log(err);
-        // Flash message
-        res.redirect("/parcels");
-    } 
-});
+//         // Flash message
+//         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
+//         res.redirect("/logout");
+//     }
+//     catch (err){
+//         console.log(err);
+//         // Flash message
+//         res.redirect("/parcels");
+//     }
+// });
 
 
 // SET CURRENTPROJECT //
