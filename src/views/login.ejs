@@ -5,7 +5,11 @@
     <div class="row">
         <div class="col-lg-4"></div>
         <div class="col-lg-4">
-            <%= JSON.stringify(currentUser) %>
+            <br />
+            <% if(user && !user.email_verified) { %>
+                We've sent you a link to verify your email address. Click it and sign in again.
+            <% }; %>
+
             <!-- <h2 class="text-center mt-5">Please sign in</h2> -->
             <!-- <form action="/login" method="POST">
                 <div class="form-group center-block">

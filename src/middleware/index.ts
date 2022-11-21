@@ -33,7 +33,7 @@ middlewareObj.checkParcelOwnership = async function(req, res, next){
 
 // CHECK USER OWNERSHIP MIDDLEWARE
 middlewareObj.checkUserOwnership = async function(req, res, next){
-    if(req.oidc.user){
+    if(req.oidc.user && req.oidc.user.email_verified){
 
         try {
             let foundUser = await User.findById(req.params.id)
@@ -53,7 +53,7 @@ middlewareObj.checkUserOwnership = async function(req, res, next){
 
 // CHECK IF A USER IS LOGGED IN
 middlewareObj.isLoggedIn = function(req, res, next){
-    if(req.oidc.user){
+    if(req.oidc.user && req.oidc.user?.email_verified){
         return next();
     }
     // req.flash("error", "You need to be logged in to do that!");

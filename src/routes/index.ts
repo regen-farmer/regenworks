@@ -9,7 +9,7 @@ import logger from "../middleware/logger";
 
 // ROOT ROUTE
 router.get("/", function(req, res){
-    res.render("login")
+    res.render("login", {user: req.oidc.user})
 });
 
 // ABOUT ROUTE
