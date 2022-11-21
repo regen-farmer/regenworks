@@ -5,8 +5,7 @@ export interface INoteSchema extends Document {
     name: string,
     description: string,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -18,8 +17,7 @@ var noteSchema = new Schema<INoteSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     }
 });
 

@@ -187,7 +187,6 @@ router.post(
           } else {
             // BUDGET OWNER
             createdBudget.owner.id = req.user._id
-            createdBudget.owner.username = req.user.username
             createdBudget.save()
             // SAVE BUDGET TO PROJECT
             foundProject.budget = createdBudget

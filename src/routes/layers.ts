@@ -155,11 +155,9 @@ router.post(
           if (err) {
             console.log(err)
           } else {
-            // Add username and ID to Layer.
+            // Add user ID to Layer.
             // @ts-ignore
             layer.owner.id = req.user._id
-            // @ts-ignore
-            layer.owner.username = req.user.username
             // Save JSON file to geometry
             layer.geometry = req.body.geometry
             layer.size = req.body.layersize
@@ -201,8 +199,6 @@ router.post(
                   owner: {
                     // @ts-ignore
                     id: req.user._id,
-                    // @ts-ignore
-                    username: req.user.username,
                   },
                   animals: [],
                 }
@@ -314,8 +310,6 @@ router.post(
               } else {
                 // @ts-ignore
                 createdLayer.owner.id = req.user._id
-                // @ts-ignore
-                createdLayer.owner.username = req.user.username
                 createdLayer.geometry = geometry
                 // CALCULATE LAYER SIZE
                 createdLayer.size = size
@@ -355,8 +349,6 @@ router.post(
                         owner: {
                           // @ts-ignore
                           id: req.user._id,
-                          // @ts-ignore
-                          username: req.user.username,
                         },
                         animals: [],
                       }

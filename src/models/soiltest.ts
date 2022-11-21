@@ -34,8 +34,7 @@ export interface ISoiltestSchema {
         zinc: number
     },
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -76,8 +75,7 @@ var soiltestSchema = new Schema<ISoiltestSchema>({
         id: {
             type: Schema.Types.ObjectId,
                 ref: "User"
-        },
-        username: String
+        }
     }
 });
 

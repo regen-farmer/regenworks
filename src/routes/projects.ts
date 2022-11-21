@@ -65,9 +65,8 @@ router.post('/projects', middleware.isLoggedIn, function (req: any, res) {
         service.lat = data[0].latitude
         service.lng = data[0].longitude
         service.location = data[0].formattedAddress
-        // Add username and ID to experience
+        // Add ID to experience
         service.owner.id = req.user._id
-        service.owner.username = req.user.username
         // Save the service - Not need if created after this step
         service.save()
         // Redirect to projects INDEX page
@@ -1147,7 +1146,6 @@ router.post(
         // CREATE CURRENCY
         // ADD PROJECT STUFF
         createdProject.owner.id = req.user._id
-        createdProject.owner.username = req.user.username
         createdProject.system = foundSystem
         createdProject.layer = foundLayer
         createdProject.financial = {

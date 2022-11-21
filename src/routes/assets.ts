@@ -40,9 +40,8 @@ router.post('/assets', middleware.isLoggedIn, function (req: any, res) {
     if (err) {
       console.log(err)
     } else {
-      // Add username and ID to experience
+      // Add ID to experience
       createdAsset.owner.id = req.user._id
-      createdAsset.owner.username = req.user.username
       // Save the asset - Not needed if created after this step
       createdAsset.save()
       res.redirect('/assets')
@@ -176,9 +175,8 @@ router.post(
         console.log(err)
       } else {
         Asset.create(req.body.asset, function (err, createdAsset) {
-          // Add username and ID to experience
+          // Add user ID to experience
           createdAsset.owner.id = req.user._id
-          createdAsset.owner.username = req.user.username
           createdAsset.save()
           // ADD ASSET TO LAYER
           foundLayer.assets.push(createdAsset)

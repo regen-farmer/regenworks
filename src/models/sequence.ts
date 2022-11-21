@@ -13,8 +13,7 @@ export interface ISequenceSchema extends Document {
         }
     ],
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     sequencelength: number
 }
@@ -36,8 +35,7 @@ var sequenceSchema = new Schema<ISequenceSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     sequencelength: Number
 });

@@ -11,8 +11,7 @@ export interface INurserySchema extends Document {
     lng: number,
     range: number,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     products: [
         INurseryProductSchema
@@ -32,8 +31,7 @@ var nurserySchema = new Schema<INurserySchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     products: [
         {

@@ -15,8 +15,7 @@ export interface INurseryProductSchema extends Document {
     rootstock: ISpeciesSchema,
     hybrid: ISpeciesSchema,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     availability: boolean,
     season: {
@@ -51,8 +50,7 @@ var nurseryProductSchema = new Schema<INurseryProductSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     availability: {type: Boolean, default: false},
     season: {

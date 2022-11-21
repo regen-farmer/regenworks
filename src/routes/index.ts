@@ -142,7 +142,7 @@ router.delete("/users/:id", middleware.checkUserOwnership, async function(req, r
         let user = await User.findByIdAndRemove(req.params.id);
         
         // Flash message
-        logger.info('User "' + user?.username + '" was deleted', {timestamp: Date.now()});
+        logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
         res.redirect("/parcels");
     }
     catch (err){

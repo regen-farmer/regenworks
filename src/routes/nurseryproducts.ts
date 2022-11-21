@@ -88,7 +88,6 @@ router.post(
           } else {
             // SET OWNERSHIP
             createdProduct.owner.id = req.user._id
-            createdProduct.owner.username = req.user.username
             createdProduct.save()
             // INSERT PRODUCT IN NURSERY
             foundNursery.products.push(createdProduct)

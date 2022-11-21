@@ -60,9 +60,8 @@ router.post("/activities", middleware.isLoggedIn, function(req:any, res){
         if(err){
             console.log(err);
         } else {
-            // Add username and ID to experience
+            // Add  ID to experience
             createdActivity.owner.id = req.user._id;
-            createdActivity.owner.username = req.user.username;
             createdActivity.status = true;
             // Save the service - Not need if created after this step
             createdActivity.save();
@@ -193,9 +192,8 @@ router.post("/parcels/:id/activities", middleware.isLoggedIn, function(req:any, 
                     console.log(err);
                 } else {
                     console.log(activity);
-                    // Add username and ID to task.
+                    // Add  ID to task.
                     activity.owner.id = req.user._id;
-                    activity.owner.username = req.user.username;
                     // Save the task
                     activity.save();
                     // Connect new task to parcel
@@ -231,10 +229,9 @@ router.post("/projects/:id/activities", middleware.isLoggedIn, function(req:any,
                 if(err){
                     console.log(err);
                 } else {
-                    // Add username and ID to task.
+                    // Add ID to task.
                     createdActivity.status = true;
                     createdActivity.owner.id = req.user._id;
-                    createdActivity.owner.username = req.user.username;
                     createdActivity.save();
                     // Connect new task to project
                     foundProject.activities.push(createdActivity);
