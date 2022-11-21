@@ -4,6 +4,7 @@ import { INurserySchema } from './nursery';
 import { IParcelSchema } from './parcel';
 
 export interface IUserSchema extends Document {
+    externalId: string,
     username: string,
     password: string,
     email: string,
@@ -27,7 +28,8 @@ export interface IUserSchema extends Document {
 }
 
 var UserSchema = new Schema({
-    username: {type: String, unique: true, require: true},
+    externalId: {type: String, unique: true, require: false},
+    username: {type: String, unique: true, require: false},
     password: String,
     email: {type: String, unique: true, require: true},
     resetPasswordToken: String,

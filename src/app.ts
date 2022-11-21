@@ -80,7 +80,7 @@ app.use(async function(req, res, next){
         } else {
             // Create a new user if none exist
             let newUser = await User.create({
-                sub: req.oidc.user.sub,
+                externalId: req.oidc.user.sub,
                 email: req.oidc.user.email,
                 registrationDate: Date.now(),
                 membership: 1209600000,
