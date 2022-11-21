@@ -19,8 +19,7 @@ export interface IParcelSchema extends Document {
     lng: number,
     geometry: string,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     practices: [
         IPracticesSchema
@@ -88,8 +87,7 @@ var parcelSchema = new Schema<IParcelSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     practices: [
         {

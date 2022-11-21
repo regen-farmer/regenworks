@@ -6,8 +6,7 @@ export interface IWellSchema extends Document {
     description: string,
     geometry: string,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -20,8 +19,7 @@ var wellSchema = new Schema<IWellSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     }
 });
 

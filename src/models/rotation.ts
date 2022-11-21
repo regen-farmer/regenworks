@@ -25,8 +25,7 @@ export interface IRotationSchema extends Document {
         }
     ],
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -59,8 +58,7 @@ var rotationSchema = new Schema<IRotationSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     }
 });
 

@@ -14,8 +14,7 @@ export interface ILayerSchema extends Document {
     description: string,
     type: string,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     climate: {
         monthlyaveragetemp: {
@@ -92,8 +91,7 @@ var layerSchema = new Schema<ILayerSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     climate: {
         monthlyaveragetemp: {

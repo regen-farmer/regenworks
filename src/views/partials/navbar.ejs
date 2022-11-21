@@ -6,7 +6,7 @@
             </ul>
             <ul class="navbar-nav navbar-right">
                 <% if(!currentUser){ %>
-                    <li><a class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li>
+                    <!-- <li><a class="nav-link" href="/users/new">Sign Up <i class="fas fa-user-plus"></i></a></li> -->
                     <li><a class="nav-link" href="/login">Sign in</i></a></li>
                 <% } else { %>
                     <li><a class="nav-link" href="/users/<%= currentUser._id %>"><i class="fas fa-user"></i> Account</a></li>
@@ -16,18 +16,7 @@
         </div><!-- /.navbar-collapse -->
 </nav>
 
-<div class="container">
-    <% if(error && error.length > 0){ %>
-    <div class="alert alert-danger" role="alert">
-        <%= error %>
-    </div>
-    <% } %>
-    <% if(success && success.length > 0){ %>
-    <div class="alert alert-success" role="alert">
-        <%= success %>
-    </div>
-    <% } %>
-</div>
+
 
 <div class="row">
     <div class="col-md-2 sidebar">

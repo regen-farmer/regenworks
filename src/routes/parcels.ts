@@ -69,7 +69,6 @@ router.post('/parcels', middleware.isLoggedIn, function (req: any, res) {
   var measurement = req.body.parcel.measurement
   var owner = {
     id: req.user._id,
-    username: req.user.username,
   }
   // CONVERT ADDRESS TO COORDINATES USING GEOCODER
   geocoder.geocode(req.body.parcel.location, async function (err, data) {

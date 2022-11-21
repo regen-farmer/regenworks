@@ -30,8 +30,7 @@ export interface ISystemSchema extends Document {
         IAnimalSchema
     ],
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     shared: boolean,
     flows: [
@@ -90,8 +89,7 @@ var systemSchema = new Schema<ISystemSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     shared: {
         type: Boolean,

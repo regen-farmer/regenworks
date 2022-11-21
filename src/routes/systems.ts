@@ -214,7 +214,6 @@ router.post(
               console.log(createdSystem)
               // ADD OWNER
               createdSystem.owner.id = req.user._id
-              createdSystem.owner.username = req.user.username
               createdSystem.save()
               // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
               if (
@@ -280,7 +279,6 @@ router.post(
                     console.log(createdSystem);
                     // ADD OWNER
                     createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
                     createdSystem.save();
                     // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
                     if(foundLayer.type === "agroforestry" && foundLayer.systems.present === undefined){
@@ -845,7 +843,6 @@ router.put('/systems/:id', middleware.isLoggedIn, function (req: any, res) {
         } else {
           // Add owner
           createdSystem.owner.id = req.user._id
-          createdSystem.owner.username = req.user.username
           createdSystem.shared = false
           createdSystem.save()
           // REPLACE IN PRESENT
@@ -996,7 +993,6 @@ router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO
                 } else {
                     // Add owner
                     createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
                     createdSystem.save();
                     // REPLACE IN PRESENT
                     Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){

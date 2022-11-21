@@ -21,7 +21,6 @@ export interface IActivitySchema extends Document {
     automated: boolean,
     owner: {
         id: IUserSchema
-        username: string
     },
     layer: ILayerSchema
     species: ISpeciesSchema
@@ -48,8 +47,7 @@ var activitySchema = new Schema<IActivitySchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     layer: {
         type: Schema.Types.ObjectId,

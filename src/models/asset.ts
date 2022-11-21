@@ -14,8 +14,7 @@ export interface IAssetSchema extends Document {
     lat: number,
     lng: number,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     }
 }
 
@@ -38,8 +37,7 @@ var assetSchema = new Schema<IAssetSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     }
 });
 

@@ -176,7 +176,6 @@ router.post("/projects/:id/rotations", middleware.isLoggedIn, function(req:any, 
                     console.log("rotation: " + createdRotation);
                     // SAVE SEQUENCE ON LAYER?
                     createdRotation.owner.id = req.user._id;
-                    createdRotation.owner.username = req.user.username;
                     createdRotation.save();
                     res.redirect("/projects/" + foundProject._id + "/layout");
                 }

@@ -12,8 +12,7 @@ export interface IAreaSchema extends Document {
     size: number,
     rotation: IRotationSchema,
     owner: {
-        id: IUserSchema,
-        username: string
+        id: IUserSchema
     },
     activities: IActivitySchema[],
     farmflows: IFarmFlowSchema[],
@@ -34,8 +33,7 @@ var areaSchema = new Schema<IAreaSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     activities: [
         {

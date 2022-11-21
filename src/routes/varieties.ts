@@ -59,7 +59,6 @@ router.post("/varieties", middleware.isLoggedIn, function(req:any, res){
         } else {
             // SET OWNERSHIP
             createdVariety.owner.id = req.user._id;
-            createdVariety.owner.username = req.user.username;
             createdVariety.save();
             // REDIRECT TO USER
             res.redirect("/users/" + req.user._id);

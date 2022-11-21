@@ -5,8 +5,7 @@ import { IUserSchema } from './user';
 export interface IBudgetSchema extends Document {
     postings: IPostingSchema[],
     owner: {
-        id: IUserSchema[],
-        username: string
+        id: IUserSchema
     },
     currency: string,
     name: string
@@ -24,8 +23,7 @@ var budgetSchema = new Schema<IBudgetSchema>({
         id: {
             type: Schema.Types.ObjectId,
             ref: "User"
-        },
-        username: String
+        }
     },
     currency: String,
     name: String
