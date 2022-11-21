@@ -54,10 +54,10 @@ app.use(flash());
 const config = {
     authRequired: false,
     auth0Logout: true,
-    baseURL: 'http://localhost:400',
-    clientID: 'Saqec8Jjaqqta9c2f0i3l24nVB8zsKhP',
-    issuerBaseURL: 'https://dev-3z62raqcp4wcxmkb.eu.auth0.com',
-    secret: 'iwej909gjwe98jijo32'
+    baseURL: process.env.AUTH0_BASE_URL,
+    clientID: process.env.AUTH0_CLIENT_ID,
+    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+    secret: process.env.AUTH0_SECRET
   };
 
 
