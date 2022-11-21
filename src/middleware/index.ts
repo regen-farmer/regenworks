@@ -5,22 +5,20 @@ import User from "../models/user";
 var middlewareObj: any = {};
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
-middlewareObj.checkParcelOwnership = function(req, res, next){
-    if(req.isAuthenticated()){
-        Parcel.findById(req.params.id, function(err, foundParcel){
-            if(err) {
-                // req.flash("error", "Place not found.");
-                res.redirect("back");
+middlewareObj.checkParcelOwnership = async function(req, res, next){
+    if(req.oidc.user){
+
+        try {
+            let foundParcel = await Parcel.findById(req.params.id)
+            if(foundParcel?.owner.id.equals(req.user?._id)){
+                next();
             } else {
-                // does user own the place?
-                if(foundParcel.owner.id.equals(req.user._id)){
-                    next();
-                } else {
-                    // req.flash("error", "You don't have permission to do that.");
-                    res.redirect("back");
-                }
+                // req.flash("error", "You don't have permission to do that.");
+                res.redirect("back");
             }
-        });
+        } catch (err) {
+            res.redirect("back");
+        }
     } else {
         // req.flash("error", "You need to be logged in to do that.");
         res.redirect("back"); // Sends the user back to the previous page they were on.
@@ -34,22 +32,19 @@ middlewareObj.checkParcelOwnership = function(req, res, next){
 
 
 // CHECK USER OWNERSHIP MIDDLEWARE
-middlewareObj.checkUserOwnership = function(req, res, next){
-    if(req.isAuthenticated()){
-        User.findById(req.params.id, function(err, foundUser){
-            if(err){
-                // req.flash("error", "Brugeren blev ikke fundet.");
-                res.redirect("back");
+middlewareObj.checkUserOwnership = async function(req, res, next){
+    if(req.oidc.user){
+
+        try {
+            let foundUser = await User.findById(req.params.id)
+            if(foundUser && foundUser._id.equals(req.user._id)){
+                next();
             } else {
-                // Does logged in user match the user profile requested?
-                if(foundUser._id.equals(req.user._id)){
-                    next();
-                } else {
-                    // req.flash("error", "You do not have permission to do this");
-                    res.redirect("back");
-                }
+                res.redirect("back");
             }
-        });
+        } catch (err) {
+            res.redirect("back");
+        }
     } else {
         // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
         res.redirect("back");
@@ -58,7 +53,7 @@ middlewareObj.checkUserOwnership = function(req, res, next){
 
 // CHECK IF A USER IS LOGGED IN
 middlewareObj.isLoggedIn = function(req, res, next){
-    if(req.isAuthenticated()){
+    if(req.oidc.user){
         return next();
     }
     // req.flash("error", "You need to be logged in to do that!");
@@ -66,8 +61,9 @@ middlewareObj.isLoggedIn = function(req, res, next){
 };
 
 // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.adminIsLoggedIn = function(req, res, next){
-    if(req.isAuthenticated()){
+middlewareObj.adminIsLoggedIn = async function(req, res, next){
+    if(req.oidc.user){
+
         if(req.user.isAdmin){
             next();
         } else {
@@ -83,7 +79,7 @@ middlewareObj.adminIsLoggedIn = function(req, res, next){
 /*// CHECK ADMIN USER IS LOGGED IN
 middlewareObj.throttler = function(req, res, next){
     if(req.isAuthenticated()){
-        if(req.user.isAdmin){
+        if(req.oidc.user.isAdmin){
             next();
         } else {
             // req.flash("error", "You do not have permission to do that.");
