@@ -41,6 +41,6 @@
     "@types/pdfkit": "^0.12.8",
     "@types/xml2js": "^0.4.11",
     "cpx": "^1.5.0",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   }
 }
