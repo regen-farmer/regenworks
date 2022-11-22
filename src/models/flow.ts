@@ -10,13 +10,13 @@ export interface IFlowSchema extends Document {
 }
 
 // FLOW SCHEMA SETUP
-var flowSchema = new Schema<IFlowSchema>({
-    name: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    data: [Number],
-    source: String
+const flowSchema = new Schema<IFlowSchema>({
+  name: String,
+  type: String,
+  unit: String,
+  timeframe: String,
+  data: [Number],
+  source: String,
 });
 
-export default model("Flow", flowSchema);
+export default model('Flow', flowSchema);

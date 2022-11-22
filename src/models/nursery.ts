@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { INurseryProductSchema } from './nurseryproduct';
 import { IUserSchema } from './user';
 
@@ -19,26 +19,26 @@ export interface INurserySchema extends Document {
 }
 
 // NURSERY SCHEMA SETUP
-var nurserySchema = new Schema<INurserySchema>({
-    name: String,
-    location: String,
-    currency: String,
-    description: String,
-    lat: Number,
-    lng: Number,
-    range: Number,
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
+const nurserySchema = new Schema<INurserySchema>({
+  name: String,
+  location: String,
+  currency: String,
+  description: String,
+  lat: Number,
+  lng: Number,
+  range: Number,
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
-    products: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Nurseryproduct"
-        }
-    ]
+  },
+  products: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Nurseryproduct',
+    },
+  ],
 });
 
-export default model("Nursery", nurserySchema);
+export default model('Nursery', nurserySchema);

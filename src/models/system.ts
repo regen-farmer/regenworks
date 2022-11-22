@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { IAnimalSchema } from './animal';
 import { ISequenceSchema } from './sequence';
 import { ISpeciesSchema } from './species';
@@ -53,69 +53,68 @@ export interface ISystemSchema extends Document {
     uniqueUtilities: string[],
 }
 
-  
-
-var systemSchema = new Schema<ISystemSchema>({
-    name: String,
-    description: String,
-    rows: [
-        { width: Number,
-          sequense: [
-              {
-                  type: Schema.Types.ObjectId,
-                  ref: "Species"
-              }
-          ]
-        }
-
-    ],
-    model: [
+const systemSchema = new Schema<ISystemSchema>({
+  name: String,
+  description: String,
+  rows: [
+    {
+      width: Number,
+      sequense: [
         {
-            species: {
-                type: Schema.Types.ObjectId,
-                ref: "Species"
-            },
-            position: [Number],
-            width: Number
-        }
-    ],
-    animals: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Animal"
-        }
-    ],
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
+          type: Schema.Types.ObjectId,
+          ref: 'Species',
+        },
+      ],
     },
-    shared: {
-        type: Boolean,
-        default: false
+
+  ],
+  model: [
+    {
+      species: {
+        type: Schema.Types.ObjectId,
+        ref: 'Species',
+      },
+      position: [Number],
+      width: Number,
     },
-    flows: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Systemflow"
-        }
-    ],
-    occurrences: [
-        {
-            name: String,
-            lat: Number,
-            lng: Number,
-            alt: Number,
-            country: String,
-            source: String,
-            eco: Number,
-            koppen: String
-        }
-    ],
-    grid: Number,
-    uniqueSpecies: [String],
-    uniqueUtilities: [String],
+  ],
+  animals: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Animal',
+    },
+  ],
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
+  shared: {
+    type: Boolean,
+    default: false,
+  },
+  flows: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Systemflow',
+    },
+  ],
+  occurrences: [
+    {
+      name: String,
+      lat: Number,
+      lng: Number,
+      alt: Number,
+      country: String,
+      source: String,
+      eco: Number,
+      koppen: String,
+    },
+  ],
+  grid: Number,
+  uniqueSpecies: [String],
+  uniqueUtilities: [String],
 });
 
-export default model("System", systemSchema);
+export default model('System', systemSchema);

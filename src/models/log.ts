@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 
 export interface ILogSchema extends Document {
     message: string,
@@ -7,10 +7,10 @@ export interface ILogSchema extends Document {
 }
 
 // LOG SCHEMA SETUP
-var logSchema = new Schema<ILogSchema>({
-    message: String,
-    level: String,
-    timestamp: Number
+const logSchema = new Schema<ILogSchema>({
+  message: String,
+  level: String,
+  timestamp: Number,
 });
 
-export default model("Log", logSchema);
+export default model('Log', logSchema);

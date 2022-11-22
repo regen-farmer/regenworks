@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { IUserSchema } from './user';
 
 export interface INoteSchema extends Document {
@@ -10,15 +10,15 @@ export interface INoteSchema extends Document {
 }
 
 // NOTE SCHEMA SETUP
-var noteSchema = new Schema<INoteSchema>({
-    name: String,
-    description: String,
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
-    }
+const noteSchema = new Schema<INoteSchema>({
+  name: String,
+  description: String,
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
 });
 
-export default model("Note", noteSchema);
+export default model('Note', noteSchema);

@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
@@ -30,36 +30,36 @@ export interface IRotationSchema extends Document {
 }
 
 // ROTATION SCHEMA SETUP
-var rotationSchema = new Schema<IRotationSchema>({
-    name: String,
-    description: String,
-    model: [
+const rotationSchema = new Schema<IRotationSchema>({
+  name: String,
+  description: String,
+  model: [
+    {
+      speciesmix: [
         {
-            speciesmix: [
-                {
-                    species: {
-                        type: Schema.Types.ObjectId,
-                        ref: "Species"
-                    },
-                    amount: Number
-                }
-            ],
-            planting: {
-                year: Number,
-                month: Number
-            },
-            harvest: {
-                year: Number,
-                month: Number
-            }
-        }
-    ],
-    owner: {
-        id: {
+          species: {
             type: Schema.Types.ObjectId,
-            ref: "User"
-        }
-    }
+            ref: 'Species',
+          },
+          amount: Number,
+        },
+      ],
+      planting: {
+        year: Number,
+        month: Number,
+      },
+      harvest: {
+        year: Number,
+        month: Number,
+      },
+    },
+  ],
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
 });
 
-export default model("Rotation", rotationSchema);
+export default model('Rotation', rotationSchema);

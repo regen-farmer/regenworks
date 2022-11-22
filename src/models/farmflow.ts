@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { ISpeciesSchema } from './species';
 
 export interface IFarmFlowSchema extends Document {
@@ -14,19 +14,19 @@ export interface IFarmFlowSchema extends Document {
 }
 
 // FLOW SCHEMA SETUP
-var farmflowSchema = new Schema<IFarmFlowSchema>({
-    name: String,
-    description: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    source: String,
-    timestamp: Date,
-    amount: Number,
-    species: {
-        type: Schema.Types.ObjectId,
-        ref: "Species"
-    }
+const farmflowSchema = new Schema<IFarmFlowSchema>({
+  name: String,
+  description: String,
+  type: String,
+  unit: String,
+  timeframe: String,
+  source: String,
+  timestamp: Date,
+  amount: Number,
+  species: {
+    type: Schema.Types.ObjectId,
+    ref: 'Species',
+  },
 });
 
-export default model("Farmflow", farmflowSchema);
+export default model('Farmflow', farmflowSchema);

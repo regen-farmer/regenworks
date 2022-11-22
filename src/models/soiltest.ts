@@ -1,7 +1,7 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { IUserSchema } from './user';
 
-export interface ISoiltestSchema {
+export interface ISoiltestSchema extends Document {
     name: string,
     description: string,
     lat: number,
@@ -39,44 +39,44 @@ export interface ISoiltestSchema {
 }
 
 // SOIL TEST SCHEMA SETUP
-var soiltestSchema = new Schema<ISoiltestSchema>({
-    name: String,
-    description: String,
-    lat: Number,
-    lng: Number,
-    depth: Number,
-    physical: {
-        clay: Number,
-        silt: Number,
-        sand: Number
+const soiltestSchema = new Schema<ISoiltestSchema>({
+  name: String,
+  description: String,
+  lat: Number,
+  lng: Number,
+  depth: Number,
+  physical: {
+    clay: Number,
+    silt: Number,
+    sand: Number,
+  },
+  sampleDate: Date,
+  compaction: Number,
+  fertility: {
+    conductivity: Number,
+    pH: Number,
+    SOM: Number,
+    nitrogen: Number,
+    phosphorus: Number,
+    lime: Number,
+    calcium: Number,
+    magnesium: Number,
+    potasium: Number,
+    sodium: Number,
+  },
+  microelements: {
+    boron: Number,
+    iron: Number,
+    magnezium: Number,
+    copper: Number,
+    zinc: Number,
+  },
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
-    sampleDate: Date,
-    compaction: Number,
-    fertility: {
-        conductivity: Number,
-        pH: Number,
-        SOM: Number,
-        nitrogen: Number,
-        phosphorus: Number,
-        lime: Number,
-        calcium: Number,
-        magnesium: Number,
-        potasium: Number,
-        sodium: Number
-    },
-    microelements: {
-        boron: Number,
-        iron: Number,
-        magnezium: Number,
-        copper: Number,
-        zinc: Number
-    },
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-                ref: "User"
-        }
-    }
+  },
 });
 
-export default model("Soiltest", soiltestSchema);
+export default model('Soiltest', soiltestSchema);

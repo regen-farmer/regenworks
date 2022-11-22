@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { IActivitySchema } from './activity';
 import { IFarmFlowSchema } from './farmflow';
 import { INoteSchema } from './note';
@@ -20,39 +20,39 @@ export interface IAreaSchema extends Document {
 }
 
 // AREA SCHEMA SETUP
-var areaSchema = new Schema<IAreaSchema>({
-    name: String,
-    description: String,
-    geometry: String,
-    size: Number,
-    rotation: {
-        type: Schema.Types.ObjectId,
-        ref: "Rotation"
+const areaSchema = new Schema<IAreaSchema>({
+  name: String,
+  description: String,
+  geometry: String,
+  size: Number,
+  rotation: {
+    type: Schema.Types.ObjectId,
+    ref: 'Rotation',
+  },
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
+  },
+  activities: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Activity',
     },
-    activities: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Activity"
-        }
-    ],
-    farmflows: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Farmflow"
-        }
-    ],
-    notes: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Note"
-        }
-    ]
+  ],
+  farmflows: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Farmflow',
+    },
+  ],
+  notes: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Note',
+    },
+  ],
 });
 
-export default model("Area", areaSchema);
+export default model('Area', areaSchema);
