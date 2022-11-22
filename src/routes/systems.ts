@@ -155,9 +155,13 @@ router.post(
         const system = req.body.system;
         const model: any[] = [];
         // DO COUNT FOR ROW WIDTH
-        let xPosition = 0;
+        var xPosition = 0;
+        // SPECIES ARRAY FOR UNIQUE SPECIES
+        var allSpecies: any[] = [];
         // ADD SPECIES TO MODEL
         for (let i = 0; i < system.model.length; i++) {
+          // ADD SPECIES ID TO SPECIES ARRAY
+          allSpecies.push(system.model[i].species.id)
           // FIX IF ONLY ONE ITEM IN ROW
           if (system.model[i].species.id instanceof Array) {
             for (let j = 0; j < system.model[i].species.id.length; j++) {
@@ -187,6 +191,9 @@ router.post(
           }
           xPosition += Number(system.model[i].distance);
         }
+        // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+        system.uniqueSpecies = unique(allSpecies);
+        // RE-ROUTE
         if (model.length < 1) {
           // REDIRECT IF NO SPECIES
           res.redirect('back');

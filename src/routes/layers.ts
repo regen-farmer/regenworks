@@ -1099,9 +1099,12 @@ router.post(
       res.redirect('back');
     } else {
       // CREATE ROW HERE?
+      const tempGeo = JSON.parse(req.body.geometry);
       const row: any = {
         geometry: req.body.geometry,
         name: req.body.row.name,
+        // ADD ROW LENGTH PARAM
+        rowlength: turfLength(tempGeo, {units: 'meters'})
       };
       if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
         row.sequence = req.body.sequenceid;

@@ -428,7 +428,7 @@ router.get(
         // CALCULATE AREA SIZES
         const treeRowArea = layout.treeRowArea;
         // TREE ROW LENGTHS
-        if (foundProject.rows && foundProject.rows.length > 0) {
+        /*if (foundProject.rows && foundProject.rows.length > 0) {
           // DO ROW LENGTH
           console.log(`rows ${foundProject.rows[0]}`);
           for (let i = 0; i < foundProject.rows.length; i++) {
@@ -437,8 +437,8 @@ router.get(
               units: 'meters',
             });
           }
-        }
-        /* for(let i=0;i<layout.alleyPolygonArray.length;i++){
+        }*/
+        /*for(let i=0;i<layout.alleyPolygonArray.length;i++){
                         console.log("area" + i + area(layout.alleyPolygonArray[i]));
                     } */
         // TEMP VALUE HERE
@@ -855,6 +855,8 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
           const row = {
             geometry: JSON.stringify(layout.rowLineArray[i]),
             name: `Row ${i}`,
+            // CREATE ROW LENGTH
+            rowlength: turfLength(layout.rowLineArray[i], {units: 'meters'})
           };
           // PUSH TO ARRAY
           rows.push(row);
@@ -1251,9 +1253,12 @@ router.post('/projects/:id/row', middleware.isLoggedIn, (req, res) => {
     res.redirect('back');
   } else {
     // CREATE ROW HERE?
+    const tempGeo = JSON.parse(req.body.geometry);
     const row: any = {
       geometry: req.body.geometry,
       name: req.body.row.name,
+      // ADD ROW LENGTH PARAM
+      rowlength: turfLength(tempGeo, {units: 'meters'})
     };
     if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
       row.sequence = req.body.sequenceid;
