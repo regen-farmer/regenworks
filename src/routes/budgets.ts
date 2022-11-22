@@ -80,14 +80,13 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // BUDGET EDIT ROUTE
-router.get('/budgets/:id/edit', middleware.isLoggedIn, (req, res) => {
-  Budget.findById(req.params.id, (err, foundBudget) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('budgets/edit', { budget: foundBudget });
-    }
-  });
+router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req, res) => {
+  try {
+    const foundBudget = await Budget.findById(req.params.id);
+    res.render('budgets/edit', { budget: foundBudget });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // BUDGET UPDATE ROUTE
@@ -172,26 +171,22 @@ router.get(
 router.post(
   '/projects/:id/budgets',
   middleware.isLoggedIn,
-  (req: any, res) => {
-    Project.findById(req.params.id, (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        Budget.create(req.body.budget, (err, createdBudget) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // BUDGET OWNER
-            createdBudget.owner.id = req.user._id;
-            createdBudget.save();
-            // SAVE BUDGET TO PROJECT
-            foundProject.budget = createdBudget;
-            foundProject.save();
-            res.redirect(`/projects/${foundProject._id}`);
-          }
-        });
-      }
-    });
+  async (req: any, res) => {
+    const foundProject = await Project.findById(req.params.id);
+    const createdBudget = await Budget.create(req.body.budget);
+
+    if (foundProject) {
+    // BUDGET OWNER
+      createdBudget.owner.id = req.user._id;
+      createdBudget.save();
+      // SAVE BUDGET TO PROJECT
+
+      // TODO
+      // @ts-ignore
+      foundProject.budget = createdBudget;
+      foundProject.save();
+      res.redirect(`/projects/${foundProject._id}`);
+    }
   },
 );
 

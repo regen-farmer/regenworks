@@ -232,7 +232,7 @@ router.get(
                 }
               }
               // SORT DIFFERENCE IN DISTANCE
-              function compare3(a, b) {
+              function compare3(a:number, b:number) {
                 if (a < b) {
                   return -1;
                 }

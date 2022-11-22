@@ -59,13 +59,13 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, (req, res) => {
 router.delete(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req, res) => {
     // FIND PROJECT
-    Project.findById(req.params.id, async (err, updatedProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // REMOVE ROW
+    try {
+      const updatedProject = await Project.findById(req.params.id);
+
+      if (updatedProject) {
+      // REMOVE ROW
         console.log(`Length before ${updatedProject.areas.length}`);
         updatedProject.areas.remove(req.params.pid);
         updatedProject.save();
@@ -78,7 +78,9 @@ router.delete(
           console.log(err);
         }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 

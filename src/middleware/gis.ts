@@ -17,12 +17,14 @@ import {
   circle,
   polygonToLine,
 } from '@turf/turf';
+import { IProjectSchema } from '../models/project';
+import { ISpeciesSchema } from '../models/species';
 
 // DEFINE GIS OBJECT
 const gisObj: any = {};
 
 // SYSTEM BASED LAYOUT
-gisObj.systemBasedLayout = function (project) {
+gisObj.systemBasedLayout = (project: IProjectSchema) => {
   //
   const layout: any = {};
   // SET TEMP VARIABLES
@@ -146,8 +148,13 @@ gisObj.systemBasedLayout = function (project) {
   }
   console.log(`Unique Species in edge: ${uniqueEdgeSpeciesCount.length}`);
   // FIND SYSTEM ROWS
-  const allSpecies: any[] = [];
-  const dataset: any[] = [];
+  const allSpecies: string[] = [];
+  const dataset: { array: {
+    species: ISpeciesSchema;
+    position: number[];
+    width: number;
+  }[], row: number }[] = [];
+
   project.system.model.forEach((species) => {
     allSpecies.push(species.species.nameCommon);
     let count = 0;
@@ -162,17 +169,17 @@ gisObj.systemBasedLayout = function (project) {
     }
   });
   // SORT FIRST ROW ITEMS
-  function compare1(a, b) {
-    if (a.position[1] < b.position[1]) {
-      return -1;
-    }
-    if (a.position[1] > b.position[1]) {
-      return 1;
-    }
-    return 0;
-  }
+
   for (let i = 0; i < dataset.length; i++) {
-    dataset[i].array.sort(compare1);
+    dataset[i].array.sort((a, b) => {
+      if (a.position[1] < b.position[1]) {
+        return -1;
+      }
+      if (a.position[1] > b.position[1]) {
+        return 1;
+      }
+      return 0;
+    });
   }
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
   layout.sortedrows = dataset;
@@ -780,19 +787,11 @@ gisObj.systemBasedLayout = function (project) {
 };
 
 // ROW AND AREA BASED LAYOUT
-gisObj.rowBasedLayout = function (project) {
+gisObj.rowBasedLayout = (project: IProjectSchema) => {
   //
   const layout: any = {};
   // SORT FIRST ROW ITEMS
-  function compare1(a, b) {
-    if (a.position < b.position) {
-      return -1;
-    }
-    if (a.position > b.position) {
-      return 1;
-    }
-    return 0;
-  }
+
   // VIZ ROWS
   const allSpecies: any[] = [];
   const rowArray: any[] = [];
@@ -849,7 +848,15 @@ gisObj.rowBasedLayout = function (project) {
                 } */
       });
       // SORT ROW ITEMS
-      datasetRows.sort(compare1);
+      datasetRows.sort((a, b) => {
+        if (a.position < b.position) {
+          return -1;
+        }
+        if (a.position > b.position) {
+          return 1;
+        }
+        return 0;
+      });
       // ROW LENGTH
       const rowLine = JSON.parse(project.rows[i].geometry);
       const rowLength = turfLength(rowLine, { units: 'meters' });

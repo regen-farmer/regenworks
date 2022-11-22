@@ -8,29 +8,29 @@ import middleware from '../middleware';
 const router = express.Router();
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, (req, res) => {
+router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
   // FIND LAYER
-  Layer.findById(req.params.id, (err, foundLayer) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('rotations/steps', { layer: foundLayer, project: '' });
-    }
-  });
+  try {
+    const foundLayer = await Layer.findById(req.params.id);
+    res.render('rotations/steps', { layer: foundLayer, project: '' });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, (req, res) => {
+router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
   // CHECK LENGTH IS DIVISIBLE
   if ((req.body.length / req.body.distance) % 1 === 0) {
     // FIND LAYER
-    Layer.findById(req.params.id, (err, foundLayer) => {
-      if (err) {
-        console.log(err);
-      } else {
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      if (foundLayer) {
         res.redirect(`/layers/${foundLayer._id}/rotations/new?distance=${req.body.distance}&length=${req.body.length}`);
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   } else {
     console.log('Length must be divisible with distance between species in rotation.');
     res.redirect('back');
@@ -84,15 +84,16 @@ router.get('/projects/:id/rotations/steps', middleware.isLoggedIn, (req, res) =>
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, (req, res) => {
+router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
   // FIND PROJECT
-  Project.findById(req.params.id, (err, foundProject) => {
-    if (err) {
-      console.log(err);
-    } else {
+  try {
+    const foundProject = await Project.findById(req.params.id);
+    if (foundProject) {
       res.redirect(`/projects/${foundProject._id}/rotations/new?steps=${req.body.steps}`);
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ROTATION NEW
@@ -108,7 +109,8 @@ router.get('/projects/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
           console.log(err);
         } else {
           // SORT SPECIES
-          function compare(a, b) {
+
+          foundSpecies.sort((a, b) => {
             if (a.genus < b.genus) {
               return -1;
             }
@@ -116,8 +118,7 @@ router.get('/projects/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
               return 1;
             }
             return 0;
-          }
-          foundSpecies.sort(compare);
+          });
           res.render('rotations/new', { project: foundProject, species: foundSpecies, steps: req.query.steps });
         }
       });

@@ -11,28 +11,26 @@ const router = express.Router();
 router.get(
   '/parcels/:id/layers/:pid/soiltests/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req, res) => {
     // FIND PARCEL
-    Parcel.findById(req.params.id)
-      .populate('layers')
-      .exec((err, foundParcel) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // FIND LAYER
-          Layer.findById(req.params.pid, (err, foundLayer) => {
-            if (err) {
-              console.log(err);
-            } else {
-              // RENDER ACTIVITIES
-              res.render('soiltests/new', {
-                parcel: foundParcel,
-                layer: foundLayer,
-              });
-            }
-          });
-        }
-      });
+    try {
+      const foundParcel = await Parcel.findById(req.params.id)
+        .populate('layers')
+        .exec();
+      // FIND LAYER
+
+      try {
+        const foundLayer = await Layer.findById(req.params.pid);
+        res.render('soiltests/new', {
+          parcel: foundParcel,
+          layer: foundLayer,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -40,7 +38,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/soiltests',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req, res) => {
     // PARSE COORDINATES
     /* var soilTest = req.body.soiltest;
     var parsedCoordinates = req.body.coordinates.split(", ");
@@ -49,24 +47,23 @@ router.post(
     soiltest.lat = parsedCoordinates[1];
     res.redirect("/parcels/" + req.params.id + "/status"); */
     // CREATE SOIL TEST
-    Soiltest.create(req.body.soiltest, (err, createdSoiltest) => {
-      if (err) {
-        console.log(err);
-      } else {
-        Layer.findByIdAndUpdate(
-          req.params.pid,
-          { $push: { soiltests: createdSoiltest } },
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              // RENDER PARCEL LAYER SOIL TEST PAGE
-              res.redirect(`/parcels/${req.params.id}/status`);
-            }
-          },
-        );
-      }
-    });
+    try {
+      const createdSoiltest = await Soiltest.create(req.body.soiltest);
+      Layer.findByIdAndUpdate(
+        req.params.pid,
+        { $push: { soiltests: createdSoiltest } },
+        (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            // RENDER PARCEL LAYER SOIL TEST PAGE
+            res.redirect(`/parcels/${req.params.id}/status`);
+          }
+        },
+      );
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 

@@ -16,15 +16,14 @@ router.get('/animals/new', middleware.isLoggedIn, (req, res) => { // ADMIN LOGIN
 });
 
 // ANIMAL CREATE
-router.post('/animals', middleware.isLoggedIn, (req, res) => {
-  Animal.create(req.body.animal, (err, createdAnimal) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(`Animal created: ${createdAnimal}`);
-      res.redirect('/animals');
-    }
-  });
+router.post('/animals', middleware.isLoggedIn, async (req, res) => {
+  try {
+    const createdAnimal = await Animal.create(req.body.animal);
+    console.log(`Animal created: ${createdAnimal}`);
+    res.redirect('/animals');
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 export default router;

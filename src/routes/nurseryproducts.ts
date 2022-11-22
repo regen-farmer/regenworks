@@ -37,7 +37,8 @@ router.get(
             console.log(err);
           } else {
             // SORT SPECIES
-            function compare(a, b) {
+
+            allSpecies.sort((a, b) => {
               if (a.genus < b.genus) {
                 return -1;
               }
@@ -45,8 +46,7 @@ router.get(
                 return 1;
               }
               return 0;
-            }
-            allSpecies.sort(compare);
+            });
             res.render('nurseryproducts/new', {
               nursery: foundNursery,
               species: allSpecies,
@@ -157,7 +157,8 @@ router.get(
                   console.log(err);
                 } else {
                   // SORT SPECIES
-                  function compare(a, b) {
+
+                  allSpecies.sort((a, b) => {
                     if (a.genus < b.genus) {
                       return -1;
                     }
@@ -165,8 +166,7 @@ router.get(
                       return 1;
                     }
                     return 0;
-                  }
-                  allSpecies.sort(compare);
+                  });
                   res.render('nurseryproducts/edit', {
                     nursery: foundNursery,
                     product: foundProduct,

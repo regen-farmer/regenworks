@@ -36,6 +36,8 @@ module.exports = {
     'array-callback-return': ['off'],
     'no-inner-declarations': ['off'],
     'no-await-in-loop': ['off'],
+    'func-names': ['error'],
+    'no-console': ['off'],
   },
   settings: {
     'import/resolver': {

@@ -15,15 +15,14 @@ const router = express.Router();
 router.get(
   '/budgets/:id/postings/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req, res) => {
     // FIND BUDGET ID
-    Budget.findById(req.params.id, (err, foundBudget) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render('postings/new', { budget: foundBudget });
-      }
-    });
+    try {
+      const foundBudget = await Budget.findById(req.params.id);
+      res.render('postings/new', { budget: foundBudget });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 

@@ -60,7 +60,7 @@ const config = {
 app.use(auth(config));
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
-app.use(async (req, res, next) => {
+app.use(async (req: express.Request & { user: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   res.locals.currentUser = undefined;
 
   if (req.oidc.user && req.oidc.user.email) {

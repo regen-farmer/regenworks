@@ -39,9 +39,7 @@ export interface IProjectSchema extends Document {
     bearingline: string,
     status: string,
     rows: IRowSchema[],
-    areas: [
-        IAreaSchema
-    ]
+    areas: [IAreaSchema]
 }
 
 // PROJECT SCHEMA SETUP

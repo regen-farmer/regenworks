@@ -12,24 +12,24 @@ const router = express.Router();
 // PRACTICE CREATE ROUTE
 
 // PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
-router.get('/practices/:id', middleware.isLoggedIn, (req:any, res) => {
-  Practice.findById(req.params.id, (err, foundPractice) => {
-    if (err) {
+router.get('/practices/:id', middleware.isLoggedIn, async (req:any, res) => {
+  try {
+    const foundPractice = await Practice.findById(req.params.id);
+    try {
+      const foundParcel = await Parcel.findById(req.query.parcelid);
+      if (foundParcel && foundParcel.owner.id.equals(req.user._id)) { // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
+        console.log(foundParcel);
+        res.render('practices/show', { practice: foundPractice, parcel: foundParcel });
+      } else {
+        // req.flash("error", "You don't have permission to do that.");
+        res.redirect('back');
+      }
+    } catch (err) {
       console.log(err);
-    } else {
-      Parcel.findById(req.query.parcelid, (err, foundParcel) => {
-        if (err) {
-          console.log(err);
-        } else if (foundParcel.owner.id.equals(req.user._id)) { // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
-          console.log(foundParcel);
-          res.render('practices/show', { practice: foundPractice, parcel: foundParcel });
-        } else {
-          // req.flash("error", "You don't have permission to do that.");
-          res.redirect('back');
-        }
-      });
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PRACTICE UPDATE ROUTE
