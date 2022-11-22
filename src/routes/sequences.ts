@@ -14,7 +14,7 @@ const router = express.Router();
 router.get(
   '/layers/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -30,7 +30,7 @@ router.get(
 router.post(
   '/layers/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
@@ -62,7 +62,7 @@ router.post(
 router.get(
   '/layers/:id/sequences/new',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -102,7 +102,7 @@ router.get(
 router.post(
   '/layers/:id/sequences',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -157,7 +157,7 @@ router.post(
 router.get(
   '/layers/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -277,7 +277,7 @@ router.get(
 router.put(
   '/layers/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
     const model: any[] = [];
     let length = 0;
@@ -337,7 +337,7 @@ router.put(
 router.get(
   '/projects/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -353,7 +353,7 @@ router.get(
 router.post(
   '/projects/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
@@ -385,7 +385,7 @@ router.post(
 router.get(
   '/projects/:id/sequences/new',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -424,7 +424,7 @@ router.get(
 router.post(
   '/projects/:id/sequences',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -573,7 +573,7 @@ router.get(
 router.put(
   '/projects/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
     const model: any[] = [];
     let length = 0;

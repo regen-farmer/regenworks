@@ -10,7 +10,7 @@ const router = express.Router();
 router.get(
   '/projects/:id/areas/new',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     Project.findById(req.params.id)
       .populate('layer')
@@ -25,7 +25,7 @@ router.get(
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CREATE AREA HERE?
   const area = {
     geometry: req.body.geometry,

@@ -7,7 +7,7 @@ import { IUserSchema } from '../models/user';
 const router = express.Router();
 
 // VARIETY INDEX
-router.get('/varieties', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Get all varieties from DB
   Variety.find({ 'owner.id': req.user?._id }).populate('species').exec((err, allUserVarieties) => {
     if (err) {
@@ -19,7 +19,7 @@ router.get('/varieties', middleware.isLoggedIn, (req: express.Request & { user?:
 });
 
 // VARIETY NEW
-router.get('/varieties/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND ALL SPECIES
   Species.find((err, allSpecies) => {
     if (err) {

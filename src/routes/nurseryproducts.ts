@@ -8,7 +8,7 @@ import { IUserSchema } from '../models/user';
 const router = express.Router();
 
 // ADMIN ALL VARIETIES
-router.get('/nurseryproducts', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   NurseryProduct.find()
     .populate('species')
     .populate('rootstock')
@@ -26,7 +26,7 @@ router.get('/nurseryproducts', middleware.adminIsLoggedIn, (req: express.Request
 router.get(
   '/nurseries/:id/nurseryproducts/new',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
     Nursery.findById(req.params.id, (err, foundNursery) => {
       if (err) {
@@ -63,7 +63,7 @@ router.get(
 router.post(
   '/nurseries/:id/nurseryproducts',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN NONE OPTIONS
     const product = req.body.product;
     if (req.body.product.species === '') {
@@ -107,7 +107,7 @@ router.post(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
     Nursery.findById(req.params.id, (err, foundNursery) => {
       if (err) {
@@ -137,7 +137,7 @@ router.get(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid/edit',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
     Nursery.findById(req.params.id, (err, foundNursery) => {
       if (err) {

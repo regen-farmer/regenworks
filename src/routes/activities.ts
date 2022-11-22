@@ -4,7 +4,7 @@ import unique from 'array-unique';
 import Parcel from '../models/parcel';
 import Activity from '../models/activity';
 import Layer from '../models/layer';
-import Project, { IProjectSchema } from '../models/project';
+import Project from '../models/project';
 import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
@@ -23,52 +23,49 @@ const router = express.Router();
 // const geocoder = NodeGeocoder(options);
 
 // ACTIVITY INDEX ROUTE
-router.get('/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Get all activities from DB
-  Activity.find({ 'owner.id': req.user?._id }, (err, allActivities) => {
-    if (err) {
-      console.log(err);
-    } else {
-      allActivities.sort((a, b) => Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString()));
-      allActivities.slice(0, 4);
-      res.render('activities/index', { activities: allActivities });
-    }
-  });
+  try {
+    const allActivities = await Activity.find({ 'owner.id': req.user?._id });
+    allActivities.sort((a, b) => Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString()));
+    allActivities.slice(0, 4);
+    res.render('activities/index', { activities: allActivities });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ACTIVITY NEW ROUTE
-router.get('/activities/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   const parcel = undefined;
   console.log(req.body.picked);
-  Layer.find({ 'owner.id': req.user?._id }, (err, foundLayers) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // console.log("Reached this far");
-      // foundLayers.forEach(function(layer){
-      //     console.log(layer.id);
-      // });
-      res.render('activities/new', { parcel, layers: foundLayers });
-    }
-  });
+  try {
+    const foundLayers = await Layer.find({ 'owner.id': req.user?._id });
+    // console.log("Reached this far");
+    // foundLayers.forEach(function(layer){
+    //     console.log(layer.id);
+    // });
+    res.render('activities/new', { parcel, layers: foundLayers });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ACTIVITY CREATE ROUTE
-router.post('/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Create a new experience
-  Activity.create(req.body.activity, (err, createdActivity) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // Add  ID to experience
-      createdActivity.owner.id = req.user?._id;
-      createdActivity.status = true;
-      // Save the service - Not need if created after this step
-      createdActivity.save();
-      res.redirect('/activities');
-      console.log(createdActivity);
-    }
-  });
+  try {
+    const createdActivity = await Activity.create(req.body.activity);
+    // Add  ID to experience
+    createdActivity.owner.id = req.user?._id;
+    createdActivity.status = true;
+    // Save the service - Not need if created after this step
+    createdActivity.save();
+    res.redirect('/activities');
+    console.log(createdActivity);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ACTIVITY SHOW ROUTES
@@ -93,37 +90,35 @@ router.get('/activities/:id', middleware.isLoggedIn, async (req: express.Request
 });
 
 // ACTIVITY EDIT ROUTE
-router.get('/activities/:id/edit', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+router.get('/activities/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // Find specific activity in database
-  Activity.findById(req.params.id, (err, foundActivity) => {
-    if (err) {
-      console.log(err);
-    } else {
-      Layer.find({ 'owner.id': req.user?._id }, (err, foundLayers) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('Reached this far');
-          foundLayers.forEach((layer) => {
-            console.log(layer.id);
-          });
-          res.render('activities/edit', { activity: foundActivity, layers: foundLayers });
-        }
+  try {
+    const foundActivity = await Activity.findById(req.params.id);
+
+    try {
+      const foundLayers = await Layer.find({ 'owner.id': req.user?._id });
+      console.log('Reached this far');
+      foundLayers.forEach((layer) => {
+        console.log(layer.id);
       });
+      res.render('activities/edit', { activity: foundActivity, layers: foundLayers });
+    } catch (err) {
+      console.log(err);
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ACTIVITY UPDATE ROUTE
-router.put('/activities/:id', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  Activity.findByIdAndUpdate(req.params.id, req.body.activity, (err, updatedActivity) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(updatedActivity);
-      res.redirect(`/activities/${req.params.id}`);
-    }
-  });
+router.put('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const updatedActivity = await Activity.findByIdAndUpdate(req.params.id, req.body.activity);
+    console.log(updatedActivity);
+    res.redirect(`/activities/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ACTIVITY STATUS CHANGE ROUTE
@@ -142,7 +137,7 @@ router.delete('/activities/:id', middleware.isLoggedIn, async (req: express.Requ
 // --------------- NESTED ROUTES ---------------- //
 
 // PARCEL ACTIVITIES
-router.get('/parcels/:id/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PARCEL
   Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows' } }).populate({ path: 'layers', populate: { path: 'areas' } }).exec((err, foundParcel) => {
     if (err) {
@@ -155,92 +150,89 @@ router.get('/parcels/:id/activities', middleware.isLoggedIn, (req: express.Reque
 });
 
 // PLACE ACTIVITY NEW ROUTE
-router.get('/parcels/:id/activities/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PLACE ID
-  Parcel.findById(req.params.id, (err, foundparcel) => {
-    if (err) {
-      console.log(err);
-      // res.flash(err
-    } else {
-      Layer.find({ type: 'patch' }, (err, foundLayers) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log('Reached this far');
-          foundLayers.forEach((layer) => {
-            console.log(layer.id);
-          });
-          res.render('activities/new', { parcel: foundparcel, layers: foundLayers });
-        }
+  try {
+    const foundparcel = Parcel.findById(req.params.id);
+    try {
+      const foundLayers = await Layer.find({ type: 'patch' });
+      console.log('Reached this far');
+      foundLayers.forEach((layer) => {
+        console.log(layer.id);
       });
+      res.render('activities/new', { parcel: foundparcel, layers: foundLayers });
+    } catch (err) {
+      console.log(err);
     }
-  });
+  } catch (err) {
+    console.log(err);
+    // res.flash(err
+  }
 });
 
 // PLACE EXPERIENCES CREATE ROUTE
-router.post('/parcels/:id/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Lookup place using id
-  Parcel.findById(req.params.id, (err, foundParcel) => {
-    if (err) {
-      console.log(err);
-      res.redirect(`/parcels/${req.params.id}`);
-    } else {
-      Activity.create(req.body.activity, (err, activity) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(activity);
-          // Add  ID to task.
-          activity.owner.id = req.user?._id;
-          // Save the task
-          activity.save();
-          // Connect new task to parcel
-          foundParcel.activities.push(activity);
-          foundParcel.save();
-          // Redirect to parcels SHOW page
-          // req.flash("success", "Successfully added comment");
-          res.redirect(`/parcels/${foundParcel._id}`);
-        }
-      });
+  try {
+    const foundParcel = await Parcel.findById(req.params.id);
+    if (foundParcel) {
+      try {
+        const activity = await Activity.create(req.body.activity);
+        console.log(activity);
+        // Add  ID to task.
+        activity.owner.id = req.user?._id;
+        // Save the task
+        activity.save();
+        // Connect new task to parcel
+        foundParcel.activities.push(activity);
+        foundParcel.save();
+        // Redirect to parcels SHOW page
+        // req.flash("success", "Successfully added comment");
+        res.redirect(`/parcels/${foundParcel._id}`);
+      } catch (err) {
+        console.log(err);
+      }
     }
-  });
+  } catch (err) {
+    console.log(err);
+    res.redirect(`/parcels/${req.params.id}`);
+  }
 });
 
 // PROJECT ACTIVITY NEW ROUTE
-router.get('/projects/:id/activities/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  Project.findById(req.params.id, (err, foundProject) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('activities/new', { project: foundProject });
-    }
-  });
+router.get('/projects/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const foundProject = await Project.findById(req.params.id);
+    res.render('activities/new', { project: foundProject });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT ACTIVITY CREATE ROUTE
-router.post('/projects/:id/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  Project.findById(req.params.id, (err, foundProject) => {
-    if (err) {
-      console.log(err);
-    } else {
-      Activity.create(req.body.activity, (err, createdActivity) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // Add ID to task.
-          createdActivity.status = true;
-          createdActivity.owner.id = req.user?._id;
-          createdActivity.save();
-          // Connect new task to project
-          foundProject.activities.push(createdActivity);
-          foundProject.save();
-          // Redirect to project SHOW page
-          // req.flash("success", "Successfully added comment");
-          res.redirect(`/projects/${foundProject._id}`);
-        }
-      });
+router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const foundProject = await Project.findById(req.params.id);
+    if (foundProject) {
+      try {
+        const createdActivity = await Activity.create(req.body.activity);
+        // Add ID to task.
+        createdActivity.status = true;
+        createdActivity.owner.id = req.user?._id;
+        createdActivity.save();
+        // Connect new task to project
+        foundProject.activities.push(createdActivity);
+        foundProject.save();
+        // Redirect to project SHOW page
+        // req.flash("success", "Successfully added comment");
+        res.redirect(`/projects/${foundProject._id}`);
+      } catch (err) {
+        console.log(err);
+      }
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // GENERATE ACTIVITIES
@@ -282,22 +274,19 @@ router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req
 });
 
 // PROJECT EDIT ACTIVITY ROUTE
-router.get('/projects/:id/activities/:pid/edit', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/activities/:pid/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT WITH ACTIVITY
-  Project.findById(req.params.id, (err, foundProject: IProjectSchema) => {
-    if (err) {
+  try {
+    const foundProject = await Project.findById(req.params.id);
+    try {
+      const foundActivity = await Activity.findById(req.params.pid);
+      res.render('projects/editactivity', { project: foundProject, activity: foundActivity });
+    } catch (err) {
       console.log(err);
-    } else {
-      Activity.findById(req.params.pid, (err, foundActivity) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // RENDER EDIT PAGE
-          res.render('projects/editactivity', { project: foundProject, activity: foundActivity });
-        }
-      });
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT UPDATE ACTIVITY ROUTE
@@ -312,32 +301,31 @@ router.put('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: e
 });
 
 // DELETE ACTIVITY IN PROJECT
-router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND ACTIVITY
-  Activity.findById(req.params.pid, (err, foundActivity) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // FIND PROJECT
-      Project.findById(req.params.id, async (err, updatedProject: IProjectSchema) => {
-        if (err) {
+  try {
+    const foundActivity = await Activity.findById(req.params.pid);
+    // FIND PROJECT
+    try {
+      const updatedProject = await Project.findById(req.params.id);
+      if (updatedProject) {
+      // REMOVE ACTIVITY FROM PROJECT
+        updatedProject.activities.remove(foundActivity);
+        updatedProject.save();
+        // DELETE ACTIVITY
+        try {
+          await Activity.findByIdAndRemove(req.params.pid);
+          res.redirect(`/projects/${updatedProject._id}`);
+        } catch (err) {
           console.log(err);
-        } else {
-          // REMOVE ACTIVITY FROM PROJECT
-          // @ts-ignore
-          updatedProject.activities.remove(foundActivity);
-          updatedProject.save();
-          // DELETE ACTIVITY
-          try {
-            await Activity.findByIdAndRemove(req.params.pid);
-            res.redirect(`/projects/${updatedProject._id}`);
-          } catch (err) {
-            console.log(err);
-          }
         }
-      });
+      }
+    } catch (err) {
+      console.log(err);
     }
-  });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
@@ -422,7 +410,7 @@ router.get('/parcels/:id/layers/:pid/areas/:rid/activities/new', middleware.isLo
   }
 });
 
-router.post('/parcels/:id/layers/:pid/areas/:rid/activities', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/areas/:rid/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CREATE ACTIVITY
   const types = req.body.activityType.split(' ');
   const activity = {

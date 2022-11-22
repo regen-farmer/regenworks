@@ -12,7 +12,7 @@ router.get('/animals', middleware.isLoggedIn, async (req: express.Request & { us
 });
 
 // ANIMAL NEW
-router.get('/animals/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // ADMIN LOGIN REQUIRED
+router.get('/animals/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // ADMIN LOGIN REQUIRED
   res.render('animals/new');
 });
 

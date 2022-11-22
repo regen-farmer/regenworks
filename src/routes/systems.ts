@@ -12,7 +12,7 @@ import { IUserSchema } from '../models/user';
 const router = express.Router();
 
 // SYSTEM INDEX
-router.get('/systems', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   System.find((err, foundSystems) => {
     if (err) {
       console.log(err);
@@ -38,7 +38,7 @@ router.get('/systems', middleware.adminIsLoggedIn, (req: express.Request & { use
 router.get(
   '/layers/:id/systems/newgrid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -54,7 +54,7 @@ router.get(
 router.post(
   '/layers/:id/systems/newgrid',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
@@ -87,7 +87,7 @@ router.post(
 router.get(
   '/layers/:id/systems/new',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER ID
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -147,7 +147,7 @@ router.get(
 router.post(
   '/layers/:id/systems',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -547,7 +547,7 @@ router.get(
 );
 
 // SYSTEM EDIT ROUTE OLD
-router.get('/systems/:id/editold', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   System.findById(req.params.id)
     .populate('rows.sequense')
     .populate('animals')
@@ -819,7 +819,6 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         if (foundLayersFuture.length > 0) {
           foundLayersFuture.forEach((layer) => {
             // REMOVE ORIGINAL SYSTEM
-            // @ts-ignore
             layer.systems.future.remove(foundSystem);
             // ADD NEW SYSTEM
             layer.systems.future.push(createdSystem);
@@ -897,7 +896,6 @@ router.delete(
                   if (foundLayersFuture.length > 0) {
                     foundLayersFuture.forEach((layer) => {
                     // REMOVE ORIGINAL SYSTEM
-                    // @ts-ignore
                       layer.systems.future.remove(foundSystem);
                       // ADD NEW SYSTEM
                       layer.save();
@@ -931,7 +929,7 @@ router.delete(
 router.get(
   '/systems/:id/succession',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     System.findById(req.params.id)
       .populate('rows')
       .exec((err, foundSystem) => {
@@ -1064,7 +1062,7 @@ router.get(
                 // FIND ALL SPECIES IN SYSTEM
                 const allSpecies: string[] = [];
                 const allUtilities: string[] = [];
-                // let grid = 0;
+                let grid = 0;
                 const dataset: {array: {
                   species: ISpeciesSchema;
                   position: number[];
@@ -1109,12 +1107,13 @@ router.get(
                     }
                     return 0;
                   });
-                  // grid += dataset[j].array[0].width;
+                  grid += dataset[j].array[0].width;
                 }
                 // SAVE ROWS
                 // @ts-ignore
                 foundSystems[i].sortedrows = dataset;
-                // @ts-ignorefoundSystems[i].grid = grid
+                // @ts-ignore
+                foundSystems[i].grid = grid;
                 systems.push(foundSystems[i]);
               }
             }

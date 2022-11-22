@@ -8,7 +8,7 @@ import { IUserSchema } from '../models/user';
 const router = express.Router();
 
 // PARCEL FLOWS
-router.get('/parcels/:id/flows', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PARCEL
   Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows' } }).exec((err, foundParcel) => {
     if (err) {

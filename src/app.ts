@@ -68,7 +68,6 @@ app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Respon
     const user = await User.findOne({ email: req.oidc.user.email }).exec();
 
     if (user) {
-      // @ts-ignore
       req.user = user;
     } else {
       // Create a new user if none exist
@@ -83,14 +82,12 @@ app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Respon
 
       const savedUser = await newUser.save();
 
-      // @ts-ignore
       req.user = savedUser;
     }
   } else {
     console.log('No oidc user');
   }
 
-  // @ts-ignore
   res.locals.currentUser = req.user;
 
   next();
@@ -123,7 +120,7 @@ app.use('', rotationRoutes);
 app.use('', varietyRoutes);
 
 // 404 ROUTE
-app.get('*', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+app.get('*', async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.status(404).render('404');
 });
 app.set('trust proxy', true);

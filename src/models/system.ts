@@ -7,7 +7,6 @@ import { IUserSchema } from './user';
 
 // SYSTEM SCHEMA SETUP
 
-// @ts-ignore
 export interface ISystemSchema extends Document {
     name: string,
     description: string,

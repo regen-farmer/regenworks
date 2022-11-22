@@ -110,7 +110,7 @@ router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request &
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get('/parcels/:id/accounts', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Parcel.findById(req.params.id)
     .populate({
       path: 'layers',
@@ -183,7 +183,6 @@ router.post(
       // SAVE BUDGET TO PROJECT
 
       // TODO
-      // @ts-ignore
       foundProject.budget = createdBudget;
       foundProject.save();
       res.redirect(`/projects/${foundProject._id}`);
@@ -298,7 +297,6 @@ router.post(
         // const budget = req.body.budget;
         try {
           const createdBudget = await Budget.create();
-          // @ts-ignore
           foundProject.budgets.establishment = createdBudget;
           foundProject.save();
           // PARSE QUERY
@@ -388,7 +386,6 @@ router.post(
               const createdPostings = await Posting.insertMany(postings);
               try {
                 await Budget.findByIdAndUpdate(
-                  // @ts-ignore
                   createdBudget._id,
                   { $push: { postings: { $each: createdPostings } } },
                 );
@@ -438,7 +435,7 @@ router.get(
       if (foundProject) {
         // FIND SYSTEM
         try {
-          const foundSystem = System.findById(foundProject.system)
+          const foundSystem = await System.findById(foundProject.system)
             .populate('model.species')
             .exec();
           // FIND ALL SPECIES IN SYSTEM OR ROWS
@@ -481,8 +478,7 @@ router.get(
               }
             }
           } else {
-            // @ts-ignore
-            foundSystem.model.forEach((species) => {
+            foundSystem?.model.forEach((species) => {
               allSpecies.push(species.species);
             });
           }

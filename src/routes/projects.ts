@@ -44,7 +44,7 @@ router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { u
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   const place = undefined;
   res.render('projects/new', { place });
 });
@@ -586,7 +586,7 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('projects/3dviz');
 });
 
@@ -594,7 +594,7 @@ router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req: express.Request &
 router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Project.findByIdAndUpdate(
       req.params.id,
       { $set: { status: 'Implementation' } },
@@ -610,7 +610,7 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Project.findByIdAndUpdate(
     req.params.id,
     { $set: { status: 'Retired' } },
@@ -837,7 +837,7 @@ router.get(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-router.get('/projects/:id/explode', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT
   Project.findById(req.params.id)
     .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -1158,7 +1158,6 @@ router.post(
           try {
             const createdRows = await Row.insertMany(newRows);
 
-            // @ts-ignore
             createdProject.rows = createdRows;
             // Save the project
             createdProject.save();
@@ -1190,7 +1189,6 @@ router.delete(
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = 0; foundProject.assets.length > i; i++) {
-          // @ts-ignore
           foundProject.assets.remove(foundProject.assets[i]);
           // SAVE PROJECT
           foundProject.save();

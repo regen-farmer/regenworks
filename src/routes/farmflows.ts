@@ -16,7 +16,7 @@ const router = express.Router();
 router.get(
   '/parcels/:id/farmflows',
   middleware.isLoggedIn,
-  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PARCEL
     Parcel.findById(req.params.id)
       .populate({

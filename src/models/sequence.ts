@@ -2,7 +2,6 @@ import { Document, model, Schema } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-// @ts-ignore
 export interface ISequenceSchema extends Document {
     name: string,
     description: string,
