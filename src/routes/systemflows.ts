@@ -3,13 +3,14 @@ import Systemflow from '../models/systemflow';
 import System from '../models/system';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // SYSTEMFLOW INDEX ROUTE
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
-router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req, res) => {
+router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND SYSTEM ID
   try {
     const foundSystem = await System.findById(req.params.id);
@@ -32,7 +33,7 @@ router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req, res) => 
 });
 
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
-router.post('/systems/:id/flows', middleware.isLoggedIn, async (req, res) => {
+router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND SYSTEM
   try {
     const foundSystem = await System.findById(req.params.id);

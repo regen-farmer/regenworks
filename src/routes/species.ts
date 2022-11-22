@@ -1,11 +1,12 @@
 import express from 'express';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // SPECIES INDEX
-router.get('/species', middleware.adminIsLoggedIn, (req, res) => {
+router.get('/species', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Species.find((err, foundSpecies) => {
     if (err) {
       console.log(err);
@@ -16,13 +17,13 @@ router.get('/species', middleware.adminIsLoggedIn, (req, res) => {
 });
 
 // SPECIES NEW
-router.get('/species/new', middleware.isLoggedIn, (req, res) => {
+router.get('/species/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   res.render('species/new');
 });
 
 // SPECIES CREATE
-router.post('/species', middleware.isLoggedIn, (req, res) => {
+router.post('/species', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   Species.create(req.body.species, (err, createdSpecies) => {
     if (err) {
@@ -35,7 +36,7 @@ router.post('/species', middleware.isLoggedIn, (req, res) => {
 });
 
 // SPECIES SHOW
-router.get('/species/:id', middleware.adminIsLoggedIn, (req, res) => {
+router.get('/species/:id', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   Species.findById(req.params.id)
     .populate('flows')
@@ -49,7 +50,7 @@ router.get('/species/:id', middleware.adminIsLoggedIn, (req, res) => {
 });
 
 // SPECIES EDIT
-router.get('/species/:id/edit', middleware.isLoggedIn, (req, res) => {
+router.get('/species/:id/edit', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   Species.findById(req.params.id, (err, foundSpecies) => {
     if (err) {
@@ -61,7 +62,7 @@ router.get('/species/:id/edit', middleware.isLoggedIn, (req, res) => {
 });
 
 // SPECIES UPDATE
-router.put('/species/:id', middleware.isLoggedIn, (req, res) => {
+router.put('/species/:id', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Species.findByIdAndUpdate(
     req.params.id,
     req.body.species,
@@ -82,7 +83,7 @@ router.put('/species/:id', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/species/:id/activities/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Species.findById(req.params.id, (err, foundSpecies) => {
       if (err) {
         console.log(err);
@@ -97,7 +98,7 @@ router.get(
 router.post(
   '/species/:id/activities',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     const types = req.body.activity.activityType.split(' ');
     const activity = {
@@ -127,7 +128,7 @@ router.post(
 router.get(
   '/species/:id/activities/edit',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Species.findById(req.params.id, (err, foundSpecies) => {
       if (err) {
         console.log(err);
@@ -147,7 +148,7 @@ router.get(
 router.put(
   '/species/:id/activities',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     const types = req.body.activity.activityType.split(' ');
     const activity = {
@@ -178,7 +179,7 @@ router.put(
 router.get(
   '/species/:id/nutrients/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Species.findById(req.params.id, (err, foundSpecies) => {
       if (err) {
         console.log(err);
@@ -193,7 +194,7 @@ router.get(
 router.put(
   '/species/:id/nutrients',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
         $set: { nutrients: req.body.nutrients },

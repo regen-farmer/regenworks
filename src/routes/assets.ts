@@ -4,13 +4,14 @@ import Layer from '../models/layer';
 import Project from '../models/project';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // ASSET INDEX ROUTE
-router.get('/assets', middleware.adminIsLoggedIn, (req: any, res) => {
+router.get('/assets', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Get all assets from DB
-  Asset.find({ 'owner.id': req.user._id }, (err, allAssets) => {
+  Asset.find({ 'owner.id': req.user?._id }, (err, allAssets) => {
     if (err) {
       console.log(err);
     } else {
@@ -20,8 +21,8 @@ router.get('/assets', middleware.adminIsLoggedIn, (req: any, res) => {
 });
 
 // ASSET NEW ROUTE
-router.get('/assets/new', middleware.isLoggedIn, (req: any, res) => {
-  Layer.find({ 'owner.id': req.user._id }, (err, foundLayers) => {
+router.get('/assets/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  Layer.find({ 'owner.id': req.user?._id }, (err, foundLayers) => {
     if (err) {
       console.log(err);
     } else {
@@ -35,14 +36,14 @@ router.get('/assets/new', middleware.isLoggedIn, (req: any, res) => {
 });
 
 // ASSET CREATE ROUTE
-router.post('/assets', middleware.isLoggedIn, (req: any, res) => {
+router.post('/assets', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Create a new experience
   Asset.create(req.body.asset, (err, createdAsset) => {
     if (err) {
       console.log(err);
     } else {
       // Add ID to experience
-      createdAsset.owner.id = req.user._id;
+      createdAsset.owner.id = req.user?._id;
       // Save the asset - Not needed if created after this step
       createdAsset.save();
       res.redirect('/assets');
@@ -51,7 +52,7 @@ router.post('/assets', middleware.isLoggedIn, (req: any, res) => {
 });
 
 // ASSET SHOW ROUTES
-router.get('/assets/:id', middleware.isLoggedIn, (req, res) => {
+router.get('/assets/:id', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Find specific asset
   Asset.findById(req.params.id)
     .populate('layer')
@@ -68,7 +69,7 @@ router.get('/assets/:id', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/assets/:id/edit',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND ASSET AND RENDER EDIT PAGE
     try {
       const foundAsset = await Asset.findById(req.params.id)
@@ -95,7 +96,7 @@ router.get(
 );
 
 // ASSET UPDATE ROUTE
-router.put('/assets/:id', middleware.isLoggedIn, async (req, res) => {
+router.put('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // UPDATE ASSET
   try {
     const updatedAsset = await Asset.findByIdAndUpdate(
@@ -113,7 +114,7 @@ router.put('/assets/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // ASSET DELETE ROUTE
-router.delete('/assets/:id', middleware.isLoggedIn, async (req, res) => {
+router.delete('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // FIND ASSET
   try {
@@ -155,7 +156,7 @@ router.delete('/assets/:id', middleware.isLoggedIn, async (req, res) => {
 router.get(
   '/layers/:id/assets/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
         console.log(err);
@@ -170,14 +171,14 @@ router.get(
 router.post(
   '/layers/:id/assets',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
         console.log(err);
       } else {
         Asset.create(req.body.asset, (err, createdAsset) => {
           // Add user ID to experience
-          createdAsset.owner.id = req.user._id;
+          createdAsset.owner.id = req.user?._id;
           createdAsset.save();
           // ADD ASSET TO LAYER
           foundLayer.assets.push(createdAsset);

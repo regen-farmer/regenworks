@@ -4,6 +4,7 @@ import Layer from '../models/layer';
 import Project from '../models/project';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ const router = express.Router();
 router.get(
   '/layers/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -29,7 +30,7 @@ router.get(
 router.post(
   '/layers/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
@@ -61,7 +62,7 @@ router.post(
 router.get(
   '/layers/:id/sequences/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -101,7 +102,7 @@ router.get(
 router.post(
   '/layers/:id/sequences',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -142,7 +143,7 @@ router.post(
             console.log(err);
           } else {
             // SAVE SEQUENCE ON LAYER?
-            createdSequence.owner.id = req.user._id;
+            createdSequence.owner.id = req.user?._id;
             createdSequence.save();
             res.redirect(`/layers/${foundLayer._id}/layout`);
           }
@@ -156,7 +157,7 @@ router.post(
 router.get(
   '/layers/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
@@ -182,7 +183,7 @@ router.get(
 router.get(
   '/layers/:id/sequences/:pid/edit',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Layer.findById(req.params.id)
       .populate({ path: 'rows.sequence', populate: { path: 'model.species' } })
@@ -276,7 +277,7 @@ router.get(
 router.put(
   '/layers/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
     const model: any[] = [];
     let length = 0;
@@ -336,7 +337,7 @@ router.put(
 router.get(
   '/projects/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -352,7 +353,7 @@ router.get(
 router.post(
   '/projects/:id/sequences/spacing',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
@@ -384,7 +385,7 @@ router.post(
 router.get(
   '/projects/:id/sequences/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -423,7 +424,7 @@ router.get(
 router.post(
   '/projects/:id/sequences',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     Project.findById(req.params.id, (err, foundProject) => {
       if (err) {
@@ -463,7 +464,7 @@ router.post(
             console.log(err);
           } else {
             // SAVE SEQUENCE ON LAYER?
-            createdSequence.owner.id = req.user._id;
+            createdSequence.owner.id = req.user?._id;
             createdSequence.save();
             res.redirect(`/projects/${foundProject._id}/layout`);
           }
@@ -477,7 +478,7 @@ router.post(
 router.get(
   '/projects/:id/sequences/:pid/edit',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -572,7 +573,7 @@ router.get(
 router.put(
   '/projects/:id/sequences/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
     const model: any[] = [];
     let length = 0;

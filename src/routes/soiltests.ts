@@ -4,6 +4,7 @@ import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import Soiltest from '../models/soiltest';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 router.get(
   '/parcels/:id/layers/:pid/soiltests/new',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -38,7 +39,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/soiltests',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // PARSE COORDINATES
     /* var soilTest = req.body.soiltest;
     var parsedCoordinates = req.body.coordinates.split(", ");
@@ -71,7 +72,7 @@ router.post(
 router.get(
   '/parcels/:id/soiltests/viz',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)

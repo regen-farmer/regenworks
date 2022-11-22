@@ -9,7 +9,7 @@ import path from 'path';
 import { auth } from 'express-openid-connect';
 // import Parcel from './models/parcel';
 // import seedDB from "./seeds";
-import User from './models/user';
+import User, { IUserSchema } from './models/user';
 // REQUIRE ROUTE FILES
 import parcelRoutes from './routes/parcels';
 import indexRoutes from './routes/index';
@@ -60,7 +60,7 @@ const config = {
 app.use(auth(config));
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
-app.use(async (req: express.Request & { user: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   res.locals.currentUser = undefined;
 
   if (req.oidc.user && req.oidc.user.email) {
@@ -123,7 +123,7 @@ app.use('', rotationRoutes);
 app.use('', varietyRoutes);
 
 // 404 ROUTE
-app.get('*', (req, res) => {
+app.get('*', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.status(404).render('404');
 });
 app.set('trust proxy', true);

@@ -8,7 +8,7 @@ import {
   along,
 } from '@turf/turf';
 import NodeGeocoder from 'node-geocoder';
-import User from '../models/user';
+import User, { IUserSchema } from '../models/user';
 import Parcel from '../models/parcel';
 import Practice from '../models/practice';
 import Layer from '../models/layer';
@@ -27,9 +27,9 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PARCEL INDEX ROUTE
-router.get('/parcels', middleware.isLoggedIn, (req: any, res) => {
+router.get('/parcels', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Get all parcels from DB
-  Parcel.find({ 'owner.id': req.user._id }, (err, allUserParcels) => {
+  Parcel.find({ 'owner.id': req.user?._id }, (err, allUserParcels) => {
     if (err) {
       console.log(err);
     } else {
@@ -39,7 +39,7 @@ router.get('/parcels', middleware.isLoggedIn, (req: any, res) => {
 });
 
 // PARCEL NEW ROUTE
-router.get('/parcels/new', middleware.isLoggedIn, (req, res) => {
+router.get('/parcels/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Find all products in database and pass to ejs
   Practice.find((err, foundPractices) => {
     if (err) {
@@ -51,7 +51,7 @@ router.get('/parcels/new', middleware.isLoggedIn, (req, res) => {
 });
 
 // PARCEL CREATE ROUTE
-router.post('/parcels', middleware.isLoggedIn, (req: any, res) => {
+router.post('/parcels', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Create variable with new place posted from place form
   const name = req.body.parcel.name;
   const climate = {
@@ -68,7 +68,7 @@ router.post('/parcels', middleware.isLoggedIn, (req: any, res) => {
   const practices = req.body.practiceids;
   const measurement = req.body.parcel.measurement;
   const owner = {
-    id: req.user._id,
+    id: req.user?._id,
   };
   // CONVERT ADDRESS TO COORDINATES USING GEOCODER
   geocoder.geocode(req.body.parcel.location, async (err, data) => {
@@ -226,7 +226,7 @@ router.post('/parcels', middleware.isLoggedIn, (req: any, res) => {
 router.get(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id)
         .populate('practices')
@@ -287,7 +287,7 @@ router.get(
 router.get(
   '/parcels/:id/edit',
   middleware.checkParcelOwnership,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // Find specific place in database
     Parcel.findById(req.params.id)
       .populate('practices')
@@ -306,7 +306,7 @@ router.get(
 router.put(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // UPDATE PARCEL
     const parcel = req.body.parcel;
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
@@ -340,13 +340,13 @@ router.put(
 router.delete(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       await Parcel.findByIdAndRemove(req.params.id);
-      res.redirect(`/users/${req.user.id}`);
+      res.redirect(`/users/${req.user?.id}`);
     } catch (err) {
       console.log(err);
-      res.redirect(`/users/${req.user.id}`);
+      res.redirect(`/users/${req.user?.id}`);
     }
   },
 );
@@ -355,7 +355,7 @@ router.delete(
 router.get(
   '/parcels/:id/analysis',
   middleware.checkParcelOwnership,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Parcel.findById(req.params.id)
       .populate('layers')
       .exec((err, foundParcel) => {
@@ -372,7 +372,7 @@ router.get(
 router.get(
   '/parcels/:id/composition',
   middleware.checkParcelOwnership,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id)
         .populate('layers')
@@ -407,7 +407,7 @@ router.get(
 router.get(
   '/parcels/:id/climate',
   middleware.checkParcelOwnership,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Parcel.findById(req.params.id, (err, foundParcel) => {
       if (err) {
         console.log(err);
@@ -453,7 +453,7 @@ router.get(
 router.get(
   '/parcels/:id/layout',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)

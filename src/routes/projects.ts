@@ -18,6 +18,7 @@ import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
+import { IUserSchema } from '../models/user';
 
 // NODE GEOCODER CODE
 
@@ -32,10 +33,10 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, async (req: any, res) => {
+router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // GET ALL USERS PROJECTS IN DB
   try {
-    const allProjects = await Project.find({ 'owner.id': req.user._id });
+    const allProjects = await Project.find({ 'owner.id': req.user?._id });
     res.render('projects/index', { projects: allProjects });
   } catch (err) {
     console.log(err);
@@ -43,13 +44,13 @@ router.get('/projects', middleware.isLoggedIn, async (req: any, res) => {
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   const place = undefined;
   res.render('projects/new', { place });
 });
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, async (req: any, res) => {
+router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Create a new project
   try {
     const service = await Project.create(req.body.project);
@@ -69,7 +70,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: any, res) => {
         service.lng = lng;
         service.location = loc;
         // Add ID to experience
-        service.owner.id = req.user._id;
+        service.owner.id = req.user?._id;
         // Save the service - Not need if created after this step
         service.save();
         // Redirect to projects INDEX page
@@ -83,7 +84,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: any, res) => {
 });
 
 // PROJECT SHOW ROUTE
-router.get('/projects/:id', middleware.isLoggedIn, async (req, res) => {
+router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id)
       .populate('layer')
@@ -255,7 +256,7 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, async (req, res) => {
+router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
   try {
@@ -270,7 +271,7 @@ router.get('/projects/:id/edit', middleware.isLoggedIn, async (req, res) => {
 router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -468,7 +469,7 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, async (req, res) => {
+router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
@@ -482,7 +483,7 @@ router.put('/projects/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, async (req, res) => {
+router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
@@ -499,7 +500,7 @@ router.put('/projects/:id/layout', middleware.isLoggedIn, async (req, res) => {
 router.get(
   '/projects/:id/viz',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -585,7 +586,7 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('projects/3dviz');
 });
 
@@ -593,7 +594,7 @@ router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req, res) => {
 router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Project.findByIdAndUpdate(
       req.params.id,
       { $set: { status: 'Implementation' } },
@@ -609,7 +610,7 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, (req, res) => {
+router.put('/projects/:id/retire', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Project.findByIdAndUpdate(
     req.params.id,
     { $set: { status: 'Retired' } },
@@ -627,7 +628,7 @@ router.put('/projects/:id/retire', middleware.isLoggedIn, (req, res) => {
 router.put(
   '/projects/:id/complete',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const completedProject = await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: 'Completed' },
@@ -674,11 +675,11 @@ router.put(
 router.get(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id);
       try {
-        const foundSystems = await System.find({ 'owner.id': req.user._id });
+        const foundSystems = await System.find({ 'owner.id': req.user?._id });
         // SORT OUT MONOCULTURE SYSTEMS
         const realSystems: any[] = [];
         for (let i = 0; i < foundSystems.length; i++) {
@@ -706,7 +707,7 @@ router.get(
 router.post(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND SYSTEM
     try {
       const foundSystem = await System.findById(req.body.systemid);
@@ -734,7 +735,7 @@ router.post(
 router.get(
   '/projects/:id/generateassets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -836,7 +837,7 @@ router.get(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/explode', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT
   Project.findById(req.params.id)
     .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -924,7 +925,7 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/projects/:id/deleterows',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -964,7 +965,7 @@ router.get(
 router.get(
   '/projects/:id/assets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1027,7 +1028,7 @@ router.get(
 router.delete(
   '/projects/:id',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
@@ -1091,7 +1092,7 @@ router.delete(
 router.get(
   '/layers/:id/projects/new/:system',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
@@ -1116,7 +1117,7 @@ router.get(
 router.post(
   '/layers/:id/projects',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // Lookup place using id
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -1133,7 +1134,7 @@ router.post(
       if (foundLayer && createdProject && foundSystem) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user._id;
+        createdProject.owner.id = req.user?._id;
         createdProject.system = foundSystem;
         createdProject.layer = foundLayer;
         createdProject.financial = {
@@ -1182,7 +1183,7 @@ router.post(
 router.delete(
   '/projects/:id/allassets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -1215,7 +1216,7 @@ router.delete(
 router.get(
   '/projects/:id/row/new',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1225,7 +1226,7 @@ router.get(
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find(
-            { 'owner.id': req.user._id },
+            { 'owner.id': req.user?._id },
           );
           res.render('projects/row', {
             project: foundProject,
@@ -1242,7 +1243,7 @@ router.get(
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, async (req, res) => {
+router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // REDIRECT IF NO GEOMETRY
   if (req.body.geometry === '') {
     res.redirect('back');
@@ -1287,7 +1288,7 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req, res) => {
 router.get(
   '/projects/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1302,7 +1303,7 @@ router.get(
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find(
-            { 'owner.id': req.user._id },
+            { 'owner.id': req.user?._id },
           );
           res.render('projects/editrow', {
             project: foundProject,
@@ -1325,7 +1326,7 @@ router.get(
 router.put(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CREATE ROW HERE?
     const row: any = {
       name: req.body.row.name,
@@ -1355,7 +1356,7 @@ router.put(
 router.delete(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -1384,7 +1385,7 @@ router.delete(
 router.get(
   '/projects/:id/areas/:pid/edit',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1399,7 +1400,7 @@ router.get(
         // FIND MY SYSTEMS
         try {
           const foundRotations = await Rotation.find(
-            { 'owner.id': req.user._id },
+            { 'owner.id': req.user?._id },
           );
           res.render('projects/editarea', {
             project: foundProject,
@@ -1422,7 +1423,7 @@ router.get(
 router.put(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CREATE AREA HERE?
     const area: any = {
       name: req.body.area.name,
@@ -1458,7 +1459,7 @@ router.put(
 router.get(
   '/projects/:id/budgetpdf',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
 
     // GENERATE PDF TEST

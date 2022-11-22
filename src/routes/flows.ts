@@ -3,11 +3,12 @@ import Flow from '../models/flow';
 import Species from '../models/species';
 import Parcel from '../models/parcel';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // PARCEL FLOWS
-router.get('/parcels/:id/flows', middleware.isLoggedIn, (req, res) => {
+router.get('/parcels/:id/flows', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PARCEL
   Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows' } }).exec((err, foundParcel) => {
     if (err) {
@@ -20,7 +21,7 @@ router.get('/parcels/:id/flows', middleware.isLoggedIn, (req, res) => {
 });
 
 // NESTED SPECIES FLOW NEW ROUTE
-router.get('/species/:id/flows/new', middleware.isLoggedIn, async (req, res) => {
+router.get('/species/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     const foundSpecies = await Species.findById(req.params.id);
     res.render('flows/new', { species: foundSpecies });
@@ -30,7 +31,7 @@ router.get('/species/:id/flows/new', middleware.isLoggedIn, async (req, res) => 
 });
 
 // NESTED SPECIES FLOW CREATE ROUTE
-router.post('/species/:id/flows', middleware.isLoggedIn, async (req, res) => {
+router.post('/species/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND SPECIES
   try {
     const foundSpecies = await Species.findById(req.params.id);

@@ -2,6 +2,7 @@ import express from 'express';
 import Project from '../models/project';
 import Area from '../models/area';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get(
   '/projects/:id/areas/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     Project.findById(req.params.id)
       .populate('layer')
@@ -24,7 +25,7 @@ router.get(
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', middleware.isLoggedIn, (req, res) => {
+router.post('/projects/:id/areas', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CREATE AREA HERE?
   const area = {
     geometry: req.body.geometry,
@@ -59,7 +60,7 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, (req, res) => {
 router.delete(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -88,7 +89,7 @@ router.delete(
 router.get(
   '/projects/:id/deleteareas',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);

@@ -4,11 +4,12 @@ import Layer from '../models/layer';
 import Project from '../models/project';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
+router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   try {
     const foundLayer = await Layer.findById(req.params.id);
@@ -19,7 +20,7 @@ router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, res
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
+router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CHECK LENGTH IS DIVISIBLE
   if ((req.body.length / req.body.distance) % 1 === 0) {
     // FIND LAYER
@@ -38,7 +39,7 @@ router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req, re
 });
 
 // ROTATION NEW
-router.get('/layers/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
+router.get('/layers/:id/rotations/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   Layer.findById(req.params.id, (err, foundLayer) => {
     if (err) {
@@ -72,7 +73,7 @@ router.get('/layers/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
 // SEQUENCE CREATE
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/projects/:id/rotations/steps', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/rotations/steps', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   Project.findById(req.params.id, (err, foundProject) => {
     if (err) {
@@ -84,7 +85,7 @@ router.get('/projects/:id/rotations/steps', middleware.isLoggedIn, (req, res) =>
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req, res) => {
+router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT
   try {
     const foundProject = await Project.findById(req.params.id);
@@ -97,7 +98,7 @@ router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req, 
 });
 
 // ROTATION NEW
-router.get('/projects/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/rotations/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   Project.findById(req.params.id, (err, foundProject) => {
     if (err) {
@@ -127,7 +128,7 @@ router.get('/projects/:id/rotations/new', middleware.isLoggedIn, (req, res) => {
 });
 
 // CREATE PROJECT ROTATION
-router.post('/projects/:id/rotations', middleware.isLoggedIn, (req:any, res) => {
+router.post('/projects/:id/rotations', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   Project.findById(req.params.id, (err, foundProject) => {
     if (err) {
@@ -173,7 +174,7 @@ router.post('/projects/:id/rotations', middleware.isLoggedIn, (req:any, res) => 
         } else {
           console.log(`rotation: ${createdRotation}`);
           // SAVE SEQUENCE ON LAYER?
-          createdRotation.owner.id = req.user._id;
+          createdRotation.owner.id = req.user?._id;
           createdRotation.save();
           res.redirect(`/projects/${foundProject._id}/layout`);
         }
@@ -183,7 +184,7 @@ router.post('/projects/:id/rotations', middleware.isLoggedIn, (req:any, res) => 
 });
 
 // EDIT PROJECT ROTATION
-router.get('/projects/:id/rotations/:pid/edit', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/rotations/:pid/edit', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   Project.findById(req.params.id).populate({ path: 'areas.rotation', populate: { path: 'model.species' } }).exec((err, foundProject) => {
     if (err) {
@@ -203,7 +204,7 @@ router.get('/projects/:id/rotations/:pid/edit', middleware.isLoggedIn, (req, res
 });
 
 // UPDATE PROJECT ROTATION
-router.put('/projects/:id/rotations/:pid', middleware.isLoggedIn, (req, res) => {
+router.put('/projects/:id/rotations/:pid', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND LAYER
   const rotation = req.body.rotation;
   Project.findById(req.params.id, (err, foundProject) => {

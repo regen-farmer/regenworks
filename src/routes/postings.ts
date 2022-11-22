@@ -4,6 +4,7 @@ import Budget from '../models/budget';
 import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ const router = express.Router();
 router.get(
   '/budgets/:id/postings/new',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND BUDGET ID
     try {
       const foundBudget = await Budget.findById(req.params.id);
@@ -30,7 +31,7 @@ router.get(
 router.post(
   '/budgets/:id/postings',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     Budget.findById(req.params.id, (err, foundBudget) => {
@@ -57,7 +58,7 @@ router.post(
 router.get(
   '/budgets/:id/postings/:postid/edit',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND BUDGET
     Budget.findById(req.params.id, (err, foundBudget) => {
       if (err) {
@@ -82,7 +83,7 @@ router.get(
 router.put(
   '/budgets/:id/postings/:postid',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND POSTING AND UPDATE
     Posting.findByIdAndUpdate(
       req.params.postid,
@@ -102,7 +103,7 @@ router.put(
 router.get(
   '/parcels/:id/layers/:bid/accounts/postings/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND BUDGET ID
     Parcel.findById(req.params.id)
       .populate({ path: 'layers', populate: { path: 'budget' } })
@@ -129,7 +130,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:bid/accounts/postings',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {

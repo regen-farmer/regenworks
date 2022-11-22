@@ -1,7 +1,7 @@
 import express from 'express';
 import NodeGeocoder from 'node-geocoder';
 import Nursery from '../models/nursery';
-import User from '../models/user';
+import User, { IUserSchema } from '../models/user';
 import middleware from '../middleware';
 
 // NODE GEOCODER CODE
@@ -16,9 +16,9 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get('/nurseries', middleware.isLoggedIn, (req: any, res) => {
+router.get('/nurseries', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND NURSERY BASED ON USER
-  Nursery.find({ 'owner.id': req.user._id }, (err, foundNurseries) => {
+  Nursery.find({ 'owner.id': req.user?._id }, (err, foundNurseries) => {
     if (err) {
       console.log(err);
     } else {
@@ -29,13 +29,13 @@ router.get('/nurseries', middleware.isLoggedIn, (req: any, res) => {
 });
 
 // NURSERY NEW
-router.get('/nurseries/new', middleware.isLoggedIn, (req, res) => {
+router.get('/nurseries/new', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ADMIN LOGIN REQUIRED
   res.render('nurseries/new');
 });
 
 // ANIMAL CREATE
-router.post('/nurseries', middleware.isLoggedIn, (req: any, res) => {
+router.post('/nurseries', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;
   // GEOLOCATION
@@ -54,10 +54,10 @@ router.post('/nurseries', middleware.isLoggedIn, (req: any, res) => {
         console.log(err);
       } else {
         // SET OWNERSHIP
-        createdNursery.owner.id = req.user._id;
+        createdNursery.owner.id = req.user?._id;
         createdNursery.save();
         // ADD TO USER
-        User.findById(req.user._id, (err, foundUser) => {
+        User.findById(req.user?._id, (err, foundUser) => {
           if (err) {
             console.log(err);
           } else {
@@ -75,7 +75,7 @@ router.post('/nurseries', middleware.isLoggedIn, (req: any, res) => {
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', middleware.isLoggedIn, (req, res) => {
+router.get('/nurseries/:id', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // DO OWNERSHIP MODEL
   // FIND NURSERY
   Nursery.findById(req.params.id)
@@ -91,7 +91,7 @@ router.get('/nurseries/:id', middleware.isLoggedIn, (req, res) => {
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', middleware.isLoggedIn, (req, res) => {
+router.get('/nurseries/:id/edit', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND NURSERY
   Nursery.findById(req.params.id, (err, foundNursery) => {
     if (err) {
@@ -103,7 +103,7 @@ router.get('/nurseries/:id/edit', middleware.isLoggedIn, (req, res) => {
 });
 
 // NURSERY UPDATE
-router.put('/nurseries/:id', middleware.isLoggedIn, (req, res) => {
+router.put('/nurseries/:id', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;

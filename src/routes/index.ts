@@ -1,5 +1,5 @@
 import express from 'express';
-import User from '../models/user';
+import User, { IUserSchema } from '../models/user';
 import Parcel from '../models/parcel';
 import Activity from '../models/activity';
 import middleware from '../middleware'; // Will automatically require the middleware "index" file as the standard
@@ -9,64 +9,64 @@ import middleware from '../middleware'; // Will automatically require the middle
 const router = express.Router();
 
 // ROOT ROUTE
-router.get('/', (req, res) => {
+router.get('/', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('login', { user: req.oidc.user });
 });
 
 // ABOUT ROUTE
-router.get('/about', (req, res) => {
+router.get('/about', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('about');
 });
 
 // TERMS ROUTE
-router.get('/terms', (req, res) => {
+router.get('/terms', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('terms');
 });
 
 // PRIVACY ROUTE
-router.get('/privacy', (req, res) => {
+router.get('/privacy', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('privacy');
 });
 
 // FEEDBACK ROUTE
-router.get('/feedback', middleware.isLoggedIn, (req, res) => {
+router.get('/feedback', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('feedback');
 });
 
 // COMPOSITION ROUTE
-router.get('/composition', middleware.isLoggedIn, (req, res) => {
+router.get('/composition', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('composition');
 });
 
 // SUCCESSION ROUTE
-router.get('/succession', middleware.isLoggedIn, (req, res) => {
+router.get('/succession', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('succession');
 });
 
 // QUESTIONNAIRE ROUTE
-router.get('/questionnaire', (req, res) => {
+router.get('/questionnaire', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('questionnaire');
 });
 
 // SUPPORT ROUTE
-router.get('/support', (req, res) => {
+router.get('/support', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('support');
 });
 
 // PLANNING ROUTE
-router.get('/planning', middleware.isLoggedIn, (req, res) => {
+router.get('/planning', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('planning');
 });
 
 // DASHBOARD ROUTE
-router.get('/dashboard', middleware.isLoggedIn, (req, res) => {
+router.get('/dashboard', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // @ts-ignore
-  Parcel.find({ 'owner.id': req.user._id }, (err, allParcels) => {
+  Parcel.find({ 'owner.id': req.user?._id }, (err, allParcels) => {
     if (err) {
       console.log(err);
     } else {
       // @ts-ignore
-      Activity.find({ 'owner.id': req.user._id }, (err, allActivities) => {
+      Activity.find({ 'owner.id': req.user?._id }, (err, allActivities) => {
         if (err) {
           console.log(err);
         } else {
@@ -80,26 +80,26 @@ router.get('/dashboard', middleware.isLoggedIn, (req, res) => {
 });
 
 // NEW USER ROUTE
-// router.get("/users/new", function(req, res){
+// router.get("/users/new", function(req: express.Request & { user?: IUserSchema}, res: express.Response){
 //     logger.info('Sign up page requested', {timestamp: Date.now()});
 //     res.render("users/new");
 // });
 
 // robots.txt
-router.get('/robots.txt', (req, res) => {
+router.get('/robots.txt', (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.type('text/plain');
   res.send('User-agent: *\nDisallow: /');
 });
 
 // ADMIN PANEL
-router.get('/admindash', middleware.adminIsLoggedIn, (req, res) => {
+router.get('/admindash', middleware.adminIsLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // GET LOGS
 
   res.render('admin');
 });
 
 // SHOW USER ROUTE
-router.get('/users/:id', middleware.checkUserOwnership, (req, res) => {
+router.get('/users/:id', middleware.checkUserOwnership, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   User.findById(req.params.id).populate('parcels').exec((err, foundUser) => {
     if (err) {
       console.log(err);
@@ -110,7 +110,7 @@ router.get('/users/:id', middleware.checkUserOwnership, (req, res) => {
 });
 
 // USER EDIT ROUTE
-router.get('/users/:id/edit', middleware.checkUserOwnership, (req, res) => {
+router.get('/users/:id/edit', middleware.checkUserOwnership, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   User.findById(req.params.id, (err, foundUser) => {
     if (err) {
       console.log(err);
@@ -121,7 +121,7 @@ router.get('/users/:id/edit', middleware.checkUserOwnership, (req, res) => {
 });
 
 // USER UPDATE ROUTE
-router.put('/users/:id', middleware.checkUserOwnership, (req, res) => {
+router.put('/users/:id', middleware.checkUserOwnership, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   User.findByIdAndUpdate(req.params.id, req.body.user, (err) => {
     if (err) {
       // flash with updatedUser
@@ -134,7 +134,7 @@ router.put('/users/:id', middleware.checkUserOwnership, (req, res) => {
 });
 
 // USER DELETE ROUTE
-// router.delete("/users/:id", middleware.checkUserOwnership, async function(req, res){
+// router.delete("/users/:id", middleware.checkUserOwnership, async function(req: express.Request & { user?: IUserSchema}, res: express.Response){
 //     try {
 
 //         let user = await User.findByIdAndRemove(req.params.id);
@@ -151,9 +151,9 @@ router.put('/users/:id', middleware.checkUserOwnership, (req, res) => {
 // });
 
 // SET CURRENTPROJECT //
-router.post('/users/:id/currentproject/', middleware.checkUserOwnership, (req, res) => {
+router.post('/users/:id/currentproject/', middleware.checkUserOwnership, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // @ts-ignore
-  User.findById(req.user._id, (err, foundUser) => {
+  User.findById(req.user?._id, (err, foundUser) => {
     if (err) {
       console.log(err);
     } else {
@@ -172,7 +172,7 @@ router.post('/users/:id/currentproject/', middleware.checkUserOwnership, (req, r
 });
 
 // PARCEL STATUS PAGE
-router.get('/parcels/:id/status', middleware.isLoggedIn, (req, res) => {
+router.get('/parcels/:id/status', middleware.isLoggedIn, (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PARCEL
   Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'soiltests' } }).exec((err, foundParcel) => {
     if (err) {
