@@ -1094,38 +1094,34 @@ router.get(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Layer.findById(req.params.id)
-      .populate({ path: 'rows', populate: { path: 'sequence' } })
-      .exec((err, foundLayer) => {
-        if (err) {
+    try {
+      const foundLayer = await Layer.findById(req.params.id)
+        .populate({ path: 'rows', populate: { path: 'sequence' } })
+        .exec();
+      // FIND ROW
+      try {
+        const foundRow = await Row.findById(req.params.pid)
+          .populate('sequence')
+          .exec();
+        // FIND MY SYSTEMS
+        try {
+          const foundSequences = await Sequence.find(
+            { 'owner.id': req.user?._id },
+          );
+          res.render('layers/editrow', {
+            layer: foundLayer,
+            row: foundRow,
+            sequences: foundSequences,
+          });
+        } catch (err) {
           console.log(err);
-        } else {
-          // FIND ROW
-          Row.findById(req.params.pid)
-            .populate('sequence')
-            .exec((err, foundRow) => {
-              if (err) {
-                console.log(err);
-              } else {
-                // FIND MY SYSTEMS
-                Sequence.find(
-                  { 'owner.id': req.user?._id },
-                  (err, foundSequences) => {
-                    if (err) {
-                      console.log(err);
-                    } else {
-                      res.render('layers/editrow', {
-                        layer: foundLayer,
-                        row: foundRow,
-                        sequences: foundSequences,
-                      });
-                    }
-                  },
-                );
-              }
-            });
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
