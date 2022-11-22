@@ -13,13 +13,6 @@ if(!!document.getElementById("layerMapNew")){
         subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(mylayermapnew);
 
-    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        id: 'mapbox.satellite',
-        accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);*/
-
 // FeatureGroup is to store editable layers
     var editableLayers = new L.FeatureGroup();
     mylayermapnew.addLayer(editableLayers);
@@ -83,13 +76,6 @@ if(!!document.getElementById("rowMapNew")){
         maxZoom: 21,
         subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(mylayermapnew);
-
-    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        id: 'mapbox.satellite',
-        accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);*/
 
 // FeatureGroup is to store editable layers
     var editableLayers = new L.FeatureGroup();
@@ -155,13 +141,6 @@ if(!!document.getElementById("splitMapNew")){
         maxZoom: 21,
         subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(mylayermapnew);
-
-    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        id: 'mapbox.satellite',
-        accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);*/
 
     L.geoJSON(correctgeometry).addTo(mylayermapnew);
 
@@ -230,13 +209,6 @@ if(!!document.getElementById("wellMapNew")){
         subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(mylayermapnew);
 
-    /*L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        id: 'mapbox.satellite',
-        accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
-    }).addTo(mylayermapnew);*/
-
 // FeatureGroup is to store editable layers
     var editableLayers = new L.FeatureGroup();
     mylayermapnew.addLayer(editableLayers);
@@ -295,11 +267,10 @@ if(!!document.getElementById("map3")){
     // SHOW LAYER GEOMETRY MAP
     var mylayermapshow = L.map('map3').setView([51.505, -0.09], 17);
 
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox.satellite',
-        accessToken: 'pk.eyJ1IjoicmVnZW5mYXJtZXIiLCJhIjoiY2puazNiNTJrMHp6MjN2dGExZmx3Y2xidSJ9.w9Hya5NzRLZZO3FcS1rDyA'
+    L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        attribution: 'Map data &copy; contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.google.com/">Google</a>',
+        maxZoom: 21,
+        subdomains:['mt0','mt1','mt2','mt3']
     }).addTo(mylayermapshow);
 }
 
