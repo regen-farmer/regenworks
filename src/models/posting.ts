@@ -11,14 +11,14 @@ export interface IPostingSchema extends Document {
 }
 
 // POSTING SCHEMA SETUP
-var postingSchema = new Schema<IPostingSchema>({
-    name: String,
-    postType: String,
-    amount: Number,
-    value: Number,
-    year: Number,
-    month: Number,
-    date: Number
+const postingSchema = new Schema<IPostingSchema>({
+  name: String,
+  postType: String,
+  amount: Number,
+  value: Number,
+  year: Number,
+  month: Number,
+  date: Number,
 });
 
-export default model("Posting", postingSchema);
+export default model('Posting', postingSchema);

@@ -1,191 +1,192 @@
-import express from 'express'
-var router = express.Router()
-import Asset from '../models/asset'
-import Layer from '../models/layer'
-import Project, { IProjectSchema } from '../models/project'
-import Species from '../models/species'
-import middleware from '../middleware'
+import express from 'express';
+import Asset from '../models/asset';
+import Layer from '../models/layer';
+import Project from '../models/project';
+import Species from '../models/species';
+import middleware from '../middleware';
+
+const router = express.Router();
 
 // ASSET INDEX ROUTE
-router.get('/assets', middleware.adminIsLoggedIn, function (req: any, res) {
+router.get('/assets', middleware.adminIsLoggedIn, (req: any, res) => {
   // Get all assets from DB
-  Asset.find({ 'owner.id': req.user._id }, function (err, allAssets) {
+  Asset.find({ 'owner.id': req.user._id }, (err, allAssets) => {
     if (err) {
-      console.log(err)
+      console.log(err);
     } else {
-      res.render('assets/index', { assets: allAssets })
+      res.render('assets/index', { assets: allAssets });
     }
-  })
-})
+  });
+});
 
 // ASSET NEW ROUTE
-router.get('/assets/new', middleware.isLoggedIn, function (req: any, res) {
-  Layer.find({ 'owner.id': req.user._id }, function (err, foundLayers) {
+router.get('/assets/new', middleware.isLoggedIn, (req: any, res) => {
+  Layer.find({ 'owner.id': req.user._id }, (err, foundLayers) => {
     if (err) {
-      console.log(err)
+      console.log(err);
     } else {
       // console.log("Reached this far");
       // foundLayers.forEach(function(layer){
       //     console.log(layer.id);
       // });
-      res.render('assets/new', { layers: foundLayers })
+      res.render('assets/new', { layers: foundLayers });
     }
-  })
-})
+  });
+});
 
 // ASSET CREATE ROUTE
-router.post('/assets', middleware.isLoggedIn, function (req: any, res) {
+router.post('/assets', middleware.isLoggedIn, (req: any, res) => {
   // Create a new experience
-  Asset.create(req.body.asset, function (err, createdAsset) {
+  Asset.create(req.body.asset, (err, createdAsset) => {
     if (err) {
-      console.log(err)
+      console.log(err);
     } else {
       // Add ID to experience
-      createdAsset.owner.id = req.user._id
+      createdAsset.owner.id = req.user._id;
       // Save the asset - Not needed if created after this step
-      createdAsset.save()
-      res.redirect('/assets')
+      createdAsset.save();
+      res.redirect('/assets');
     }
-  })
-})
+  });
+});
 
 // ASSET SHOW ROUTES
-router.get('/assets/:id', middleware.isLoggedIn, function (req, res) {
+router.get('/assets/:id', middleware.isLoggedIn, (req, res) => {
   // Find specific asset
   Asset.findById(req.params.id)
     .populate('layer')
-    .exec(function (err, foundAsset) {
+    .exec((err, foundAsset) => {
       if (err) {
-        console.log(err)
+        console.log(err);
       } else {
-        res.render('assets/show', { asset: foundAsset })
+        res.render('assets/show', { asset: foundAsset });
       }
-    })
-})
+    });
+});
 
 // ASSET EDIT ROUTE
 router.get(
   '/assets/:id/edit',
   middleware.isLoggedIn,
-  async function (req, res) {
+  async (req, res) => {
     // FIND ASSET AND RENDER EDIT PAGE
     try {
-      let foundAsset = await Asset.findById(req.params.id)
+      const foundAsset = await Asset.findById(req.params.id)
         .populate('species')
-        .exec()
+        .exec();
       if (foundAsset) {
         // GET ALL SPECIES!!
         try {
-          let foundSpecies = await Species.find()
-          console.log(foundAsset.species)
-          console.log(foundSpecies[0])
+          const foundSpecies = await Species.find();
+          console.log(foundAsset.species);
+          console.log(foundSpecies[0]);
           res.render('assets/edit', {
             asset: foundAsset,
             species: foundSpecies,
-          })
+          });
         } catch (err) {
-          console.log(err)
+          console.log(err);
         }
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
-  }
-)
+  },
+);
 
 // ASSET UPDATE ROUTE
-router.put('/assets/:id', middleware.isLoggedIn, async function (req, res) {
+router.put('/assets/:id', middleware.isLoggedIn, async (req, res) => {
   // UPDATE ASSET
   try {
-    let updatedAsset = await Asset.findByIdAndUpdate(
+    const updatedAsset = await Asset.findByIdAndUpdate(
       req.params.id,
-      req.body.asset
-    )
+      req.body.asset,
+    );
     if (updatedAsset) {
-      res.redirect('/assets/' + updatedAsset._id)
+      res.redirect(`/assets/${updatedAsset._id}`);
     } else {
-      console.log('Asset not updated')
+      console.log('Asset not updated');
     }
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-})
+});
 
 // ASSET DELETE ROUTE
-router.delete('/assets/:id', middleware.isLoggedIn, async function (req, res) {
+router.delete('/assets/:id', middleware.isLoggedIn, async (req, res) => {
   // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // FIND ASSET
   try {
-    let foundAsset = await Asset.findById(req.params.id)
-    console.log(foundAsset)
+    const foundAsset = await Asset.findById(req.params.id);
+    console.log(foundAsset);
     // REMOVE ASSET FROM PROJECT
     if (foundAsset) {
       try {
-        let foundProject = await Project.findOne({ assets: foundAsset._id })
+        const foundProject = await Project.findOne({ assets: foundAsset._id });
         if (foundProject) {
           try {
-            let updatedProject = await Project.findByIdAndUpdate(
+            await Project.findByIdAndUpdate(
               foundProject._id,
-              { $pull: { assets: foundAsset._id } }
-            )
+              { $pull: { assets: foundAsset._id } },
+            );
 
             // DELETE ASSET
             try {
-              await Asset.findByIdAndRemove(req.params.id)
-              res.redirect('/projects/' + foundProject._id)
+              await Asset.findByIdAndRemove(req.params.id);
+              res.redirect(`/projects/${foundProject._id}`);
             } catch (err) {
-              console.log(err)
-              res.redirect('/assets')
+              console.log(err);
+              res.redirect('/assets');
             }
           } catch (err) {
-            console.log(err)
+            console.log(err);
           }
         }
       } catch (err) {
-        console.log(err)
+        console.log(err);
       }
     }
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-})
+});
 
 // AREA ASSET NEW ROUTE
 router.get(
   '/layers/:id/assets/new',
   middleware.isLoggedIn,
-  function (req, res) {
-    Layer.findById(req.params.id, function (err, foundLayer) {
+  (req, res) => {
+    Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
-        console.log(err)
+        console.log(err);
       } else {
-        res.render('assets/new', { layer: foundLayer })
+        res.render('assets/new', { layer: foundLayer });
       }
-    })
-  }
-)
+    });
+  },
+);
 
 // AREA ASSET CREATE ROUTE
 router.post(
   '/layers/:id/assets',
   middleware.isLoggedIn,
-  function (req: any, res) {
-    Layer.findById(req.params.id, function (err, foundLayer) {
+  (req: any, res) => {
+    Layer.findById(req.params.id, (err, foundLayer) => {
       if (err) {
-        console.log(err)
+        console.log(err);
       } else {
-        Asset.create(req.body.asset, function (err, createdAsset) {
+        Asset.create(req.body.asset, (err, createdAsset) => {
           // Add user ID to experience
-          createdAsset.owner.id = req.user._id
-          createdAsset.save()
+          createdAsset.owner.id = req.user._id;
+          createdAsset.save();
           // ADD ASSET TO LAYER
-          foundLayer.assets.push(createdAsset)
+          foundLayer.assets.push(createdAsset);
           // REDIRECT TO
-          res.redirect('/layers/' + foundLayer._id)
-        })
+          res.redirect(`/layers/${foundLayer._id}`);
+        });
       }
-    })
-  }
-)
+    });
+  },
+);
 
-export default router
+export default router;

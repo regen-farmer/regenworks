@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { IPostingSchema } from './posting';
 import { IUserSchema } from './user';
 
@@ -12,21 +12,21 @@ export interface IBudgetSchema extends Document {
 }
 
 // BUDGET SCHEMA SETUP
-var budgetSchema = new Schema<IBudgetSchema>({
-    postings: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Posting"
-        }
-    ],
-    owner: {
-        id: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
+const budgetSchema = new Schema<IBudgetSchema>({
+  postings: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Posting',
     },
-    currency: String,
-    name: String
+  ],
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
+  currency: String,
+  name: String,
 });
 
-export default model("Budget", budgetSchema);
+export default model('Budget', budgetSchema);

@@ -1,4 +1,4 @@
-import { Document, model, Schema, Types } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { ISystemSchema } from './system';
 
@@ -19,26 +19,26 @@ export interface ISystemflowSchema extends Document {
 }
 
 // SYSTEM FLOW SCHEMA SETUP
-var systemflowSchema = new Schema<ISystemflowSchema>({
-    name: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    location: String,
-    data: [
-        {
-            species: {
-                type: Schema.Types.ObjectId,
-                ref: "Species"
-            },
-            data: [Number]
-        }
-    ],
-    source: String,
-    systemref: {
+const systemflowSchema = new Schema<ISystemflowSchema>({
+  name: String,
+  type: String,
+  unit: String,
+  timeframe: String,
+  location: String,
+  data: [
+    {
+      species: {
         type: Schema.Types.ObjectId,
-        ref: "System"
-    }
+        ref: 'Species',
+      },
+      data: [Number],
+    },
+  ],
+  source: String,
+  systemref: {
+    type: Schema.Types.ObjectId,
+    ref: 'System',
+  },
 });
 
-export default model("Systemflow", systemflowSchema);
+export default model('Systemflow', systemflowSchema);

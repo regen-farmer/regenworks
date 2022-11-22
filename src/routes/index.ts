@@ -1,83 +1,82 @@
-import express from "express";
-var router = express.Router();
-import User from "../models/user";
-import Parcel from "../models/parcel";
-import Activity from "../models/activity";
-import middleware from "../middleware"; // Will automatically require the middleware "index" file as the standard
+import express from 'express';
+import User from '../models/user';
+import Parcel from '../models/parcel';
+import Activity from '../models/activity';
+import middleware from '../middleware'; // Will automatically require the middleware "index" file as the standard
 
-import logger from "../middleware/logger";
+// import logger from '../middleware/logger';
+
+const router = express.Router();
 
 // ROOT ROUTE
-router.get("/", function(req, res){
-    res.render("login", {user: req.oidc.user})
+router.get('/', (req, res) => {
+  res.render('login', { user: req.oidc.user });
 });
 
 // ABOUT ROUTE
-router.get("/about", function(req, res){
-    res.render("about");
+router.get('/about', (req, res) => {
+  res.render('about');
 });
 
 // TERMS ROUTE
-router.get("/terms", function(req, res){
-    res.render("terms");
+router.get('/terms', (req, res) => {
+  res.render('terms');
 });
 
 // PRIVACY ROUTE
-router.get("/privacy", function(req, res){
-    res.render("privacy");
+router.get('/privacy', (req, res) => {
+  res.render('privacy');
 });
 
 // FEEDBACK ROUTE
-router.get("/feedback", middleware.isLoggedIn, function(req, res){
-    res.render("feedback");
+router.get('/feedback', middleware.isLoggedIn, (req, res) => {
+  res.render('feedback');
 });
 
 // COMPOSITION ROUTE
-router.get("/composition", middleware.isLoggedIn, function(req, res){
-    res.render("composition");
+router.get('/composition', middleware.isLoggedIn, (req, res) => {
+  res.render('composition');
 });
 
 // SUCCESSION ROUTE
-router.get("/succession", middleware.isLoggedIn, function(req, res){
-    res.render("succession");
+router.get('/succession', middleware.isLoggedIn, (req, res) => {
+  res.render('succession');
 });
 
 // QUESTIONNAIRE ROUTE
-router.get("/questionnaire", function(req, res){
-    res.render("questionnaire");
+router.get('/questionnaire', (req, res) => {
+  res.render('questionnaire');
 });
 
 // SUPPORT ROUTE
-router.get("/support", function(req, res){
-    res.render("support");
+router.get('/support', (req, res) => {
+  res.render('support');
 });
 
 // PLANNING ROUTE
-router.get("/planning", middleware.isLoggedIn, function(req, res){
-    res.render("planning");
+router.get('/planning', middleware.isLoggedIn, (req, res) => {
+  res.render('planning');
 });
 
 // DASHBOARD ROUTE
-router.get("/dashboard", middleware.isLoggedIn, function(req, res){
-    //@ts-ignore
-    Parcel.find({'owner.id': req.user._id}, function(err, allParcels){
-        if(err) {
-            console.log(err);
+router.get('/dashboard', middleware.isLoggedIn, (req, res) => {
+  // @ts-ignore
+  Parcel.find({ 'owner.id': req.user._id }, (err, allParcels) => {
+    if (err) {
+      console.log(err);
+    } else {
+      // @ts-ignore
+      Activity.find({ 'owner.id': req.user._id }, (err, allActivities) => {
+        if (err) {
+          console.log(err);
         } else {
-            //@ts-ignore
-            Activity.find({'owner.id': req.user._id}, function(err, allActivities){
-                if(err) {
-                    console.log(err);
-                } else {
-                    allActivities.sort(function(a, b){
-                        return Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString());
-                    });
-                    allActivities.slice(0,4);
-                    res.render("dashboard", {activities: allActivities, parcels: allParcels});
-                }
-            });
+          allActivities.sort((a, b) => Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString()));
+          allActivities.slice(0, 4);
+          res.render('dashboard', { activities: allActivities, parcels: allParcels });
         }
-    });
+      });
+    }
+  });
 });
 
 // NEW USER ROUTE
@@ -87,52 +86,51 @@ router.get("/dashboard", middleware.isLoggedIn, function(req, res){
 // });
 
 // robots.txt
-router.get('/robots.txt', function (req, res) {
-    res.type('text/plain');
-    res.send("User-agent: *\nDisallow: /");
+router.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('User-agent: *\nDisallow: /');
 });
 
 // ADMIN PANEL
-router.get("/admindash", middleware.adminIsLoggedIn, function(req, res){
-    // GET LOGS
+router.get('/admindash', middleware.adminIsLoggedIn, (req, res) => {
+  // GET LOGS
 
-    res.render("admin")
+  res.render('admin');
 });
 
-
 // SHOW USER ROUTE
-router.get("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id).populate("parcels").exec(function(err, foundUser){
-        if(err) {
-            console.log(err);
-        } else {
-            res.render("users/show", {user: foundUser});
-        }
-    });
+router.get('/users/:id', middleware.checkUserOwnership, (req, res) => {
+  User.findById(req.params.id).populate('parcels').exec((err, foundUser) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('users/show', { user: foundUser });
+    }
+  });
 });
 
 // USER EDIT ROUTE
-router.get("/users/:id/edit", middleware.checkUserOwnership, function(req, res){
-    User.findById(req.params.id, function(err, foundUser){
-        if(err) {
-            console.log(err);
-        } else {
-            res.render("users/edit", {user: foundUser});
-        }
-    });
+router.get('/users/:id/edit', middleware.checkUserOwnership, (req, res) => {
+  User.findById(req.params.id, (err, foundUser) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('users/edit', { user: foundUser });
+    }
+  });
 });
 
 // USER UPDATE ROUTE
-router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
-    User.findByIdAndUpdate(req.params.id, req.body.user, function(err, updatedUser){
-        if (err) {
-            // flash with updatedUser
-            console.log(err);
-        } else {
-            // flash with updatedUser
-            res.redirect("/users/" + req.params.id);
-        }
-    });
+router.put('/users/:id', middleware.checkUserOwnership, (req, res) => {
+  User.findByIdAndUpdate(req.params.id, req.body.user, (err) => {
+    if (err) {
+      // flash with updatedUser
+      console.log(err);
+    } else {
+      // flash with updatedUser
+      res.redirect(`/users/${req.params.id}`);
+    }
+  });
 });
 
 // USER DELETE ROUTE
@@ -140,7 +138,7 @@ router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
 //     try {
 
 //         let user = await User.findByIdAndRemove(req.params.id);
-        
+
 //         // Flash message
 //         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
 //         res.redirect("/logout");
@@ -152,39 +150,38 @@ router.put("/users/:id", middleware.checkUserOwnership, function(req, res){
 //     }
 // });
 
-
 // SET CURRENTPROJECT //
-router.post("/users/:id/currentproject/", middleware.checkUserOwnership, function(req, res){
-    //@ts-ignore
-    User.findById(req.user._id, function(err, foundUser){
-        if(err) {
-            console.log(err);
+router.post('/users/:id/currentproject/', middleware.checkUserOwnership, (req, res) => {
+  // @ts-ignore
+  User.findById(req.user._id, (err, foundUser) => {
+    if (err) {
+      console.log(err);
+    } else {
+      Parcel.findById(req.body.parcelid, (err, foundParcel) => {
+        if (err) {
+          console.log(err);
         } else {
-            Parcel.findById(req.body.parcelid, function(err, foundParcel) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    foundUser.currentProject = foundParcel;
-                    foundUser.save();
-                    console.log(foundParcel.name + " has been set to active project");
-                    res.redirect("/parcels/" + foundParcel._id);
-                }
-            });
+          foundUser.currentProject = foundParcel;
+          foundUser.save();
+          console.log(`${foundParcel.name} has been set to active project`);
+          res.redirect(`/parcels/${foundParcel._id}`);
         }
-    });
+      });
+    }
+  });
 });
 
 // PARCEL STATUS PAGE
-router.get("/parcels/:id/status", middleware.isLoggedIn, function(req, res){
-    // FIND PARCEL
-    Parcel.findById(req.params.id).populate({path:'layers', populate:{path: 'soiltests'}}).exec(function(err, foundParcel){
-        if(err){
-            console.log(err);
-        } else {
-            // RENDER ACTIVITIES
-            res.render("status", {parcel: foundParcel})
-        }
-    });
+router.get('/parcels/:id/status', middleware.isLoggedIn, (req, res) => {
+  // FIND PARCEL
+  Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'soiltests' } }).exec((err, foundParcel) => {
+    if (err) {
+      console.log(err);
+    } else {
+      // RENDER ACTIVITIES
+      res.render('status', { parcel: foundParcel });
+    }
+  });
 });
 
 export default router;
