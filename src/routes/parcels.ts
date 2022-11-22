@@ -29,13 +29,12 @@ const geocoder = NodeGeocoder(options);
 // PARCEL INDEX ROUTE
 router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Get all parcels from DB
-  Parcel.find({ 'owner.id': req.user?._id }, (err, allUserParcels) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('parcels/index', { parcels: allUserParcels });
-    }
-  });
+  try {
+    const allUserParcels = await Parcel.find({ 'owner.id': req.user?._id });
+    res.render('parcels/index', { parcels: allUserParcels });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PARCEL NEW ROUTE
@@ -198,11 +197,10 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
 
       console.log(`${newlyCreated} added`);
       // Find user based on ID
-      User.findById(newlyCreated.owner.id, (err, foundUser) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // Add the parcel to the users parcels for referencing
+      try {
+        const foundUser = await User.findById(newlyCreated.owner.id);
+        // Add the parcel to the users parcels for referencing
+        if (foundUser) {
           foundUser.parcels.push(newlyCreated);
           foundUser.currentProject = newlyCreated;
           foundUser.save();
@@ -214,7 +212,9 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
           // req.flash("success", "You have successfully created a new parcel");
           res.redirect(`/parcels/${newlyCreated._id}/layers/new`);
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       // req.flash("error", "Something went wrong");
       console.log(err);
@@ -310,7 +310,7 @@ router.put(
     // UPDATE PARCEL
     const parcel = req.body.parcel;
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.parcel.location, (err, data) => {
+    geocoder.geocode(req.body.parcel.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
         console.log(data);
@@ -320,18 +320,16 @@ router.put(
       parcel.lng = data[0].longitude;
       parcel.location = data[0].formattedAddress;
       // UPDATE PARCEL
-      Parcel.findByIdAndUpdate(
-        req.params.id,
-        parcel,
-        (err, updatedParcel) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(updatedParcel);
-            res.redirect(`/parcels/${req.params.id}`);
-          }
-        },
-      );
+      try {
+        const updatedParcel = await Parcel.findByIdAndUpdate(
+          req.params.id,
+          parcel,
+        );
+        console.log(updatedParcel);
+        res.redirect(`/parcels/${req.params.id}`);
+      } catch (err) {
+        console.log(err);
+      }
     });
   },
 );
@@ -408,10 +406,9 @@ router.get(
   '/parcels/:id/climate',
   middleware.checkParcelOwnership,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    Parcel.findById(req.params.id, (err, foundParcel) => {
-      if (err) {
-        console.log(err);
-      } else {
+    try {
+      const foundParcel = await Parcel.findById(req.params.id);
+      if (foundParcel) {
         geocoder.geocode(foundParcel.location, (err, data) => {
           if (err || !data.length) {
             console.log(err);
@@ -445,7 +442,9 @@ router.get(
           );
         });
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -503,16 +502,7 @@ router.get(
         // GENERATE ROWS AND TREES
         const treeAssetsArray: any[] = [];
         const treeMarkerArray: any[] = [];
-        // SORT FIRST ROW ITEMS
-        function compare1(a, b) {
-          if (a.position < b.position) {
-            return -1;
-          }
-          if (a.position > b.position) {
-            return 1;
-          }
-          return 0;
-        }
+
         // CYCLE THROUGH EACH LAYER
         for (let j = 0; j < foundParcel.layers.length; j++) {
           // CYCLE THROUGH EACH ROW OF EACH LAYER
@@ -533,7 +523,15 @@ router.get(
                           }
                       }); */
               // SORT ROW ITEMS
-              datasetRows.sort(compare1);
+              datasetRows.sort((a, b) => {
+                if (a.position < b.position) {
+                  return -1;
+                }
+                if (a.position > b.position) {
+                  return 1;
+                }
+                return 0;
+              });
               // ROW LENGTH
               const rowLine = JSON.parse(foundParcel.layers[j].rows[i].geometry);
               const rowLength = turfLength(rowLine, { units: 'meters' });

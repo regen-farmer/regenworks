@@ -444,9 +444,13 @@ router.get(
           }
           foundAnimals.sort(compare1);
           // FIND ROWS IN SYSTEM
-          const allSpecies: any[] = [];
-          const dataset: any[] = [];
-          const distanceArray: any[] = [];
+          const allSpecies: ISpeciesSchema[] = [];
+          const dataset: {row: number, array: {
+            species: ISpeciesSchema;
+            position: number[];
+            width: number;
+        }[]}[] = [];
+          const distanceArray: number[] = [];
           foundSystem.model.forEach((species) => {
             allSpecies.push(species.species);
             distanceArray.push(species.position[1]);
@@ -467,22 +471,22 @@ router.get(
           // FIND UNIQUE SPECIES / REMOVE DUPLICATES
           // const uniqueSpecies = unique(allSpecies);
           // SORT FIRST ROW ITEMS
-          function compare2(a, b) {
-            if (a.position[1] < b.position[1]) {
-              return -1;
-            }
-            if (a.position[1] > b.position[1]) {
-              return 1;
-            }
-            return 0;
-          }
+
           for (let i = 0; i < dataset.length; i++) {
-            dataset[i].array.sort(compare2);
+            dataset[i].array.sort((a, b) => {
+              if (a.position[1] < b.position[1]) {
+                return -1;
+              }
+              if (a.position[1] > b.position[1]) {
+                return 1;
+              }
+              return 0;
+            });
             console.log(dataset[i].array[0]);
           }
           const rows = dataset;
           // CALCULATE DISTANCE
-          const distanceDifference: any[] = [];
+          const distanceDifference: number[] = [];
           for (let i = 0; i < distanceArray.length; i++) {
             for (let j = 0; j < distanceArray.length; j++) {
               if (distanceArray[i] !== distanceArray[j]) {

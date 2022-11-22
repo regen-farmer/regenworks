@@ -18,14 +18,13 @@ const geocoder = NodeGeocoder(options);
 // NURSERY INDEX
 router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND NURSERY BASED ON USER
-  Nursery.find({ 'owner.id': req.user?._id }, (err, foundNurseries) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(foundNurseries.length);
-      res.render('nurseries/index', { nurseries: foundNurseries });
-    }
-  });
+  try {
+    const foundNurseries = await Nursery.find({ 'owner.id': req.user?._id });
+    console.log(foundNurseries.length);
+    res.render('nurseries/index', { nurseries: foundNurseries });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NURSERY NEW
@@ -39,7 +38,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;
   // GEOLOCATION
-  geocoder.geocode(req.body.nursery.location, (err, data) => {
+  geocoder.geocode(req.body.nursery.location, async (err, data) => {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
@@ -49,28 +48,28 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     newNursery.lat = data[0].latitude;
     newNursery.lng = data[0].longitude;
     newNursery.location = data[0].formattedAddress;
-    Nursery.create(newNursery, (err, createdNursery) => {
-      if (err) {
+    try {
+      const createdNursery = await Nursery.create(newNursery);
+      // SET OWNERSHIP
+      createdNursery.owner.id = req.user?._id;
+      createdNursery.save();
+      // ADD TO USER
+      try {
+        const foundUser = await User.findById(req.user?._id);
+        // Add the parcel to the users parcels for referencing
+        if (foundUser) {
+          foundUser.nurseries.push(createdNursery);
+          foundUser.save();
+          // REDIRECT
+          console.log(`Nursery created: ${createdNursery}`);
+          res.redirect(`/nurseries/${createdNursery._id}`);
+        }
+      } catch (err) {
         console.log(err);
-      } else {
-        // SET OWNERSHIP
-        createdNursery.owner.id = req.user?._id;
-        createdNursery.save();
-        // ADD TO USER
-        User.findById(req.user?._id, (err, foundUser) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // Add the parcel to the users parcels for referencing
-            foundUser.nurseries.push(createdNursery);
-            foundUser.save();
-            // REDIRECT
-            console.log(`Nursery created: ${createdNursery}`);
-            res.redirect(`/nurseries/${createdNursery._id}`);
-          }
-        });
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   });
 });
 
@@ -93,13 +92,12 @@ router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
 // NURSERY EDIT
 router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND NURSERY
-  Nursery.findById(req.params.id, (err, foundNursery) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('nurseries/edit', { nursery: foundNursery });
-    }
-  });
+  try {
+    const foundNursery = await Nursery.findById(req.params.id);
+    res.render('nurseries/edit', { nursery: foundNursery });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NURSERY UPDATE

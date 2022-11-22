@@ -41,7 +41,11 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   const calibrateDistance = 10 / (turfLength(distanceCalibrateLine.features[0], { units: 'meters' }));
   console.log(`Distance check ${calibrateDistance}`);
   // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
-  const edgeRowDataset: any[] = [];
+  const edgeRowDataset: {row: number, array: {
+    species: ISpeciesSchema;
+    position: number[];
+    width: number;
+}[]}[] = [];
   if (project.edgesystem) {
     // CALCULATE WIDTH - REFACTOR INTO MIDDLEWARE. USED TWICE IN THIS ROUTE
     project.edgesystem.model.forEach((species) => {
@@ -67,7 +71,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   console.log(`headland plus perimeter system: ${headland}`);
   const offsetPolygon = buffer(polygon, -headland * calibrateDistance, { units: 'meters' });
   // CREATE PERIMETER ROWS CENTER
-  const edgeRowWidthArray: any[] = [];
+  const edgeRowWidthArray: number[] = [];
   for (let i = 0; i < edgeRowDataset.length; i++) {
     let edgeRowArrayWidth = 0;
     if (i === 0) {
@@ -132,7 +136,10 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   // FIND UNIQUE SPECIES / REMOVE DUPLICATES
   const uniqueEdgeSpecies = unique(allEdgeSpeciesCopy);
   // UNIQUE ITEM COUNTS
-  const uniqueEdgeSpeciesCount: any[] = [];
+  const uniqueEdgeSpeciesCount: {
+    id: any;
+    uniqueCount: number;
+}[] = [];
   for (let i = 0; uniqueEdgeSpecies.length > i; i++) {
     let edgecount = 0;
     for (let j = 0; j < edgeTreeArray.length; j++) {

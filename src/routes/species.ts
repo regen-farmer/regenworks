@@ -25,14 +25,13 @@ router.get('/species/new', middleware.isLoggedIn, async (req: express.Request & 
 // SPECIES CREATE
 router.post('/species', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
-  Species.create(req.body.species, (err, createdSpecies) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(createdSpecies);
-      res.redirect('species');
-    }
-  });
+  try {
+    const createdSpecies = await Species.create(req.body.species);
+    console.log(createdSpecies);
+    res.redirect('species');
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // SPECIES SHOW
@@ -52,29 +51,26 @@ router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Reque
 // SPECIES EDIT
 router.get('/species/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // ONLY ADMIN ACCESS?
-  Species.findById(req.params.id, (err, foundSpecies) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('species/edit', { species: foundSpecies });
-    }
-  });
+  try {
+    const foundSpecies = await Species.findById(req.params.id);
+    res.render('species/edit', { species: foundSpecies });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // SPECIES UPDATE
 router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  Species.findByIdAndUpdate(
-    req.params.id,
-    req.body.species,
-    (err, updatedSpecies) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(updatedSpecies);
-        res.redirect(`/species/${req.params.id}`);
-      }
-    },
-  );
+  try {
+    const updatedSpecies = await Species.findByIdAndUpdate(
+      req.params.id,
+      req.body.species,
+    );
+    console.log(updatedSpecies);
+    res.redirect(`/species/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // SPECIES DELETE
@@ -84,13 +80,12 @@ router.get(
   '/species/:id/activities/new',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    Species.findById(req.params.id, (err, foundSpecies) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render('species/activity', { species: foundSpecies });
-      }
-    });
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      res.render('species/activity', { species: foundSpecies });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -128,10 +123,9 @@ router.get(
   '/species/:id/activities/edit',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    Species.findById(req.params.id, (err, foundSpecies) => {
-      if (err) {
-        console.log(err);
-      } else {
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      if (foundSpecies) {
         const activity = foundSpecies.activities[req.query.index];
         res.render('species/editactivity', {
           species: foundSpecies,
@@ -139,7 +133,9 @@ router.get(
           index: req.query.index,
         });
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -161,16 +157,17 @@ router.put(
       price: req.body.activity.price,
     };
     // FIND SPECIES
-    Species.findById(req.params.id, (err, updatedSpecies) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // CHANGE ACTIVITY DETAILS
+    try {
+      const updatedSpecies = await Species.findById(req.params.id);
+      if (updatedSpecies) {
+      // CHANGE ACTIVITY DETAILS
         updatedSpecies.activities[req.query.index] = activity;
         updatedSpecies.save();
         res.redirect(`/species/${updatedSpecies._id}`);
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -179,13 +176,12 @@ router.get(
   '/species/:id/nutrients/new',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    Species.findById(req.params.id, (err, foundSpecies) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render('species/nutrients', { species: foundSpecies });
-      }
-    });
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      res.render('species/nutrients', { species: foundSpecies });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 

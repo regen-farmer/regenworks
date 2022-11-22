@@ -28,34 +28,33 @@ router.get(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, (err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND ALL SPECIES
-        Species.find((err, allSpecies) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // SORT SPECIES
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND ALL SPECIES
+      Species.find((err, allSpecies) => {
+        if (err) {
+          console.log(err);
+        } else {
+          // SORT SPECIES
 
-            allSpecies.sort((a, b) => {
-              if (a.genus < b.genus) {
-                return -1;
-              }
-              if (a.genus > b.genus) {
-                return 1;
-              }
-              return 0;
-            });
-            res.render('nurseryproducts/new', {
-              nursery: foundNursery,
-              species: allSpecies,
-            });
-          }
-        });
-      }
-    });
+          allSpecies.sort((a, b) => {
+            if (a.genus < b.genus) {
+              return -1;
+            }
+            if (a.genus > b.genus) {
+              return 1;
+            }
+            return 0;
+          });
+          res.render('nurseryproducts/new', {
+            nursery: foundNursery,
+            species: allSpecies,
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -79,27 +78,27 @@ router.post(
       product.availability = true;
     }
     // FIND NURSERY
-    Nursery.findById(req.params.id, (err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // CREATE PRODUCT
-        NurseryProduct.create(product, (err, createdProduct) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // SET OWNERSHIP
-            createdProduct.owner.id = req.user?._id;
-            createdProduct.save();
-            // INSERT PRODUCT IN NURSERY
-            foundNursery.products.push(createdProduct);
-            foundNursery.save();
-            // REDIRECT TO NURSERY
-            res.redirect(`/nurseries/${foundNursery._id}`);
-          }
-        });
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // CREATE PRODUCT
+      if (foundNursery) {
+        try {
+          const createdProduct = await NurseryProduct.create(product);
+          // SET OWNERSHIP
+          createdProduct.owner.id = req.user?._id;
+          createdProduct.save();
+          // INSERT PRODUCT IN NURSERY
+          foundNursery.products.push(createdProduct);
+          foundNursery.save();
+          // REDIRECT TO NURSERY
+          res.redirect(`/nurseries/${foundNursery._id}`);
+        } catch (err) {
+          console.log(err);
+        }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -109,27 +108,26 @@ router.get(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, (err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND PRODUCT
-        NurseryProduct.findById(req.params.pid)
-          .populate('species')
-          .populate('rootstock')
-          .populate('hybrid')
-          .exec((err, foundProduct) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.render('nurseryproducts/show', {
-                nursery: foundNursery,
-                product: foundProduct,
-              });
-            }
-          });
-      }
-    });
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND PRODUCT
+      NurseryProduct.findById(req.params.pid)
+        .populate('species')
+        .populate('rootstock')
+        .populate('hybrid')
+        .exec((err, foundProduct) => {
+          if (err) {
+            console.log(err);
+          } else {
+            res.render('nurseryproducts/show', {
+              nursery: foundNursery,
+              product: foundProduct,
+            });
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -139,46 +137,45 @@ router.get(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, (err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND PRODUCT
-        NurseryProduct.findById(req.params.pid)
-          .populate('species')
-          .populate('rootstock')
-          .populate('hybrid')
-          .exec((err, foundProduct) => {
-            if (err) {
-              console.log(err);
-            } else {
-              // FIND ALL SPECIES
-              Species.find((err, allSpecies) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  // SORT SPECIES
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND PRODUCT
+      NurseryProduct.findById(req.params.pid)
+        .populate('species')
+        .populate('rootstock')
+        .populate('hybrid')
+        .exec((err, foundProduct) => {
+          if (err) {
+            console.log(err);
+          } else {
+            // FIND ALL SPECIES
+            Species.find((err, allSpecies) => {
+              if (err) {
+                console.log(err);
+              } else {
+                // SORT SPECIES
 
-                  allSpecies.sort((a, b) => {
-                    if (a.genus < b.genus) {
-                      return -1;
-                    }
-                    if (a.genus > b.genus) {
-                      return 1;
-                    }
-                    return 0;
-                  });
-                  res.render('nurseryproducts/edit', {
-                    nursery: foundNursery,
-                    product: foundProduct,
-                    species: allSpecies,
-                  });
-                }
-              });
-            }
-          });
-      }
-    });
+                allSpecies.sort((a, b) => {
+                  if (a.genus < b.genus) {
+                    return -1;
+                  }
+                  if (a.genus > b.genus) {
+                    return 1;
+                  }
+                  return 0;
+                });
+                res.render('nurseryproducts/edit', {
+                  nursery: foundNursery,
+                  product: foundProduct,
+                  species: allSpecies,
+                });
+              }
+            });
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
