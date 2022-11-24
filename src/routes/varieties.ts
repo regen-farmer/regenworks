@@ -58,7 +58,7 @@ router.post('/varieties', middleware.isLoggedIn, async (req: express.Request & {
 
   // SET OWNERSHIP
   createdVariety.owner.id = req.user?._id;
-  createdVariety.save();
+  await createdVariety.save();
   // REDIRECT TO USER
   res.redirect(`/users/${req.user?._id}`);
 });

@@ -298,7 +298,7 @@ router.post(
         try {
           const createdBudget = await Budget.create({});
           foundProject.budgets.establishment = createdBudget;
-          foundProject.save();
+          await foundProject.save();
           // PARSE QUERY
           const speciesPostings = req.body.speciespostings;
           const speciesPostingsArray: any[] = [];
@@ -542,7 +542,7 @@ router.post(
         try {
           const createdBudget = await Budget.create(budget);
           foundProject.budgets.management = createdBudget;
-          foundProject.save();
+          await foundProject.save();
           // PARSE QUERY
           const speciesPostings = req.body.speciespostings;
           const speciesPostingsArray: any[] = [];

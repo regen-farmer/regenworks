@@ -151,7 +151,7 @@ router.post('/users/:id/currentproject/', middleware.checkUserOwnership, async (
       const foundParcel = await Parcel.findById(req.body.parcelid);
       if (foundUser && foundParcel) {
         foundUser.currentProject = foundParcel;
-        foundUser.save();
+        await foundUser.save();
         console.log(`${foundParcel.name} has been set to active project`);
         res.redirect(`/parcels/${foundParcel._id}`);
       }

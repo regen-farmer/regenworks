@@ -52,14 +52,14 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
       const createdNursery = await Nursery.create(newNursery);
       // SET OWNERSHIP
       createdNursery.owner.id = req.user?._id;
-      createdNursery.save();
+      await createdNursery.save();
       // ADD TO USER
       try {
         const foundUser = await User.findById(req.user?._id);
         // Add the parcel to the users parcels for referencing
         if (foundUser) {
           foundUser.nurseries.push(createdNursery);
-          foundUser.save();
+          await foundUser.save();
           // REDIRECT
           console.log(`Nursery created: ${createdNursery}`);
           res.redirect(`/nurseries/${createdNursery._id}`);

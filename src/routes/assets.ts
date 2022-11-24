@@ -41,7 +41,7 @@ router.post('/assets', middleware.isLoggedIn, async (req: express.Request & { us
     // Add ID to experience
     createdAsset.owner.id = req.user?._id;
     // Save the asset - Not needed if created after this step
-    createdAsset.save();
+    await createdAsset.save();
     res.redirect('/assets');
   } catch (err) {
     console.log(err);
@@ -175,7 +175,7 @@ router.post(
 
         // Add user ID to experience
         createdAsset.owner.id = req.user?._id;
-        createdAsset.save();
+        await createdAsset.save();
         // ADD ASSET TO LAYER
         foundLayer.assets.push(createdAsset);
         // REDIRECT TO

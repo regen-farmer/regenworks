@@ -212,19 +212,19 @@ router.post(
             console.log(createdSystem);
             // ADD OWNER
             createdSystem.owner.id = req.user?._id;
-            createdSystem.save();
+            await createdSystem.save();
             // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
             if (
               foundLayer.type === 'agroforestry'
                 && foundLayer.systems.present === undefined
             ) {
               foundLayer.systems.present = createdSystem;
-              foundLayer.save();
+              await foundLayer.save();
               res.redirect(`/layers/${foundLayer._id}`);
             } else {
               // Push system to layer future if layer type is not agroforestry
               foundLayer.systems.future.push(createdSystem);
-              foundLayer.save();
+              await foundLayer.save();
               res.redirect(`/layers/${foundLayer._id}`);
             }
           } catch (err) {
@@ -802,7 +802,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         // Add owner
         createdSystem.owner.id = req.user?._id;
         createdSystem.shared = false;
-        createdSystem.save();
+        await createdSystem.save();
         // REPLACE IN PRESENT
         try {
           const foundLayersPresent = await Layer.find(
@@ -810,11 +810,11 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           );
           console.log(`${foundLayersPresent.length} present found`);
           if (foundLayersPresent.length > 0) {
-            foundLayersPresent.forEach((layer) => {
+            foundLayersPresent.forEach(async (layer) => {
             // REPLACE SYSTEM
               layer.systems.present = createdSystem;
               // NO NEED TO PUSH TO PAST IN THIS CASE
-              layer.save();
+              await layer.save();
             });
           }
         } catch (err) {
@@ -829,7 +829,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           );
           console.log(`${foundLayersFuture.length} future drafts found`);
           if (foundLayersFuture.length > 0) {
-            foundLayersFuture.forEach((layer) => {
+            foundLayersFuture.forEach(async (layer) => {
             // REMOVE ORIGINAL SYSTEM
               layer.systems.future.forEach(async (futureSystem) => {
                 if (futureSystem._id === foundSystem._id) {
@@ -838,7 +838,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
               });
               // ADD NEW SYSTEM
               layer.systems.future.push(createdSystem);
-              layer.save();
+              await layer.save();
             });
           }
         } catch (err) {
@@ -852,10 +852,10 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           );
           console.log(`${foundProjects.length} projects found`);
           if (foundProjects.length > 0) {
-            foundProjects.forEach((project) => {
+            foundProjects.forEach(async (project) => {
             // REPLACE SYSTEM
               project.system = createdSystem;
-              project.save();
+              await project.save();
             });
           }
         } catch (err) {
@@ -913,7 +913,7 @@ router.delete(
                     } future drafts found`,
                   );
                   if (foundLayersFuture.length > 0) {
-                    foundLayersFuture.forEach((layer) => {
+                    foundLayersFuture.forEach(async (layer) => {
                     // REMOVE ORIGINAL SYSTEM
                       layer.systems.future.forEach(async (futureSystem) => {
                         if (futureSystem._id === foundSystem._id) {
@@ -921,7 +921,7 @@ router.delete(
                         }
                       });
                       // ADD NEW SYSTEM
-                      layer.save();
+                      await layer.save();
                     });
                   }
                   // DELETE SYSTEM NOW

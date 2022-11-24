@@ -41,7 +41,7 @@ router.post('/species/:id/flows', middleware.isLoggedIn, async (req: express.Req
       try {
         const createdFlow = await Flow.create(req.body.flow);
         foundSpecies.flows.push(createdFlow);
-        foundSpecies.save();
+        await foundSpecies.save();
         res.redirect(`/species/${foundSpecies._id}`);
       } catch (err) {
         console.log(err);

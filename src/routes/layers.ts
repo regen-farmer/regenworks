@@ -155,10 +155,10 @@ router.post(
           layer.lat = geometrycentroid.geometry.coordinates[1];
           layer.lng = geometrycentroid.geometry.coordinates[0];
           // Save the layer
-          layer.save();
+          await layer.save();
           // Connect new layer to parcel
           foundParcel.layers.push(layer); // MOVE THIS UP TO AVOID ERRORS IF LAYER FAILS?!!!
-          foundParcel.save();
+          await foundParcel.save();
           console.log(layer);
           // Redirect to parcels SHOW page
           // req.flash("success", "Successfully added comment");
@@ -199,7 +199,7 @@ router.post(
 
                   // ASS SYSTEM TO PRESENT SYSTEM
                   layer.systems.present = createdSystem;
-                  layer.save();
+                  await layer.save();
                   // IF FOREST OR ORCHARD GO TO LAYOUT
                   if (
                     layer.type === 'forestry'
@@ -218,7 +218,7 @@ router.post(
 
                 // ASS SYSTEM TO PRESENT SYSTEM
                 layer.systems.present = createdSystem;
-                layer.save();
+                await layer.save();
                 // IF FOREST OR ORCHARD GO TO LAYOUT
                 if (
                   layer.type === 'forestry'
@@ -293,10 +293,10 @@ router.post(
                 createdLayer.lat = geometrycentroid.geometry.coordinates[1];
                 createdLayer.lng = geometrycentroid.geometry.coordinates[0];
                 // Save the layer
-                createdLayer.save();
+                await createdLayer.save();
                 // PUSH LAYER TO PARCEL
                 foundParcel.layers.push(createdLayer);
-                foundParcel.save();
+                await foundParcel.save();
                 // DEFINE SYSTEM
                 if (createdLayer.type === 'agroforestry') {
                   res.redirect(`/layers/${createdLayer._id}/systems/new`);
@@ -339,7 +339,7 @@ router.post(
                             );
                             // ADD SYSTEM TO PRESENT SYSTEM
                             createdLayer.systems.present = createdSystem;
-                            createdLayer.save();
+                            await createdLayer.save();
                             // IF FOREST OR ORCHARD GO TO LAYOUT
                             if (
                               createdLayer.type === 'forestry'
@@ -365,7 +365,7 @@ router.post(
                           );
                           // ADD SYSTEM TO PRESENT SYSTEM
                           createdLayer.systems.present = createdSystem;
-                          createdLayer.save();
+                          await createdLayer.save();
                           // IF FOREST OR ORCHARD GO TO LAYOUT
                           if (
                             createdLayer.type === 'forestry'
@@ -518,7 +518,6 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
             if (foundParcels[i].layers[j].equals(foundLayer._id)) {
               await foundParcels[i].layers[j].remove();
               console.log('Layer removed');
-              await foundParcels[i].save();
               parcelRef = foundParcels[i]._id;
             }
           }
@@ -572,7 +571,7 @@ router.post(
           console.log(
             `${foundSystem.name} has been removed from future systems`,
           );
-          foundLayer.save();
+          await foundLayer.save();
           res.redirect(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
@@ -595,7 +594,7 @@ router.post(
         const foundSystem = await System.findById(req.body.systemid);
         if (foundLayer && foundSystem) {
           foundLayer.systems.future.push(foundSystem);
-          foundLayer.save();
+          await foundLayer.save();
           console.log(
             `Now there is ${
               foundLayer.systems.future.length

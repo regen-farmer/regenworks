@@ -50,7 +50,7 @@ router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Req
       try {
         const createdSystemflow = await Systemflow.create(req.body.flow);
         foundSystem.flows.push(createdSystemflow);
-        foundSystem.save();
+        await foundSystem.save();
         res.redirect(`/systems/${foundSystem._id}`);
       } catch (err) {
         console.log(err);

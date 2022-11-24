@@ -202,11 +202,11 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
         if (foundUser) {
           foundUser.parcels.push(newlyCreated);
           foundUser.currentProject = newlyCreated;
-          foundUser.save();
+          await foundUser.save();
           // Save JSON file to geometry
           newlyCreated.geometry = req.body.geometry;
           // Save the layer
-          newlyCreated.save();
+          await newlyCreated.save();
           // ADD PRECIPITATION?HARDINESS?
           // req.flash("success", "You have successfully created a new parcel");
           res.redirect(`/parcels/${newlyCreated._id}/layers/new`);

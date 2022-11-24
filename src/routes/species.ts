@@ -167,7 +167,7 @@ router.put(
       // CHANGE ACTIVITY DETAILS
         if (req.query.index && typeof req.query.index === 'string') {
           updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
-          updatedSpecies.save();
+          await updatedSpecies.save();
           res.redirect(`/species/${updatedSpecies._id}`);
         }
       }
