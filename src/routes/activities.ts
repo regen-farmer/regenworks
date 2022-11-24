@@ -60,7 +60,7 @@ router.post('/activities', middleware.isLoggedIn, async (req: express.Request & 
     createdActivity.owner.id = req.user?._id;
     createdActivity.status = true;
     // Save the service - Not need if created after this step
-    createdActivity.save();
+    await createdActivity.save();
     res.redirect('/activities');
     console.log(createdActivity);
   } catch (err) {
@@ -219,10 +219,10 @@ router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: expre
         // Add ID to task.
         createdActivity.status = true;
         createdActivity.owner.id = req.user?._id;
-        createdActivity.save();
+        await createdActivity.save();
         // Connect new task to project
         foundProject.activities.push(createdActivity);
-        foundProject.save();
+        await foundProject.save();
         // Redirect to project SHOW page
         // req.flash("success", "Successfully added comment");
         res.redirect(`/projects/${foundProject._id}`);
@@ -316,7 +316,7 @@ router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req
             await activity.remove();
           }
         });
-        updatedProject.save();
+        await updatedProject.save();
         // DELETE ACTIVITY
         try {
           await Activity.findByIdAndRemove(req.params.pid);

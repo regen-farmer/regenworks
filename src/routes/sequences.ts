@@ -137,7 +137,7 @@ router.post(
           const createdSequence = await Sequence.create(sequence);
           // SAVE SEQUENCE ON LAYER?
           createdSequence.owner.id = req.user?._id;
-          createdSequence.save();
+          await createdSequence.save();
           res.redirect(`/layers/${foundLayer._id}/layout`);
         } catch (err) {
           console.log(err);
@@ -454,7 +454,7 @@ router.post(
 
         // SAVE SEQUENCE ON LAYER?
         createdSequence.owner.id = req.user?._id;
-        createdSequence.save();
+        await createdSequence.save();
         res.redirect(`/projects/${foundProject?._id}/layout`);
       } catch (err) {
         console.log(err);

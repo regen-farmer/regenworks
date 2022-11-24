@@ -168,7 +168,7 @@ router.post('/projects/:id/rotations', middleware.isLoggedIn, async (req: expres
         console.log(`rotation: ${createdRotation}`);
         // SAVE SEQUENCE ON LAYER?
         createdRotation.owner.id = req.user?._id;
-        createdRotation.save();
+        await createdRotation.save();
         res.redirect(`/projects/${foundProject._id}/layout`);
       } catch (err) {
         console.log(err);

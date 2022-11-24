@@ -73,7 +73,7 @@ router.delete(
             await area.remove();
           }
         });
-        updatedProject.save();
+        await updatedProject.save();
         // DELETE ROW
         try {
           await Area.findByIdAndRemove(req.params.pid);

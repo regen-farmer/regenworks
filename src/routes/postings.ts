@@ -42,7 +42,7 @@ router.post(
           console.log(createdPosting);
           // SAVE POSTING ON BUDGET
           foundBudget.postings.push(createdPosting);
-          foundBudget.save();
+          await foundBudget.save();
           res.redirect(`/budgets/${foundBudget._id}`);
         } catch (err) {
           console.log(err);
@@ -140,7 +140,7 @@ router.post(
               console.log(createdPosting);
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);
-              foundBudget.save();
+              await foundBudget.save();
               res.redirect(`/parcels/${req.params.id}/accounts`);
             } catch (err) {
               console.log(err);

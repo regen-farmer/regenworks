@@ -55,7 +55,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
   try {
     const service = await Project.create(req.body.project);
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.service.location, (err, data) => {
+    geocoder.geocode(req.body.service.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
         return res.redirect('back');
@@ -72,7 +72,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
         // Add ID to experience
         service.owner.id = req.user?._id;
         // Save the service - Not need if created after this step
-        service.save();
+        await service.save();
         // Redirect to projects INDEX page
         // req.flash("success", "Successfully added service");
         res.redirect('/projects');
@@ -653,7 +653,7 @@ router.put(
               projectArea.areas = completedProject.areas;
             }
             // SAVE AREA
-            projectArea.save();
+            await projectArea.save();
             // REDIRECT
             res.redirect(`/projects/${req.params.id}`);
           } else {
@@ -808,7 +808,7 @@ router.get(
                   }
                   // SAVE ROWS INDIVIDUALLY
                   for (let i = 0; i < foundRows.length; i++) {
-                    foundRows[i].save();
+                    await foundRows[i].save();
                   }
                   console.log('Assets added to project');
                   res.redirect(`/projects/${req.params.id}`);
@@ -1144,7 +1144,7 @@ router.post(
         createdProject.status = 'planning';
         // Connect new project to layer
         foundLayer.projects.push(createdProject);
-        foundLayer.save();
+        await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
         if (req.body.existingrows === 'on') {
           const newRows: any[] = [];
@@ -1160,14 +1160,14 @@ router.post(
 
             createdProject.rows = createdRows;
             // Save the project
-            createdProject.save();
+            await createdProject.save();
             res.redirect(`/projects/${createdProject._id}`);
           } catch (err) {
             console.log(err);
           }
         } else {
           // Save the project
-          createdProject.save();
+          await createdProject.save();
           res.redirect(`/projects/${createdProject._id}`);
         }
       }

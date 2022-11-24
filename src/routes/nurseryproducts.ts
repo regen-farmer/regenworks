@@ -86,10 +86,10 @@ router.post(
           const createdProduct = await NurseryProduct.create(product);
           // SET OWNERSHIP
           createdProduct.owner.id = req.user?._id;
-          createdProduct.save();
+          await createdProduct.save();
           // INSERT PRODUCT IN NURSERY
           foundNursery.products.push(createdProduct);
-          foundNursery.save();
+          await foundNursery.save();
           // REDIRECT TO NURSERY
           res.redirect(`/nurseries/${foundNursery._id}`);
         } catch (err) {
