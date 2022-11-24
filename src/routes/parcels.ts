@@ -1,5 +1,4 @@
 import express from 'express';
-import request from 'request'; // Making REST requests
 import {
   centroid,
   helpers as turf,
@@ -409,7 +408,7 @@ router.get(
     try {
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel) {
-        geocoder.geocode(foundParcel.location, (err, data) => {
+        geocoder.geocode(foundParcel.location, async (err, data) => {
           if (err || !data.length) {
             console.log(err);
             console.log(data);
@@ -418,28 +417,31 @@ router.get(
           console.log(data[0].country);
           console.log(data[0].administrativeLevels?.level1long);
           console.log(data[0].city);
-          request(
-            `https://restcountries.eu/rest/v2/name/${
-              data[0].country
-            }?fullText=true&fields=alpha3Code`,
-            (error, response, body) => {
-              console.log('error:', error);
-              console.log('statusCode:', response && response.statusCode);
-              const alphacountry = JSON.parse(body);
-              console.log(alphacountry[0].alpha3Code);
-              request(
+          try {
+            const countrydata = await fetch(
+              `https://restcountries.eu/rest/v2/name/${
+                data[0].country
+              }?fullText=true&fields=alpha3Code`,
+            );
+
+            console.log('statusCode:', countrydata.status);
+            const alphacountry = JSON.parse(await countrydata.json());
+            console.log(alphacountry[0].alpha3Code);
+            try {
+              const climatedata = await fetch(
                 `http://climatedataapi.worldbank.org/climateweb/rest/v1/country/annualavg/pr/1980/1999/${
                   alphacountry[0].alpha3Code}`,
-                (error1, response1, body1) => {
-                  console.log('error:', error1);
-                  console.log('statusCode:', response1 && response1.statusCode);
-                  const weather = JSON.parse(body1);
-                  console.log(weather[0].annualData[0]);
-                  res.render('parcels/climate');
-                },
               );
-            },
-          );
+              console.log('statusCode:', climatedata.status);
+              const weather = JSON.parse(await climatedata.json());
+              console.log(weather[0].annualData[0]);
+              res.render('parcels/climate');
+            } catch (err) {
+              console.log('error:', err);
+            }
+          } catch (err) {
+            console.log('error:', err);
+          }
         });
       }
     } catch (err) {
