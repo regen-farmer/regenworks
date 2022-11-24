@@ -509,16 +509,16 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
     // REMOVE LAYER FROM PARCEL
     if (foundLayer) {
       try {
-        const foundParcels = await Parcel.find({ 'owner.id': req.user?._id });
+        const foundParcels = await Parcel.find({ 'owner.id': req.user?._id }).populate('layers');
         // CYCLE THROUGH PARCELS
         let parcelRef = {};
-        for (let i = 0; i < foundParcels.length; i++) {
+        for (let i = foundParcels.length - 1; i >= 0; i--) {
           // CYCLE THROUGH LAYERS
           for (let j = 0; j < foundParcels[i].layers.length; j++) {
             if (foundParcels[i].layers[j].equals(foundLayer._id)) {
-              foundParcels[i].layers[j].remove();
+              await foundParcels[i].layers[j].remove();
               console.log('Layer removed');
-              foundParcels[i].save();
+              await foundParcels[i].save();
               parcelRef = foundParcels[i]._id;
             }
           }
@@ -1065,7 +1065,7 @@ router.post(
         geometry: req.body.geometry,
         name: req.body.row.name,
         // ADD ROW LENGTH PARAM
-        rowlength: turfLength(tempGeo, {units: 'meters'})
+        rowlength: turfLength(tempGeo, { units: 'meters' }),
       };
       if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
         row.sequence = req.body.sequenceid;

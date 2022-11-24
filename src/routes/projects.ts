@@ -433,7 +433,7 @@ router.get(
         // CALCULATE AREA SIZES
         const treeRowArea = layout.treeRowArea;
         // TREE ROW LENGTHS
-        /*if (foundProject.rows && foundProject.rows.length > 0) {
+        /* if (foundProject.rows && foundProject.rows.length > 0) {
           // DO ROW LENGTH
           console.log(`rows ${foundProject.rows[0]}`);
           for (let i = 0; i < foundProject.rows.length; i++) {
@@ -442,8 +442,8 @@ router.get(
               units: 'meters',
             });
           }
-        }*/
-        /*for(let i=0;i<layout.alleyPolygonArray.length;i++){
+        } */
+        /* for(let i=0;i<layout.alleyPolygonArray.length;i++){
                         console.log("area" + i + area(layout.alleyPolygonArray[i]));
                     } */
         // TEMP VALUE HERE
@@ -855,7 +855,7 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.R
             geometry: JSON.stringify(layout.rowLineArray[i]),
             name: `Row ${i}`,
             // CREATE ROW LENGTH
-            rowlength: turfLength(layout.rowLineArray[i], {units: 'meters'})
+            rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
           };
           // PUSH TO ARRAY
           rows.push(row);
@@ -1185,13 +1185,13 @@ router.delete(
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(req.params.id).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
-        for (let i = 0; foundProject.assets.length > i; i++) {
-          foundProject.assets[i].remove();
+        for (let i = foundProject.assets.length - 1; i >= 0; i--) {
+          await foundProject.assets[i].remove();
           // SAVE PROJECT
-          foundProject.save();
+          await foundProject.save();
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
@@ -1252,7 +1252,7 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
       geometry: req.body.geometry,
       name: req.body.row.name,
       // ADD ROW LENGTH PARAM
-      rowlength: turfLength(tempGeo, {units: 'meters'})
+      rowlength: turfLength(tempGeo, { units: 'meters' }),
     };
     if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
       row.sequence = req.body.sequenceid;
