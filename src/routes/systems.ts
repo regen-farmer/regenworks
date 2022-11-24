@@ -151,9 +151,9 @@ router.post(
         const system = req.body.system;
         const model: any[] = [];
         // DO COUNT FOR ROW WIDTH
-        var xPosition = 0;
+        let xPosition = 0;
         // SPECIES ARRAY FOR UNIQUE SPECIES
-        var allSpecies: any[] = [];
+        const allSpecies: any[] = [];
         // ADD SPECIES TO MODEL
         for (let i = 0; i < system.model.length; i++) {
           // ADD SPECIES ID TO SPECIES ARRAY
