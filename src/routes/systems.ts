@@ -153,7 +153,7 @@ router.post(
         // DO COUNT FOR ROW WIDTH
         let xPosition = 0;
         // SPECIES ARRAY FOR UNIQUE SPECIES
-        const allSpecies: any[] = [];
+        const allSpecies: string[] = [];
         // ADD SPECIES TO MODEL
         for (let i = 0; i < system.model.length; i++) {
           // ADD SPECIES ID TO SPECIES ARRAY

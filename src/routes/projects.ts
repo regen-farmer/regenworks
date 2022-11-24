@@ -7,7 +7,7 @@ import PDFDocument from 'pdfkit';
 import NodeGeocoder from 'node-geocoder';
 import Project from '../models/project';
 import Layer from '../models/layer';
-import System from '../models/system';
+import System, { ISystemSchema } from '../models/system';
 import Budget from '../models/budget';
 import Activity from '../models/activity';
 import Asset from '../models/asset';
@@ -159,8 +159,8 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
           console.log(irr);
           console.log(`Years: ${years}`);
           // SET UP
-          const YoY: any[] = [];
-          const labels: any[] = [];
+          const YoY: number[] = [];
+          const labels: number[] = [];
           for (let i = 1; i < years + 1; i++) {
             const label = i;
             labels.push(label);
@@ -218,7 +218,7 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
                 var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
 */
           // CALCULATE DATASET
-          const sumArray: any[] = [];
+          const sumArray: number[] = [];
           let sum = 0;
           for (let i = 0; i < years; i++) {
             sum += YoY[i];
@@ -352,9 +352,9 @@ router.get(
                     }
                     // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
                     var treeRowCount = 0;
-                    var treeCountArray: any[] = [];
-                    var treeMarkerArray: any[] = [];
-                    var treeArray: any[] = [];
+                    var treeCountArray = [];
+                    var treeMarkerArray = [];
+                    var treeArray = [];
                     var treeRowArea = 0;
                     for(let i=0;i<rowArray.length;i++){
                         // COUNT SYSTEM MODEL ITERATIONS IN ROW
@@ -406,7 +406,7 @@ router.get(
                     console.log(treeArray.length);
                     console.log(treeMarkerArray.length);
                     // DO POINT COLLECTION
-                    var treeCanopyArray: any[] = [];
+                    var treeCanopyArray = [];
                     if(treeMarkerArray.length < 3000){
                         for(let i=0;i<treeMarkerArray.length;i++){
                             var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
@@ -681,7 +681,7 @@ router.get(
       try {
         const foundSystems = await System.find({ 'owner.id': req.user?._id });
         // SORT OUT MONOCULTURE SYSTEMS
-        const realSystems: any[] = [];
+        const realSystems: ISystemSchema[] = [];
         for (let i = 0; i < foundSystems.length; i++) {
           const systemNameSplit = foundSystems[i].name.split(' ');
           if (
@@ -849,7 +849,11 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.R
       } else {
         const layout = gisObj.systemBasedLayout(foundProject);
         // CREATE ROWS ON PROJECT
-        const rows: any[] = [];
+        const rows: {
+          geometry: string;
+          name: string;
+          rowlength: number;
+        }[] = [];
         for (let i = 0; i < layout.rowLineArray.length; i++) {
           const row = {
             geometry: JSON.stringify(layout.rowLineArray[i]),
@@ -862,7 +866,11 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.R
         }
         console.log(rows[0]);
         // CREATE AREAS
-        const areas: any[] = [];
+        const areas: {
+          geometry: string;
+          name: string;
+          size: number;
+        }[] = [];
         for (let i = 0; i < layout.alleyPolygonArray.length; i++) {
           const alleyGeometry = layout.alleyPolygonArray[i];
           const alley = {
@@ -973,10 +981,10 @@ router.get(
         .populate('layer')
         .exec();
 
-      const allTrees: any[] = [];
-      const allTreesArray: any[] = [];
+      const allTrees: string[] = [];
+      const allTreesArray: string[] = [];
       // GENERATE ASSET CIRCLES
-      const treeCanopyArray: any[] = [];
+      const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
       if (foundProject) {
         for (let i = 0; foundProject.assets.length > i; i++) {
           const point = turf.point([
@@ -995,7 +1003,10 @@ router.get(
         // UNIQUE TREE SPECIES
         const uniqueSpecies = unique(allTrees);
         // UNIQUE SPECIES COUNTS
-        const uniqueSpeciesCount: any[] = [];
+        const uniqueSpeciesCount: {
+          name: string;
+          uniqueCount: number;
+        }[] = [];
         for (let i = 0; uniqueSpecies.length > i; i++) {
           let count = 0;
           for (let j = 0; j < allTreesArray.length; j++) {
@@ -1147,7 +1158,10 @@ router.post(
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
         if (req.body.existingrows === 'on') {
-          const newRows: any[] = [];
+          const newRows: {
+            geometry: string;
+            name: string;
+          }[] = [];
           for (let i = 0; i < foundLayer.rows.length; i++) {
             const row = {
               geometry: foundLayer.rows[i].geometry,

@@ -79,7 +79,7 @@ router.delete(
           await Area.findByIdAndRemove(req.params.pid);
           console.log(`Length after ${updatedProject.areas.length}`);
           res.redirect(`/projects/${updatedProject._id}/layout`);
-        } catch (err: any) {
+        } catch (err) {
           console.log(err);
         }
       }

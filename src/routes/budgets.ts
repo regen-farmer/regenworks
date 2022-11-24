@@ -4,11 +4,12 @@ import { area } from '@turf/turf';
 import Budget from '../models/budget';
 import Project from '../models/project';
 import System from '../models/system';
-import Posting from '../models/posting';
+import Posting, { IPostingSchema } from '../models/posting';
 import Parcel from '../models/parcel';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
 import { IUserSchema } from '../models/user';
+import { ISpeciesSchema } from '../models/species';
 
 const router = express.Router();
 
@@ -28,7 +29,11 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & 
     // FIND BUDGET LENGTH
     let years = 0;
     // CREATE ARRAY TO STORE ANNUAL TOTALS AND POSTINGS
-    const postingsArray: any[] = [];
+    const postingsArray: {
+        year: number;
+        postings: ArrayConstructor;
+        total: number;
+    }[] = [];
 
     if (foundBudget) {
       // SET YEARS
@@ -145,7 +150,7 @@ router.get(
 
           if (foundSystem) {
             // FIND ALL SPECIES IN SYSTEM
-            const allSpecies: any[] = [];
+            const allSpecies: ISpeciesSchema[] = [];
             foundSystem.model.forEach((species) => {
               allSpecies.push(species.species);
             });
@@ -212,7 +217,7 @@ router.get(
             .exec();
 
           // FIND ALL SPECIES IN SYSTEM OR ROWS
-          const allSpecies: any[] = [];
+          const allSpecies: ISpeciesSchema[] = [];
           if (foundProject.rows && foundProject.rows.length > 0) {
             for (let i = 0; i < foundProject.rows.length; i++) {
               if (foundProject.rows[i].sequence) {
@@ -335,7 +340,7 @@ router.post(
             /// //////////////////
             /// //////////////////
             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
-            const postings: any[] = [];
+            const postings: IPostingSchema[] = [];
             // RUN THROUGH ALL POSTINGS
             for (let i = 0; i < speciesPostingsArray.length; i++) {
               for (let j = 0; j < uniqueSpecies.length; j++) {
@@ -439,7 +444,7 @@ router.get(
             .populate('model.species')
             .exec();
           // FIND ALL SPECIES IN SYSTEM OR ROWS
-          const allSpecies: any[] = [];
+          const allSpecies: ISpeciesSchema[] = [];
           if (foundProject.rows && foundProject.rows.length > 0) {
             for (let i = 0; i < foundProject.rows.length; i++) {
               if (foundProject.rows[i].sequence) {
@@ -580,16 +585,22 @@ router.post(
             /// //////////////////
             /// //////////////////
             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
-            const postings: any[] = [];
+            const postings: IPostingSchema[] = [];
             const period = req.body.period;
             // FIND UNIQUE AREA SPECIES
             const uniqueAreaSpecies: any[] = [];
             // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
             const areaArray = layout.alleyPolygonArray;
             const areaSpeciesRotation = layout.alleySpeciesArray;
-            const speciesPeriodAreaArray: any[] = [];
+            const speciesPeriodAreaArray: {
+              id: any;
+              count: number;
+            }[][] = [];
             for (let i = 0; i < period; i++) {
-              const countArray: any[] = [];
+              const countArray: {
+                id: any;
+                count: number;
+              }[] = [];
               for (let j = 0; areaArray.length > j; j++) {
                 for (let k = 0; k < areaSpeciesRotation[j].length; k++) {
                   console.log(
