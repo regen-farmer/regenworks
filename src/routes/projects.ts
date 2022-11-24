@@ -1473,6 +1473,52 @@ router.put(
   },
 );
 
+// --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
+
+// ALIGNMENT NEW ROUTE
+router.get(
+    '/projects/:id/alignmentrow/new',
+    middleware.isLoggedIn,
+    async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+      // FIND PROJECT
+      try {
+        const foundProject = await Project.findById(req.params.id)
+            .populate('layer')
+            .exec();
+        if (foundProject) {
+          // FIND MY SYSTEMS
+          try {
+            const foundSequences = await Sequence.find(
+                { 'owner.id': req.user?._id },
+            );
+            res.render('projects/alignmentrow', {
+              project: foundProject,
+              sequences: foundSequences,
+            });
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+);
+
+// UPDATE PROJECT ALIGNMENT
+router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    await Project.findByIdAndUpdate(
+        req.params.id,
+        {alignment: "bearing", bearingline: req.body.geometry},
+    );
+    // req.flash("success", "Successfully added service");
+    res.redirect(`/projects/${req.params.id}/layout`);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 // -------------------- PDFS
 
 // BUDGET PDF

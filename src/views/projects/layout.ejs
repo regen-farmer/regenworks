@@ -233,7 +233,9 @@
                                 <select class="form-control" name="project[alignment]">
                                     <% if(project.alignment === "bearing") { %>
                                     <option selected="selected" value="bearing">Angled rows</option>
-                                    <% } else { %>
+                                        <option value="north">North/south</option>
+                                        <option value="west">West/East</option>
+                                <% } else { %>
                                     <% if(project.alignment === "north") { %>
                                     <option selected="selected" value="north">North/south</option>
                                     <% } else { %>
@@ -244,6 +246,10 @@
                                     <% } else { %>
                                     <option value="west">West/East</option>
                                     <% } %>
+                                        <% if(typeof project.bearingline == "undefined") { %>
+                                        <% } else { %>
+                                            <option value="bearing">Angled Rows</option>
+                                        <% } %>
                                     <% } %>
                                 </select>
                             </div>
