@@ -9,6 +9,7 @@ import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { ISpeciesSchema } from '../models/species';
 
 // NODE GEOCODER CODE
 
@@ -342,7 +343,7 @@ router.get('/parcels/:id/layers/:pid/rows/:rid/activities/new', middleware.isLog
     // FIND ALL SPECIES
     if (foundRow && foundRow.sequence) {
       console.log('species there');
-      const allSpecies:any[] = [];
+      const allSpecies: ISpeciesSchema[] = [];
       foundRow.sequence.model.forEach((species) => {
         allSpecies.push(species.species);
       });
@@ -397,7 +398,7 @@ router.get('/parcels/:id/layers/:pid/areas/:rid/activities/new', middleware.isLo
     // FIND ALL SPECIES
     if (foundArea && foundArea.rotation) {
       console.log('species there');
-      const allSpecies:any[] = [];
+      const allSpecies: ISpeciesSchema[] = [];
       foundArea.rotation.model.forEach((speciesmix) => {
         allSpecies.push(speciesmix.speciesmix[0].species);
       });

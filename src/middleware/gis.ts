@@ -16,17 +16,13 @@ import {
   along,
   circle,
   polygonToLine,
+  LineString,
 } from '@turf/turf';
 import { IProjectSchema } from '../models/project';
 import { ISpeciesSchema } from '../models/species';
 
-// DEFINE GIS OBJECT
-const gisObj: any = {};
-
 // SYSTEM BASED LAYOUT
-gisObj.systemBasedLayout = (project: IProjectSchema) => {
-  //
-  const layout: any = {};
+export function systemBasedLayout(project: IProjectSchema) {
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
   let { headland } = project;
@@ -189,14 +185,14 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
     });
   }
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
-  layout.sortedrows = dataset;
+  const layout_sortedrows = dataset;
   // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
   // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
   let rowWidth = 0;
   for (let i = 0; i < dataset.length; i++) {
     rowWidth += dataset[i].array[0].width;
   }
-  layout.rowWidth = rowWidth;
+  const layout_rowWidth = rowWidth;
   // ROW PARAMETERS
   const rowWidthArray: number[] = [];
   let rowWidthArrayCount = 0;
@@ -277,7 +273,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   if (project.alignment === 'bearing') {
     // -------- ANGLED ROWS ---------
     // IF HEADLAND IS 0, JUST USE REGULAR POLYGON, NOT BUFFER
-    let lengthLineBearing: any = {};
+    let lengthLineBearing: turf.Feature<LineString, any>;
     if (project.bearingline) {
       const bearingline = JSON.parse(project.bearingline);
       lengthLineBearing = bearingline;
@@ -492,7 +488,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
             // PUSH TO ARRAY
             alleyArray.push(alleyPolygon1);
             // ADD SPECIES TO ALLEY ARRAY
-            const alleySpeciesCount = [
+            const alleySpeciesCount: ISpeciesSchema[] = [
               alleySpeciesArrayCount[j],
             ];
             alleySpeciesArray.push(alleySpeciesCount);
@@ -601,13 +597,13 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
             }
         }
     } */
-  layout.offsetArray = tempOffsetArray;
+  const layout_offsetArray = tempOffsetArray;
   // CALCULATE TREE ROW AREA HERE
-  layout.treeRowArea = 0;
-  layout.bedPolygonArray = bedArray;
-  layout.bedPolygonCollection = turf.featureCollection(bedArray);
-  layout.alleyPolygonArray = alleyArray;
-  layout.alleySpeciesArray = alleySpeciesArray;
+  const layout_treeRowArea = 0;
+  const layout_bedPolygonArray = bedArray;
+  const layout_bedPolygonCollection = turf.featureCollection(bedArray);
+  const layout_alleyPolygonArray = alleyArray;
+  const layout_alleySpeciesArray = alleySpeciesArray;
   console.log(`Alley species array count: ${alleySpeciesArray.length}`);
   console.log(`Alley polygon array count: ${alleyArray.length}`);
   // SET ROWLENGTH ARRAY
@@ -629,12 +625,12 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
      var checkDistance = turfLength(distanceCheckLine.features[0], {units: "meters"});
      console.log("Distance check " + checkDistance); */
   // CREATE FEATURECOLLECTION FOR ROWS
-  layout.rowLineArray = rowArray;
+  const layout_rowLineArray = rowArray;
   for (let i = 0; i < edgeRowArray.length; i++) {
     // ADD EDGEROWS
-    layout.rowLineArray.push(edgeRowArray[i]);
+    layout_rowLineArray.push(edgeRowArray[i]);
   }
-  layout.rowLineCollection = turf.featureCollection(rowArray);
+  const layout_rowLineCollection = turf.featureCollection(rowArray);
   // CREATE FEATURE COLLECTION FOR EDGEROWS
   /*    var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
     var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection); */
@@ -755,23 +751,23 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   console.log(treeArray.length);
   console.log(treeMarkerArray.length);
   // DO POINT COLLECTION
-  const treeCanopyArray: any[] = [];
+  const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
   if (treeMarkerArray.length < 5000) {
     for (let i = 0; i < treeMarkerArray.length; i++) {
       const circle1 = circle(treeMarkerArray[i].geometry.coordinates, 2, { units: 'meters' });
       treeCanopyArray.push(circle1);
     }
   }
-  layout.treeAssetRowRef = treeAssetRowRef;
-  layout.treeArray = treeArray;
-  layout.treeMarkerArray = treeCanopyArray;
-  layout.treeAssetArray = treeAssetArray;
-  layout.offsetArrayCollection = []; // CAN DELETE THIS AT SOME POINT. JUST USED IT TO ENSURE VIZ OF LINES IN LAYOUT ANGLED WAS WORKING
+  const layout_treeAssetRowRef = treeAssetRowRef;
+  const layout_treeArray = treeArray;
+  const layout_treeMarkerArray = treeCanopyArray;
+  const layout_treeAssetArray = treeAssetArray;
+  // const layout_offsetArrayCollection: any[] = []; // CAN DELETE THIS AT SOME POINT. JUST USED IT TO ENSURE VIZ OF LINES IN LAYOUT ANGLED WAS WORKING
   // ADD EDGE TREE MARKERS
   for (let i = 0; i < edgeTreeCanopyArray.length; i++) {
-    layout.treeMarkerArray.push(edgeTreeCanopyArray[i]);
+    layout_treeMarkerArray.push(edgeTreeCanopyArray[i]);
   }
-  layout.treeMarkerCollection = turf.featureCollection(treeCanopyArray);
+  const layout_treeMarkerCollection = turf.featureCollection(treeCanopyArray);
   // CALCULATE TREE COUNT
   //   const areaSize = project.layer.size;
   // GRID SIZE
@@ -800,9 +796,9 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
     };
     uniqueSpeciesCount.push(speciesCount);
   }
-  layout.uniqueSpeciesCount = uniqueSpeciesCount;
+  const layout_uniqueSpeciesCount = uniqueSpeciesCount;
   const uniqueTreeSpecies = unique(treeArray);
-  layout.uniqueSpecies = uniqueTreeSpecies;
+  const layout_uniqueSpecies = uniqueTreeSpecies;
   // UNIQUE AREA COUNT
 
   /* // CHECK LENGTH OF LINE BEFORE CUTTING
@@ -811,13 +807,32 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
     console.log(checkLength + " meters long"); */
   // CALCULATE MARGIN AREA
   //   const marginArea = area(polygon) - area(offsetPolygon);
-  return (layout);
-};
+  return {
+    alleyPolygonArray: layout_alleyPolygonArray,
+    alleySpeciesArray: layout_alleySpeciesArray,
+    bedPolygonArray: layout_bedPolygonArray,
+    bedPolygonCollection: layout_bedPolygonCollection,
+    offsetArray: layout_offsetArray,
+    // offsetArrayCollection: layout_offsetArrayCollection,
+    rowLineArray: layout_rowLineArray,
+    rowLineCollection: layout_rowLineCollection,
+    rowWidth: layout_rowWidth,
+    sortedrows: layout_sortedrows,
+    treeArray: layout_treeArray,
+    treeAssetArray: layout_treeAssetArray,
+    treeAssetRowRef: layout_treeAssetRowRef,
+    treeMarkerArray: layout_treeMarkerArray,
+    treeMarkerCollection: layout_treeMarkerCollection,
+    treeRowArea: layout_treeRowArea,
+    uniqueSpeciesCount: layout_uniqueSpeciesCount,
+    uniqueSpecies: layout_uniqueSpecies,
+  };
+}
 
 // ROW AND AREA BASED LAYOUT
-gisObj.rowBasedLayout = (project: IProjectSchema) => {
+export function rowBasedLayout(project: IProjectSchema) {
   //
-  const layout: any = {};
+
   // SORT FIRST ROW ITEMS
 
   // VIZ ROWS
@@ -841,8 +856,8 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
   //   const placesCollection = turf.featureCollection(placesArray);
   //   const places = JSON.stringify(placesCollection);
   // CREATE PLACES FEATURE
-  layout.rowLineArray = rowArray;
-  layout.rowLineCollection = turf.featureCollection(rowArray);
+  const layout_rowLineArray = rowArray;
+  const layout_rowLineCollection = turf.featureCollection(rowArray);
   /*
     var collection = JSON.stringify(featurecollection);
 */
@@ -1005,11 +1020,11 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
             } */
     }
   }
-  layout.treeAssetRowRef = treeAssetRowRef;
-  layout.treeArray = treeAssetsArray;
-  layout.treeAssetArray = treeAssetArray;
-  layout.treeMarkerArray = treeCanopyArray;
-  layout.treeMarkerCollection = turf.featureCollection(treeCanopyArray);
+  const layout_treeAssetRowRef = treeAssetRowRef;
+  const layout_treeArray = treeAssetsArray;
+  const layout_treeAssetArray = treeAssetArray;
+  const layout_treeMarkerArray = treeCanopyArray;
+  const layout_treeMarkerCollection = turf.featureCollection(treeCanopyArray);
   /*
     var treeCollection = JSON.stringify(treeMarkers);
 */
@@ -1029,14 +1044,18 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
     const treename = turf.point(treeAssetsArray[i].marker.geometry.coordinates, properties1);
     treenames.push(treename);
   }
-  layout.treeNameLabelCollection = turf.featureCollection(treenames);
+  const layout_treeNameLabelCollection = turf.featureCollection(treenames);
   /*
     var treeNameCollection = JSON.stringify(treenamemarks);
 */
   // VIZ ROWS
-  const alleyPolygonArray: any[] = [];
-  const bedPolygonArray: any[] = [];
-  const alleySpeciesArray: any[] = [];
+  const alleyPolygonArray: turf.Feature<turf.Polygon, {
+    name: string;
+  }>[] = [];
+  const bedPolygonArray: turf.Feature<turf.Polygon, {
+    name: string;
+  }>[] = [];
+  const alleySpeciesArray: ISpeciesSchema[][] = [];
   for (let i = 0; i < project.areas.length; i++) {
     // ROW VIZ
     const areaGeometry = JSON.parse(project.areas[i].geometry);
@@ -1044,7 +1063,7 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
       alleyPolygonArray.push(areaGeometry);
       // ADD SPECIES TO ALLEY ARRAY
       if (project.areas[i].rotation && project.areas[i].rotation.model.length > 0) {
-        const alleySpeciesCount: any[] = [];
+        const alleySpeciesCount: ISpeciesSchema[] = [];
         for (let j = 0; j < project.areas[i].rotation.model.length; j++) {
           // ADD SPECIES TO ALLEY ARRAY
           alleySpeciesCount.push(project.areas[i].rotation.model[j].speciesmix[0].species);
@@ -1057,10 +1076,10 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
       alleyPolygonArray.push(areaGeometry);
     }
   }
-  layout.treeRowArea = 0; // CHANGE THIS LATER ON WHEN AREAS ARE WORKING
-  layout.bedPolygonArray = bedPolygonArray; // POPULATE THIS AS WELL WITH AREA
-  layout.alleyPolygonArray = alleyPolygonArray;
-  layout.alleySpeciesArray = alleySpeciesArray;
+  const layout_treeRowArea = 0; // CHANGE THIS LATER ON WHEN AREAS ARE WORKING
+  const layout_bedPolygonArray = bedPolygonArray; // POPULATE THIS AS WELL WITH AREA
+  const layout_alleyPolygonArray = alleyPolygonArray;
+  const layout_alleySpeciesArray = alleySpeciesArray;
   console.log(`Alley species array count: ${alleySpeciesArray.length}`);
   console.log(`Alley polygon array count: ${alleyPolygonArray.length}`);
   // COUNT ASSETS
@@ -1090,13 +1109,31 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
     };
     uniqueSpeciesCount.push(speciesCount);
   }
-  layout.uniqueSpeciesCount = uniqueSpeciesCount;
+  const layout_uniqueSpeciesCount = uniqueSpeciesCount;
   const uniqueTreeSpecies = unique(treeArray);
-  layout.uniqueSpecies = uniqueTreeSpecies;
+  const layout_uniqueSpecies = uniqueTreeSpecies;
   // JUST SEND BLANK
-  layout.offsetArray = [];
+  const layout_offsetArray: any[] = [];
 
-  return (layout);
+  return {
+    alleyPolygonArray: layout_alleyPolygonArray,
+    alleySpeciesArray: layout_alleySpeciesArray,
+    bedPolygonArray: layout_bedPolygonArray,
+    offsetArray: layout_offsetArray,
+    rowLineArray: layout_rowLineArray,
+    rowLineCollection: layout_rowLineCollection,
+    uniqueSpecies: layout_uniqueSpecies,
+    uniqueSpeciesCount: layout_uniqueSpeciesCount,
+    treeAssetArray: layout_treeAssetArray,
+    treeAssetRowRef: layout_treeAssetRowRef,
+    treeArray: layout_treeArray,
+    treeMarkerArray: layout_treeMarkerArray,
+    treeMarkerCollection: layout_treeMarkerCollection,
+    treeNameLabelCollection: layout_treeNameLabelCollection,
+    treeRowArea: layout_treeRowArea,
+  };
+}
+
+export default {
+  systemBasedLayout, rowBasedLayout,
 };
-
-export default gisObj;

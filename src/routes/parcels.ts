@@ -637,8 +637,12 @@ router.get(
         const treeMarkers = turf.featureCollection(treeCanopyArray);
         const treeCollection = JSON.stringify(treeMarkers);
         // GENERATE AREAS
-        const alleyPolygonArray: any[] = [];
-        const bedPolygonArray: any[] = [];
+        const alleyPolygonArray: turf.Feature<turf.Polygon, {
+          name: string;
+        }>[] = [];
+        const bedPolygonArray: turf.Feature<turf.Polygon, {
+          name: string;
+        }>[] = [];
         for (let j = 0; j < foundParcel.layers.length; j++) {
           for (let i = 0; i < foundParcel.layers[j].areas.length; i++) {
             // ROW VIZ

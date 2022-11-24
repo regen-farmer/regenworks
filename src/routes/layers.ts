@@ -869,8 +869,12 @@ router.get(
           // COMBINE ASSETS AND ROW BASED
 
           // AREAS
-          const alleyPolygonArray: any[] = [];
-          const bedPolygonArray: any[] = [];
+          const alleyPolygonArray: turf.Feature<turf.Polygon, {
+            name: string;
+          }>[] = [];
+          const bedPolygonArray: turf.Feature<turf.Polygon, {
+            name: string;
+          }>[] = [];
           for (let i = 0; i < foundLayer.areas.length; i++) {
             // ROW VIZ
             const areaGeometry = JSON.parse(foundLayer.areas[i].geometry);

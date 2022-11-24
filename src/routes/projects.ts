@@ -304,7 +304,7 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
-        let layout: any = {};
+        let layout;
         // IF ROWS, DO XXX
         if (foundProject.rows && foundProject.rows.length > 0) {
           // DO ROW LAYOUT
@@ -422,11 +422,14 @@ router.get(
                     } */
         // UNIQUE ITEM COUNTS
         let rowWidth = 0;
+
+        // @ts-ignore
         if (layout.rowWidth) {
           // ONLY USED FOR SYSTEM BASED
+          // @ts-ignore
           rowWidth = layout.rowWidth;
         }
-        let uniqueSpeciesCount = [];
+        let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
         if (layout.uniqueSpeciesCount) {
           uniqueSpeciesCount = layout.uniqueSpeciesCount;
         }
@@ -528,7 +531,7 @@ router.get(
           //     .populate('model.species')
           //     .exec()
           // SET VARIABLES HERE
-          let layout: any = {};
+          let layout;
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
@@ -549,11 +552,13 @@ router.get(
           const treeCollection = JSON.stringify(treeMarkers);
           // UNIQUE ITEM COUNTS
           let rowWidth = 0;
+          // @ts-ignore
           if (layout.rowWidth) {
             // ONLY USED FOR SYSTEM BASED
+            // @ts-ignore
             rowWidth = layout.rowWidth;
           }
-          let uniqueSpeciesCount = [];
+          let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
           if (layout.uniqueSpeciesCount) {
             uniqueSpeciesCount = layout.uniqueSpeciesCount;
           }
@@ -758,7 +763,7 @@ router.get(
         // FIND SYSTEM
         try {
           // SET VARIABLES HERE
-          let layout: any = {};
+          let layout;
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
@@ -839,85 +844,81 @@ router.get(
 // PROJECT LAYOUT EXPLODE ROUTE
 router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT
-  Project.findById(req.params.id)
-    .populate({ path: 'system', populate: { path: 'model.species' } })
-    .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
-    .populate('layer')
-    .exec(async (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        const layout = gisObj.systemBasedLayout(foundProject);
-        // CREATE ROWS ON PROJECT
-        const rows: {
-          geometry: string;
-          name: string;
-          rowlength: number;
-        }[] = [];
-        for (let i = 0; i < layout.rowLineArray.length; i++) {
-          const row = {
-            geometry: JSON.stringify(layout.rowLineArray[i]),
-            name: `Row ${i}`,
-            // CREATE ROW LENGTH
-            rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
-          };
-          // PUSH TO ARRAY
-          rows.push(row);
-        }
-        console.log(rows[0]);
-        // CREATE AREAS
-        const areas: {
-          geometry: string;
-          name: string;
-          size: number;
-        }[] = [];
-        for (let i = 0; i < layout.alleyPolygonArray.length; i++) {
-          const alleyGeometry = layout.alleyPolygonArray[i];
-          const alley = {
-            geometry: JSON.stringify(layout.alleyPolygonArray[i]),
-            name: `Alley ${i}`,
-            size: area(alleyGeometry),
-          };
-          // PUSH TO ARRAY
-          areas.push(alley);
-        }
-        for (let i = 0; i < layout.bedPolygonArray.length; i++) {
-          const bedGeometry = layout.bedPolygonArray[i];
-          const treeStrip = {
-            geometry: JSON.stringify(layout.bedPolygonArray[i]),
-            name: `Tree Strip ${i}`,
-            size: area(bedGeometry),
-          };
-          // PUSH TO ARRAY
-          areas.push(treeStrip);
-        }
-        // const rowCollection = JSON.stringify(layout.rowLineCollection);
-        // CREATE AREAS ON AREA
-        // const alleyCollection = JSON.stringify(layout.bedPolygonCollection);
+  try {
+    const foundProject = await Project.findById(req.params.id)
+      .populate({ path: 'system', populate: { path: 'model.species' } })
+      .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
+      .populate('layer')
+      .exec();
+    if (foundProject) {
+      const layout = gisObj.systemBasedLayout(foundProject);
+      // CREATE ROWS ON PROJECT
+      const rows: {
+      geometry: string;
+      name: string;
+      rowlength: number;
+    }[] = [];
+      for (let i = 0; i < layout.rowLineArray.length; i++) {
+        const row = {
+          geometry: JSON.stringify(layout.rowLineArray[i]),
+          name: `Row ${i}`,
+          // CREATE ROW LENGTH
+          rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
+        };
+        // PUSH TO ARRAY
+        rows.push(row);
+      }
+      console.log(rows[0]);
+      // CREATE AREAS
+      const areas: {
+      geometry: string;
+      name: string;
+      size: number;
+    }[] = [];
+      for (let i = 0; i < layout.alleyPolygonArray.length; i++) {
+        const alleyGeometry = layout.alleyPolygonArray[i];
+        const alley = {
+          geometry: JSON.stringify(layout.alleyPolygonArray[i]),
+          name: `Alley ${i}`,
+          size: area(alleyGeometry),
+        };
+        // PUSH TO ARRAY
+        areas.push(alley);
+      }
+      for (let i = 0; i < layout.bedPolygonArray.length; i++) {
+        const bedGeometry = layout.bedPolygonArray[i];
+        const treeStrip = {
+          geometry: JSON.stringify(layout.bedPolygonArray[i]),
+          name: `Tree Strip ${i}`,
+          size: area(bedGeometry),
+        };
+        // PUSH TO ARRAY
+        areas.push(treeStrip);
+      }
+      // const rowCollection = JSON.stringify(layout.rowLineCollection);
+      // CREATE AREAS ON AREA
+      // const alleyCollection = JSON.stringify(layout.bedPolygonCollection);
 
-        // CREATE ROWS
+      // CREATE ROWS
+      try {
+        const createdRows = await Row.insertMany(rows);
+        // CREATE AREAS
         try {
-          const createdRows = await Row.insertMany(rows);
-          // CREATE AREAS
+          const createdAreas = await Area.insertMany(areas);
           try {
-            const createdAreas = await Area.insertMany(areas);
-            try {
-              const updatedProject = await Project.findByIdAndUpdate(
-                req.params.id,
-                {
-                  $push: {
-                    rows: { $each: createdRows },
-                    areas: { $each: createdAreas },
-                  },
+            const updatedProject = await Project.findByIdAndUpdate(
+              req.params.id,
+              {
+                $push: {
+                  rows: { $each: createdRows },
+                  areas: { $each: createdAreas },
                 },
-              );
-              if (updatedProject) {
-                res.redirect(`/projects/${updatedProject._id}/layout`);
-              } else {
-                console.log('No updatedProject');
-              }
-            } catch (err) {
-              console.log(err);
+              },
+            );
+            if (updatedProject) {
+              res.redirect(`/projects/${updatedProject._id}/layout`);
+            } else {
+              console.log('No updatedProject');
             }
           } catch (err) {
             console.log(err);
@@ -925,8 +926,13 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.R
         } catch (err) {
           console.log(err);
         }
+      } catch (err) {
+        console.log(err);
       }
-    });
+    }
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT

@@ -2,11 +2,8 @@ import express from 'express';
 import Parcel from '../models/parcel';
 import User, { IUserSchema } from '../models/user';
 
-// Define middleware object
-const middlewareObj: any = {};
-
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
-middlewareObj.checkParcelOwnership = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+export async function checkParcelOwnership(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
   if (req.oidc.user) {
     try {
       const foundParcel = await Parcel.findById(req.params.id);
@@ -23,14 +20,14 @@ middlewareObj.checkParcelOwnership = async (req: express.Request & { user?: IUse
     // req.flash("error", "You need to be logged in to do that.");
     res.redirect('back'); // Sends the user back to the previous page they were on.
   }
-};
+}
 
 // CHECK SYSTEM OWNERSHIP MIDDLEWARE
 
 // CHECK BUDGET OWNERSHIP MIDDLEWARE
 
 // CHECK USER OWNERSHIP MIDDLEWARE
-middlewareObj.checkUserOwnership = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+export async function checkUserOwnership(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
   if (req.oidc.user && req.oidc.user.email_verified) {
     try {
       const foundUser = await User.findById(req.params.id);
@@ -46,19 +43,19 @@ middlewareObj.checkUserOwnership = async (req: express.Request & { user?: IUserS
     // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
     res.redirect('back');
   }
-};
+}
 
 // CHECK IF A USER IS LOGGED IN
-middlewareObj.isLoggedIn = (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+export async function isLoggedIn(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
   if (req.oidc.user && req.oidc.user?.email_verified) {
     return next();
   }
   // req.flash("error", "You need to be logged in to do that!");
   res.redirect('/login');
-};
+}
 
 // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.adminIsLoggedIn = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+export async function adminIsLoggedIn(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
   if (req.oidc.user) {
     if (req.user?.isAdmin) {
       next();
@@ -70,7 +67,7 @@ middlewareObj.adminIsLoggedIn = async (req: express.Request & { user?: IUserSche
     // req.flash("error", "You need to be logged in to do that!");
     res.redirect('back');
   }
-};
+}
 
 /* // CHECK ADMIN USER IS LOGGED IN
 middlewareObj.throttler = function(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction){
@@ -88,4 +85,9 @@ middlewareObj.throttler = function(req: express.Request & { user?: IUserSchema},
 }; */
 
 // Export middleware object
-export default middlewareObj;
+export default {
+  checkParcelOwnership,
+  checkUserOwnership,
+  isLoggedIn,
+  adminIsLoggedIn,
+};
