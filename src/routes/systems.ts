@@ -160,13 +160,13 @@ router.post(
         const allSpecies: string[] = [];
         // ADD SPECIES TO MODEL
         for (let i = 0; i < system.model.length; i++) {
-          // ADD SPECIES ID TO SPECIES ARRAY
-          allSpecies.push(system.model[i].species.id);
           // FIX IF ONLY ONE ITEM IN ROW
           if (system.model[i].species.id instanceof Array) {
             for (let j = 0; j < system.model[i].species.id.length; j++) {
             // IF SPECIES ID IS NULL
               if (!(system.model[i].species.id[j] === '')) {
+                // ADD SPECIES ID TO SPECIES ARRAY
+                allSpecies.push(system.model[i].species.id[j]);
                 const species = {
                   species: system.model[i].species.id[j],
                   position: [
@@ -179,6 +179,8 @@ router.post(
               }
             }
           } else if (!(system.model[i].species.id === '')) {
+            // ADD SPECIES ID TO SPECIES ARRAY
+            allSpecies.push(system.model[i].species.id);
             const species = {
               species: system.model[i].species.id,
               position: [
@@ -192,6 +194,7 @@ router.post(
           xPosition += Number(system.model[i].distance);
         }
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+        console.log(`Unique species:${allSpecies}`);
         system.uniqueSpecies = unique(allSpecies);
         // RE-ROUTE
         if (model.length < 1) {
@@ -377,7 +380,8 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
     });
     // FIND UNIQUE SPECIES / REMOVE DUPLICATES
     const uniqueSpecies = unique(allSpecies);
-    // SORT FIRST ROW ITEMS
+    console.log(`Unique species:${foundSystem.uniqueSpecies}`);
+    // SORT FIRST ROW ITEM
 
     let systemwidth = 0;
     let systemlength = 0;
@@ -747,6 +751,8 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
       }[] = [];
       // DO COUNT FOR ROW WIDTH
       let xPosition = 0;
+      // SPECIES ARRAY FOR UNIQUE SPECIES
+      const allSpecies: string[] = [];
       // ADD SPECIES TO MODEL
       for (let i = 0; i < system.model.length; i++) {
       // FIX IF ONLY ONE ITEM IN ROW
@@ -754,6 +760,8 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           for (let j = 0; j < system.model[i].species.id.length; j++) {
           // IF SPECIES ID IS NULL
             if (!(system.model[i].species.id[j] === '')) {
+              // ADD SPECIES TO UNIQUE SPECIES ARRAY
+              allSpecies.push(system.model[i].species.id[j]);
               const species = {
                 species: system.model[i].species.id[j],
                 position: [
@@ -766,6 +774,8 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
             }
           }
         } else {
+        // ADD SPECIES TO UNIQUE SPECIES ARRAY
+        allSpecies.push(system.model[i].species.id);
         // FIX IF ONLY ONE ITEM IN ROW
           const species = {
             species: system.model[i].species.id,
@@ -781,13 +791,14 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
       }
       console.log(model);
       system.model = model;
+      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      system.uniqueSpecies = unique(allSpecies);
       // REMOVE ANIMAL ITEMS IF NONE
       for (let i = system.animals.length - 1; i >= 0; i--) {
         if (system.animals[i] === '') {
           system.animals.splice(i, 1);
         }
       }
-      // does user own the system?
       if (foundSystem.owner.id.equals(req.user?._id)) {
       // if true, update existing system
         try {
