@@ -8,6 +8,7 @@ import Posting from '../models/posting';
 import Parcel from '../models/parcel';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ const router = express.Router();
 // BUDGET CREATE ROUTE
 
 // BUDGET SHOW ROUTE
-router.get('/budgets/:id', middleware.isLoggedIn, async (req, res) => {
+router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CHECK OWNERSHIP ASAP
   try {
     const foundBudget = await Budget.findById(req.params.id)
@@ -80,18 +81,17 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // BUDGET EDIT ROUTE
-router.get('/budgets/:id/edit', middleware.isLoggedIn, (req, res) => {
-  Budget.findById(req.params.id, (err, foundBudget) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('budgets/edit', { budget: foundBudget });
-    }
-  });
+router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const foundBudget = await Budget.findById(req.params.id);
+    res.render('budgets/edit', { budget: foundBudget });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // BUDGET UPDATE ROUTE
-router.post('/budgets/:id', middleware.isLoggedIn, async (req, res) => {
+router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     const updatedBudget = await Budget.findByIdAndUpdate(
       req.params.id,
@@ -110,7 +110,7 @@ router.post('/budgets/:id', middleware.isLoggedIn, async (req, res) => {
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get('/parcels/:id/accounts', middleware.isLoggedIn, (req, res) => {
+router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Parcel.findById(req.params.id)
     .populate({
       path: 'layers',
@@ -131,7 +131,7 @@ router.get('/parcels/:id/accounts', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/projects/:id/budgets/new',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate('system')
@@ -169,37 +169,32 @@ router.get(
 );
 
 // PROJECT BUDGET CREATE ROUTE
-router.post(
-  '/projects/:id/budgets',
-  middleware.isLoggedIn,
-  (req: any, res) => {
-    Project.findById(req.params.id, (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        Budget.create(req.body.budget, (err, createdBudget) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // BUDGET OWNER
-            createdBudget.owner.id = req.user._id;
-            createdBudget.save();
-            // SAVE BUDGET TO PROJECT
-            foundProject.budget = createdBudget;
-            foundProject.save();
-            res.redirect(`/projects/${foundProject._id}`);
-          }
-        });
-      }
-    });
-  },
-);
+// router.post(
+//   '/projects/:id/budgets',
+//   middleware.isLoggedIn,
+//   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+//     const foundProject = await Project.findById(req.params.id);
+//     const createdBudget = await Budget.create(req.body.budget);
+
+//     if (foundProject) {
+//     // BUDGET OWNER
+//       createdBudget.owner.id = req.user?._id;
+//       createdBudget.save();
+//       // SAVE BUDGET TO PROJECT
+
+//       // TODO
+//       foundProject.budget = createdBudget;
+//       foundProject.save();
+//       res.redirect(`/projects/${foundProject._id}`);
+//     }
+//   },
+// );
 
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get(
   '/projects/:id/generateestablishment',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -279,7 +274,7 @@ router.get(
 router.post(
   '/projects/:id/generateestablishment',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -301,8 +296,7 @@ router.post(
         // CREATE BUDGET AND PLACE IN PROJECT
         // const budget = req.body.budget;
         try {
-          const createdBudget = await Budget.create();
-          // @ts-ignore
+          const createdBudget = await Budget.create({});
           foundProject.budgets.establishment = createdBudget;
           foundProject.save();
           // PARSE QUERY
@@ -392,7 +386,6 @@ router.post(
               const createdPostings = await Posting.insertMany(postings);
               try {
                 await Budget.findByIdAndUpdate(
-                  // @ts-ignore
                   createdBudget._id,
                   { $push: { postings: { $each: createdPostings } } },
                 );
@@ -423,7 +416,7 @@ router.post(
 router.get(
   '/projects/:id/generatemanagement',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -442,7 +435,7 @@ router.get(
       if (foundProject) {
         // FIND SYSTEM
         try {
-          const foundSystem = System.findById(foundProject.system)
+          const foundSystem = await System.findById(foundProject.system)
             .populate('model.species')
             .exec();
           // FIND ALL SPECIES IN SYSTEM OR ROWS
@@ -485,8 +478,7 @@ router.get(
               }
             }
           } else {
-            // @ts-ignore
-            foundSystem.model.forEach((species) => {
+            foundSystem?.model.forEach((species) => {
               allSpecies.push(species.species);
             });
           }
@@ -516,7 +508,7 @@ router.get(
 router.post(
   '/projects/:id/generatemanagement',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)

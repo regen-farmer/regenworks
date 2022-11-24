@@ -1,11 +1,12 @@
+import express from 'express';
 import Parcel from '../models/parcel';
-import User from '../models/user';
+import User, { IUserSchema } from '../models/user';
 
 // Define middleware object
 const middlewareObj: any = {};
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
-middlewareObj.checkParcelOwnership = async function (req, res, next) {
+middlewareObj.checkParcelOwnership = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   if (req.oidc.user) {
     try {
       const foundParcel = await Parcel.findById(req.params.id);
@@ -29,11 +30,11 @@ middlewareObj.checkParcelOwnership = async function (req, res, next) {
 // CHECK BUDGET OWNERSHIP MIDDLEWARE
 
 // CHECK USER OWNERSHIP MIDDLEWARE
-middlewareObj.checkUserOwnership = async function (req, res, next) {
+middlewareObj.checkUserOwnership = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   if (req.oidc.user && req.oidc.user.email_verified) {
     try {
       const foundUser = await User.findById(req.params.id);
-      if (foundUser && foundUser._id.equals(req.user._id)) {
+      if (foundUser && foundUser._id.equals(req.user?._id)) {
         next();
       } else {
         res.redirect('back');
@@ -48,7 +49,7 @@ middlewareObj.checkUserOwnership = async function (req, res, next) {
 };
 
 // CHECK IF A USER IS LOGGED IN
-middlewareObj.isLoggedIn = (req, res, next) => {
+middlewareObj.isLoggedIn = (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   if (req.oidc.user && req.oidc.user?.email_verified) {
     return next();
   }
@@ -57,9 +58,9 @@ middlewareObj.isLoggedIn = (req, res, next) => {
 };
 
 // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.adminIsLoggedIn = async function (req, res, next) {
+middlewareObj.adminIsLoggedIn = async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
   if (req.oidc.user) {
-    if (req.user.isAdmin) {
+    if (req.user?.isAdmin) {
       next();
     } else {
       // req.flash("error", "You do not have permission to do that.");
@@ -72,7 +73,7 @@ middlewareObj.adminIsLoggedIn = async function (req, res, next) {
 };
 
 /* // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.throttler = function(req, res, next){
+middlewareObj.throttler = function(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction){
     if(req.isAuthenticated()){
         if(req.oidc.user.isAdmin){
             next();

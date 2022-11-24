@@ -3,66 +3,62 @@ import Systemflow from '../models/systemflow';
 import System from '../models/system';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
 // SYSTEMFLOW INDEX ROUTE
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
-router.get('/systems/:id/flows/new', middleware.isLoggedIn, (req, res) => {
+router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND SYSTEM ID
-  System.findById(req.params.id, (err, foundSystem) => {
-    if (err) {
-      console.log(err);
-    } else {
-      Species.find((err, foundSpecies) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // SORT SPECIES
-          function compare(a, b) {
-            if (a.nameCommon < b.nameCommon) {
-              return -1;
-            }
-            if (a.nameCommon > b.nameCommon) {
-              return 1;
-            }
-            return 0;
-          }
-          foundSpecies.sort(compare);
-          res.render('systemflows/new', { system: foundSystem, species: foundSpecies });
-        }
-      });
-    }
-  });
+  try {
+    const foundSystem = await System.findById(req.params.id);
+    const foundSpecies = await Species.find();
+
+    // SORT SPECIES
+    foundSpecies.sort((a, b) => {
+      if (a.nameCommon < b.nameCommon) {
+        return -1;
+      }
+      if (a.nameCommon > b.nameCommon) {
+        return 1;
+      }
+      return 0;
+    });
+    res.render('systemflows/new', { system: foundSystem, species: foundSpecies });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
-router.post('/systems/:id/flows', middleware.isLoggedIn, (req, res) => {
+router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND SYSTEM
-  System.findById(req.params.id, (err, foundSystem) => {
-    if (err) {
-      console.log(err);
-    } else {
-      const flow = req.body.flow;
-      const data: any[] = [];
-      for (let i = 0; i < flow.data.length; i++) {
-        if (!(flow.data[i].species === '')) {
-          data.push(flow.data[i]);
-        }
+  try {
+    const foundSystem = await System.findById(req.params.id);
+    const flow = req.body.flow;
+    const data: any[] = [];
+    for (let i = 0; i < flow.data.length; i++) {
+      if (!(flow.data[i].species === '')) {
+        data.push(flow.data[i]);
       }
-      flow.data = data;
-      Systemflow.create(req.body.flow, (err, createdSystemflow) => {
-        if (err) {
-          console.log(err);
-        } else {
-          foundSystem.flows.push(createdSystemflow);
-          foundSystem.save();
-          res.redirect(`/systems/${foundSystem._id}`);
-        }
-      });
     }
-  });
+    flow.data = data;
+
+    if (foundSystem) {
+      try {
+        const createdSystemflow = await Systemflow.create(req.body.flow);
+        foundSystem.flows.push(createdSystemflow);
+        foundSystem.save();
+        res.redirect(`/systems/${foundSystem._id}`);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 export default router;

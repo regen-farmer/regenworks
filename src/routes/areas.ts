@@ -2,6 +2,7 @@ import express from 'express';
 import Project from '../models/project';
 import Area from '../models/area';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.get(
   '/projects/:id/areas/new',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     Project.findById(req.params.id)
       .populate('layer')
@@ -24,7 +25,7 @@ router.get(
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', middleware.isLoggedIn, (req, res) => {
+router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // CREATE AREA HERE?
   const area = {
     geometry: req.body.geometry,
@@ -59,15 +60,19 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, (req, res) => {
 router.delete(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
-    Project.findById(req.params.id, async (err, updatedProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // REMOVE ROW
+    try {
+      const updatedProject = await Project.findById(req.params.id);
+
+      if (updatedProject) {
+      // REMOVE ROW
         console.log(`Length before ${updatedProject.areas.length}`);
-        updatedProject.areas.remove(req.params.pid);
+        updatedProject.areas.forEach(async (area) => {
+          if (area._id === req.params.pid) {
+            await area.remove();
+          }
+        });
         updatedProject.save();
         // DELETE ROW
         try {
@@ -78,7 +83,9 @@ router.delete(
           console.log(err);
         }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -86,7 +93,7 @@ router.delete(
 router.get(
   '/projects/:id/deleteareas',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);

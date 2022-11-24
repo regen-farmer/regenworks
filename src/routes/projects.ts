@@ -18,6 +18,7 @@ import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
+import { IUserSchema } from '../models/user';
 
 // NODE GEOCODER CODE
 
@@ -32,53 +33,58 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, (req: any, res) => {
+router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // GET ALL USERS PROJECTS IN DB
-  Project.find({ 'owner.id': req.user._id }, (err, allProjects) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('projects/index', { projects: allProjects });
-    }
-  });
+  try {
+    const allProjects = await Project.find({ 'owner.id': req.user?._id });
+    res.render('projects/index', { projects: allProjects });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   const place = undefined;
   res.render('projects/new', { place });
 });
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, (req: any, res) => {
+router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // Create a new project
-  Project.create(req.body.project, (err, service) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-      geocoder.geocode(req.body.service.location, (err, data) => {
-        if (err || !data.length) {
-          console.log(err);
-          return res.redirect('back');
-        }
-        service.lat = data[0].latitude;
-        service.lng = data[0].longitude;
-        service.location = data[0].formattedAddress;
+  try {
+    const service = await Project.create(req.body.project);
+    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+    geocoder.geocode(req.body.service.location, (err, data) => {
+      if (err || !data.length) {
+        console.log(err);
+        return res.redirect('back');
+      }
+
+      const lat = data[0].latitude;
+      const lng = data[0].longitude;
+      const loc = data[0].formattedAddress;
+
+      if (lat && lng && loc) {
+        service.lat = lat;
+        service.lng = lng;
+        service.location = loc;
         // Add ID to experience
-        service.owner.id = req.user._id;
+        service.owner.id = req.user?._id;
         // Save the service - Not need if created after this step
         service.save();
         // Redirect to projects INDEX page
         // req.flash("success", "Successfully added service");
         res.redirect('/projects');
-      });
-    }
-  });
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT SHOW ROUTE
-router.get('/projects/:id', middleware.isLoggedIn, async (req, res) => {
+router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id)
       .populate('layer')
@@ -250,23 +256,22 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req, res) => {
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
-  Project.findById(req.params.id, (err, foundProject) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('projects/edit', { project: foundProject });
-    }
-  });
+  try {
+    const foundProject = await Project.findById(req.params.id);
+    res.render('projects/edit', { project: foundProject });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -428,7 +433,7 @@ router.get(
         // CALCULATE AREA SIZES
         const treeRowArea = layout.treeRowArea;
         // TREE ROW LENGTHS
-        /*if (foundProject.rows && foundProject.rows.length > 0) {
+        /* if (foundProject.rows && foundProject.rows.length > 0) {
           // DO ROW LENGTH
           console.log(`rows ${foundProject.rows[0]}`);
           for (let i = 0; i < foundProject.rows.length; i++) {
@@ -437,8 +442,8 @@ router.get(
               units: 'meters',
             });
           }
-        }*/
-        /*for(let i=0;i<layout.alleyPolygonArray.length;i++){
+        } */
+        /* for(let i=0;i<layout.alleyPolygonArray.length;i++){
                         console.log("area" + i + area(layout.alleyPolygonArray[i]));
                     } */
         // TEMP VALUE HERE
@@ -464,42 +469,38 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, (req, res) => {
-  Project.findByIdAndUpdate(
-    req.params.id,
-    req.body.project,
-    (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // req.flash("success", "Successfully added service");
-        res.redirect(`/projects/${req.params.id}`);
-      }
-    },
-  );
+router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body.project,
+    );
+    // req.flash("success", "Successfully added service");
+    res.redirect(`/projects/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, (req, res) => {
-  Project.findByIdAndUpdate(
-    req.params.id,
-    req.body.project,
-    (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // req.flash("success", "Successfully added service");
-        res.redirect(`/projects/${req.params.id}/layout`);
-      }
-    },
-  );
+router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body.project,
+    );
+    // req.flash("success", "Successfully added service");
+    res.redirect(`/projects/${req.params.id}/layout`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT VIZ ROUTE
 router.get(
   '/projects/:id/viz',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -585,7 +586,7 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   res.render('projects/3dviz');
 });
 
@@ -593,7 +594,7 @@ router.get('/projects/:id/3dviz', middleware.isLoggedIn, (req, res) => {
 router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     Project.findByIdAndUpdate(
       req.params.id,
       { $set: { status: 'Implementation' } },
@@ -609,7 +610,7 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, (req, res) => {
+router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   Project.findByIdAndUpdate(
     req.params.id,
     { $set: { status: 'Retired' } },
@@ -627,7 +628,7 @@ router.put('/projects/:id/retire', middleware.isLoggedIn, (req, res) => {
 router.put(
   '/projects/:id/complete',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     try {
       const completedProject = await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: 'Completed' },
@@ -674,33 +675,31 @@ router.put(
 router.get(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  (req: any, res) => {
-    Project.findById(req.params.id, (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        System.find({ 'owner.id': req.user._id }, (err, foundSystems) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // SORT OUT MONOCULTURE SYSTEMS
-            const realSystems: any[] = [];
-            for (let i = 0; i < foundSystems.length; i++) {
-              const systemNameSplit = foundSystems[i].name.split(' ');
-              if (
-                !(systemNameSplit[systemNameSplit.length - 1] === 'monoculture')
-              ) {
-                realSystems.push(foundSystems[i]);
-              }
-            }
-            res.render('projects/addedgesystem', {
-              project: foundProject,
-              systems: realSystems,
-            });
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundProject = await Project.findById(req.params.id);
+      try {
+        const foundSystems = await System.find({ 'owner.id': req.user?._id });
+        // SORT OUT MONOCULTURE SYSTEMS
+        const realSystems: any[] = [];
+        for (let i = 0; i < foundSystems.length; i++) {
+          const systemNameSplit = foundSystems[i].name.split(' ');
+          if (
+            !(systemNameSplit[systemNameSplit.length - 1] === 'monoculture')
+          ) {
+            realSystems.push(foundSystems[i]);
           }
+        }
+        res.render('projects/addedgesystem', {
+          project: foundProject,
+          systems: realSystems,
         });
+      } catch (err) {
+        console.log(err);
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -708,7 +707,7 @@ router.get(
 router.post(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND SYSTEM
     try {
       const foundSystem = await System.findById(req.body.systemid);
@@ -736,7 +735,7 @@ router.post(
 router.get(
   '/projects/:id/generateassets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -838,7 +837,7 @@ router.get(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
+router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // FIND PROJECT
   Project.findById(req.params.id)
     .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -856,7 +855,7 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
             geometry: JSON.stringify(layout.rowLineArray[i]),
             name: `Row ${i}`,
             // CREATE ROW LENGTH
-            rowlength: turfLength(layout.rowLineArray[i], {units: 'meters'})
+            rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
           };
           // PUSH TO ARRAY
           rows.push(row);
@@ -926,7 +925,7 @@ router.get('/projects/:id/explode', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/projects/:id/deleterows',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -966,7 +965,7 @@ router.get(
 router.get(
   '/projects/:id/assets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1029,7 +1028,7 @@ router.get(
 router.delete(
   '/projects/:id',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
@@ -1093,26 +1092,24 @@ router.delete(
 router.get(
   '/layers/:id/projects/new/:system',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
-    Layer.findById(req.params.id, (err, foundLayer) => {
-      if (err) {
-        console.log(err);
-        // res.flash(err);
-      } else {
-        System.findById(req.params.system, (err, foundSystem) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.render('projects/new', {
-              layer: foundLayer,
-              system: foundSystem,
-            });
-          }
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      try {
+        const foundSystem = await System.findById(req.params.system);
+        res.render('projects/new', {
+          layer: foundLayer,
+          system: foundSystem,
         });
+      } catch (err) {
+        console.log(err);
       }
-    });
+    } catch (err) {
+      console.log(err);
+      // res.flash(err);
+    }
   },
 );
 
@@ -1120,7 +1117,7 @@ router.get(
 router.post(
   '/layers/:id/projects',
   middleware.isLoggedIn,
-  async (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // Lookup place using id
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -1137,7 +1134,7 @@ router.post(
       if (foundLayer && createdProject && foundSystem) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user._id;
+        createdProject.owner.id = req.user?._id;
         createdProject.system = foundSystem;
         createdProject.layer = foundLayer;
         createdProject.financial = {
@@ -1161,7 +1158,6 @@ router.post(
           try {
             const createdRows = await Row.insertMany(newRows);
 
-            // @ts-ignore
             createdProject.rows = createdRows;
             // Save the project
             createdProject.save();
@@ -1186,17 +1182,16 @@ router.post(
 router.delete(
   '/projects/:id/allassets',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(req.params.id).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
-        for (let i = 0; foundProject.assets.length > i; i++) {
-          // @ts-ignore
-          foundProject.assets.remove(foundProject.assets[i]);
+        for (let i = foundProject.assets.length - 1; i >= 0; i--) {
+          await foundProject.assets[i].remove();
           // SAVE PROJECT
-          foundProject.save();
+          await foundProject.save();
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
@@ -1219,35 +1214,34 @@ router.delete(
 router.get(
   '/projects/:id/row/new',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
-    Project.findById(req.params.id)
-      .populate('layer')
-      .exec((err, foundProject) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // FIND MY SYSTEMS
-          Sequence.find(
-            { 'owner.id': req.user._id },
-            (err, foundSequences) => {
-              if (err) {
-                console.log(err);
-              } else {
-                res.render('projects/row', {
-                  project: foundProject,
-                  sequences: foundSequences,
-                });
-              }
-            },
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate('layer')
+        .exec();
+      if (foundProject) {
+        // FIND MY SYSTEMS
+        try {
+          const foundSequences = await Sequence.find(
+            { 'owner.id': req.user?._id },
           );
+          res.render('projects/row', {
+            project: foundProject,
+            sequences: foundSequences,
+          });
+        } catch (err) {
+          console.log(err);
         }
-      });
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, (req, res) => {
+router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
   // REDIRECT IF NO GEOMETRY
   if (req.body.geometry === '') {
     res.redirect('back');
@@ -1258,34 +1252,33 @@ router.post('/projects/:id/row', middleware.isLoggedIn, (req, res) => {
       geometry: req.body.geometry,
       name: req.body.row.name,
       // ADD ROW LENGTH PARAM
-      rowlength: turfLength(tempGeo, {units: 'meters'})
+      rowlength: turfLength(tempGeo, { units: 'meters' }),
     };
     if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
       row.sequence = req.body.sequenceid;
     }
     console.log(row);
     // CREATE ROW
-    Row.create(row, async (err, createdRow) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND PROJECT
-        try {
-          const foundProject = await Project.findByIdAndUpdate(req.params.id, {
-            $addToSet: { rows: createdRow },
-          });
-          // CREATE ROW
-          if (foundProject) {
-            console.log('Row has been added to project');
-            res.redirect(`/projects/${foundProject.id}/layout`);
-          } else {
-            console.log('No foundProject');
-          }
-        } catch (err) {
-          console.log(err);
+    try {
+      const createdRow = await Row.create(row);
+      // FIND PROJECT
+      try {
+        const foundProject = await Project.findByIdAndUpdate(req.params.id, {
+          $addToSet: { rows: createdRow },
+        });
+        // CREATE ROW
+        if (foundProject) {
+          console.log('Row has been added to project');
+          res.redirect(`/projects/${foundProject.id}/layout`);
+        } else {
+          console.log('No foundProject');
         }
+      } catch (err) {
+        console.log(err);
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   }
 });
 
@@ -1293,41 +1286,37 @@ router.post('/projects/:id/row', middleware.isLoggedIn, (req, res) => {
 router.get(
   '/projects/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Project.findById(req.params.id)
-      .populate({ path: 'rows', populate: { path: 'sequence' } })
-      .populate('layer')
-      .exec((err, foundProject) => {
-        if (err) {
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate({ path: 'rows', populate: { path: 'sequence' } })
+        .populate('layer')
+        .exec();
+      // FIND ROW
+      try {
+        const foundRow = await Row.findById(req.params.pid)
+          .populate('sequence')
+          .exec();
+        // FIND MY SYSTEMS
+        try {
+          const foundSequences = await Sequence.find(
+            { 'owner.id': req.user?._id },
+          );
+          res.render('projects/editrow', {
+            project: foundProject,
+            row: foundRow,
+            sequences: foundSequences,
+          });
+        } catch (err) {
           console.log(err);
-        } else {
-          // FIND ROW
-          Row.findById(req.params.pid)
-            .populate('sequence')
-            .exec((err, foundRow) => {
-              if (err) {
-                console.log(err);
-              } else {
-                // FIND MY SYSTEMS
-                Sequence.find(
-                  { 'owner.id': req.user._id },
-                  (err, foundSequences) => {
-                    if (err) {
-                      console.log(err);
-                    } else {
-                      res.render('projects/editrow', {
-                        project: foundProject,
-                        row: foundRow,
-                        sequences: foundSequences,
-                      });
-                    }
-                  },
-                );
-              }
-            });
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -1335,7 +1324,7 @@ router.get(
 router.put(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CREATE ROW HERE?
     const row: any = {
       name: req.body.row.name,
@@ -1344,20 +1333,20 @@ router.put(
       row.sequence = req.body.sequenceid;
     }
     // FIND PROJECT
-    Project.findById(req.params.id, (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND AND UPDATE ROW
-        Row.findByIdAndUpdate(req.params.pid, row, (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.redirect(`/projects/${foundProject._id}/layout`);
-          }
-        });
+    try {
+      const foundProject = await Project.findById(req.params.id);
+      // FIND AND UPDATE ROW
+      if (foundProject) {
+        try {
+          await Row.findByIdAndUpdate(req.params.pid, row);
+          res.redirect(`/projects/${foundProject._id}/layout`);
+        } catch (err) {
+          console.log(err);
+        }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -1365,15 +1354,18 @@ router.put(
 router.delete(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Project.findById(req.params.id, async (err, updatedProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // REMOVE ROW
+    try {
+      const updatedProject = await Project.findById(req.params.id);
+      // REMOVE ROW
+      if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
-        updatedProject.rows.remove(req.params.pid);
+        updatedProject.rows.forEach(async (row) => {
+          if (row._id === req.params.pid) {
+            await row.remove();
+          }
+        });
         // DELETE ROW
         try {
           await Row.findByIdAndRemove(req.params.pid);
@@ -1383,7 +1375,9 @@ router.delete(
           console.log(err);
         }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -1393,41 +1387,37 @@ router.delete(
 router.get(
   '/projects/:id/areas/:pid/edit',
   middleware.isLoggedIn,
-  (req: any, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Project.findById(req.params.id)
-      .populate({ path: 'areas', populate: { path: 'rotation' } })
-      .populate('layer')
-      .exec((err, foundProject) => {
-        if (err) {
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate({ path: 'areas', populate: { path: 'rotation' } })
+        .populate('layer')
+        .exec();
+      // FIND ROW
+      try {
+        const foundArea = await Area.findById(req.params.pid)
+          .populate('rotation')
+          .exec();
+        // FIND MY SYSTEMS
+        try {
+          const foundRotations = await Rotation.find(
+            { 'owner.id': req.user?._id },
+          );
+          res.render('projects/editarea', {
+            project: foundProject,
+            area: foundArea,
+            rotations: foundRotations,
+          });
+        } catch (err) {
           console.log(err);
-        } else {
-          // FIND ROW
-          Area.findById(req.params.pid)
-            .populate('rotation')
-            .exec((err, foundArea) => {
-              if (err) {
-                console.log(err);
-              } else {
-                // FIND MY SYSTEMS
-                Rotation.find(
-                  { 'owner.id': req.user._id },
-                  (err, foundRotations) => {
-                    if (err) {
-                      console.log(err);
-                    } else {
-                      res.render('projects/editarea', {
-                        project: foundProject,
-                        area: foundArea,
-                        rotations: foundRotations,
-                      });
-                    }
-                  },
-                );
-              }
-            });
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -1435,7 +1425,7 @@ router.get(
 router.put(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CREATE AREA HERE?
     const area: any = {
       name: req.body.area.name,
@@ -1444,25 +1434,24 @@ router.put(
       area.rotation = req.body.rotationid;
     }
     // FIND PROJECT
-    Project.findById(req.params.id, (err, foundProject) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // FIND AND UPDATE AREA
-        Area.findByIdAndUpdate(
-          req.params.pid,
-          area,
-          (err, updatedArea) => {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log(`Updated area: ${updatedArea}`);
-              res.redirect(`/projects/${foundProject._id}/layout`);
-            }
-          },
-        );
+    try {
+      const foundProject = await Project.findById(req.params.id);
+      // FIND AND UPDATE AREA
+      if (foundProject) {
+        try {
+          const updatedArea = await Area.findByIdAndUpdate(
+            req.params.pid,
+            area,
+          );
+          console.log(`Updated area: ${updatedArea}`);
+          res.redirect(`/projects/${foundProject._id}/layout`);
+        } catch (err) {
+          console.log(err);
+        }
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -1472,7 +1461,7 @@ router.put(
 router.get(
   '/projects/:id/budgetpdf',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PROJECT
 
     // GENERATE PDF TEST

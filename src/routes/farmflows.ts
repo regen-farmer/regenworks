@@ -8,23 +8,15 @@ import Row from '../models/row';
 import Area from '../models/area';
 import Species from '../models/species';
 import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
 const router = express.Router();
 
-function compare1(a, b) {
-  if (a.position[1] < b.position[1]) {
-    return -1;
-  }
-  if (a.position[1] > b.position[1]) {
-    return 1;
-  }
-  return 0;
-}
 // PARCEL FARMFLOWS
 router.get(
   '/parcels/:id/farmflows',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND PARCEL
     Parcel.findById(req.params.id)
       .populate({
@@ -51,7 +43,7 @@ router.get(
 router.get(
   '/parcels/:id/layers/:pid/rows/:rid/farmflows/new',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND ROW SEQUENCE SPECIES
     const foundRow = await Row.findById(req.params.rid)
       .populate({ path: 'sequence', populate: { path: 'model.species' } })
@@ -85,34 +77,27 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/rows/:rid/farmflows',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND SPECIES
-    Species.findById(req.body.species, (err, foundSpecies) => {
-      if (err) {
+    try {
+      const foundSpecies = await Species.findById(req.body.species);
+      // CREATE ACTIVITY
+      const newFarmFlow = req.body.farmflow;
+      newFarmFlow.species = foundSpecies;
+      const createdFarmflow = await Farmflow.create(newFarmFlow);
+
+      try {
+        await Row.findByIdAndUpdate(
+          req.params.rid,
+          { $push: { farmflows: createdFarmflow } },
+        );
+        res.redirect(`/parcels/${req.params.id}/farmflows`);
+      } catch (err) {
         console.log(err);
-      } else {
-        // CREATE ACTIVITY
-        const newFarmFlow = req.body.farmflow;
-        newFarmFlow.species = foundSpecies;
-        Farmflow.create(newFarmFlow, (err, createdFarmflow) => {
-          if (err) {
-            console.log(err);
-          } else {
-            Row.findByIdAndUpdate(
-              req.params.rid,
-              { $push: { farmflows: createdFarmflow } },
-              (err) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  res.redirect(`/parcels/${req.params.id}/farmflows`);
-                }
-              },
-            );
-          }
-        });
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -121,7 +106,7 @@ router.post(
 router.get(
   '/parcels/:id/layers/:pid/areas/:rid/farmflows/new',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND AREA ROTATION SPECIES
     const foundArea = await Area.findById(req.params.rid)
       .populate({
@@ -157,34 +142,27 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/areas/:rid/farmflows',
   middleware.isLoggedIn,
-  (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND SPECIES
-    Species.findById(req.body.species, (err, foundSpecies) => {
-      if (err) {
+    try {
+      const foundSpecies = await Species.findById(req.body.species);
+      // CREATE ACTIVITY
+      const newFarmFlow = req.body.farmflow;
+      newFarmFlow.species = foundSpecies;
+      const createdFarmflow = await Farmflow.create(newFarmFlow);
+
+      try {
+        await Area.findByIdAndUpdate(
+          req.params.rid,
+          { $push: { farmflows: createdFarmflow } },
+        );
+        res.redirect(`/parcels/${req.params.id}/farmflows`);
+      } catch (err) {
         console.log(err);
-      } else {
-        // CREATE ACTIVITY
-        const newFarmFlow = req.body.farmflow;
-        newFarmFlow.species = foundSpecies;
-        Farmflow.create(newFarmFlow, (err, createdFarmflow) => {
-          if (err) {
-            console.log(err);
-          } else {
-            Area.findByIdAndUpdate(
-              req.params.rid,
-              { $push: { farmflows: createdFarmflow } },
-              (err) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  res.redirect(`/parcels/${req.params.id}/farmflows`);
-                }
-              },
-            );
-          }
-        });
       }
-    });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -192,7 +170,7 @@ router.post(
 router.get(
   '/parcels/:id/layers/:pid/farmflows/viz',
   middleware.isLoggedIn,
-  async (req, res) => {
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CREATE ACTIVITY
     const foundLayer = await Layer.findById(req.params.pid)
       .populate({ path: 'rows', populate: { path: 'farmflows' } })
@@ -234,7 +212,15 @@ router.get(
                         }
                     }); */
           // SORT ROW ITEMS
-          datasetRows.sort(compare1);
+          datasetRows.sort((a, b) => {
+            if (a.position < b.position) {
+              return -1;
+            }
+            if (a.position > b.position) {
+              return 1;
+            }
+            return 0;
+          });
           // ROW LENGTH
           const rowLine = JSON.parse(foundLayer.rows[i].geometry);
           const rowLength = turfLength(rowLine, { units: 'meters' });
