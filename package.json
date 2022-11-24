@@ -22,8 +22,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "copy:assets": "cpx 'src/views/**' 'dist/views' && cpx 'src/public/**' 'dist/public'",
-    "start": "npm run build && npm run copy:assets && node dist/app.js"
+    "copy:assets:win": "xcopy \"src\\views\" \"dist\\views\" && cpx \"src\\public\" \"dist\\public\"",
+    "copy:assets:unix": "cpx 'src/views/**' 'dist/views' && cpx 'src/public/**' 'dist/public'",
+    "start-win": "npm run build && npm run copy:assets:win && node dist/app.js",
+    "start-unix": "npm run build && npm run copy:assets:unix && node dist/app.js"
   },
   "author": "grownlocal",
   "license": "ISC",
