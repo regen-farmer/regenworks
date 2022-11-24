@@ -212,12 +212,12 @@ router.get(
                 length = foundSequence.sequencelength;
               }
               // CALCULATE DISTANCE
-              const distanceArray: any[] = [];
+              const distanceArray: number[] = [];
               for (let i = 0; i < foundSequence.model.length; i++) {
                 distanceArray.push(foundSequence.model[i].position);
               }
               //
-              const distanceDifference: any[] = [];
+              const distanceDifference: number[] = [];
               for (let i = 0; i < distanceArray.length; i++) {
                 for (let j = 0; j < distanceArray.length; j++) {
                   if (distanceArray[i] !== distanceArray[j]) {

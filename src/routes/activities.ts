@@ -2,7 +2,7 @@ import express from 'express';
 // import NodeGeocoder from 'node-geocoder';
 import unique from 'array-unique';
 import Parcel from '../models/parcel';
-import Activity from '../models/activity';
+import Activity, { IActivitySchema } from '../models/activity';
 import Layer from '../models/layer';
 import Project from '../models/project';
 import Row from '../models/row';
@@ -241,9 +241,9 @@ router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req
   try {
     const foundProject = await Project.findById(req.params.id).populate({ path: 'budgets.establishment', populate: { path: 'postings' } }).exec();
     if (foundProject) {
-      const activityArray: any[] = [];
+      const activityArray: IActivitySchema[] = [];
       for (let i = 0; i < foundProject.budgets.establishment.postings.length; i++) {
-        const activity:any = {
+        const activity: any = {
           status: false,
           automated: true,
         };

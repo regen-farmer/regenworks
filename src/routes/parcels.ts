@@ -12,6 +12,7 @@ import Parcel from '../models/parcel';
 import Practice from '../models/practice';
 import Layer from '../models/layer';
 import middleware from '../middleware'; // Will automatically require the middleware "index" file as the standard
+import { ISpeciesSchema } from '../models/species';
 
 // NODE GEOCODER CODE
 
@@ -240,8 +241,10 @@ router.get(
             [0, 0],
           ],
         ]);
-        const geometryArray: any[] = [];
-        const placesArray: any[] = [];
+        const geometryArray: turf.Feature<any, any>[] = [];
+        const placesArray: turf.Feature<turf.Point, {
+          description: string;
+        }>[] = [];
         geometryArray.push(geometry);
         if (foundParcel.layers.length > 0) {
           for (let i = 0; foundParcel.layers.length > i; i++) {
@@ -375,7 +378,7 @@ router.get(
         .populate('layers')
         .exec();
       if (foundParcel) {
-        const layerarray: any[] = [];
+        const layerarray: string[] = [];
         foundParcel.layers.forEach((layer) => {
           layerarray.push(layer._id);
         });
@@ -473,8 +476,12 @@ router.get(
             [0, 0],
           ],
         ]);
-        const geometryArray: any[] = [];
-        const placesArray: any[] = [];
+
+        const geometryArray: (turf.Feature<any, { description: string; }> |
+          turf.Feature<turf.Polygon, turf.Properties>)[] = [];
+
+        const placesArray: turf.Feature<turf.Point, { description: string; }>[] = [];
+
         geometryArray.push(geometry);
         if (foundParcel.layers.length > 0) {
           for (let i = 0; foundParcel.layers.length > i; i++) {
@@ -502,8 +509,11 @@ router.get(
         const featurecollection = turf.featureCollection(geometryArray);
         const collection = JSON.stringify(featurecollection);
         // GENERATE ROWS AND TREES
-        const treeAssetsArray: any[] = [];
-        const treeMarkerArray: any[] = [];
+        const treeAssetsArray: {
+          marker: turf.Feature<turf.Point, turf.Properties>;
+          species: ISpeciesSchema;
+        }[] = [];
+        const treeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
 
         // CYCLE THROUGH EACH LAYER
         for (let j = 0; j < foundParcel.layers.length; j++) {
@@ -611,7 +621,7 @@ router.get(
           }
         }
         // DO POINT COLLECTION
-        const treeCanopyArray: any[] = [];
+        const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
         if (treeAssetsArray.length < 4000) {
           for (let i = 0; i < treeAssetsArray.length; i++) {
             // FIND TREE DIMENSIONS

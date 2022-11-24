@@ -87,12 +87,12 @@ router.get(
             [0, 0],
           ],
         ]);
-        const geometryArray1: any[] = [];
-        const geometryArray2: any[] = [];
-        const geometryArray3: any[] = [];
-        const geometryArray4: any[] = [];
-        const geometryArray5: any[] = [];
-        const placesArray: any[] = [];
+        const geometryArray1: turf.Feature[] = [];
+        const geometryArray2: turf.Feature[] = [];
+        const geometryArray3: turf.Feature[] = [];
+        const geometryArray4: turf.Feature[] = [];
+        const geometryArray5: turf.Feature[] = [];
+        const placesArray: turf.Feature[] = [];
         geometryArray1.push(geometry);
         geometryArray2.push(geometry);
         geometryArray3.push(geometry);

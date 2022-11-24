@@ -91,8 +91,8 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
     edgeRowArray.push(offsetEdgeRow);
   }
   // CREATE EDGE ROW MARKERS AND TREE COUNTS
-  const edgeTreeMarkerArray: any[] = [];
-  const edgeTreeArray: any[] = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
+  const edgeTreeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
+  const edgeTreeArray: ISpeciesSchema[] = []; // MIGHT NOT USE BEFORE I NEED THE ASSETS. MIGHT NEED FOR TREE COUNTS THOUGH
   // CREATE TREES FOR EACH EDGE ROW
   for (let i = 0; i < edgeRowArray.length; i++) {
     // COUNT EDGE SYSTEM MODEL ITERATIONS IN ROW
@@ -118,7 +118,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   console.log(`Edge tree markers: ${edgeTreeMarkerArray.length}`);
   console.log(`Edge trees: ${edgeTreeArray.length}`);
   // DO POINT COLLECTION
-  const edgeTreeCanopyArray: any[] = [];
+  const edgeTreeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
   // SET MAX LIMIT FOR AMOUNT OF TREES
   if (edgeTreeMarkerArray.length < 1500) {
     for (let i = 0; i < edgeTreeMarkerArray.length; i++) {
@@ -129,7 +129,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   /* var edgeTreeMarkers = turf.featureCollection(edgeTreeCanopyArray);
     var edgeTreeCollection = JSON.stringify(edgeTreeMarkers); */
   // COPY ALL EDGE ROW SPECIES
-  const allEdgeSpeciesCopy:any[] = [];
+  const allEdgeSpeciesCopy: ISpeciesSchema[] = [];
   for (let i = 0; edgeTreeArray.length > i; i++) {
     allEdgeSpeciesCopy.push(edgeTreeArray[i]);
   }
@@ -137,7 +137,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   const uniqueEdgeSpecies = unique(allEdgeSpeciesCopy);
   // UNIQUE ITEM COUNTS
   const uniqueEdgeSpeciesCount: {
-    id: any;
+    id: string;
     uniqueCount: number;
 }[] = [];
   for (let i = 0; uniqueEdgeSpecies.length > i; i++) {
@@ -198,14 +198,14 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   }
   layout.rowWidth = rowWidth;
   // ROW PARAMETERS
-  const rowWidthArray: any[] = [];
+  const rowWidthArray: number[] = [];
   let rowWidthArrayCount = 0;
-  const treeRowWidthArray: any[] = [];
+  const treeRowWidthArray: number[] = [];
   //   const stripWidths = [];
   // ALLEY PARAMETERS
-  const alleyWidthArray: any[] = [];
+  const alleyWidthArray: number[] = [];
   let alleyWidthArrayCount = 0;
-  const alleyWidths: any[] = [];
+  const alleyWidths: number[] = [];
   for (let i = 0; i < dataset.length + 1; i++) {
     // SET ROW LENGTHS
     // IF FIRST ROW
@@ -373,15 +373,21 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
     // -------- WEST/EAST ROWS ---------
   }
   // CREATE ROW ARRAY
-  const rowArray: any[] = [];
+  const rowArray: turf.Feature<turf.LineString, {
+    name: string;
+  }>[] = [];
   let distance = 0;
   const distanceArray = rowWidthArray;
   // CREATE ALLEY ARRAY
-  const bedArray: any[] = [];
-  const alleyArray: any[] = [];
+  const bedArray: turf.Feature<turf.Polygon, {
+    name: string;
+  }>[] = [];
+  const alleyArray: turf.Feature<turf.Polygon, {
+    name: string;
+  }>[] = [];
   let bedDistance = 0;
-  const alleySpeciesArrayCount: any[] = [];
-  const alleySpeciesArray: any[] = [];
+  const alleySpeciesArrayCount: ISpeciesSchema[] = [];
+  const alleySpeciesArray: ISpeciesSchema[][] = [];
   // ALLEY SPECIES ARRAY
   for (let i = 0; i < dataset.length; i++) {
     if (dataset[i].array[0].species.form === 'grass') {
@@ -605,7 +611,7 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   console.log(`Alley species array count: ${alleySpeciesArray.length}`);
   console.log(`Alley polygon array count: ${alleyArray.length}`);
   // SET ROWLENGTH ARRAY
-  const rowLengthArray: any[] = [];
+  const rowLengthArray: number[] = [];
   for (let i = 0; i < rowArray.length; i++) {
     const rowLength1 = turfLength(rowArray[i], { units: 'meters' });
     rowLengthArray.push(rowLength1);
@@ -639,7 +645,14 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
                    var stringline = JSON.stringify(row);
                    var stringbox = JSON.stringify(box); */
   // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
-  const treeRows: any[] = [];
+  const treeRows: {
+    array: {
+        species: ISpeciesSchema;
+        position: number[];
+        width: number;
+    }[];
+    row: number;
+  }[] = [];
   for (let i = 0; i < dataset.length; i++) {
     if (!(dataset[i].array[0].species.form === 'grass')) {
       treeRows.push(dataset[i]);
@@ -655,10 +668,15 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
   let treeRowCount = 0;
   //   const treeCountArray: any[] = [];
-  const treeMarkerArray: any[] = [];
-  const treeAssetArray: any[] = [];
-  const treeAssetRowRef: any[] = [];
-  const treeArray: any[] = [];
+  const treeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
+  const treeAssetArray: {
+    species: string;
+    lat: number;
+    lng: number;
+    name: string;
+  }[] = [];
+  const treeAssetRowRef: number[] = [];
+  const treeArray: ISpeciesSchema[] = [];
   //   let treeRowArea = 0;
   for (let i = 0; i < rowArray.length; i++) {
     // COUNT SYSTEM MODEL ITERATIONS IN ROW
@@ -760,14 +778,17 @@ gisObj.systemBasedLayout = (project: IProjectSchema) => {
   //   const areaGrid = rowWidth * dataset[0].array[(dataset[0].array.length - 1)].position[1]; // CHECK THAT THIS IS WORKING
   //   const gridCount = areaSize / areaGrid;
   // COPY ALL SPECIES
-  const allSpeciesCopy: any[] = [];
+  const allSpeciesCopy: string[] = [];
   for (let i = 0; allSpecies.length > i; i++) {
     allSpeciesCopy.push(allSpecies[i]);
   }
   // FIND UNIQUE SPECIES / REMOVE DUPLICATES
   const uniqueSpecies = unique(allSpeciesCopy);
   // UNIQUE ITEM COUNTS
-  const uniqueSpeciesCount: any[] = [];
+  const uniqueSpeciesCount: {
+    id: string;
+    uniqueCount: number;
+  }[] = [];
   for (let i = 0; uniqueSpecies.length > i; i++) {
     let count = 0;
     for (let j = 0; j < treeArray.length; j++) {
@@ -800,9 +821,11 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
   // SORT FIRST ROW ITEMS
 
   // VIZ ROWS
-  const allSpecies: any[] = [];
+  const allSpecies: string[] = [];
   const rowArray: any[] = [];
-  const placesArray: any[] = [];
+  const placesArray: turf.Feature<turf.Point, {
+    description: string;
+  }>[] = [];
   for (let i = 0; i < project.rows.length; i++) {
     // ROW VIZ
     const rowGeometry = JSON.parse(project.rows[i].geometry);
@@ -830,12 +853,20 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
         }
     } */
   // MAYBE RENAME THIS ONE!?!
-  const treeAssetsArray: any[] = [];
+  const treeAssetsArray: {
+    marker: turf.Feature<turf.Point, turf.Properties>;
+    species: ISpeciesSchema;
+  }[] = [];
   // SET COLLECTIVE TREE ARRAY
-  const treeMarkerArray: any[] = [];
-  const treeAssetArray: any[] = [];
-  const treeAssetRowRef: any[] = [];
-  const treeArray: any[] = [];
+  const treeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
+  const treeAssetArray: {
+      species: string;
+      lat: number;
+      lng: number;
+      name: string;
+  }[] = [];
+  const treeAssetRowRef: number[] = [];
+  const treeArray: ISpeciesSchema[] = [];
   // FIND SYSTEM ROWS
   for (let i = 0; i < project.rows.length; i++) {
     // SET ROW DATA
@@ -952,8 +983,8 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
     }
   }
   // DO POINT COLLECTION
-  const treeCanopyArray: any[] = [];
-  //   const vegeCanopyArray: any[] = [];
+  const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
+  //   const vegeCanopyArray = [];
   if (treeAssetsArray.length < 5000) {
     for (let i = 0; i < treeAssetsArray.length; i++) {
       // FIND TREE DIMENSIONS
@@ -988,7 +1019,9 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
     var vegeCollection = JSON.stringify(vegeMarkers);
 */
   // DO TREE NAMES COLLECTION
-  const treenames: any[] = [];
+  const treenames: turf.Feature<turf.Point, {
+    description: string;
+  }>[] = [];
   for (let i = 0; i < treeAssetsArray.length; i++) {
     const properties1 = {
       description: treeAssetsArray[i].species.nameCommon.slice(0, 3),
@@ -1035,14 +1068,17 @@ gisObj.rowBasedLayout = (project: IProjectSchema) => {
   // COMBINE ASSETS AND ROW BASED
 
   // COPY ALL SPECIES
-  const allSpeciesCopy: any[] = [];
+  const allSpeciesCopy: string[] = [];
   for (let i = 0; allSpecies.length > i; i++) {
     allSpeciesCopy.push(allSpecies[i]);
   }
   // FIND UNIQUE SPECIES / REMOVE DUPLICATES
   const uniqueSpecies = unique(allSpeciesCopy);
   // UNIQUE ITEM COUNTS
-  const uniqueSpeciesCount: any[] = [];
+  const uniqueSpeciesCount: {
+    id: string;
+    uniqueCount: number;
+  }[] = [];
   for (let i = 0; uniqueSpecies.length > i; i++) {
     let count = 0;
     for (let j = 0; j < treeAssetsArray.length; j++) {

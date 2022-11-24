@@ -6,7 +6,7 @@ import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import Row from '../models/row';
 import Area from '../models/area';
-import Species from '../models/species';
+import Species, { ISpeciesSchema } from '../models/species';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
 
@@ -52,7 +52,7 @@ router.get(
       // FIND ALL SPECIES
       if (foundRow.sequence) {
         console.log('species there');
-        const allSpecies: any[] = [];
+        const allSpecies: ISpeciesSchema[] = [];
         foundRow.sequence.model.forEach((species) => {
           allSpecies.push(species.species);
         });
@@ -118,7 +118,7 @@ router.get(
     // FIND ALL SPECIES
     if (foundArea && foundArea.rotation) {
       console.log('species there');
-      const allSpecies: any[] = [];
+      const allSpecies: ISpeciesSchema[] = [];
       foundArea.rotation.model.forEach((speciesmix) => {
         allSpecies.push(speciesmix.speciesmix[0].species);
       });
@@ -190,11 +190,14 @@ router.get(
           }
         }
       }
-      // const rowArrayLow: any[] = [];
-      // const rowArrayMed: any[] = [];
-      // const rowArrayHigh: any[] = [];
+      // const rowArrayLow = [];
+      // const rowArrayMed = [];
+      // const rowArrayHigh = [];
       // CREATE MARKERS
-      const treeAssetsArray: any[] = [];
+      const treeAssetsArray: {
+        marker: turf.Feature<turf.Point, turf.Properties>;
+        species: ISpeciesSchema;
+      }[] = [];
       for (let i = 0; i < foundLayer.rows.length; i++) {
         // SET ROW DATA
         if (foundLayer.rows[i].sequence) {

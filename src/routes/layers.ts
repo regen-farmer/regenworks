@@ -13,7 +13,7 @@ import multer from 'multer';
 import xml2js from 'xml2js';
 import Layer from '../models/layer';
 import Parcel from '../models/parcel';
-import System from '../models/system';
+import System, { ISystemSchema } from '../models/system';
 import Species, { ISpeciesSchema } from '../models/species';
 import Animal from '../models/animal';
 import Sequence from '../models/sequence';
@@ -195,7 +195,7 @@ router.post(
                   const foundAnimal = await Animal.findById(req.body.animal);
                   presentsystem.animals.push(foundAnimal);
                   // CREATE SYSTEM
-                  const createdSystem = await System.create(presentsystem);
+                  const createdSystem = await System.create(presentsystem as ISystemSchema);
 
                   // ASS SYSTEM TO PRESENT SYSTEM
                   layer.systems.present = createdSystem;
@@ -361,7 +361,7 @@ router.post(
                       // CREATE SYSTEM
                         try {
                           const createdSystem = await System.create(
-                            presentsystem,
+                            presentsystem as ISystemSchema,
                           );
                           // ADD SYSTEM TO PRESENT SYSTEM
                           createdLayer.systems.present = createdSystem;
@@ -418,7 +418,7 @@ router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & {
 
         if (foundSystem) {
           // FIND ALL SPECIES IN SYSTEM
-          const allSpecies: any[] = [];
+          const allSpecies: ISpeciesSchema[] = [];
           const dataset: {row: number, array: {
             species: ISpeciesSchema;
             position: number[];
@@ -635,7 +635,7 @@ router.get(
           .exec();
         if (foundSystem) {
           // FIND ALL SPECIES IN SYSTEM
-          const allSpecies: any[] = [];
+          const allSpecies: string[] = [];
           foundSystem.model.forEach((species) => {
             allSpecies.push(species.species.id);
           });
@@ -650,7 +650,14 @@ router.get(
 
           // const polygon = JSON.parse(foundLayer.geometry);
           // FIND SYSTEM ROWS
-          const dataset: any[] = [];
+          const dataset: {
+            row: number,
+            array: {
+              species: ISpeciesSchema;
+              position: number[];
+              width: number;
+          }[]
+          }[] = [];
           foundSystem.model.forEach((species) => {
             let count = 0;
             for (let i = 0; i < dataset.length; i++) {
@@ -669,7 +676,9 @@ router.get(
 
           // VIZ ROWS
           const rowArray: any[] = [];
-          const placesArray: any[] = [];
+          const placesArray: turf.Feature<turf.Point, {
+            description: string;
+          }>[] = [];
           for (let i = 0; i < foundLayer.rows.length; i++) {
             // ROW VIZ
             const rowGeometry = JSON.parse(foundLayer.rows[i].geometry);
@@ -696,10 +705,14 @@ router.get(
                               foundLayer.rows[i].system.populate("model." + j + ".species");
                           }
                       } */
-          const treeAssetsArray: any[] = [];
+          const treeAssetsArray: {
+            marker: turf.Feature<turf.Point, turf.Properties>;
+            species: ISpeciesSchema;
+          }[] = [];
+
           // SET COLLECTIVE TREE ARRAY
-          const treeMarkerArray: any[] = [];
-          // const treeAssetArray: any[] = [];
+          const treeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
+          // const treeAssetArray = [];
           // FIND SYSTEM ROWS
           for (let i = 0; i < foundLayer.rows.length; i++) {
             // SET ROW DATA
@@ -803,8 +816,8 @@ router.get(
             }
           }
           // DO POINT COLLECTION
-          const treeCanopyArray: any[] = [];
-          const vegeCanopyArray: any[] = [];
+          const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
+          const vegeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
           if (treeAssetsArray.length < 4000) {
             for (let i = 0; i < treeAssetsArray.length; i++) {
               // FIND TREE DIMENSIONS
@@ -835,7 +848,10 @@ router.get(
           const vegeMarkers = turf.featureCollection(vegeCanopyArray);
           const vegeCollection = JSON.stringify(vegeMarkers);
           // DO TREE NAMES COLLECTION
-          const treenames: any[] = [];
+          const treenames: turf.Feature<turf.Point, {
+            description: string;
+          }>[] = [];
+
           for (let i = 0; i < treeAssetsArray.length; i++) {
             const properties1 = {
               description: treeAssetsArray[i].species.nameCommon.slice(0, 3),
