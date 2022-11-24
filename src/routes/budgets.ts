@@ -305,8 +305,8 @@ router.post(
           foundProject.budgets.establishment = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings = req.body.speciespostings;
-          const speciesPostingsArray: any[] = [];
+          const speciesPostings: string[] = req.body.speciespostings;
+          const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
             if (!(speciesPostings[i] === 'none')) {
@@ -321,7 +321,7 @@ router.post(
             //   .populate('model.species')
             //   .exec();
             // SET VARIABLES HERE
-            let layout: any = {};
+            let layout;
             // IF ROWS, DO XXX
             if (foundProject.rows && foundProject.rows.length > 0) {
               // DO ROW LAYOUT
@@ -331,8 +331,11 @@ router.post(
               layout = gisObj.systemBasedLayout(foundProject);
             }
 
-            let uniqueSpeciesCount: any[] = [];
-            let uniqueSpecies: any[] = [];
+            let uniqueSpeciesCount: {
+              id: string;
+              uniqueCount: number;
+            }[] = [];
+            let uniqueSpecies: ISpeciesSchema[] = [];
             if (layout.uniqueSpeciesCount) {
               uniqueSpeciesCount = layout.uniqueSpeciesCount;
               uniqueSpecies = layout.uniqueSpecies;
@@ -351,23 +354,23 @@ router.post(
                     name:
                       `${uniqueSpecies[j].nameCommon
                       } ${
-                        uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                        uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                           .subtype
                       }: ${
-                        uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                        uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                           .name}`,
                     postType: 'material',
                     amount: 1,
                     value:
-                      uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                      uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                         .price,
                     year: 1,
                   };
                   // SET POSTTYPE DEPENDING ON POSTINGS TYPE
                   if (
-                    uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                    uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                       .subtype === 'bed'
-                    || uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                    || uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                       .subtype === 'method'
                   ) {
                     posting.postType = 'labor';
@@ -549,8 +552,8 @@ router.post(
           foundProject.budgets.management = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings = req.body.speciespostings;
-          const speciesPostingsArray: any[] = [];
+          const speciesPostings: string[] = req.body.speciespostings;
+          const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
             if (!(speciesPostings[i] === 'none')) {
@@ -567,7 +570,7 @@ router.post(
             //     populate: { path: 'flows' },
             //   })
             //   .exec();
-            let layout: any = {};
+            let layout;
             // IF ROWS, DO XXX
             if (foundProject.rows && foundProject.rows.length > 0) {
               // DO ROW LAYOUT
@@ -576,8 +579,11 @@ router.post(
               // DO PARAMETRIC LAYOUT
               layout = gisObj.systemBasedLayout(foundProject);
             }
-            let uniqueSpeciesCount: any[] = [];
-            let uniqueSpecies: any[] = [];
+            let uniqueSpeciesCount: {
+              id: string;
+              uniqueCount: number;
+            }[] = [];
+            let uniqueSpecies: ISpeciesSchema[] = [];
             if (layout.uniqueSpeciesCount) {
               uniqueSpeciesCount = layout.uniqueSpeciesCount;
               uniqueSpecies = layout.uniqueSpecies;
@@ -588,10 +594,10 @@ router.post(
             const postings: IPostingSchema[] = [];
             const period = req.body.period;
             // FIND UNIQUE AREA SPECIES
-            const uniqueAreaSpecies: any[] = [];
+            const uniqueAreaSpecies: ISpeciesSchema[] = [];
             // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
             const areaArray = layout.alleyPolygonArray;
-            const areaSpeciesRotation = layout.alleySpeciesArray;
+            const areaSpeciesRotation: ISpeciesSchema[][] = layout.alleySpeciesArray;
             const speciesPeriodAreaArray: {
               id: any;
               count: number;
@@ -658,23 +664,23 @@ router.post(
                       name:
                         `${uniqueSpecies[j].nameCommon
                         } ${
-                          uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                          uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                             .subtype
                         }: ${
-                          uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                          uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                             .name}`,
                       postType: 'material',
                       amount: 1,
                       value:
-                        uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                        uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                           .price,
                       year: k + 1,
                     };
                     // SET POSTTYPE DEPENDING ON POSTINGS TYPE
                     if (
-                      uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                      uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                         .subtype === 'pruning'
-                      || uniqueSpecies[j].activities[speciesPostingsArray[i][1]]
+                      || uniqueSpecies[j].activities[parseInt(speciesPostingsArray[i][1], 10)]
                         .subtype === 'harvest'
                     ) {
                       posting.postType = 'labor';

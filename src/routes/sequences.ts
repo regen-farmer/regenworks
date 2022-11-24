@@ -104,7 +104,10 @@ router.post(
       const foundLayer = await Layer.findById(req.params.id);
       if (foundLayer) {
       // MODEL VARIABLES
-        const model: any[] = [];
+        const model: {
+          species: any;
+          position: number;
+        }[] = [];
         let length = 0;
         // CHECK IF ARRAY?
         if (!(req.body.model.species instanceof Array)) {
@@ -274,7 +277,10 @@ router.put(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
-    const model: any[] = [];
+    const model: {
+      species: any;
+      position: number;
+    }[] = [];
     let length = 0;
     // CHECK IF ARRAY
     if (!(req.body.model.species instanceof Array)) {
@@ -420,7 +426,10 @@ router.post(
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id);
-      const model: any[] = [];
+      const model: {
+        species: any;
+        position: number;
+      }[] = [];
       let length = 0;
       // CHECK IF ARRAY
       if (!(req.body.model.species instanceof Array)) {
@@ -566,7 +575,10 @@ router.put(
   middleware.isLoggedIn,
   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN MODEL
-    const model: any[] = [];
+    const model: {
+      species: any;
+      position: number;
+    }[] = [];
     let length = 0;
     // CHECK IF ARRAY
     if (!(req.body.model.species instanceof Array)) {

@@ -149,7 +149,11 @@ router.post(
       const foundLayer = await Layer.findById(req.params.id);
       if (foundLayer) {
         const system = req.body.system;
-        const model: any[] = [];
+        const model: {
+          species: any;
+          position: number[];
+          width: number;
+        }[] = [];
         // DO COUNT FOR ROW WIDTH
         let xPosition = 0;
         // SPECIES ARRAY FOR UNIQUE SPECIES
@@ -736,7 +740,11 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         system.shared = true;
       }
       // NEW GRID MODEL SETUP
-      const model: any[] = [];
+      const model: {
+        species: any;
+        position: number[];
+        width: number;
+      }[] = [];
       // DO COUNT FOR ROW WIDTH
       let xPosition = 0;
       // ADD SPECIES TO MODEL

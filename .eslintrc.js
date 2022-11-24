@@ -38,6 +38,7 @@ module.exports = {
     'no-await-in-loop': ['off'],
     'func-names': ['error'],
     'no-console': ['off'],
+    camelcase: ['off'],
   },
   settings: {
     'import/resolver': {
