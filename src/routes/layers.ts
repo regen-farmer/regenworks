@@ -518,7 +518,6 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
             if (foundParcels[i].layers[j].equals(foundLayer._id)) {
               await foundParcels[i].layers[j].remove();
               console.log('Layer removed');
-              await foundParcels[i].save();
               parcelRef = foundParcels[i]._id;
             }
           }

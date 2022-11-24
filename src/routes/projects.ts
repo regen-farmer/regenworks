@@ -1190,8 +1190,6 @@ router.delete(
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
           await foundProject.assets[i].remove();
-          // SAVE PROJECT
-          await foundProject.save();
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
