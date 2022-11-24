@@ -1189,7 +1189,7 @@ router.delete(
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = 0; foundProject.assets.length > i; i++) {
-          foundProject.assets.remove(foundProject.assets[i]);
+          foundProject.assets[i].remove();
           // SAVE PROJECT
           foundProject.save();
           // DELETE ASSET
@@ -1361,7 +1361,11 @@ router.delete(
       // REMOVE ROW
       if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
-        updatedProject.rows.remove(req.params.pid);
+        updatedProject.rows.forEach(async (row) => {
+          if (row._id === req.params.pid) {
+            await row.remove();
+          }
+        });
         // DELETE ROW
         try {
           await Row.findByIdAndRemove(req.params.pid);

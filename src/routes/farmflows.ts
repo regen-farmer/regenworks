@@ -213,10 +213,10 @@ router.get(
                     }); */
           // SORT ROW ITEMS
           datasetRows.sort((a, b) => {
-            if (a.position[1] < b.position[1]) {
+            if (a.position < b.position) {
               return -1;
             }
-            if (a.position[1] > b.position[1]) {
+            if (a.position > b.position) {
               return 1;
             }
             return 0;

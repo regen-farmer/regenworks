@@ -169,26 +169,26 @@ router.get(
 );
 
 // PROJECT BUDGET CREATE ROUTE
-router.post(
-  '/projects/:id/budgets',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    const foundProject = await Project.findById(req.params.id);
-    const createdBudget = await Budget.create(req.body.budget);
+// router.post(
+//   '/projects/:id/budgets',
+//   middleware.isLoggedIn,
+//   async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+//     const foundProject = await Project.findById(req.params.id);
+//     const createdBudget = await Budget.create(req.body.budget);
 
-    if (foundProject) {
-    // BUDGET OWNER
-      createdBudget.owner.id = req.user?._id;
-      createdBudget.save();
-      // SAVE BUDGET TO PROJECT
+//     if (foundProject) {
+//     // BUDGET OWNER
+//       createdBudget.owner.id = req.user?._id;
+//       createdBudget.save();
+//       // SAVE BUDGET TO PROJECT
 
-      // TODO
-      foundProject.budget = createdBudget;
-      foundProject.save();
-      res.redirect(`/projects/${foundProject._id}`);
-    }
-  },
-);
+//       // TODO
+//       foundProject.budget = createdBudget;
+//       foundProject.save();
+//       res.redirect(`/projects/${foundProject._id}`);
+//     }
+//   },
+// );
 
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get(
@@ -296,7 +296,7 @@ router.post(
         // CREATE BUDGET AND PLACE IN PROJECT
         // const budget = req.body.budget;
         try {
-          const createdBudget = await Budget.create();
+          const createdBudget = await Budget.create({});
           foundProject.budgets.establishment = createdBudget;
           foundProject.save();
           // PARSE QUERY

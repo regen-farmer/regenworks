@@ -68,7 +68,11 @@ router.delete(
       if (updatedProject) {
       // REMOVE ROW
         console.log(`Length before ${updatedProject.areas.length}`);
-        updatedProject.areas.remove(req.params.pid);
+        updatedProject.areas.forEach(async (area) => {
+          if (area._id === req.params.pid) {
+            await area.remove();
+          }
+        });
         updatedProject.save();
         // DELETE ROW
         try {

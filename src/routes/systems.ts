@@ -441,10 +441,10 @@ router.get(
         if (foundAnimals) {
           // SORT SPECIES
           foundAnimals.sort((a, b) => {
-            if (a.nameCommon < b.nameCommon) {
+            if (a.name < b.name) {
               return -1;
             }
-            if (a.nameCommon > b.nameCommon) {
+            if (a.name > b.name) {
               return 1;
             }
             return 0;
@@ -529,13 +529,13 @@ router.get(
             distance = distanceDifference[0];
           }
           console.log(distance);
-          if (req.query.distance) {
+          if (req.query.distance && typeof req.query.distance === 'string') {
             console.log('Distance query');
-            distance /= req.query.distance;
+            distance /= parseInt(req.query.distance, 10);
           }
           // JUST SET NEW VARIABLE TO CONTROL NEW ROW
           let newRow = -1;
-          if (req.query.row) {
+          if (req.query.row && typeof req.query.row === 'string') {
             console.log(`Row query ${req.query.row}`);
             newRow = parseInt(req.query.row, 10);
             console.log(typeof newRow);
@@ -587,10 +587,10 @@ router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Re
               } else {
                 // SORT SPECIES
                 foundAnimals.sort((a, b) => {
-                  if (a.nameCommon < b.nameCommon) {
+                  if (a.name < b.name) {
                     return -1;
                   }
-                  if (a.nameCommon > b.nameCommon) {
+                  if (a.name > b.name) {
                     return 1;
                   }
                   return 0;
@@ -702,7 +702,7 @@ router.get(
         }
         // NEWROW
         let newRow = -1;
-        if (req.query.row) {
+        if (req.query.row && typeof req.query.row === 'string') {
           console.log(`Row query ${req.query.row}`);
           newRow = parseInt(req.query.row, 10);
           console.log(typeof newRow);
@@ -831,7 +831,11 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           if (foundLayersFuture.length > 0) {
             foundLayersFuture.forEach((layer) => {
             // REMOVE ORIGINAL SYSTEM
-              layer.systems.future.remove(foundSystem);
+              layer.systems.future.forEach(async (futureSystem) => {
+                if (futureSystem._id === foundSystem._id) {
+                  await futureSystem.remove();
+                }
+              });
               // ADD NEW SYSTEM
               layer.systems.future.push(createdSystem);
               layer.save();
@@ -911,7 +915,11 @@ router.delete(
                   if (foundLayersFuture.length > 0) {
                     foundLayersFuture.forEach((layer) => {
                     // REMOVE ORIGINAL SYSTEM
-                      layer.systems.future.remove(foundSystem);
+                      layer.systems.future.forEach(async (futureSystem) => {
+                        if (futureSystem._id === foundSystem._id) {
+                          await futureSystem.remove();
+                        }
+                      });
                       // ADD NEW SYSTEM
                       layer.save();
                     });
@@ -1166,7 +1174,7 @@ router.get(
             }
             const animalsystems: ISystemSchema[] = [];
             for (let i = 0; i < systemsclimate.length; i++) {
-              if (systemsclimate[i].animals.length > 0 && !(animals === '')) {
+              if (systemsclimate[i].animals.length > 0 && animals) {
                 animalsystems.push(systemsclimate[i]);
                 /* if(systemsclimate[i].animals[0].equals(animals)) {
                                             } */

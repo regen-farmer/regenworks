@@ -107,11 +107,11 @@ router.post(
       price: req.body.activity.price,
     };
     try {
-      const updatedSpecies = Species.findByIdAndUpdate(req.params.id, {
+      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
         $addToSet: { activities: activity },
       });
       console.log(`${req.body.activity.name} has been added to the species`);
-      res.redirect(`/species/${updatedSpecies._id}`);
+      res.redirect(`/species/${updatedSpecies?._id}`);
     } catch (err) {
       console.log(err);
     }
@@ -126,12 +126,16 @@ router.get(
     try {
       const foundSpecies = await Species.findById(req.params.id);
       if (foundSpecies) {
-        const activity = foundSpecies.activities[req.query.index];
-        res.render('species/editactivity', {
-          species: foundSpecies,
-          activity,
-          index: req.query.index,
-        });
+        if (req.query.index && typeof req.query.index === 'string') {
+          const activity = foundSpecies.activities[parseInt(req.query.index, 10)];
+          res.render('species/editactivity', {
+            species: foundSpecies,
+            activity,
+            index: req.query.index,
+          });
+        } else {
+          console.warn('req.query.index is not string type:', req.query.index);
+        }
       }
     } catch (err) {
       console.log(err);
@@ -161,9 +165,11 @@ router.put(
       const updatedSpecies = await Species.findById(req.params.id);
       if (updatedSpecies) {
       // CHANGE ACTIVITY DETAILS
-        updatedSpecies.activities[req.query.index] = activity;
-        updatedSpecies.save();
-        res.redirect(`/species/${updatedSpecies._id}`);
+        if (req.query.index && typeof req.query.index === 'string') {
+          updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
+          updatedSpecies.save();
+          res.redirect(`/species/${updatedSpecies._id}`);
+        }
       }
     } catch (err) {
       console.log(err);

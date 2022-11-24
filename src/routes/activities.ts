@@ -171,33 +171,33 @@ router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: exp
 });
 
 // PLACE EXPERIENCES CREATE ROUTE
-router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // Lookup place using id
-  try {
-    const foundParcel = await Parcel.findById(req.params.id);
-    if (foundParcel) {
-      try {
-        const activity = await Activity.create(req.body.activity);
-        console.log(activity);
-        // Add  ID to task.
-        activity.owner.id = req.user?._id;
-        // Save the task
-        activity.save();
-        // Connect new task to parcel
-        foundParcel.activities.push(activity);
-        foundParcel.save();
-        // Redirect to parcels SHOW page
-        // req.flash("success", "Successfully added comment");
-        res.redirect(`/parcels/${foundParcel._id}`);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    res.redirect(`/parcels/${req.params.id}`);
-  }
-});
+// router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+//   // Lookup place using id
+//   try {
+//     const foundParcel = await Parcel.findById(req.params.id);
+//     if (foundParcel) {
+//       try {
+//         const activity = await Activity.create(req.body.activity);
+//         console.log(activity);
+//         // Add  ID to task.
+//         activity.owner.id = req.user?._id;
+//         // Save the task
+//         activity.save();
+//         // Connect new task to parcel
+//         foundParcel.activities.push(activity);
+//         foundParcel.save();
+//         // Redirect to parcels SHOW page
+//         // req.flash("success", "Successfully added comment");
+//         res.redirect(`/parcels/${foundParcel._id}`);
+//       } catch (err) {
+//         console.log(err);
+//       }
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     res.redirect(`/parcels/${req.params.id}`);
+//   }
+// });
 
 // PROJECT ACTIVITY NEW ROUTE
 router.get('/projects/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
@@ -305,12 +305,17 @@ router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req
   // FIND ACTIVITY
   try {
     const foundActivity = await Activity.findById(req.params.pid);
+
     // FIND PROJECT
     try {
       const updatedProject = await Project.findById(req.params.id);
       if (updatedProject) {
       // REMOVE ACTIVITY FROM PROJECT
-        updatedProject.activities.remove(foundActivity);
+        updatedProject.activities.forEach(async (activity) => {
+          if (activity._id === foundActivity?._id) {
+            await activity.remove();
+          }
+        });
         updatedProject.save();
         // DELETE ACTIVITY
         try {

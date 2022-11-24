@@ -516,7 +516,7 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
           // CYCLE THROUGH LAYERS
           for (let j = 0; j < foundParcels[i].layers.length; j++) {
             if (foundParcels[i].layers[j].equals(foundLayer._id)) {
-              foundParcels[i].layers.remove(foundLayer);
+              foundParcels[i].layers[j].remove();
               console.log('Layer removed');
               foundParcels[i].save();
               parcelRef = foundParcels[i]._id;
@@ -556,7 +556,7 @@ router.post(
         const foundSystem = await System.findById(req.body.systemid);
         // PUSH CURRENT SYSTEM TO PAST
         if (foundLayer && foundSystem) {
-          if (!(foundLayer.systems.present === '')) {
+          if (foundLayer.systems.present) {
             foundLayer.systems.past.push(foundLayer.systems.present);
           }
           // SET CURRENT SYSTEM TO FUTURE DRAFT
@@ -564,7 +564,11 @@ router.post(
           foundLayer.type = 'agroforestry';
           console.log(`${foundSystem.name} has been set to current system`);
           // REMOVE FUTURE DRAFT FROM FUTURE ARRAY
-          foundLayer.systems.future.remove(foundSystem);
+          foundLayer.systems.future.forEach(async (futureSystem) => {
+            if (futureSystem._id === foundSystem._id) {
+              await futureSystem.remove();
+            }
+          });
           console.log(
             `${foundSystem.name} has been removed from future systems`,
           );
@@ -1163,7 +1167,11 @@ router.delete(
       // REMOVE ROW
       if (updatedLayer) {
         console.log(`Length before ${updatedLayer.rows.length}`);
-        updatedLayer.rows.remove(req.params.pid);
+        updatedLayer.rows.forEach(async (row) => {
+          if (row._id === req.params.pid) {
+            await row.remove();
+          }
+        });
         // DELETE ROW
         try {
           await Row.findByIdAndRemove(req.params.pid);
