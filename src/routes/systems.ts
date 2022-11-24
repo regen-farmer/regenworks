@@ -157,7 +157,7 @@ router.post(
         // ADD SPECIES TO MODEL
         for (let i = 0; i < system.model.length; i++) {
           // ADD SPECIES ID TO SPECIES ARRAY
-          allSpecies.push(system.model[i].species.id)
+          allSpecies.push(system.model[i].species.id);
           // FIX IF ONLY ONE ITEM IN ROW
           if (system.model[i].species.id instanceof Array) {
             for (let j = 0; j < system.model[i].species.id.length; j++) {
