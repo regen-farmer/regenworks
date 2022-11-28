@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+
+    <div class="col-lg-3"></div>
+
+    <div class="col-lg-6">
+        <h2>Add soil test data</h2>
+        <div>
+            <form action="/parcels/<%= parcel._id %>/layers/<%= layer._id %>/soiltests" method="POST">
+                <div class="form-group">
+                    <label for="soiltest[name]">Name</label>
+                    <input type="text" class="form-control" name="soiltest[name]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[description]">Note</label>
+                    <input type="text" class="form-control" name="soiltest[description]" >
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[depth]">Depth in cm</label>
+                    <input type="number" class="form-control" name="soiltest[depth]" required>
+                </div>
+                <!--<div class="form-group">
+                    <label for="soiltest[sampleDate]">Date of sample</label>
+                    <input type="date" class="form-control" name="soiltest[sampleDate]" required>
+                </div>-->
+                <div class="form-group">
+                    <label for="soiltest[physical][clay]">Clay [%]</label>
+                    <input type="number" class="form-control" name="soiltest[physical][clay]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[physical][silt]">Silt [%]</label>
+                    <input type="number" class="form-control" name="soiltest[physical][silt]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[physical][sand]">Sand [%]</label>
+                    <input type="number" class="form-control" name="soiltest[physical][sand]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][conductivity]">Conductivity [μS/cm]</label>
+                    <input type="number" class="form-control" name="soiltest[fertility][conductivity]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][pH]">pH</label>
+                    <input type="number" class="form-control" min="0" max="14" step=".01" name="soiltest[fertility][pH]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][SOM]">Soil Organic Matter - SOM [%]</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][SOM]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][nitrogen]">Nitrogen [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][nitrogen]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][phosphorus]">Phosphorus [ppm]</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][phosphorus]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][lime]">Lime</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][lime]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][calcium]">Calcium</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][calcium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][magnesium]">Magnesium</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][magnesium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][potasium]">Potasium</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][potasium]" required>
+                </div>
+                <div class="form-group">
+                    <label for="soiltest[fertility][sodium]">Sodium</label>
+                    <input type="number" class="form-control" step=".01" name="soiltest[fertility][sodium]" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Add soil test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6"></div>
+</div>
+
+
+<%- include('../partials/footer') %>

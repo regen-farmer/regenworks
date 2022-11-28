@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        <h2>Add new well to "<%= parcel.name %>"</h2>
+        <div>
+            <form action="/parcels/<%= parcel._id %>/wells" method="POST">
+                <div class="form-group">
+                    <label for="well[name]">Well name/ref</label>
+                    <input type="text" class="form-control" name="well[name]" placeholder="Give the well a name" required>
+                </div>
+                <div class="form-group">
+                    <label for="well[description]">Description</label>
+                    <input type="text" class="form-control" name="well[description]" placeholder="Describe well characteristics">
+                </div>
+                <div class="form-group">
+                    <label for="[wellCoordinates]">Well geometry</label>
+                    <p>Please indicate the location of the well.</p>
+                </div>
+                <div id="wellMapNew"></div>
+                <input type="hidden" id="geometry" name="geometry">
+                <input type="hidden" id="layersize" name="layersize">
+
+                <div id="coordinates"></div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Create new well</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var parcelLat = "<%= parcel.lat %>";
+        var parcelLng = "<%= parcel.lng %>";
+    </script>
+
+<%- include('../partials/footer') %>

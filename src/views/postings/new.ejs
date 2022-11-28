@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            <h2>Create posting for budget</h2>
+            <form action="/budgets/<%= budget.id %>/postings" method="POST">
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="posting[name]">Name</label>
+                        <input type="text" class="form-control" name="posting[name]" id="posting[name]" required>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="posting[postType]">Type</label>
+                        <select class="form-control" name="posting[postType]" id="posting[postType]">
+                            <option value="product">Product sales</option>
+                            <option value="service">Service sales</option>
+                            <option value="material">Material costs</option>
+                            <option value="labor">Labor costs</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="posting[amount]">Amount</label>
+                        <input type="number" step=".01" class="form-control" name="posting[amount]" id="posting[amount]" required>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="posting[value]">Value</label>
+                        <input type="number" step=".01" class="form-control" name="posting[value]" id="posting[value]" required>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="posting[month]">Month</label>
+                        <input type="number" step="1" min="1" max="12" class="form-control" name="posting[month]" id="posting[month]">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="posting[year]">Year</label>
+                        <input type="number" step="1" min="1" max="20" class="form-control" name="posting[year]" id="posting[year]" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Add posting to budget</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+
+<%- include('../partials/footer') %>

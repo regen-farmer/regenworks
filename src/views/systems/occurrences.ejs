@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            <h1>Add occurrence to system</h1>
+            <p>System: "<%= system.name %>"</p>
+            <form action="/systems/<%= system._id %>/occurrences?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="occurrence[name]">Name</label>
+                    <input type="text" class="form-control" name="occurrence[name]" >
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[lat]">Latitude</label>
+                    <input type="number" step=".00001" class="form-control" name="occurrence[lat]">
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[lng]">Longtitude</label>
+                    <input type="number" step=".00001" class="form-control" name="occurrence[lng]">
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[alt]">Altitude (m)</label>
+                    <input type="number" class="form-control" name="occurrence[alt]" >
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[country]">Country</label>
+                    <input type="text" class="form-control" name="occurrence[country]" >
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[source]">Source</label>
+                    <input type="text" class="form-control" name="occurrence[source]" required>
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[eco]">Ecoregion</label>
+                    <input type="number" class="form-control" name="occurrence[eco]">
+                </div>
+                <div class="form-group">
+                    <label for="occurrence[koppen]">Köppen</label>
+                    <input type="text" class="form-control" name="occurrence[koppen]">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Create new system occurrence</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

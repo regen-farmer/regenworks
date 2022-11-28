@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <h1>Systems</h1>
+    <p>Count: <%= systems.length %></p>
+    <table class="table table-striped">
+        <tr>
+            <td>System name</td>
+            <td>Shared</td>
+            <td>Grid</td>
+            <td>Occurrences</td>
+            <td>Owner</td>
+            <td></td>
+        </tr>
+        <% systems.forEach(function(system){ %>
+        <tr>
+            <td><%= system.name %></td>
+            <td><%= system.shared %></td>
+            <% if(system.model.length > 0){ %>
+                <td>Grid exist</td>
+            <% } else { %>
+                <td>no grid</td>
+            <% } %>
+            <% if(system.occurrences.length > 0){ %>
+                <td><%= system.occurrences.length %></td>
+            <% } else { %>
+                <td>no occurrences</td>
+            <% } %>
+            <td><%= system.owner.username %></td>
+            <td><a href="/systems/<%= system._id %>" class="btn btn-success">Show more</a></td>
+        </tr>
+        <% }); %>
+    </table>
+</div>
+
+<%- include('../partials/footer') %>

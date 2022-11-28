@@ -1,0 +1,160 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="layerMapViz"></div>
+        <a href="/parcels/<%= parcel._id %>/status" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to farm</a>
+    </div>
+
+</div>
+
+<script>
+    var parcelLat = "<%= parcel.lat %>";
+    var parcelLng = "<%= parcel.lng %>";
+
+    var getcollection1 = "<%= collection1 %>";
+    var correctcollection1 = JSON.parse(getcollection1.replace(/&#34;/g,'"'));
+
+    var getcollection2 = "<%= collection2 %>";
+    var correctcollection2 = JSON.parse(getcollection2.replace(/&#34;/g,'"'));
+
+    var getcollection3 = "<%= collection3 %>";
+    var correctcollection3 = JSON.parse(getcollection3.replace(/&#34;/g,'"'));
+
+    var getcollection4 = "<%= collection4 %>";
+    var correctcollection4 = JSON.parse(getcollection4.replace(/&#34;/g,'"'));
+
+    var getcollection5 = "<%= collection5 %>";
+    var correctcollection5 = JSON.parse(getcollection5.replace(/&#34;/g,'"'));
+
+    var placecollection = "<%= places %>";
+    var places = JSON.parse(placecollection.replace(/&#34;/g,'"'));
+
+    var map = new maplibregl.Map({
+        container: 'layerMapViz',
+        style: {
+        'version': 8,
+        'sources': {
+        'raster-tiles': {
+        'type': 'raster',
+        'tiles': [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+        ],
+        'tileSize': 256,
+        'attribution':
+        '<a target="_top" rel="noopener" href="https://maplibre.org">MapLibre</a>, <a target="_top" rel="noopener" href="https://google.com">Google</a>'
+        }
+        },
+        'layers': [
+        {
+        'id': 'simple-tiles',
+        'type': 'raster',
+        'source': 'raster-tiles',
+        'minzoom': 0,
+        'maxzoom': 21
+        }
+        ]
+        },
+        center: [parcelLng, parcelLat],
+        zoom: 14,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': correctcollection1
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#69ea06',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': correctcollection2
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#beea0f',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map3',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': correctcollection3
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#eacb0a',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map4',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': correctcollection4
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#ea6908',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map5',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': correctcollection5
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#ea2705',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        /*map.addLayer({
+            'id': 'poi-labels',
+            'type': 'symbol',
+            'source': {
+                'type': 'geojson',
+                'data': places
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });*/
+
+    });
+</script>
+
+<%- include('../partials/footer') %>

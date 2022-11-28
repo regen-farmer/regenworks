@@ -1,0 +1,212 @@
+import express from 'express';
+import Species from '../models/species';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
+
+const router = express.Router();
+
+// SPECIES INDEX
+router.get('/species', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  Species.find((err, foundSpecies) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('species', { species: foundSpecies });
+    }
+  });
+});
+
+// SPECIES NEW
+router.get('/species/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // ONLY ADMIN ACCESS?
+  res.render('species/new');
+});
+
+// SPECIES CREATE
+router.post('/species', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // ONLY ADMIN ACCESS?
+  try {
+    const createdSpecies = await Species.create(req.body.species);
+    console.log(createdSpecies);
+    res.redirect('species');
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// SPECIES SHOW
+router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // ONLY ADMIN ACCESS?
+  Species.findById(req.params.id)
+    .populate('flows')
+    .exec((err, foundSpecies) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.render('species/show', { species: foundSpecies });
+      }
+    });
+});
+
+// SPECIES EDIT
+router.get('/species/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // ONLY ADMIN ACCESS?
+  try {
+    const foundSpecies = await Species.findById(req.params.id);
+    res.render('species/edit', { species: foundSpecies });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// SPECIES UPDATE
+router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const updatedSpecies = await Species.findByIdAndUpdate(
+      req.params.id,
+      req.body.species,
+    );
+    console.log(updatedSpecies);
+    res.redirect(`/species/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// SPECIES DELETE
+
+// SPECIES ACTIVITY NEW ROUTE
+router.get(
+  '/species/:id/activities/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      res.render('species/activity', { species: foundSpecies });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+// SPECIES ACTIVITY CREATE ROUTE
+router.post(
+  '/species/:id/activities',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
+    const types = req.body.activity.activityType.split(' ');
+    const activity = {
+      activityType: types[0],
+      subtype: types[1],
+      name: req.body.activity.name,
+      time: {
+        startMonth: req.body.activity.time.startMonth,
+        endMonth: req.body.activity.time.endMonth,
+      },
+      price: req.body.activity.price,
+    };
+    try {
+      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
+        $addToSet: { activities: activity },
+      });
+      console.log(`${req.body.activity.name} has been added to the species`);
+      res.redirect(`/species/${updatedSpecies?._id}`);
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+// SPECIES ACTIVITY EDIT ROUTE
+router.get(
+  '/species/:id/activities/edit',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      if (foundSpecies) {
+        if (req.query.index && typeof req.query.index === 'string') {
+          const activity = foundSpecies.activities[parseInt(req.query.index, 10)];
+          res.render('species/editactivity', {
+            species: foundSpecies,
+            activity,
+            index: req.query.index,
+          });
+        } else {
+          console.warn('req.query.index is not string type:', req.query.index);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+// SPECIES ACTIVITY UPDATE ROUTE
+router.put(
+  '/species/:id/activities',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
+    const types = req.body.activity.activityType.split(' ');
+    const activity = {
+      activityType: types[0],
+      subtype: types[1],
+      name: req.body.activity.name,
+      time: {
+        startMonth: req.body.activity.time.startMonth,
+        endMonth: req.body.activity.time.endMonth,
+      },
+      price: req.body.activity.price,
+    };
+    // FIND SPECIES
+    try {
+      const updatedSpecies = await Species.findById(req.params.id);
+      if (updatedSpecies) {
+      // CHANGE ACTIVITY DETAILS
+        if (req.query.index && typeof req.query.index === 'string') {
+          updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
+          await updatedSpecies.save();
+          res.redirect(`/species/${updatedSpecies._id}`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+// SPECIES NUTRIENTS CREATE ROUTE
+router.get(
+  '/species/:id/nutrients/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundSpecies = await Species.findById(req.params.id);
+      res.render('species/nutrients', { species: foundSpecies });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+// SPECIES NUTRIENTS UPDATE ROUTE
+router.put(
+  '/species/:id/nutrients',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
+        $set: { nutrients: req.body.nutrients },
+      });
+      if (updatedSpecies) {
+        res.redirect(`/species/${updatedSpecies._id}`);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
+
+export default router;

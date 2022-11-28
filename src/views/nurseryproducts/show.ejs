@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<%- include('../partials/nurserynav') %>
+
+<div class="row">
+
+    <div class="col-lg-2"></div>
+    <div class="col-lg-2">
+        <div class="card">
+            <div class="card-body">
+                <img class="img-responsive" src="/images/<%= product.species.form %>.svg">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <a class="btn btn-outline-secondary" href="/nurseries/<%= nursery._id %>">Back to nursery</a>
+
+        <h2>Product</h2>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <p><strong>Name:</strong> <%= product.name %></p>
+                                <p><strong>Species:</strong>
+                                    <em><%= product.species.genus %> <%= product.species.species %>
+                                        <% if(product.hybrid){ %>
+                                        x <%= product.hybrid.species %>
+                                        <% } %>
+                                    </em>
+                                </p>
+                                <p><strong>Variety:</strong>
+                                    <% if(product.variety){ %>
+                                    <%= product.variety %>
+                                    <% } else { %>
+                                    N/A
+                                    <% } %>
+                                </p>
+                                <p><strong>Rootstock:</strong>
+                                    <em>
+                                        <% if(product.rootstock){ %>
+                                        <%= product.rootstock.genus %> <%= product.rootstock.species %>
+                                        <% } else { %>
+                                        Same as main species
+                                        <% } %>
+                                    </em>
+                                </p>
+                                <p><strong>Classification:</strong> <%= product.class %></p>
+                                <p><strong>Description:</strong> <%= product.description %></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <p><strong>Price:</strong> <%= product.price %> <%= nursery.currency %></p>
+                                <p><strong>Stock:</strong> <%= product.stock %></p>
+                                <p><strong>Order limit:</strong> <%= product.orderlimit %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+<!--
+        <a href="/nurseries/<%= nursery._id %>/nurseryproducts/<%= product._id %>/copy" class="btn btn-sm btn-outline-warning">Duplicate</a>
+-->
+        <a href="/nurseries/<%= nursery._id %>/nurseryproducts/<%= product._id %>/edit" class="btn btn-sm btn-outline-secondary mt-2">Edit</a>
+    </div>
+    <div class="col-lg-2"></div>
+</div>
+
+<%- include('../partials/footer') %>

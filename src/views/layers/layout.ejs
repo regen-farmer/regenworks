@@ -1,0 +1,352 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div id="layerMapShow"></div>
+            <a href="/layers/<%= layer._id %>" class="btn mt-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to field</a>
+            <a href="/layers/<%= layer._id %>/row/new" class="btn mt-2 btn-outline-success">Draw row/line on map <i class="fas fa-plus"></i></a>
+            <a href="/layers/<%= layer._id %>/sequences/spacing" class="btn mt-2 btn-outline-primary">Create new row sequence</a>
+        </div>
+        <!--<div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h2>Existing assets</h2>
+                </div>
+            </div>
+        </div>-->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2>Existing rows</h2>
+                    <table class="table small">
+                        <tr class="table-secondary">
+                            <td>Row ref</td>
+                            <td>Row sequense pattern</td>
+                            <td></td>
+                        </tr>
+                    <% if(layer.rows && layer.rows.length > 0){ %>
+                        <% for(let i=0;i<layer.rows.length;i++){ %>
+                            <tr>
+                                <td><%= layer.rows[i].name %></td>
+                                <% if(layer.rows[i].sequence){ %>
+                                <td><%= layer.rows[i].sequence.name %>
+                                    <a href="/layers/<%= layer._id %>/sequences/<%= layer.rows[i].sequence._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+
+                                </td>
+                                <% } else { %>
+                                <td>---</td>
+                                <% } %>
+                                <td>
+                                    <a href="/layers/<%= layer._id %>/row/<%= layer.rows[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalDeleteRow<%= i %>" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm deletion of row</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm deletion of row: "<%= layer.rows[i].name %>"</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="delete-form" action="/layers/<%= layer._id %>/row/<%= layer.rows[i]._id %>?_method=DELETE" method="POST">
+                                                <button class="btn btn-sm btn-outline-danger">Delete row <i class="far fa-trash-alt"></i></button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } %>
+                    </table>
+                </div>
+            </div>
+            <% if(layer.areas && layer.areas.length > 0){ %>
+            <div class="card">
+                <div class="card-body">
+                    <h2>Sub-areas</h2>
+                    <table class="table small">
+                        <tr class="table-secondary">
+                            <td>Area ref</td>
+                            <td>Crop rotation</td>
+                            <td>Size</td>
+                            <td></td>
+                        </tr>
+                        <% if(layer.areas && layer.areas.length > 0){ %>
+                        <% for(let i=0;i<layer.areas.length;i++){ %>
+                        <tr>
+                            <td><%= layer.areas[i].name %></td>
+                            <% if(layer.areas[i].rotation){ %>
+                            <td><%= layer.areas[i].rotation.name %>
+                                <!--
+                                    <a href="/projects/<%= layer._id %>/rotations/<%= layer.areas[i].rotation._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+-->
+                            </td>
+                            <% } else { %>
+                            <td>---</td>
+                            <% } %>
+                            <% if(layer.areas[i].size){ %>
+                            <td><%= Math.round(layer.areas[i].size) %> m2</td>
+                            <% } else { %>
+                            <td>---</td>
+                            <% } %>
+                            <td>
+                              <!--  <a href="/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt"></i></button>
+                            -->
+                            </td>
+                        </tr>
+                        <!-- Modal -->
+                        <div class="modal fade" id="myModalDeleteArea<%= i %>" role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Confirm deletion of area</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Confirm deletion of area: "<%= layer.areas[i].name %>"</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form class="delete-form" action="/layers/<%= layer._id %>/areas/<%= layer.areas[i]._id %>?_method=DELETE" method="POST">
+                                            <button class="btn btn-sm btn-outline-danger">Delete area <i class="far fa-trash-alt"></i></button>
+                                        </form>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                        <% } %>
+                    </table>
+<!--
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteAllAreas">Delete all sub-areas <i class="far fa-trash-alt"></i></button>
+-->
+                    <!-- Modal -->
+                    <div class="modal fade" id="myModalDeleteAllAreas" role="dialog">
+                        <div class="modal-dialog">
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Confirm delete all areas</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Reverts the design and planning back to dynamic design where you can change headland and overall system design again. This will delete all current individual areas on the project. This will not delete any existing rows, areas or trees on your farm area, only on the project.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <a href="/layers/<%= layer._id %>/deleteareas" class="btn mt-2 mb-2 btn-outline-danger">Delete all areas</a>
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+<script>
+    var areaLat = "<%= layer.lat %>";
+    var areaLng = "<%= layer.lng %>";
+
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
+    var alleys = "<%= alleys %>";
+    var correctalleys = JSON.parse(alleys.replace(/&#34;/g,'"'));
+
+    var strips = "<%= strips %>";
+    var correctstrips = JSON.parse(strips.replace(/&#34;/g,'"'));
+
+    var col = "<%= collection %>";
+    var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+
+    var placecollection = "<%= places %>";
+    var places = JSON.parse(placecollection.replace(/&#34;/g,'"'));
+
+    var treenames = "<%= treenames %>";
+    var correcttreenames = JSON.parse(treenames.replace(/&#34;/g,'"'));
+
+    var vegecollection = "<%= vegetables %>";
+    var correctvege = JSON.parse(vegecollection.replace(/&#34;/g,'"'));
+
+    var map = new maplibregl.Map({
+        container: 'layerMapShow',
+        style: {
+        'version': 8,
+        'sources': {
+        'raster-tiles': {
+        'type': 'raster',
+        'tiles': [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+        ],
+        'tileSize': 256,
+        'attribution':
+        '<a target="_top" rel="noopener" href="https://maplibre.org">MapLibre</a>, <a target="_top" rel="noopener" href="https://google.com">Google</a>'
+        }
+        },
+        'layers': [
+        {
+        'id': 'simple-tiles',
+        'type': 'raster',
+        'source': 'raster-tiles',
+        'minzoom': 0,
+        'maxzoom': 21
+        }
+        ]
+        },
+        center: [areaLng, areaLat],
+        zoom: 16,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#fff1ff',
+                'fill-opacity': 0.5,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'alleys',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctalleys
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#1EBEC8',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'strips',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctstrips
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#002eff',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data': correctcol
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#1f1f1f',
+            }
+        });
+
+       /* map.addLayer({
+            'id': 'poi-labels',
+            'type': 'symbol',
+            'maxzoom': 20,
+            'source': {
+                'type': 'geojson',
+                'data': places
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });*/
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#1EBEC8',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map3',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctvege
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#1EBEC8',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'tree-labels',
+            'type': 'symbol',
+            'minzoom': 20,
+            'source': {
+                'type': 'geojson',
+                'data': correcttreenames
+            },
+            'layout': {
+                'text-field': ['get', 'description'],
+                'text-justify': 'center',
+                'icon-image': ['concat', ['get', 'icon'], '-15']
+            }
+        });
+
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

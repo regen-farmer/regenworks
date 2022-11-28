@@ -1,0 +1,337 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navbar') %>
+
+    <h1>Suited agroforestry systems for "<%= layer.name %>"</h1>
+    <p>We use several methodologies for assessing suited agroforestry systems. Some are based on actual research and best practice, others are based on theoretical models. </p>
+    <% if(animalsystems.length > 0){ %>
+    <h2>Systems suitable for areas with existing animals</h2>
+<!--
+    <p>Systems suitable for areas with existing animal operations.</p>
+-->
+    <div class="row">
+        <% for(let i=0;i<animalsystems.length;i++){ %>
+        <div class="col-lg-4">
+            <div class="card text-center">
+                <div class="row p-3 justify-content-center">
+                    <% if(animalsystems[i].sortedrows){ %>
+                    <% animalsystems[i].sortedrows.forEach(function(row, i){ %>
+                    <% if(row.array[0].species.form === "tree"){ %>
+                    <% if(row.array[0].species.height > 12){ %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/treehigh.svg">
+                    </div>
+                    <% } else { %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/treelow.svg">
+                    </div>
+                    <% } %>
+                    <% } else { %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                    </div>
+                    <% } %>
+                    <% }); %>
+                    <% } %>
+                    <% if(animalsystems[i].sortedrows.length > 1 && animalsystems[i].sortedrows.length < 4){ %>
+                    <div class="col-sm-3">
+                        <% if(animalsystems[i].sortedrows[0].array[0].species.family === "pinaceae"){ %>
+                        <img class="img-fluid" src="/images/conifer.svg">
+                        <% } else if (animalsystems[i].sortedrows[0].array[0].species.form === "tree") { %>
+                        <% if(animalsystems[i].sortedrows[0].array[0].species.height > 12){ %>
+                        <img class="img-fluid" src="/images/treehigh.svg">
+                        <% } else { %>
+                        <img class="img-fluid" src="/images/treelow.svg">
+                        <% } %>
+                        <% } else { %>
+                        <img class="img-fluid" src="/images/<%= animalsystems[i].sortedrows[0].array[0].species.form %>.svg">
+                        <% } %>
+                    </div>
+                    <% }; %>
+                </div>
+                <div class="card-body">
+                    <h5 class="body-title"><%= animalsystems[i].name %></h5>
+                    <p class="card-body">
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= animalsystems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            More details
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseExample<%= animalsystems[i]._id %>">
+                        <div class="card card-body">
+                            <p class="card-text"><strong>Species:</strong>
+                                <% animalsystems[i].uniqueSpecies.forEach(function(species){ %>
+                                <%= species %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Utilities:</strong>
+                                <% animalsystems[i].uniqueUtilities.forEach(function(utility){ %>
+                                <%= utility %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Total system width:</strong>
+                                <%= animalsystems[i].grid %> m
+                            </p>
+                            <p>
+                                <% animalsystems[i].flows.forEach(function(flow){ %>
+                                <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>
+                                <% }); %>
+                            </p>
+                            <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                <input type="hidden" id="systemid" name="systemid" value="<%= animalsystems[i]._id %>">
+                                <button class="btn btn-success">Add system to future drafts</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+    <% } %>
+    <% if(commoditysystems.length > 0){ %>
+    <h2>Systems suitable for areas with "<%= commodity %>"</h2>
+    <div class="row">
+        <% for(let i=0;i<commoditysystems.length;i++){ %>
+        <div class="col-lg-4">
+            <div class="card text-center">
+                <div class="row p-3 justify-content-center">
+                    <% if(commoditysystems[i].sortedrows){ %>
+                    <% commoditysystems[i].sortedrows.forEach(function(row, i){ %>
+                    <% if(row.array[0].species.form === "tree"){ %>
+                    <% if(row.array[0].species.height > 12){ %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/treehigh.svg">
+                    </div>
+                    <% } else { %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/treelow.svg">
+                    </div>
+                    <% } %>
+                    <% } else { %>
+                    <div class="col-sm-3">
+                        <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                    </div>
+                    <% } %>
+                    <% }); %>
+                    <% } %>
+                    <% if(commoditysystems[i].sortedrows.length > 1 && commoditysystems[i].sortedrows.length < 4){ %>
+                    <div class="col-sm-3">
+                        <% if(commoditysystems[i].sortedrows[0].array[0].species.family === "pinaceae"){ %>
+                        <img class="img-fluid" src="/images/conifer.svg">
+                        <% } else if (commoditysystems[i].sortedrows[0].array[0].species.form === "tree") { %>
+                        <% if(commoditysystems[i].sortedrows[0].array[0].species.height > 12){ %>
+                        <img class="img-fluid" src="/images/treehigh.svg">
+                        <% } else { %>
+                        <img class="img-fluid" src="/images/treelow.svg">
+                        <% } %>
+                        <% } else { %>
+                        <img class="img-fluid" src="/images/<%= commoditysystems[i].sortedrows[0].array[0].species.form %>.svg">
+                        <% } %>
+                    </div>
+                    <% }; %>
+                </div>
+                <div class="card-body">
+                    <h5 class="body-title"><%= commoditysystems[i].name %></h5>
+                    <p class="card-body">
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= commoditysystems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            More details
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseExample<%= commoditysystems[i]._id %>">
+                        <div class="card card-body">
+                            <p class="card-text"><strong>Species:</strong>
+                                <% commoditysystems[i].uniqueSpecies.forEach(function(species){ %>
+                                <%= species %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Utilities:</strong>
+                                <% commoditysystems[i].uniqueUtilities.forEach(function(utility){ %>
+                                <%= utility %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Total system width:</strong>
+                                <%= commoditysystems[i].grid %> m
+                            </p>
+                            <p>
+                                <% commoditysystems[i].flows.forEach(function(flow){ %>
+                                <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>
+                                <% }); %>
+                            </p>
+                            <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                <input type="hidden" id="systemid" name="systemid" value="<%= commoditysystems[i]._id %>">
+                                <button class="btn btn-success">Add system to future drafts</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <% } %>
+        </div>
+    <% } %>
+    <h2>The proven and tested</h2>
+    <p>Suitable systems based on leading research and existing best practice farms. This means that they represent actual production systems where yields and performance have been measured.</p>
+    <% if(systemsproven.length > 0){ %>
+        <div class="row">
+            <% for(let i=0;i<systemsproven.length;i++){ %>
+                    <div class="col-lg-4">
+                        <div class="card text-center">
+                                <div class="row p-3 justify-content-center">
+                                    <% if(systemsproven[i].sortedrows){ %>
+                                        <% systemsproven[i].sortedrows.forEach(function(row, i){ %>
+                                            <% if(row.array[0].species.form === "tree"){ %>
+                                                <% if(row.array[0].species.height > 12){ %>
+                                                    <div class="col-sm-3">
+                                                        <img class="img-fluid" src="/images/treehigh.svg">
+                                                    </div>
+                                                <% } else { %>
+                                                    <div class="col-sm-3">
+                                                        <img class="img-fluid" src="/images/treelow.svg">
+                                                    </div>
+                                                <% } %>
+                                            <% } else { %>
+                                                <div class="col-sm-3">
+                                                    <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                                                </div>
+                                            <% } %>
+                                        <% }); %>
+                                    <% } %>
+                                    <% if(systemsproven[i].sortedrows.length > 1 && systemsproven[i].sortedrows.length < 4){ %>
+                                        <div class="col-sm-3">
+                                            <% if(systemsproven[i].sortedrows[0].array[0].species.family === "pinaceae"){ %>
+                                                <img class="img-fluid" src="/images/conifer.svg">
+                                            <% } else if (systemsproven[i].sortedrows[0].array[0].species.form === "tree") { %>
+                                                <% if(systemsproven[i].sortedrows[0].array[0].species.height > 12){ %>
+                                                    <img class="img-fluid" src="/images/treehigh.svg">
+                                                <% } else { %>
+                                                    <img class="img-fluid" src="/images/treelow.svg">
+                                                <% } %>
+                                            <% } else { %>
+                                                <img class="img-fluid" src="/images/<%= systemsproven[i].sortedrows[0].array[0].species.form %>.svg">
+                                            <% } %>
+                                        </div>
+                                    <% }; %>
+                                </div>
+                            <div class="card-body">
+                                <h5 class="body-title"><%= systemsproven[i].name %></h5>
+                                <p class="card-body">
+                                    <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= systemsproven[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                                        More details
+                                    </button>
+                                </p>
+                                <div class="collapse" id="collapseExample<%= systemsproven[i]._id %>">
+                                    <div class="card card-body">
+                                        <p class="card-text"><strong>Species:</strong>
+                                            <% systemsproven[i].uniqueSpecies.forEach(function(species){ %>
+                                                <%= species %>,
+                                            <% }); %>
+                                        </p>
+                                        <p class="card-text"><strong>Utilities:</strong>
+                                            <% systemsproven[i].uniqueUtilities.forEach(function(utility){ %>
+                                            <%= utility %>,
+                                            <% }); %>
+                                        </p>
+                                        <p class="card-text"><strong>Total system width:</strong>
+                                            <%= systemsproven[i].grid %> m
+                                        </p>
+                                        <p>
+                                            <% systemsproven[i].flows.forEach(function(flow){ %>
+                                                <strong><%= flow.name %>:</strong> <%= flow.data[0].data[0] %>
+                                            <% }); %>
+                                        </p>
+                                        <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                            <input type="hidden" id="systemid" name="systemid" value="<%= systemsproven[i]._id %>">
+                                            <button class="btn btn-success">Add system to future drafts</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <p><i>--- NO PROVEN SYSTEMS FOUND FOR YOUR CLIMATE ---</i></p>
+    <% } %>
+    <h2>Promising systems for your climate</h2>
+    <p>Systems that have been implemented, but current data is not sufficient to give any good indications on performance.</p>
+    <% if(systemsclimate.length > 0){ %>
+    <div class="row">
+        <% for(let i=0;i<systemsclimate.length;i++){ %>
+        <div class="col-lg-4">
+            <div class="card text-center">
+                <div class="row p-3 justify-content-center">
+                    <% if(systemsclimate[i].sortedrows){ %>
+                        <% systemsclimate[i].sortedrows.forEach(function(row, i){ %>
+                            <% if(row.array[0].species.form === "tree"){ %>
+                                <% if(row.array[0].species.height > 12){ %>
+                                <div class="col-sm-3">
+                                    <img class="img-fluid" src="/images/treehigh.svg">
+                                </div>
+                                <% } else { %>
+                                <div class="col-sm-3">
+                                    <img class="img-fluid" src="/images/treelow.svg">
+                                </div>
+                                <% } %>
+                            <% } else { %>
+                            <div class="col-sm-3">
+                                <img class="img-fluid" src="/images/<%= row.array[0].species.form %>.svg">
+                            </div>
+                            <% } %>
+                        <% }); %>
+                    <% } %>
+                    <% if(systemsclimate[i].sortedrows.length > 1 && systemsclimate[i].sortedrows.length < 4){ %>
+                        <div class="col-sm-3">
+                            <% if(systemsclimate[i].sortedrows[0].array[0].species.family === "pinaceae"){ %>
+                            <img class="img-fluid" src="/images/conifer.svg">
+                            <% } else if (systemsclimate[i].sortedrows[0].array[0].species.form === "tree") { %>
+                            <% if(systemsclimate[i].sortedrows[0].array[0].species.height > 12){ %>
+                            <img class="img-fluid" src="/images/treehigh.svg">
+                            <% } else { %>
+                            <img class="img-fluid" src="/images/treelow.svg">
+                            <% } %>
+                            <% } else { %>
+                            <img class="img-fluid" src="/images/<%= systemsclimate[i].sortedrows[0].array[0].species.form %>.svg">
+                            <% } %>
+                        </div>
+                    <% }; %>
+                </div>
+                <div class="card-body">
+                    <h5 class="body-title"><%= systemsclimate[i].name %></h5>
+                    <p class="card-body">
+                        <button class="btn btn-outline-primary" type="button" data-toggle="collapse" data-target="#collapseExample<%= systemsclimate[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                            More details
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseExample<%= systemsclimate[i]._id %>">
+                        <div class="card card-body">
+                            <p class="card-text"><strong>Species:</strong>
+                                <% systemsclimate[i].uniqueSpecies.forEach(function(species){ %>
+                                    <%= species %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Utilities:</strong>
+                                <% systemsclimate[i].uniqueUtilities.forEach(function(utility){ %>
+                                    <%= utility %>,
+                                <% }); %>
+                            </p>
+                            <p class="card-text"><strong>Total system width:</strong>
+                                <%= systemsclimate[i].grid %> m
+                            </p>
+                            <form action="/layers/<%= layer._id %>/editfuture" method="POST">
+                                <input type="hidden" id="systemid" name="systemid" value="<%= systemsclimate[i]._id %>">
+                                <button class="btn btn-success">Add system to future drafts</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+    <% } %>
+   <!-- <h2>COMING SOON - AI modelled systems</h2>
+    <p>Suitable systems based on our unique agroforestry system models - Push the limits of agroforestry and become a first mover. These systems are based on models developed based on actual production data. This means that the specific system might not have been tested yet. Despite this it might actually be the best system.</p>
+    <h2>COMING SOON - Systems of tomorrow</h2>
+    <p>Based on leading local climate change scenarios and projections for the specific piece of land, these systems are highly focused on long term system adaptation to changing climates. This often includes more diverse species compositions and exotic species.</p>
+-->
+<%- include('./partials/footer') %>

@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div id="fronpage">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="content text-shadow">
+                    <h1>Find lokale økologiske fødevarer</h1>
+                    <form action="/places/search" method="POST">
+                        <div class="form-group">
+                            <input id="frontpagesearch" class="form-control" type="text" name="location" placeholder="Skriv adresse, by eller postnummer" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-search"></i> Find et sted i nærheden!</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="fronpage2">
+    <div class="jumbatron">
+        <div class="content">
+            <h1>Awesome regeneration</h1>
+            <form action="/experiences/search" method="POST">
+                <div class="form-group">
+                    <input id="frontpagesearch" class="form-control" type="text" name="locationexp" placeholder="Skriv adresse, by eller postnummer" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-search"></i> Find oplevelser nær dig!</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div id="fronpage3">
+    <div class="jumbatron">
+        <div class="content">
+            <br>
+            <h1>Bliv en del af fællesskabet</h1>
+            <a href="/users/new" class="btn btn-success btn-lg"><i class="fas fa-user"></i> Opret bruger</a>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

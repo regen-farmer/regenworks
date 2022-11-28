@@ -1,0 +1,89 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+            <h1>Add new activity to species</h1>
+            <p>Use this page to create activity templates for species that are used to auto-generate activities for projects.</p>
+            <form action="/species/<%= species._id %>/activities?_method=PUT&index=<%= index %>" method="POST">
+                <div class="form-group">
+                    <label for="activity[name]">Activity name</label>
+                    <input type="text" class="form-control" name="activity[name]" value="<%= activity.name %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity[activityType]">Activity type</label>
+                    <select name="activity[activityType]" id="activity[activityType]">
+                        <% if(activity.activityType === "establish" && activity.subtype === "bed"){ %>
+                            <option value="establish bed" selected="selected">Establishment - Bed prep</option>
+                        <% } else { %>
+                            <option value="establish bed">Establishment - Bed prep</option>
+                        <% } %>
+                        <% if(activity.activityType === "establish" && activity.subtype === "plant"){ %>
+                            <option value="establish plant" selected="selected">Establishment - Planting material</option>
+                        <% } else { %>
+                            <option value="establish plant">Establishment - Planting material</option>
+                        <% } %>
+                        <% if(activity.activityType === "establish" && activity.subtype === "method"){ %>
+                            <option value="establish method" selected="selected">Establishment - Planting method</option>
+                        <% } else { %>
+                            <option value="establish method">Establishment - Planting method</option>
+                        <% } %>
+                        <% if(activity.activityType === "manage" && activity.subtype === "compost"){ %>
+                            <option value="manage compost" selected="selected">Management - Compost</option>
+                        <% } else { %>
+                            <option value="manage compost">Management - Compost</option>
+                        <% } %>
+                        <% if(activity.activityType === "manage" && activity.subtype === "pruning"){ %>
+                            <option value="manage pruning" selected="selected">Management - Pruning method</option>
+                        <% } else { %>
+                            <option value="manage pruning">Management - Pruning method</option>
+                        <% } %>
+                        <% if(activity.activityType === "manage" && activity.subtype === "weedcontrol"){ %>
+                            <option value="manage weedcontrol" selected="selected">Management - Weed control</option>
+                        <% } else { %>
+                            <option value="manage weedcontrol">Management - Weed control</option>
+                        <% } %>
+                        <% if(activity.activityType === "manage" && activity.subtype === "animalcontrol"){ %>
+                            <option value="manage animalcontrol" selected="selected">Management - Animal control</option>
+                        <% } else { %>
+                            <option value="manage animalcontrol">Management - Animal control</option>
+                        <% } %>
+                        <% if(activity.activityType === "manage" && activity.subtype === "harvest"){ %>
+                            <option value="manage harvest" selected="selected">Management - Harvest method</option>
+                        <% } else { %>
+                            <option value="manage harvest">Management - Harvest method</option>
+                        <% } %>
+                        <!--<option value="establish bed">Establishment - Bed prep</option>
+                        <option value="establish plant">Establishment - Planting material</option>
+                        <option value="establish method">Establishment - Planting method</option>
+                        <option value="manage compost">Management - Compost</option>
+                        <option value="manage pruning">Management - Pruning method</option>
+                        <option value="manage weedcontrol">Management - Weed control</option>
+                        <option value="manage animalcontrol">Management - Animal control</option>
+                        <option value="manage harvest">Management - Harvest method</option>-->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activity[time][startMonth]">Earliest performed month</label>
+                    <input type="number" class="form-control" name="activity[time][startMonth]" min="1" max="12" value="<%= activity.time.startMonth %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity[time][endMonth]">Latest performed month</label>
+                    <input type="number" class="form-control" name="activity[time][endMonth]" min="1" max="12" value="<%= activity.time.endMonth %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity[price]">Price in USD</label>
+                    <input type="number" step=".01" class="form-control" name="activity[price]" value="<%= activity.price %>">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg">Update species activity</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-3"></div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

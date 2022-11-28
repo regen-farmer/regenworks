@@ -1,0 +1,429 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div id="layerMapShow"></div>
+            <a href="/projects/<%= project._id %>" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to project page</a>
+            <% if(project.rows && project.rows.length > 0){ %>
+                <a href="/projects/<%= project._id %>/row/new" class="btn mt-2 mb-2 btn-outline-success">Manually add row <i class="fas fa-plus"></i></a>
+                <a href="/projects/<%= project._id %>/sequences/spacing" class="btn mt-2 btn-outline-primary">Create tree row sequence</a>
+                <a href="/projects/<%= project._id %>/rotations/steps" class="btn mt-2 btn-outline-primary">Create crop rotation</a>
+            <% } else { %>
+                <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#myModalExplode">Explode layout <i class="fas fa-expand"></i></button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalExplode" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm explode layout</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Once you explode the layout individual rows, areas and tree assets will automatically be created. This makes it possible to further detail plan individual rows and areas, but the location of rows and area will be locked.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <a href="/projects/<%= project._id %>/explode" class="btn mt-2 mb-2 btn-outline-primary">Confirm explode layout</a>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               <!-- <div class="card-body">
+                    <h2>Area sizes</h2>
+                    <p>Total area: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+                    <p>Total tree row strip area (Approximation): <%= treeArea.toFixed(0) %> m2</p>
+                    <p>Headland and margin: <%= marginArea.toFixed(0) %> m2</p>
+                    <p>Rest (Approximation): <%= project.layer.size.toFixed(0) - treeArea.toFixed(0) - marginArea.toFixed(0) %> m2</p>
+                </div>-->
+            <% } %>
+            <h2>Tree and shrub counts</h2>
+            <div class="card">
+                <div class="card-body">
+                    <% species.forEach(function(species){ %>
+                    <p><%= species.id %> count: <%= species.uniqueCount %></p>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+        <% if((project.rows && project.rows.length > 0) || (project.areas && project.areas.length > 0)){ %>
+            <div class="col-md-6">
+                <% if(project.rows && project.rows.length > 0){ %>
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Planned rows</h2>
+                        <table class="table small">
+                            <tr class="table-secondary">
+                                <td>Row ref</td>
+                                <td>Row sequence pattern</td>
+                                <td>Length</td>
+                                <td></td>
+                            </tr>
+                            <% for(let i=0;i<project.rows.length;i++){ %>
+                            <tr>
+                                <td><%= project.rows[i].name %></td>
+                                <% if(project.rows[i].sequence){ %>
+                                    <td><%= project.rows[i].sequence.name %>
+                                        <a href="/projects/<%= project._id %>/sequences/<%= project.rows[i].sequence._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                    </td>
+                                <% } else { %>
+                                    <td>---</td>
+                                <% } %>
+                                <% if(project.rows[i].rowlength){ %>
+                                    <td><%= project.rows[i].rowlength.toFixed(0) %> m</td>
+                                <% } else { %>
+                                    <td>---</td>
+                                <% } %>
+                                <td>
+                                    <a href="/projects/<%= project._id %>/row/<%= project.rows[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteRow<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalDeleteRow<%= i %>" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm deletion of row</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm deletion of row: "<%= project.rows[i].name %>"</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="delete-form" action="/projects/<%= project._id %>/row/<%= project.rows[i]._id %>?_method=DELETE" method="POST">
+                                                <button class="btn btn-sm btn-outline-danger">Delete row <i class="far fa-trash-alt"></i></button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteAllRows">Delete all rows <i class="far fa-trash-alt"></i></button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="myModalDeleteAllRows" role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Confirm delete all rows</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Reverts the design and planning back to dynamic design where you can change headland and overall system design again. This will delete all current individual rows, areas and assets on the project. This will not delete any existing rows, areas or trees on your area, only on the project.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a href="/projects/<%= project._id %>/deleterows" class="btn mt-2 mb-2 btn-outline-danger">Delete all rows</a>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+                <% if(project.areas && project.areas.length > 0){ %>
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Planned sub-areas</h2>
+                        <table class="table small">
+                            <tr class="table-secondary">
+                                <td>Area ref</td>
+                                <td>Crop rotation</td>
+                                <td>Size</td>
+                                <td></td>
+                            </tr>
+                            <% if(project.areas && project.areas.length > 0){ %>
+                            <% for(let i=0;i<project.areas.length;i++){ %>
+                            <tr>
+                                <td><%= project.areas[i].name %></td>
+                                <% if(project.areas[i].rotation){ %>
+                                <td><%= project.areas[i].rotation.name %>
+                                    <a href="/projects/<%= project._id %>/rotations/<%= project.areas[i].rotation._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                </td>
+                                <% } else { %>
+                                <td>---</td>
+                                <% } %>
+                                <% if(project.areas[i].size){ %>
+                                    <td><%= Math.round(project.areas[i].size) %> m2</td>
+                                <% } else { %>
+                                    <td>---</td>
+                                <% } %>
+                                <td>
+                                    <a href="/projects/<%= project._id %>/areas/<%= project.areas[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalDeleteArea<%= i %>" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm deletion of area</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm deletion of area: "<%= project.areas[i].name %>"</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="delete-form" action="/projects/<%= project._id %>/areas/<%= project.areas[i]._id %>?_method=DELETE" method="POST">
+                                                <button class="btn btn-sm btn-outline-danger">Delete area <i class="far fa-trash-alt"></i></button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                            <% } %>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteAllAreas">Delete all sub-areas <i class="far fa-trash-alt"></i></button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="myModalDeleteAllAreas" role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Confirm delete all areas</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Reverts the design and planning back to dynamic design where you can change headland and overall system design again. This will delete all current individual areas on the project. This will not delete any existing rows, areas or trees on your farm area, only on the project.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a href="/projects/<%= project._id %>/deleteareas" class="btn mt-2 mb-2 btn-outline-danger">Delete all areas</a>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div class="col-md-3">
+                <h2>System model</h2>
+                <p><i><%= project.system.name %></i></p>
+                <p>Total system width: <%= rowWidth %> m</p>
+                <p>Total area: <%= (project.layer.size * 0.0001).toFixed(2) %> hectare(s)</p>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Change parameters</h5>
+                        <form action="/projects/<%= project._id %>/layout?_method=PUT" method="POST">
+                            <div class="form-group">
+                                <label for="project[layout]">Layout type</label>
+                                <select class="form-control" name="project[layout]">
+                                    <% if(project.layout === "straight") { %>
+                                    <option selected="selected" value="straight">Straight rows</option>
+                                    <% } else { %>
+                                    <option value="straight">Straight rows</option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="project[alignment]">Alignment</label>
+                                <select class="form-control" name="project[alignment]">
+                                    <% if(project.alignment === "bearing") { %>
+                                    <option selected="selected" value="bearing">Angled rows</option>
+                                        <option value="north">North/south</option>
+                                        <option value="west">West/East</option>
+                                <% } else { %>
+                                    <% if(project.alignment === "north") { %>
+                                    <option selected="selected" value="north">North/south</option>
+                                    <% } else { %>
+                                    <option value="north">North/south</option>
+                                    <% } %>
+                                    <% if(project.alignment === "west") { %>
+                                    <option selected="selected" value="west">West/East</option>
+                                    <% } else { %>
+                                    <option value="west">West/East</option>
+                                    <% } %>
+                                        <% if(typeof project.bearingline == "undefined") { %>
+                                        <% } else { %>
+                                            <option value="bearing">Angled Rows</option>
+                                        <% } %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="project[headland]">Headland</label>
+                                <input type="number" min="0" max="<%= rowWidth %>" class="form-control" name="project[headland]" value="<%= project.headland %>">
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="btn btn-outline-primary"><i class="fas fa-sync-alt"></i> Update parameters</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+
+    </div>
+
+<script>
+    var areaLat = "<%= project.layer.lat %>";
+    var areaLng = "<%= project.layer.lng %>";
+
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
+    var alleys = "<%= alleys %>";
+    var correctalleys = JSON.parse(alleys.replace(/&#34;/g,'"'));
+
+    var strips = "<%= strips %>";
+    var correctstrips = JSON.parse(strips.replace(/&#34;/g,'"'));
+
+    var col = "<%= collection %>";
+    var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= project.layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+
+    var offset = "<%= offset %>";
+    var correctoffset = JSON.parse(offset.replace(/&#34;/g,'"'));
+
+    var map = new maplibregl.Map({
+        container: 'layerMapShow',
+        style: {
+        'version': 8,
+        'sources': {
+        'raster-tiles': {
+        'type': 'raster',
+        'tiles': [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+        ],
+        'tileSize': 256,
+        'attribution':
+        '<a target="_top" rel="noopener" href="https://maplibre.org">MapLibre</a>, <a target="_top" rel="noopener" href="https://google.com">Google</a>'
+        }
+        },
+        'layers': [
+        {
+        'id': 'simple-tiles',
+        'type': 'raster',
+        'source': 'raster-tiles',
+        'minzoom': 0,
+        'maxzoom': 21
+        }
+        ]
+        },
+        center: [areaLng, areaLat],
+        zoom: 15,
+    });
+
+    map.on('load', function () {
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#b4aab4',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+       map.addLayer({
+            'id': 'alleys',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctalleys
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#1EBEC8',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'strips',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctstrips
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#002eff',
+                'fill-opacity': 0.6,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data':
+                    correctcol
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#fff1ff',
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7eff36',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        /*map.addLayer({
+            'id': 'map6',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctoffset
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#ff4c31',
+            }
+        });
+*/
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

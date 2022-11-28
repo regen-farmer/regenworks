@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h2>Split field</h2>
+        <a href="/layers/<%= layer._id %>" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to field</a>
+        <div>
+            <form action="/layers/<%= layer._id %>/split" method="POST">
+                <div class="form-group">
+                    <label for="[lineCoordinates]">Draw split line</label>
+                    <p>Please draw the split line and make sure it cross field boundaries. Press "Finish" to finish line.</p>
+                </div>
+                <div id="splitMapNew"></div>
+                <input type="hidden" id="geometry" name="geometry">
+                <input type="hidden" id="layersize" name="layersize">
+                <div id="coordinates"></div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Split field</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var areaLat = "<%= layer.lat %>";
+        var areaLng = "<%= layer.lng %>";
+
+        var getgeometry = "<%= layer.geometry %>";
+        var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    </script>
+
+<%- include('../partials/footer') %>

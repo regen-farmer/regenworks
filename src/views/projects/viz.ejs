@@ -1,0 +1,307 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+    .map-overlay {
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        position: absolute;
+        width: 25%;
+        top: 0;
+        left: 0;
+        padding: 10px;
+    }
+
+    .map-overlay .map-overlay-inner {
+        background-color: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .map-overlay h2 {
+        line-height: 24px;
+        display: block;
+        margin: 0 0 10px;
+    }
+
+    .map-overlay .legend .bar {
+        height: 10px;
+        width: 100%;
+        background: linear-gradient(to right, #fca107, #7f3121);
+    }
+
+    .map-overlay input {
+        background-color: transparent;
+        display: inline-block;
+        width: 100%;
+        position: relative;
+        margin: 0;
+        cursor: ew-resize;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="layerMapViz"></div>
+
+        <div class="map-overlay top">
+            <div class="map-overlay-inner">
+                <h2>Tree cover in successional stages</h2>
+                <label id="month"></label>
+                <input id="slider" type="range" min="0" max="3" step="1" value="0">
+            </div>
+
+        </div>
+
+        <a href="/projects/<%= project._id %>/layout" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to project page</a>
+    </div>
+
+</div>
+
+<script>
+    var areaLat = "<%= project.layer.lat %>";
+    var areaLng = "<%= project.layer.lng %>";
+
+    var trees = "<%= trees %>";
+    var correcttrees = JSON.parse(trees.replace(/&#34;/g,'"'));
+
+    var alleys = "<%= alleys %>";
+    var correctalleys = JSON.parse(alleys.replace(/&#34;/g,'"'));
+
+    var strips = "<%= strips %>";
+    var correctstrips = JSON.parse(strips.replace(/&#34;/g,'"'));
+
+    var col = "<%= collection %>";
+    var correctcol = JSON.parse(col.replace(/&#34;/g,'"'));
+
+    var getgeometry = "<%= project.layer.geometry %>";
+    var correctgeometry = JSON.parse(getgeometry.replace(/&#34;/g,'"'));
+    var map = new maplibregl.Map({
+        container: 'layerMapViz',
+        style: {
+        'version': 8,
+        'sources': {
+        'raster-tiles': {
+        'type': 'raster',
+        'tiles': [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+        ],
+        'tileSize': 256,
+        'attribution':
+        '<a target="_top" rel="noopener" href="https://maplibre.org">MapLibre</a>, <a target="_top" rel="noopener" href="https://google.com">Google</a>'
+        }
+        },
+        'layers': [
+        {
+        'id': 'simple-tiles',
+        'type': 'raster',
+        'source': 'raster-tiles',
+        'minzoom': 0,
+        'maxzoom': 21
+        }
+        ]
+        },
+        center: [areaLng, areaLat],
+        zoom: 15,
+        pitch: 45
+    });
+
+    var months = [
+        'Year 3',
+        'Year 6',
+        'Year 9',
+        'Year 12'
+    ];
+
+    function filterBy(month) {
+        var filters = ['==', 'month', month];
+        map.setFilter('earthquake-circles', filters);
+        map.setFilter('earthquake-labels', filters);
+
+    // Set the label to the month
+        document.getElementById('month').textContent = months[month];
+    }
+
+    /*function rotateCamera(timestamp) {
+    // clamp the rotation between 0 -360 degrees
+    // Divide timestamp by 100 to slow rotation to ~10 degrees / sec
+        map.rotateTo((timestamp / 100) % 360, { duration: 0 });
+    // Request the next frame of the animation.
+        requestAnimationFrame(rotateCamera);
+    }*/
+
+    map.on('load', function () {
+
+        /*// Start the animation.
+        rotateCamera(0);*/
+
+        /*d3.json(
+            'https://docs.mapbox.com/mapbox-gl-js/assets/significant-earthquakes-2015.geojson',
+            function (err, data) {
+                if (err) throw err;
+
+                // Create a month property value based on time
+                // used to filter against.
+                data.features = data.features.map(function (d) {
+                    d.properties.month = new Date(d.properties.time).getMonth();
+                    return d;
+                });
+
+                map.addSource('earthquakes', {
+                    'type': 'geojson',
+                    data: data
+                });
+
+                map.addLayer({
+                    'id': 'earthquake-circles',
+                    'type': 'circle',
+                    'source': 'earthquakes',
+                    'paint': {
+                        'circle-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'mag'],
+                            6,
+                            '#FCA107',
+                            8,
+                            '#7F3121'
+                        ],
+                        'circle-opacity': 0.75,
+                        'circle-radius': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'mag'],
+                            6,
+                            20,
+                            8,
+                            40
+                        ]
+                    }
+                });
+
+                map.addLayer({
+                    'id': 'earthquake-labels',
+                    'type': 'symbol',
+                    'source': 'earthquakes',
+                    'layout': {
+                        'text-field': [
+                            'concat',
+                            ['to-string', ['get', 'mag']],
+                            'm'
+                        ],
+                        'text-font': [
+                            'Open Sans Bold',
+                            'Arial Unicode MS Bold'
+                        ],
+                        'text-size': 12
+                    },
+                    'paint': {
+                        'text-color': 'rgba(0,0,0,0.5)'
+                    }
+                });
+
+        // Set filter to first month of the year
+        // 0 = January
+                filterBy(0);
+
+                document
+                    .getElementById('slider')
+                    .addEventListener('input', function (e) {
+                        var month = parseInt(e.target.value, 10);
+                        filterBy(month);
+                    });
+            }
+        );*/
+
+        map.addLayer({
+            'id': 'map',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': correctgeometry.geometry.coordinates
+                    }
+                }
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#b4aab4',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+        map.addLayer({
+             'id': 'alleys',
+             'type': 'fill',
+             'source': {
+                 'type': 'geojson',
+                 'data':
+                 correctalleys
+             },
+             'layout': {},
+             'paint': {
+                 'fill-color': '#1EBEC8',
+                 'fill-opacity': 0.6,
+                 'fill-outline-color': '#F0F8FF'
+             }
+         });
+
+         map.addLayer({
+             'id': 'strips',
+             'type': 'fill',
+             'source': {
+                 'type': 'geojson',
+                 'data':
+                 correctstrips
+             },
+             'layout': {},
+             'paint': {
+                 'fill-color': '#002eff',
+                 'fill-opacity': 0.6,
+                 'fill-outline-color': '#F0F8FF'
+             }
+         });
+
+        map.addLayer({
+            'id': 'map1',
+            'type': 'line',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correctcol
+            },
+            'layout': {},
+            'paint': {
+                'line-color': '#fff1ff',
+            }
+        });
+
+        map.addLayer({
+            'id': 'map2',
+            'type': 'fill',
+            'source': {
+                'type': 'geojson',
+                'data':
+                correcttrees
+            },
+            'layout': {},
+            'paint': {
+                'fill-color': '#7eff36',
+                'fill-opacity': 0.8,
+                'fill-outline-color': '#F0F8FF'
+            }
+        });
+
+    });
+
+</script>
+
+<%- include('../partials/footer') %>

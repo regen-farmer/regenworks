@@ -1,0 +1,399 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+    <h1> Project dashboard </h1>
+    <div class="row">
+        <div class="col-md-4">
+            <p><strong>Project name: </strong><%= project.name %></p>
+            <p><strong>Project phase: </strong> <%= project.status %></p>
+            <p><strong>Project area: </strong> "<%= project.layer.name %>"</p>
+            <p><%= project.description %></p>
+            <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteProject">Delete project</button>
+                <!-- Modal -->
+                <div class="modal fade" id="myModalDeleteProject" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Confirm deletion of project</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>When you delete your project, all information connected to it like budgets and activities will be permanently deleted and we will not be able to recreate it.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <form class="delete-form" action="/projects/<%= project._id %>?_method=DELETE" method="POST">
+                                    <button class="btn btn-danger">Delete project</button>
+                                </form>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+<!--
+            <a class="btn btn-outline-warning" href="#">Duplicate this project (Coming soon)</a>
+-->
+            <% if(project.status === "planning"){ %>
+                <button type="button" class="btn btn-outline-success"  data-toggle="modal" data-target="#myModalImplementProject">Start project implementation</button>
+                <button type="button" class="btn btn-outline-secondary"  data-toggle="modal" data-target="#myModalRetireProject">Retire project</button>
+            <% } %>
+            <!-- Modal -->
+            <div class="modal fade" id="myModalImplementProject" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Start project implementation phase</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>Once you change phase from planning to implementation phase, the layout of your project will be fixed and additional features wil be unlocked such as asset generation and implementation plans.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form class="implement-form" action="/projects/<%= project._id %>/implement?_method=PUT" method="POST">
+                                <button class="btn btn-success">Confirm project implementation start</button>
+                            </form>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal -->
+            <div class="modal fade" id="myModalRetireProject" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Retire project</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>Retire your project if you want to stop planning of the project. This can be relevant if you want to try a different agroforestry system instead. Retired projects are still available on the area page.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form class="implement-form" action="/projects/<%= project._id %>/retire?_method=PUT" method="POST">
+                                <button class="btn btn-success">Confirm retirement</button>
+                            </form>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#layout" role="tab" aria-controls="layout" aria-selected="true">Layout and system</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="layout-tab" data-toggle="tab" href="#financials" role="tab" aria-controls="financials" aria-selected="false">Budgets and financials</a>
+                </li>
+                <% if(project.status === "Implementation"){ %>
+                    <li class="nav-item">
+                        <a class="nav-link" id="asset-tab" data-toggle="tab" href="#assets" role="tab" aria-controls="assets" aria-selected="false">Assets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="implementation-tab" data-toggle="tab" href="#implementation" role="tab" aria-controls="implementation" aria-selected="false">Implementation</a>
+                    </li>
+                <% } %>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="layout" role="tabpanel" aria-labelledby="layout-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Project agroforestry system</h2>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text"><strong>Main System:</strong> <%= project.system.name %></p>
+                                            <% if(project.status === "planning"){ %>
+                                            <a class="btn btn-outline-warning" href="/systems/<%= project.system._id %>/edit">Edit system</a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% if(project.edgesystem){ %>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <p class="card-text"><strong>Edge System:</strong> <%= project.edgesystem.name %></p>
+                                                <% if(project.status === "planning"){ %>
+                                                    <a class="btn btn-outline-warning" href="/systems/<%= project.edgesystem._id %>/edit">Edit edge system</a>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <!--<% if(project.status === "planning"){ %>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <a class="btn btn-outline-primary" href="/projects/<%= project._id %>/addedgesystem">Add edge system</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% } %>-->
+                                <% } %>
+                            </div>
+                            <!--<h2>Establishement and management activities</h2>
+                            <p>Site prep: </p>
+                            <p>Management practices: </p>-->
+                            <h2>Project layout</h2>
+                            <% if(project.status === "planning"){ %>
+                                <a href="/projects/<%= project._id %>/layout" class="btn btn-outline-primary">View layout map <i class="far fa-map"></i></a>
+                            <% } else if (project.assets && project.assets.length > 0) { %>
+                                <p>Layout has been fixed and digital tree assets have already been created for this project. Go to "Assets" tab to view asset map.</p>
+                            <% } else { %>
+<!--
+                                <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
+-->
+                                <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#myModalGenerateAssets">Generate trees assets</button>
+                            <% } %>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalGenerateAssets" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Confirm generation of tree assets</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Confirm creation of tree assets. This will automatically generate tree assets for the current project. </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="/projects/<%= project._id %>/generateassets" class="btn btn-outline-primary">Generate trees assets</a>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="financials" role="tabpanel" aria-labelledby="financials-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Project budgets</h2>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text">Establishment budget</p>
+                                            <% if(project.budgets.establishment){ %>
+                                            <a href="/budgets/<%= project.budgets.establishment._id %>" class="btn btn-outline-primary">Show establishment budget</a>
+                                            <% } else { %>
+                                            <a href="/projects/<%= project._id %>/generateestablishment" class="btn btn-outline-primary">Generate establishment budget</a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p class="card-text">Management and cash-flow budget</p>
+                                            <% if(project.budgets.management){ %>
+                                            <a href="/budgets/<%= project.budgets.management._id %>" class="btn btn-outline-primary">Show management budget</a>
+                                            <% } else { %>
+                                            <a href="/projects/<%= project._id %>/generatemanagement" class="btn btn-outline-primary">Generate cash-flow budget</a>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Financial analysis</h2>
+                            <% if(project.budgets.management && project.budgets.establishment){ %>
+                                <div class="row">
+                                    <div class="col-sm-8"><canvas id="lineChart"></canvas></div>
+                                    <div class="col-sm-4">
+                                        <p><strong>IRR: <%= irr %></strong></p>
+                                        <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+                                        <% if(years && years > 0){ %>
+                                        <p>Time period: <%= years %> years</p>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% } else { %>
+                                <p>-- Financial analysis will show when establishement and cash-flow budget has been generated --</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="assets" role="tabpanel" aria-labelledby="assets-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Assets</h2>
+                            <p> Tree asset count: <%= project.assets.length %> </p>
+                            <a class="btn btn-outline-primary" href="/projects/<%= project._id %>/assets">View asset map</a>
+                            <% project.assets.forEach(function(asset){ %>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <p class="card-text"><strong>Name:</strong> <%= asset.name %>, <strong>Georef:</strong> <%= asset.lat %>, <%= asset.lng %>, <strong>id:</strong> <%= asset.id %></p>
+                                    <!--<a class="btn btn-outline-primary" href="/assets/<%= asset._id %>/edit">Edit asset <i class="far fa-edit"></i></a>
+                                    <form class="delete-asset-form" action="/assets/<%= asset._id %>?_method=DELETE" method="POST">
+                                        <button class="btn btn-outline-danger">Delete asset <i class="far fa-trash-alt"></i></button>
+                                    </form>-->
+                                </div>
+                            </div>
+                            <% }); %>
+                            <form class="delete-asset-form" action="/projects/<%= project._id %>/allassets?_method=DELETE" method="POST">
+                                <button class="btn btn-danger">Delete all digital assets</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="implementation" role="tabpanel" aria-labelledby="implementation-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Implementation</h2>
+                            <% if(project.activities && project.activities.length > 0){ %>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h2>Activity plan</h2>
+                                    <table class="table small">
+                                        <tr class="table-secondary">
+                                            <td>Activity</td>
+                                            <td>Status</td>
+                                            <td></td>
+                                        </tr>
+                                        <% for(let i=0;i<project.activities.length;i++){ %>
+                                        <tr>
+                                            <td><%= project.activities[i].name %></td>
+                                            <% if(project.activities[i].status == true){ %>
+                                                <td>Completed</td>
+                                            <% } else if (project.activities[i].status == false) { %>
+                                                <td>Active</td>
+                                            <% } else { %>
+                                                <td>N/A</td>
+                                            <% } %>
+                                            <td>
+                                                <a href="/projects/<%= project._id %>/activities/<%= project.activities[i]._id %>/edit" class="btn btn-sm btn-outline-warning"><i class="far fa-edit"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteActivity<%= i %>"><i class="far fa-trash-alt"></i></button>
+                                            </td>
+                                        </tr>
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="myModalDeleteActivity<%= i %>" role="dialog">
+                                            <div class="modal-dialog">
+                                                <!-- Modal content-->
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                        <h4 class="modal-title">Confirm deletion of activity</h4>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Confirm deletion of activity: "<%= project.activities[i].name %>"</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <form class="delete-form" action="/projects/<%= project._id %>/activities/<%= project.activities[i]._id %>?_method=DELETE" method="POST">
+                                                            <button class="btn btn-sm btn-outline-danger">Delete activity <i class="far fa-trash-alt"></i></button>
+                                                        </form>
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                    </table>
+                                </div>
+                            </div>
+                            <% } %>
+                            <% if(project.status === "Implementation"){ %>
+                            <button type="button" class="btn btn-outline-success"  data-toggle="modal" data-target="#myModalCompleteProject">Start manual project completion</button>
+                            <% } %>
+                            <!-- Modal -->
+                            <div class="modal fade" id="myModalCompleteProject" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <h4 class="modal-title">Start manual project completion</h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>NOTICE: Once you complete the project, the current system of the project area will be updated to reflect the system specified in this project and the project will be marked as completed. </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form class="implement-form" action="/projects/<%= project._id %>/complete?_method=PUT" method="POST">
+                                                <button class="btn btn-success">Confirm manual project completion</button>
+                                            </form>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <!--<div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Project planning and activities</h2>
+                        <% if(project.activities.length > 0){ %>
+                        <table class="table table-striped small">
+                            <tr>
+                                <td><strong>Activity</strong></td>
+                                <td><strong>Date</strong></td>
+                            </tr>
+                            <% project.activities.forEach(function(activity){ %>
+                            <tr>
+                                <td><%= activity.name %></td>
+                                <td><%= activity.start.date %></td>
+                            </tr>
+                            <% }); %>
+                        </table>
+                        <% } %>
+                        <a href="/projects/<%= project._id %>/activities/new" class="btn btn-outline-primary">Add new activity</a>
+                        <p class="card-text"></p>
+                    </div>
+                </div>-->
+
+            </div>
+        </div>
+    </div>
+<script>
+    var labels = "<%= labels %>";
+    var correctlabels = JSON.parse(labels.replace(/&#34;/g,'"'));
+
+    var dataset = "<%= dataset %>";
+    var correctdataset = JSON.parse(dataset.replace(/&#34;/g,'"'));
+
+    var sum = "<%= sum %>";
+    var correctsum = JSON.parse(sum.replace(/&#34;/g,'"'));
+
+    var ctx = document.getElementById('lineChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: correctlabels,
+            datasets: [{
+                label: 'Income',
+                backgroundColor: 'rgb(255, 255, 255)',
+                borderColor: 'rgb(0, 0, 255)',
+                data: correctdataset
+            },
+            {
+                label: 'Cumulative cash flow',
+                backgroundColor: 'rgb(255, 255, 255)',
+                borderColor: 'rgb(77, 131, 51)',
+                data: correctsum
+            }
+            ]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+</script>
+
+<%- include('../partials/footer') %>
