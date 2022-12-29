@@ -1,8 +1,10 @@
-var express = require("express");
-var router = express.Router();
-import Practice from "../models/practice";
-import Parcel from "../models/parcel";
-var middleware = require("../middleware");
+import express from 'express';
+import Practice from '../models/practice';
+import Parcel from '../models/parcel';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
+
+const router = express.Router();
 
 // PRACTICE INDEX ROUTE
 
@@ -11,30 +13,28 @@ var middleware = require("../middleware");
 // PRACTICE CREATE ROUTE
 
 // PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
-router.get("/practices/:id", middleware.isLoggedIn, function(req, res){
-    Practice.findById(req.params.id, function(err, foundPractice){
-        if(err){
-            console.log(err);
-        } else {
-            Parcel.findById(req.query.parcelid, function(err, foundParcel){
-                if(err){
-                    console.log(err);
-                } else {
-                    if(foundParcel.owner.id.equals(req.user._id)){ // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
-                        console.log(foundParcel);
-                        res.render("practices/show", {practice: foundPractice, parcel: foundParcel});
-                    } else {
-                        // req.flash("error", "You don't have permission to do that.");
-                        res.redirect("back");
-                    }
-                }
-            });
-        }
-    });
+router.get('/practices/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const foundPractice = await Practice.findById(req.params.id);
+    try {
+      const foundParcel = await Parcel.findById(req.query.parcelid);
+      if (foundParcel && foundParcel.owner.id.equals(req.user?._id)) { // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
+        console.log(foundParcel);
+        res.render('practices/show', { practice: foundPractice, parcel: foundParcel });
+      } else {
+        // req.flash("error", "You don't have permission to do that.");
+        res.redirect('back');
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PRACTICE UPDATE ROUTE
 
 // PRACTICE DELETE ROUTE
 
-module.exports = router;
+export default router;

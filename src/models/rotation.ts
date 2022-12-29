@@ -1,37 +1,64 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+import { ISpeciesSchema } from './species';
+import { IUserSchema } from './user';
 
-// ROTATION SCHEMA SETUP
-var rotationSchema = new mongoose.Schema({
-    name: String,
-    description: String,
+export interface IRotationSchema extends Document {
+    name: string,
+    description: string,
     model: [
         {
             speciesmix: [
                 {
-                    species: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "Species"
-                    },
-                    amount: Number
+                    species:ISpeciesSchema,
+                    amount: number
                 }
             ],
             planting: {
-                year: Number,
-                month: Number
+                year: number,
+                month: number
             },
             harvest: {
-                year: Number,
-                month: Number
+                year: number,
+                month: number
             }
         }
     ],
     owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
+        id: IUserSchema
     }
+}
+
+// ROTATION SCHEMA SETUP
+const rotationSchema = new Schema<IRotationSchema>({
+  name: String,
+  description: String,
+  model: [
+    {
+      speciesmix: [
+        {
+          species: {
+            type: Schema.Types.ObjectId,
+            ref: 'Species',
+          },
+          amount: Number,
+        },
+      ],
+      planting: {
+        year: Number,
+        month: Number,
+      },
+      harvest: {
+        year: Number,
+        month: Number,
+      },
+    },
+  ],
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
 });
 
-export default mongoose.model("Rotation", rotationSchema);
+export default model('Rotation', rotationSchema);

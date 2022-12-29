@@ -1,5 +1,5 @@
-<% include ../partials/header %>
-<% include ../partials/navbar %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
     <h1> Project dashboard </h1>
     <div class="row">
@@ -9,7 +9,6 @@
             <p><strong>Project area: </strong> "<%= project.layer.name %>"</p>
             <p><%= project.description %></p>
             <% if(currentUser && project.owner.id.equals(currentUser._id)){ %>
-                <a class="btn btn-outline-primary" href="#">Edit project</a>
                 <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#myModalDeleteProject">Delete project</button>
                 <!-- Modal -->
                 <div class="modal fade" id="myModalDeleteProject" role="dialog">
@@ -219,7 +218,6 @@
                                         <% if(years && years > 0){ %>
                                         <p>Time period: <%= years %> years</p>
                                         <% } %>
-                                        <a href="#" class="btn btn-outline-primary">Edit financial parameters</a>
                                     </div>
                                 </div>
                             <% } else { %>
@@ -398,4 +396,4 @@
     });
 </script>
 
-<% include ../partials/footer %>
+<%- include('../partials/footer') %>

@@ -1,27 +1,29 @@
-var express = require("express");
-var router = express.Router();
-var unique = require("array-unique");
-import System from "../models/system";
-import Layer from "../models/layer";
-import Species from "../models/species";
-import Parcel from "../models/parcel";
-import Animal from "../models/animal";
-import Project from "../models/project";
-var middleware = require("../middleware");
+import express from 'express';
+import unique from 'array-unique';
+import System, { ISystemSchema } from '../models/system';
+import Layer from '../models/layer';
+import Species, { ISpeciesSchema } from '../models/species';
+import Parcel from '../models/parcel';
+import Animal from '../models/animal';
+import Project from '../models/project';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
+
+const router = express.Router();
 
 // SYSTEM INDEX
-router.get("/systems", middleware.adminIsLoggedIn, function(req, res){
-    System.find(function(err, foundSystems){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("systems/index", {systems: foundSystems});
-        }
-    });
+router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  System.find((err, foundSystems) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render('systems/index', { systems: foundSystems });
+    }
+  });
 });
 
 // NESTED AREA SYSTEM INDEX
-/*router.get("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
+/* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: IUserSchema}, res: express.Response){
     // FIND LAYER ID
     Layer.findById(req.params.id).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err) {
@@ -30,273 +32,276 @@ router.get("/systems", middleware.adminIsLoggedIn, function(req, res){
             res.render("systems/index", {layer: foundLayer});
         }
     });
-});*/
+}); */
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get("/layers/:id/systems/newgrid", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/layers/:id/systems/newgrid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Layer.findById(req.params.id, function(err, foundLayer){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("systems/newgrid", {layer: foundLayer});
-        }
-    });
-});
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+
+      res.render('systems/newgrid', { layer: foundLayer });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post("/layers/:id/systems/newgrid", middleware.isLoggedIn, function(req, res){
+router.post(
+  '/layers/:id/systems/newgrid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
-    if((req.body.length / req.body.distance) % 1 === 0){
-        // FIND LAYER
-        Layer.findById(req.params.id, function(err, foundLayer){
-            if(err){
-                console.log(err);
-            } else {
-                res.redirect("/layers/" + foundLayer._id + "/systems/new?rows=" + req.body.rows + "&distance=" + req.body.distance + "&length=" + req.body.length);
-            }
-        });
+    if ((req.body.length / req.body.distance) % 1 === 0) {
+      // FIND LAYER
+      try {
+        const foundLayer = await Layer.findById(req.params.id);
+        res.redirect(
+          `/layers/${
+            foundLayer?._id
+          }/systems/new?rows=${
+            req.body.rows
+          }&distance=${
+            req.body.distance
+          }&length=${
+            req.body.length}`,
+        );
+      } catch (err) {
+        console.log(err);
+      }
     } else {
-        req.flash("error", "Length must be divisible with distance between speciee in rows.");
-        res.redirect("back");
+      console.log(
+        'Length must be divisible with distance between speciee in rows.',
+      );
+      res.redirect('back');
     }
-});
+  },
+);
 
 // NESTED AREA SYSTEM NEW ROUTE
-router.get("/layers/:id/systems/new", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/layers/:id/systems/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER ID
-    Layer.findById(req.params.id, function(err, foundLayer){
-        if(err) {
-            console.log(err);
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      // FIND ALL SPECIES IN THE DATABASE
+      Species.find((err, foundSpecies) => {
+        if (err) {
+          console.log(err);
         } else {
-            // FIND ALL SPECIES IN THE DATABASE
-            Species.find(function(err, foundSpecies){
-                if(err) {
-                    console.log(err);
-                } else {
-                    // SORT SPECIES
-                    function compare( a, b ) {
-                        if ( a.nameCommon < b.nameCommon ){
-                            return -1;
-                        }
-                        if ( a.nameCommon > b.nameCommon ){
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    foundSpecies.sort(compare);
-                    // FIND ALL ANIMALS AND SORT
-                    Animal.find(function(err, foundAnimals){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // SORT ANIMALS
-                            function compare1( a, b ) {
-                                if ( a.name < b.name ){
-                                    return -1;
-                                }
-                                if ( a.name > b.name ){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            foundAnimals.sort(compare1);
-                            // RENDER NEW SYSTEM PAGE WITH SPECIES
-                            res.render("systems/new", {layer: foundLayer, species: foundSpecies, animals: foundAnimals, rows: req.query.rows, distance: req.query.distance, length: req.query.length});
-                        }
-                    });
+          // SORT SPECIES
+          foundSpecies.sort((a, b) => {
+            if (a.nameCommon < b.nameCommon) {
+              return -1;
+            }
+            if (a.nameCommon > b.nameCommon) {
+              return 1;
+            }
+            return 0;
+          });
+          // FIND ALL ANIMALS AND SORT
+          Animal.find((err, foundAnimals) => {
+            if (err) {
+              console.log(err);
+            } else {
+              // SORT ANIMALS
+              foundAnimals.sort((a, b) => {
+                if (a.name < b.name) {
+                  return -1;
                 }
-            });
+                if (a.name > b.name) {
+                  return 1;
+                }
+                return 0;
+              });
+              // RENDER NEW SYSTEM PAGE WITH SPECIES
+              res.render('systems/new', {
+                layer: foundLayer,
+                species: foundSpecies,
+                animals: foundAnimals,
+                rows: req.query.rows,
+                distance: req.query.distance,
+                length: req.query.length,
+              });
+            }
+          });
         }
-    });
-});
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NESTED AREA SYSTEM CREATE ROUTE
-router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
+router.post(
+  '/layers/:id/systems',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Layer.findById(req.params.id, function(err, foundLayer){
-        if(err){
-            console.log(err);
-        } else {
-            var system = req.body.system;
-            var model:any[] = [];
-            // DO COUNT FOR ROW WIDTH
-            var xPosition = 0;
-            // ADD SPECIES TO MODEL
-            for(let i=0;i<system.model.length;i++){
-                // FIX IF ONLY ONE ITEM IN ROW
-                if(system.model[i].species.id instanceof Array){
-                    for(let j=0;j<system.model[i].species.id.length;j++){
-                        // IF SPECIES ID IS NULL
-                        if(!(system.model[i].species.id[j] === "")){
-                            var species = {
-                                species: system.model[i].species.id[j],
-                                position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y[j])],
-                                width: Number(system.model[i].width)
-                            };
-                            model.push(species);
-                        }
-                    }
-                } else {
-                    // FIX IF ONLY ONE ITEM IN ROW
-                    if(!(system.model[i].species.id === "")){
-                        var species = {
-                            species: system.model[i].species.id,
-                            position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
-                            width: Number(system.model[i].width)
-                        };
-                        model.push(species);
-                    }
-                }
-                xPosition = xPosition + Number(system.model[i].distance);
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      if (foundLayer) {
+        const system = req.body.system;
+        const model: {
+          species: any;
+          position: number[];
+          width: number;
+        }[] = [];
+        // DO COUNT FOR ROW WIDTH
+        let xPosition = 0;
+        // SPECIES ARRAY FOR UNIQUE SPECIES
+        const allSpecies: string[] = [];
+        // ADD SPECIES TO MODEL
+        for (let i = 0; i < system.model.length; i++) {
+          // FIX IF ONLY ONE ITEM IN ROW
+          if (system.model[i].species.id instanceof Array) {
+            for (let j = 0; j < system.model[i].species.id.length; j++) {
+            // IF SPECIES ID IS NULL
+              if (!(system.model[i].species.id[j] === '')) {
+                // ADD SPECIES ID TO SPECIES ARRAY
+                allSpecies.push(system.model[i].species.id[j]);
+                const species = {
+                  species: system.model[i].species.id[j],
+                  position: [
+                    Number(system.model[i].distance) + xPosition,
+                    Number(system.model[i].species.y[j]),
+                  ],
+                  width: Number(system.model[i].width),
+                };
+                model.push(species);
+              }
             }
-            if(model.length < 1){
-                // REDIRECT IF NO SPECIES
-                res.redirect("back");
+          } else if (!(system.model[i].species.id === '')) {
+            // ADD SPECIES ID TO SPECIES ARRAY
+            allSpecies.push(system.model[i].species.id);
+            const species = {
+              species: system.model[i].species.id,
+              position: [
+                Number(system.model[i].distance) + xPosition,
+                Number(system.model[i].species.y),
+              ],
+              width: Number(system.model[i].width),
+            };
+            model.push(species);
+          }
+          xPosition += Number(system.model[i].distance);
+        }
+        // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+        console.log(`Unique species:${allSpecies}`);
+        system.uniqueSpecies = unique(allSpecies);
+        // RE-ROUTE
+        if (model.length < 1) {
+        // REDIRECT IF NO SPECIES
+          res.redirect('back');
+        } else {
+          console.log(`Model length:${model.length}`);
+          system.model = model;
+          // REMOVE ANIMAL ITEMS IF NONE
+          for (let i = system.animals.length - 1; i >= 0; i--) {
+            if (system.animals[i] === '') {
+              system.animals.splice(i, 1);
+            }
+          }
+          // SET BOOLEAN
+          if (req.body.system.shared) {
+            system.shared = true;
+          }
+          // CREATE SYSTEM
+          try {
+            const createdSystem = await System.create(system);
+            console.log(createdSystem);
+            // ADD OWNER
+            createdSystem.owner.id = req.user?._id;
+            await createdSystem.save();
+            // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
+            if (
+              foundLayer.type === 'agroforestry'
+                && foundLayer.systems.present === undefined
+            ) {
+              foundLayer.systems.present = createdSystem;
+              await foundLayer.save();
+              res.redirect(`/layers/${foundLayer._id}`);
             } else {
-                console.log("Model length:" + model.length);
-                system.model = model;
-                // REMOVE ANIMAL ITEMS IF NONE
-                for(var i = system.animals.length - 1; i >= 0; i--){
-                    if(system.animals[i] === ""){
-                        system.animals.splice(i, 1);
-                    }
-                }
-                // SET BOOLEAN
-                if(req.body.system.shared){
-                    system.shared = true;
-                }
-                // CREATE SYSTEM
-                System.create(system, function(err, createdSystem){
-                    if(err){
-                        console.log(err);
-                    } else {
-                        console.log(createdSystem);
-                        // ADD OWNER
-                        createdSystem.owner.id = req.user._id;
-                        createdSystem.owner.username = req.user.username;
-                        createdSystem.save();
-                        // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
-                        if(foundLayer.type === "agroforestry" && foundLayer.systems.present === undefined){
-                            foundLayer.systems.present = createdSystem;
-                            foundLayer.save();
-                            res.redirect("/layers/" + foundLayer._id);
-                        } else {
-                            // Push system to layer future if layer type is not agroforestry
-                            foundLayer.systems.future.push(createdSystem);
-                            foundLayer.save();
-                            res.redirect("/layers/" + foundLayer._id);
-                        }
-                    }
-                });
+              // Push system to layer future if layer type is not agroforestry
+              foundLayer.systems.future.push(createdSystem);
+              await foundLayer.save();
+              res.redirect(`/layers/${foundLayer._id}`);
             }
-        }
-    })
-});
-
-// NESTED AREA SYSTEM CREATE ROUTE OLD
-/*router.post("/layers/:id/systems", middleware.isLoggedIn, function(req, res){
-    // FIND LAYER ID
-    Layer.findById(req.params.id, function(err, foundLayer){
-        if(err) {
+          } catch (err) {
             console.log(err);
-        } else {
-            // GET SYSTEM
-            var system = req.body.system;
-            // SET BOOLEAN
-            if(req.body.system.shared){
-                system.shared = true;
-            }
-            // CLEAN ARRAY
-            var rows = [];
-            for(let i=0;i<system.rows.length;i++){
-                // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
-                for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
-                    if(system.rows[i].sequense[j] === ""){
-                        system.rows[i].sequense.splice(j, 1);
-                    }
-                }
-                // REMOVE EMPTY ROWS IF WIDTH IS NOT FILLED OUT
-                if(!(system.rows[i].width === "")){
-                    rows.push(system.rows[i]);
-                }
-            }
-            // REMOVE ANIMAL ITEMS IF NONE
-            for(var i = system.animals.length - 1; i >= 0; i--){
-                if(system.animals[i] === ""){
-                    system.animals.splice(i, 1);
-                }
-            }
-            // INSERT UPDATED ROWS
-            system.rows = rows;
-            System.create(system, function(err, createdSystem){
-                if(err) {
-                    console.log(err);
-                } else {
-                    console.log(createdSystem);
-                    // ADD OWNER
-                    createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
-                    createdSystem.save();
-                    // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
-                    if(foundLayer.type === "agroforestry" && foundLayer.systems.present === undefined){
-                        foundLayer.systems.present = createdSystem;
-                        foundLayer.save();
-                        res.redirect("/layers/" + foundLayer._id);
-                    } else {
-                        // Push system to layer future if layer type is not agroforestry
-                        foundLayer.systems.future.push(createdSystem);
-                        foundLayer.save();
-                        res.redirect("/layers/" + foundLayer._id);
-                    }
-                }
-            })
+          }
         }
-    })
-});*/
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
-router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/layers/:id/systems/compare',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND LAYER
-    Layer.findById(req.params.id).populate("systems.future").exec(function(err, foundLayer){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND FUTURE SYSTEM TO POPULATE ROWS ETC
-            System.find({"_id": foundLayer.systems.future}).populate("flows").populate("model.species").exec(function(err, foundSystems){
-                if(err){
-                    console.log(err);
-                } else {
-                    for(let i=0;i<foundSystems.length;i++){
-                        // FIND ALL SPECIES IN SYSTEM
-                        var allSpecies:any[] = [];
-                        var allUtilities:any[] = [];
-                        var dataset:any[] = [];
-                        var nutritional:any[] = [];
-                        foundSystems[i].model.forEach(function(species){
-                            // PUSH SPECIES TO ARRAY
-                            allSpecies.push(species.species.nameCommon);
-                            // FIND SPECIES UTILITIES
-                            if(species.species.utilities.length > 0){
-                                for(let j=0;j<species.species.utilities.length;j++){
-                                    allUtilities.push(species.species.utilities[j]);
-                                }
-                            }
-                            // ADD SPECIES NUTRITIONAL VALUE TO ARRAY
-                            nutritional.push(species.species.nutrients);
-                            // ADD SPECIES TO ROWS
-                            var count = 0;
-                            for(let j=0;j<dataset.length;j++){
-                                if(dataset[j].row === species.position[0]){
-                                    dataset[j].array.push(species);
-                                    count = count + 1;
-                                }
-                            }
-                            if(count === 0){
-                                dataset.push({row: species.position[0], array: [species]});
-                            }
-                        });
-                        /*// AVERAGE NUTRITIONAL VALUE
+    const foundLayer = await Layer.findById(req.params.id)
+      .populate('systems.future')
+      .exec();
+    if (foundLayer) {
+      // FIND FUTURE SYSTEM TO POPULATE ROWS ETC
+      const foundSystems = await System.find({ _id: foundLayer.systems.future })
+        .populate('flows')
+        .populate('model.species')
+        .exec();
+      if (foundSystems) {
+        for (let i = 0; i < foundSystems.length; i++) {
+          // FIND ALL SPECIES IN SYSTEM
+          const allSpecies: string[] = [];
+          const allUtilities: string[] = [];
+          const dataset: {row: number, array: {
+            species: ISpeciesSchema;
+            position: number[];
+            width: number;
+          }[]}[] = [];
+          const nutritional: {
+            fat: number;
+            carb: number;
+            protein: number;
+          }[] = [];
+          foundSystems[i].model.forEach((species) => {
+            // PUSH SPECIES TO ARRAY
+            allSpecies.push(species.species.nameCommon);
+            // FIND SPECIES UTILITIES
+            if (species.species.utilities.length > 0) {
+              for (let j = 0; j < species.species.utilities.length; j++) {
+                allUtilities.push(species.species.utilities[j]);
+              }
+            }
+            // ADD SPECIES NUTRITIONAL VALUE TO ARRAY
+            nutritional.push(species.species.nutrients);
+            // ADD SPECIES TO ROWS
+            let count = 0;
+            for (let j = 0; j < dataset.length; j++) {
+              if (dataset[j].row === species.position[0]) {
+                dataset[j].array.push(species);
+                count += 1;
+              }
+            }
+            if (count === 0) {
+              dataset.push({
+                row: species.position[0],
+                array: [species],
+              });
+            }
+          });
+          /* // AVERAGE NUTRITIONAL VALUE
                         var nutrientvalue = {
                             protein: 0,
                             carb: 0,
@@ -310,924 +315,991 @@ router.get("/layers/:id/systems/compare", middleware.isLoggedIn, function(req, r
                         console.log("protein: " + nutrientvalue.protein);
                         nutrientvalue.protein = nutrientvalue.protein / nutritional.length;
                         nutrientvalue.carb = nutrientvalue.carb / nutritional.length;
-                        nutrientvalue.fat = nutrientvalue.fat / nutritional.length;*/
-                        // SORT FIRST ROW ITEMS
-                        function compare1( a, b ) {
-                            if ( a.position[1] < b.position[1] ){
-                                return -1;
-                            }
-                            if ( a.position[1] > b.position[1] ){
-                                return 1;
-                            }
-                            return 0;
-                        }
-                        var grid = 0;
-                        for(let j=0;j<dataset.length;j++){
-                            dataset[j].array.sort(compare1);
-                            grid = grid + dataset[j].array[0].width;
-                        }
-                        // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                        var uniqueSpecies = unique(allSpecies);
-                        foundSystems[i].uniqueSpecies = uniqueSpecies;
-                        var uniqueUtilities = unique(allUtilities);
-                        foundSystems[i].uniqueUtilities = uniqueUtilities;
-                        foundSystems[i].grid = grid;
-                        foundSystems[i].sortedrows = dataset;
-                        foundSystems[i].nutritional = nutritional[0];
-                    }
-                    res.render("systems/compare", {layer: foundLayer, systems: foundSystems});
-                }
+                        nutrientvalue.fat = nutrientvalue.fat / nutritional.length; */
+          // SORT FIRST ROW ITEMS
+
+          let grid = 0;
+          for (let j = 0; j < dataset.length; j++) {
+            dataset[j].array.sort((a, b) => {
+              if (a.position[1] < b.position[1]) {
+                return -1;
+              }
+              if (a.position[1] > b.position[1]) {
+                return 1;
+              }
+              return 0;
             });
+            grid += dataset[j].array[0].width;
+          }
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          const uniqueSpecies = unique(allSpecies);
+          foundSystems[i].uniqueSpecies = uniqueSpecies;
+          const uniqueUtilities = unique(allUtilities);
+          foundSystems[i].uniqueUtilities = uniqueUtilities;
+          foundSystems[i].grid = grid;
+          // @ts-ignore
+          foundSystems[i].sortedrows = dataset;
+          // @ts-ignore
+          foundSystems[i].nutritional = nutritional[0];
         }
-    });
-});
+        res.render('systems/compare', {
+          layer: foundLayer,
+          systems: foundSystems,
+        });
+      }
+    }
+  },
+);
 
 // SYSTEM SHOW ROUTE
-router.get("/systems/:id", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND ALL SPECIES IN SYSTEM
-            var allSpecies:any[] = [];
-            var dataset:any[] = [];
-            foundSystem.model.forEach(function(species){
-                allSpecies.push(species.species);
-                var count = 0;
-                for(let i=0;i<dataset.length;i++){
-                    if(dataset[i].row === species.position[0]){
-                        dataset[i].array.push(species);
-                        count = count + 1;
-                    }
-                }
-                if(count === 0){
-                    dataset.push({row: species.position[0], array: [species]});
-                }
-            });
-            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-            var uniqueSpecies = unique(allSpecies);
-            // SORT FIRST ROW ITEMS
-            function compare1( a, b ) {
-                if ( a.position[1] < b.position[1] ){
-                    return -1;
-                }
-                if ( a.position[1] > b.position[1] ){
-                    return 1;
-                }
-                return 0;
-            }
-            var systemwidth = 0;
-            var systemlength = 0;
-            for(let i=0;i<dataset.length;i++){
-                dataset[i].array.sort(compare1);
-                console.log(dataset[i].array[0]);
-                systemwidth = systemwidth + dataset[i].array[0].width;
-                if(dataset[i].array[dataset[i].array.length - 1].position[1] > systemlength){
-                    systemlength = dataset[i].array[dataset[i].array.length - 1].position[1];
-                }
-            }
-            // FIND SPECIES AND POPULATE FLOWS
-            Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
-                if(err) {
-                    console.log(err);
-                } else {
-                    res.render("systems/show", {system: foundSystem, species: foundSpecies, rows: dataset, systemwidth: systemwidth, systemlength: systemlength});
-                }
-            });
+router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  const foundSystem = await System.findById(req.params.id)
+    .populate('model.species')
+    .populate('animals')
+    .exec();
+  if (foundSystem) {
+    // FIND ALL SPECIES IN SYSTEM
+    const allSpecies: ISpeciesSchema[] = [];
+    const dataset: {row: number, array: {
+      species: ISpeciesSchema;
+      position: number[];
+      width: number;
+    }[]}[] = [];
+    foundSystem.model.forEach((species) => {
+      allSpecies.push(species.species);
+      let count = 0;
+      for (let i = 0; i < dataset.length; i++) {
+        if (dataset[i].row === species.position[0]) {
+          dataset[i].array.push(species);
+          count += 1;
         }
+      }
+      if (count === 0) {
+        dataset.push({ row: species.position[0], array: [species] });
+      }
     });
+    // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+    const uniqueSpecies = unique(allSpecies);
+    console.log(`Unique species:${foundSystem.uniqueSpecies}`);
+    // SORT FIRST ROW ITEM
+
+    let systemwidth = 0;
+    let systemlength = 0;
+    for (let i = 0; i < dataset.length; i++) {
+      dataset[i].array.sort((a, b) => {
+        if (a.position[1] < b.position[1]) {
+          return -1;
+        }
+        if (a.position[1] > b.position[1]) {
+          return 1;
+        }
+        return 0;
+      });
+      console.log(dataset[i].array[0]);
+      systemwidth += dataset[i].array[0].width;
+      if (
+        dataset[i].array[dataset[i].array.length - 1].position[1] > systemlength
+      ) {
+        systemlength = dataset[i].array[dataset[i].array.length - 1].position[1];
+      }
+    }
+    // FIND SPECIES AND POPULATE FLOWS
+    Species.find({ _id: uniqueSpecies })
+      .populate('flows')
+      .exec((err, foundSpecies) => {
+        if (err) {
+          console.log(err);
+        } else {
+          res.render('systems/show', {
+            system: foundSystem,
+            species: foundSpecies,
+            rows: dataset,
+            systemwidth,
+            systemlength,
+          });
+        }
+      });
+  }
 });
 
 // SYSTEM EDIT ROUTE
-router.get("/systems/:id/edit", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            Species.find(function(err, foundSpecies){
-                if(err){
-                    console.log(err);
-                } else {
-                    // SORT SPECIES
-                    function compare( a, b ) {
-                        if ( a.nameCommon < b.nameCommon ){
-                            return -1;
-                        }
-                        if ( a.nameCommon > b.nameCommon ){
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    foundSpecies.sort(compare);
-                    // FIND ALL ANIMALS AND SORT
-                    Animal.find(function(err, foundAnimals){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // SORT SPECIES
-                            function compare1( a, b ) {
-                                if ( a.nameCommon < b.nameCommon ){
-                                    return -1;
-                                }
-                                if ( a.nameCommon > b.nameCommon ){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            foundAnimals.sort(compare1);
-                            // FIND ROWS IN SYSTEM
-                            var allSpecies:any[] = [];
-                            var dataset:any[] = [];
-                            var distanceArray:any[] = [];
-                            foundSystem.model.forEach(function(species){
-                                allSpecies.push(species.species);
-                                distanceArray.push(species.position[1]);
-                                var count = 0;
-                                for(let i=0;i<dataset.length;i++){
-                                    if(dataset[i].row === species.position[0]){
-                                        dataset[i].array.push(species);
-                                        count = count + 1;
-                                    }
-                                }
-                                if(count === 0){
-                                    dataset.push({row: species.position[0], array: [species]});
-                                }
-                            });
-                            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                            var uniqueSpecies = unique(allSpecies);
-                            // SORT FIRST ROW ITEMS
-                            function compare2( a, b ) {
-                                if ( a.position[1] < b.position[1] ){
-                                    return -1;
-                                }
-                                if ( a.position[1] > b.position[1] ){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            for(let i=0;i<dataset.length;i++){
-                                dataset[i].array.sort(compare2);
-                                console.log(dataset[i].array[0]);
-                            }
-                            var rows = dataset;
-                            // CALCULATE DISTANCE
-                            var distanceDifference:any[] = [];
-                            for(let i=0;i<distanceArray.length;i++){
-                                for(let j=0;j<distanceArray.length;j++){
-                                    if(distanceArray[i] !== distanceArray[j]){
-                                        distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
-                                    }
-                                }
-                            }
-                            // SORT DIFFERENCE IN DISTANCE
-                            function compare3( a, b ) {
-                                if ( a < b ){
-                                    return -1;
-                                }
-                                if ( a > b ){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            // CALCULATE LENGTH
-                            distanceArray.sort(compare3);
-                            console.log(distanceArray[distanceArray.length - 1]);
-                            // SET LENGTH TO HIGHEST Y COORDINATE
-                            var length = distanceArray[distanceArray.length - 1];
-                            // FIND DISTANCE Y MIN
-                            distanceDifference.sort(compare3);
-                            var distance = 0;
-                            if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
-                                distance = distanceArray[0];
-                                } else {
-                                distance = distanceDifference[0];
-                            }
-                            console.log(distance);
-                            if(req.query.distance){
-                                console.log("Distance query");
-                                distance = distance / req.query.distance;
-                            }
-                            // JUST SET NEW VARIABLE TO CONTROL NEW ROW
-                            var newRow = -1;
-                            if(req.query.row){
-                                console.log("Row query " + req.query.row);
-                                newRow = parseInt(req.query.row);
-                                console.log(typeof(newRow));
-                            }
-                            // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
-                            res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundAnimals, rows: rows, distance: distance, length: length, newrow: newRow});
-                        }
-                    })
-                }
-            })
+router.get(
+  '/systems/:id/edit',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    const foundSystem = await System.findById(req.params.id)
+      .populate('model.species')
+      .populate('animals')
+      .exec();
+    if (foundSystem) {
+      const foundSpecies = await Species.find();
+      if (foundSpecies) {
+        // SORT SPECIES
+        foundSpecies.sort((a, b) => {
+          if (a.nameCommon < b.nameCommon) {
+            return -1;
+          }
+          if (a.nameCommon > b.nameCommon) {
+            return 1;
+          }
+          return 0;
+        });
+        // FIND ALL ANIMALS AND SORT
+        const foundAnimals = await Animal.find();
+        if (foundAnimals) {
+          // SORT SPECIES
+          foundAnimals.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1;
+            }
+            if (a.name > b.name) {
+              return 1;
+            }
+            return 0;
+          });
+          // FIND ROWS IN SYSTEM
+          const allSpecies: ISpeciesSchema[] = [];
+          const dataset: {row: number, array: {
+            species: ISpeciesSchema;
+            position: number[];
+            width: number;
+        }[]}[] = [];
+          const distanceArray: number[] = [];
+          foundSystem.model.forEach((species) => {
+            allSpecies.push(species.species);
+            distanceArray.push(species.position[1]);
+            let count = 0;
+            for (let i = 0; i < dataset.length; i++) {
+              if (dataset[i].row === species.position[0]) {
+                dataset[i].array.push(species);
+                count += 1;
+              }
+            }
+            if (count === 0) {
+              dataset.push({
+                row: species.position[0],
+                array: [species],
+              });
+            }
+          });
+          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+          // const uniqueSpecies = unique(allSpecies);
+          // SORT FIRST ROW ITEMS
+
+          for (let i = 0; i < dataset.length; i++) {
+            dataset[i].array.sort((a, b) => {
+              if (a.position[1] < b.position[1]) {
+                return -1;
+              }
+              if (a.position[1] > b.position[1]) {
+                return 1;
+              }
+              return 0;
+            });
+            console.log(dataset[i].array[0]);
+          }
+          const rows = dataset;
+          // CALCULATE DISTANCE
+          const distanceDifference: number[] = [];
+          for (let i = 0; i < distanceArray.length; i++) {
+            for (let j = 0; j < distanceArray.length; j++) {
+              if (distanceArray[i] !== distanceArray[j]) {
+                distanceDifference.push(
+                  Math.abs(distanceArray[i] - distanceArray[j]),
+                );
+              }
+            }
+          }
+          // SORT DIFFERENCE IN DISTANCE
+          function compare3(a:number, b:number) {
+            if (a < b) {
+              return -1;
+            }
+            if (a > b) {
+              return 1;
+            }
+            return 0;
+          }
+          // CALCULATE LENGTH
+          distanceArray.sort(compare3);
+          console.log(distanceArray[distanceArray.length - 1]);
+          // SET LENGTH TO HIGHEST Y COORDINATE
+          const length = distanceArray[distanceArray.length - 1];
+          // FIND DISTANCE Y MIN
+          distanceDifference.sort(compare3);
+          let distance = 0;
+          if (
+            distanceDifference[0] > distanceArray[0]
+            || distanceDifference.length === 0
+          ) {
+            distance = distanceArray[0];
+          } else {
+            distance = distanceDifference[0];
+          }
+          console.log(distance);
+          if (req.query.distance && typeof req.query.distance === 'string') {
+            console.log('Distance query');
+            distance /= parseInt(req.query.distance, 10);
+          }
+          // JUST SET NEW VARIABLE TO CONTROL NEW ROW
+          let newRow = -1;
+          if (req.query.row && typeof req.query.row === 'string') {
+            console.log(`Row query ${req.query.row}`);
+            newRow = parseInt(req.query.row, 10);
+            console.log(typeof newRow);
+          }
+          // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
+          res.render('systems/edit', {
+            system: foundSystem,
+            species: foundSpecies,
+            animals: foundAnimals,
+            rows,
+            distance,
+            length,
+            newrow: newRow,
+          });
         }
-    });
-});
+      }
+    }
+  },
+);
 
 // SYSTEM EDIT ROUTE OLD
-router.get("/systems/:id/editold", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("rows.sequense").populate("animals").exec(function(err, foundSystem){
-        if(err){
+router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  System.findById(req.params.id)
+    .populate('rows.sequense')
+    .populate('animals')
+    .exec((err, foundSystem) => {
+      if (err) {
+        console.log(err);
+      } else {
+        Species.find((err, foundSpecies) => {
+          if (err) {
             console.log(err);
-        } else {
-            Species.find(function(err, foundSpecies){
-                if(err){
-                    console.log(err);
-                } else {
-                    // SORT SPECIES
-                    function compare( a, b ) {
-                        if ( a.nameCommon < b.nameCommon ){
-                            return -1;
-                        }
-                        if ( a.nameCommon > b.nameCommon ){
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    foundSpecies.sort(compare);
-                    // FIND ALL ANIMALS AND SORT
-                    Animal.find(function(err, foundAnimals){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            // SORT SPECIES
-                            function compare1( a, b ) {
-                                if ( a.nameCommon < b.nameCommon ){
-                                    return -1;
-                                }
-                                if ( a.nameCommon > b.nameCommon ){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            foundAnimals.sort(compare1);
-                            res.render("systems/editold", {system: foundSystem, species: foundSpecies, animals: foundAnimals});
-                        }
-                    })
-                }
-            })
-        }
+          } else {
+            // SORT SPECIES
+
+            foundSpecies.sort((a, b) => {
+              if (a.nameCommon < b.nameCommon) {
+                return -1;
+              }
+              if (a.nameCommon > b.nameCommon) {
+                return 1;
+              }
+              return 0;
+            });
+            // FIND ALL ANIMALS AND SORT
+            Animal.find((err, foundAnimals) => {
+              if (err) {
+                console.log(err);
+              } else {
+                // SORT SPECIES
+                foundAnimals.sort((a, b) => {
+                  if (a.name < b.name) {
+                    return -1;
+                  }
+                  if (a.name > b.name) {
+                    return 1;
+                  }
+                  return 0;
+                });
+                res.render('systems/editold', {
+                  system: foundSystem,
+                  species: foundSpecies,
+                  animals: foundAnimals,
+                });
+              }
+            });
+          }
+        });
+      }
     });
 });
 
 // SYSTEM EDIT W. SPECIES ROUTE
-router.get("/systems/:id/edit/:speciesid", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND ALL SPECIES IN SYSTEM
-            var allSpecies:any[] = [];
-            var dataset:any[] = [];
-            var distanceArray:any[] = [];
-            foundSystem.model.forEach(function(species){
-                allSpecies.push(species.species.id);
-                distanceArray.push(species.position[1]);
-                var count = 0;
-                for(let i=0;i<dataset.length;i++){
-                    if(dataset[i].row === species.position[0]){
-                        dataset[i].array.push(species);
-                        count = count + 1;
-                    }
-                }
-                if(count === 0){
-                    dataset.push({row: species.position[0], array: [species]});
-                }
-            });
-            // PUSH NEW SPECIES TO LIST
-            allSpecies.push(req.params.speciesid);
-            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-            var uniqueSpecies = unique(allSpecies);
-            // FIND ALL SPECIES IN SYSTEM
-            Species.find({"_id": uniqueSpecies}, function(err, foundSpecies){
-                if(err){
-                    console.log(err);
-                } else {
-                    // SORT FIRST ROW ITEMS
-                    function compare2( a, b ) {
-                        if ( a.position[1] < b.position[1] ){
-                            return -1;
-                        }
-                        if ( a.position[1] > b.position[1] ){
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    // SORT ROWS
-                    for(let i=0;i<dataset.length;i++){
-                        dataset[i].array.sort(compare2);
-                        console.log(dataset[i].array[0]);
-                    }
-                    var rows = dataset;
-                    // CALCULATE DISTANCE
-                    var distanceDifference:any[] = [];
-                    for(let i=0;i<distanceArray.length;i++){
-                        for(let j=0;j<distanceArray.length;j++){
-                            if(distanceArray[i] !== distanceArray[j]){
-                                distanceDifference.push(Math.abs(distanceArray[i] - distanceArray[j]));
-                            }
-                        }
-                    }
-                    // SORT DIFFERENCE IN DISTANCE
-                    function compare3( a, b ) {
-                        if ( a < b ){
-                            return -1;
-                        }
-                        if ( a > b ){
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    // CALCULATE LENGTH
-                    distanceArray.sort(compare3);
-                    console.log(distanceArray[distanceArray.length - 1]);
-                    // SET LENGTH TO HIGHEST Y COORDINATE
-                    var length = distanceArray[distanceArray.length - 1];
-                    // FIND DISTANCE Y MIN
-                    distanceDifference.sort(compare3);
-                    var distance = 0;
-                    if(distanceDifference[0] > distanceArray[0] || distanceDifference.length === 0) {
-                        distance = distanceArray[0];
-                    } else {
-                        distance = distanceDifference[0];
-                    }
-                    // NEWROW
-                    var newRow = -1;
-                    if(req.query.row){
-                        console.log("Row query " + req.query.row);
-                        newRow = parseInt(req.query.row);
-                        console.log(typeof(newRow));
-                    }
-                    res.render("systems/edit", {system: foundSystem, species: foundSpecies, animals: foundSystem.animals, rows: rows, distance: distance, length: length, newrow: newRow});
-                }
-            });
+router.get(
+  '/systems/:id/edit/:speciesid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    const foundSystem = await System.findById(req.params.id)
+      .populate('model.species')
+      .populate('animals')
+      .exec();
+    if (foundSystem) {
+      // FIND ALL SPECIES IN SYSTEM
+      const allSpecies: string[] = [];
+      const dataset: {row:number, array: {
+        species: ISpeciesSchema;
+        position: number[];
+        width: number;
+    }[]}[] = [];
+      const distanceArray: number[] = [];
+      foundSystem.model.forEach((species) => {
+        allSpecies.push(species.species.id);
+        distanceArray.push(species.position[1]);
+        let count = 0;
+        for (let i = 0; i < dataset.length; i++) {
+          if (dataset[i].row === species.position[0]) {
+            dataset[i].array.push(species);
+            count += 1;
+          }
         }
-    });
-});
+        if (count === 0) {
+          dataset.push({ row: species.position[0], array: [species] });
+        }
+      });
+      // PUSH NEW SPECIES TO LIST
+      allSpecies.push(req.params.speciesid);
+      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      const uniqueSpecies = unique(allSpecies);
+      // FIND ALL SPECIES IN SYSTEM
+      const foundSpecies = await Species.find({ _id: uniqueSpecies });
+      if (foundSpecies) {
+        // SORT FIRST ROW ITEMS
+
+        // SORT ROWS
+        for (let i = 0; i < dataset.length; i++) {
+          dataset[i].array.sort((a, b) => {
+            if (a.position[1] < b.position[1]) {
+              return -1;
+            }
+            if (a.position[1] > b.position[1]) {
+              return 1;
+            }
+            return 0;
+          });
+          console.log(dataset[i].array[0]);
+        }
+        const rows = dataset;
+        // CALCULATE DISTANCE
+        const distanceDifference: number[] = [];
+        for (let i = 0; i < distanceArray.length; i++) {
+          for (let j = 0; j < distanceArray.length; j++) {
+            if (distanceArray[i] !== distanceArray[j]) {
+              distanceDifference.push(
+                Math.abs(distanceArray[i] - distanceArray[j]),
+              );
+            }
+          }
+        }
+        // SORT DIFFERENCE IN DISTANCE
+        function compare3(a:number, b:number) {
+          if (a < b) {
+            return -1;
+          }
+          if (a > b) {
+            return 1;
+          }
+          return 0;
+        }
+        // CALCULATE LENGTH
+        distanceArray.sort(compare3);
+        console.log(distanceArray[distanceArray.length - 1]);
+        // SET LENGTH TO HIGHEST Y COORDINATE
+        const length = distanceArray[distanceArray.length - 1];
+        // FIND DISTANCE Y MIN
+        distanceDifference.sort(compare3);
+        let distance = 0;
+        if (
+          distanceDifference[0] > distanceArray[0]
+          || distanceDifference.length === 0
+        ) {
+          distance = distanceArray[0];
+        } else {
+          distance = distanceDifference[0];
+        }
+        // NEWROW
+        let newRow = -1;
+        if (req.query.row && typeof req.query.row === 'string') {
+          console.log(`Row query ${req.query.row}`);
+          newRow = parseInt(req.query.row, 10);
+          console.log(typeof newRow);
+        }
+        res.render('systems/edit', {
+          system: foundSystem,
+          species: foundSpecies,
+          animals: foundSystem.animals,
+          rows,
+          distance,
+          length,
+          newrow: newRow,
+        });
+      }
+    }
+  },
+);
 
 // SYSTEM UPDATE ROUTE
-router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
-    System.findById(req.params.id, function(err, foundSystem){
-        // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
-        // GET SYSTEM
-        var system = req.body.system;
-        // SET BOOLEAN
-        if(req.body.system.shared){
-            system.shared = true;
-        }
-        // NEW GRID MODEL SETUP
-        var model:any[] = [];
-        // DO COUNT FOR ROW WIDTH
-        var xPosition = 0;
-        // ADD SPECIES TO MODEL
-        for(let i=0;i<system.model.length;i++){
-            // FIX IF ONLY ONE ITEM IN ROW
-            if(system.model[i].species.id instanceof Array){
-                for(let j=0;j<system.model[i].species.id.length;j++){
-                    // IF SPECIES ID IS NULL
-                    if(!(system.model[i].species.id[j] === "")){
-                        let species = {
-                            species: system.model[i].species.id[j],
-                            position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y[j])],
-                            width: Number(system.model[i].width)
-                        };
-                        model.push(species);
-                    }
-                }
-            } else {
-                // FIX IF ONLY ONE ITEM IN ROW
-                let species = {
-                    species: system.model[i].species.id,
-                    position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
-                    width: Number(system.model[i].width)
-                };
-                model.push(species);
-            }
-            xPosition = xPosition + Number(system.model[i].distance);
-        }
-        console.log(model);
-        system.model = model;
-        // REMOVE ANIMAL ITEMS IF NONE
-        for(var i = system.animals.length - 1; i >= 0; i--){
-            if(system.animals[i] === ""){
-                system.animals.splice(i, 1);
-            }
-        }
-        // does user own the system?
-        if(foundSystem.owner.id.equals(req.user._id)){
-            // if true, update existing system
-            System.findByIdAndUpdate(req.params.id, system, function(err, updatedSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    res.redirect("/systems/" + updatedSystem._id);
-                }
-            });
-        } else {
-            // if false, create a new system and add current user as owner
-            System.create(system, function(err, createdSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    // Add owner
-                    createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
-                    createdSystem.shared = false;
-                    createdSystem.save();
-                    // REPLACE IN PRESENT
-                    Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundLayersPresent.length + " present found");
-                            if(foundLayersPresent.length > 0){
-                                foundLayersPresent.forEach(function(layer){
-                                    // REPLACE SYSTEM
-                                    layer.systems.present = createdSystem;
-                                    // NO NEED TO PUSH TO PAST IN THIS CASE
-                                    layer.save();
-                                });
-                            }
-                        }
-                    }); // IMPORTANT TO CHECK FOR USER!!! LIKE CHECKING OWNERSHIP
-                    // REPLACE IN FUTURE DRAFT
-                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundLayersFuture.length + " future drafts found");
-                            if(foundLayersFuture.length > 0){
-                                foundLayersFuture.forEach(function(layer){
-                                    // REMOVE ORIGINAL SYSTEM
-                                    layer.systems.future.remove(foundSystem);
-                                    // ADD NEW SYSTEM
-                                    layer.systems.future.push(createdSystem);
-                                    layer.save();
-                                });
-                            }
-                        }
-                    });
-                    // REPLACE IN PROJECT
-                    Project.find({"owner.id": req.user._id, "system": foundSystem._id}, function(err, foundProjects){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundProjects.length + " projects found");
-                            if(foundProjects.length > 0){
-                                foundProjects.forEach(function(project){
-                                    // REPLACE SYSTEM
-                                    project.system = createdSystem;
-                                    project.save();
-                                });
-                            }
-                        }
-                    });
-                    // Redirect to system page
-                    res.redirect("/systems/" + createdSystem._id);
-                }
-            });
-        }
-    });
-});
+router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // NEED TO CHECK OWNERSHIP HERE!!! YES
+  try {
+    const foundSystem = await System.findById(req.params.id);
 
-/*// SYSTEM UPDATE ROUTE OLD
-router.put("/systems/:id", middleware.isLoggedIn, function(req, res){ // NEED TO CHECK OWNERSHIP HERE!!! YES
-    System.findById(req.params.id, function(err, foundSystem){
-        // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
-        // GET SYSTEM
-        var system = req.body.system;
-        // SET BOOLEAN
-        if(req.body.system.shared){
-            system.shared = true;
-        }
-        // CLEAN ARRAY
-        /!*var rows = [];
-        for(let i=0;i<system.rows.length;i++){
-            // REMOVE ITEMS WITH "NONE" (WHAT IF ROWS HAVE DIFFERENT AMOUNTS?!) REDIRECT?!
-            for(var j = system.rows[i].sequense.length - 1; j >= 0; j--){
-                if(system.rows[i].sequense[j] === ""){
-                    system.rows[i].sequense.splice(j, 1);
-                }
+    if (foundSystem) {
+    // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
+    // GET SYSTEM
+      const system = req.body.system;
+      // SET BOOLEAN
+      if (req.body.system.shared) {
+        system.shared = true;
+      }
+      // NEW GRID MODEL SETUP
+      const model: {
+        species: any;
+        position: number[];
+        width: number;
+      }[] = [];
+      // DO COUNT FOR ROW WIDTH
+      let xPosition = 0;
+      // SPECIES ARRAY FOR UNIQUE SPECIES
+      const allSpecies: string[] = [];
+      // ADD SPECIES TO MODEL
+      for (let i = 0; i < system.model.length; i++) {
+      // FIX IF ONLY ONE ITEM IN ROW
+        if (system.model[i].species.id instanceof Array) {
+          for (let j = 0; j < system.model[i].species.id.length; j++) {
+          // IF SPECIES ID IS NULL
+            if (!(system.model[i].species.id[j] === '')) {
+              // ADD SPECIES TO UNIQUE SPECIES ARRAY
+              allSpecies.push(system.model[i].species.id[j]);
+              const species = {
+                species: system.model[i].species.id[j],
+                position: [
+                  Number(system.model[i].distance) + xPosition,
+                  Number(system.model[i].species.y[j]),
+                ],
+                width: Number(system.model[i].width),
+              };
+              model.push(species);
             }
-            // REMOVE EMPTY ROWS IF WIDTH IS NOT FILLED OUT
-            if(!(system.rows[i].width === "")){
-                rows.push(system.rows[i]);
-            }
-        }*!/
-        /!*!// INSERT UPDATED ROWS
-        system.rows = rows;*!/
-        // NEW GRID MODEL SETUP
-        var model = [];
-        // DO COUNT FOR ROW WIDTH
-        var xPosition = 0;
-        // ADD SPECIES TO MODEL
-        for(let i=0;i<system.model.length;i++){
-            // FIX IF ONLY ONE ITEM IN ROW
-            if(system.model[i].species.id instanceof Array){
-                for(let j=0;j<system.model[i].species.id.length;j++){
-                    // IF SPECIES ID IS NULL
-                    if(!(system.model[i].species.id[j] === "")){
-                        species = {
-                            species: system.model[i].species.id[j],
-                            position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y[j])],
-                            width: Number(system.model[i].width)
-                        };
-                        model.push(species);
-                    }
-                }
-            } else {
-                // FIX IF ONLY ONE ITEM IN ROW
-                species = {
-                    species: system.model[i].species.id,
-                    position: [Number(system.model[i].distance) + xPosition, Number(system.model[i].species.y)],
-                    width: Number(system.model[i].width)
-                };
-                model.push(species);
-            }
-            xPosition = xPosition + Number(system.model[i].distance);
-        }
-        console.log(model);
-        system.model = model;
-        // REMOVE ANIMAL ITEMS IF NONE
-        for(var i = system.animals.length - 1; i >= 0; i--){
-            if(system.animals[i] === ""){
-                system.animals.splice(i, 1);
-            }
-        }
-        // does user own the system?
-        if(foundSystem.owner.id.equals(req.user._id)){
-            // if true, update existing system
-            System.findByIdAndUpdate(req.params.id, system, function(err, updatedSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    res.redirect("/systems/" + updatedSystem._id);
-                }
-            });
+          }
         } else {
-            // if false, create a new system and add current user as owner
-            System.create(system, function(err, createdSystem){
-                if(err){
-                    console.log(err);
-                } else {
-                    // Add owner
-                    createdSystem.owner.id = req.user._id;
-                    createdSystem.owner.username = req.user.username;
-                    createdSystem.save();
-                    // REPLACE IN PRESENT
-                    Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundLayersPresent.length + " present found");
-                            if(foundLayersPresent.length > 0){
-                                foundLayersPresent.forEach(function(layer){
-                                    // REPLACE SYSTEM
-                                    layer.systems.present = createdSystem;
-                                    // NO NEED TO PUSH TO PAST IN THIS CASE
-                                    layer.save();
-                                });
-                            }
-                        }
-                    }); // IMPORTANT TO CHECK FOR USER!!! LIKE CHECKING OWNERSHIP
-                    // REPLACE IN FUTURE DRAFT
-                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundLayersFuture.length + " future drafts found");
-                            if(foundLayersFuture.length > 0){
-                                foundLayersFuture.forEach(function(layer){
-                                    // REMOVE ORIGINAL SYSTEM
-                                    layer.systems.future.remove(foundSystem);
-                                    // ADD NEW SYSTEM
-                                    layer.systems.future.push(createdSystem);
-                                    layer.save();
-                                });
-                            }
-                        }
-                    });
-                    // REPLACE IN PROJECT
-                    Project.find({"owner.id": req.user._id, "system": foundSystem._id}, function(err, foundProjects){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(foundProjects.length + " projects found");
-                            if(foundProjects.length > 0){
-                                foundProjects.forEach(function(project){
-                                    // REPLACE SYSTEM
-                                    project.system = createdSystem;
-                                    project.save();
-                                });
-                            }
-                        }
-                    });
-                    // Redirect to system page
-                    res.redirect("/systems/" + createdSystem._id);
-                }
-            });
+        // ADD SPECIES TO UNIQUE SPECIES ARRAY
+        allSpecies.push(system.model[i].species.id);
+        // FIX IF ONLY ONE ITEM IN ROW
+          const species = {
+            species: system.model[i].species.id,
+            position: [
+              Number(system.model[i].distance) + xPosition,
+              Number(system.model[i].species.y),
+            ],
+            width: Number(system.model[i].width),
+          };
+          model.push(species);
         }
-    });
-});*/
+        xPosition += Number(system.model[i].distance);
+      }
+      console.log(model);
+      system.model = model;
+      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      system.uniqueSpecies = unique(allSpecies);
+      // REMOVE ANIMAL ITEMS IF NONE
+      for (let i = system.animals.length - 1; i >= 0; i--) {
+        if (system.animals[i] === '') {
+          system.animals.splice(i, 1);
+        }
+      }
+      if (foundSystem.owner.id.equals(req.user?._id)) {
+      // if true, update existing system
+        try {
+          const updatedSystem = await System.findByIdAndUpdate(
+            req.params.id,
+            system,
+          );
+          if (updatedSystem) {
+            res.redirect(`/systems/${updatedSystem._id}`);
+          } else {
+            console.log('No updatedSystem');
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      } else {
+      // if false, create a new system and add current user as owner
+        const createdSystem = await System.create(system);
+
+        // Add owner
+        createdSystem.owner.id = req.user?._id;
+        createdSystem.shared = false;
+        await createdSystem.save();
+        // REPLACE IN PRESENT
+        try {
+          const foundLayersPresent = await Layer.find(
+            { 'owner.id': req.user?._id, 'systems.present': foundSystem._id },
+          );
+          console.log(`${foundLayersPresent.length} present found`);
+          if (foundLayersPresent.length > 0) {
+            foundLayersPresent.forEach(async (layer) => {
+            // REPLACE SYSTEM
+              layer.systems.present = createdSystem;
+              // NO NEED TO PUSH TO PAST IN THIS CASE
+              await layer.save();
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+
+        // IMPORTANT TO CHECK FOR USER!!! LIKE CHECKING OWNERSHIP
+        // REPLACE IN FUTURE DRAFT
+        try {
+          const foundLayersFuture = await Layer.find(
+            { 'owner.id': req.user?._id, 'systems.future': foundSystem._id },
+          );
+          console.log(`${foundLayersFuture.length} future drafts found`);
+          if (foundLayersFuture.length > 0) {
+            foundLayersFuture.forEach(async (layer) => {
+            // REMOVE ORIGINAL SYSTEM
+              layer.systems.future.forEach(async (futureSystem) => {
+                if (futureSystem._id === foundSystem._id) {
+                  await futureSystem.remove();
+                }
+              });
+              // ADD NEW SYSTEM
+              layer.systems.future.push(createdSystem);
+              await layer.save();
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+
+        // REPLACE IN PROJECT
+        try {
+          const foundProjects = await Project.find(
+            { 'owner.id': req.user?._id, system: foundSystem._id },
+          );
+          console.log(`${foundProjects.length} projects found`);
+          if (foundProjects.length > 0) {
+            foundProjects.forEach(async (project) => {
+            // REPLACE SYSTEM
+              project.system = createdSystem;
+              await project.save();
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        // Redirect to system page
+        res.redirect(`/systems/${createdSystem._id}`);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 // SYSTEM DELETE ROUTE
-router.delete("/layers/:id/systems/:pid", middleware.isLoggedIn, function(req, res){
+router.delete(
+  '/layers/:id/systems/:pid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
-    System.findById(req.params.pid, function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            // CHECK FOR SYSTEM IN LAYER PRESENT. IF THERE, BACK.
-            Layer.find({"owner.id": req.user._id, "systems.present": foundSystem._id}, function(err, foundLayersPresent){
-                if(err){
+    try {
+      const foundSystem = await System.findById(req.params.pid);
+      // CHECK FOR SYSTEM IN LAYER PRESENT. IF THERE, BACK.
+      if (foundSystem) {
+        try {
+          const foundLayersPresent = await Layer.find(
+            { 'owner.id': req.user?._id, 'systems.present': foundSystem._id },
+          );
+          console.log(`${foundLayersPresent.length} present found`);
+          if (foundLayersPresent.length > 0) {
+          // SEND BACK IF LAYERS
+            res.redirect('back');
+          } else {
+          // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
+            try {
+              const foundProjects = await Project.find(
+                { 'owner.id': req.user?._id, system: foundSystem._id },
+              );
+              console.log(`${foundProjects.length} projects found`);
+              if (foundProjects.length > 0) {
+              // SEND BACK IF PROJECTS
+                res.redirect('back');
+              } else {
+              // CHECK EDGE SYSTEM!?
+              // DELETE IN FUTURE DRAFT
+                try {
+                  const foundLayersFuture = await Layer.find(
+                    {
+                      'owner.id': req.user?._id,
+                      'systems.future': foundSystem._id,
+                    },
+                  );
+                  console.log(
+                    `${foundLayersFuture.length
+                    } future drafts found`,
+                  );
+                  if (foundLayersFuture.length > 0) {
+                    foundLayersFuture.forEach(async (layer) => {
+                    // REMOVE ORIGINAL SYSTEM
+                      layer.systems.future.forEach(async (futureSystem) => {
+                        if (futureSystem._id === foundSystem._id) {
+                          await futureSystem.remove();
+                        }
+                      });
+                      // ADD NEW SYSTEM
+                      await layer.save();
+                    });
+                  }
+                  // DELETE SYSTEM NOW
+                  try {
+                    await System.findByIdAndRemove(req.params.pid);
+                  } catch (err) {
                     console.log(err);
-                } else {
-                    console.log(foundLayersPresent.length + " present found");
-                    if(foundLayersPresent.length > 0){
-                        // SEND BACK IF LAYERS
-                        res.redirect("back");
-                    } else {
-                        // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
-                        Project.find({"owner.id": req.user._id, "system": foundSystem._id}, function(err, foundProjects){
-                            if(err){
-                                console.log(err);
-                            } else {
-                                console.log(foundProjects.length + " projects found");
-                                if(foundProjects.length > 0){
-                                    // SEND BACK IF PROJECTS
-                                    res.redirect("back");
-                                } else {
-                                    // CHECK EDGE SYSTEM!?
-                                    // DELETE IN FUTURE DRAFT
-                                    Layer.find({"owner.id": req.user._id, "systems.future": foundSystem._id}, function(err, foundLayersFuture){
-                                        if(err){
-                                            console.log(err);
-                                        } else {
-                                            console.log(foundLayersFuture.length + " future drafts found");
-                                            if(foundLayersFuture.length > 0){
-                                                foundLayersFuture.forEach(function(layer){
-                                                    // REMOVE ORIGINAL SYSTEM
-                                                    layer.systems.future.remove(foundSystem);
-                                                    // ADD NEW SYSTEM
-                                                    layer.save();
-                                                });
-                                            }
-                                            // DELETE SYSTEM NOW
-                                            System.findByIdAndRemove(req.params.pid, function(err){
-                                                if(err){
-                                                    console.log(err);
-                                                } else {
-                                                    res.redirect("/layers/" + req.params.id);
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
+                  }
+                } catch (err) {
+                  console.log(err);
                 }
-            });
+              }
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        } catch (err) {
+          console.log(err);
         }
-    });
-});
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // SYSTEM SUCCESSION ROUTE
-router.get("/systems/:id/succession", middleware.isLoggedIn, function (req, res) {
-    System.findById(req.params.id).populate("rows").exec(function(err, foundSystem){
-        if(err) {
-            console.log(err);
+router.get(
+  '/systems/:id/succession',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    System.findById(req.params.id)
+      .populate('rows')
+      .exec((err, foundSystem) => {
+        if (err) {
+          console.log(err);
         } else {
-            res.render("succession", {system: foundSystem});
+          res.render('succession', { system: foundSystem });
         }
-    });
-});
+      });
+  },
+);
 
 // SYSTEM COMPOSITION ROUTE
-router.get("/systems/:id/composition", middleware.isLoggedIn, function (req, res) {
-    System.findById(req.params.id).populate("model.species").exec(function(err, foundSystem){
-        if(err) {
-            console.log(err);
-        } else {
-            // FIND ALL SPECIES IN SYSTEM
-            var allSpecies:any[] = [];
-            foundSystem.model.forEach(function(species){
-                allSpecies.push(species.species);
-            });
-            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-            var uniqueSpecies = unique(allSpecies);
-            // FIND SPECIES AND POPULATE FLOWS
-            Species.find({"_id": uniqueSpecies}).populate("flows").exec(function(err, foundSpecies){
-                if(err) {
-                    console.log(err);
-                } else {
-                    Parcel.findById(req.user.currentProject, function(err, foundParcel){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            Species.find({"precipitation.max": {$gt: foundParcel.climate.annualaverageprec}, "precipitation.min": {$lt: foundParcel.climate.annualaverageprec}, "temperature.min": {$lt: foundParcel.climate.hardiness.high}, "temperature.max": {$gt: foundParcel.climate.hardiness.low}}, function(err, foundSuitableSpecies){
-                                if(err){
-                                    console.log(err);
-                                } else {
-                                    console.log(foundSuitableSpecies);
-                                    res.render("composition", {system: foundSystem, species: foundSpecies, suitablespecies: foundSuitableSpecies});
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+router.get(
+  '/systems/:id/composition',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    const foundSystem = await System.findById(req.params.id)
+      .populate('model.species')
+      .exec();
+    if (foundSystem) {
+      // FIND ALL SPECIES IN SYSTEM
+      const allSpecies: ISpeciesSchema[] = [];
+      foundSystem.model.forEach((species) => {
+        allSpecies.push(species.species);
+      });
+      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      const uniqueSpecies = unique(allSpecies);
+      // FIND SPECIES AND POPULATE FLOWS
+      try {
+        const foundSpecies = await Species.find({ _id: uniqueSpecies })
+          .populate('flows')
+          .exec();
+
+        try {
+          const foundParcel = await Parcel.findById(req.user?.currentProject);
+
+          if (foundParcel && foundSystem) {
+            try {
+              const foundSuitableSpecies = await Species.find(
+                {
+                  'precipitation.max': {
+                    $gt: foundParcel.climate.annualaverageprec,
+                  },
+                  'precipitation.min': {
+                    $lt: foundParcel.climate.annualaverageprec,
+                  },
+                  'temperature.min': {
+                    $lt: foundParcel.climate.hardiness.high,
+                  },
+                  'temperature.max': {
+                    $gt: foundParcel.climate.hardiness.low,
+                  },
+                },
+              );
+
+              console.log(foundSuitableSpecies);
+              res.render('composition', {
+                system: foundSystem,
+                species: foundSpecies,
+                suitablespecies: foundSuitableSpecies,
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        } catch (err) {
+          console.log(err);
         }
-    });
-});
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  },
+);
 
 // SYSTEM ASSESSMENT ROUTE
-router.get("/layers/:id/analysis", middleware.isLoggedIn, function(req, res){
-    System.find().populate("model.species").populate("flows").populate("animals").exec(function(err, foundSystems){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND LAYER
-            Layer.findById(req.params.id).populate("systems.present").exec(function(err, foundLayer){
-                if(err){
-                    console.log(err);
-                } else {
-                    System.findById(foundLayer.systems.present.id).populate("model.species").populate("animals").exec(function(err, foundSystem){
-                        if(err){
-                            console.log(err);
-                        } else {
-                            Parcel.findById(req.user.currentProject, function(err, foundParcel) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
-                                    var commodity = "";
-                                    var commodityName = "";
-                                    foundSystem.model.forEach(function(species){
-                                        // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
-                                        if(species.species.nameCommon === "Arabian coffee" || species.species.nameCommon === "Cacao" || species.species.nameCommon === "Cashew" || species.species.nameCommon === "Coconut palm" || species.species.nameCommon === "Scots pine"){
-                                            commodity = species.species.id;
-                                            commodityName = species.species.nameCommon;
-                                        }
-                                    });
-                                    console.log(commodityName);
-                                    // CHECK IF SYSTEM HAS ANIMALS
-                                    var animals = "";
-                                    if(foundSystem.animals.length > 0){
-                                        animals = foundSystem.animals[0];
-                                    }
-                                    var systems:any[] = [];
-                                    for(let i=0;i<foundSystems.length;i++){
-                                        if(foundSystems[i].shared === true && foundSystems[i].model.length > 0){
-                                            // FIND ALL SPECIES IN SYSTEM
-                                            var allSpecies:any[] = [];
-                                            var allUtilities:any[] = [];
-                                            var grid = 0;
-                                            var dataset:any[] = [];
-                                            foundSystems[i].model.forEach(function(species){
-                                                allSpecies.push(species.species.nameCommon);
-                                                if(species.species.utilities.length > 0){
-                                                    for(let j=0;j<species.species.utilities.length;j++){
-                                                        allUtilities.push(species.species.utilities[j]);
-                                                    }
-                                                }
-                                                // CREATE ADD SPECIES ROWS
-                                                var count = 0;
-                                                for(let j=0;j<dataset.length;j++){
-                                                    if(dataset[j].row === species.position[0]){
-                                                        dataset[j].array.push(species);
-                                                        count = count + 1;
-                                                    }
-                                                }
-                                                if(count === 0){
-                                                    dataset.push({row: species.position[0], array: [species]});
-                                                }
-                                            });
-                                            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                                            var uniqueSpecies = unique(allSpecies);
-                                            foundSystems[i].uniqueSpecies = uniqueSpecies;
-                                            var uniqueUtilities = unique(allUtilities);
-                                            foundSystems[i].uniqueUtilities = uniqueUtilities;
-                                            // SORT FIRST ROW ITEMS
-                                            function compare1( a, b ) {
-                                                if ( a.position[1] < b.position[1] ){
-                                                    return -1;
-                                                }
-                                                if ( a.position[1] > b.position[1] ){
-                                                    return 1;
-                                                }
-                                                return 0;
-                                            }
-                                            // SORT ROW
-                                            for(let j=0;j<dataset.length;j++){
-                                                dataset[j].array.sort(compare1);
-                                                grid = grid + dataset[j].array[0].width;
-                                            }
-                                            // SAVE ROWS
-                                            foundSystems[i].sortedrows = dataset;
-                                            foundSystems[i].grid = grid;
-                                            systems.push(foundSystems[i]);
-                                        }
-                                    }
-                                    // COMMODITY SYSTEMS
-                                    var commoditysystems:any[] = [];
-                                    for(let i=0;i<systems.length;i++){
-                                        for(let j=0;j<systems[i].model.length;j++){
-                                            if(commodityName === systems[i].model[j].species.nameCommon && !(commoditysystems.includes(systems[i]))) {
-                                                commoditysystems.push(systems[i]);
-                                            }
-                                        }
-                                    }
-                                    console.log("Commodity systems: " + commoditysystems.length);
-                                    var systemsclimate:any[] = [];
-                                    for(let i=0;i<systems.length;i++){
-                                        var count = 0;
-                                        for(let j=0;j<systems[i].model.length;j++){
-                                            if(systems[i].model[j].species.precipitation.min < foundParcel.climate.annualaverageprec && systems[i].model[j].species.precipitation.max > foundParcel.climate.annualaverageprec && systems[i].model[j].species.temperature.min < foundParcel.climate.hardiness.high && systems[i].model[j].species.temperature.max > foundParcel.climate.hardiness.low){
-                                                count = count + 1;
-                                            }
-                                        }
-                                        if(count === systems[i].model.length){
-                                            systemsclimate.push(systems[i]);
-                                        }
-                                    }
-                                    var animalsystems:any[] = [];
-                                    for(let i=0;i<systemsclimate.length;i++){
-                                        if(systemsclimate[i].animals.length > 0 && !(animals === "")){
-                                            animalsystems.push(systemsclimate[i]);
-                                            /*if(systemsclimate[i].animals[0].equals(animals)) {
-                                            }*/
-                                        }
-                                    }
-                                    console.log("Animal systems: " + animalsystems.length);
-                                    var systemsproven:any[] = [];
-                                    for(let i=0;i<systemsclimate.length;i++){
-                                        if(systemsclimate[i].flows.length > 0){
-                                            systemsproven.push(systemsclimate[i]);
-                                        }
-                                    }
-                                    console.log("Proven systems for this area: " + systemsproven.length);
-                                    if(systems.length < 1){
-                                        res.redirect("layers/" + foundLayer._id);
-                                    } else {
-                                        res.render("analysis", {layer: foundLayer, systems: systems, systemsproven: systemsproven, systemsclimate: systemsclimate, commoditysystems: commoditysystems, commodity: commodityName, animalsystems: animalsystems});
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
+router.get(
+  '/layers/:id/analysis',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    const foundSystems = await System.find()
+      .populate('model.species')
+      .populate('flows')
+      .populate('animals')
+      .exec();
+    if (foundSystems) {
+      // FIND LAYER
+      const foundLayer = await Layer.findById(req.params.id)
+        .populate('systems.present')
+        .exec();
+      if (foundLayer) {
+        const foundSystem = await System.findById(foundLayer.systems.present.id)
+          .populate('model.species')
+          .populate('animals')
+          .exec();
+        if (foundSystem) {
+          const foundParcel = await Parcel.findById(req.user?.currentProject);
+          if (foundParcel) {
+            // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
+            // let commodity = '';
+            let commodityName = '';
+            foundSystem.model.forEach((species) => {
+              // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
+              if (
+                species.species.nameCommon === 'Arabian coffee'
+                || species.species.nameCommon === 'Cacao'
+                || species.species.nameCommon === 'Cashew'
+                || species.species.nameCommon === 'Coconut palm'
+                || species.species.nameCommon === 'Scots pine'
+              ) {
+                // commodity = species.species.id;
+                commodityName = species.species.nameCommon;
+              }
             });
+            console.log(commodityName);
+            // CHECK IF SYSTEM HAS ANIMALS
+            let animals;
+            if (foundSystem.animals.length > 0) {
+              animals = foundSystem.animals[0];
+            }
+            const systems: ISystemSchema[] = [];
+            for (let i = 0; i < foundSystems.length; i++) {
+              if (
+                foundSystems[i].shared === true
+                && foundSystems[i].model.length > 0
+              ) {
+                // FIND ALL SPECIES IN SYSTEM
+                const allSpecies: string[] = [];
+                const allUtilities: string[] = [];
+                let grid = 0;
+                const dataset: {array: {
+                  species: ISpeciesSchema;
+                  position: number[];
+                  width: number;
+              }[], row: number}[] = [];
+                foundSystems[i].model.forEach((species) => {
+                  allSpecies.push(species.species.nameCommon);
+                  if (species.species.utilities.length > 0) {
+                    for (let j = 0; j < species.species.utilities.length; j++) {
+                      allUtilities.push(species.species.utilities[j]);
+                    }
+                  }
+                  // CREATE ADD SPECIES ROWS
+                  let count = 0;
+                  for (let j = 0; j < dataset.length; j++) {
+                    if (dataset[j].row === species.position[0]) {
+                      dataset[j].array.push(species);
+                      count += 1;
+                    }
+                  }
+                  if (count === 0) {
+                    dataset.push({
+                      row: species.position[0],
+                      array: [species],
+                    });
+                  }
+                });
+                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+                const uniqueSpecies = unique(allSpecies);
+                foundSystems[i].uniqueSpecies = uniqueSpecies;
+                const uniqueUtilities = unique(allUtilities);
+                foundSystems[i].uniqueUtilities = uniqueUtilities;
+
+                // SORT ROW
+                for (let j = 0; j < dataset.length; j++) {
+                  dataset[j].array.sort((a, b) => {
+                    if (a.position[1] < b.position[1]) {
+                      return -1;
+                    }
+                    if (a.position[1] > b.position[1]) {
+                      return 1;
+                    }
+                    return 0;
+                  });
+                  grid += dataset[j].array[0].width;
+                }
+                // SAVE ROWS
+                // @ts-ignore
+                foundSystems[i].sortedrows = dataset;
+                // @ts-ignore
+                foundSystems[i].grid = grid;
+                systems.push(foundSystems[i]);
+              }
+            }
+            // COMMODITY SYSTEMS
+            const commoditysystems: ISystemSchema[] = [];
+            for (let i = 0; i < systems.length; i++) {
+              for (let j = 0; j < systems[i].model.length; j++) {
+                if (
+                  commodityName === systems[i].model[j].species.nameCommon
+                  && !commoditysystems.includes(systems[i])
+                ) {
+                  commoditysystems.push(systems[i]);
+                }
+              }
+            }
+            console.log(`Commodity systems: ${commoditysystems.length}`);
+            const systemsclimate: ISystemSchema[] = [];
+            for (let i = 0; i < systems.length; i++) {
+              let count = 0;
+              for (let j = 0; j < systems[i].model.length; j++) {
+                if (
+                  systems[i].model[j].species.precipitation.min
+                    < foundParcel.climate.annualaverageprec
+                  && systems[i].model[j].species.precipitation.max
+                    > foundParcel.climate.annualaverageprec
+                  && systems[i].model[j].species.temperature.min
+                    < foundParcel.climate.hardiness.high
+                  && systems[i].model[j].species.temperature.max
+                    > foundParcel.climate.hardiness.low
+                ) {
+                  count += 1;
+                }
+              }
+              if (count === systems[i].model.length) {
+                systemsclimate.push(systems[i]);
+              }
+            }
+            const animalsystems: ISystemSchema[] = [];
+            for (let i = 0; i < systemsclimate.length; i++) {
+              if (systemsclimate[i].animals.length > 0 && animals) {
+                animalsystems.push(systemsclimate[i]);
+                /* if(systemsclimate[i].animals[0].equals(animals)) {
+                                            } */
+              }
+            }
+            console.log(`Animal systems: ${animalsystems.length}`);
+            const systemsproven: ISystemSchema[] = [];
+            for (let i = 0; i < systemsclimate.length; i++) {
+              if (systemsclimate[i].flows.length > 0) {
+                systemsproven.push(systemsclimate[i]);
+              }
+            }
+            console.log(`Proven systems for this area: ${systemsproven.length}`);
+            if (systems.length < 1) {
+              res.redirect(`layers/${foundLayer._id}`);
+            } else {
+              res.render('analysis', {
+                layer: foundLayer,
+                systems,
+                systemsproven,
+                systemsclimate,
+                commoditysystems,
+                commodity: commodityName,
+                animalsystems,
+              });
+            }
+          }
         }
-    });
-});
+      }
+    }
+  },
+);
 
 // LAYER MY SYSTEMS FIND
-router.get("/layers/:id/mysystems", middleware.isLoggedIn, function(req, res){
-    Layer.findById(req.params.id, function(err, foundLayer){
-        if(err){
+router.get(
+  '/layers/:id/mysystems',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      System.find({ 'owner.id': req.user?._id })
+        .populate('model.species')
+        .populate('flows')
+        .populate('animals')
+        .exec((err, foundSystems) => {
+          if (err) {
             console.log(err);
-        } else {
-            System.find({'owner.id': req.user._id}).populate("model.species").populate("flows").populate("animals").exec(function(err, foundSystems){
-                if(err){
-                    console.log(err);
-                } else {
-                    // SORT OUT MONOCULTURE SYSTEMS
-                    var realSystems:any[] = [];
-                    for(let i=0;i<foundSystems.length;i++){
-                        var systemNameSplit = foundSystems[i].name.split(" ");
-                        if(!(systemNameSplit[systemNameSplit.length - 1] === "monoculture")){
-                            realSystems.push(foundSystems[i]);
-                        }
-                    }
-                    res.render("layers/mysystems", {layer: foundLayer, systems: realSystems});
-                }
+          } else {
+            // SORT OUT MONOCULTURE SYSTEMS
+            const realSystems: ISystemSchema[] = [];
+            for (let i = 0; i < foundSystems.length; i++) {
+              const systemNameSplit: string[] = foundSystems[i].name.split(' ');
+              if (
+                !(
+                  systemNameSplit[systemNameSplit.length - 1]
+                  === 'monoculture'
+                )
+              ) {
+                realSystems.push(foundSystems[i]);
+              }
+            }
+            res.render('layers/mysystems', {
+              layer: foundLayer,
+              systems: realSystems,
             });
-        }
-    });
-});
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // SYSTEM OCCURRENCE NEW ROUTE
-router.get("/systems/:id/occurrences/new", middleware.isLoggedIn, function(req, res){
-    System.findById(req.params.id, function(err, foundSystem){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("systems/occurrences", {system: foundSystem});
-        }
-    });
-});
+router.get(
+  '/systems/:id/occurrences/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const foundSystem = await System.findById(req.params.id);
+      res.render('systems/occurrences', { system: foundSystem });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // SYSTEM OCCURRANCE CREATE ROUTE
-router.put("/systems/:id/occurrences", middleware.isLoggedIn, function(req, res){
-    System.findByIdAndUpdate(req.params.id, {$addToSet: {occurrences: req.body.occurrence}}, function(err, updatedSystem){
-        if(err){
-            console.log(err);
-        } else {
-            console.log(req.body.occurrence + " has been added to the system");
-            res.redirect("/systems/" + updatedSystem._id);
-        }
-    });
-});
+router.put(
+  '/systems/:id/occurrences',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+    try {
+      const updatedSystem = await System.findByIdAndUpdate(req.params.id, {
+        $addToSet: { occurrences: req.body.occurrence },
+      });
+      if (updatedSystem) {
+        console.log(`${req.body.occurrence} has been added to the system`);
+        res.redirect(`/systems/${updatedSystem._id}`);
+      } else {
+        console.log('No updatedSystem');
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
-module.exports = router;
+export default router;

@@ -1,107 +1,131 @@
-require("dotenv").config();
-var express = require("express");
-var app = express();
-var bodyParser = require("body-parser"); // USED TO PARSE DATA FROM POST ROUTE
-var mongoose = require("mongoose"); // REQUIRE MONGOOSE PACKAGE
-var flash = require("connect-flash"); // ENABLES FLASH MESSAGES
-var passport = require("passport"); // REQUIRE PASSPORT PACKAGE
-var LocalStrategy = require("passport-local"); // REQUIRE LOCAL LOGIN PASSPORT PACKAGE
-var methodOverride = require("method-override"); // USED FOR PUT AND DELETE REQUESTS
+import dotenv from 'dotenv';
+import express from 'express';
+import bodyParser from 'body-parser'; // USED TO PARSE DATA FROM POST ROUTE
+import { connect } from 'mongoose'; // REQUIRE MONGOOSE PACKAGE
+import methodOverride from 'method-override'; // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
-import Parcel from "./models/parcel";
-//var seedDB = require("./seeds");
-import User from "./models/user";
-
+import path from 'path';
+import { auth } from 'express-openid-connect';
+// import Parcel from './models/parcel';
+// import seedDB from "./seeds";
+import User, { IUserSchema } from './models/user';
 // REQUIRE ROUTE FILES
-var parcelRoutes = require("./routes/parcels");
-var indexRoutes = require("./routes/index");
-var activityRoutes = require("./routes/activities");
-var projectRoutes = require("./routes/projects");
-var layerRoutes = require("./routes/layers");
-var practiceRoutes = require("./routes/practices");
-var assetRoutes = require("./routes/assets");
-var systemRoutes = require("./routes/systems");
-var speciesRoutes = require("./routes/species");
-var flowRoutes = require("./routes/flows");
-var systemflowRoutes = require("./routes/systemflows");
-var animalRoutes = require("./routes/animals");
-var budgetRoutes = require("./routes/budgets");
-var postingRoutes = require("./routes/postings");
-var nurseryRoutes = require("./routes/nurseries");
-var nurseryproductRoutes = require("./routes/nurseryproducts");
-var sequenceRoutes = require("./routes/sequences");
-var areaRoutes = require("./routes/areas");
-var noteRoutes = require("./routes/notes");
-var soiltestRoutes = require("./routes/soiltests");
-var saptestRoutes = require("./routes/saptests");
-var farmflowRoutes = require("./routes/farmflows");
-var rotationRoutes = require("./routes/rotations");
-var varietyRoutes = require("./routes/varieties");
-var path = require('path');
+import parcelRoutes from './routes/parcels';
+import indexRoutes from './routes/index';
+import activityRoutes from './routes/activities';
+import projectRoutes from './routes/projects';
+import layerRoutes from './routes/layers';
+import practiceRoutes from './routes/practices';
+import assetRoutes from './routes/assets';
+import systemRoutes from './routes/systems';
+import speciesRoutes from './routes/species';
+import flowRoutes from './routes/flows';
+import systemflowRoutes from './routes/systemflows';
+import animalRoutes from './routes/animals';
+import budgetRoutes from './routes/budgets';
+import postingRoutes from './routes/postings';
+import nurseryRoutes from './routes/nurseries';
+import nurseryproductRoutes from './routes/nurseryproducts';
+import sequenceRoutes from './routes/sequences';
+import areaRoutes from './routes/areas';
+import noteRoutes from './routes/notes';
+import soiltestRoutes from './routes/soiltests';
+import saptestRoutes from './routes/saptests';
+import farmflowRoutes from './routes/farmflows';
+import rotationRoutes from './routes/rotations';
+import varietyRoutes from './routes/varieties';
+
+dotenv.config();
+const app = express();
 
 // APP SETUP
-mongoose.connect(process.env.DATABASEURL); // CONNECTS TO MLAB MONGODB
-app.use(bodyParser.urlencoded({extended: true})); // ENABLES BODY PARSER
-app.set("view engine", "ejs"); // SET VIEW (RENDER) ENGINE TO EJS FILE
+connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+app.use(bodyParser.urlencoded({ extended: true })); // ENABLES BODY PARSER
+app.set('view engine', 'ejs'); // SET VIEW (RENDER) ENGINE TO EJS FILE
 app.set('views', path.join(__dirname, '/views'));
-app.use(express.static(__dirname + "/public")); // SETS PUBLIC ASSETS REPOSITORY
-app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
-app.use(flash());
-//seedDB(); // USE ONLY FOR SEEDING DATABAS
+app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
+app.use(methodOverride('_method')); // USE "_method" TO PASS PUT AND DELETE REQUESTS
+// seedDB(); // USE ONLY FOR SEEDING DATABAS
 
-// PASSPORT CONFIGURATION
-app.use(require("express-session")({
-    secret: "If found non we go down!",
-    resave: false,
-    saveUninitialized: false
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+const config = {
+  authRequired: false,
+  auth0Logout: true,
+  baseURL: process.env.AUTH0_BASE_URL,
+  clientID: process.env.AUTH0_CLIENT_ID,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+  secret: process.env.AUTH0_SECRET,
+};
 
-// Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
-app.use(function(req, res, next){
-    res.locals.currentUser = req.user;
-    res.locals.error = req.flash("error");
-    res.locals.success = req.flash("success");
-    next();
+app.use(auth(config));
+
+// // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
+app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+  res.locals.currentUser = undefined;
+
+  if (req.oidc.user && req.oidc.user.email) {
+    // Find any existing user
+    const user = await User.findOne({ email: req.oidc.user.email }).exec();
+
+    if (user) {
+      req.user = user;
+    } else {
+      // Create a new user if none exist
+      const newUser = await User.create({
+        externalId: req.oidc.user.sub,
+        email: req.oidc.user.email,
+        registrationDate: Date.now(),
+        membership: 1209600000,
+        farmLimit: 1,
+        isProject: true,
+      });
+
+      const savedUser = await newUser.save();
+
+      req.user = savedUser;
+    }
+  } else {
+    console.log('No oidc user');
+  }
+
+  res.locals.currentUser = req.user;
+
+  next();
 });
 
 // MAKES THE APP ACTUALLY USE THE ROUTES
 app.use(indexRoutes);
-app.use("", parcelRoutes); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
-app.use("", activityRoutes);
-app.use("", projectRoutes);
-app.use("", layerRoutes);
-app.use("", practiceRoutes);
-app.use("", assetRoutes);
-app.use("", systemRoutes);
-app.use("", speciesRoutes);
-app.use("", flowRoutes);
-app.use("", systemflowRoutes);
-app.use("", animalRoutes);
-app.use("", budgetRoutes);
-app.use("", postingRoutes);
-app.use("", nurseryRoutes);
-app.use("", nurseryproductRoutes);
-app.use("", sequenceRoutes);
-app.use("", areaRoutes);
-app.use("", noteRoutes);
-app.use("", soiltestRoutes);
-app.use("", saptestRoutes);
-app.use("", farmflowRoutes);
-app.use("", rotationRoutes);
-app.use("", varietyRoutes);
+app.use('', parcelRoutes); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
+app.use('', activityRoutes);
+app.use('', projectRoutes);
+app.use('', layerRoutes);
+app.use('', practiceRoutes);
+app.use('', assetRoutes);
+app.use('', systemRoutes);
+app.use('', speciesRoutes);
+app.use('', flowRoutes);
+app.use('', systemflowRoutes);
+app.use('', animalRoutes);
+app.use('', budgetRoutes);
+app.use('', postingRoutes);
+app.use('', nurseryRoutes);
+app.use('', nurseryproductRoutes);
+app.use('', sequenceRoutes);
+app.use('', areaRoutes);
+app.use('', noteRoutes);
+app.use('', soiltestRoutes);
+app.use('', saptestRoutes);
+app.use('', farmflowRoutes);
+app.use('', rotationRoutes);
+app.use('', varietyRoutes);
 
 // 404 ROUTE
-app.get('*', function(req, res){
-    res.status(404).render('404');
+app.get('*', async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  res.status(404).render('404');
 });
+app.set('trust proxy', true);
 
-// SETUP THE EXPRESS LISTENER ON LOCAL HOST
-app.listen(process.env.PORT, process.env.IP, function(){
-    console.log("The grown local Server Has Started!");
+// @ts-ignore
+app.listen(process.env.PORT, process.env.IP, () => {
+  console.log('The grown local Server Has Started!');
 });

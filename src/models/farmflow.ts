@@ -1,19 +1,32 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+import { ISpeciesSchema } from './species';
+
+export interface IFarmFlowSchema extends Document {
+    name: string,
+    description: string,
+    type: string,
+    unit: string,
+    timeframe: string,
+    source: string,
+    timestamp: Date,
+    amount: number,
+    species: ISpeciesSchema
+}
 
 // FLOW SCHEMA SETUP
-var farmflowSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    source: String,
-    timestamp: Date,
-    amount: Number,
-    species: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Species"
-    }
+const farmflowSchema = new Schema<IFarmFlowSchema>({
+  name: String,
+  description: String,
+  type: String,
+  unit: String,
+  timeframe: String,
+  source: String,
+  timestamp: Date,
+  amount: Number,
+  species: {
+    type: Schema.Types.ObjectId,
+    ref: 'Species',
+  },
 });
 
-export default mongoose.model("Farmflow", farmflowSchema);
+export default model('Farmflow', farmflowSchema);

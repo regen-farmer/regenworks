@@ -1,13 +1,22 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+
+export interface IFlowSchema extends Document {
+    name: string,
+    type: string,
+    unit: string,
+    timeframe: string,
+    data: number[],
+    source: string
+}
 
 // FLOW SCHEMA SETUP
-var flowSchema = new mongoose.Schema({
-    name: String,
-    type: String,
-    unit: String,
-    timeframe: String,
-    data: [Number],
-    source: String
+const flowSchema = new Schema<IFlowSchema>({
+  name: String,
+  type: String,
+  unit: String,
+  timeframe: String,
+  data: [Number],
+  source: String,
 });
 
-export default mongoose.model("Flow", flowSchema);
+export default model('Flow', flowSchema);

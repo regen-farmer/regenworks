@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h2>Draw bearing line to specify system model alignment.</h2>
+        <a href="/projects/<%= project._id %>/layout" class="btn mt-2 mb-2 btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to map</a>
+        <div>
+            <form action="/projects/<%= project._id %>/alignmentrow?_method=PUT" method="POST">
+                <div class="form-group">
+                    <label for="[rowCoordinates]">Row geometry</label>
+                    <p>Please draw the bearing line. Press "Finish" to finish line.</p>
+                </div>
+                <div id="rowMapNew"></div>
+                <input type="hidden" id="geometry" name="geometry">
+                <input type="hidden" id="layersize" name="layersize">
+                <div id="coordinates"></div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg center-block">Set bearing line.</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var areaLat = "<%= project.layer.lat %>";
+        var areaLng = "<%= project.layer.lng %>";
+    </script>
+
+<%- include('../partials/footer') %>

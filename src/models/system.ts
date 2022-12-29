@@ -1,72 +1,127 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+import { IAnimalSchema } from './animal';
+import { ISequenceSchema } from './sequence';
+import { ISpeciesSchema } from './species';
+import { ISystemflowSchema } from './systemflow';
+import { IUserSchema } from './user';
 
 // SYSTEM SCHEMA SETUP
-var systemSchema = new mongoose.Schema({
-    name: String,
-    description: String,
+
+export interface ISystemSchema extends Document {
+    name: string,
+    description: string,
     rows: [
-        { width: Number,
+        { width: number,
           sequense: [
-              {
-                  type: mongoose.Schema.Types.ObjectId,
-                  ref: "Species"
-              }
+            ISequenceSchema
           ]
         }
 
     ],
     model: [
         {
-            species: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Species"
-            },
+            species: ISpeciesSchema,
+            position: number[],
+            width: number,
             activities: [
-                {
-                    activityType: String,
-                    subtype: String,
-                    name: String
-                }
-            ],
-            position: [Number],
-            width: Number
+              {
+                  activityType: string,
+                  subtype: string,
+                  name: string
+              }
+          ],
+
         }
     ],
     animals: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Animal"
-        }
+        IAnimalSchema
     ],
     owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
+        id: IUserSchema
     },
-    shared: {
-        type: Boolean,
-        default: false
-    },
+    shared: boolean,
     flows: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Systemflow"
-        }
+        ISystemflowSchema
     ],
     occurrences: [
         {
-            name: String,
-            lat: Number,
-            lng: Number,
-            alt: Number,
-            country: String,
-            source: String,
-            eco: Number,
-            koppen: String
+            name: string,
+            lat: number,
+            lng: number,
+            alt: number,
+            country: string,
+            source: string,
+            eco: number,
+            koppen: string
         }
-    ]
+    ],
+    grid: number,
+    uniqueSpecies: string[],
+    uniqueUtilities: string[],
+}
+
+const systemSchema = new Schema<ISystemSchema>({
+  name: String,
+  description: String,
+  rows: [
+    {
+      width: Number,
+      sequense: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Species',
+        },
+      ],
+    },
+
+  ],
+  model: [
+    {
+      species: {
+        type: Schema.Types.ObjectId,
+        ref: 'Species',
+      },
+      position: [Number],
+      width: Number,
+    },
+  ],
+  animals: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Animal',
+    },
+  ],
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
+  shared: {
+    type: Boolean,
+    default: false,
+  },
+  flows: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Systemflow',
+    },
+  ],
+  occurrences: [
+    {
+      name: String,
+      lat: Number,
+      lng: Number,
+      alt: Number,
+      country: String,
+      source: String,
+      eco: Number,
+      koppen: String,
+    },
+  ],
+  grid: Number,
+  uniqueSpecies: [String],
+  uniqueUtilities: [String],
 });
 
-export default mongoose.model("System", systemSchema);
+export default model('System', systemSchema);

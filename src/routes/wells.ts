@@ -1,27 +1,24 @@
-var express = require("express");
-var router = express.Router();
-import Well from "../models/well";
-import Parcel from "../models/parcel";
-var middleware = require("../middleware");
-var logger = require("../middleware/logger");
-import Species from "../models/species";
-import Animal from "../models/animal";
+import express from 'express';
+// import Well from "../models/well";
+import Parcel from '../models/parcel';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
+
+const router = express.Router();
+// import Species from "../models/species";
+// import Animal from "../models/animal";
 
 // NESTED PARCEL WELL NEW ROUTE
-router.get("/parcels/:id/wells/new", middleware.isLoggedIn, function(req, res){
-    // FIND PARCEL ID
-    Parcel.findById(req.params.id, function(err, foundParcel){
-        if(err) {
-            console.log(err);
-            logger.error(err.message);
-            // res.flash(err)
-        } else {
-            res.render("wells/new", {parcel: foundParcel});
-        }
-    });
+router.get('/parcels/:id/wells/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // FIND PARCEL ID
+  try {
+    const foundParcel = await Parcel.findById(req.params.id);
+    res.render('wells/new', { parcel: foundParcel });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NESTED PARCEL WELL CREATE ROUTE
 
-
-module.exports = router;
+export default router;

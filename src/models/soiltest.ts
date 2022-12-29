@@ -1,45 +1,82 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+import { IUserSchema } from './user';
 
-// SOIL TEST SCHEMA SETUP
-var soiltestSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    lat: Number,
-    lng: Number,
-    depth: Number,
+export interface ISoiltestSchema extends Document {
+    name: string,
+    description: string,
+    lat: number,
+    lng: number,
+    depth: number,
     physical: {
-        clay: Number,
-        silt: Number,
-        sand: Number
+        clay: number,
+        silt: number,
+        sand: number
     },
     sampleDate: Date,
-    compaction: Number,
+    compaction: number,
     fertility: {
-        conductivity: Number,
-        pH: Number,
-        SOM: Number,
-        nitrogen: Number,
-        phosphorus: Number,
-        lime: Number,
-        calcium: Number,
-        magnesium: Number,
-        potasium: Number,
-        sodium: Number
+        conductivity: number,
+        pH: number,
+        SOM: number,
+        nitrogen: number,
+        phosphorus: number,
+        lime: number,
+        calcium: number,
+        magnesium: number,
+        potasium: number,
+        sodium: number
     },
     microelements: {
-        boron: Number,
-        iron: Number,
-        magnezium: Number,
-        copper: Number,
-        zinc: Number
+        boron: number,
+        iron: number,
+        magnezium: number,
+        copper: number,
+        zinc: number
     },
     owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-                ref: "User"
-        },
-        username: String
+        id: IUserSchema
     }
+}
+
+// SOIL TEST SCHEMA SETUP
+const soiltestSchema = new Schema<ISoiltestSchema>({
+  name: String,
+  description: String,
+  lat: Number,
+  lng: Number,
+  depth: Number,
+  physical: {
+    clay: Number,
+    silt: Number,
+    sand: Number,
+  },
+  sampleDate: Date,
+  compaction: Number,
+  fertility: {
+    conductivity: Number,
+    pH: Number,
+    SOM: Number,
+    nitrogen: Number,
+    phosphorus: Number,
+    lime: Number,
+    calcium: Number,
+    magnesium: Number,
+    potasium: Number,
+    sodium: Number,
+  },
+  microelements: {
+    boron: Number,
+    iron: Number,
+    magnezium: Number,
+    copper: Number,
+    zinc: Number,
+  },
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
 });
 
-export default mongoose.model("Soiltest", soiltestSchema);
+export default model('Soiltest', soiltestSchema);

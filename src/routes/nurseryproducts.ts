@@ -1,188 +1,237 @@
-var express = require("express");
-var router = express.Router();
-import NurseryProduct from "../models/nurseryproduct";
-import Nursery from "../models/nursery";
-import Species from "../models/species";
-var middleware = require("../middleware");
+import express from 'express';
+import NurseryProduct from '../models/nurseryproduct';
+import Nursery from '../models/nursery';
+import Species from '../models/species';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
+
+const router = express.Router();
 
 // ADMIN ALL VARIETIES
-router.get("/nurseryproducts", middleware.adminIsLoggedIn, function(req, res){
-    NurseryProduct.find().populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundNurseryProducts){
-        if(err){
-            console.log(err);
-        } else {
-            res.render("nurseryproducts/index", {products: foundNurseryProducts});
-        }
+router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  NurseryProduct.find()
+    .populate('species')
+    .populate('rootstock')
+    .populate('hybrid')
+    .exec((err, foundNurseryProducts) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.render('nurseryproducts/index', { products: foundNurseryProducts });
+      }
     });
 });
 
 // NURSERY PRODUCT NURSERY NEW
-router.get("/nurseries/:id/nurseryproducts/new", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/nurseries/:id/nurseryproducts/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, function(err, foundNursery){
-        if(err){
-            console.log(err);
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND ALL SPECIES
+      Species.find((err, allSpecies) => {
+        if (err) {
+          console.log(err);
         } else {
-            // FIND ALL SPECIES
-            Species.find(function(err, allSpecies){
-                if(err) {
-                    console.log(err);
-                } else {
-                    // SORT SPECIES
-                    function compare(a, b) {
-                        if (a.genus < b.genus) {
-                            return -1;
-                        }
-                        if (a.genus > b.genus) {
-                            return 1;
-                        }
-                        return 0;
-                    }
-                    allSpecies.sort(compare);
-                    res.render("nurseryproducts/new", {nursery: foundNursery, species: allSpecies});
-                }
-            });
+          // SORT SPECIES
+
+          allSpecies.sort((a, b) => {
+            if (a.genus < b.genus) {
+              return -1;
+            }
+            if (a.genus > b.genus) {
+              return 1;
+            }
+            return 0;
+          });
+          res.render('nurseryproducts/new', {
+            nursery: foundNursery,
+            species: allSpecies,
+          });
         }
-    });
-});
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NURSERY PRODUCT NURSERY CREATE
-router.post("/nurseries/:id/nurseryproducts", middleware.isLoggedIn, function(req, res){
+router.post(
+  '/nurseries/:id/nurseryproducts',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN NONE OPTIONS
-    var product = req.body.product;
-    if(req.body.product.species === ""){
-        delete product.species;
+    const product = req.body.product;
+    if (req.body.product.species === '') {
+      delete product.species;
     }
-    if(req.body.product.hybrid === ""){
-        delete product.hybrid;
+    if (req.body.product.hybrid === '') {
+      delete product.hybrid;
     }
-    if(req.body.product.rootstock === ""){
-        delete product.rootstock;
+    if (req.body.product.rootstock === '') {
+      delete product.rootstock;
     }
-    if(req.body.product.availability){
-        product.availability = true;
+    if (req.body.product.availability) {
+      product.availability = true;
     }
     // FIND NURSERY
-    Nursery.findById(req.params.id, function(err, foundNursery){
-        if(err){
-            console.log(err);
-        } else {
-            // CREATE PRODUCT
-            NurseryProduct.create(product, function(err, createdProduct){
-                if(err){
-                    console.log(err);
-                } else {
-                    // SET OWNERSHIP
-                    createdProduct.owner.id = req.user._id;
-                    createdProduct.owner.username = req.user.username;
-                    createdProduct.save();
-                    // INSERT PRODUCT IN NURSERY
-                    foundNursery.products.push(createdProduct);
-                    foundNursery.save();
-                    // REDIRECT TO NURSERY
-                    res.redirect("/nurseries/" + foundNursery._id);
-                }
-            });
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // CREATE PRODUCT
+      if (foundNursery) {
+        try {
+          const createdProduct = await NurseryProduct.create(product);
+          // SET OWNERSHIP
+          createdProduct.owner.id = req.user?._id;
+          await createdProduct.save();
+          // INSERT PRODUCT IN NURSERY
+          foundNursery.products.push(createdProduct);
+          await foundNursery.save();
+          // REDIRECT TO NURSERY
+          res.redirect(`/nurseries/${foundNursery._id}`);
+        } catch (err) {
+          console.log(err);
         }
-    });
-});
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NURSERY PRODUCT SHOW
-router.get("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/nurseries/:id/nurseryproducts/:pid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, function(err, foundNursery){
-        if(err){
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND PRODUCT
+      NurseryProduct.findById(req.params.pid)
+        .populate('species')
+        .populate('rootstock')
+        .populate('hybrid')
+        .exec((err, foundProduct) => {
+          if (err) {
             console.log(err);
-        } else {
-            // FIND PRODUCT
-            NurseryProduct.findById(req.params.pid).populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundProduct){
-                if(err){
-                    console.log(err)
-                } else {
-                    res.render("nurseryproducts/show", {nursery: foundNursery, product: foundProduct});
-                }
+          } else {
+            res.render('nurseryproducts/show', {
+              nursery: foundNursery,
+              product: foundProduct,
             });
-        }
-    });
-});
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NURSERY PRODUCT EDIT
-router.get("/nurseries/:id/nurseryproducts/:pid/edit", middleware.isLoggedIn, function(req, res){
+router.get(
+  '/nurseries/:id/nurseryproducts/:pid/edit',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // FIND NURSERY
-    Nursery.findById(req.params.id, function(err, foundNursery){
-        if(err){
+    try {
+      const foundNursery = await Nursery.findById(req.params.id);
+      // FIND PRODUCT
+      NurseryProduct.findById(req.params.pid)
+        .populate('species')
+        .populate('rootstock')
+        .populate('hybrid')
+        .exec((err, foundProduct) => {
+          if (err) {
             console.log(err);
-        } else {
-            // FIND PRODUCT
-            NurseryProduct.findById(req.params.pid).populate("species").populate("rootstock").populate("hybrid").exec(function(err, foundProduct){
-                if(err){
-                    console.log(err)
-                } else {
-                    // FIND ALL SPECIES
-                    Species.find(function(err, allSpecies){
-                        if(err) {
-                            console.log(err);
-                        } else {
-                            // SORT SPECIES
-                            function compare(a, b) {
-                                if (a.genus < b.genus) {
-                                    return -1;
-                                }
-                                if (a.genus > b.genus) {
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                            allSpecies.sort(compare);
-                            res.render("nurseryproducts/edit", {nursery: foundNursery, product: foundProduct, species: allSpecies});
-                        }
-                    });
-                }
+          } else {
+            // FIND ALL SPECIES
+            Species.find((err, allSpecies) => {
+              if (err) {
+                console.log(err);
+              } else {
+                // SORT SPECIES
+
+                allSpecies.sort((a, b) => {
+                  if (a.genus < b.genus) {
+                    return -1;
+                  }
+                  if (a.genus > b.genus) {
+                    return 1;
+                  }
+                  return 0;
+                });
+                res.render('nurseryproducts/edit', {
+                  nursery: foundNursery,
+                  product: foundProduct,
+                  species: allSpecies,
+                });
+              }
             });
-        }
-    });
-});
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NURSERY PRODUCT UPDATE
-router.put("/nurseries/:id/nurseryproducts/:pid", middleware.isLoggedIn, function(req, res){
+router.put(
+  '/nurseries/:id/nurseryproducts/:pid',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
     // CLEAN NONE OPTIONS
-    var product = req.body.product;
-    if(req.body.product.species === ""){
-        delete product.species;
+    const product = req.body.product;
+    if (req.body.product.species === '') {
+      delete product.species;
     }
-    if(req.body.product.hybrid === ""){
-        delete product.hybrid;
+    if (req.body.product.hybrid === '') {
+      delete product.hybrid;
     }
-    if(req.body.product.rootstock === ""){
-        delete product.rootstock;
+    if (req.body.product.rootstock === '') {
+      delete product.rootstock;
     }
-    if(req.body.product.availability){
-        product.availability = true;
+    if (req.body.product.availability) {
+      product.availability = true;
     } else {
-        product.availability = false;
+      product.availability = false;
     }
     console.log(req.body.product.availability);
     console.log(typeof req.body.product.availability);
-    NurseryProduct.findByIdAndUpdate(req.params.pid, product, function(err, updatedProduct){
-        if(err){
-            console.log(err);
-        } else {
-            // REDIRECT TO PRODUCT
-            /*if(req.body.product.hybrid === ""){
+    try {
+      const updatedProduct = await NurseryProduct.findByIdAndUpdate(
+        req.params.pid,
+        product,
+      );
+      // REDIRECT TO PRODUCT
+      /* if(req.body.product.hybrid === ""){
                 updatedProduct.hybrid = {};
                 updatedProduct.save();
             }
             if(req.body.product.rootstock === ""){
                 delete updatedProduct.rootstock;
                 updatedProduct.save();
-            }*/
-            res.redirect("/nurseries/" + req.params.id + "/nurseryproducts/" + updatedProduct._id);
-        }
-    });
-});
-
+            } */
+      if (updatedProduct) {
+        res.redirect(
+          `/nurseries/${
+            req.params.id
+          }/nurseryproducts/${
+            updatedProduct._id}`,
+        );
+      } else {
+        console.log('No updatedProduct');
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // NURSERY PRODUCT DUPLICATE
 
-
-module.exports = router;
+export default router;

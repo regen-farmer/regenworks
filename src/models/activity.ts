@@ -1,37 +1,64 @@
-import mongoose from "mongoose";
+import {
+  model, Schema, Document,
+} from 'mongoose';
+import { ILayerSchema } from './layer';
+import { ISpeciesSchema } from './species';
+import { IUserSchema } from './user';
+
+export interface IActivitySchema extends Document {
+    name: string,
+    description: string,
+    start: {
+        date: string,
+        time: string
+    },
+    end: {
+        date: string,
+        time: string
+    },
+    time: number,
+    status: boolean,
+    activityType: string,
+    subtype: string,
+    automated: boolean,
+    owner: {
+        id: IUserSchema
+    },
+    layer: ILayerSchema
+    species: ISpeciesSchema
+}
 
 // ACTIVITY SCHEMA SETUP
-var activitySchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    start: {
-        date: String,
-        time: String
+const activitySchema = new Schema<IActivitySchema>({
+  name: String,
+  description: String,
+  start: {
+    date: String,
+    time: String,
+  },
+  end: {
+    date: String,
+    time: String,
+  },
+  time: Number,
+  status: Boolean,
+  activityType: String,
+  subtype: String,
+  automated: Boolean,
+  owner: {
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
-    end:  {
-        date: String,
-        time: String
-    },
-    time: Number,
-    status: Boolean,
-    activityType: String,
-    subtype: String,
-    automated: Boolean,
-    owner: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        username: String
-    },
-    layer: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Layer"
-    },
-    species: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Species"
-    }
+  },
+  layer: {
+    type: Schema.Types.ObjectId,
+    ref: 'Layer',
+  },
+  species: {
+    type: Schema.Types.ObjectId,
+    ref: 'Species',
+  },
 });
 
-export default mongoose.model("Activity", activitySchema);
+export default model('Activity', activitySchema);

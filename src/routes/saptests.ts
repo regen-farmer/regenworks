@@ -1,55 +1,54 @@
-var express = require("express");
-var router = express.Router();
-import Parcel from "../models/parcel";
-import Layer from "../models/layer";
-import Saptest from "../models/saptest";
-var middleware = require("../middleware");
+import express from 'express';
+import Parcel from '../models/parcel';
+import Layer from '../models/layer';
+import Saptest from '../models/saptest';
+import middleware from '../middleware';
+import { IUserSchema } from '../models/user';
 
+const router = express.Router();
 
 // PARCEL LAYER SAP TEST NEW
-router.get("/parcels/:id/layers/:pid/saptests/new", middleware.isLoggedIn, function(req, res){
-    // FIND PARCEL
-    Parcel.findById(req.params.id).populate("layers").exec(function(err, foundParcel){
-        if(err){
-            console.log(err);
-        } else {
-            // FIND LAYER
-            Layer.findById(req.params.pid, function(err, foundLayer){
-                if(err){
-                    console.log(err);
-                } else {
-                    // RENDER ACTIVITIES
-                    res.render("saptests/new", {parcel: foundParcel, layer: foundLayer});
-                }
-            });
-        }
-    });
+router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // FIND PARCEL
+  try {
+    const foundParcel = Parcel.findById(req.params.id).populate('layers').exec();
+    // FIND LAYER
+
+    try {
+      const foundLayer = Layer.findById(req.params.pid);
+      // RENDER ACTIVITIES
+      res.render('saptests/new', { parcel: foundParcel, layer: foundLayer });
+    } catch (err) {
+      console.log(err);
+    }
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PARCEL LAYER SOIL TEST CREATE
-router.post("/parcels/:id/layers/:pid/saptests", middleware.isLoggedIn, function(req, res){
-    // PARSE COORDINATES
-    /*var sapTest = req.body.saptest;
+router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  // PARSE COORDINATES
+  /* var sapTest = req.body.saptest;
     var parsedCoordinates = req.body.coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    res.redirect("/parcels/" + req.params.id + "/status");*/
-    // CREATE SOIL TEST
-    Saptest.create(req.body.saptest, function(err, createdSaptest){
-        if(err){
-            console.log(err);
-        } else {
-            Layer.findByIdAndUpdate(req.params.pid, { $push: { saptests: createdSaptest } }, function(err, updatedLayer){
-                if(err){
-                    console.log(err);
-                } else {
-                    // RENDER PARCEL LAYER SAP TEST PAGE
-                    res.redirect("/parcels/" + req.params.id + "/status");
-                }
-            });
-        }
+    res.redirect("/parcels/" + req.params.id + "/status"); */
+  // CREATE SOIL TEST
+  try {
+    const createdSaptest = await Saptest.create(req.body.saptest);
+    Layer.findByIdAndUpdate(req.params.pid, { $push: { saptests: createdSaptest } }, (err) => {
+      if (err) {
+        console.log(err);
+      } else {
+      // RENDER PARCEL LAYER SAP TEST PAGE
+        res.redirect(`/parcels/${req.params.id}/status`);
+      }
     });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
-module.exports = router;
+export default router;

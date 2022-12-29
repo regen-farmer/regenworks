@@ -1,59 +1,112 @@
-import mongoose from "mongoose";
+import { Document, model, Schema } from 'mongoose';
+import { IFlowSchema } from './flow';
 
-// SPECIES SCHEMA SETUP
-var speciesSchema = new mongoose.Schema({
-    nameCommon: String,
-    genus: String,
-    species: String,
-    family: String,
-    origin: String,
-    invasive: String,
+export interface ISpeciesSchema extends Document {
+    nameCommon: string,
+    genus: string,
+    species: string,
+    family: string,
+    origin: string,
+    invasive: string,
     temperature: {
-        min: Number,
-        max: Number
+        min: number,
+        max: number
     },
     precipitation: {
-        min: Number,
-        max: Number
+        min: number,
+        max: number
     },
-    cultivation: String,
-    form: String,
-    management: String,
-    stapleCrop: String,
-    industrialCrop: String,
-    fodder: String,
+    cultivation: string,
+    form: string,
+    management: string,
+    stapleCrop: string,
+    industrialCrop: string,
+    fodder: string,
     classsyntropic: {
-        strata: String,
-        lifecycle: String
+        strata: string,
+        lifecycle: string
     },
-    lifespan: Number,
-    height: Number,
-    width: Number,
+    lifespan: number,
+    height: number,
+    width: number,
     flows: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Flow"
-        }
+        IFlowSchema
     ],
-    utilities: [String],
+    utilities: [string],
     nutrients: {
-        fat: Number,
-        carb: Number,
-        protein: Number
+        fat: number,
+        carb: number,
+        protein: number
     },
     activities: [
         {
-            activityType: String,
-            subtype: String,
-            name: String,
+            activityType: string,
+            subtype: string,
+            name: string,
             time: {
-                startMonth: Number,
-                endMonth: Number
+                startMonth: number,
+                endMonth: number
             },
-            price: {type: Number, default: 0}
+            price: number
         }
     ],
-    price: Number
+    price: number
+}
+
+// SPECIES SCHEMA SETUP
+const speciesSchema = new Schema<ISpeciesSchema>({
+  nameCommon: String,
+  genus: String,
+  species: String,
+  family: String,
+  origin: String,
+  invasive: String,
+  temperature: {
+    min: Number,
+    max: Number,
+  },
+  precipitation: {
+    min: Number,
+    max: Number,
+  },
+  cultivation: String,
+  form: String,
+  management: String,
+  stapleCrop: String,
+  industrialCrop: String,
+  fodder: String,
+  classsyntropic: {
+    strata: String,
+    lifecycle: String,
+  },
+  lifespan: Number,
+  height: Number,
+  width: Number,
+  flows: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Flow',
+    },
+  ],
+  utilities: [String],
+  nutrients: {
+    fat: Number,
+    carb: Number,
+    protein: Number,
+  },
+  activities: [
+    {
+      activityType: String,
+      subtype: String,
+      name: String,
+      time: {
+        startMonth: Number,
+        endMonth: Number,
+      },
+      price: { type: Number, default: 0 },
+    },
+  ],
+  price: Number,
 });
 
-export default mongoose.model("Species", speciesSchema);
+export default model('Species', speciesSchema);
