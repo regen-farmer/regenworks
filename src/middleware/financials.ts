@@ -1,25 +1,12 @@
-import gisObj from '../middleware/gis'
+import gisObj, {rowBasedLayout, systemBasedLayout} from '../middleware/gis'
 import area from '@turf/area'
+import unique from 'array-unique';
+import {IProjectSchema} from "../models/project";
 
-// DEFINE OBJECT TO HOLD FUNCTIONS FOR DYNAMIC FINANCIAL MODELLING
-var dyFiMo: any = {}
-
-/*
-
-// ESTABLISHMENT BUDGET
-dyFiMo.establishment = function (project) {
-  // DEFINE OBJECT TO HOLD OUTPUT PARAMETERS OF ESTABLISHMENT BUDGET
-  var establishmentBudget = (any = {})
-  // GET INPUT PARAMETERS
-  var speciesPostings = req.body.speciespostings
-  var speciesPostingsArray: any[] = []
-  for (let i = 0; i < speciesPostings.length; i++) {
-    // REMOVE NONE ONES
-    if (!(speciesPostings[i] === 'none')) {
-      var splitPostings = speciesPostings[i].split(' ')
-      speciesPostingsArray.push(splitPostings)
-    }
-  }
+// DYNAMIC ESTABLISHMENT BUDGET
+export function establishment(project: IProjectSchema) {
+  // DEFINE OBJECT FOR POSTINGS
+  var postings: any[] = []
   // GET SYSTEM LAYOUT FROM PROJECT
   var layout: any = {}
   // IF ROWS, DO XXX
@@ -37,62 +24,69 @@ dyFiMo.establishment = function (project) {
     uniqueSpeciesCount = layout.uniqueSpeciesCount
     uniqueSpecies = layout.uniqueSpecies
   }
-  // FIND SPECIES ACTIVITIES SPECIFIED BY INPUT PARAMETERS AND CREATE BUDGET POSTINGS
-  var postings: any[] = []
-  // RUN THROUGH ALL POSTINGS
-  for (let i = 0; i < speciesPostingsArray.length; i++) {
-    for (let j = 0; j < uniqueSpecies.length; j++) {
-      // RUN THROUGH ALL ACTIVITIES
-      if (speciesPostingsArray[i][0] === uniqueSpecies[j].id) {
-        // CREATE THE POSTING HERE AND PUSH
-        var posting: any = {
-          name:
-            uniqueSpecies[j].nameCommon +
-            ' ' +
-            uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype +
-            ': ' +
-            uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
-          postType: 'material',
-          amount: 1,
-          value: uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
-          year: 1,
+  // RUN THROUGH UNIQUE SPECIES AND CHECK IF ACTIVITIES ARE SPECIFIED IN SYSTEM MODEL
+  console.log(uniqueSpecies.length);
+  for (let i = 0; i < uniqueSpecies.length; i++){
+    // CHECK ALL ACTIVITIES FOR MATCH
+    console.log(project.system.model.length);
+    for (let j = 0; j < project.system.model.length; j++){
+      // CHECK IF SPECIES IN MODEL AND UNIQUE IS THE SAME
+      if(uniqueSpecies[i].id === project.system.model[j].species.id){
+          if(project.system.model[j].activities && project.system.model[j].activities.length > 0){
+            for (let k = 0; k < project.system.model[j].activities.length; k++){
+              console.log("hello");
+              console.log(project.system.model[j].activities[k].activityType);
+              if(project.system.model[j].activities[k].activityType === "establish"){
+                // IF ESTABLISHMENT THEN ADD TO POSTINGS
+                console.log(project.system.model[j].activities[k].name);
+                // INSERT SPECIES ID AND INDEX OF ACTIVITY ON SPECIES IN SPECIESPOSTINGSARRAY
+                var postingint: any = {
+                  name:
+                      uniqueSpecies[i].nameCommon +
+                      ' ' +
+                      project.system.model[j].activities[k].subtype +
+                      ': ' +
+                      project.system.model[i].activities[j].name,
+                  postType: 'material',
+                  amount: 1,
+                  value: 2,
+                  year: 1,
+                }
+                // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                if (
+                    project.system.model[j].activities[k].subtype ===
+                    'bed' ||
+                    project.system.model[j].activities[k].subtype ===
+                    'method'
+                ) {
+                  postingint.postType = 'labor'
+                }
+                for (let l = 0; l < uniqueSpeciesCount.length; l++) {
+                  if (uniqueSpecies[i].nameCommon === uniqueSpeciesCount[l].id) {
+                    postingint.amount = uniqueSpeciesCount[l].uniqueCount
+                  }
+                }
+                postings.push(postingint)
+              }
+            }
         }
-        // SET POSTTYPE DEPENDING ON POSTINGS TYPE
-        if (
-          uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype ===
-            'bed' ||
-          uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype ===
-            'method'
-        ) {
-          posting.postType = 'labor'
-        }
-        for (let k = 0; k < uniqueSpeciesCount.length; k++) {
-          if (uniqueSpecies[j].nameCommon === uniqueSpeciesCount[k].id) {
-            posting.amount = uniqueSpeciesCount[k].uniqueCount
-          }
-        }
-        postings.push(posting)
       }
     }
   }
-  establishmentBudget.postings = postings
-  return establishmentBudget
+  // DEFINE ESTABLISHMENT BUDGET TOTAL
+  let total = 0;
+  // CALCULATE TOTAL PRICE
+  for (let i = 0; i < postings.length; i++){
+    total =+ postings[i].amount * postings[i].value;
+  }
+  return {postings, total}
 }
 
-// CASH-FLOW BUDGET
-dyFiMo.management = function (project) {
-  // DEFINE OBJECT TO HOLD OUTPUT PARAMETERS OF CASH-FLOW BUDGET
-  var managementBudget = (any = {})
-  // PARSE INPUT PARAMETER QUERY
-  var speciesPostings = req.body.speciespostings
-  var speciesPostingsArray: any[] = []
-  for (let i = 0; i < speciesPostings.length; i++) {
-    // REMOVE NONE ONES
-    if (!(speciesPostings[i] === 'none')) {
-      var splitPostings = speciesPostings[i].split(' ')
-      speciesPostingsArray.push(splitPostings)
-    }
-  }
+
+// DYNAMIC CASH-FLOW BUDGET
+export function management(project: IProjectSchema) {
+  // DEFINE OBJECT FOR POSTINGS
+  var postings: any[] = []
   // UNIQUE SPECIES
   var layout: any = {}
   // IF ROWS, DO XXX
@@ -110,8 +104,7 @@ dyFiMo.management = function (project) {
     uniqueSpecies = layout.uniqueSpecies
   }
   // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
-  var postings: any[] = []
-  var period = req.body.period
+  var period = project.financial.period;
   // FIND UNIQUE AREA SPECIES
   var uniqueAreaSpecies: any[] = []
   // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
@@ -122,8 +115,8 @@ dyFiMo.management = function (project) {
     var countArray: any[] = []
     for (let j = 0; areaArray.length > j; j++) {
       for (let k = 0; k < areaSpeciesRotation[j].length; k++) {
-        console.log('rotation length: ' + areaSpeciesRotation[j].length)
-        console.log('rotation check' + ((i + 1) % (k + 1)))
+/*        console.log('rotation length: ' + areaSpeciesRotation[j].length)
+        console.log('rotation check' + ((i + 1) % (k + 1)))*/
         // CHECK IF YEAR IS IN ROTATION
         if (
           (i + areaSpeciesRotation[j].length) %
@@ -150,55 +143,54 @@ dyFiMo.management = function (project) {
     }
     speciesPeriodAreaArray.push(countArray)
   }
-  console.log('Species area count ' + speciesPeriodAreaArray[1][0].count)
-  console.log('Species area species ' + speciesPeriodAreaArray[1][0].id)
-  console.log(
-    'Species area first year length ' + speciesPeriodAreaArray[1].length
-  )
   // UNIQUE AREA SPECIES
   var uniqueAreaSpeciesSorted = unique(uniqueAreaSpecies)
-  console.log('Unique area species ' + uniqueAreaSpeciesSorted.length)
-  // RUN THROUGH ALL POSTINGS
-  for (let i = 0; i < speciesPostingsArray.length; i++) {
-    for (let j = 0; j < uniqueSpecies.length; j++) {
-      // RUN THROUGH ALL ACTIVITIES
-      if (speciesPostingsArray[i][0] === uniqueSpecies[j].id) {
-        // ITERATE FOR EACH YEAR
-        for (let k = 0; k < period; k++) {
-          // CREATE THE POSTING HERE AND PUSH
-          var posting: any = {
-            name:
-              uniqueSpecies[j].nameCommon +
-              ' ' +
-              uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype +
-              ': ' +
-              uniqueSpecies[j].activities[speciesPostingsArray[i][1]].name,
-            postType: 'material',
-            amount: 1,
-            value:
-              uniqueSpecies[j].activities[speciesPostingsArray[i][1]].price,
-            year: k + 1,
-          }
-          // SET POSTTYPE DEPENDING ON POSTINGS TYPE
-          if (
-            uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype ===
-              'pruning' ||
-            uniqueSpecies[j].activities[speciesPostingsArray[i][1]].subtype ===
-              'harvest'
-          ) {
-            posting.postType = 'labor'
-          }
-          for (let l = 0; l < uniqueSpeciesCount.length; l++) {
-            if (uniqueSpecies[j].nameCommon === uniqueSpeciesCount[l].id) {
-              posting.amount = uniqueSpeciesCount[l].uniqueCount
+  // ACTIVITY POSTINGS
+  for (let i = 0; i < uniqueSpecies.length; i++){
+    // CHECK ALL ACTIVITIES FOR MATCH
+    console.log(project.system.model.length);
+    for (let j = 0; j < project.system.model.length; j++){
+      // CHECK IF SPECIES IN MODEL AND UNIQUE IS THE SAME
+      if(uniqueSpecies[i].id === project.system.model[j].species.id){
+        if(project.system.model[j].activities && project.system.model[j].activities.length > 0){
+          for (let k = 0; k < project.system.model[j].activities.length; k++){
+            console.log("hello");
+            console.log(project.system.model[j].activities[k].activityType);
+            if(project.system.model[j].activities[k].activityType === "manage"){
+              // IF ESTABLISHMENT THEN ADD TO POSTINGS
+              console.log(project.system.model[j].activities[k].name);
+              // RUN THROUGH EACH YEAR
+              for (let m = 0; m < period; m++){
+                var postingint: any = {
+                  name:
+                      uniqueSpecies[i].nameCommon +
+                      ' ' +
+                      project.system.model[j].activities[k].subtype +
+                      ': ' +
+                      project.system.model[i].activities[j].name,
+                  postType: 'material',
+                  amount: 1,
+                  value: -1,
+                  year: 1 + m,
+                }
+                // SET POSTTYPE DEPENDING ON POSTINGS TYPE
+                if (
+                    project.system.model[j].activities[k].subtype ===
+                    'pruning' ||
+                    project.system.model[j].activities[k].subtype ===
+                    'harvest'
+                ) {
+                  postingint.postType = 'labor'
+                }
+                for (let l = 0; l < uniqueSpeciesCount.length; l++) {
+                  if (uniqueSpecies[i].nameCommon === uniqueSpeciesCount[l].id) {
+                    postingint.amount = uniqueSpeciesCount[l].uniqueCount
+                  }
+                }
+                postings.push(postingint)
+              }
             }
           }
-          // CHECK ROTATION HERE FOR SPECIES AREA SIZES -
-          // JUST CHECK EACH AREA
-          // ADD TO COUNTER
-          // THEN SET AMOUNT TO COUNTER
-
-          postings.push(posting)
         }
       }
     }
@@ -214,8 +206,8 @@ dyFiMo.management = function (project) {
       var posting: any = {
         name: uniqueSpecies[i].nameCommon + ' yields',
         postType: 'product',
-        amount: 0,
-        value: 1,
+        amount: 1,
+        value: 340,
         year: j + 1,
       }
       if (
@@ -251,8 +243,8 @@ dyFiMo.management = function (project) {
       var posting: any = {
         name: uniqueAreaSpeciesSorted[i].nameCommon + ' yields',
         postType: 'product',
-        amount: 0,
-        value: 1,
+        amount: 1,
+        value: 10,
         year: j + 1,
       }
       if (
@@ -277,23 +269,36 @@ dyFiMo.management = function (project) {
     }
   }
   // CREATE ADDITIONAL POSTINGS FOR AREA SIZES???
-
-  managementBudget.postings = postings
-  return managementBudget
+  console.log(postings.length + ' postings including yields')
+  const totals: any[] = [];
+  // GENERATE INDEXES WITH 0 AND FILL YoY TOTALS
+  for (let j = 0; j < period; j++){
+    var totalCount = 0;
+    for (let k = 0; k < postings.length; k++){
+      if(postings[k].year === j+1){
+        totalCount += postings[k].amount * postings[k].value;
+      }
+    }
+    totals.push(totalCount);
+  }
+  console.log(totals);
+  return {postings, totals};
 }
 
-*/
-
 // FINANCIAL ANALYSIS
-dyFiMo.financialAnalysis = function (project) {
+export function financialAnalysis(project: IProjectSchema) {
   // CREATE BOTH BUDGETS
   var financialAnalysis: any = {}
-  var establishmentBudget = dyFiMo.establishment
-  var managementBudget = dyFiMo.management
+  var establishmentBudget = establishment
+
+  // HARDCODE FINANCIAL OUTPUTS IN RETURN
+
 
   /*    financialAnalysis.irr = irr;
     financialAnalysis.npv = npv;*/
-  return financialAnalysis
+  return {};
 }
 
-module.exports = dyFiMo
+export default {
+  establishment, management, financialAnalysis,
+};

@@ -83,6 +83,13 @@ const systemSchema = new Schema<ISystemSchema>({
       },
       position: [Number],
       width: Number,
+        activities: [
+            {
+                activityType: String,
+                subtype: String,
+                name: String
+            }
+        ],
     },
   ],
   animals: [

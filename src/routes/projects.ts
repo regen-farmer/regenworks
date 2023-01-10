@@ -19,7 +19,9 @@ import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
+import dyFiMo from '../middleware/financials';
 import { IUserSchema } from '../models/user';
+
 // =======
 // var express = require("express");
 // var router = express.Router();
@@ -254,9 +256,6 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
 
           // ROI
           const roi = 0;
-          /*
-                var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
-*/
           // CALCULATE DATASET
           const sumArray: number[] = [];
           let sum = 0;
@@ -264,9 +263,6 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
             sum += YoY[i];
             sumArray.push(sum);
           }
-          /*
-                var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
-*/
           console.log(YoY[0]);
           console.log(YoY.length);
           const parseddataset = JSON.stringify(YoY);
@@ -1513,79 +1509,139 @@ router.put(
   },
 );
 
+// --------- PROJECT FINANCIALS ROUTE TEMP --------
+// PROJECT FINANCIALS ROUTE
+router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  try {
+    const foundProject = await Project.findById(req.params.id)
+        .populate({path: 'system', populate: {path: 'model.species'}})
+        .populate('edgesystem')
+        .populate('layer')
+        .populate({
+          path: 'rows',
+          populate: { path: 'sequence', populate: { path: 'model.species' } },
+        })
+        .exec();
+    if (foundProject) {
+      // USE MIDDLEWARE TO DYNAMICALLY CALCULATE THE ESTABLISHMENT AND CASH-FLOW BUDGET
+      const establishmentBudget = dyFiMo.establishment(foundProject);
+      const managementBudget = dyFiMo.management(foundProject);
+      // SETUP LABELS AND YoY CASH-FLOW INCLUDING
+      const labels: any[] = [];
+      for (let i = 0; i < foundProject.financial.period; i++){
+        const label = i + 1;
+        JSON.stringify(label);
+        labels.push(label);
+      }
+      var YoY = managementBudget.totals;
+      YoY[0] = YoY[0]-establishmentBudget.total;
+      // ADD BUDGET DATA TO GRAPH DATASETS
+
+      // CALCULATE ACCUMULATIVE CASH-FLOW
+      const sumArray: number[] = [];
+      let sum = 0;
+      for (let i = 0; i < foundProject.financial.period; i++) {
+        sum += YoY[i];
+        sumArray.push(sum);
+      }
+      var npv = 0;
+      for (let i = 0; i < YoY.length; i++) {
+        const discountedTotal = YoY[i]*(Math.pow((1-(foundProject.financial.discountRate)),i+1));
+        npv += discountedTotal;
+      }
+      // STRINGIFY FOR EJS :D
+      const parsedLabels = JSON.stringify(labels);
+      const parseddataset = JSON.stringify(YoY);
+      const parsedsum = JSON.stringify(sumArray);
+      res.render('projects/financials', {
+        project: foundProject,
+        labels: parsedLabels,
+        dataset: parseddataset,
+        sum: parsedsum,
+        npv: npv
+      });
+    } else {
+      console.log('No foundProject');
+    }
+  }
+     catch (err) {
+      console.log(err);
+    }
+});
+
 // --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
 
 // ALIGNMENT NEW ROUTE
 router.get(
-  '/projects/:id/alignmentrow/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    // FIND PROJECT
-    try {
-      const foundProject = await Project.findById(req.params.id)
-        .populate('layer')
-        .exec();
-      if (foundProject) {
-        // FIND MY SYSTEMS
-        try {
-          const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
-          );
-          res.render('projects/alignmentrow', {
-            project: foundProject,
-            sequences: foundSequences,
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  },
+'/projects/:id/alignmentrow/new',
+middleware.isLoggedIn,
+async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+// FIND PROJECT
+try {
+const foundProject = await Project.findById(req.params.id)
+.populate('layer')
+.exec();
+if (foundProject) {
+// FIND MY SYSTEMS
+try {
+const foundSequences = await Sequence.find(
+  { 'owner.id': req.user?._id },
+);
+res.render('projects/alignmentrow', {
+  project: foundProject,
+  sequences: foundSequences,
+});
+} catch (err) {
+console.log(err);
+}
+}
+} catch (err) {
+console.log(err);
+}
+},
 );
 
 // UPDATE PROJECT ALIGNMENT
 router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  try {
-    await Project.findByIdAndUpdate(
-      req.params.id,
-      { alignment: 'bearing', bearingline: req.body.geometry },
-    );
-    // req.flash("success", "Successfully added service");
-    res.redirect(`/projects/${req.params.id}/layout`);
-  } catch (err) {
-    console.log(err);
-  }
+try {
+await Project.findByIdAndUpdate(
+req.params.id,
+{ alignment: 'bearing', bearingline: req.body.geometry },
+);
+// req.flash("success", "Successfully added service");
+res.redirect(`/projects/${req.params.id}/layout`);
+} catch (err) {
+console.log(err);
+}
 });
 
 // -------------------- PDFS
 
 // BUDGET PDF
 router.get(
-  '/projects/:id/budgetpdf',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    // FIND PROJECT
+'/projects/:id/budgetpdf',
+middleware.isLoggedIn,
+async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+// FIND PROJECT
 
-    // GENERATE PDF TEST
-    const myDoc = new PDFDocument({ bufferPages: true });
+// GENERATE PDF TEST
+const myDoc = new PDFDocument({ bufferPages: true });
 
-    const buffers: any[] = [];
-    myDoc.on('data', buffers.push.bind(buffers));
-    myDoc.on('end', () => {
-      const pdfData = Buffer.concat(buffers);
-      res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(pdfData),
-        'Content-Type': 'application/pdf',
-        'Content-disposition': 'attachment;filename=test.pdf',
-      });
-    });
+const buffers: any[] = [];
+myDoc.on('data', buffers.push.bind(buffers));
+myDoc.on('end', () => {
+const pdfData = Buffer.concat(buffers);
+res.writeHead(200, {
+'Content-Length': Buffer.byteLength(pdfData),
+'Content-Type': 'application/pdf',
+'Content-disposition': 'attachment;filename=test.pdf',
+});
+});
 
-    myDoc.font('Times-Roman').fontSize(12).text('this is a test text');
+myDoc.font('Times-Roman').fontSize(12).text('this is a test text');
 
-    myDoc.end();
-  },
+myDoc.end();
+},
 );
 
 // --------------- NESTED ROUTES ---------------- //

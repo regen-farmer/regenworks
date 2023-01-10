@@ -64,7 +64,9 @@ export function systemBasedLayout(project: IProjectSchema) {
     // ADD EDGE SYSTEM WIDTH TO HEADLAND
     headland += edgeRowWidth;
   }
+/*
   console.log(`headland plus perimeter system: ${headland}`);
+*/
   const offsetPolygon = buffer(polygon, -headland * calibrateDistance, { units: 'meters' });
   // CREATE PERIMETER ROWS CENTER
   const edgeRowWidthArray: number[] = [];
@@ -111,8 +113,8 @@ export function systemBasedLayout(project: IProjectSchema) {
     }
     // ADD REST
   }
-  console.log(`Edge tree markers: ${edgeTreeMarkerArray.length}`);
-  console.log(`Edge trees: ${edgeTreeArray.length}`);
+/*  console.log(`Edge tree markers: ${edgeTreeMarkerArray.length}`);
+  console.log(`Edge trees: ${edgeTreeArray.length}`);*/
   // DO POINT COLLECTION
   const edgeTreeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
   // SET MAX LIMIT FOR AMOUNT OF TREES
@@ -149,7 +151,9 @@ export function systemBasedLayout(project: IProjectSchema) {
     };
     uniqueEdgeSpeciesCount.push(speciesCount);
   }
+/*
   console.log(`Unique Species in edge: ${uniqueEdgeSpeciesCount.length}`);
+*/
   // FIND SYSTEM ROWS
   const allSpecies: string[] = [];
   const dataset: { array: {
@@ -262,8 +266,8 @@ export function systemBasedLayout(project: IProjectSchema) {
       }
     }
   }
-  console.log(`Widths: ${alleyWidths}`);
-  console.log(`Alleys: ${alleyWidthArray}`);
+/*  console.log(`Widths: ${alleyWidths}`);
+  console.log(`Alleys: ${alleyWidthArray}`);*/
   // DEFINE ALL VARIABLES I NEED FOR THE ROWS HERE, THEN MAKE IF STATEMENTS ON ALIGNMENT
   const tempOffsetArray: any[] = [];
   let lengthLine;
@@ -288,13 +292,17 @@ export function systemBasedLayout(project: IProjectSchema) {
 */
     // ALTERNATIVE BOUNDING BOX LENGTH LINE
     const lineBearing = rhumbBearing(lengthLineBearing.geometry.coordinates[0], lengthLineBearing.geometry.coordinates[1]);
+/*
     console.log(lineBearing);
+*/
     const rotatedPolygon = transformRotate(offsetPolygon, 90 - lineBearing);
     const bboxOffsetPolygon = bboxPolygon(bbox(rotatedPolygon));
-    console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
-    console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);
+/*    console.log(bboxOffsetPolygon.geometry.coordinates[0][1]);
+    console.log(bboxOffsetPolygon.geometry.coordinates[0][2]);*/
     const lengthLineOffsetRotatedPolygon = turf.lineString([bboxOffsetPolygon.geometry.coordinates[0][1], bboxOffsetPolygon.geometry.coordinates[0][2]], { name: 'line-10' });
+/*
     console.log(`${turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })} meter length`);
+*/
     // CREATE NEW POLYGON
     const alignPolygon = transformRotate(offsetPolygon, 180 - lineBearing);
     // CHECK POINTS ON ROTATED POLYGON
@@ -308,9 +316,9 @@ export function systemBasedLayout(project: IProjectSchema) {
         westernPointCount = alignPolygon.geometry.coordinates[0][i][0];
       }
     }
-    console.log(`Index: ${westernPointIndex}`);
+/*    console.log(`Index: ${westernPointIndex}`);
     console.log(`Lengthline: ${lengthLineBearing}`);
-    console.log(`Westernpoint: ${offsetPolygon.geometry.coordinates[0][westernPointIndex]}`);
+    console.log(`Westernpoint: ${offsetPolygon.geometry.coordinates[0][westernPointIndex]}`);*/
     // MOVE SPECS
     const lineMidpoint = midpoint(lengthLineBearing.geometry.coordinates[0], lengthLineBearing.geometry.coordinates[1]);
     const moveLengthLine = turf.lineString([lineMidpoint.geometry.coordinates, offsetPolygon.geometry.coordinates[0][westernPointIndex]], { name: 'moveline' });
@@ -322,7 +330,9 @@ export function systemBasedLayout(project: IProjectSchema) {
     tempOffsetArray.push(alignPolygon);
     tempOffsetArray.push(line);
     tempOffsetArray.push(moveLine);
+/*
     console.log(`movedLine: ${moveLine.geometry.coordinates}`);
+*/
     tempOffsetArray.push(lengthLineOffsetRotatedPolygon);
     /* // CREATE ANGLED LENGTH LINE
         var rotatedLine = transformRotate(line, 90);
@@ -334,8 +344,8 @@ export function systemBasedLayout(project: IProjectSchema) {
         console.log(Math.floor((turfLength(lengthLine, {units: "meters"})))); */
     rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / rowWidth);
     rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
-    console.log(rowCount);
-    console.log(`rest ${rowRest}`);
+/*    console.log(rowCount);
+    console.log(`rest ${rowRest}`);*/
     // -------- ANGLED ROWS ---------
   } else if (project.alignment === 'north') {
     // -------- NORTH/SOURTH ROWS ---------
@@ -344,11 +354,13 @@ export function systemBasedLayout(project: IProjectSchema) {
     // TAKE TOP SIDE OF BOUNDING BOX
     lengthLine = turf.lineString([box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]], { name: 'line-0' });
     // ESTIMATE AMOUNT OF ROWS
+/*
     console.log((turfLength(lengthLine, { units: 'meters' })));
+*/
     rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / rowWidth);
     rowRest = (((turfLength(lengthLine, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
-    console.log(`rest ${rowRest}`);
-    console.log(rowCount);
+/*    console.log(`rest ${rowRest}`);
+    console.log(rowCount);*/
     // CREATE ROW LINE
     line = turf.lineString([box.geometry.coordinates[0][3], box.geometry.coordinates[0][4]], { name: 'line-1' });
     // -------- NORTH/SOURTH ROWS ---------
@@ -359,11 +371,13 @@ export function systemBasedLayout(project: IProjectSchema) {
     // TAKE TOP SIDE OF BOUNDING BOX
     lengthLine = turf.lineString([box.geometry.coordinates[0][1], box.geometry.coordinates[0][2]], { name: 'line-0' });
     // ESTIMATE AMOUNT OF ROWS
+/*
     console.log((turfLength(lengthLine, { units: 'meters' })));
+*/
     rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / rowWidth);
     rowRest = (((turfLength(lengthLine, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
-    console.log(`rest ${rowRest}`);
-    console.log(rowCount);
+/*    console.log(`rest ${rowRest}`);
+    console.log(rowCount);*/
     // CREATE ROW LINE
     line = turf.lineString([box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]], { name: 'line-1' });
     // -------- WEST/EAST ROWS ---------
@@ -542,8 +556,8 @@ export function systemBasedLayout(project: IProjectSchema) {
       tempWidthTree = tempWidthTreeCount;
     }
   }
-  console.log(`Tree sequence: ${tempWidthTree}`);
-  console.log(`Alley sequence: ${tempWidthAlley}`);
+ /* console.log(`Tree sequence: ${tempWidthTree}`);
+  console.log(`Alley sequence: ${tempWidthAlley}`);*/
   // ADD LAST ROWS IF THERE IS SOME MISSING
   let countWidth = 0;
   for (let i = 0; i < distanceArray.length; i++) {
@@ -604,8 +618,8 @@ export function systemBasedLayout(project: IProjectSchema) {
   const layout_bedPolygonCollection = turf.featureCollection(bedArray);
   const layout_alleyPolygonArray = alleyArray;
   const layout_alleySpeciesArray = alleySpeciesArray;
-  console.log(`Alley species array count: ${alleySpeciesArray.length}`);
-  console.log(`Alley polygon array count: ${alleyArray.length}`);
+/*  console.log(`Alley species array count: ${alleySpeciesArray.length}`);
+  console.log(`Alley polygon array count: ${alleyArray.length}`);*/
   // SET ROWLENGTH ARRAY
   const rowLengthArray: number[] = [];
   for (let i = 0; i < rowArray.length; i++) {
@@ -689,7 +703,9 @@ export function systemBasedLayout(project: IProjectSchema) {
     // CALCULATE AREA
     // treeRowArea += rowLength * treeRows[treeRowCount].array[0].width;
     // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+/*
     console.log(`Position: ${treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].position[1]}`);
+*/
     if (!(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].position[1] < systemModelLength)) {
       treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].species);
       const firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
@@ -748,8 +764,8 @@ export function systemBasedLayout(project: IProjectSchema) {
       treeRowCount += 1;
     }
   }
-  console.log(treeArray.length);
-  console.log(treeMarkerArray.length);
+ /* console.log(treeArray.length);
+  console.log(treeMarkerArray.length);*/
   // DO POINT COLLECTION
   const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
   if (treeMarkerArray.length < 5000) {

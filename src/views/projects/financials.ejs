@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<h1> Financials </h1>
+<div class="row">
+    <div class="col-sm-8"><canvas id="lineChart"></canvas></div>
+    <div class="col-sm-4">
+        <h2>Financial Analysis</h2>
+        <p><strong>Parameters</strong></p>
+        <p>Discount rate: <%= project.financial.discountRate * 100 %> %</p>
+        <p>Time period: <%= project.financial.period %> years</p>
+
+        <p><strong>Financial Indicators</strong></p>
+        <p>IRR: </p>
+        <p>NPV: <%= Math.round(npv) %></p>
+        <p>MIRR?: </p>
+
+    </div>
+</div>
+
+<script>
+    var labels = "<%= labels %>";
+    var correctlabels = JSON.parse(labels.replace(/&#34;/g,'"'));
+
+    var dataset = "<%= dataset %>";
+    var correctdataset = JSON.parse(dataset.replace(/&#34;/g,'"'));
+
+    var sum = "<%= sum %>";
+    var correctsum = JSON.parse(sum.replace(/&#34;/g,'"'));
+
+    var ctx = document.getElementById('lineChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: correctlabels,
+            datasets: [{
+                label: 'Income',
+                backgroundColor: 'rgb(255, 255, 255)',
+                borderColor: 'rgb(0, 0, 255)',
+                data: correctdataset
+            },
+                {
+                    label: 'Cumulative cash flow',
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    borderColor: 'rgb(77, 131, 51)',
+                    data: correctsum
+                }
+            ]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+</script>
+
+<%- include('../partials/footer') %>
