@@ -16,10 +16,12 @@ import {
   along,
   circle,
   polygonToLine,
+  booleanPointOnLine,
   LineString,
 } from '@turf/turf';
 import { IProjectSchema } from '../models/project';
 import { ISpeciesSchema } from '../models/species';
+import {options} from "pdfkit";
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
@@ -455,12 +457,12 @@ export function systemBasedLayout(project: IProjectSchema) {
         const rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
         console.log(`Row point count: ${rowPoints1.features.length}`);
         // DO IF HERE TO CHECK SEPARATE ROWS
-        for (let k = 0; k < rowPoints1.features.length; k += 2) {
+        for (let k = 0; k < rowPoints1.features.length/2; k += 1) {
           let row1;
           if ((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && (rowPoints1.features[1].geometry.coordinates[0] < 0 || rowPoints1.features[0].geometry.coordinates[1] > rowPoints1.features[1].geometry.coordinates[1]))) {
-            row1 = turf.lineString([[rowPoints1.features[k + 1].geometry.coordinates[0], rowPoints1.features[k + 1].geometry.coordinates[1]], [rowPoints1.features[k].geometry.coordinates[0], rowPoints1.features[k].geometry.coordinates[1]]], { name: `line-0${i}` });
+            row1 = turf.lineString([[rowPoints1.features[k + (rowPoints1.features.length/2)].geometry.coordinates[0], rowPoints1.features[k + (rowPoints1.features.length/2)].geometry.coordinates[1]], [rowPoints1.features[k].geometry.coordinates[0], rowPoints1.features[k].geometry.coordinates[1]]], { name: `line-0${i}` });
           } else {
-            row1 = turf.lineString([[rowPoints1.features[k].geometry.coordinates[0], rowPoints1.features[k].geometry.coordinates[1]], [rowPoints1.features[k + 1].geometry.coordinates[0], rowPoints1.features[k + 1].geometry.coordinates[1]]], { name: `line-0${i}` });
+            row1 = turf.lineString([[rowPoints1.features[k].geometry.coordinates[0], rowPoints1.features[k].geometry.coordinates[1]], [rowPoints1.features[k + (rowPoints1.features.length/2)].geometry.coordinates[0], rowPoints1.features[k + (rowPoints1.features.length/2)].geometry.coordinates[1]]], { name: `line-0${i}` });
           }
           rowArray.push(row1);
         }
@@ -469,9 +471,17 @@ export function systemBasedLayout(project: IProjectSchema) {
         const alleyPoints1 = lineIntersect(alleyBufferLine1, offsetPolygon);
         const alleyBufferLine2 = buffer(line, ((distance + (treeRowWidthArray[j] / 2)) * calibrateDistance), { units: 'meters' });
         const alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
-        const alleyPolygon = turf.polygon([[alleyPoints1.features[0].geometry.coordinates, alleyPoints1.features[1].geometry.coordinates, alleyPoints2.features[1].geometry.coordinates, alleyPoints2.features[0].geometry.coordinates, alleyPoints1.features[0].geometry.coordinates]], { name: `alleypoly${i}` });
-        // CUT OFFSET PERIMETER AS WELL FOR BEST ACCURACY
-        bedArray.push(alleyPolygon);
+        // CHECK POINTS IN TREE STRIP POLYGONS
+        console.log(`treeStripPoints1: ${alleyPoints1.features.length}`);
+        console.log(`treeStripPoints2: ${alleyPoints2.features.length}`);
+        // CHECK IF SAME LENGTH - OTHERWISE CAN'T MAKE POLYGON
+        if(alleyPoints1.features.length === alleyPoints2.features.length){
+          for (let k = 0; k < alleyPoints1.features.length/2; k += 1) {
+            const alleyPolygon = turf.polygon([[alleyPoints1.features[k].geometry.coordinates, alleyPoints1.features[k+(alleyPoints1.features.length/2)].geometry.coordinates, alleyPoints2.features[k+(alleyPoints2.features.length/2)].geometry.coordinates, alleyPoints2.features[k].geometry.coordinates, alleyPoints1.features[k].geometry.coordinates]], {name: `alleypoly${i}`});
+            // CUT OFFSET PERIMETER AS WELL FOR BEST ACCURACY
+            bedArray.push(alleyPolygon);
+          }
+        }
       }
     }
     // ONLY DO THIS IF ALLEYS ARE THERE - ABOVE 1 MEANS THAT THERE IS AN ALLEY :P
@@ -482,9 +492,16 @@ export function systemBasedLayout(project: IProjectSchema) {
           bedDistance += alleyWidthArray[j];
           if (alleyWidthArray[0] < distanceArray[0]) {
             // IF ALLEY IS FIRST, CREATE ALLEY WITH CUT
-
+            const alleyBufferLineFirst = buffer(line, ((bedDistance + (alleyWidths[j] / 2)) * calibrateDistance), { units: 'meters' });
+            const alleyPointsFirst = lineIntersect(alleyBufferLineFirst, offsetPolygon);
+            // CUT FIRST LINE OF GEOMETRY
+            const firstAlley = offsetPolygon;
+            console.log("Polygon geometry " + firstAlley.geometry.coordinates.length);
+            for(let k = 0; k < firstAlley.geometry.coordinates.length; k++){
+              console.log(k);
+            }
           } else {
-            // IF ALLEY IS FIRST, CREATE ALLEY NORMALLY
+            // IF TREE ROW IS FIRST, CREATE ALLEY NORMALLY
             const alleyBufferLine3 = buffer(line, ((bedDistance - (alleyWidths[j] / 2)) * calibrateDistance), { units: 'meters' });
             const alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
             const alleyBufferLine4 = buffer(line, ((bedDistance + (alleyWidths[j] / 2)) * calibrateDistance), { units: 'meters' });
@@ -509,6 +526,15 @@ export function systemBasedLayout(project: IProjectSchema) {
           }
         } else if (j === alleyWidthArray.length - 1) { // REMAINING ALLEYS ON AREA
           bedDistance += alleyWidthArray[j];
+          // IF ALLEY IS FIRST, CREATE ALLEY WITH CUT
+          /*const alleyBufferLineLast = buffer(line, ((bedDistance - (alleyWidths[j] / 2)) * calibrateDistance), { units: 'meters' });
+          const alleyPointsLast = lineIntersect(alleyBufferLineLast, offsetPolygon);*/
+          // CUT FIRST LINE OF GEOMETRY
+          /*const lastAlley = offsetPolygon;
+          console.log("Polygon geometry " + lastAlley.geometry.coordinates.length);
+          for(let k = 0; k < lastAlley.geometry.coordinates.length; k++){
+            console.log(k);
+          }*/
         } else {
           // CREATE ALLEYS
           bedDistance += alleyWidthArray[j];
@@ -516,25 +542,35 @@ export function systemBasedLayout(project: IProjectSchema) {
           const alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
           const alleyBufferLine4 = buffer(line, ((bedDistance + (alleyWidths[j] / 2)) * calibrateDistance), { units: 'meters' });
           const alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
+          /*// PRINT ALLEY POINT COUNTS TO SEE WHEN MORE THAN 2
+          console.log(`alleyPoints3: ${alleyPoints3.features.length}`);
+          console.log(`alleyPoints4: ${alleyPoints4.features.length}`);*/
           // CHECK IF BEARING IS OPPOSITE
           const bearingcheck1 = rhumbBearing(alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates);
           const bearingcheck2 = rhumbBearing(alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates);
-          console.log(`bearing1: ${bearingcheck1}`);
+/*          console.log(`bearing1: ${bearingcheck1}`);
           console.log(`bearing2: ${bearingcheck2}`);
-          console.log(`bearingcheck: ${bearingcheck1 % bearingcheck2}`);
-          let alleyPolygon1;
-          if ((bearingcheck1 - bearingcheck2) > 1 || (bearingcheck2 - bearingcheck1) > 1) {
-            alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], { name: `alleypoly${i}` });
-          } else {
-            alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], { name: `alleypoly${i}` });
-          }
-          // PUSH TO ARRAY
-          alleyArray.push(alleyPolygon1);
-          // ADD SPECIES TO ALLEY ARRAY
-          const alleySpeciesCount = [
-            alleySpeciesArrayCount[j],
-          ];
-          alleySpeciesArray.push(alleySpeciesCount);
+          console.log(`bearingcheck: ${bearingcheck1 % bearingcheck2}`);*/
+          // CHECK IF SAME LENGTH
+          if(alleyPoints3.features.length === alleyPoints4.features.length){
+            // DO IF HERE TO CHECK SEPARATE ROWS
+            for (let k = 0; k < alleyPoints3.features.length/2; k += 1) {
+              // CHECK IF SAME LENGTH
+              let alleyPolygon1;
+              if ((bearingcheck1 - bearingcheck2) > 1 || (bearingcheck2 - bearingcheck1) > 1) {
+                alleyPolygon1 = turf.polygon([[alleyPoints3.features[k].geometry.coordinates, alleyPoints3.features[k+(alleyPoints3.features.length/2)].geometry.coordinates, alleyPoints4.features[k+(alleyPoints4.features.length/2)].geometry.coordinates, alleyPoints4.features[k].geometry.coordinates, alleyPoints3.features[k].geometry.coordinates]], { name: `alleypoly${i}` });
+              } else {
+                alleyPolygon1 = turf.polygon([[alleyPoints3.features[k].geometry.coordinates, alleyPoints3.features[k+(alleyPoints3.features.length/2)].geometry.coordinates, alleyPoints4.features[k].geometry.coordinates, alleyPoints4.features[k+(alleyPoints4.features.length/2)].geometry.coordinates, alleyPoints3.features[k].geometry.coordinates]], { name: `alleypoly${i}` });
+              }
+              // PUSH TO ARRAY
+              alleyArray.push(alleyPolygon1);
+              // ADD SPECIES TO ALLEY ARRAY
+              const alleySpeciesCount = [
+                alleySpeciesArrayCount[j],
+              ];
+              alleySpeciesArray.push(alleySpeciesCount);
+            }
+          };
         }
       }
     }
@@ -593,7 +629,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     }
   }
   // ADD LAST ALLEYS IF THERE IS SOME MISSING
-  /* var alleyCountWidth = 0;
+  var alleyCountWidth = 0;
     for(let i=0;i<alleyWidthArray.length;i++){
         alleyCountWidth = alleyCountWidth + alleyWidthArray[i];
         // NEED TO CHECK FOR MINUS WIDTH AS WELL? YES
@@ -601,16 +637,63 @@ export function systemBasedLayout(project: IProjectSchema) {
             if((alleyCountWidth + alleyWidthArray[i+1] > rowRest) && tempWidthTree > tempWidthAlley){
 
             } else {
+                // MAKE INDEX COUNTS FOR ALLEY PERIMETER INTERSECTION CUT
+                /*var alleyArrayIndexStart = 0;
+                var alleyArrayIndexEnd = 0;
+                // MAKE ALLEY CUT LINE
                 var alleyBufferLine3 = buffer(line, ((bedDistance+alleyCountWidth-(alleyWidths[i]/2))*calibrateDistance), {units: "meters"});
                 var alleyPoints3 = lineIntersect(alleyBufferLine3, offsetPolygon);
-                var alleyBufferLine4 = buffer(line, ((bedDistance+alleyCountWidth+(alleyWidths[i]/2))*calibrateDistance), {units: "meters"});
+                const rowLast = turf.lineString([[alleyPoints3.features[1].geometry.coordinates[0], alleyPoints3.features[1].geometry.coordinates[1]], [alleyPoints3.features[0].geometry.coordinates[0], alleyPoints3.features[0].geometry.coordinates[1]]], { name: `line-1${i}` });
+
+                // RUN THROUGH OFFSETPOLYGON AND CHECK IF LINEPOINTS INTERSECTS IS ON SPECIFIC LINE SEGMENT
+                console.log("offsetpolygon coordinates: " + offsetPolygon.geometry.coordinates[0][0] + offsetPolygon.geometry.coordinates[0][1]);
+                for(let j=0;j<offsetPolygon.geometry.coordinates[0].length-1;j++){
+                  const lineSegment = turf.lineString([[offsetPolygon.geometry.coordinates[0][j][0],offsetPolygon.geometry.coordinates[0][j][1]],[offsetPolygon.geometry.coordinates[0][j+1][0],offsetPolygon.geometry.coordinates[0][j+1][1]]],{name: "line segment"});
+                  const LineSegmentOptions = {epsilon: 1};
+                  // INTERSECT POINT 0 INTERSECTION LINE SEGMENT INDEX
+                  const onLineSegmentStart = booleanPointOnLine(alleyPoints3.features[0].geometry.coordinates,lineSegment,LineSegmentOptions);
+                  console.log(onLineSegmentStart);
+                  if (onLineSegmentStart){
+                    alleyArrayIndexStart = j-1;
+                    console.log("First intersection on line segment: " + j);
+                  }
+                  // INTERSECT POINT 1 INTERSECTION LINE SEGMENT INDEX
+                  const onLineSegmentEnd = booleanPointOnLine(alleyPoints3.features[1].geometry.coordinates,lineSegment,LineSegmentOptions);
+                  if(onLineSegmentEnd){
+                    alleyArrayIndexEnd = j;
+                    console.log("Last intersection on line segment: " + j);
+                  }
+                }
+                console.log("Start Index: " + alleyArrayIndexStart);
+                console.log("End Index: " + alleyArrayIndexEnd);
+                // NEW ARRAY OF COORDINATES
+                const cutAlleyCoordinateArray: any[] = [];
+                // INSERT POINTS IN ARRAY
+                for(let j=0;j<offsetPolygon.geometry.coordinates[0].length-1;j++){
+                  // CHECK IF PART OF LINE SEGMENT
+                  if(j >= alleyArrayIndexStart && alleyArrayIndexEnd >= j){
+                    cutAlleyCoordinateArray.push(offsetPolygon.geometry.coordinates[0][j]);
+                  }
+                }
+                // INSERT 0 INTERSECTION LAST
+                cutAlleyCoordinateArray.push(alleyPoints3.features[0].geometry.coordinates)
+                // INSERT 1 INTERSECTION FIRST LAST
+                cutAlleyCoordinateArray.push(alleyPoints3.features[1].geometry.coordinates)
+                cutAlleyCoordinateArray.unshift(alleyPoints3.features[1].geometry.coordinates)
+                // INSERT LAST FOR TEST
+                console.log("cutAlleyCoordinateArray: " + cutAlleyCoordinateArray);
+                console.log("cutAlleyCoordinateArray: " + cutAlleyCoordinateArray[0]);
+                console.log("cutAlleyCoordinateArray: " + cutAlleyCoordinateArray[1]);
+                const cutAlleyPolygon = turf.polygon([cutAlleyCoordinateArray],{name: "Alley End"});
+                alleyArray.push(cutAlleyPolygon);*/
+                /*var alleyBufferLine4 = buffer(line, ((bedDistance+alleyCountWidth+(alleyWidths[i]/4))*calibrateDistance), {units: "meters"});
                 var alleyPoints4 = lineIntersect(alleyBufferLine4, offsetPolygon);
                 var alleyPolygon1 = turf.polygon([[alleyPoints3.features[0].geometry.coordinates, alleyPoints3.features[1].geometry.coordinates, alleyPoints4.features[1].geometry.coordinates, alleyPoints4.features[0].geometry.coordinates, alleyPoints3.features[0].geometry.coordinates]], {name: "alleypoly" + i});
                 // PUSH TO ARRAY
-                alleyArray.push(alleyPolygon1);
+                alleyArray.push(alleyPolygon1);*/
             }
         }
-    } */
+    }
   const layout_offsetArray = tempOffsetArray;
   // CALCULATE TREE ROW AREA HERE
   const layout_treeRowArea = 0;
