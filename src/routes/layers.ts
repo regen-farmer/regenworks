@@ -20,6 +20,7 @@ import Sequence from '../models/sequence';
 import Row from '../models/row';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 // SETUP MULTER
 // XML2JS
@@ -36,7 +37,7 @@ const parser = new xml2js.Parser();
 router.get(
   '/parcels/:id/layers/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL ID
     try {
       const foundParcel = await Parcel.findById(req.params.id);
@@ -66,7 +67,7 @@ router.get(
                 }
                 return 0;
               });
-              res.render('layers/new', {
+              res.send({
                 parcel: foundParcel,
                 species: foundSpecies,
                 animals: foundAnimals,
@@ -87,7 +88,7 @@ router.get(
 router.get(
   '/parcels/:id/layers/newkml',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL ID
     try {
       const foundParcel = await Parcel.findById(req.params.id);
@@ -117,7 +118,7 @@ router.get(
                 }
                 return 0;
               });
-              res.render('layers/newkml', {
+              res.send({
                 parcel: foundParcel,
                 species: foundSpecies,
                 animals: foundAnimals,
@@ -138,32 +139,46 @@ router.get(
 router.post(
   '/parcels/:id/layers',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // Lookup place using id
     try {
+      console.log('im here 1')
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel) {
         try {
+
+          console.log('im here 2')
           const layer = await Layer.create(req.body.layer);
           // Add user ID to Layer.
+          console.log('im here 2.1')
           layer.owner.id = req.user?._id;
+
+          console.log('im here 2.2')
           // Save JSON file to geometry
           layer.geometry = req.body.geometry;
           layer.size = req.body.layersize;
+          console.log('im here 2.3')
           const geometrycentroid = centroid(JSON.parse(req.body.geometry));
+
+          console.log('im here 3')
+
           console.log(geometrycentroid.geometry.coordinates[0]);
           layer.lat = geometrycentroid.geometry.coordinates[1];
           layer.lng = geometrycentroid.geometry.coordinates[0];
           // Save the layer
           await layer.save();
+          console.log('im here 4')
           // Connect new layer to parcel
           foundParcel.layers.push(layer); // MOVE THIS UP TO AVOID ERRORS IF LAYER FAILS?!!!
+          console.log('im here 5')
           await foundParcel.save();
+
+          console.log('im here 6')
           console.log(layer);
           // Redirect to parcels SHOW page
           // req.flash("success", "Successfully added comment");
           /* if(layer.type == "agroforestry"){
-                       res.redirect("/layers/" + layer._id + '/systems/newgrid');
+                       res.send("/layers/" + layer._id + '/systems/newgrid');
                    } else { */
           let tempspecies = req.body.maincrop;
           if (req.body.maincrop === '') {
@@ -201,14 +216,8 @@ router.post(
                   layer.systems.present = createdSystem;
                   await layer.save();
                   // IF FOREST OR ORCHARD GO TO LAYOUT
-                  if (
-                    layer.type === 'forestry'
-                           || layer.type === 'orchard'
-                  ) {
-                    res.redirect(`/layers/${layer._id}/layout`);
-                  } else {
-                    res.redirect(`/layers/${layer._id}`);
-                  }
+                  res.send(layer);
+
                 } catch (err) {
                   console.log(err);
                 }
@@ -219,15 +228,9 @@ router.post(
                 // ASS SYSTEM TO PRESENT SYSTEM
                 layer.systems.present = createdSystem;
                 await layer.save();
-                // IF FOREST OR ORCHARD GO TO LAYOUT
-                if (
-                  layer.type === 'forestry'
-                     || layer.type === 'orchard'
-                ) {
-                  res.redirect(`/layers/${layer._id}/layout`);
-                } else {
-                  res.redirect(`/layers/${layer._id}`);
-                }
+
+                res.send(layer);
+
               }
             }
           } catch (err) {
@@ -239,7 +242,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.redirect(`/users/${req.user?.id}`);
+      res.send();
     }
   },
 );
@@ -249,7 +252,7 @@ router.post(
   '/parcels/:id/layersuploadkml',
   middleware.checkParcelOwnership,
   uploadMem.single('filename'),
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // CHECK EXISTING AREAS SIZE!?
 
     // PARSE UPLOADED FILE AND CREATE POLYGON
@@ -258,7 +261,7 @@ router.post(
         if (err) {
           console.log('error', err.message);
           // console.log(err);
-          res.redirect('back');
+          res.send('back');
         } else {
           const string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0]
             .LinearRing[0].coordinates[0];
@@ -299,7 +302,7 @@ router.post(
                 await foundParcel.save();
                 // DEFINE SYSTEM
                 if (createdLayer.type === 'agroforestry') {
-                  res.redirect(`/layers/${createdLayer._id}/systems/new`);
+                  res.send(`/layers/${createdLayer._id}/systems/new`);
                 } else {
                   let tempspecies = req.body.maincrop;
                   if (req.body.maincrop === '') {
@@ -345,11 +348,11 @@ router.post(
                               createdLayer.type === 'forestry'
                               || createdLayer.type === 'orchard'
                             ) {
-                              res.redirect(
+                              res.send(
                                 `/layers/${createdLayer._id}/layout`,
                               );
                             } else {
-                              res.redirect(`/layers/${createdLayer._id}`);
+                              res.send(`/layers/${createdLayer._id}`);
                             }
                           } catch (err) {
                             console.log(err);
@@ -371,9 +374,9 @@ router.post(
                             createdLayer.type === 'forestry'
                         || createdLayer.type === 'orchard'
                           ) {
-                            res.redirect(`/layers/${createdLayer._id}/layout`);
+                            res.send(`/layers/${createdLayer._id}/layout`);
                           } else {
-                            res.redirect(`/layers/${createdLayer._id}`);
+                            res.send(`/layers/${createdLayer._id}`);
                           }
                         } catch (err) {
                           console.log(err);
@@ -398,8 +401,10 @@ router.post(
 );
 
 // LAYER SHOW ROUTES
-router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE LAYER OWNERSHIP MIDDLEWARE
+
+  console.log("IM HERE")
   try {
     const foundLayer = await Layer.findById(req.params.id)
       .populate('systems.future')
@@ -409,7 +414,7 @@ router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & {
       .exec();
     if (foundLayer) {
       if (foundLayer.systems.present === undefined) {
-        res.redirect(`/layers/${foundLayer._id}/systems/newgrid`);
+        res.send(`/layers/${foundLayer._id}/systems/newgrid`);
       } else {
         const foundSystem = await System.findById(foundLayer.systems.present._id)
           .populate('model.species')
@@ -459,7 +464,7 @@ router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & {
               if (err) {
                 console.log(err);
               } else {
-                res.render('layers/show', {
+                res.send({
                   layer: foundLayer,
                   presentsystem: foundSystem,
                   species: foundSpecies,
@@ -476,34 +481,38 @@ router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & {
 });
 
 // LAYER EDIT ROUTE
-router.get('/layers/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/layers/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE LAYER OWNERSHIP MIDDLEWARE
   // Find specific activity in database
   try {
     const foundLayer = await Layer.findById(req.params.id);
-    res.render('layers/edit', { layer: foundLayer });
+    res.send({ layer: foundLayer });
   } catch (err) {
     console.log(err);
   }
 });
 
 // LAYER UPDATE ROUTE
-router.put('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const updatedLayer = await Layer.findByIdAndUpdate(
       req.params.id,
       req.body.layer,
     );
     console.log(updatedLayer);
-    res.redirect(`/layers/${req.params.id}`);
+    res.send(`/layers/${req.params.id}`);
   } catch (err) {
     console.log(err);
   }
 });
 
 // LAYER DELETE ROUTE
-router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CHECK OWNERSHIP
+
+
+  // console.log('userid', req.user?._id)
+  
   try {
     const foundLayer = await Layer.findById(req.params.id);
     // REMOVE LAYER FROM PARCEL
@@ -515,32 +524,32 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
         for (let i = foundParcels.length - 1; i >= 0; i--) {
           // CYCLE THROUGH LAYERS
           for (let j = 0; j < foundParcels[i].layers.length; j++) {
-            if (foundParcels[i].layers[j].equals(foundLayer._id)) {
+            if (foundParcels[i].layers[j].id === foundLayer.id) {
               await foundParcels[i].layers[j].remove();
               console.log('Layer removed');
-              parcelRef = foundParcels[i]._id;
+              
             }
           }
         }
         // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
-        res.redirect(`/parcels/${parcelRef}`);
+        res.send();
         // DELETE LAYER TEMP REMOVED
         /* Layer.findByIdAndRemove(req.params.id, function(err){
                        if(err){
                            console.log(err);
-                           res.redirect("/parcels");
+                           res.send("/parcels");
                        } else {
-                           res.redirect("/parcels");
+                           res.send("/parcels");
                        }
                    }); */
       } catch (err) {
         console.log(err);
-        res.redirect(`/users/${req.user?.id}`);
+        res.send();
       }
     }
   } catch (err) {
     console.log(err);
-    res.redirect(`/users/${req.user?.id}`);
+    res.send(`/users/${req.user?.id}`);
   }
 });
 
@@ -548,7 +557,7 @@ router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request 
 router.post(
   '/layers/:id/presentsystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
@@ -572,7 +581,7 @@ router.post(
             `${foundSystem.name} has been removed from future systems`,
           );
           await foundLayer.save();
-          res.redirect(`/layers/${foundLayer._id}`);
+          res.send(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -587,7 +596,7 @@ router.post(
 router.post(
   '/layers/:id/editfuture',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
@@ -600,7 +609,7 @@ router.post(
               foundLayer.systems.future.length
             } future drafts on this area`,
           );
-          res.redirect(`/layers/${foundLayer._id}`);
+          res.send(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -615,7 +624,7 @@ router.post(
 router.get(
   '/layers/:id/layout',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // MAKE LAYER OWNERSHIP MIDDLEWARE
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -695,10 +704,10 @@ router.get(
           }
           // ROW LABELS (BEFORE ROWS ARE PARSED)
           const placesCollection = turf.featureCollection(placesArray);
-          const places = JSON.stringify(placesCollection);
+          const places = placesCollection;
           // CREATE PLACES FEATURE
           const featurecollection = turf.featureCollection(rowArray);
-          const collection = JSON.stringify(featurecollection);
+          const collection = featurecollection;
           // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
           /* for(let i=0;i<foundLayer.rows.length;i++){
                           for(let j=0;j<foundLayer.rows[i].system.model.length;j++){
@@ -843,10 +852,10 @@ router.get(
             }
           }
           const treeMarkers = turf.featureCollection(treeCanopyArray);
-          const treeCollection = JSON.stringify(treeMarkers);
+          const treeCollection = treeMarkers;
           // INSERT SYSTEM CLASSIFICATION
           const vegeMarkers = turf.featureCollection(vegeCanopyArray);
-          const vegeCollection = JSON.stringify(vegeMarkers);
+          const vegeCollection = vegeMarkers;
           // DO TREE NAMES COLLECTION
           const treenames: turf.Feature<turf.Point, {
             description: string;
@@ -863,7 +872,7 @@ router.get(
             treenames.push(treename);
           }
           const treenamemarks = turf.featureCollection(treenames);
-          const treeNameCollection = JSON.stringify(treenamemarks);
+          const treeNameCollection = treenamemarks;
           // COUNT ASSETS
 
           // COMBINE ASSETS AND ROW BASED
@@ -887,10 +896,10 @@ router.get(
             }
           }
           const bedArrayPolygons = turf.featureCollection(bedPolygonArray);
-          const stripsCollection = JSON.stringify(bedArrayPolygons);
+          const stripsCollection = bedArrayPolygons;
           const alleyArrayPolygons = turf.featureCollection(alleyPolygonArray);
-          const alleysCollection = JSON.stringify(alleyArrayPolygons);
-          res.render('layers/layout', {
+          const alleysCollection = alleyArrayPolygons;
+          res.send({
             layer: foundLayer,
             presentsystem: foundSystem,
             species: foundSpecies,
@@ -911,18 +920,18 @@ router.get(
 );
 
 // NEW SPLIT LAYER ROUTE
-router.get('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND LAYER
   try {
     const foundLayer = await Layer.findById(req.params.id);
-    res.render('layers/split', { layer: foundLayer });
+    res.send( { layer: foundLayer });
   } catch (err) {
     console.log(err);
   }
 });
 
 // CREATE SPLIT LAYER ROUTE
-router.post('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND LAYER
   try {
     const foundLayer = await Layer.findById(req.params.id);
@@ -1033,7 +1042,7 @@ router.post('/layers/:id/split', middleware.isLoggedIn, async (req: express.Requ
           } else {
           // CREATE NEW LAYER WITH NEW NAME AND GEOMETRY
 
-            res.redirect(`/layers/${foundLayer._id}`);
+            res.send(`/layers/${foundLayer._id}`);
           }
         },
       );
@@ -1047,16 +1056,16 @@ router.post('/layers/:id/split', middleware.isLoggedIn, async (req: express.Requ
 router.get(
   '/layers/:id/row/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
-      const foundLayer = Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(req.params.id);
       // FIND MY SYSTEMS
       try {
-        const foundSequences = Sequence.find(
+        const foundSequences = await Sequence.find(
           { 'owner.id': req.user?._id },
         );
-        res.render('layers/row', {
+        res.send( {
           layer: foundLayer,
           sequences: foundSequences,
         });
@@ -1073,10 +1082,11 @@ router.get(
 router.post(
   '/layers/:id/row',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+    
     // IF NO GEOMETRY
     if (req.body.geometry === '') {
-      res.redirect('back');
+      res.send();
     } else {
       // CREATE ROW HERE?
       const tempGeo = JSON.parse(req.body.geometry);
@@ -1100,7 +1110,7 @@ router.post(
 
           // CREATE ROW
           console.log('Row has been added to layer');
-          res.redirect(`/layers/${updatedLayer?.id}/layout`);
+          res.send(`/layers/${updatedLayer?.id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1115,7 +1125,7 @@ router.post(
 router.get(
   '/layers/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -1131,7 +1141,7 @@ router.get(
           const foundSequences = await Sequence.find(
             { 'owner.id': req.user?._id },
           );
-          res.render('layers/editrow', {
+          res.send({
             layer: foundLayer,
             row: foundRow,
             sequences: foundSequences,
@@ -1149,7 +1159,7 @@ router.get(
 );
 
 // UPDATE ROW
-router.put('/layers/:id/row/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/layers/:id/row/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CREATE ROW HERE?
   const row: any = {
     name: req.body.row.name,
@@ -1164,7 +1174,7 @@ router.put('/layers/:id/row/:pid', middleware.isLoggedIn, async (req: express.Re
     try {
       await Row.findByIdAndUpdate(req.params.pid, row);
       if (foundLayer) {
-        res.redirect(`/layers/${foundLayer._id}/layout`);
+        res.send(`/layers/${foundLayer._id}/layout`);
       }
     } catch (err) {
       console.log(err);
@@ -1178,7 +1188,7 @@ router.put('/layers/:id/row/:pid', middleware.isLoggedIn, async (req: express.Re
 router.delete(
   '/layers/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND ROW
     // FIND LAYER
     try {
@@ -1196,7 +1206,7 @@ router.delete(
           await Row.findByIdAndRemove(req.params.pid);
 
           console.log(`Length after ${updatedLayer.rows.length}`);
-          res.redirect(`/layers/${updatedLayer._id}/layout`);
+          res.send(`/layers/${updatedLayer._id}/layout`);
         } catch (err) {
           console.log(err);
         }

@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
+dotenv.config();
+
+
 import express from 'express';
-import bodyParser from 'body-parser'; // USED TO PARSE DATA FROM POST ROUTE
 import { connect } from 'mongoose'; // REQUIRE MONGOOSE PACKAGE
 import methodOverride from 'method-override'; // USED FOR PUT AND DELETE REQUESTS
 
 // REQUIRE MODELS
 import path from 'path';
-import { auth } from 'express-openid-connect';
+// import { auth } from 'express-openid-connect';
 // import Parcel from './models/parcel';
 // import seedDB from "./seeds";
 import User, { IUserSchema } from './models/user';
@@ -35,45 +37,91 @@ import saptestRoutes from './routes/saptests';
 import farmflowRoutes from './routes/farmflows';
 import rotationRoutes from './routes/rotations';
 import varietyRoutes from './routes/varieties';
+import cors from 'cors';
 
-dotenv.config();
+
+export type Auth0IDToken = {
+  nickname: string,
+  name: string,
+  picture: string,
+  updated_at: string,
+  email: string,
+  email_verified: boolean,
+  iss: string,
+  aud: string,
+  iat: number,
+  exp: number,
+  sub: string,
+  sid: string
+}
 const app = express();
+
+app.use(cors());
+
 
 // APP SETUP
 connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
-app.use(bodyParser.urlencoded({ extended: true })); // ENABLES BODY PARSER
-app.set('view engine', 'ejs'); // SET VIEW (RENDER) ENGINE TO EJS FILE
-app.set('views', path.join(__dirname, '/views'));
+
+app.use(express.json());
+
 app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride('_method')); // USE "_method" TO PASS PUT AND DELETE REQUESTS
 // seedDB(); // USE ONLY FOR SEEDING DATABAS
 
-const config = {
-  authRequired: false,
-  auth0Logout: true,
-  baseURL: process.env.AUTH0_BASE_URL,
-  clientID: process.env.AUTH0_CLIENT_ID,
-  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-  secret: process.env.AUTH0_SECRET,
-};
+// const config = {
+//   authRequired: false,
+//   auth0Logout: true,
+//   baseURL: process.env.AUTH0_BASE_URL,
+//   clientID: process.env.AUTH0_CLIENT_ID,
+//   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+//   secret: process.env.AUTH0_SECRET,
+// };
 
-app.use(auth(config));
+// app.use(auth(config));
+var num = 0;
+app.use(function (req, res, next) {
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    var method = req.method;
+    var url = req.url;
+
+    console.log((++num) + ". IP " + ip + " " + method + " " + url);
+    next();
+});
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
-app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) => {
+app.use(async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) => {
   res.locals.currentUser = undefined;
 
-  if (req.oidc.user && req.oidc.user.email) {
+  const jwt = req.headers.authorization;
+
+  // console.log('body:', req.body)
+
+  function parseJwt(token) {
+
+    console.log('token in place')
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+
+  }
+
+  let idToken: Auth0IDToken | undefined;
+  if (jwt && typeof(jwt) == 'string') {
+    idToken = parseJwt('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImpJT0o5UEVDSkxfbzZQbVBkdnVTcyJ9.eyJuaWNrbmFtZSI6ImJpcmsiLCJuYW1lIjoiYmlya0ByZWdlbmZhcm1lci5jb20iLCJwaWN0dXJlIjoiaHR0cHM6Ly9zLmdyYXZhdGFyLmNvbS9hdmF0YXIvMjJjMGE4OTRkM2E3ZjFmZjY3YzUzNTkzZmE2NDAxYWI_cz00ODAmcj1wZyZkPWh0dHBzJTNBJTJGJTJGY2RuLmF1dGgwLmNvbSUyRmF2YXRhcnMlMkZiaS5wbmciLCJ1cGRhdGVkX2F0IjoiMjAyMy0wMS0yNFQxMTowMTo1OC4wNjlaIiwiZW1haWwiOiJiaXJrQHJlZ2VuZmFybWVyLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rldi0zejYycmFxY3A0d2N4bWtiLmV1LmF1dGgwLmNvbS8iLCJhdWQiOiJTYXFlYzhKamFxcXRhOWMyZjBpM2wyNG5WQjh6c0toUCIsImlhdCI6MTY3NDU1ODExOCwiZXhwIjoxNjc0NTk0MTE4LCJzdWIiOiJhdXRoMHw2Mzg2NzA3MDNhZjE2OWRjMGYxM2MwOTAiLCJzaWQiOiJIclZWX3cyUHQwVkF6WHNLVWhOM2Z4bENpanRpTFh5SCJ9.oCGHWR9_JakiLgLWgT_QjEoD4Gpcmu-Q75XHQTrjU3_pFwRDlMtniJiwZyvsao2ctu-HaK7FHsrDekECOgN4JDqWIEflrBe6tK14xtcOS1zfifC2K4b-maOPqPnMchk9hWyiG_UofdVT7-_OAf8QnhS1a07QarqdENADgY_RbhxUEqk-DRhTPuoqF7YnPkqFT2tkk-0TpRbm7ojb-Y_rTzbWNYlM2NX4253UeJeqioplesWDusOFfHYYLDjO03Ny2sHX9StS9f8mXAY2VIGA-v4S4lC08Ux1ARy8us6PByy4pwO40gcmytI__6FBz4VS8afnrVVSs7TDSkUlV4_tOg')
+  } else {
+    console.log('no jwt')
+  }
+
+
+  if (idToken && idToken.email) {
     // Find any existing user
-    const user = await User.findOne({ email: req.oidc.user.email }).exec();
+    const user = await User.findOne({ email: idToken.email }).exec();
 
     if (user) {
       req.user = user;
     } else {
       // Create a new user if none exist
       const newUser = await User.create({
-        externalId: req.oidc.user.sub,
-        email: req.oidc.user.email,
+        externalId: idToken.sub,
+        email: idToken.email,
         registrationDate: Date.now(),
         membership: 1209600000,
         farmLimit: 1,
@@ -87,6 +135,8 @@ app.use(async (req: express.Request & { user?: IUserSchema}, res: express.Respon
   } else {
     console.log('No oidc user');
   }
+
+  req.idToken = idToken;
 
   res.locals.currentUser = req.user;
 
@@ -120,8 +170,8 @@ app.use('', rotationRoutes);
 app.use('', varietyRoutes);
 
 // 404 ROUTE
-app.get('*', async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  res.status(404).render('404');
+app.get('*', async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
+  res.status(404).send('404');
 });
 app.set('trust proxy', true);
 

@@ -5,6 +5,7 @@ import Layer from '../models/layer';
 import Soiltest from '../models/soiltest';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
 router.get(
   '/parcels/:id/layers/:pid/soiltests/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -22,7 +23,7 @@ router.get(
 
       try {
         const foundLayer = await Layer.findById(req.params.pid);
-        res.render('soiltests/new', {
+        res.send( {
           parcel: foundParcel,
           layer: foundLayer,
         });
@@ -39,14 +40,14 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/soiltests',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // PARSE COORDINATES
     /* var soilTest = req.body.soiltest;
     var parsedCoordinates = req.body.coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    res.redirect("/parcels/" + req.params.id + "/status"); */
+    res.send("/parcels/" + req.params.id + "/status"); */
     // CREATE SOIL TEST
     try {
       const createdSoiltest = await Soiltest.create(req.body.soiltest);
@@ -58,7 +59,7 @@ router.post(
             console.log(err);
           } else {
             // RENDER PARCEL LAYER SOIL TEST PAGE
-            res.redirect(`/parcels/${req.params.id}/status`);
+            res.send(`/parcels/${req.params.id}/status`);
           }
         },
       );
@@ -72,7 +73,7 @@ router.post(
 router.get(
   '/parcels/:id/soiltests/viz',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -146,7 +147,7 @@ router.get(
         const collection4 = JSON.stringify(featurecollection4);
         const featurecollection5 = turf.featureCollection(geometryArray5);
         const collection5 = JSON.stringify(featurecollection5);
-        res.render('soiltests/viz', {
+        res.send( {
           parcel: foundParcel,
           collection1,
           collection2,

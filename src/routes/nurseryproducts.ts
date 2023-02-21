@@ -4,11 +4,12 @@ import Nursery from '../models/nursery';
 import Species from '../models/species';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // ADMIN ALL VARIETIES
-router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   NurseryProduct.find()
     .populate('species')
     .populate('rootstock')
@@ -17,7 +18,7 @@ router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.R
       if (err) {
         console.log(err);
       } else {
-        res.render('nurseryproducts/index', { products: foundNurseryProducts });
+        res.send({ products: foundNurseryProducts });
       }
     });
 });
@@ -26,7 +27,7 @@ router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.R
 router.get(
   '/nurseries/:id/nurseryproducts/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
@@ -46,7 +47,7 @@ router.get(
             }
             return 0;
           });
-          res.render('nurseryproducts/new', {
+          res.send( {
             nursery: foundNursery,
             species: allSpecies,
           });
@@ -62,7 +63,7 @@ router.get(
 router.post(
   '/nurseries/:id/nurseryproducts',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // CLEAN NONE OPTIONS
     const product = req.body.product;
     if (req.body.product.species === '') {
@@ -91,7 +92,7 @@ router.post(
           foundNursery.products.push(createdProduct);
           await foundNursery.save();
           // REDIRECT TO NURSERY
-          res.redirect(`/nurseries/${foundNursery._id}`);
+          res.send(`/nurseries/${foundNursery._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -106,7 +107,7 @@ router.post(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
@@ -119,7 +120,7 @@ router.get(
           if (err) {
             console.log(err);
           } else {
-            res.render('nurseryproducts/show', {
+            res.send( {
               nursery: foundNursery,
               product: foundProduct,
             });
@@ -135,7 +136,7 @@ router.get(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
@@ -164,7 +165,7 @@ router.get(
                   }
                   return 0;
                 });
-                res.render('nurseryproducts/edit', {
+                res.send({
                   nursery: foundNursery,
                   product: foundProduct,
                   species: allSpecies,
@@ -183,7 +184,7 @@ router.get(
 router.put(
   '/nurseries/:id/nurseryproducts/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // CLEAN NONE OPTIONS
     const product = req.body.product;
     if (req.body.product.species === '') {
@@ -217,7 +218,7 @@ router.put(
                 updatedProduct.save();
             } */
       if (updatedProduct) {
-        res.redirect(
+        res.send(
           `/nurseries/${
             req.params.id
           }/nurseryproducts/${

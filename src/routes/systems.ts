@@ -8,28 +8,28 @@ import Animal from '../models/animal';
 import Project from '../models/project';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // SYSTEM INDEX
-router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  System.find((err, foundSystems) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render('systems/index', { systems: foundSystems });
-    }
-  });
+router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  try {
+    const foundSystems = await System.find()
+    res.send({ systems: foundSystems });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NESTED AREA SYSTEM INDEX
-/* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: IUserSchema}, res: express.Response){
+/* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response){
     // FIND LAYER ID
     Layer.findById(req.params.id).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err) {
             console.log(err);
         } else {
-            res.render("systems/index", {layer: foundLayer});
+            res.send("systems/index", {layer: foundLayer});
         }
     });
 }); */
@@ -38,12 +38,12 @@ router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request &
 router.get(
   '/layers/:id/systems/newgrid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id);
 
-      res.render('systems/newgrid', { layer: foundLayer });
+      res.send({ layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -54,21 +54,17 @@ router.get(
 router.post(
   '/layers/:id/systems/newgrid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // CHECK LENGTH IS DIVISIBLE
     if ((req.body.length / req.body.distance) % 1 === 0) {
       // FIND LAYER
       try {
         const foundLayer = await Layer.findById(req.params.id);
-        res.redirect(
-          `/layers/${
-            foundLayer?._id
-          }/systems/new?rows=${
-            req.body.rows
-          }&distance=${
-            req.body.distance
-          }&length=${
-            req.body.length}`,
+        res.send(
+          `/layers/${foundLayer?._id
+          }/systems/new?rows=${req.body.rows
+          }&distance=${req.body.distance
+          }&length=${req.body.length}`,
         );
       } catch (err) {
         console.log(err);
@@ -77,7 +73,7 @@ router.post(
       console.log(
         'Length must be divisible with distance between speciee in rows.',
       );
-      res.redirect('back');
+      res.send('back');
     }
   },
 );
@@ -86,7 +82,7 @@ router.post(
 router.get(
   '/layers/:id/systems/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER ID
     try {
       const foundLayer = await Layer.findById(req.params.id);
@@ -121,7 +117,7 @@ router.get(
                 return 0;
               });
               // RENDER NEW SYSTEM PAGE WITH SPECIES
-              res.render('systems/new', {
+              res.send({
                 layer: foundLayer,
                 species: foundSpecies,
                 animals: foundAnimals,
@@ -143,12 +139,16 @@ router.get(
 router.post(
   '/layers/:id/systems',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    // FIND LAYER
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+
     try {
       const foundLayer = await Layer.findById(req.params.id);
       if (foundLayer) {
         const system = req.body.system;
+
+        console.log('system received', JSON.stringify(system));
+
+
         const model: {
           species: any;
           position: number[];
@@ -159,53 +159,52 @@ router.post(
         // SPECIES ARRAY FOR UNIQUE SPECIES
         const allSpecies: string[] = [];
         // ADD SPECIES TO MODEL
+        console.log("system.model.length: ", system.model.length);
         for (let i = 0; i < system.model.length; i++) {
           // FIX IF ONLY ONE ITEM IN ROW
-          if (system.model[i].species.id instanceof Array) {
-            for (let j = 0; j < system.model[i].species.id.length; j++) {
-            // IF SPECIES ID IS NULL
-              if (!(system.model[i].species.id[j] === '')) {
+
+          if (system.model[i].species instanceof Array) {
+            for (let j = 0; j < system.model[i].species.length; j++) {
+              // IF SPECIES ID IS NULL
+              if (!(system.model[i].species[j].id === "")) {
                 // ADD SPECIES ID TO SPECIES ARRAY
-                allSpecies.push(system.model[i].species.id[j]);
+                allSpecies.push(system.model[i].species[j].id);
                 const species = {
-                  species: system.model[i].species.id[j],
+                  species: system.model[i].species[j].id,
                   position: [
                     Number(system.model[i].distance) + xPosition,
-                    Number(system.model[i].species.y[j]),
+                    Number(system.model[i].species[j].y),
                   ],
                   width: Number(system.model[i].width),
                 };
                 model.push(species);
               }
             }
-          } else if (!(system.model[i].species.id === '')) {
-            // ADD SPECIES ID TO SPECIES ARRAY
-            allSpecies.push(system.model[i].species.id);
-            const species = {
-              species: system.model[i].species.id,
-              position: [
-                Number(system.model[i].distance) + xPosition,
-                Number(system.model[i].species.y),
-              ],
-              width: Number(system.model[i].width),
-            };
-            model.push(species);
-          }
+          } 
+
           xPosition += Number(system.model[i].distance);
         }
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         console.log(`Unique species:${allSpecies}`);
-        system.uniqueSpecies = unique(allSpecies);
+
+        system.uniqueSpecies = [...new Set(allSpecies)].map((species) => {
+          return {
+            id: species,
+            activities: [],
+          }
+        });
+
+
         // RE-ROUTE
         if (model.length < 1) {
-        // REDIRECT IF NO SPECIES
-          res.redirect('back');
+          // REDIRECT IF NO SPECIES
+          return;
         } else {
           console.log(`Model length:${model.length}`);
           system.model = model;
           // REMOVE ANIMAL ITEMS IF NONE
           for (let i = system.animals.length - 1; i >= 0; i--) {
-            if (system.animals[i] === '') {
+            if (system.animals[i] === "") {
               system.animals.splice(i, 1);
             }
           }
@@ -222,18 +221,17 @@ router.post(
             await createdSystem.save();
             // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
             if (
-              foundLayer.type === 'agroforestry'
-                && foundLayer.systems.present === undefined
+              foundLayer.type === "agroforestry" &&
+              foundLayer.systems.present === undefined
             ) {
               foundLayer.systems.present = createdSystem;
-              await foundLayer.save();
-              res.redirect(`/layers/${foundLayer._id}`);
             } else {
               // Push system to layer future if layer type is not agroforestry
               foundLayer.systems.future.push(createdSystem);
-              await foundLayer.save();
-              res.redirect(`/layers/${foundLayer._id}`);
             }
+            await foundLayer.save();
+            console.log("success");
+            res.send();
           } catch (err) {
             console.log(err);
           }
@@ -242,14 +240,23 @@ router.post(
     } catch (err) {
       console.log(err);
     }
+
   },
 );
+
+
+
+
+
 
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
   '/layers/:id/systems/compare',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+
+
+
     // FIND LAYER
     const foundLayer = await Layer.findById(req.params.id)
       .populate('systems.future')
@@ -265,11 +272,13 @@ router.get(
           // FIND ALL SPECIES IN SYSTEM
           const allSpecies: string[] = [];
           const allUtilities: string[] = [];
-          const dataset: {row: number, array: {
-            species: ISpeciesSchema;
-            position: number[];
-            width: number;
-          }[]}[] = [];
+          const dataset: {
+            row: number, array: {
+              species: ISpeciesSchema;
+              position: number[];
+              width: number;
+            }[]
+          }[] = [];
           const nutritional: {
             fat: number;
             carb: number;
@@ -332,8 +341,6 @@ router.get(
             grid += dataset[j].array[0].width;
           }
           // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-          const uniqueSpecies = unique(allSpecies);
-          foundSystems[i].uniqueSpecies = uniqueSpecies;
           const uniqueUtilities = unique(allUtilities);
           foundSystems[i].uniqueUtilities = uniqueUtilities;
           foundSystems[i].grid = grid;
@@ -342,7 +349,7 @@ router.get(
           // @ts-ignore
           foundSystems[i].nutritional = nutritional[0];
         }
-        res.render('systems/compare', {
+        res.send({
           layer: foundLayer,
           systems: foundSystems,
         });
@@ -352,7 +359,7 @@ router.get(
 );
 
 // SYSTEM SHOW ROUTE
-router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   const foundSystem = await System.findById(req.params.id)
     .populate('model.species')
     .populate('animals')
@@ -360,11 +367,13 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
   if (foundSystem) {
     // FIND ALL SPECIES IN SYSTEM
     const allSpecies: ISpeciesSchema[] = [];
-    const dataset: {row: number, array: {
-      species: ISpeciesSchema;
-      position: number[];
-      width: number;
-    }[]}[] = [];
+    const dataset: {
+      row: number, array: {
+        species: ISpeciesSchema;
+        position: number[];
+        width: number;
+      }[]
+    }[] = [];
     foundSystem.model.forEach((species) => {
       allSpecies.push(species.species);
       let count = 0;
@@ -410,7 +419,7 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         if (err) {
           console.log(err);
         } else {
-          res.render('systems/show', {
+          res.send({
             system: foundSystem,
             species: foundSpecies,
             rows: dataset,
@@ -426,7 +435,7 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
 router.get(
   '/systems/:id/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     const foundSystem = await System.findById(req.params.id)
       .populate('model.species')
       .populate('animals')
@@ -459,11 +468,13 @@ router.get(
           });
           // FIND ROWS IN SYSTEM
           const allSpecies: ISpeciesSchema[] = [];
-          const dataset: {row: number, array: {
-            species: ISpeciesSchema;
-            position: number[];
-            width: number;
-        }[]}[] = [];
+          const dataset: {
+            row: number, array: {
+              species: ISpeciesSchema;
+              position: number[];
+              width: number;
+            }[]
+          }[] = [];
           const distanceArray: number[] = [];
           foundSystem.model.forEach((species) => {
             allSpecies.push(species.species);
@@ -511,7 +522,7 @@ router.get(
             }
           }
           // SORT DIFFERENCE IN DISTANCE
-          function compare3(a:number, b:number) {
+          function compare3(a: number, b: number) {
             if (a < b) {
               return -1;
             }
@@ -549,7 +560,7 @@ router.get(
             console.log(typeof newRow);
           }
           // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
-          res.render('systems/edit', {
+          res.send({
             system: foundSystem,
             species: foundSpecies,
             animals: foundAnimals,
@@ -565,7 +576,7 @@ router.get(
 );
 
 // SYSTEM EDIT ROUTE OLD
-router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   System.findById(req.params.id)
     .populate('rows.sequense')
     .populate('animals')
@@ -603,7 +614,7 @@ router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Re
                   }
                   return 0;
                 });
-                res.render('systems/editold', {
+                res.send({
                   system: foundSystem,
                   species: foundSpecies,
                   animals: foundAnimals,
@@ -620,7 +631,7 @@ router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Re
 router.get(
   '/systems/:id/edit/:speciesid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     const foundSystem = await System.findById(req.params.id)
       .populate('model.species')
       .populate('animals')
@@ -628,11 +639,13 @@ router.get(
     if (foundSystem) {
       // FIND ALL SPECIES IN SYSTEM
       const allSpecies: string[] = [];
-      const dataset: {row:number, array: {
-        species: ISpeciesSchema;
-        position: number[];
-        width: number;
-    }[]}[] = [];
+      const dataset: {
+        row: number, array: {
+          species: ISpeciesSchema;
+          position: number[];
+          width: number;
+        }[]
+      }[] = [];
       const distanceArray: number[] = [];
       foundSystem.model.forEach((species) => {
         allSpecies.push(species.species.id);
@@ -683,7 +696,7 @@ router.get(
           }
         }
         // SORT DIFFERENCE IN DISTANCE
-        function compare3(a:number, b:number) {
+        function compare3(a: number, b: number) {
           if (a < b) {
             return -1;
           }
@@ -715,7 +728,7 @@ router.get(
           newRow = parseInt(req.query.row, 10);
           console.log(typeof newRow);
         }
-        res.render('systems/edit', {
+        res.send({
           system: foundSystem,
           species: foundSpecies,
           animals: foundSystem.animals,
@@ -730,14 +743,14 @@ router.get(
 );
 
 // SYSTEM UPDATE ROUTE
-router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // NEED TO CHECK OWNERSHIP HERE!!! YES
   try {
     const foundSystem = await System.findById(req.params.id);
 
     if (foundSystem) {
-    // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
-    // GET SYSTEM
+      // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
+      // GET SYSTEM
       const system = req.body.system;
       // SET BOOLEAN
       if (req.body.system.shared) {
@@ -755,18 +768,18 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
       const allSpecies: string[] = [];
       // ADD SPECIES TO MODEL
       for (let i = 0; i < system.model.length; i++) {
-      // FIX IF ONLY ONE ITEM IN ROW
+        // FIX IF ONLY ONE ITEM IN ROW
         if (system.model[i].species.id instanceof Array) {
-          for (let j = 0; j < system.model[i].species.id.length; j++) {
-          // IF SPECIES ID IS NULL
-            if (!(system.model[i].species.id[j] === '')) {
+          for (let j = 0; j < system.model[i].species.length; j++) {
+            // IF SPECIES ID IS NULL
+            if (!(system.model[i].species[j].id === "")) {
               // ADD SPECIES TO UNIQUE SPECIES ARRAY
-              allSpecies.push(system.model[i].species.id[j]);
+              allSpecies.push(system.model[i].species[j].id);
               const species = {
-                species: system.model[i].species.id[j],
+                species: system.model[i].species[j].id,
                 position: [
                   Number(system.model[i].distance) + xPosition,
-                  Number(system.model[i].species.y[j]),
+                  Number(system.model[i].species[j].y),
                 ],
                 width: Number(system.model[i].width),
               };
@@ -774,9 +787,9 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
             }
           }
         } else {
-        // ADD SPECIES TO UNIQUE SPECIES ARRAY
-        allSpecies.push(system.model[i].species.id);
-        // FIX IF ONLY ONE ITEM IN ROW
+          // ADD SPECIES TO UNIQUE SPECIES ARRAY
+          allSpecies.push(system.model[i].species.id);
+          // FIX IF ONLY ONE ITEM IN ROW
           const species = {
             species: system.model[i].species.id,
             position: [
@@ -792,30 +805,46 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
       console.log(model);
       system.model = model;
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-      system.uniqueSpecies = unique(allSpecies);
+      system.uniqueSpecies = [...new Set(allSpecies)].map((species) => {
+        return {
+          id: species,
+          activities: []
+        }
+      });
+
+      console.log('US', system.uniqueSpecies);
       // REMOVE ANIMAL ITEMS IF NONE
       for (let i = system.animals.length - 1; i >= 0; i--) {
-        if (system.animals[i] === '') {
+        if (system.animals[i] === "") {
           system.animals.splice(i, 1);
         }
       }
       if (foundSystem.owner.id.equals(req.user?._id)) {
-      // if true, update existing system
+        // if true, update existing system
+
+        console.log('OWNER');
         try {
           const updatedSystem = await System.findByIdAndUpdate(
             req.params.id,
             system,
           );
           if (updatedSystem) {
-            res.redirect(`/systems/${updatedSystem._id}`);
+            res.send({
+              updatedSystem,
+            })
           } else {
-            console.log('No updatedSystem');
+            console.log("No updatedSystem");
           }
         } catch (err) {
           console.log(err);
         }
       } else {
-      // if false, create a new system and add current user as owner
+
+
+        console.log('NOT OWNER');
+
+
+        // if false, create a new system and add current user as owner
         const createdSystem = await System.create(system);
 
         // Add owner
@@ -824,13 +853,14 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         await createdSystem.save();
         // REPLACE IN PRESENT
         try {
-          const foundLayersPresent = await Layer.find(
-            { 'owner.id': req.user?._id, 'systems.present': foundSystem._id },
-          );
+          const foundLayersPresent = await Layer.find({
+            "owner.id": req.user?._id,
+            "systems.present": foundSystem._id,
+          });
           console.log(`${foundLayersPresent.length} present found`);
           if (foundLayersPresent.length > 0) {
             foundLayersPresent.forEach(async (layer) => {
-            // REPLACE SYSTEM
+              // REPLACE SYSTEM
               layer.systems.present = createdSystem;
               // NO NEED TO PUSH TO PAST IN THIS CASE
               await layer.save();
@@ -843,13 +873,14 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         // IMPORTANT TO CHECK FOR USER!!! LIKE CHECKING OWNERSHIP
         // REPLACE IN FUTURE DRAFT
         try {
-          const foundLayersFuture = await Layer.find(
-            { 'owner.id': req.user?._id, 'systems.future': foundSystem._id },
-          );
+          const foundLayersFuture = await Layer.find({
+            "owner.id": req.user?._id,
+            "systems.future": foundSystem._id,
+          });
           console.log(`${foundLayersFuture.length} future drafts found`);
           if (foundLayersFuture.length > 0) {
             foundLayersFuture.forEach(async (layer) => {
-            // REMOVE ORIGINAL SYSTEM
+              // REMOVE ORIGINAL SYSTEM
               layer.systems.future.forEach(async (futureSystem) => {
                 if (futureSystem._id === foundSystem._id) {
                   await futureSystem.remove();
@@ -866,13 +897,14 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
 
         // REPLACE IN PROJECT
         try {
-          const foundProjects = await Project.find(
-            { 'owner.id': req.user?._id, system: foundSystem._id },
-          );
+          const foundProjects = await Project.find({
+            "owner.id": req.user?._id,
+            system: foundSystem._id,
+          });
           console.log(`${foundProjects.length} projects found`);
           if (foundProjects.length > 0) {
             foundProjects.forEach(async (project) => {
-            // REPLACE SYSTEM
+              // REPLACE SYSTEM
               project.system = createdSystem;
               await project.save();
             });
@@ -881,7 +913,8 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           console.log(err);
         }
         // Redirect to system page
-        res.redirect(`/systems/${createdSystem._id}`);
+
+        res.send({ createdSystem });
       }
     }
   } catch (err) {
@@ -893,7 +926,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
 router.delete(
   '/layers/:id/systems/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
     try {
       const foundSystem = await System.findById(req.params.pid);
@@ -905,21 +938,21 @@ router.delete(
           );
           console.log(`${foundLayersPresent.length} present found`);
           if (foundLayersPresent.length > 0) {
-          // SEND BACK IF LAYERS
-            res.redirect('back');
+            // SEND BACK IF LAYERS
+            res.send('back');
           } else {
-          // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
+            // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
             try {
               const foundProjects = await Project.find(
                 { 'owner.id': req.user?._id, system: foundSystem._id },
               );
               console.log(`${foundProjects.length} projects found`);
               if (foundProjects.length > 0) {
-              // SEND BACK IF PROJECTS
-                res.redirect('back');
+                // SEND BACK IF PROJECTS
+                res.send('back');
               } else {
-              // CHECK EDGE SYSTEM!?
-              // DELETE IN FUTURE DRAFT
+                // CHECK EDGE SYSTEM!?
+                // DELETE IN FUTURE DRAFT
                 try {
                   const foundLayersFuture = await Layer.find(
                     {
@@ -933,7 +966,7 @@ router.delete(
                   );
                   if (foundLayersFuture.length > 0) {
                     foundLayersFuture.forEach(async (layer) => {
-                    // REMOVE ORIGINAL SYSTEM
+                      // REMOVE ORIGINAL SYSTEM
                       layer.systems.future.forEach(async (futureSystem) => {
                         if (futureSystem._id === foundSystem._id) {
                           await futureSystem.remove();
@@ -971,14 +1004,14 @@ router.delete(
 router.get(
   '/systems/:id/succession',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     System.findById(req.params.id)
       .populate('rows')
       .exec((err, foundSystem) => {
         if (err) {
           console.log(err);
         } else {
-          res.render('succession', { system: foundSystem });
+          res.send({ system: foundSystem });
         }
       });
   },
@@ -988,7 +1021,7 @@ router.get(
 router.get(
   '/systems/:id/composition',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     const foundSystem = await System.findById(req.params.id)
       .populate('model.species')
       .exec();
@@ -1029,7 +1062,7 @@ router.get(
               );
 
               console.log(foundSuitableSpecies);
-              res.render('composition', {
+              res.send({
                 system: foundSystem,
                 species: foundSpecies,
                 suitablespecies: foundSuitableSpecies,
@@ -1052,7 +1085,7 @@ router.get(
 router.get(
   '/layers/:id/analysis',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     const foundSystems = await System.find()
       .populate('model.species')
       .populate('flows')
@@ -1103,11 +1136,13 @@ router.get(
                 const allSpecies: string[] = [];
                 const allUtilities: string[] = [];
                 let grid = 0;
-                const dataset: {array: {
-                  species: ISpeciesSchema;
-                  position: number[];
-                  width: number;
-              }[], row: number}[] = [];
+                const dataset: {
+                  array: {
+                    species: ISpeciesSchema;
+                    position: number[];
+                    width: number;
+                  }[], row: number
+                }[] = [];
                 foundSystems[i].model.forEach((species) => {
                   allSpecies.push(species.species.nameCommon);
                   if (species.species.utilities.length > 0) {
@@ -1131,8 +1166,9 @@ router.get(
                   }
                 });
                 // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-                const uniqueSpecies = unique(allSpecies);
-                foundSystems[i].uniqueSpecies = uniqueSpecies;
+
+                // TODO: 24-Jan 2023 FIX UNIQUE SPECIES
+
                 const uniqueUtilities = unique(allUtilities);
                 foundSystems[i].uniqueUtilities = uniqueUtilities;
 
@@ -1176,13 +1212,13 @@ router.get(
               for (let j = 0; j < systems[i].model.length; j++) {
                 if (
                   systems[i].model[j].species.precipitation.min
-                    < foundParcel.climate.annualaverageprec
+                  < foundParcel.climate.annualaverageprec
                   && systems[i].model[j].species.precipitation.max
-                    > foundParcel.climate.annualaverageprec
+                  > foundParcel.climate.annualaverageprec
                   && systems[i].model[j].species.temperature.min
-                    < foundParcel.climate.hardiness.high
+                  < foundParcel.climate.hardiness.high
                   && systems[i].model[j].species.temperature.max
-                    > foundParcel.climate.hardiness.low
+                  > foundParcel.climate.hardiness.low
                 ) {
                   count += 1;
                 }
@@ -1208,9 +1244,9 @@ router.get(
             }
             console.log(`Proven systems for this area: ${systemsproven.length}`);
             if (systems.length < 1) {
-              res.redirect(`layers/${foundLayer._id}`);
+              res.send(`layers/${foundLayer._id}`);
             } else {
-              res.render('analysis', {
+              res.send({
                 layer: foundLayer,
                 systems,
                 systemsproven,
@@ -1231,7 +1267,7 @@ router.get(
 router.get(
   '/layers/:id/mysystems',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       System.find({ 'owner.id': req.user?._id })
@@ -1255,7 +1291,7 @@ router.get(
                 realSystems.push(foundSystems[i]);
               }
             }
-            res.render('layers/mysystems', {
+            res.send({
               layer: foundLayer,
               systems: realSystems,
             });
@@ -1271,10 +1307,10 @@ router.get(
 router.get(
   '/systems/:id/occurrences/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundSystem = await System.findById(req.params.id);
-      res.render('systems/occurrences', { system: foundSystem });
+      res.send({ system: foundSystem });
     } catch (err) {
       console.log(err);
     }
@@ -1285,14 +1321,14 @@ router.get(
 router.put(
   '/systems/:id/occurrences',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const updatedSystem = await System.findByIdAndUpdate(req.params.id, {
         $addToSet: { occurrences: req.body.occurrence },
       });
       if (updatedSystem) {
         console.log(`${req.body.occurrence} has been added to the system`);
-        res.redirect(`/systems/${updatedSystem._id}`);
+        res.send(`/systems/${updatedSystem._id}`);
       } else {
         console.log('No updatedSystem');
       }

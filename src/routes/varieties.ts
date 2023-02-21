@@ -3,23 +3,24 @@ import Variety from '../models/variety';
 import Species from '../models/species';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // VARIETY INDEX
-router.get('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // Get all varieties from DB
   Variety.find({ 'owner.id': req.user?._id }).populate('species').exec((err, allUserVarieties) => {
     if (err) {
       console.log(err);
     } else {
-      res.render('varieties/index', { varieties: allUserVarieties });
+      res.send( { varieties: allUserVarieties });
     }
   });
 });
 
 // VARIETY NEW
-router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND ALL SPECIES
   Species.find((err, allSpecies) => {
     if (err) {
@@ -35,13 +36,13 @@ router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request 
         }
         return 0;
       });
-      res.render('varieties/new', { species: allSpecies });
+      res.send( { species: allSpecies });
     }
   });
 });
 
 // VATERTY CREATE
-router.post('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CLEAN NONE OPTIONS
   const variety = req.body.variety;
   if (req.body.variety.species === '') {
@@ -60,7 +61,7 @@ router.post('/varieties', middleware.isLoggedIn, async (req: express.Request & {
   createdVariety.owner.id = req.user?._id;
   await createdVariety.save();
   // REDIRECT TO USER
-  res.redirect(`/users/${req.user?._id}`);
+  res.send(`/users/${req.user?._id}`);
 });
 
 export default router;
