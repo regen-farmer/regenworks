@@ -4,13 +4,14 @@ import System from '../models/system';
 import Species from '../models/species';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // SYSTEMFLOW INDEX ROUTE
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
-router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND SYSTEM ID
   try {
     const foundSystem = await System.findById(req.params.id);
@@ -26,14 +27,14 @@ router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.
       }
       return 0;
     });
-    res.render('systemflows/new', { system: foundSystem, species: foundSpecies });
+    res.send( { system: foundSystem, species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
-router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND SYSTEM
   try {
     const foundSystem = await System.findById(req.params.id);
@@ -51,7 +52,7 @@ router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Req
         const createdSystemflow = await Systemflow.create(req.body.flow);
         foundSystem.flows.push(createdSystemflow);
         await foundSystem.save();
-        res.redirect(`/systems/${foundSystem._id}`);
+        res.send(`/systems/${foundSystem._id}`);
       } catch (err) {
         console.log(err);
       }

@@ -10,6 +10,7 @@ import Area from '../models/area';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
 import { ISpeciesSchema } from '../models/species';
+import { Auth0IDToken } from '../app';
 
 // NODE GEOCODER CODE
 
@@ -24,20 +25,20 @@ const router = express.Router();
 // const geocoder = NodeGeocoder(options);
 
 // ACTIVITY INDEX ROUTE
-router.get('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // Get all activities from DB
   try {
     const allActivities = await Activity.find({ 'owner.id': req.user?._id });
     allActivities.sort((a, b) => Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString()));
     allActivities.slice(0, 4);
-    res.render('activities/index', { activities: allActivities });
+    res.send({ activities: allActivities });
   } catch (err) {
     console.log(err);
   }
 });
 
 // ACTIVITY NEW ROUTE
-router.get('/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   const parcel = undefined;
   console.log(req.body.picked);
   try {
@@ -46,14 +47,14 @@ router.get('/activities/new', middleware.isLoggedIn, async (req: express.Request
     // foundLayers.forEach(function(layer){
     //     console.log(layer.id);
     // });
-    res.render('activities/new', { parcel, layers: foundLayers });
+    res.send({ parcel, layers: foundLayers });
   } catch (err) {
     console.log(err);
   }
 });
 
 // ACTIVITY CREATE ROUTE
-router.post('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create a new experience
   try {
     const createdActivity = await Activity.create(req.body.activity);
@@ -62,7 +63,7 @@ router.post('/activities', middleware.isLoggedIn, async (req: express.Request & 
     createdActivity.status = true;
     // Save the service - Not need if created after this step
     await createdActivity.save();
-    res.redirect('/activities');
+    res.send('/activities');
     console.log(createdActivity);
   } catch (err) {
     console.log(err);
@@ -70,7 +71,7 @@ router.post('/activities', middleware.isLoggedIn, async (req: express.Request & 
 });
 
 // ACTIVITY SHOW ROUTES
-router.get('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundActivity = await Activity.findById(req.params.id).populate('layer').exec();
     if (foundActivity) {
@@ -81,7 +82,7 @@ router.get('/activities/:id', middleware.isLoggedIn, async (req: express.Request
       const monthNumber = parseInt(dateParts[1], 10) - 1;
       const month = monthNames[monthNumber];
       const day = parseInt(dateParts[2], 10);
-      res.render('activities/show', { activity: foundActivity, month, day });
+      res.send({ activity: foundActivity, month, day });
     } else {
       console.log('No activity found');
     }
@@ -91,7 +92,7 @@ router.get('/activities/:id', middleware.isLoggedIn, async (req: express.Request
 });
 
 // ACTIVITY EDIT ROUTE
-router.get('/activities/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+router.get('/activities/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // Find specific activity in database
   try {
     const foundActivity = await Activity.findById(req.params.id);
@@ -102,7 +103,7 @@ router.get('/activities/:id/edit', middleware.isLoggedIn, async (req: express.Re
       foundLayers.forEach((layer) => {
         console.log(layer.id);
       });
-      res.render('activities/edit', { activity: foundActivity, layers: foundLayers });
+      res.send({ activity: foundActivity, layers: foundLayers });
     } catch (err) {
       console.log(err);
     }
@@ -112,11 +113,11 @@ router.get('/activities/:id/edit', middleware.isLoggedIn, async (req: express.Re
 });
 
 // ACTIVITY UPDATE ROUTE
-router.put('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const updatedActivity = await Activity.findByIdAndUpdate(req.params.id, req.body.activity);
     console.log(updatedActivity);
-    res.redirect(`/activities/${req.params.id}`);
+    res.send(`/activities/${req.params.id}`);
   } catch (err) {
     console.log(err);
   }
@@ -125,33 +126,33 @@ router.put('/activities/:id', middleware.isLoggedIn, async (req: express.Request
 // ACTIVITY STATUS CHANGE ROUTE
 
 // ACTIVITY DELETE ROUTE
-router.delete('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
+router.delete('/activities/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => { // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   try {
     await Activity.findByIdAndRemove(req.params.id);
-    res.redirect('/activities');
+    res.send('/activities');
   } catch (err) {
     console.log(err);
-    res.redirect('/activities');
+    res.send('/activities');
   }
 });
 
 // --------------- NESTED ROUTES ---------------- //
 
 // PARCEL ACTIVITIES
-router.get('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND PARCEL
   Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows' } }).populate({ path: 'layers', populate: { path: 'areas' } }).exec((err, foundParcel) => {
     if (err) {
       console.log(err);
     } else {
       // RENDER ACTIVITIES
-      res.render('activities/index', { parcel: foundParcel });
+      res.send({ parcel: foundParcel });
     }
   });
 });
 
 // PLACE ACTIVITY NEW ROUTE
-router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND PLACE ID
   try {
     const foundparcel = Parcel.findById(req.params.id);
@@ -161,7 +162,7 @@ router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: exp
       foundLayers.forEach((layer) => {
         console.log(layer.id);
       });
-      res.render('activities/new', { parcel: foundparcel, layers: foundLayers });
+      res.send({ parcel: foundparcel, layers: foundLayers });
     } catch (err) {
       console.log(err);
     }
@@ -172,7 +173,7 @@ router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: exp
 });
 
 // PLACE EXPERIENCES CREATE ROUTE
-// router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+// router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
 //   // Lookup place using id
 //   try {
 //     const foundParcel = await Parcel.findById(req.params.id);
@@ -189,29 +190,29 @@ router.get('/parcels/:id/activities/new', middleware.isLoggedIn, async (req: exp
 //         foundParcel.save();
 //         // Redirect to parcels SHOW page
 //         // req.flash("success", "Successfully added comment");
-//         res.redirect(`/parcels/${foundParcel._id}`);
+//         res.send(`/parcels/${foundParcel._id}`);
 //       } catch (err) {
 //         console.log(err);
 //       }
 //     }
 //   } catch (err) {
 //     console.log(err);
-//     res.redirect(`/parcels/${req.params.id}`);
+//     res.send(`/parcels/${req.params.id}`);
 //   }
 // });
 
 // PROJECT ACTIVITY NEW ROUTE
-router.get('/projects/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id);
-    res.render('activities/new', { project: foundProject });
+    res.send({ project: foundProject });
   } catch (err) {
     console.log(err);
   }
 });
 
 // PROJECT ACTIVITY CREATE ROUTE
-router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id);
     if (foundProject) {
@@ -226,7 +227,7 @@ router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: expre
         await foundProject.save();
         // Redirect to project SHOW page
         // req.flash("success", "Successfully added comment");
-        res.redirect(`/projects/${foundProject._id}`);
+        res.send(`/projects/${foundProject._id}`);
       } catch (err) {
         console.log(err);
       }
@@ -237,7 +238,7 @@ router.post('/projects/:id/activities', middleware.isLoggedIn, async (req: expre
 });
 
 // GENERATE ACTIVITIES
-router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND PROJECT
   try {
     const foundProject = await Project.findById(req.params.id).populate({ path: 'budgets.establishment', populate: { path: 'postings' } }).exec();
@@ -261,7 +262,7 @@ router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req
         try {
           await Project.findByIdAndUpdate(foundProject._id, { $push: { activities: { $each: createdActivities } } });
           console.log('Activities added to project implementation plan');
-          res.redirect(`/projects/${foundProject._id}`);
+          res.send(`/projects/${foundProject._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -275,13 +276,13 @@ router.get('/projects/:id/generateactivities', middleware.isLoggedIn, async (req
 });
 
 // PROJECT EDIT ACTIVITY ROUTE
-router.get('/projects/:id/activities/:pid/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/activities/:pid/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND PROJECT WITH ACTIVITY
   try {
     const foundProject = await Project.findById(req.params.id);
     try {
       const foundActivity = await Activity.findById(req.params.pid);
-      res.render('projects/editactivity', { project: foundProject, activity: foundActivity });
+      res.send({ project: foundProject, activity: foundActivity });
     } catch (err) {
       console.log(err);
     }
@@ -291,18 +292,18 @@ router.get('/projects/:id/activities/:pid/edit', middleware.isLoggedIn, async (r
 });
 
 // PROJECT UPDATE ACTIVITY ROUTE
-router.put('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND ACTIVITY AND UPDATE
   try {
     await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
-    res.redirect(`/projects/${req.params.id}`);
+    res.send(`/projects/${req.params.id}`);
   } catch (err) {
     console.log(err);
   }
 });
 
 // DELETE ACTIVITY IN PROJECT
-router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND ACTIVITY
   try {
     const foundActivity = await Activity.findById(req.params.pid);
@@ -321,7 +322,7 @@ router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req
         // DELETE ACTIVITY
         try {
           await Activity.findByIdAndRemove(req.params.pid);
-          res.redirect(`/projects/${updatedProject._id}`);
+          res.send(`/projects/${updatedProject._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -336,7 +337,7 @@ router.delete('/projects/:id/activities/:pid', middleware.isLoggedIn, async (req
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/rows/:rid/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/rows/:rid/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND ROW SEQUENCE SPECIES
   try {
     const foundRow = await Row.findById(req.params.rid).populate({ path: 'sequence', populate: { path: 'model.species' } }).exec();
@@ -350,18 +351,18 @@ router.get('/parcels/:id/layers/:pid/rows/:rid/activities/new', middleware.isLog
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
       const uniqueSpecies = unique(allSpecies);
       console.log(uniqueSpecies);
-      res.render('activities/rownew', {
+      res.send({
         parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid, row: foundRow, species: uniqueSpecies,
       });
     } else {
-      res.redirect('back');
+      res.send('back');
     }
   } catch (err) {
     console.log(err);
   }
 });
 
-router.post('/parcels/:id/layers/:pid/rows/:rid/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/rows/:rid/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CREATE ACTIVITY
   const types = req.body.activityType.split(' ');
   const activity = {
@@ -379,7 +380,7 @@ router.post('/parcels/:id/layers/:pid/rows/:rid/activities', middleware.isLogged
     const createdActivity = await Activity.create(activity);
     try {
       Row.findByIdAndUpdate(req.params.rid, { $push: { activities: createdActivity } });
-      res.redirect(`/parcels/${req.params.id}/activities`);
+      res.send(`/parcels/${req.params.id}/activities`);
     } catch (err) {
       console.log(err);
     }
@@ -390,7 +391,7 @@ router.post('/parcels/:id/layers/:pid/rows/:rid/activities', middleware.isLogged
 
 // --------------- NESTED ROUTES AREA BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/areas/:rid/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/areas/:rid/activities/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND AREA ROTATION SPECIES
 
   try {
@@ -405,18 +406,18 @@ router.get('/parcels/:id/layers/:pid/areas/:rid/activities/new', middleware.isLo
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
       const uniqueSpecies = unique(allSpecies);
       console.log(uniqueSpecies);
-      res.render('activities/areanew', {
+      res.send({
         parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid, area: foundArea, species: uniqueSpecies,
       });
     } else {
-      res.redirect('back');
+      res.send('back');
     }
   } catch (err) {
     console.log(err);
   }
 });
 
-router.post('/parcels/:id/layers/:pid/areas/:rid/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/areas/:rid/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CREATE ACTIVITY
   const types = req.body.activityType.split(' ');
   const activity = {
@@ -438,7 +439,7 @@ router.post('/parcels/:id/layers/:pid/areas/:rid/activities', middleware.isLogge
         if (err) {
           console.log(err);
         } else {
-          res.redirect(`/parcels/${req.params.id}/activities`);
+          res.send(`/parcels/${req.params.id}/activities`);
         }
       });
     }

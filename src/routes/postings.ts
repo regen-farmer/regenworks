@@ -5,6 +5,7 @@ import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
@@ -16,11 +17,11 @@ const router = express.Router();
 router.get(
   '/budgets/:id/postings/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND BUDGET ID
     try {
       const foundBudget = await Budget.findById(req.params.id);
-      res.render('postings/new', { budget: foundBudget });
+      res.send( { budget: foundBudget });
     } catch (err) {
       console.log(err);
     }
@@ -31,7 +32,7 @@ router.get(
 router.post(
   '/budgets/:id/postings',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {
@@ -43,7 +44,7 @@ router.post(
           // SAVE POSTING ON BUDGET
           foundBudget.postings.push(createdPosting);
           await foundBudget.save();
-          res.redirect(`/budgets/${foundBudget._id}`);
+          res.send(`/budgets/${foundBudget._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -58,13 +59,13 @@ router.post(
 router.get(
   '/budgets/:id/postings/:postid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND BUDGET
     try {
       const foundBudget = await Budget.findById(req.params.id);
       try {
         const foundPosting = await Posting.findById(req.params.postid);
-        res.render('postings/edit', {
+        res.send( {
           budget: foundBudget,
           posting: foundPosting,
         });
@@ -81,14 +82,14 @@ router.get(
 router.put(
   '/budgets/:id/postings/:postid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND POSTING AND UPDATE
     try {
       Posting.findByIdAndUpdate(
         req.params.postid,
         req.body.posting,
       );
-      res.redirect(`/budgets/${req.params.id}`);
+      res.send(`/budgets/${req.params.id}`);
     } catch (err) {
       console.log(err);
     }
@@ -99,7 +100,7 @@ router.put(
 router.get(
   '/parcels/:id/layers/:bid/accounts/postings/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND BUDGET ID
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -107,7 +108,7 @@ router.get(
         .exec();
       try {
         const foundLayer = await Layer.findById(req.params.bid);
-        res.render('postings/accountnew', {
+        res.send( {
           parcel: foundParcel,
           layer: foundLayer,
         });
@@ -124,7 +125,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:bid/accounts/postings',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {
@@ -141,7 +142,7 @@ router.post(
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);
               await foundBudget.save();
-              res.redirect(`/parcels/${req.params.id}/accounts`);
+              res.send(`/parcels/${req.params.id}/accounts`);
             } catch (err) {
               console.log(err);
             }

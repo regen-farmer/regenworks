@@ -3,6 +3,7 @@ import Project from '../models/project';
 import Area from '../models/area';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ const router = express.Router();
 router.get(
   '/projects/:id/areas/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     Project.findById(req.params.id)
       .populate('layer')
@@ -18,14 +19,14 @@ router.get(
         if (err) {
           console.log(err);
         } else {
-          res.render('areas/new', { project: foundProject });
+          res.send({ project: foundProject });
         }
       });
   },
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // CREATE AREA HERE?
   const area = {
     geometry: req.body.geometry,
@@ -45,7 +46,7 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Re
         );
         if (updatedProject) {
           console.log('Area has been added to project');
-          res.redirect(`/projects/${updatedProject.id}/layout`);
+          res.send(`/projects/${updatedProject.id}/layout`);
         } else {
           console.log('Project wasn\'t updated');
         }
@@ -60,7 +61,7 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Re
 router.delete(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -78,7 +79,7 @@ router.delete(
         try {
           await Area.findByIdAndRemove(req.params.pid);
           console.log(`Length after ${updatedProject.areas.length}`);
-          res.redirect(`/projects/${updatedProject._id}/layout`);
+          res.send(`/projects/${updatedProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -93,7 +94,7 @@ router.delete(
 router.get(
   '/projects/:id/deleteareas',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -107,7 +108,7 @@ router.get(
               $set: { areas: [] },
             });
             if (updatedProject) {
-              res.redirect(`/projects/${updatedProject._id}/layout`);
+              res.send(`/projects/${updatedProject._id}/layout`);
             } else {
               console.log('project wasn\'t updated');
             }

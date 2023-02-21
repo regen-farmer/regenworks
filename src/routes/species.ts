@@ -2,40 +2,41 @@ import express from 'express';
 import Species from '../models/species';
 import middleware from '../middleware';
 import { IUserSchema } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // SPECIES INDEX
-router.get('/species', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/species', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   Species.find((err, foundSpecies) => {
     if (err) {
       console.log(err);
     } else {
-      res.render('species', { species: foundSpecies });
+      res.send( { species: foundSpecies });
     }
   });
 });
 
 // SPECIES NEW
-router.get('/species/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/species/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // ONLY ADMIN ACCESS?
-  res.render('species/new');
+  res.send();
 });
 
 // SPECIES CREATE
-router.post('/species', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/species', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   try {
     const createdSpecies = await Species.create(req.body.species);
     console.log(createdSpecies);
-    res.redirect('species');
+    res.send(createdSpecies);
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES SHOW
-router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   Species.findById(req.params.id)
     .populate('flows')
@@ -43,31 +44,31 @@ router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Reque
       if (err) {
         console.log(err);
       } else {
-        res.render('species/show', { species: foundSpecies });
+        res.send( { species: foundSpecies });
       }
     });
 });
 
 // SPECIES EDIT
-router.get('/species/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/species/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   // ONLY ADMIN ACCESS?
   try {
     const foundSpecies = await Species.findById(req.params.id);
-    res.render('species/edit', { species: foundSpecies });
+    res.send( { species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES UPDATE
-router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const updatedSpecies = await Species.findByIdAndUpdate(
       req.params.id,
       req.body.species,
     );
     console.log(updatedSpecies);
-    res.redirect(`/species/${req.params.id}`);
+    res.send(`/species/${req.params.id}`);
   } catch (err) {
     console.log(err);
   }
@@ -79,10 +80,10 @@ router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & 
 router.get(
   '/species/:id/activities/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundSpecies = await Species.findById(req.params.id);
-      res.render('species/activity', { species: foundSpecies });
+      res.send( { species: foundSpecies });
     } catch (err) {
       console.log(err);
     }
@@ -93,7 +94,7 @@ router.get(
 router.post(
   '/species/:id/activities',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     const types = req.body.activity.activityType.split(' ');
     const activity = {
@@ -111,7 +112,7 @@ router.post(
         $addToSet: { activities: activity },
       });
       console.log(`${req.body.activity.name} has been added to the species`);
-      res.redirect(`/species/${updatedSpecies?._id}`);
+      res.send(`/species/${updatedSpecies?._id}`);
     } catch (err) {
       console.log(err);
     }
@@ -122,13 +123,13 @@ router.post(
 router.get(
   '/species/:id/activities/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundSpecies = await Species.findById(req.params.id);
       if (foundSpecies) {
         if (req.query.index && typeof req.query.index === 'string') {
           const activity = foundSpecies.activities[parseInt(req.query.index, 10)];
-          res.render('species/editactivity', {
+          res.send( {
             species: foundSpecies,
             activity,
             index: req.query.index,
@@ -147,7 +148,7 @@ router.get(
 router.put(
   '/species/:id/activities',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
     const types = req.body.activity.activityType.split(' ');
     const activity = {
@@ -168,7 +169,7 @@ router.put(
         if (req.query.index && typeof req.query.index === 'string') {
           updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
           await updatedSpecies.save();
-          res.redirect(`/species/${updatedSpecies._id}`);
+          res.send(`/species/${updatedSpecies._id}`);
         }
       }
     } catch (err) {
@@ -181,10 +182,10 @@ router.put(
 router.get(
   '/species/:id/nutrients/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundSpecies = await Species.findById(req.params.id);
-      res.render('species/nutrients', { species: foundSpecies });
+      res.send( { species: foundSpecies });
     } catch (err) {
       console.log(err);
     }
@@ -195,13 +196,13 @@ router.get(
 router.put(
   '/species/:id/nutrients',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
         $set: { nutrients: req.body.nutrients },
       });
       if (updatedSpecies) {
-        res.redirect(`/species/${updatedSpecies._id}`);
+        res.send(`/species/${updatedSpecies._id}`);
       }
     } catch (err) {
       console.log(err);

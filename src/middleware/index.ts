@@ -1,24 +1,25 @@
 import express from 'express';
+import { Auth0IDToken } from '../app';
 import Parcel from '../models/parcel';
 import User, { IUserSchema } from '../models/user';
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
-export async function checkParcelOwnership(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
-  if (req.oidc.user) {
+export async function checkParcelOwnership(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
+  if (req.user) {
     try {
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel?.owner.id.equals(req.user?._id)) {
         next();
       } else {
         // req.flash("error", "You don't have permission to do that.");
-        res.redirect('back');
+        res.send('back');
       }
     } catch (err) {
-      res.redirect('back');
+      res.send('back');
     }
   } else {
     // req.flash("error", "You need to be logged in to do that.");
-    res.redirect('back'); // Sends the user back to the previous page they were on.
+    res.send('back'); // Sends the user back to the previous page they were on.
   }
 }
 
@@ -27,60 +28,66 @@ export async function checkParcelOwnership(req: express.Request & { user?: IUser
 // CHECK BUDGET OWNERSHIP MIDDLEWARE
 
 // CHECK USER OWNERSHIP MIDDLEWARE
-export async function checkUserOwnership(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
-  if (req.oidc.user && req.oidc.user.email_verified) {
+export async function checkUserOwnership(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
+
+  console.log("IM HERE 1 ", req.idToken)
+  if (req.idToken && req.idToken.email_verified) {
     try {
       const foundUser = await User.findById(req.params.id);
-      if (foundUser && foundUser._id.equals(req.user?._id)) {
+
+      if (foundUser && foundUser.id == req.user?.id) {
+        console.log('progress!!')
         next();
       } else {
-        res.redirect('back');
+        res.send('back');
       }
     } catch (err) {
-      res.redirect('back');
+      res.send('back');
     }
   } else {
     // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
-    res.redirect('back');
+    res.send('back');
   }
 }
 
 // CHECK IF A USER IS LOGGED IN
-export async function isLoggedIn(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
-  if (req.oidc.user && req.oidc.user?.email_verified) {
+export async function isLoggedIn(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
+  if (req.idToken && req.idToken.email_verified) {
     return next();
   }
   // req.flash("error", "You need to be logged in to do that!");
-  res.redirect('/login');
+  res.send();
 }
 
 // CHECK ADMIN USER IS LOGGED IN
-export async function adminIsLoggedIn(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction) {
-  if (req.oidc.user) {
+export async function adminIsLoggedIn(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
+  if (req.user) {
     if (req.user?.isAdmin) {
       next();
     } else {
       // req.flash("error", "You do not have permission to do that.");
-      res.redirect('back');
+      res.status(400).send({
+        message: 'User is not admin'
+     });
     }
   } else {
     // req.flash("error", "You need to be logged in to do that!");
-    res.redirect('back');
+    res.send('back');
   }
 }
 
 /* // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.throttler = function(req: express.Request & { user?: IUserSchema}, res: express.Response, next: express.NextFunction){
+middlewareObj.throttler = function(req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction){
     if(req.isAuthenticated()){
         if(req.oidc.user.isAdmin){
             next();
         } else {
             // req.flash("error", "You do not have permission to do that.");
-            res.redirect("back");
+            res.send("back");
         }
     } else {
         // req.flash("error", "You need to be logged in to do that!");
-        res.redirect("back");
+        res.send("back");
     }
 }; */
 

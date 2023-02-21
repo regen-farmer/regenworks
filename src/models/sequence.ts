@@ -14,7 +14,23 @@ export interface ISequenceSchema extends Document {
     owner: {
         id: IUserSchema
     },
-    sequencelength: number
+    sequencelength: number,
+    uniqueSpecies: {
+      activities: [
+        {
+          activityType: string;
+          subtype: string;
+          name: string;
+          time: {
+            startMonth: number;
+            endMonth: number;
+          };
+          price: number;
+        },
+      ],
+      id: ISpeciesSchema | string,
+      name: string
+    }[],
 }
 
 // SEQUENCE SCHEMA SETUP
@@ -37,6 +53,25 @@ const sequenceSchema = new Schema<ISequenceSchema>({
     },
   },
   sequencelength: Number,
+  uniqueSpecies: [{
+		name: String,
+		id: {
+			type: Schema.Types.ObjectId,
+			ref: "Species",
+		},
+		activities: [
+			{
+				activityType: String,
+				subtype: String,
+				name: String,
+				time: {
+					startMonth: Number,
+					endMonth: Number,
+				},
+				price: { type: Number, default: 0 },
+			},
+		],
+	}],
 });
 
 export default model('Sequence', sequenceSchema);
