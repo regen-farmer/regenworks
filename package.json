@@ -21,7 +21,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon ./src/app.ts"
+    "build": "tsc",
+    "start": "npm run build && node dist/app.js",
+    "watch": "npx nodemon ./src/app.ts"
+    
   },
   "author": "grownlocal",
   "license": "ISC",
