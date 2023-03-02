@@ -13,6 +13,7 @@ import path from 'path';
 // import seedDB from "./seeds";
 import User, { IUserSchema } from './models/user';
 // REQUIRE ROUTE FILES
+import tilesRoutes from './routes/tiles';
 import parcelRoutes from './routes/parcels';
 import indexRoutes from './routes/index';
 import activityRoutes from './routes/activities';
@@ -145,6 +146,7 @@ app.use(async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDTok
 
 // MAKES THE APP ACTUALLY USE THE ROUTES
 app.use(indexRoutes);
+app.use('', tilesRoutes);
 app.use('', parcelRoutes); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
 app.use('', activityRoutes);
 app.use('', projectRoutes);
