@@ -6,6 +6,7 @@ import { PNG } from 'pngjs';
 // @ts-ignore
 import PNGCrop from 'png-crop';
 import express from 'express';
+import { arrayBuffer } from 'stream/consumers';
 import { IUserSchema } from '../models/user';
 import { Auth0IDToken } from '../app';
 
@@ -15,7 +16,6 @@ const router = express.Router();
 router.get(
   '/api/tiles/bluespot',
   async (request: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-    
     // const url_params = (new URL(request.url)).searchParams;
 
     /// ///////////////////////////////////////////////////
@@ -25,7 +25,7 @@ router.get(
     // const tile_bbox_wgs84: number[] = url_params.get('bbox')?.split(',').map((value) => parseFloat(value))!;
 
     const tile_bbox_wgs84: number[] = request.url.split('bbox=')[1].split(',').map((value) => parseFloat(value));
-    console.log('bbox', tile_bbox_wgs84)
+    console.log('bbox', tile_bbox_wgs84);
 
     // let tile_bbox_wgs84: number[] = [1196086.618606437,7633918.888897125,1197309.6110590026,7635141.8813496865]
 
@@ -129,11 +129,16 @@ router.get(
       // Skærmkort
       // const z_string = z.toString().padStart(1, '0')
       // const tile_url = `https://api.dataforsyningen.dk/topo_skaermkort_wmts_DAF?token=f3ecb52320902f733a433aa9945d8dc8&layer=topo_skaermkort&tilematrixset=View1&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fjpeg&TileMatrix=${z_string}&TileCol=${col}&TileRow=${row}`;
-
-      const response = await fetch(tile_url);
-      return {
-        row, col, z, picture: await response.blob(),
-      };
+      try {
+        const response = await fetch(tile_url);
+        return {
+          row, col, z, picture: await response.blob(),
+        };
+      } catch (error) {
+        return {
+          row, col, z, picture: null,
+        };
+      }
     }));
 
     /// ////////////////////////
@@ -141,31 +146,73 @@ router.get(
     /// ////////////////////////
 
     const rows: sharp.Sharp[] = [];
-    for (let y = y_lower_idx; y <= y_upper_idx; y++) {
-      const rowImages = await tiles.filter((tile) => tile.row == y);
-      const rowArrayBuffer = await Promise.all(rowImages.map(async (tile) => {
-        const arrayBuffer = Buffer.from(await tile.picture.arrayBuffer());
 
+    const nulltile = tiles.find((tile) => !tile.picture);
+    if (nulltile) {
+      res.send('No picture');
+      return;
+    }
+
+    for (let y = y_lower_idx; y <= y_upper_idx; y++) {
+      const rowImages = await tiles.filter((tile) => tile.row === y && tile.picture !== null && tile.picture.type === 'image/png');
+
+      const rowImagesAll = await tiles.filter((tile) => tile.row === y);
+
+      if (rowImages.length !== rowImagesAll.length) {
+        res.send('No picture');
+        return;
+      }
+
+      console.log('SHOUDL NOT BE HERE');
+
+      const rowArrayBuffer = await Promise.all(rowImages.map(async (tile) => {
+        console.log('kha 2', tile.picture);
+        const arrayBuffer = Buffer.from(await tile.picture!.arrayBuffer());
         return arrayBuffer;
       }));
 
-      const rowImage = await joinImages(rowArrayBuffer, {
-        direction: 'horizontal',
-        color: {
-          alpha: 0, b: 0, g: 0, r: 0,
-        },
-      });
+      console.log('kha 1');
+      let rowImage;
+
+      console.log('rowArrayBuffer.length', rowArrayBuffer.length);
+      if (rowArrayBuffer.length > 1) {
+        rowImage = await joinImages(rowArrayBuffer, {
+          direction: 'horizontal',
+          color: {
+            alpha: 0, b: 0, g: 0, r: 0,
+          },
+        });
+      } else if (rowArrayBuffer.length === 1) {
+        rowImage = sharp(rowArrayBuffer[0]);
+      } else {
+        console.log('rowArrayBuffer.length', rowArrayBuffer.length);
+      }
       rows.push(rowImage);
     }
 
-    const row_buffers: Buffer[] = await Promise.all(rows.map(async (row) => await row.png().toBuffer()));
+    console.log('kha 3');
 
-    const stitched: sharp.Sharp = await (await joinImages(row_buffers, {
-      direction: 'vertical',
-      color: {
-        alpha: 0, b: 0, g: 0, r: 0,
-      },
+    const row_buffers: Buffer[] = await Promise.all(rows.map(async (row) => {
+      try {
+        return row.png().toBuffer();
+      } catch (err) {
+        console.log(err);
+      }
     }));
+
+    let stitched: sharp.Sharp;
+    if (row_buffers.length > 1) {
+      stitched = await (await joinImages(row_buffers, {
+        direction: 'vertical',
+        color: {
+          alpha: 0, b: 0, g: 0, r: 0,
+        },
+      }));
+    } else if (row_buffers.length === 1) {
+      stitched = sharp(await rows[0].png().toBuffer());
+    } else {
+      console.log('row_buffers.length', row_buffers.length);
+    }
 
     /// ///////////////////////////
     // Boundary of stitched image
@@ -221,7 +268,6 @@ router.get(
 
     await crop_promise;
     res.set('Content-Type', 'image/png');
-
     res.send(response_buffer);
   },
 );
