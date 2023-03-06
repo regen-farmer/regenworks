@@ -1,4 +1,7 @@
+/* eslint-disable import/first */
 import dotenv from 'dotenv';
+
+dotenv.config();
 
 import express from 'express';
 import { connect } from 'mongoose'; // REQUIRE MONGOOSE PACKAGE
@@ -37,8 +40,6 @@ import saptestRoutes from './routes/saptests';
 import farmflowRoutes from './routes/farmflows';
 import rotationRoutes from './routes/rotations';
 import varietyRoutes from './routes/varieties';
-
-dotenv.config();
 
 export type Auth0IDToken = {
   nickname: string,
