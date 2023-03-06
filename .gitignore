@@ -5,3 +5,4 @@ seeds.js
 combined.log
 error.log
 dist
+**/.DS_Store
