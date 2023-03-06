@@ -4,17 +4,16 @@ import Layer from '../models/layer';
 import Project from '../models/project';
 import Species from '../models/species';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
 const router = express.Router();
-
 
 // SEQUENCE NEW
 router.get(
   '/layers/:id/sequences/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id);
@@ -50,9 +49,7 @@ router.get(
 router.post(
   '/layers/:id/sequences',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
-
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id);
@@ -60,11 +57,10 @@ router.post(
         try {
           const createdSequence = await Sequence.create(req.body.sequence);
           // SAVE SEQUENCE ON LAYER?
-          createdSequence.owner.id = req.user?._id;
+          createdSequence.owner.id = req.user?._id.toString()!;
           await createdSequence.save();
 
-          res.send(createdSequence)
-
+          res.send(createdSequence);
         } catch (err) {
           console.log(err);
         }
@@ -72,15 +68,14 @@ router.post(
     } catch (err) {
       console.log(err);
     }
-
-  }
+  },
 );
 
 // SEQUENCE SHOW
 router.get(
   '/layers/:id/sequences/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id);
@@ -105,93 +100,92 @@ router.get(
 router.get(
   '/layers/:id/sequences/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
-    Layer.findById(req.params.id)
-      .populate({ path: 'rows.sequence', populate: { path: 'model.species' } })
-      .exec(async (err, foundLayer) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // FIND SEQUENCES
-          try {
-            const foundSequence = await Sequence.findById(req.params.pid)
-              .populate('model.species')
-              .exec();
-            if (foundSequence) {
-              // FIND ALL SPECIES
-              const foundSpecies = await Species.find();
+    try {
+      const foundLayer = await Layer.findById(req.params.id)
+        .populate({ path: 'rows.sequence', populate: { path: 'model.species' } })
+        .exec();
+        // FIND SEQUENCES
+      try {
+        const foundSequence = await Sequence.findById(req.params.pid)
+          .populate('model.species')
+          .exec();
+        if (foundSequence) {
+          // FIND ALL SPECIES
+          const foundSpecies = await Species.find();
 
-              // SORT SPECIES
+          // SORT SPECIES
 
-              foundSpecies.sort((a, b) => {
-                if (a.genus < b.genus) {
-                  return -1;
-                }
-                if (a.genus > b.genus) {
-                  return 1;
-                }
-                return 0;
-              });
-              // CALCULATE LENGTH
-              let length = 0;
-              if (foundSequence.sequencelength) {
-                length = foundSequence.sequencelength;
-              }
-              // CALCULATE DISTANCE
-              const distanceArray: number[] = [];
-              for (let i = 0; i < foundSequence.model.length; i++) {
-                distanceArray.push(foundSequence.model[i].position);
-              }
-              //
-              const distanceDifference: number[] = [];
-              for (let i = 0; i < distanceArray.length; i++) {
-                for (let j = 0; j < distanceArray.length; j++) {
-                  if (distanceArray[i] !== distanceArray[j]) {
-                    distanceDifference.push(
-                      Math.abs(distanceArray[i] - distanceArray[j]),
-                    );
-                  }
-                }
-              }
-              // SORT DIFFERENCE IN DISTANCE
-              function compare3(a: number, b: number) {
-                if (a < b) {
-                  return -1;
-                }
-                if (a > b) {
-                  return 1;
-                }
-                return 0;
-              }
-              // CALCULATE LENGTH
-              distanceArray.sort(compare3);
-              distanceDifference.sort(compare3);
-              let distance = 1;
-              if (
-                distanceDifference[0] > distanceArray[0]
-                || distanceDifference.length === 0
-              ) {
-                distance = distanceArray[0];
-              } else {
-                distance = distanceDifference[0];
-              }
-              res.send({
-                layer: foundLayer,
-                project: '',
-                sequence: foundSequence,
-                species: foundSpecies,
-                length,
-                distance,
-              });
-            } else {
-              console.log('No foundSequence');
+          foundSpecies.sort((a, b) => {
+            if (a.genus < b.genus) {
+              return -1;
             }
-          } catch (err) {
-            console.log(err);
+            if (a.genus > b.genus) {
+              return 1;
+            }
+            return 0;
+          });
+          // CALCULATE LENGTH
+          let length = 0;
+          if (foundSequence.sequencelength) {
+            length = foundSequence.sequencelength;
           }
+          // CALCULATE DISTANCE
+          const distanceArray: number[] = [];
+          for (let i = 0; i < foundSequence.model.length; i++) {
+            distanceArray.push(foundSequence.model[i].position);
+          }
+          //
+          const distanceDifference: number[] = [];
+          for (let i = 0; i < distanceArray.length; i++) {
+            for (let j = 0; j < distanceArray.length; j++) {
+              if (distanceArray[i] !== distanceArray[j]) {
+                distanceDifference.push(
+                  Math.abs(distanceArray[i] - distanceArray[j]),
+                );
+              }
+            }
+          }
+          // SORT DIFFERENCE IN DISTANCE
+          function compare3(a: number, b: number) {
+            if (a < b) {
+              return -1;
+            }
+            if (a > b) {
+              return 1;
+            }
+            return 0;
+          }
+          // CALCULATE LENGTH
+          distanceArray.sort(compare3);
+          distanceDifference.sort(compare3);
+          let distance = 1;
+          if (
+            distanceDifference[0] > distanceArray[0]
+              || distanceDifference.length === 0
+          ) {
+            distance = distanceArray[0];
+          } else {
+            distance = distanceDifference[0];
+          }
+          res.send({
+            layer: foundLayer,
+            project: '',
+            sequence: foundSequence,
+            species: foundSpecies,
+            length,
+            distance,
+          });
+        } else {
+          console.log('No foundSequence');
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -199,9 +193,7 @@ router.get(
 router.put(
   '/layers/:layerid/sequences/:sequenceid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
-
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.layerid);
@@ -223,38 +215,36 @@ router.put(
 
 /// ----------- PROJECT ROUTES ---------
 
-
 // SEQUENCE NEW
 router.get(
   '/projects/:id/sequences/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id);
       // FIND ALL SPECIES
-      Species.find((err, foundSpecies) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // SORT SPECIES
-          foundSpecies.sort((a, b) => {
-            if (a.genus < b.genus) {
-              return -1;
-            }
-            if (a.genus > b.genus) {
-              return 1;
-            }
-            return 0;
-          });
-          res.send({
-            project: foundProject,
-            species: foundSpecies,
-            distance: req.query.distance,
-            length: req.query.length,
-          });
-        }
-      });
+      try {
+        const foundSpecies = await Species.find();
+        // SORT SPECIES
+        foundSpecies.sort((a, b) => {
+          if (a.genus < b.genus) {
+            return -1;
+          }
+          if (a.genus > b.genus) {
+            return 1;
+          }
+          return 0;
+        });
+        res.send({
+          project: foundProject,
+          species: foundSpecies,
+          distance: req.query.distance,
+          length: req.query.length,
+        });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -265,7 +255,7 @@ router.get(
 router.post(
   '/projects/:id/sequences',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -275,10 +265,10 @@ router.post(
           const createdSequence = await Sequence.create(req.body.sequence);
 
           // SAVE SEQUENCE ON LAYER?
-          createdSequence.owner.id = req.user?._id;
+          createdSequence.owner.id = req.user?._id.toString()!;
           await createdSequence.save();
-        
-          res.send(createdSequence)
+
+          res.send(createdSequence);
         } catch (err) {
           console.log(err);
         }
@@ -293,7 +283,7 @@ router.post(
 router.get(
   '/projects/:id/sequences/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -388,15 +378,15 @@ router.get(
 router.put(
   '/projects/:id/sequences/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id);
-      console.log('FP', foundProject)
+      console.log('FP', foundProject);
       try {
         await Sequence.findByIdAndUpdate(req.params.pid, req.body.sequence);
         if (foundProject) {
-          res.send()
+          res.send();
         }
       } catch (err) {
         console.log(err);
@@ -404,15 +394,13 @@ router.put(
     } catch (err) {
       console.log(err);
     }
-  }
+  },
 );
 
-router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
-
+router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   const sequence = await Sequence.findById(req.params.id);
 
-  let newActivities: [{
+  const newActivities: [{
     id: string,
     activities: [{
       activityType: string;
@@ -425,31 +413,22 @@ router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async
       price: number;
     }]
 
-  }] = req.body.map(newactivity => ({
+  }] = req.body.map((newactivity) => ({
     id: newactivity.id,
-    activities: newactivity.activities.filter(el => el !== 'none').map(el => JSON.parse(el))
+    activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));
-  
 
-  sequence!.uniqueSpecies.forEach((uniqueSpecies, idx) => {
-
-    const match = newActivities.find(el => {
-      return el.id === uniqueSpecies.id.toString()
-    });
-
+  sequence!.uniqueSpecies.forEach((uniqueSpecies) => {
+    const match = newActivities.find((el) => el.id === uniqueSpecies.id.toString());
 
     if (match) {
-
-      uniqueSpecies.activities = match!.activities
+      uniqueSpecies.activities = match!.activities;
     }
-
-  })
-
+  });
 
   await sequence?.save();
 
-  res.send()
-})
-
+  res.send();
+});
 
 export default router;

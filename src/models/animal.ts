@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface IAnimalSchema extends Document {
+export interface IAnimalSchema {
     name: string,
     family: string,
     genus: string,
@@ -15,4 +15,8 @@ const animalSchema = new Schema<IAnimalSchema>({
   species: String,
 });
 
-export default model('Animal', animalSchema);
+const Animal = model('Animal', animalSchema);
+
+export default Animal;
+
+export type AnimalDocument = ReturnType<(typeof Animal)['hydrate']>;

@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface IRateLimiterIPSchema extends Document {
+export interface IRateLimiterIPSchema {
     createdAt: {
         type: Date,
         required: boolean,
@@ -41,4 +41,6 @@ const rateLimiterIPSchema = new Schema<IRateLimiterIPSchema>({
   },
 });
 
-export default model('RateLimiterIP', rateLimiterIPSchema);
+const RateLimiterIP = model('RateLimiterIP', rateLimiterIPSchema);
+export default RateLimiterIP;
+export type RateLimiterIPDocument = ReturnType<(typeof RateLimiterIP)['hydrate']>;

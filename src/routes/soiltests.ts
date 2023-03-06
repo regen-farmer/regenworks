@@ -4,7 +4,7 @@ import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import Soiltest from '../models/soiltest';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 router.get(
   '/parcels/:id/layers/:pid/soiltests/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -40,7 +40,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/soiltests',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // PARSE COORDINATES
     /* var soilTest = req.body.soiltest;
     var parsedCoordinates = req.body.coordinates.split(", ");
@@ -73,7 +73,7 @@ router.post(
 router.get(
   '/parcels/:id/soiltests/viz',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)

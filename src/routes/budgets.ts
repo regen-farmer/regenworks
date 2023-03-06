@@ -8,7 +8,7 @@ import Posting, { IPostingSchema } from '../models/posting';
 import Parcel from '../models/parcel';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { ISpeciesSchema } from '../models/species';
 import { Auth0IDToken } from '../app';
 
@@ -21,7 +21,7 @@ const router = express.Router();
 // BUDGET CREATE ROUTE
 
 // BUDGET SHOW ROUTE
-router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // CHECK OWNERSHIP ASAP
   try {
     const foundBudget = await Budget.findById(req.params.id)
@@ -87,7 +87,7 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & 
 });
 
 // BUDGET EDIT ROUTE
-router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundBudget = await Budget.findById(req.params.id);
     res.send({ budget: foundBudget });
@@ -97,7 +97,7 @@ router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req: express.Reque
 });
 
 // BUDGET UPDATE ROUTE
-router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const updatedBudget = await Budget.findByIdAndUpdate(
       req.params.id,
@@ -116,19 +116,18 @@ router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request &
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-  Parcel.findById(req.params.id)
-    .populate({
-      path: 'layers',
-      populate: { path: 'accounts', populate: { path: 'postings' } },
-    })
-    .exec((err, foundParcel) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send({ parcel: foundParcel });
-      }
-    });
+router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  try {
+    const foundParcel = await Parcel.findById(req.params.id)
+      .populate({
+        path: 'layers',
+        populate: { path: 'accounts', populate: { path: 'postings' } },
+      })
+      .exec();
+    res.send({ parcel: foundParcel });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PARCEL BUDGET
@@ -137,7 +136,7 @@ router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.R
 router.get(
   '/projects/:id/budgets/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate('system')
@@ -178,7 +177,7 @@ router.get(
 // router.post(
 //   '/projects/:id/budgets',
 //   middleware.isLoggedIn,
-//   async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+//   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
 //     const foundProject = await Project.findById(req.params.id);
 //     const createdBudget = await Budget.create(req.body.budget);
 
@@ -200,7 +199,7 @@ router.get(
 router.get(
   '/projects/:id/generateestablishment',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -280,7 +279,7 @@ router.get(
 router.post(
   '/projects/:id/generateestablishment',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -499,7 +498,7 @@ router.post(
 router.get(
   '/projects/:id/generatemanagement',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -591,7 +590,7 @@ router.get(
 router.post(
   '/projects/:id/generatemanagement',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)

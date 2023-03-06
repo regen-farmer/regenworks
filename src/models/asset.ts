@@ -1,20 +1,20 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-export interface IAssetSchema extends Document {
+export interface IAssetSchema {
     name: string,
     description: string,
     typeAsset: string,
     amount: number,
-    species: ISpeciesSchema,
+    species: HydratedDocument<ISpeciesSchema>,
     value: number,
     creation: number,
     determination: number,
     lat: number,
     lng: number,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>|string
     }
 }
 
@@ -41,4 +41,8 @@ const assetSchema = new Schema<IAssetSchema>({
   },
 });
 
-export default model('Asset', assetSchema);
+const Asset = model('Asset', assetSchema);
+
+export default Asset;
+
+export type AssetDocument = ReturnType<(typeof Asset)['hydrate']>;

@@ -1,10 +1,12 @@
 import express from 'express';
 import unique from 'array-unique';
 import {
-  helpers as turf, length as turfLength, circle, area,
+  helpers as turf, length as turfLength, circle,
 } from '@turf/turf';
 import PDFDocument from 'pdfkit';
 import NodeGeocoder from 'node-geocoder';
+import mongoose from 'mongoose';
+import _ from 'lodash';
 import Project from '../models/project';
 import Layer from '../models/layer';
 import System, { ISystemSchema } from '../models/system';
@@ -19,11 +21,9 @@ import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
 import dyFiMo from '../middleware/financials';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
-import mongoose from 'mongoose';
 import Species, { ISpeciesSchema } from '../models/species';
-import _ from 'lodash';
 
 // =======
 // var express = require("express");
@@ -78,7 +78,7 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // GET ALL USERS PROJECTS IN DB
   try {
     const allProjects = await Project.find({ 'owner.id': req.user?._id });
@@ -89,13 +89,13 @@ router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { u
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   const place = undefined;
   res.send({ place });
 });
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create a new project
   try {
     const service = await Project.create(req.body.project);
@@ -115,7 +115,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
         service.lng = lng;
         service.location = loc;
         // Add ID to experience
-        service.owner.id = req.user?._id;
+        service.owner.id = req.user?._id.toString()!;
         // Save the service - Not need if created after this step
         await service.save();
         // Redirect to projects INDEX page
@@ -129,7 +129,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
 });
 
 // PROJECT SHOW ROUTE
-router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id)
       .populate('layer')
@@ -295,7 +295,7 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
   try {
@@ -310,7 +310,7 @@ router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Requ
 router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -502,7 +502,7 @@ router.get(
           strips: stripsCollection,
           alleys: alleysCollection,
           offset: offsetCollection,
-          treeAssetArray: layout.treeAssetArray
+          treeAssetArray: layout.treeAssetArray,
 
         });
       }
@@ -513,7 +513,7 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
@@ -527,7 +527,7 @@ router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
@@ -544,7 +544,7 @@ router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Re
 router.get(
   '/projects/:id/viz',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -632,7 +632,7 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   res.send();
 });
 
@@ -640,7 +640,7 @@ router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Req
 router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     Project.findByIdAndUpdate(
       req.params.id,
       { $set: { status: 'Implementation' } },
@@ -656,7 +656,7 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   Project.findByIdAndUpdate(
     req.params.id,
     { $set: { status: 'Retired' } },
@@ -674,7 +674,7 @@ router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Re
 router.put(
   '/projects/:id/complete',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const completedProject = await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: 'Completed' },
@@ -721,7 +721,7 @@ router.put(
 router.get(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id);
       try {
@@ -753,7 +753,7 @@ router.get(
 router.post(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND SYSTEM
     try {
       const foundSystem = await System.findById(req.body.systemid);
@@ -781,7 +781,7 @@ router.post(
 router.put(
   '/projects/:id/generateassets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -850,6 +850,7 @@ router.put(
                   for (let i = 0; i < createdAssets.length; i++) {
                     const ref = treeAssetRowRef[i];
                     console.log(`ref ${ref}`);
+                    // @ts-ignore
                     foundRows[ref].assets.push(createdAssets[i]);
                   }
                   // SAVE ROWS INDIVIDUALLY
@@ -883,7 +884,7 @@ router.put(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-// router.post('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+// router.post('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
 //   // FIND PROJECT
 //   try {
 //     const foundProject = await Project.findById(req.params.id)
@@ -980,7 +981,7 @@ router.put(
 router.get(
   '/projects/:id/deleterows',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -1020,7 +1021,7 @@ router.get(
 router.get(
   '/projects/:id/assets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1046,7 +1047,7 @@ router.get(
           treeCanopyArray.push(circle1);
         }
         const treeMarkers = turf.featureCollection(treeCanopyArray);
-        const treeCollection = JSON.stringify(treeMarkers);
+        // const treeCollection = JSON.stringify(treeMarkers);
         // UNIQUE TREE SPECIES
         const uniqueSpecies = unique(allTrees);
         // UNIQUE SPECIES COUNTS
@@ -1086,7 +1087,7 @@ router.get(
 router.delete(
   '/projects/:id',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
@@ -1150,7 +1151,7 @@ router.delete(
 router.get(
   '/layers/:id/systems/:system/projects/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
@@ -1175,9 +1176,8 @@ router.get(
 router.post(
   '/layers/:id/systems/:system/projects',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // Lookup place using id
-
 
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -1185,8 +1185,6 @@ router.post(
         .exec();
 
       const createdProject = await Project.create(req.body.project);
-
-
 
       // FIND SYSTEM AND ADD TO PROJECT
       const foundSystem = await System.findById(req.params.system)
@@ -1196,7 +1194,7 @@ router.post(
       if (foundLayer && createdProject && foundSystem) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user?._id;
+        createdProject.owner.id = req.user?._id.toString()!;
         createdProject.system = foundSystem;
         createdProject.layer = foundLayer;
         createdProject.financial = {
@@ -1232,8 +1230,6 @@ router.post(
             console.log(err);
           }
         } else {
-
-
           // Save the project
           await createdProject.save();
           res.send(createdProject);
@@ -1250,14 +1246,14 @@ router.post(
 router.delete(
   '/projects/:id/allassets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
-          await foundProject.assets[i].remove();
+          await foundProject.assets[i].deleteOne();
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
@@ -1280,7 +1276,7 @@ router.delete(
 router.get(
   '/projects/:id/row/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1307,7 +1303,7 @@ router.get(
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // REDIRECT IF NO GEOMETRY
   if (req.body.geometry === '') {
     res.send('back');
@@ -1352,7 +1348,7 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
 router.get(
   '/projects/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1390,7 +1386,7 @@ router.get(
 router.put(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CREATE ROW HERE?
     const row: any = {
       name: req.body.row.name,
@@ -1420,7 +1416,7 @@ router.put(
 router.delete(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -1428,8 +1424,8 @@ router.delete(
       if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
         updatedProject.rows.forEach(async (row) => {
-          if (row._id === req.params.pid) {
-            await row.remove();
+          if (row._id.toString() === req.params.pid) {
+            await row.deleteOne();
           }
         });
         // DELETE ROW
@@ -1453,8 +1449,7 @@ router.delete(
 router.get(
   '/projects/:id/areas/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1492,9 +1487,8 @@ router.get(
 router.put(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CREATE AREA HERE?
-
 
     const area: any = {
       name: req.body.area.name,
@@ -1527,7 +1521,7 @@ router.put(
 
 // --------- PROJECT FINANCIALS ROUTE TEMP --------
 // PROJECT FINANCIALS ROUTE
-router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id)
       .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -1551,9 +1545,8 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
         labels.push(label);
       }
 
-
-      var YoY = managementBudget.totals;
-      YoY[0] = YoY[0] - establishmentBudget.total;
+      const YoY = managementBudget.totals;
+      YoY[0] -= establishmentBudget.total;
       // ADD BUDGET DATA TO GRAPH DATASETS
 
       // CALCULATE ACCUMULATIVE CASH-FLOW
@@ -1563,9 +1556,9 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
         sum += YoY[i];
         sumArray.push(sum);
       }
-      var npv = 0;
+      let npv = 0;
       for (let i = 0; i < YoY.length; i++) {
-        const discountedTotal = YoY[i] * (Math.pow((1 - (foundProject.financial.discountRate)), i + 1));
+        const discountedTotal = YoY[i] * ((1 - (foundProject.financial.discountRate)) ** (i + 1));
         npv += discountedTotal;
       }
 
@@ -1573,44 +1566,37 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
       const parseddataset = YoY;
       const parsedsum = sumArray;
 
-
-
       let listofSpeciesIds: string[] = [];
 
       if (foundProject.rows.length > 0) {
-        foundProject.rows.forEach(row=>{
-          row.sequence?.uniqueSpecies.forEach(uniqueSpecie=>{
-            listofSpeciesIds.push(uniqueSpecie.id.toString())
-          })
-        })
-
+        foundProject.rows.forEach((row) => {
+          row.sequence?.uniqueSpecies.forEach((uniqueSpecie) => {
+            listofSpeciesIds.push(uniqueSpecie.id.toString());
+          });
+        });
       } else {
         listofSpeciesIds = foundProject.system.uniqueSpecies.map(
           (us) => us.id as string,
         );
-
       }
 
-      listofSpeciesIds = _.uniq(listofSpeciesIds)
-      
-      console.log('species', listofSpeciesIds)
+      listofSpeciesIds = _.uniq(listofSpeciesIds);
+
+      console.log('species', listofSpeciesIds);
 
       const species: ISpeciesSchema[] = await Species.aggregate([
         {
           $match: {
             _id: {
-              $in: listofSpeciesIds!.map(function (id) {
-                return new mongoose.Types.ObjectId(id);
-              }),
+              $in: listofSpeciesIds!.map((id) => new mongoose.Types.ObjectId(id)),
             },
           },
         },
       ]);
 
       const populatedSpecies = await Species.populate(species, {
-        path: "activities",
+        path: 'activities',
       });
-
 
       res.send({
         species: populatedSpecies,
@@ -1618,36 +1604,32 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
         labels: parsedLabels,
         dataset: parseddataset,
         sum: parsedsum,
-        npv: npv
+        npv,
       });
     } else {
       console.log('No foundProject');
     }
-  }
-  catch (err) {
+  } catch (err) {
     console.log(err);
   }
 });
 
-
-router.patch('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
+router.patch('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   const project = await Project.findById(req.params.id);
 
   project!.financial.discountRate = req.body.discountrate;
   project!.financial.period = req.body.timeperiod;
   await project!.save();
 
-  res.send()
-})
+  res.send();
+});
 
-router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-
+router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   const project = await Project.findById(req.params.id).populate('system');
 
   const system = project?.system;
 
-  let newActivities: [{
+  const newActivities: [{
     id: string,
     activities: [{
       activityType: string;
@@ -1660,35 +1642,23 @@ router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async
       price: number;
     }]
 
-  }] = req.body.map(newactivity => ({
+  }] = req.body.map((newactivity) => ({
     id: newactivity.id,
-    activities: newactivity.activities.filter(el => el !== 'none').map(el => JSON.parse(el))
+    activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));
-  
 
-
-
-
-  system!.uniqueSpecies.forEach((uniqueSpecies, idx) => {
-
-    const match = newActivities.find(el => {
-      return el.id === uniqueSpecies.id.toString()
-    });
-
+  system!.uniqueSpecies.forEach((uniqueSpecies) => {
+    const match = newActivities.find((el) => el.id === uniqueSpecies.id.toString());
 
     if (match) {
-
-      uniqueSpecies.activities = match!.activities
+      uniqueSpecies.activities = match!.activities;
     }
-
-  })
-
+  });
 
   await system?.save();
 
-
-  res.send()
-})
+  res.send();
+});
 
 // --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
 
@@ -1696,7 +1666,7 @@ router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async
 router.get(
   '/projects/:id/alignmentrow/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1723,7 +1693,7 @@ router.get(
 );
 
 // UPDATE PROJECT ALIGNMENT
-router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
@@ -1742,7 +1712,7 @@ router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: expr
 router.get(
   '/projects/:id/budgetpdf',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
 
     // GENERATE PDF TEST

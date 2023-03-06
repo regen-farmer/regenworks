@@ -7,7 +7,7 @@ import {
   along,
 } from '@turf/turf';
 import NodeGeocoder from 'node-geocoder';
-import User, { IUserSchema } from '../models/user';
+import User, { UserDocument } from '../models/user';
 import Parcel from '../models/parcel';
 import Practice from '../models/practice';
 import Layer from '../models/layer';
@@ -19,7 +19,7 @@ import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
-console.log('GEOCODER', process.env.GEOCODER_API_KEY)
+console.log('GEOCODER', process.env.GEOCODER_API_KEY);
 
 const options: NodeGeocoder.Options = {
   provider: 'google',
@@ -30,7 +30,7 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PARCEL INDEX ROUTE
-router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Get all parcels from DB
   try {
     const allUserParcels = await Parcel.find({ 'owner.id': req.user?._id });
@@ -41,19 +41,18 @@ router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { us
 });
 
 // PARCEL NEW ROUTE
-router.get('/parcels/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Find all products in database and pass to ejs
-  Practice.find((err, foundPractices) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send( { practices: foundPractices });
-    }
-  });
+  try {
+    const foundPractices = await Practice.find();
+    res.send({ practices: foundPractices });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PARCEL CREATE ROUTE
-router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create variable with new place posted from place form
   const name = req.body.parcel.name;
   const climate = {
@@ -229,7 +228,7 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
 router.get(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id)
         .populate('practices')
@@ -270,11 +269,11 @@ router.get(
         }
         // CREATE LABEL COLLECTION
         const placesCollection = turf.featureCollection(placesArray);
-        
+
         // CREATE FEATURECOLLECTION
         const featurecollection = turf.featureCollection(geometryArray);
-        
-        res.send( {
+
+        res.send({
           parcel: foundParcel,
           collection: featurecollection,
           places: placesCollection,
@@ -292,18 +291,17 @@ router.get(
 router.get(
   '/parcels/:id/edit',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-    // Find specific place in database
-    Parcel.findById(req.params.id)
-      .populate('practices')
-      .exec((err, foundParcel) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // RENDER EDIT PAGE FOR PARCEL
-          res.send( foundParcel);
-        }
-      });
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    try {
+      // Find specific place in database
+      const foundParcel = await Parcel.findById(req.params.id)
+        .populate('practices')
+        .exec();
+      // RENDER EDIT PAGE FOR PARCEL
+      res.send(foundParcel);
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -311,7 +309,7 @@ router.get(
 router.put(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // UPDATE PARCEL
     const parcel = req.body.parcel;
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
@@ -343,7 +341,7 @@ router.put(
 router.delete(
   '/parcels/:id',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       await Parcel.findByIdAndRemove(req.params.id);
       res.send(`/users/${req.user?.id}`);
@@ -358,16 +356,15 @@ router.delete(
 router.get(
   '/parcels/:id/analysis',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-    Parcel.findById(req.params.id)
-      .populate('layers')
-      .exec((err, foundParcel) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.send( { parcel: foundParcel });
-        }
-      });
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    try {
+      const foundParcel = await Parcel.findById(req.params.id)
+        .populate('layers')
+        .exec();
+      res.send({ parcel: foundParcel });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -375,7 +372,7 @@ router.get(
 router.get(
   '/parcels/:id/composition',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id)
         .populate('layers')
@@ -383,20 +380,19 @@ router.get(
       if (foundParcel) {
         const layerarray: string[] = [];
         foundParcel.layers.forEach((layer) => {
-          layerarray.push(layer._id);
+          layerarray.push(layer._id.toString());
         });
-        Layer.find({ _id: layerarray })
-          .populate('systems.future')
-          .exec((err, foundLayers) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send( {
-                parcel: foundParcel,
-                layers: foundLayers,
-              });
-            }
+        try {
+          const foundLayers = await Layer.find({ _id: layerarray })
+            .populate('systems.future')
+            .exec();
+          res.send({
+            parcel: foundParcel,
+            layers: foundLayers,
           });
+        } catch (err) {
+          console.log(err);
+        }
       } else {
         console.log('No foundParcel');
       }
@@ -410,7 +406,7 @@ router.get(
 router.get(
   '/parcels/:id/climate',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel) {
@@ -460,7 +456,7 @@ router.get(
 router.get(
   '/parcels/:id/layout',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PARCEL
     try {
       const foundParcel = await Parcel.findById(req.params.id)
@@ -665,7 +661,7 @@ router.get(
         const stripsCollection = JSON.stringify(bedArrayPolygons);
         const alleyArrayPolygons = turf.featureCollection(alleyPolygonArray);
         const alleysCollection = JSON.stringify(alleyArrayPolygons);
-        res.send( {
+        res.send({
           parcel: foundParcel,
           collection,
           places,

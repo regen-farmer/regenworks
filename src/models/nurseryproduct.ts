@@ -1,21 +1,21 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-export interface INurseryProductSchema extends Document {
+export interface INurseryProductSchema {
     name: string,
     variety: string,
-    species: ISpeciesSchema,
+    species: HydratedDocument<ISpeciesSchema>,
     price: number,
     description: string,
     stock: number,
     class: string,
     pollination: string,
     orderlimit: number,
-    rootstock: ISpeciesSchema,
-    hybrid: ISpeciesSchema,
+    rootstock: HydratedDocument<ISpeciesSchema>,
+    hybrid: HydratedDocument<ISpeciesSchema>,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>|string
     },
     availability: boolean,
     season: {
@@ -59,4 +59,6 @@ const nurseryProductSchema = new Schema<INurseryProductSchema>({
   },
 });
 
-export default model('Nurseryproduct', nurseryProductSchema);
+const NurseryProduct = model('Nurseryproduct', nurseryProductSchema);
+export default NurseryProduct;
+export type NurseryProductDocument = ReturnType<(typeof NurseryProduct)['hydrate']>;

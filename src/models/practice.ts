@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface IPracticesSchema extends Document {
+export interface IPracticesSchema {
     name: string,
     type: string,
     description: string,
@@ -27,4 +27,6 @@ const practicesSchema = new Schema<IPracticesSchema>({
   },
 });
 
-export default model('Practice', practicesSchema);
+const Practice = model('Practice', practicesSchema);
+export default Practice;
+export type PracticeDocument = ReturnType<(typeof Practice)['hydrate']>;

@@ -1,7 +1,7 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IUserSchema } from './user';
 
-export interface ISaptestSchema extends Document {
+export interface ISaptestSchema {
     name: string,
     description: string,
     lat: number,
@@ -21,7 +21,7 @@ export interface ISaptestSchema extends Document {
     chloride: number,
     sulfur: number,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     }
 }
 
@@ -53,4 +53,6 @@ const saptestSchema = new Schema<ISaptestSchema>({
   },
 });
 
-export default model('Saptest', saptestSchema);
+const Saptest = model('Saptest', saptestSchema);
+export default Saptest;
+export type SaptestDocument = ReturnType<(typeof Saptest)['hydrate']>;

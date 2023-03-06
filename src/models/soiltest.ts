@@ -1,7 +1,7 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IUserSchema } from './user';
 
-export interface ISoiltestSchema extends Document {
+export interface ISoiltestSchema {
     name: string,
     description: string,
     lat: number,
@@ -34,7 +34,7 @@ export interface ISoiltestSchema extends Document {
         zinc: number
     },
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     }
 }
 
@@ -79,4 +79,6 @@ const soiltestSchema = new Schema<ISoiltestSchema>({
   },
 });
 
-export default model('Soiltest', soiltestSchema);
+const Soiltest = model('Soiltest', soiltestSchema);
+export default Soiltest;
+export type SoiltestDocument = ReturnType<(typeof Soiltest)['hydrate']>;

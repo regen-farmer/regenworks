@@ -1,7 +1,7 @@
 import express from 'express';
 import NodeGeocoder from 'node-geocoder';
 import Nursery from '../models/nursery';
-import User, { IUserSchema } from '../models/user';
+import User, { UserDocument } from '../models/user';
 import middleware from '../middleware';
 import { Auth0IDToken } from '../app';
 
@@ -17,25 +17,25 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND NURSERY BASED ON USER
   try {
     const foundNurseries = await Nursery.find({ 'owner.id': req.user?._id });
     console.log(foundNurseries.length);
-    res.send( { nurseries: foundNurseries });
+    res.send({ nurseries: foundNurseries });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY NEW
-router.get('/nurseries/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // ADMIN LOGIN REQUIRED
   res.send();
 });
 
 // ANIMAL CREATE
-router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;
   // GEOLOCATION
@@ -52,7 +52,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     try {
       const createdNursery = await Nursery.create(newNursery);
       // SET OWNERSHIP
-      createdNursery.owner.id = req.user?._id;
+      createdNursery.owner.id = req.user?._id.toString()!;
       await createdNursery.save();
       // ADD TO USER
       try {
@@ -75,23 +75,22 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // DO OWNERSHIP MODEL
   // FIND NURSERY
-  Nursery.findById(req.params.id)
-    .populate('products')
-    .exec((err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // RENDER SHOW PAGE
-        res.send({ nursery: foundNursery });
-      }
-    });
+  try {
+    const foundNursery = await Nursery.findById(req.params.id)
+      .populate('products')
+      .exec();
+    // RENDER SHOW PAGE
+    res.send({ nursery: foundNursery });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND NURSERY
   try {
     const foundNursery = await Nursery.findById(req.params.id);
@@ -102,7 +101,7 @@ router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Req
 });
 
 // NURSERY UPDATE
-router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;

@@ -1,4 +1,4 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IAreaSchema } from './area';
 import { IAssetSchema } from './asset';
 import { IBudgetSchema } from './budget';
@@ -9,12 +9,12 @@ import { ISoiltestSchema } from './soiltest';
 import { ISystemSchema } from './system';
 import { IUserSchema } from './user';
 
-export interface ILayerSchema extends Document {
+export interface ILayerSchema {
     name: string,
     description: string,
     type: string,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema> | string
     },
     climate: {
         monthlyaveragetemp: {
@@ -53,33 +53,33 @@ export interface ILayerSchema extends Document {
     size: number,
     systems: {
         past: [
-            ISystemSchema
+            HydratedDocument<ISystemSchema>
         ],
-        present: ISystemSchema,
+        present: HydratedDocument<ISystemSchema>,
         future: [
-            ISystemSchema
+            HydratedDocument<ISystemSchema>
         ]
     },
     projects: [
-        IProjectSchema
+        HydratedDocument<IProjectSchema>
     ],
     assets: [
-        IAssetSchema
+        HydratedDocument<IAssetSchema>
     ],
     alignment: string,
     layout: string,
     headland: number,
-    rows: IRowSchema[],
+    rows: HydratedDocument<IRowSchema>[],
     areas: [
-        IAreaSchema
+      HydratedDocument<IAreaSchema>
     ],
     soiltests: [
-        ISoiltestSchema
+        HydratedDocument<ISoiltestSchema>
     ],
     saptests: [
-        ISaptestSchema
+        HydratedDocument<ISaptestSchema>
     ],
-    accounts: IBudgetSchema
+    accounts: HydratedDocument<IBudgetSchema>
 }
 
 // LAYER SCHEMA SETUP
@@ -191,4 +191,6 @@ const layerSchema = new Schema<ILayerSchema>({
   },
 });
 
-export default model('Layer', layerSchema);
+const Layer = model('Layer', layerSchema);
+export default Layer;
+export type LayerDocument = ReturnType<(typeof Layer)['hydrate']>;

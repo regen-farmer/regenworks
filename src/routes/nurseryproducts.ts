@@ -3,56 +3,54 @@ import NurseryProduct from '../models/nurseryproduct';
 import Nursery from '../models/nursery';
 import Species from '../models/species';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // ADMIN ALL VARIETIES
-router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
-  NurseryProduct.find()
-    .populate('species')
-    .populate('rootstock')
-    .populate('hybrid')
-    .exec((err, foundNurseryProducts) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send({ products: foundNurseryProducts });
-      }
-    });
+router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  try {
+    const foundNurseryProducts = await NurseryProduct.find()
+      .populate('species')
+      .populate('rootstock')
+      .populate('hybrid')
+      .exec();
+    res.send({ products: foundNurseryProducts });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NURSERY PRODUCT NURSERY NEW
 router.get(
   '/nurseries/:id/nurseryproducts/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
       // FIND ALL SPECIES
-      Species.find((err, allSpecies) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // SORT SPECIES
+      try {
+        const allSpecies = await Species.find();
+        // SORT SPECIES
 
-          allSpecies.sort((a, b) => {
-            if (a.genus < b.genus) {
-              return -1;
-            }
-            if (a.genus > b.genus) {
-              return 1;
-            }
-            return 0;
-          });
-          res.send( {
-            nursery: foundNursery,
-            species: allSpecies,
-          });
-        }
-      });
+        allSpecies.sort((a, b) => {
+          if (a.genus < b.genus) {
+            return -1;
+          }
+          if (a.genus > b.genus) {
+            return 1;
+          }
+          return 0;
+        });
+        res.send({
+          nursery: foundNursery,
+          species: allSpecies,
+        });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -63,7 +61,7 @@ router.get(
 router.post(
   '/nurseries/:id/nurseryproducts',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CLEAN NONE OPTIONS
     const product = req.body.product;
     if (req.body.product.species === '') {
@@ -86,7 +84,7 @@ router.post(
         try {
           const createdProduct = await NurseryProduct.create(product);
           // SET OWNERSHIP
-          createdProduct.owner.id = req.user?._id;
+          createdProduct.owner.id = req.user?._id.toString()!;
           await createdProduct.save();
           // INSERT PRODUCT IN NURSERY
           foundNursery.products.push(createdProduct);
@@ -107,25 +105,24 @@ router.post(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
+      try {
       // FIND PRODUCT
-      NurseryProduct.findById(req.params.pid)
-        .populate('species')
-        .populate('rootstock')
-        .populate('hybrid')
-        .exec((err, foundProduct) => {
-          if (err) {
-            console.log(err);
-          } else {
-            res.send( {
-              nursery: foundNursery,
-              product: foundProduct,
-            });
-          }
+        const foundProduct = await NurseryProduct.findById(req.params.pid)
+          .populate('species')
+          .populate('rootstock')
+          .populate('hybrid')
+          .exec();
+        res.send({
+          nursery: foundNursery,
+          product: foundProduct,
         });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -136,44 +133,42 @@ router.get(
 router.get(
   '/nurseries/:id/nurseryproducts/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND NURSERY
     try {
       const foundNursery = await Nursery.findById(req.params.id);
       // FIND PRODUCT
-      NurseryProduct.findById(req.params.pid)
-        .populate('species')
-        .populate('rootstock')
-        .populate('hybrid')
-        .exec((err, foundProduct) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // FIND ALL SPECIES
-            Species.find((err, allSpecies) => {
-              if (err) {
-                console.log(err);
-              } else {
-                // SORT SPECIES
+      try {
+        const foundProduct = await NurseryProduct.findById(req.params.pid)
+          .populate('species')
+          .populate('rootstock')
+          .populate('hybrid')
+          .exec();
+        // FIND ALL SPECIES
+        try {
+          const allSpecies = await Species.find();
+          // SORT SPECIES
 
-                allSpecies.sort((a, b) => {
-                  if (a.genus < b.genus) {
-                    return -1;
-                  }
-                  if (a.genus > b.genus) {
-                    return 1;
-                  }
-                  return 0;
-                });
-                res.send({
-                  nursery: foundNursery,
-                  product: foundProduct,
-                  species: allSpecies,
-                });
-              }
-            });
-          }
-        });
+          allSpecies.sort((a, b) => {
+            if (a.genus < b.genus) {
+              return -1;
+            }
+            if (a.genus > b.genus) {
+              return 1;
+            }
+            return 0;
+          });
+          res.send({
+            nursery: foundNursery,
+            product: foundProduct,
+            species: allSpecies,
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -184,7 +179,7 @@ router.get(
 router.put(
   '/nurseries/:id/nurseryproducts/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CLEAN NONE OPTIONS
     const product = req.body.product;
     if (req.body.product.species === '') {

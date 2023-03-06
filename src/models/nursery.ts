@@ -1,8 +1,8 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { INurseryProductSchema } from './nurseryproduct';
 import { IUserSchema } from './user';
 
-export interface INurserySchema extends Document {
+export interface INurserySchema {
     name: string,
     location: string,
     currency: string,
@@ -11,10 +11,10 @@ export interface INurserySchema extends Document {
     lng: number,
     range: number,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema> | string
     },
     products: [
-        INurseryProductSchema
+        HydratedDocument<INurseryProductSchema>
     ]
 }
 
@@ -41,4 +41,6 @@ const nurserySchema = new Schema<INurserySchema>({
   ],
 });
 
-export default model('Nursery', nurserySchema);
+const Nursery = model('Nursery', nurserySchema);
+export default Nursery;
+export type NurseryDocument = ReturnType<(typeof Nursery)['hydrate']>;

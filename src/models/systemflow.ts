@@ -1,8 +1,8 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { ISystemSchema } from './system';
 
-export interface ISystemflowSchema extends Document {
+export interface ISystemflowSchema {
     name: string,
     type: string,
     unit: string,
@@ -10,12 +10,12 @@ export interface ISystemflowSchema extends Document {
     location: string,
     data: [
         {
-            species: ISpeciesSchema,
+            species: HydratedDocument<ISpeciesSchema>,
             data: [number]
         }
     ],
     source: string,
-    systemref: ISystemSchema
+    systemref: HydratedDocument<ISystemSchema>
 }
 
 // SYSTEM FLOW SCHEMA SETUP
@@ -41,4 +41,6 @@ const systemflowSchema = new Schema<ISystemflowSchema>({
   },
 });
 
-export default model('Systemflow', systemflowSchema);
+const Systemflow = model('Systemflow', systemflowSchema);
+export default Systemflow;
+export type SystemflowDocument = ReturnType<(typeof Systemflow)['hydrate']>;

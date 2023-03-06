@@ -7,7 +7,7 @@ import { PNG } from 'pngjs';
 import PNGCrop from 'png-crop';
 import express from 'express';
 import { arrayBuffer } from 'stream/consumers';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
 const router = express.Router();
@@ -15,7 +15,7 @@ const router = express.Router();
 // SEQUENCE NEW
 router.get(
   '/api/tiles/bluespot',
-  async (request: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (request: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // const url_params = (new URL(request.url)).searchParams;
 
     /// ///////////////////////////////////////////////////

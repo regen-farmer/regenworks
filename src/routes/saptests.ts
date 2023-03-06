@@ -3,13 +3,13 @@ import Parcel from '../models/parcel';
 import Layer from '../models/layer';
 import Saptest from '../models/saptest';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // PARCEL LAYER SAP TEST NEW
-router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND PARCEL
   try {
     const foundParcel = Parcel.findById(req.params.id).populate('layers').exec();
@@ -28,7 +28,7 @@ router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async
 });
 
 // PARCEL LAYER SOIL TEST CREATE
-router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // PARSE COORDINATES
   /* var sapTest = req.body.saptest;
     var parsedCoordinates = req.body.coordinates.split(", ");

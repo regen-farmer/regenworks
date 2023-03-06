@@ -1,4 +1,4 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IActivitySchema } from './activity';
 import { IAreaSchema } from './area';
 import { IAssetSchema } from './asset';
@@ -8,25 +8,25 @@ import { IRowSchema } from './row';
 import { ISystemSchema } from './system';
 import { IUserSchema } from './user';
 
-export interface IProjectSchema extends Document {
+export interface IProjectSchema {
     name: string,
     description: string,
     location: string,
     lat: number,
     lng: number,
     assets: [
-        IAssetSchema
+        HydratedDocument<IAssetSchema>
     ],
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>|string
     },
-    layer: ILayerSchema,
-    activities: IActivitySchema[],
-    system: ISystemSchema,
-    edgesystem:ISystemSchema,
+    layer: HydratedDocument<ILayerSchema>,
+    activities: HydratedDocument<IActivitySchema>[],
+    system: HydratedDocument<ISystemSchema>,
+    edgesystem:HydratedDocument<ISystemSchema>,
     budgets: {
-        establishment: IBudgetSchema,
-        management: IBudgetSchema
+        establishment: HydratedDocument<IBudgetSchema>,
+        management: HydratedDocument<IBudgetSchema>
     },
     financial: {
         discountRate: number,
@@ -38,8 +38,8 @@ export interface IProjectSchema extends Document {
     headland: number,
     bearingline: string,
     status: string,
-    rows: IRowSchema[],
-    areas: [IAreaSchema]
+    rows: HydratedDocument<IRowSchema>[],
+    areas: [HydratedDocument<IAreaSchema>]
 }
 
 // PROJECT SCHEMA SETUP
@@ -113,4 +113,6 @@ const projectSchema = new Schema<IProjectSchema>({
   ],
 });
 
-export default model('Project', projectSchema);
+const Project = model('Project', projectSchema);
+export default Project;
+export type ProjectDocument = ReturnType<(typeof Project)['hydrate']>;

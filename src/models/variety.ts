@@ -1,21 +1,21 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-export interface IVarietySchema extends Document {
+export interface IVarietySchema {
     name: string,
-    species: ISpeciesSchema,
+    species: HydratedDocument<ISpeciesSchema>,
     price: number,
     description: string,
     class: string,
     pollination: string,
     rootstock: {
         name: string,
-        species: ISpeciesSchema
+        species: HydratedDocument<ISpeciesSchema>
     },
-    hybrid: ISpeciesSchema,
+    hybrid: HydratedDocument<ISpeciesSchema>,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>|string
     },
 }
 
@@ -49,4 +49,6 @@ const varietySchema = new Schema<IVarietySchema>({
   },
 });
 
-export default model('Variety', varietySchema);
+const Variety = model('Variety', varietySchema);
+export default Variety;
+export type VarietyDocument = ReturnType<(typeof Variety)['hydrate']>;
