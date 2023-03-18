@@ -56,13 +56,12 @@ router.post('/parcels/:id/layers/:pid/areas/:rid/notes', middleware.isLoggedIn, 
   // CREATE ACTIVITY
   const createdNote = await Note.create(req.body.note);
 
-  Area.findByIdAndUpdate(req.params.rid, { $push: { notes: createdNote } }, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(`/parcels/${req.params.id}/notes`);
-    }
-  });
+  try {
+    await Area.findByIdAndUpdate(req.params.rid, { $push: { notes: createdNote } });
+    res.send(`/parcels/${req.params.id}/notes`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 export default router;

@@ -97,13 +97,27 @@ app.use(async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDTo
   // console.log('body:', req.body)
 
   function parseJwt(token) {
-    console.log('token in place');
+    // eslint-disable-next-line no-unneeded-ternary
+    console.log('token in place', token === 'undefined' ? false : true);
+
+    if (token === 'undefined') {
+      return;
+    }
+
     return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
   }
 
   let idToken: Auth0IDToken | undefined;
+
+  // console.log('jwt in place', jwt);
+
   if (jwt && typeof (jwt) === 'string') {
     idToken = parseJwt(jwt);
+    if (!idToken) {
+      console.log('no id token');
+      res.status(404).send('Invalid token');
+      return;
+    }
   } else {
     console.log('no jwt');
   }

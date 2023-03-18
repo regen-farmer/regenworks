@@ -23,7 +23,7 @@ router.get(
 
       try {
         const foundLayer = await Layer.findById(req.params.pid);
-        res.send( {
+        res.send({
           parcel: foundParcel,
           layer: foundLayer,
         });
@@ -51,18 +51,16 @@ router.post(
     // CREATE SOIL TEST
     try {
       const createdSoiltest = await Soiltest.create(req.body.soiltest);
-      Layer.findByIdAndUpdate(
-        req.params.pid,
-        { $push: { soiltests: createdSoiltest } },
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            // RENDER PARCEL LAYER SOIL TEST PAGE
-            res.send(`/parcels/${req.params.id}/status`);
-          }
-        },
-      );
+      try {
+        await Layer.findByIdAndUpdate(
+          req.params.pid,
+          { $push: { soiltests: createdSoiltest } },
+        );
+        // RENDER PARCEL LAYER SOIL TEST PAGE
+        res.send(`/parcels/${req.params.id}/status`);
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -147,7 +145,7 @@ router.get(
         const collection4 = JSON.stringify(featurecollection4);
         const featurecollection5 = turf.featureCollection(geometryArray5);
         const collection5 = JSON.stringify(featurecollection5);
-        res.send( {
+        res.send({
           parcel: foundParcel,
           collection1,
           collection2,

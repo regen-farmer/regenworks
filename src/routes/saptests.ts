@@ -39,14 +39,13 @@ router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (r
   // CREATE SOIL TEST
   try {
     const createdSaptest = await Saptest.create(req.body.saptest);
-    Layer.findByIdAndUpdate(req.params.pid, { $push: { saptests: createdSaptest } }, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
+    try {
+      await Layer.findByIdAndUpdate(req.params.pid, { $push: { saptests: createdSaptest } });
       // RENDER PARCEL LAYER SAP TEST PAGE
-        res.send(`/parcels/${req.params.id}/status`);
-      }
-    });
+      res.send(`/parcels/${req.params.id}/status`);
+    } catch (err) {
+      console.log(err);
+    }
   } catch (err) {
     console.log(err);
   }

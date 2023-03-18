@@ -85,7 +85,7 @@ router.put(
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND POSTING AND UPDATE
     try {
-      Posting.findByIdAndUpdate(
+      await Posting.findByIdAndUpdate(
         req.params.postid,
         req.body.posting,
       );

@@ -641,33 +641,29 @@ router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    Project.findByIdAndUpdate(
-      req.params.id,
-      { $set: { status: 'Implementation' } },
-      (err) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.send(`/projects/${req.params.id}`);
-        }
-      },
-    );
+    try {
+      await Project.findByIdAndUpdate(
+        req.params.id,
+        { $set: { status: 'Implementation' } },
+      );
+      res.send(`/projects/${req.params.id}`);
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
 router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  Project.findByIdAndUpdate(
-    req.params.id,
-    { $set: { status: 'Retired' } },
-    (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(`/projects/${req.params.id}`);
-      }
-    },
-  );
+  try {
+    await Project.findByIdAndUpdate(
+      req.params.id,
+      { $set: { status: 'Retired' } },
+    );
+    res.send(`/projects/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
