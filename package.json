@@ -21,6 +21,7 @@
     "pngjs": "^7.0.0",
     "proj4": "^2.9.0",
     "sharp": "^0.31.3",
+    "stripe": "^11.15.0",
     "winston": "^3.8.2",
     "xml2js": "^0.4.23"
   },
@@ -29,7 +30,6 @@
     "build": "tsc",
     "start": "npm run build && node dist/app.js",
     "watch": "npx nodemon ./src/app.ts"
-    
   },
   "author": "grownlocal",
   "license": "ISC",

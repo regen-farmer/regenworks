@@ -40,6 +40,7 @@ import saptestRoutes from './routes/saptests';
 import farmflowRoutes from './routes/farmflows';
 import rotationRoutes from './routes/rotations';
 import varietyRoutes from './routes/varieties';
+import stripeRoutes from './routes/stripe';
 
 export type Auth0IDToken = {
   nickname: string,
@@ -180,6 +181,7 @@ app.use('', saptestRoutes);
 app.use('', farmflowRoutes);
 app.use('', rotationRoutes);
 app.use('', varietyRoutes);
+app.use('', stripeRoutes);
 
 // 404 ROUTE
 app.get('*', async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
