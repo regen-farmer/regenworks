@@ -154,7 +154,6 @@ router.post(
       { plan: 'Farm', email: 'landeconomics@protonmail.com', expiration: '5/9/23' },
       { plan: 'Farm', email: 'anissa.lucero@gmail.com', expiration: '7/4/23' },
       { plan: 'Farm', email: 'archie@spainshallestate.co.uk', expiration: '21/6/23' },
-      { plan: 'Advisor', email: 'kristoffer@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
       // { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
