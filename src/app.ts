@@ -123,7 +123,7 @@ app.use(async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDTo
     console.log('no jwt');
   }
 
-  if (idToken && idToken.email) {
+  if (idToken?.email) {
     // Find any existing user
     const user = await User.findOne({ email: idToken.email }).exec();
 

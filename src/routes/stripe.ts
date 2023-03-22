@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Stripe from 'stripe';
 import express from 'express';
+import { format, getUnixTime, parse } from 'date-fns';
 import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 
@@ -97,6 +98,26 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const legacyCustomers = [
+      { plan: 'Farm', email: 'ruben@schevichoven.nl', expiration: '22/8/23' },
+      { plan: 'Farm', email: 'guilherme.moreira@engenharia.ufjf.br', expiration: '3/7/23' },
+      { plan: 'Advisor', email: 'sven@leaf-africa.com', expiration: '6/6/23' },
+      { plan: 'Farm', email: 'george.sly@slyagri.com', expiration: '4/8/23' },
+      { plan: 'Farm', email: '1mauriciosagastuy@gmail.com', expiration: '25/5/23' },
+      { plan: 'Advisor', email: 'jeremef@g.clemson.edu', expiration: '8/5/23' },
+      { plan: 'Advisor', email: 'triebwerk@relawi.org', expiration: '4/6/23' },
+      { plan: 'Advisor', email: 'nielscorfield@gmail.com', expiration: '5/5/23' },
+      { plan: 'Farm', email: 'jframos@regeneraconsultora.com', expiration: '7/6/23' },
+      { plan: 'Farm', email: 'fsousa.eduardo@gmail.com', expiration: '13/6/23' },
+      { plan: 'Advisor', email: 'training@trees.org', expiration: '3/7/23' },
+      { plan: 'Farm', email: 'landeconomics@protonmail.com', expiration: '5/9/23' },
+      { plan: 'Farm', email: 'anissa.lucero@gmail.com', expiration: '7/4/23' },
+      { plan: 'Farm', email: 'archie@spainshallestate.co.uk', expiration: '21/6/23' },
+      { plan: 'Advisor', email: 'kristoffer@regenfarmer.com', expiration: '1/1/50' },
+      { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
+      { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
+    ];
+
     console.log('arrived');
     const payload = req.body;
     console.log('payload', payload);
@@ -105,6 +126,8 @@ router.post(
       limit: 1,
       email: payload.email,
     });
+
+    console.log('customers', customers.data);
 
     const customer = customers.data[0];
 
@@ -119,7 +142,26 @@ router.post(
 
     console.log('subscriptions', subscriptions.data);
 
-    res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data }));
+    const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
+    let activeLegacySubscription;
+    if (legacyUser) {
+      const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
+
+      // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
+      // const today = Date.now();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
+        activeLegacySubscription = {
+          expirationDate: format(legacyUntil, 'PPP'),
+          plan: legacyUser.plan,
+          legacy: true,
+        };
+      }
+    }
+
+    res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
   },
 );
 
