@@ -7,6 +7,46 @@ import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
+export function getDevProdStatus(): 'DEV' | 'PROD' {
+  const status = process.env.STATUS as 'DEV' | 'PROD';
+  return status;
+}
+
+export const StripeIds = {
+  farm: {
+    product: {
+      DEV: 'prod_NWwXNnohTfUG1d',
+      PROD: 'prod_NWwk2Mifyen27e',
+    },
+    prices: {
+      month: {
+        DEV: 'price_1MlseKKY1xVwmVYOl4hMxnBB',
+        PROD: 'price_1MlsrKKY1xVwmVYOzqYCzXix',
+      },
+      sixmonths: {
+        DEV: 'price_1MlseKKY1xVwmVYOiaF5WDGx',
+        PROD: 'price_1MlsrKKY1xVwmVYOuDIQSazK',
+      },
+    },
+  },
+  advisor: {
+    product: {
+      DEV: 'prod_NWwalTyPADc6tF',
+      PROD: 'prod_NWwmysZtzdvq2i',
+    },
+    prices: {
+      month: {
+        DEV: 'price_1Mlsh3KY1xVwmVYOyWLcgjip',
+        PROD: 'price_1MlstPKY1xVwmVYOvBjFSobc',
+      },
+      sixmonths: {
+        DEV: 'price_1Mlsh3KY1xVwmVYOe5FlVbzv',
+        PROD: 'price_1MlstPKY1xVwmVYO8tVD1RJm',
+      },
+    },
+  },
+};
+
 const stripe = new Stripe('sk_test_v6DAwtVUgGPnYYOT8czuAFld', {
   apiVersion: '2022-11-15',
 });
@@ -63,19 +103,19 @@ router.get(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    const farmMonth = await stripe.prices.retrieve('price_1MlseKKY1xVwmVYOl4hMxnBB', {
+    const farmMonth = await stripe.prices.retrieve(StripeIds.farm.prices.month[getDevProdStatus()], {
       expand: ['currency_options'],
     });
 
-    const farm6Months = await stripe.prices.retrieve('price_1MlseKKY1xVwmVYOiaF5WDGx', {
+    const farm6Months = await stripe.prices.retrieve(StripeIds.farm.prices.sixmonths[getDevProdStatus()], {
       expand: ['currency_options'],
     });
 
-    const advisorMonth = await stripe.prices.retrieve('price_1Mlsh3KY1xVwmVYOyWLcgjip', {
+    const advisorMonth = await stripe.prices.retrieve(StripeIds.advisor.prices.month[getDevProdStatus()], {
       expand: ['currency_options'],
     });
 
-    const advisor6Months = await stripe.prices.retrieve('price_1Mlsh3KY1xVwmVYOe5FlVbzv', {
+    const advisor6Months = await stripe.prices.retrieve(StripeIds.advisor.prices.sixmonths[getDevProdStatus()], {
       expand: ['currency_options'],
     });
 
@@ -115,6 +155,7 @@ router.post(
       { plan: 'Farm', email: 'archie@spainshallestate.co.uk', expiration: '21/6/23' },
       { plan: 'Advisor', email: 'kristoffer@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
+      { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
     ];
 
