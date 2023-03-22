@@ -86,6 +86,7 @@ router.post(
         customer_email: email.valueOf().toString(),
         success_url: `${profilePage}?success=true`,
         cancel_url: `${profilePage}?canceled=true`,
+        automatic_tax: { enabled: true },
         tax_id_collection: { enabled: true },
       });
       console.log(session.url!);
@@ -156,7 +157,7 @@ router.post(
       { plan: 'Advisor', email: 'kristoffer@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
-      { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
+      // { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
     ];
 
     console.log('arrived');
@@ -172,38 +173,37 @@ router.post(
 
     const customer = customers.data[0];
 
-    if (!customer) {
-      res.send(JSON.stringify({ error: 'No customer found' }));
-      return;
-    }
+    if (customer?.id) {
+      const subscriptions = await stripe.subscriptions.list({
+        limit: 10,
+        customer: customer.id,
+      });
 
-    const subscriptions = await stripe.subscriptions.list({
-      limit: 10,
-      customer: customer.id,
-    });
+      console.log('subscriptions', subscriptions.data);
 
-    console.log('subscriptions', subscriptions.data);
+      const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
+      let activeLegacySubscription;
+      if (legacyUser) {
+        const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
 
-    const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
-    let activeLegacySubscription;
-    if (legacyUser) {
-      const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
+        // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
+        // const today = Date.now();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
 
-      // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
-      // const today = Date.now();
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
-        activeLegacySubscription = {
-          expirationDate: format(legacyUntil, 'PPP'),
-          plan: legacyUser.plan,
-          legacy: true,
-        };
+        if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
+          activeLegacySubscription = {
+            expirationDate: format(legacyUntil, 'PPP'),
+            plan: legacyUser.plan,
+            legacy: true,
+          };
+        }
       }
-    }
 
-    res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
+      res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
+    } else {
+      res.send(JSON.stringify({ error: 'No customer found' }));
+    }
   },
 );
 
