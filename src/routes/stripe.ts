@@ -174,6 +174,7 @@ router.post(
 
     if (!customer) {
       res.send(JSON.stringify({ error: 'No customer found' }));
+      return;
     }
 
     const subscriptions = await stripe.subscriptions.list({
