@@ -58,7 +58,9 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    const { email, priceId, currency } = req.body;
+    const {
+      email, priceId, currency, callbackUrl,
+    } = req.body;
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
     const logdata = {
@@ -66,13 +68,14 @@ router.post(
       price: priceId.valueOf().toString(),
       currency: currency.valueOf().toString(),
       email: email.valueOf().toString(),
+      callbackUrl: callbackUrl.valueOf().toString(),
       // quantity: parseInt(quantity.valueOf().toString(), 10),
     };
     console.log(logdata);
 
     try {
       // Create Checkout Sessions from body params.
-      const profilePage = 'http://localhost:3000/profile';
+      const profilePage = callbackUrl.valueOf().toString(); 
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
