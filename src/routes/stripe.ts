@@ -202,7 +202,7 @@ router.post(
 
       res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
     } else {
-      res.send(JSON.stringify({ error: 'No customer found' }));
+      res.send(JSON.stringify({ subscriptions: [] }));
     }
   },
 );
