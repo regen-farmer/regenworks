@@ -212,7 +212,7 @@ router.post(
   },
 );
 
-router.delete(
+router.put(
   '/stripe/cancel_subscription/:subscriptionId',
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -224,8 +224,40 @@ router.delete(
     console.log('payload', payload);
 
     if (req.params.subscriptionId) {
-      await stripe.subscriptions.del(
+      // await stripe.subscriptions.del(
+      //   req.params.subscriptionId,
+      // );
+
+      await stripe.subscriptions.update(
         req.params.subscriptionId,
+        { cancel_at_period_end: true },
+      );
+      res.send(JSON.stringify({}));
+    } else {
+      res.status(400).send(JSON.stringify({ error: 'No subscriptionId found' }));
+    }
+  },
+);
+
+router.put(
+  '/stripe/resume_subscription/:subscriptionId',
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    console.log('DELETE here');
+    console.log('reqbody, ', req.params.subscriptionId);
+    const payload = req.body;
+    console.log('payload', payload);
+
+    if (req.params.subscriptionId) {
+      // await stripe.subscriptions.del(
+      //   req.params.subscriptionId,
+      // );
+
+      await stripe.subscriptions.update(
+        req.params.subscriptionId,
+        { cancel_at_period_end: false },
       );
       res.send(JSON.stringify({}));
     } else {
