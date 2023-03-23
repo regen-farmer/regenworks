@@ -59,7 +59,7 @@ router.post(
     res: express.Response,
   ) => {
     const {
-      email, priceId, currency, callbackUrl,
+      email, priceId, currency, callbackUrl, customer,
     } = req.body;
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
@@ -69,13 +69,14 @@ router.post(
       currency: currency.valueOf().toString(),
       email: email.valueOf().toString(),
       callbackUrl: callbackUrl.valueOf().toString(),
+      customer: customer?.valueOf().toString(),
       // quantity: parseInt(quantity.valueOf().toString(), 10),
     };
     console.log(logdata);
 
     try {
       // Create Checkout Sessions from body params.
-      const profilePage = callbackUrl.valueOf().toString(); 
+      const profilePage = callbackUrl.valueOf().toString();
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
@@ -84,9 +85,11 @@ router.post(
             quantity: 1,
           },
         ],
+        customer: customer?.valueOf().toString(),
         mode: 'subscription',
         currency: currency.valueOf().toString(),
-        customer_email: email.valueOf().toString(),
+        customer_email: customer ? undefined : email.valueOf().toString(),
+        customer_update: customer ? { name: 'auto' } : undefined,
         success_url: `${profilePage}?success=true`,
         cancel_url: `${profilePage}?canceled=true`,
         automatic_tax: { enabled: true },
