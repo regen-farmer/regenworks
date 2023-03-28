@@ -47,7 +47,7 @@ export const StripeIds = {
   },
 };
 
-const stripe = new Stripe('sk_test_v6DAwtVUgGPnYYOT8czuAFld', {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2022-11-15',
 });
 
