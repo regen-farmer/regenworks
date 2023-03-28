@@ -8,7 +8,7 @@ import { Auth0IDToken } from '../app';
 const router = express.Router();
 
 export function getDevProdStatus(): 'DEV' | 'PROD' {
-  const status = process.env.STATUS as 'DEV' | 'PROD';
+  const status = process.env.STRIPE_MODE as 'DEV' | 'PROD';
   return status;
 }
 
