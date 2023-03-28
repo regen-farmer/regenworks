@@ -192,13 +192,7 @@ router.get(
 
     console.log('kha 3');
 
-    const row_buffers: Buffer[] = await Promise.all(rows.map(async (row) => {
-      try {
-        return row.png().toBuffer();
-      } catch (err) {
-        console.log(err);
-      }
-    }));
+    const row_buffers: Buffer[] = await Promise.all(rows.map(async (row) => row.png().toBuffer()));
 
     let stitched: sharp.Sharp;
     if (row_buffers.length > 1) {
@@ -231,6 +225,7 @@ router.get(
       height: stitched_bbox_etrs89[3] - stitched_bbox_etrs89[1],
     };
 
+    // @ts-ignore
     const stitched_size_pixels = await stitched.metadata();
 
     const stitched_edge_to_tile_etrs89 = {
@@ -257,7 +252,10 @@ router.get(
     };
     let response_buffer;
 
+    // @ts-ignore
+    // eslint-disable-next-line no-async-promise-executor
     const crop_promise = new Promise<boolean>(async (resolve, reject) => {
+      // @ts-ignore
       PNGCrop.cropToStream(await stitched.png().toBuffer(), crop_region, (err: any, output_stream: PNG) => {
         if (err) throw err;
         // output_stream.pipe(fs.createWriteStream('pngs/expectedCrop.png'));
