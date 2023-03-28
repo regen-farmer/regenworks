@@ -190,7 +190,7 @@ app.get('*', async (req: express.Request & { user?: IUserSchema }, res: express.
 });
 app.set('trust proxy', true);
 
-if (process.env.STATUS === 'DEV') {
+if (process.env.HTTPS === 'TRUE') {
   const key = fs.readFileSync('0.0.0.0-key.pem', 'utf-8');
   const cert = fs.readFileSync('0.0.0.0.pem', 'utf-8');
 
@@ -198,7 +198,7 @@ if (process.env.STATUS === 'DEV') {
   https.createServer({ key, cert }, app).listen(process.env.PORT, process.env.IP, () => {
     console.log('The grown local Server Has Started!');
   });
-} else if (process.env.STATUS === 'PROD') {
+} else {
   // @ts-ignore
   app.listen(process.env.PORT, process.env.IP, () => {
     console.log('The grown local Server Has Started!');
