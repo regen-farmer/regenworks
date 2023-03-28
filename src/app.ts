@@ -6,7 +6,8 @@ dotenv.config();
 import express from 'express';
 import { connect } from 'mongoose'; // REQUIRE MONGOOSE PACKAGE
 import methodOverride from 'method-override'; // USED FOR PUT AND DELETE REQUESTS
-
+import fs from 'fs';
+import https from 'https';
 // REQUIRE MODELS
 // import path from 'path';
 // import { auth } from 'express-openid-connect';
@@ -189,7 +190,17 @@ app.get('*', async (req: express.Request & { user?: IUserSchema }, res: express.
 });
 app.set('trust proxy', true);
 
-// @ts-ignore
-app.listen(process.env.PORT, process.env.IP, () => {
-  console.log('The grown local Server Has Started!');
-});
+if (process.env.STATUS === 'DEV') {
+  const key = fs.readFileSync('0.0.0.0-key.pem', 'utf-8');
+  const cert = fs.readFileSync('0.0.0.0.pem', 'utf-8');
+
+  // @ts-ignore
+  https.createServer({ key, cert }, app).listen(process.env.PORT, process.env.IP, () => {
+    console.log('The grown local Server Has Started!');
+  });
+} else if (process.env.STATUS === 'PROD') {
+  // @ts-ignore
+  app.listen(process.env.PORT, process.env.IP, () => {
+    console.log('The grown local Server Has Started!');
+  });
+}
