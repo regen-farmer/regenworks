@@ -255,6 +255,7 @@ router.get(
             // PUSH TO ARRAY
             const properties = {
               description: foundParcel.layers[i].name,
+              id: foundParcel.layers[i]._id.toString(),
             };
             const feature = turf.feature(polygon.geometry, properties);
             geometryArray.push(feature);
@@ -264,6 +265,7 @@ router.get(
               centroidPoint.geometry.coordinates,
               properties,
             );
+
             placesArray.push(place);
           }
         }
