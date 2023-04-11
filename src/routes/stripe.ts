@@ -170,12 +170,29 @@ router.post(
     const payload = req.body;
     console.log('payload', payload);
 
+    const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
+    let activeLegacySubscription;
+    if (legacyUser) {
+      const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
+
+      // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
+      // const today = Date.now();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
+        activeLegacySubscription = {
+          expirationDate: format(legacyUntil, 'PPP'),
+          plan: legacyUser.plan,
+          legacy: true,
+        };
+      }
+    }
+
     const customers = await stripe.customers.list({
       limit: 1,
       email: payload.email,
     });
-
-    console.log('customers', customers.data);
 
     const customer = customers.data[0];
 
@@ -185,30 +202,9 @@ router.post(
         customer: customer.id,
       });
 
-      console.log('subscriptions', subscriptions.data);
-
-      const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
-      let activeLegacySubscription;
-      if (legacyUser) {
-        const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
-
-        // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
-        // const today = Date.now();
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
-          activeLegacySubscription = {
-            expirationDate: format(legacyUntil, 'PPP'),
-            plan: legacyUser.plan,
-            legacy: true,
-          };
-        }
-      }
-
       res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
     } else {
-      res.send(JSON.stringify({ subscriptions: [] }));
+      res.send(JSON.stringify({ subscriptions: [], activeLegacySubscription }));
     }
   },
 );
