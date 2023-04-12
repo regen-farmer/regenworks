@@ -1,12 +1,12 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IUserSchema } from './user';
 
-export interface IWellSchema extends Document {
+export interface IWellSchema {
     name: string,
     description: string,
     geometry: string,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     }
 }
 
@@ -23,4 +23,6 @@ const wellSchema = new Schema<IWellSchema>({
   },
 });
 
-export default model('Well', wellSchema);
+const Well = model('Well', wellSchema);
+export default Well;
+export type WellDocument = ReturnType<(typeof Well)['hydrate']>;

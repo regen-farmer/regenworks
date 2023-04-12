@@ -1,11 +1,11 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IPostingSchema } from './posting';
 import { IUserSchema } from './user';
 
-export interface IBudgetSchema extends Document {
-    postings: IPostingSchema[],
+export interface IBudgetSchema {
+    postings: HydratedDocument<IPostingSchema>[],
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     },
     currency: string,
     name: string
@@ -29,4 +29,8 @@ const budgetSchema = new Schema<IBudgetSchema>({
   name: String,
 });
 
-export default model('Budget', budgetSchema);
+const Budget = model('Budget', budgetSchema);
+
+export default Budget;
+
+export type BudgetDocument = ReturnType<(typeof Budget)['hydrate']>;

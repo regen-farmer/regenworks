@@ -1,11 +1,12 @@
 import {
-  model, Schema, Document,
+  model, Schema, HydratedDocument,
 } from 'mongoose';
 import { ILayerSchema } from './layer';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-export interface IActivitySchema extends Document {
+export interface IActivitySchema {
+    _id: string;
     name: string,
     description: string,
     start: {
@@ -22,10 +23,10 @@ export interface IActivitySchema extends Document {
     subtype: string,
     automated: boolean,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     },
-    layer: ILayerSchema
-    species: ISpeciesSchema
+    layer: HydratedDocument<ILayerSchema>
+    species: HydratedDocument<ISpeciesSchema>
 }
 
 // ACTIVITY SCHEMA SETUP
@@ -61,4 +62,8 @@ const activitySchema = new Schema<IActivitySchema>({
   },
 });
 
-export default model('Activity', activitySchema);
+const Activity = model('Activity', activitySchema);
+
+export default Activity;
+
+export type ActivityDocument = ReturnType<(typeof Activity)['hydrate']>;

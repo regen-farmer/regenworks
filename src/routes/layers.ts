@@ -19,7 +19,8 @@ import Animal from '../models/animal';
 import Sequence from '../models/sequence';
 import Row from '../models/row';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 // SETUP MULTER
 // XML2JS
@@ -36,45 +37,46 @@ const parser = new xml2js.Parser();
 router.get(
   '/parcels/:id/layers/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // FIND PARCEL ID
     try {
       const foundParcel = await Parcel.findById(req.params.id);
-      Species.find((err, foundSpecies) => {
-        if (err) {
-          console.log(err);
-        } else {
-          foundSpecies.sort((a, b) => {
-            if (a.nameCommon < b.nameCommon) {
+      try {
+        const foundSpecies = await Species.find();
+        foundSpecies.sort((a, b) => {
+          if (a.nameCommon < b.nameCommon) {
+            return -1;
+          }
+          if (a.nameCommon > b.nameCommon) {
+            return 1;
+          }
+          return 0;
+        });
+        try {
+          const foundAnimals = await Animal.find();
+          foundAnimals.sort((a, b) => {
+            if (a.name < b.name) {
               return -1;
             }
-            if (a.nameCommon > b.nameCommon) {
+            if (a.name > b.name) {
               return 1;
             }
             return 0;
           });
-          Animal.find((err, foundAnimals) => {
-            if (err) {
-              console.log(err);
-            } else {
-              foundAnimals.sort((a, b) => {
-                if (a.name < b.name) {
-                  return -1;
-                }
-                if (a.name > b.name) {
-                  return 1;
-                }
-                return 0;
-              });
-              res.render('layers/new', {
-                parcel: foundParcel,
-                species: foundSpecies,
-                animals: foundAnimals,
-              });
-            }
+          res.send({
+            parcel: foundParcel,
+            species: foundSpecies,
+            animals: foundAnimals,
           });
+        } catch (err) {
+          console.log(err);
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
       // logger.error(err.message);
@@ -87,45 +89,47 @@ router.get(
 router.get(
   '/parcels/:id/layers/newkml',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // FIND PARCEL ID
     try {
       const foundParcel = await Parcel.findById(req.params.id);
-      Species.find((err, foundSpecies) => {
-        if (err) {
-          console.log(err);
-        } else {
-          foundSpecies.sort((a, b) => {
-            if (a.nameCommon < b.nameCommon) {
+      try {
+        const foundSpecies = await Species.find();
+        foundSpecies.sort((a, b) => {
+          if (a.nameCommon < b.nameCommon) {
+            return -1;
+          }
+          if (a.nameCommon > b.nameCommon) {
+            return 1;
+          }
+          return 0;
+        });
+
+        try {
+          const foundAnimals = await Animal.find();
+          foundAnimals.sort((a, b) => {
+            if (a.name < b.name) {
               return -1;
             }
-            if (a.nameCommon > b.nameCommon) {
+            if (a.name > b.name) {
               return 1;
             }
             return 0;
           });
-          Animal.find((err, foundAnimals) => {
-            if (err) {
-              console.log(err);
-            } else {
-              foundAnimals.sort((a, b) => {
-                if (a.name < b.name) {
-                  return -1;
-                }
-                if (a.name > b.name) {
-                  return 1;
-                }
-                return 0;
-              });
-              res.render('layers/newkml', {
-                parcel: foundParcel,
-                species: foundSpecies,
-                animals: foundAnimals,
-              });
-            }
+          res.send({
+            parcel: foundParcel,
+            species: foundSpecies,
+            animals: foundAnimals,
           });
+        } catch (err) {
+          console.log(err);
         }
-      });
+      } catch (err) {
+        console.log(err);
+      }
     } catch (err) {
       console.log(err);
       // logger.error(err.message);
@@ -138,32 +142,48 @@ router.get(
 router.post(
   '/parcels/:id/layers',
   middleware.checkParcelOwnership,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // Lookup place using id
     try {
+      console.log('im here 1');
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel) {
         try {
+          console.log('im here 2');
           const layer = await Layer.create(req.body.layer);
           // Add user ID to Layer.
-          layer.owner.id = req.user?._id;
+          console.log('im here 2.1');
+          layer.owner.id = req.user?._id.toString()!;
+
+          console.log('im here 2.2');
           // Save JSON file to geometry
           layer.geometry = req.body.geometry;
           layer.size = req.body.layersize;
+          console.log('im here 2.3');
           const geometrycentroid = centroid(JSON.parse(req.body.geometry));
+
+          console.log('im here 3');
+
           console.log(geometrycentroid.geometry.coordinates[0]);
           layer.lat = geometrycentroid.geometry.coordinates[1];
           layer.lng = geometrycentroid.geometry.coordinates[0];
           // Save the layer
           await layer.save();
+          console.log('im here 4');
           // Connect new layer to parcel
           foundParcel.layers.push(layer); // MOVE THIS UP TO AVOID ERRORS IF LAYER FAILS?!!!
+          console.log('im here 5');
           await foundParcel.save();
+
+          console.log('im here 6');
           console.log(layer);
           // Redirect to parcels SHOW page
           // req.flash("success", "Successfully added comment");
           /* if(layer.type == "agroforestry"){
-                       res.redirect("/layers/" + layer._id + '/systems/newgrid');
+                       res.send("/layers/" + layer._id + '/systems/newgrid');
                    } else { */
           let tempspecies = req.body.maincrop;
           if (req.body.maincrop === '') {
@@ -172,7 +192,7 @@ router.post(
           try {
             const foundSpecies = await Species.findById(tempspecies);
             if (foundSpecies) {
-            // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
+              // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
               const presentsystem: any = {
                 name: `${foundSpecies.nameCommon} monoculture`,
                 description: '',
@@ -195,20 +215,15 @@ router.post(
                   const foundAnimal = await Animal.findById(req.body.animal);
                   presentsystem.animals.push(foundAnimal);
                   // CREATE SYSTEM
-                  const createdSystem = await System.create(presentsystem as ISystemSchema);
+                  const createdSystem = await System.create(
+                    presentsystem as ISystemSchema,
+                  );
 
                   // ASS SYSTEM TO PRESENT SYSTEM
                   layer.systems.present = createdSystem;
                   await layer.save();
                   // IF FOREST OR ORCHARD GO TO LAYOUT
-                  if (
-                    layer.type === 'forestry'
-                           || layer.type === 'orchard'
-                  ) {
-                    res.redirect(`/layers/${layer._id}/layout`);
-                  } else {
-                    res.redirect(`/layers/${layer._id}`);
-                  }
+                  res.send(layer);
                 } catch (err) {
                   console.log(err);
                 }
@@ -219,15 +234,8 @@ router.post(
                 // ASS SYSTEM TO PRESENT SYSTEM
                 layer.systems.present = createdSystem;
                 await layer.save();
-                // IF FOREST OR ORCHARD GO TO LAYOUT
-                if (
-                  layer.type === 'forestry'
-                     || layer.type === 'orchard'
-                ) {
-                  res.redirect(`/layers/${layer._id}/layout`);
-                } else {
-                  res.redirect(`/layers/${layer._id}`);
-                }
+
+                res.send(layer);
               }
             }
           } catch (err) {
@@ -239,7 +247,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.redirect(`/users/${req.user?.id}`);
+      res.send();
     }
   },
 );
@@ -249,7 +257,10 @@ router.post(
   '/parcels/:id/layersuploadkml',
   middleware.checkParcelOwnership,
   uploadMem.single('filename'),
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // CHECK EXISTING AREAS SIZE!?
 
     // PARSE UPLOADED FILE AND CREATE POLYGON
@@ -258,7 +269,7 @@ router.post(
         if (err) {
           console.log('error', err.message);
           // console.log(err);
-          res.redirect('back');
+          res.send('back');
         } else {
           const string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0]
             .LinearRing[0].coordinates[0];
@@ -284,7 +295,7 @@ router.post(
             if (foundParcel) {
               try {
                 const createdLayer = await Layer.create(req.body.layer);
-                createdLayer.owner.id = req.user?._id;
+                createdLayer.owner.id = req.user?._id.toString()!;
                 createdLayer.geometry = geometry;
                 // CALCULATE LAYER SIZE
                 createdLayer.size = size;
@@ -299,7 +310,7 @@ router.post(
                 await foundParcel.save();
                 // DEFINE SYSTEM
                 if (createdLayer.type === 'agroforestry') {
-                  res.redirect(`/layers/${createdLayer._id}/systems/new`);
+                  res.send(`/layers/${createdLayer._id}/systems/new`);
                 } else {
                   let tempspecies = req.body.maincrop;
                   if (req.body.maincrop === '') {
@@ -308,7 +319,7 @@ router.post(
                   try {
                     const foundSpecies = await Species.findById(tempspecies);
                     if (foundSpecies) {
-                    // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
+                      // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
                       const presentsystem: any = {
                         name: `${foundSpecies.nameCommon} monoculture`,
                         description: '',
@@ -345,11 +356,9 @@ router.post(
                               createdLayer.type === 'forestry'
                               || createdLayer.type === 'orchard'
                             ) {
-                              res.redirect(
-                                `/layers/${createdLayer._id}/layout`,
-                              );
+                              res.send(`/layers/${createdLayer._id}/layout`);
                             } else {
-                              res.redirect(`/layers/${createdLayer._id}`);
+                              res.send(`/layers/${createdLayer._id}`);
                             }
                           } catch (err) {
                             console.log(err);
@@ -358,7 +367,7 @@ router.post(
                           console.log(err);
                         }
                       } else {
-                      // CREATE SYSTEM
+                        // CREATE SYSTEM
                         try {
                           const createdSystem = await System.create(
                             presentsystem as ISystemSchema,
@@ -369,11 +378,11 @@ router.post(
                           // IF FOREST OR ORCHARD GO TO LAYOUT
                           if (
                             createdLayer.type === 'forestry'
-                        || createdLayer.type === 'orchard'
+                            || createdLayer.type === 'orchard'
                           ) {
-                            res.redirect(`/layers/${createdLayer._id}/layout`);
+                            res.send(`/layers/${createdLayer._id}/layout`);
                           } else {
-                            res.redirect(`/layers/${createdLayer._id}`);
+                            res.send(`/layers/${createdLayer._id}`);
                           }
                         } catch (err) {
                           console.log(err);
@@ -398,157 +407,200 @@ router.post(
 );
 
 // LAYER SHOW ROUTES
-router.get('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // MAKE LAYER OWNERSHIP MIDDLEWARE
-  try {
-    const foundLayer = await Layer.findById(req.params.id)
-      .populate('systems.future')
-      .populate('projects')
-      .populate('systems.present')
-      .populate('systems.past')
-      .exec();
-    if (foundLayer) {
-      if (foundLayer.systems.present === undefined) {
-        res.redirect(`/layers/${foundLayer._id}/systems/newgrid`);
-      } else {
-        const foundSystem = await System.findById(foundLayer.systems.present._id)
-          .populate('model.species')
-          .populate('animals')
-          .exec();
+router.get(
+  '/layers/:id',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // MAKE LAYER OWNERSHIP MIDDLEWARE
 
-        if (foundSystem) {
-          // FIND ALL SPECIES IN SYSTEM
-          const allSpecies: ISpeciesSchema[] = [];
-          const dataset: {row: number, array: {
-            species: ISpeciesSchema;
-            position: number[];
-            width: number;
-        }[]}[] = [];
-          foundSystem.model.forEach((species) => {
-            allSpecies.push(species.species);
-            let count = 0;
+    console.log('IM HERE');
+    try {
+      const foundLayer = await Layer.findById(req.params.id)
+        .populate('systems.future')
+        .populate('projects')
+        .populate('systems.present')
+        .populate('systems.past')
+        .exec();
+      if (foundLayer) {
+        if (foundLayer.systems.present === undefined) {
+          res.send(`/layers/${foundLayer._id}/systems/newgrid`);
+        } else {
+          const foundSystem = await System.findById(
+            foundLayer.systems.present._id,
+          )
+            .populate('model.species')
+            .populate('animals')
+            .exec();
+
+          if (foundSystem) {
+            // FIND ALL SPECIES IN SYSTEM
+            const allSpecies: ISpeciesSchema[] = [];
+            const dataset: {
+              row: number
+              array: {
+                species: ISpeciesSchema
+                position: number[]
+                width: number
+              }[]
+            }[] = [];
+            foundSystem.model.forEach((species) => {
+              allSpecies.push(species.species);
+              let count = 0;
+              for (let i = 0; i < dataset.length; i++) {
+                if (dataset[i].row === species.position[0]) {
+                  dataset[i].array.push(species);
+                  count += 1;
+                }
+              }
+              if (count === 0) {
+                dataset.push({ row: species.position[0], array: [species] });
+              }
+            });
+            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+            const uniqueSpecies = unique(allSpecies);
+            // SORT FIRST ROW ITEMS
             for (let i = 0; i < dataset.length; i++) {
-              if (dataset[i].row === species.position[0]) {
-                dataset[i].array.push(species);
-                count += 1;
-              }
+              dataset[i].array.sort((a, b) => {
+                if (a.position[1] < b.position[1]) {
+                  return -1;
+                }
+                if (a.position[1] > b.position[1]) {
+                  return 1;
+                }
+                return 0;
+              });
+              console.log(dataset[i].array[0]);
             }
-            if (count === 0) {
-              dataset.push({ row: species.position[0], array: [species] });
+            try {
+              // FIND SPECIES AND POPULATE FLOWS
+              const foundSpecies = await Species.find({ _id: uniqueSpecies })
+                .populate('flows')
+                .exec();
+
+              res.send({
+                layer: foundLayer,
+                presentsystem: foundSystem,
+                species: foundSpecies,
+                rows: dataset,
+              });
+            } catch (err) {
+              console.log(err);
             }
-          });
-          // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-          const uniqueSpecies = unique(allSpecies);
-          // SORT FIRST ROW ITEMS
-          for (let i = 0; i < dataset.length; i++) {
-            dataset[i].array.sort((a, b) => {
-              if (a.position[1] < b.position[1]) {
-                return -1;
-              }
-              if (a.position[1] > b.position[1]) {
-                return 1;
-              }
-              return 0;
-            });
-            console.log(dataset[i].array[0]);
           }
-          // FIND SPECIES AND POPULATE FLOWS
-          Species.find({ _id: uniqueSpecies })
-            .populate('flows')
-            .exec((err, foundSpecies) => {
-              if (err) {
-                console.log(err);
-              } else {
-                res.render('layers/show', {
-                  layer: foundLayer,
-                  presentsystem: foundSystem,
-                  species: foundSpecies,
-                  rows: dataset,
-                });
-              }
-            });
         }
       }
+    } catch (err) {
+      console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
 // LAYER EDIT ROUTE
-router.get('/layers/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // MAKE LAYER OWNERSHIP MIDDLEWARE
-  // Find specific activity in database
-  try {
-    const foundLayer = await Layer.findById(req.params.id);
-    res.render('layers/edit', { layer: foundLayer });
-  } catch (err) {
-    console.log(err);
-  }
-});
+router.get(
+  '/layers/:id/edit',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // MAKE LAYER OWNERSHIP MIDDLEWARE
+    // Find specific activity in database
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      res.send({ layer: foundLayer });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // LAYER UPDATE ROUTE
-router.put('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  try {
-    const updatedLayer = await Layer.findByIdAndUpdate(
-      req.params.id,
-      req.body.layer,
-    );
-    console.log(updatedLayer);
-    res.redirect(`/layers/${req.params.id}`);
-  } catch (err) {
-    console.log(err);
-  }
-});
+router.put(
+  '/layers/:id',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    try {
+      const updatedLayer = await Layer.findByIdAndUpdate(
+        req.params.id,
+        req.body.layer,
+      );
+      console.log(updatedLayer);
+      res.send(`/layers/${req.params.id}`);
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // LAYER DELETE ROUTE
-router.delete('/layers/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // CHECK OWNERSHIP
-  try {
-    const foundLayer = await Layer.findById(req.params.id);
-    // REMOVE LAYER FROM PARCEL
-    if (foundLayer) {
-      try {
-        const foundParcels = await Parcel.find({ 'owner.id': req.user?._id }).populate('layers');
-        // CYCLE THROUGH PARCELS
-        let parcelRef = {};
-        for (let i = foundParcels.length - 1; i >= 0; i--) {
-          // CYCLE THROUGH LAYERS
-          for (let j = 0; j < foundParcels[i].layers.length; j++) {
-            if (foundParcels[i].layers[j].equals(foundLayer._id)) {
-              await foundParcels[i].layers[j].remove();
-              console.log('Layer removed');
-              parcelRef = foundParcels[i]._id;
+router.delete(
+  '/layers/:id',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // CHECK OWNERSHIP
+
+    // console.log('userid', req.user?._id)
+
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      // REMOVE LAYER FROM PARCEL
+      if (foundLayer) {
+        try {
+          const foundParcels = await Parcel.find({
+            'owner.id': req.user?._id,
+          }).populate('layers');
+          // CYCLE THROUGH PARCELS
+          // eslint-disable-next-line no-unused-vars
+          const parcelRef = {};
+          for (let i = foundParcels.length - 1; i >= 0; i--) {
+            // CYCLE THROUGH LAYERS
+            for (let j = 0; j < foundParcels[i].layers.length; j++) {
+              if (foundParcels[i].layers[j].id === foundLayer.id) {
+                await foundParcels[i].layers[j].deleteOne();
+                console.log('Layer removed');
+              }
             }
           }
-        }
-        // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
-        res.redirect(`/parcels/${parcelRef}`);
-        // DELETE LAYER TEMP REMOVED
-        /* Layer.findByIdAndRemove(req.params.id, function(err){
+          // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
+          res.send();
+          // DELETE LAYER TEMP REMOVED
+          /* Layer.findByIdAndRemove(req.params.id, function(err){
                        if(err){
                            console.log(err);
-                           res.redirect("/parcels");
+                           res.send("/parcels");
                        } else {
-                           res.redirect("/parcels");
+                           res.send("/parcels");
                        }
                    }); */
-      } catch (err) {
-        console.log(err);
-        res.redirect(`/users/${req.user?.id}`);
+        } catch (err) {
+          console.log(err);
+          res.send();
+        }
       }
+    } catch (err) {
+      console.log(err);
+      res.send(`/users/${req.user?.id}`);
     }
-  } catch (err) {
-    console.log(err);
-    res.redirect(`/users/${req.user?.id}`);
-  }
-});
+  },
+);
 
 // LAYER CURRENT SYSTEM UPDATE
 router.post(
   '/layers/:id/presentsystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
@@ -565,14 +617,14 @@ router.post(
           // REMOVE FUTURE DRAFT FROM FUTURE ARRAY
           foundLayer.systems.future.forEach(async (futureSystem) => {
             if (futureSystem._id === foundSystem._id) {
-              await futureSystem.remove();
+              await futureSystem.deleteOne();
             }
           });
           console.log(
             `${foundSystem.name} has been removed from future systems`,
           );
           await foundLayer.save();
-          res.redirect(`/layers/${foundLayer._id}`);
+          res.send(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -587,7 +639,10 @@ router.post(
 router.post(
   '/layers/:id/editfuture',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
@@ -596,11 +651,9 @@ router.post(
           foundLayer.systems.future.push(foundSystem);
           await foundLayer.save();
           console.log(
-            `Now there is ${
-              foundLayer.systems.future.length
-            } future drafts on this area`,
+            `Now there is ${foundLayer.systems.future.length} future drafts on this area`,
           );
-          res.redirect(`/layers/${foundLayer._id}`);
+          res.send(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -615,7 +668,10 @@ router.post(
 router.get(
   '/layers/:id/layout',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // MAKE LAYER OWNERSHIP MIDDLEWARE
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -629,7 +685,9 @@ router.get(
         .exec();
 
       if (foundLayer) {
-        const foundSystem = await System.findById(foundLayer.systems.present._id)
+        const foundSystem = await System.findById(
+          foundLayer.systems.present._id,
+        )
           .populate('model.species')
           .populate('animals')
           .exec();
@@ -651,12 +709,12 @@ router.get(
           // const polygon = JSON.parse(foundLayer.geometry);
           // FIND SYSTEM ROWS
           const dataset: {
-            row: number,
+            row: number
             array: {
-              species: ISpeciesSchema;
-              position: number[];
-              width: number;
-          }[]
+              species: ISpeciesSchema
+              position: number[]
+              width: number
+            }[]
           }[] = [];
           foundSystem.model.forEach((species) => {
             let count = 0;
@@ -676,9 +734,12 @@ router.get(
 
           // VIZ ROWS
           const rowArray: any[] = [];
-          const placesArray: turf.Feature<turf.Point, {
-            description: string;
-          }>[] = [];
+          const placesArray: turf.Feature<
+            turf.Point,
+            {
+              description: string
+            }
+          >[] = [];
           for (let i = 0; i < foundLayer.rows.length; i++) {
             // ROW VIZ
             const rowGeometry = JSON.parse(foundLayer.rows[i].geometry);
@@ -695,10 +756,10 @@ router.get(
           }
           // ROW LABELS (BEFORE ROWS ARE PARSED)
           const placesCollection = turf.featureCollection(placesArray);
-          const places = JSON.stringify(placesCollection);
+          const places = placesCollection;
           // CREATE PLACES FEATURE
           const featurecollection = turf.featureCollection(rowArray);
-          const collection = JSON.stringify(featurecollection);
+          const collection = featurecollection;
           // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
           /* for(let i=0;i<foundLayer.rows.length;i++){
                           for(let j=0;j<foundLayer.rows[i].system.model.length;j++){
@@ -706,8 +767,8 @@ router.get(
                           }
                       } */
           const treeAssetsArray: {
-            marker: turf.Feature<turf.Point, turf.Properties>;
-            species: ISpeciesSchema;
+            marker: turf.Feature<turf.Point, turf.Properties>
+            species: ISpeciesSchema
           }[] = [];
 
           // SET COLLECTIVE TREE ARRAY
@@ -758,7 +819,9 @@ router.get(
                   - Math.floor(rowLength / systemModelLength))
                 * systemModelLength;
               // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
-              const firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
+              const firstTreeMarker = turf.point(
+                rowLine.geometry.coordinates[0],
+              );
               treeMarkerArray.push(firstTreeMarker);
               const firstAsset = {
                 marker: firstTreeMarker,
@@ -843,14 +906,17 @@ router.get(
             }
           }
           const treeMarkers = turf.featureCollection(treeCanopyArray);
-          const treeCollection = JSON.stringify(treeMarkers);
+          const treeCollection = treeMarkers;
           // INSERT SYSTEM CLASSIFICATION
           const vegeMarkers = turf.featureCollection(vegeCanopyArray);
-          const vegeCollection = JSON.stringify(vegeMarkers);
+          const vegeCollection = vegeMarkers;
           // DO TREE NAMES COLLECTION
-          const treenames: turf.Feature<turf.Point, {
-            description: string;
-          }>[] = [];
+          const treenames: turf.Feature<
+            turf.Point,
+            {
+              description: string
+            }
+          >[] = [];
 
           for (let i = 0; i < treeAssetsArray.length; i++) {
             const properties1 = {
@@ -863,18 +929,24 @@ router.get(
             treenames.push(treename);
           }
           const treenamemarks = turf.featureCollection(treenames);
-          const treeNameCollection = JSON.stringify(treenamemarks);
+          const treeNameCollection = treenamemarks;
           // COUNT ASSETS
 
           // COMBINE ASSETS AND ROW BASED
 
           // AREAS
-          const alleyPolygonArray: turf.Feature<turf.Polygon, {
-            name: string;
-          }>[] = [];
-          const bedPolygonArray: turf.Feature<turf.Polygon, {
-            name: string;
-          }>[] = [];
+          const alleyPolygonArray: turf.Feature<
+            turf.Polygon,
+            {
+              name: string
+            }
+          >[] = [];
+          const bedPolygonArray: turf.Feature<
+            turf.Polygon,
+            {
+              name: string
+            }
+          >[] = [];
           for (let i = 0; i < foundLayer.areas.length; i++) {
             // ROW VIZ
             const areaGeometry = JSON.parse(foundLayer.areas[i].geometry);
@@ -887,10 +959,10 @@ router.get(
             }
           }
           const bedArrayPolygons = turf.featureCollection(bedPolygonArray);
-          const stripsCollection = JSON.stringify(bedArrayPolygons);
+          const stripsCollection = bedArrayPolygons;
           const alleyArrayPolygons = turf.featureCollection(alleyPolygonArray);
-          const alleysCollection = JSON.stringify(alleyArrayPolygons);
-          res.render('layers/layout', {
+          const alleysCollection = alleyArrayPolygons;
+          res.send({
             layer: foundLayer,
             presentsystem: foundSystem,
             species: foundSpecies,
@@ -911,152 +983,166 @@ router.get(
 );
 
 // NEW SPLIT LAYER ROUTE
-router.get('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // FIND LAYER
-  try {
-    const foundLayer = await Layer.findById(req.params.id);
-    res.render('layers/split', { layer: foundLayer });
-  } catch (err) {
-    console.log(err);
-  }
-});
+router.get(
+  '/layers/:id/split',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // FIND LAYER
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      res.send({ layer: foundLayer });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+);
 
 // CREATE SPLIT LAYER ROUTE
-router.post('/layers/:id/split', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // FIND LAYER
-  try {
-    const foundLayer = await Layer.findById(req.params.id);
-    if (foundLayer) {
-    // FIND LAYER GEOMETRY
-      const polygon = JSON.parse(foundLayer.geometry);
-      // PARSE SPLIT LINE
-      const splitLine = JSON.parse(req.body.geometry);
-      console.log(splitLine);
-      // CHECK THAT ALL LINE POINTS EXCEPT LAST ARE WITHIN POLYGON
+router.post(
+  '/layers/:id/split',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // FIND LAYER
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      if (foundLayer) {
+        // FIND LAYER GEOMETRY
+        const polygon = JSON.parse(foundLayer.geometry);
+        // PARSE SPLIT LINE
+        const splitLine = JSON.parse(req.body.geometry);
+        console.log(splitLine);
+        // CHECK THAT ALL LINE POINTS EXCEPT LAST ARE WITHIN POLYGON
 
-      // SPLIT LAYER GEOMETRY WITH SPLIT LINE
-      // SET VARIABLES FOR INTERSECTION WITH POLYGON
-      const matchPoint1 = turf.point(splitLine.geometry.coordinates[0]);
-      console.log(`matchPoint1: ${matchPoint1}`);
-      // const matchPoint2 = turf.point(splitLine.geometry.coordinates[1]);
-      // SET GEOMETRY LINE SEGMENT INDEX VARIABLES
-      console.log(
-        `length of polygon array: ${polygon.geometry.coordinates[0].length}`,
-      );
-      let lineA = 0;
-      let lineAcount = 0;
-      let lineB = 0;
-      let lineBcount = 0;
-      const polyLine = polygonToLine(polygon);
+        // SPLIT LAYER GEOMETRY WITH SPLIT LINE
+        // SET VARIABLES FOR INTERSECTION WITH POLYGON
+        const matchPoint1 = turf.point(splitLine.geometry.coordinates[0]);
+        console.log(`matchPoint1: ${matchPoint1}`);
+        // const matchPoint2 = turf.point(splitLine.geometry.coordinates[1]);
+        // SET GEOMETRY LINE SEGMENT INDEX VARIABLES
+        console.log(
+          `length of polygon array: ${polygon.geometry.coordinates[0].length}`,
+        );
+        let lineA = 0;
+        let lineAcount = 0;
+        let lineB = 0;
+        let lineBcount = 0;
+        const polyLine = polygonToLine(polygon);
 
-      console.log(
-      // @ts-ignore
-        `length of polyline array: ${polyLine.geometry.coordinates.length}`,
-      );
-      for (let k = 0; k < polygon.geometry.coordinates[0].length - 1; k++) {
-        const lineA1 = turf.lineString(
-          [
-            polygon.geometry.coordinates[0][k],
-            splitLine.geometry.coordinates[0],
-          ],
-          { name: 'line A1' },
+        console.log(
+          // @ts-ignore
+          `length of polyline array: ${polyLine.geometry.coordinates.length}`,
         );
-        const lineA2 = turf.lineString(
-          [
-            splitLine.geometry.coordinates[0],
-            polygon.geometry.coordinates[0][k + 1],
-          ],
-          { name: 'line A2' },
-        );
-        const lineAdistance = turfLength(lineA1, { units: 'meters' })
-        + turfLength(lineA2, { units: 'meters' });
-        if (k === 0) {
-          lineAcount = lineAdistance;
+        for (let k = 0; k < polygon.geometry.coordinates[0].length - 1; k++) {
+          const lineA1 = turf.lineString(
+            [
+              polygon.geometry.coordinates[0][k],
+              splitLine.geometry.coordinates[0],
+            ],
+            { name: 'line A1' },
+          );
+          const lineA2 = turf.lineString(
+            [
+              splitLine.geometry.coordinates[0],
+              polygon.geometry.coordinates[0][k + 1],
+            ],
+            { name: 'line A2' },
+          );
+          const lineAdistance = turfLength(lineA1, { units: 'meters' })
+            + turfLength(lineA2, { units: 'meters' });
+          if (k === 0) {
+            lineAcount = lineAdistance;
+          }
+          if (lineAdistance < lineAcount) {
+            lineAcount = lineAdistance;
+            lineA = k;
+          }
+          console.log(lineAdistance);
+          // LINE B
+          const lineB1 = turf.lineString(
+            [
+              polygon.geometry.coordinates[0][k],
+              splitLine.geometry.coordinates[1],
+            ],
+            { name: 'line B1' },
+          );
+          const lineB2 = turf.lineString(
+            [
+              splitLine.geometry.coordinates[1],
+              polygon.geometry.coordinates[0][k + 1],
+            ],
+            { name: 'line B2' },
+          );
+          const lineBdistance = turfLength(lineB1, { units: 'meters' })
+            + turfLength(lineB2, { units: 'meters' });
+          if (k === 0) {
+            lineBcount = lineBdistance;
+          }
+          if (lineBdistance < lineBcount) {
+            lineBcount = lineBdistance;
+            lineB = k;
+          }
+          console.log(lineBdistance);
         }
-        if (lineAdistance < lineAcount) {
-          lineAcount = lineAdistance;
-          lineA = k;
-        }
-        console.log(lineAdistance);
-        // LINE B
-        const lineB1 = turf.lineString(
-          [
-            polygon.geometry.coordinates[0][k],
-            splitLine.geometry.coordinates[1],
-          ],
-          { name: 'line B1' },
-        );
-        const lineB2 = turf.lineString(
-          [
-            splitLine.geometry.coordinates[1],
-            polygon.geometry.coordinates[0][k + 1],
-          ],
-          { name: 'line B2' },
-        );
-        const lineBdistance = turfLength(lineB1, { units: 'meters' })
-        + turfLength(lineB2, { units: 'meters' });
-        if (k === 0) {
-          lineBcount = lineBdistance;
-        }
-        if (lineBdistance < lineBcount) {
-          lineBcount = lineBdistance;
-          lineB = k;
-        }
-        console.log(lineBdistance);
-      }
-      console.log(lineA);
-      console.log(lineB);
-      // IF B IS LARGER THAN A, FLIP WHOLE LINE
-      /* if(lineA > lineB){
+        console.log(lineA);
+        console.log(lineB);
+        // IF B IS LARGER THAN A, FLIP WHOLE LINE
+        /* if(lineA > lineB){
               splitLine.geometry.coordinates.reverse();
           } */
-      // SAVE ONE GEOMETRY ON OLD LAYER AND RENAME
-      const polygonCoordinates = polygon.geometry.coordinates[0];
-      console.log(`before splice: ${polygonCoordinates}`);
-      const segmentLength = lineB - lineA;
-      polygonCoordinates.splice(
-        lineA + 1,
-        segmentLength,
-        splitLine.geometry.coordinates[0],
-        splitLine.geometry.coordinates[1],
-      );
-      console.log(`after splice: ${polygonCoordinates}`);
-      const newPolygon = turf.polygon([polygonCoordinates], { name: 'poly1' });
-      console.log(`String poly ${JSON.stringify(newPolygon)}`);
-      const newPolygonString = JSON.stringify(newPolygon);
-      Layer.findByIdAndUpdate(
-        req.params.id,
-        { $set: { geometry: newPolygonString } },
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
+        // SAVE ONE GEOMETRY ON OLD LAYER AND RENAME
+        const polygonCoordinates = polygon.geometry.coordinates[0];
+        console.log(`before splice: ${polygonCoordinates}`);
+        const segmentLength = lineB - lineA;
+        polygonCoordinates.splice(
+          lineA + 1,
+          segmentLength,
+          splitLine.geometry.coordinates[0],
+          splitLine.geometry.coordinates[1],
+        );
+        console.log(`after splice: ${polygonCoordinates}`);
+        const newPolygon = turf.polygon([polygonCoordinates], { name: 'poly1' });
+        console.log(`String poly ${JSON.stringify(newPolygon)}`);
+        const newPolygonString = JSON.stringify(newPolygon);
+        try {
+          await Layer.findByIdAndUpdate(req.params.id, {
+            $set: { geometry: newPolygonString },
+          });
           // CREATE NEW LAYER WITH NEW NAME AND GEOMETRY
 
-            res.redirect(`/layers/${foundLayer._id}`);
-          }
-        },
-      );
+          res.send(`/layers/${foundLayer._id}`);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    } catch (err) {
+      console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
 // ROW NEW ROUTE
 router.get(
   '/layers/:id/row/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // FIND PROJECT
     try {
-      const foundLayer = Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(req.params.id);
       // FIND MY SYSTEMS
       try {
-        const foundSequences = Sequence.find(
-          { 'owner.id': req.user?._id },
-        );
-        res.render('layers/row', {
+        const foundSequences = await Sequence.find({
+          'owner.id': req.user?._id,
+        });
+        res.send({
           layer: foundLayer,
           sequences: foundSequences,
         });
@@ -1073,10 +1159,13 @@ router.get(
 router.post(
   '/layers/:id/row',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // IF NO GEOMETRY
     if (req.body.geometry === '') {
-      res.redirect('back');
+      res.send();
     } else {
       // CREATE ROW HERE?
       const tempGeo = JSON.parse(req.body.geometry);
@@ -1100,7 +1189,7 @@ router.post(
 
           // CREATE ROW
           console.log('Row has been added to layer');
-          res.redirect(`/layers/${updatedLayer?.id}/layout`);
+          res.send(`/layers/${updatedLayer?.id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1115,7 +1204,10 @@ router.post(
 router.get(
   '/layers/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(req.params.id)
@@ -1128,10 +1220,10 @@ router.get(
           .exec();
         // FIND MY SYSTEMS
         try {
-          const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
-          );
-          res.render('layers/editrow', {
+          const foundSequences = await Sequence.find({
+            'owner.id': req.user?._id,
+          });
+          res.send({
             layer: foundLayer,
             row: foundRow,
             sequences: foundSequences,
@@ -1149,36 +1241,46 @@ router.get(
 );
 
 // UPDATE ROW
-router.put('/layers/:id/row/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // CREATE ROW HERE?
-  const row: any = {
-    name: req.body.row.name,
-  };
-  if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-    row.sequence = req.body.sequenceid;
-  }
-  // FIND LAYER
-  try {
-    const foundLayer = await Layer.findById(req.params.id);
-    // FIND AND UPDATE ROW
+router.put(
+  '/layers/:id/row/:pid',
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+    // CREATE ROW HERE?
+    const row: any = {
+      name: req.body.row.name,
+    };
+    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
+      row.sequence = req.body.sequenceid;
+    }
+    // FIND LAYER
     try {
-      await Row.findByIdAndUpdate(req.params.pid, row);
-      if (foundLayer) {
-        res.redirect(`/layers/${foundLayer._id}/layout`);
+      const foundLayer = await Layer.findById(req.params.id);
+      // FIND AND UPDATE ROW
+      try {
+        await Row.findByIdAndUpdate(req.params.pid, row);
+        if (foundLayer) {
+          res.send(`/layers/${foundLayer._id}/layout`);
+        }
+      } catch (err) {
+        console.log(err);
       }
     } catch (err) {
       console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
+  },
+);
 
 // DELETE ROW
 router.delete(
   '/layers/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
     // FIND ROW
     // FIND LAYER
     try {
@@ -1187,8 +1289,8 @@ router.delete(
       if (updatedLayer) {
         console.log(`Length before ${updatedLayer.rows.length}`);
         updatedLayer.rows.forEach(async (row) => {
-          if (row._id === req.params.pid) {
-            await row.remove();
+          if (row._id.toString() === req.params.pid) {
+            await row.deleteOne();
           }
         });
         // DELETE ROW
@@ -1196,7 +1298,7 @@ router.delete(
           await Row.findByIdAndRemove(req.params.pid);
 
           console.log(`Length after ${updatedLayer.rows.length}`);
-          res.redirect(`/layers/${updatedLayer._id}/layout`);
+          res.send(`/layers/${updatedLayer._id}/layout`);
         } catch (err) {
           console.log(err);
         }

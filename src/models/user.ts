@@ -1,9 +1,9 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 // import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
 import { INurserySchema } from './nursery';
 import { IParcelSchema } from './parcel';
 
-export interface IUserSchema extends Document {
+export interface IUserSchema {
     externalId: string,
     username: string,
     password: string,
@@ -11,9 +11,9 @@ export interface IUserSchema extends Document {
     resetPasswordToken: string,
     resetPasswordExpires: Date,
     parcels: [
-        IParcelSchema
+        HydratedDocument<IParcelSchema>
     ],
-    currentProject: IParcelSchema,
+    currentProject: HydratedDocument<IParcelSchema>,
     registrationDate: number,
     membership: number,
     farmLimit: number,
@@ -23,7 +23,7 @@ export interface IUserSchema extends Document {
     isManagement: boolean,
     isProject: boolean,
     nurseries: [
-        INurserySchema
+        HydratedDocument<INurserySchema>
     ]
 }
 
@@ -62,4 +62,6 @@ const UserSchema = new Schema({
 
 // UserSchema.plugin(passportLocalMongoose);
 
-export default model<IUserSchema>('User', UserSchema);
+const User = model<IUserSchema>('User', UserSchema);
+export default User;
+export type UserDocument = ReturnType<(typeof User)['hydrate']>;

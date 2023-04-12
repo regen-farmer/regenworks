@@ -1,8 +1,9 @@
 import express from 'express';
 import NodeGeocoder from 'node-geocoder';
 import Nursery from '../models/nursery';
-import User, { IUserSchema } from '../models/user';
+import User, { UserDocument } from '../models/user';
 import middleware from '../middleware';
+import { Auth0IDToken } from '../app';
 
 // NODE GEOCODER CODE
 const router = express.Router();
@@ -16,25 +17,25 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND NURSERY BASED ON USER
   try {
     const foundNurseries = await Nursery.find({ 'owner.id': req.user?._id });
     console.log(foundNurseries.length);
-    res.render('nurseries/index', { nurseries: foundNurseries });
+    res.send({ nurseries: foundNurseries });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY NEW
-router.get('/nurseries/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseries/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // ADMIN LOGIN REQUIRED
-  res.render('nurseries/new');
+  res.send();
 });
 
 // ANIMAL CREATE
-router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;
   // GEOLOCATION
@@ -42,7 +43,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.redirect('back');
+      return res.send('back');
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
@@ -51,7 +52,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     try {
       const createdNursery = await Nursery.create(newNursery);
       // SET OWNERSHIP
-      createdNursery.owner.id = req.user?._id;
+      createdNursery.owner.id = req.user?._id.toString()!;
       await createdNursery.save();
       // ADD TO USER
       try {
@@ -62,7 +63,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
           await foundUser.save();
           // REDIRECT
           console.log(`Nursery created: ${createdNursery}`);
-          res.redirect(`/nurseries/${createdNursery._id}`);
+          res.send(`/nurseries/${createdNursery._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -74,34 +75,33 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // DO OWNERSHIP MODEL
   // FIND NURSERY
-  Nursery.findById(req.params.id)
-    .populate('products')
-    .exec((err, foundNursery) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // RENDER SHOW PAGE
-        res.render('nurseries/show', { nursery: foundNursery });
-      }
-    });
+  try {
+    const foundNursery = await Nursery.findById(req.params.id)
+      .populate('products')
+      .exec();
+    // RENDER SHOW PAGE
+    res.send({ nursery: foundNursery });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // FIND NURSERY
   try {
     const foundNursery = await Nursery.findById(req.params.id);
-    res.render('nurseries/edit', { nursery: foundNursery });
+    res.send({ nursery: foundNursery });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY UPDATE
-router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
   const newNursery = req.body.nursery;
@@ -110,7 +110,7 @@ router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.redirect('back');
+      return res.send('back');
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
@@ -124,7 +124,7 @@ router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
       // REDIRECT
       if (updateNursery) {
         console.log(`Nursery update: ${updateNursery}`);
-        res.redirect(`/nurseries/${updateNursery._id}`);
+        res.send(`/nurseries/${updateNursery._id}`);
       } else {
         console.log('No updateNursery');
       }

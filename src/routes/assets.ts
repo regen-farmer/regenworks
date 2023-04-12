@@ -4,69 +4,69 @@ import Layer from '../models/layer';
 import Project from '../models/project';
 import Species from '../models/species';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
 // ASSET INDEX ROUTE
-router.get('/assets', middleware.adminIsLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/assets', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Get all assets from DB
   try {
     const allAssets = await Asset.find({ 'owner.id': req.user?._id });
-    res.render('assets/index', { assets: allAssets });
+    res.send({ assets: allAssets });
   } catch (err) {
     console.log(err);
   }
 });
 
 // ASSET NEW ROUTE
-router.get('/assets/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/assets/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundLayers = await Layer.find({ 'owner.id': req.user?._id });
     // console.log("Reached this far");
     // foundLayers.forEach(function(layer){
     //     console.log(layer.id);
     // });
-    res.render('assets/new', { layers: foundLayers });
+    res.send({ layers: foundLayers });
   } catch (err) {
     console.log(err);
   }
 });
 
 // ASSET CREATE ROUTE
-router.post('/assets', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/assets', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create a new experience
   try {
     const createdAsset = await Asset.create(req.body.asset);
     // Add ID to experience
-    createdAsset.owner.id = req.user?._id;
+    createdAsset.owner.id = req.user?._id.toString()!;
     // Save the asset - Not needed if created after this step
     await createdAsset.save();
-    res.redirect('/assets');
+    res.send('/assets');
   } catch (err) {
     console.log(err);
   }
 });
 
 // ASSET SHOW ROUTES
-router.get('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Find specific asset
-  Asset.findById(req.params.id)
-    .populate('layer')
-    .exec((err, foundAsset) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render('assets/show', { asset: foundAsset });
-      }
-    });
+  try {
+    const foundAsset = await Asset.findById(req.params.id)
+      .populate('layer')
+      .exec();
+    res.send({ asset: foundAsset });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // ASSET EDIT ROUTE
 router.get(
   '/assets/:id/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND ASSET AND RENDER EDIT PAGE
     try {
       const foundAsset = await Asset.findById(req.params.id)
@@ -78,7 +78,7 @@ router.get(
           const foundSpecies = await Species.find();
           console.log(foundAsset.species);
           console.log(foundSpecies[0]);
-          res.render('assets/edit', {
+          res.send({
             asset: foundAsset,
             species: foundSpecies,
           });
@@ -93,7 +93,7 @@ router.get(
 );
 
 // ASSET UPDATE ROUTE
-router.put('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // UPDATE ASSET
   try {
     const updatedAsset = await Asset.findByIdAndUpdate(
@@ -101,7 +101,7 @@ router.put('/assets/:id', middleware.isLoggedIn, async (req: express.Request & {
       req.body.asset,
     );
     if (updatedAsset) {
-      res.redirect(`/assets/${updatedAsset._id}`);
+      res.send(`/assets/${updatedAsset._id}`);
     } else {
       console.log('Asset not updated');
     }
@@ -111,7 +111,7 @@ router.put('/assets/:id', middleware.isLoggedIn, async (req: express.Request & {
 });
 
 // ASSET DELETE ROUTE
-router.delete('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.delete('/assets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // FIND ASSET
   try {
@@ -131,10 +131,10 @@ router.delete('/assets/:id', middleware.isLoggedIn, async (req: express.Request 
             // DELETE ASSET
             try {
               await Asset.findByIdAndRemove(req.params.id);
-              res.redirect(`/projects/${foundProject._id}`);
+              res.send(`/projects/${foundProject._id}`);
             } catch (err) {
               console.log(err);
-              res.redirect('/assets');
+              res.send('/assets');
             }
           } catch (err) {
             console.log(err);
@@ -153,10 +153,10 @@ router.delete('/assets/:id', middleware.isLoggedIn, async (req: express.Request 
 router.get(
   '/layers/:id/assets/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
-      res.render('assets/new', { layer: foundLayer });
+      res.send({ layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -167,19 +167,19 @@ router.get(
 router.post(
   '/layers/:id/assets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundLayer = await Layer.findById(req.params.id);
       if (foundLayer) {
         const createdAsset = await Asset.create(req.body.asset);
 
         // Add user ID to experience
-        createdAsset.owner.id = req.user?._id;
+        createdAsset.owner.id = req.user?._id.toString()!;
         await createdAsset.save();
         // ADD ASSET TO LAYER
         foundLayer.assets.push(createdAsset);
         // REDIRECT TO
-        res.redirect(`/layers/${foundLayer._id}`);
+        res.send(`/layers/${foundLayer._id}`);
       }
     } catch (err) {
       console.log(err);

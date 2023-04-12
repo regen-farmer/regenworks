@@ -1,7 +1,9 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IFlowSchema } from './flow';
 
-export interface ISpeciesSchema extends Document {
+export interface ISpeciesSchema {
+    id: string,
+    _id?: string,
     nameCommon: string,
     genus: string,
     species: string,
@@ -30,7 +32,7 @@ export interface ISpeciesSchema extends Document {
     height: number,
     width: number,
     flows: [
-        IFlowSchema
+      HydratedDocument<IFlowSchema>
     ],
     utilities: [string],
     nutrients: {
@@ -109,4 +111,6 @@ const speciesSchema = new Schema<ISpeciesSchema>({
   price: Number,
 });
 
-export default model('Species', speciesSchema);
+const Species = model('Species', speciesSchema);
+export default Species;
+export type SpeciesDocument = ReturnType<(typeof Species)['hydrate']>;

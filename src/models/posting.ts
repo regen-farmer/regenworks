@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface IPostingSchema extends Document {
+export interface IPostingSchema {
     name: string,
     postType: string,
     amount: number,
@@ -21,4 +21,6 @@ const postingSchema = new Schema<IPostingSchema>({
   date: Number,
 });
 
-export default model('Posting', postingSchema);
+const Posting = model('Posting', postingSchema);
+export default Posting;
+export type PostingDocument = ReturnType<(typeof Posting)['hydrate']>;

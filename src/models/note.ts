@@ -1,11 +1,11 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IUserSchema } from './user';
 
-export interface INoteSchema extends Document {
+export interface INoteSchema {
     name: string,
     description: string,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     }
 }
 
@@ -21,4 +21,6 @@ const noteSchema = new Schema<INoteSchema>({
   },
 });
 
-export default model('Note', noteSchema);
+const Note = model('Note', noteSchema);
+export default Note;
+export type NoteDocument = ReturnType<(typeof Note)['hydrate']>;

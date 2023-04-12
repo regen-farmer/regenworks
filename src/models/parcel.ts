@@ -1,10 +1,10 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ILayerSchema } from './layer';
 import { IPracticesSchema } from './practice';
 import { IProjectSchema } from './project';
 import { IUserSchema } from './user';
 
-export interface IParcelSchema extends Document {
+export interface IParcelSchema {
     name: string,
     agType: [
         {
@@ -19,16 +19,16 @@ export interface IParcelSchema extends Document {
     lng: number,
     geometry: string,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     },
     practices: [
-        IPracticesSchema
+        HydratedDocument<IPracticesSchema>
      ],
     layers: [
-        ILayerSchema
+        HydratedDocument<ILayerSchema>
     ],
     projects: [
-        IProjectSchema
+        HydratedDocument<IProjectSchema>
     ],
     climate: {
         monthlyaveragetemp: {
@@ -145,4 +145,6 @@ const parcelSchema = new Schema<IParcelSchema>({
   measurement: String,
 });
 
-export default model('Parcel', parcelSchema);
+const Parcel = model('Parcel', parcelSchema);
+export default Parcel;
+export type ParcelDocument = ReturnType<(typeof Parcel)['hydrate']>;

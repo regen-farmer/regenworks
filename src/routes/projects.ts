@@ -1,10 +1,12 @@
 import express from 'express';
 import unique from 'array-unique';
 import {
-  helpers as turf, length as turfLength, circle, area,
+  helpers as turf, length as turfLength, circle,
 } from '@turf/turf';
 import PDFDocument from 'pdfkit';
 import NodeGeocoder from 'node-geocoder';
+import mongoose from 'mongoose';
+import _ from 'lodash';
 import Project from '../models/project';
 import Layer from '../models/layer';
 import System, { ISystemSchema } from '../models/system';
@@ -18,7 +20,50 @@ import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
 import gisObj from '../middleware/gis';
-import { IUserSchema } from '../models/user';
+import dyFiMo from '../middleware/financials';
+import { UserDocument } from '../models/user';
+import { Auth0IDToken } from '../app';
+import Species, { ISpeciesSchema } from '../models/species';
+
+// =======
+// var express = require("express");
+// var router = express.Router();
+// var unique = require("array-unique");
+// import Parcel from "../models/parcel";
+// import Project from "../models/project";
+// import Practice from "../models/practice";
+// import Layer from "../models/layer";
+// import System from "../models/system";
+// import Budget from "../models/budget";
+// import Activity from "../models/activity";
+// import Species from "../models/species";
+// import Asset from "../models/asset";
+// import Posting from "../models/posting";
+// import Sequence from "../models/sequence";
+// import Rotation from "../models/rotation";
+// import Row from "../models/row";
+// import Area from "../models/area";
+// var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
+// var middleware = require("../middleware");
+// var gisObj = require("../middleware/gis");
+// var dyFiMo = require("../middleware/financials")
+// var bbox = require("@turf/bbox");
+// var bboxPolygon = require("@turf/bbox-polygon");
+// var turf = require("@turf/helpers");
+// var lineOffset = require("@turf/line-offset");
+// var lineIntersect = require("@turf/line-intersect");
+// var turfLength = require("@turf/length");
+// var buffer = require("@turf/buffer");
+// var rhumbBearing = require("@turf/rhumb-bearing");
+// var transformScale = require("@turf/transform-scale");
+// var transformRotate = require("@turf/transform-rotate");
+// var lineSplit = require("@turf/line-split");
+// var along = require("@turf/along");
+// var circle = require("@turf/circle");
+// var area = require("@turf/area");
+// var polygonToLine = require("@turf/polygon-to-line");
+// const PDFDocument = require("pdfkit");
+// >>>>>>> ace12b8 (activity params in AF system model, created middleware for dynamic financial modelling, establishment budget and cash-flow budget added to new middleware)
 
 // NODE GEOCODER CODE
 
@@ -33,24 +78,24 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // GET ALL USERS PROJECTS IN DB
   try {
     const allProjects = await Project.find({ 'owner.id': req.user?._id });
-    res.render('projects/index', { projects: allProjects });
+    res.send({ projects: allProjects });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   const place = undefined;
-  res.render('projects/new', { place });
+  res.send({ place });
 });
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create a new project
   try {
     const service = await Project.create(req.body.project);
@@ -58,7 +103,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
     geocoder.geocode(req.body.service.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
-        return res.redirect('back');
+        return res.send('back');
       }
 
       const lat = data[0].latitude;
@@ -70,12 +115,12 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
         service.lng = lng;
         service.location = loc;
         // Add ID to experience
-        service.owner.id = req.user?._id;
+        service.owner.id = req.user?._id.toString()!;
         // Save the service - Not need if created after this step
         await service.save();
         // Redirect to projects INDEX page
         // req.flash("success", "Successfully added service");
-        res.redirect('/projects');
+        res.send('/projects');
       }
     });
   } catch (err) {
@@ -84,7 +129,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
 });
 
 // PROJECT SHOW ROUTE
-router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     const foundProject = await Project.findById(req.params.id)
       .populate('layer')
@@ -179,13 +224,13 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
                   || establishementPostings[i].postType === 'material'
                 ) {
                   YoY[establishementPostings[i].year] -= establishementPostings[i].value
-                      * establishementPostings[i].amount;
+                    * establishementPostings[i].amount;
                 } else if (
                   establishementPostings[i].postType === 'product'
                   || establishementPostings[i].postType === 'service'
                 ) {
                   YoY[establishementPostings[i].year] += establishementPostings[i].value
-                      * establishementPostings[i].amount;
+                    * establishementPostings[i].amount;
                 }
               }
             }
@@ -214,9 +259,6 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
 
           // ROI
           const roi = 0;
-          /*
-                var labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', "15"];
-*/
           // CALCULATE DATASET
           const sumArray: number[] = [];
           let sum = 0;
@@ -224,15 +266,12 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
             sum += YoY[i];
             sumArray.push(sum);
           }
-          /*
-                var dataset = [-2, -1.2, 0.2, 0.5, 1, 1.2, 1.6, 2, 2.5, 2.9, 3.3, 4, 4.5, 5, 6];
-*/
           console.log(YoY[0]);
           console.log(YoY.length);
           const parseddataset = JSON.stringify(YoY);
           const parsedsum = JSON.stringify(sumArray);
           // CHECK LENGTH IS IDENTICAL
-          res.render('projects/show', {
+          res.send({
             project: foundProject,
             years,
             roi,
@@ -256,12 +295,12 @@ router.get('/projects/:id', middleware.isLoggedIn, async (req: express.Request &
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
   try {
     const foundProject = await Project.findById(req.params.id);
-    res.render('projects/edit', { project: foundProject });
+    res.send({ project: foundProject });
   } catch (err) {
     console.log(err);
   }
@@ -271,7 +310,7 @@ router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Requ
 router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -316,16 +355,16 @@ router.get(
 
         // CREATE FEATURECOLLECTION FOR ROWS*/
         const featurecollection = turf.featureCollection(layout.rowLineArray);
-        const collection = JSON.stringify(featurecollection);
+        const collection = featurecollection;
         const bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
-        const stripsCollection = JSON.stringify(bedArrayPolygons);
+        const stripsCollection = bedArrayPolygons;
         const alleyArrayPolygons = turf.featureCollection(
           layout.alleyPolygonArray,
         );
-        const alleysCollection = JSON.stringify(alleyArrayPolygons);
+        const alleysCollection = alleyArrayPolygons;
         // TEMP TESTING LINES
         const offsetArrayCollection = turf.featureCollection(layout.offsetArray);
-        const offsetCollection = JSON.stringify(offsetArrayCollection);
+        const offsetCollection = offsetArrayCollection;
         console.log(`Length off offset array: ${layout.offsetArray}`);
         // CREATE FEATURE COLLECTION FOR EDGEROWS
         /*   var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
@@ -414,7 +453,7 @@ router.get(
                         }
                     } */
         const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
-        const treeCollection = JSON.stringify(treeMarkers);
+        const treeCollection = treeMarkers;
         /* // COPY ALL SPECIES
                     var allSpeciesCopy = [];
                     for(let i=0;allSpecies.length > i;i++){
@@ -451,7 +490,7 @@ router.get(
                     } */
         // TEMP VALUE HERE
         const marginArea = 0;
-        res.render('projects/layout', {
+        res.send({
           project: foundProject,
           system: foundSystem,
           collection,
@@ -463,6 +502,8 @@ router.get(
           strips: stripsCollection,
           alleys: alleysCollection,
           offset: offsetCollection,
+          treeAssetArray: layout.treeAssetArray,
+
         });
       }
     } catch (err) {
@@ -472,28 +513,28 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
       req.body.project,
     );
     // req.flash("success", "Successfully added service");
-    res.redirect(`/projects/${req.params.id}`);
+    res.send(`/projects/${req.params.id}`);
   } catch (err) {
     console.log(err);
   }
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
       req.params.id,
       req.body.project,
     );
     // req.flash("success", "Successfully added service");
-    res.redirect(`/projects/${req.params.id}/layout`);
+    res.send(`/projects/${req.params.id}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -503,7 +544,7 @@ router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Re
 router.get(
   '/projects/:id/viz',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id)
         .populate({ path: 'system', populate: { path: 'model.species' } })
@@ -566,7 +607,7 @@ router.get(
           const treeRowArea = layout.treeRowArea;
           // TEMP VALUE HERE
           const marginArea = 0;
-          res.render('projects/viz', {
+          res.send({
             project: foundProject,
             system: foundSystem,
             collection,
@@ -591,49 +632,45 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  res.render('projects/3dviz');
+router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  res.send();
 });
 
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
   '/projects/:id/implement',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-    Project.findByIdAndUpdate(
-      req.params.id,
-      { $set: { status: 'Implementation' } },
-      (err) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.redirect(`/projects/${req.params.id}`);
-        }
-      },
-    );
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    try {
+      await Project.findByIdAndUpdate(
+        req.params.id,
+        { $set: { status: 'Implementation' } },
+      );
+      res.send(`/projects/${req.params.id}`);
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  Project.findByIdAndUpdate(
-    req.params.id,
-    { $set: { status: 'Retired' } },
-    (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.redirect(`/projects/${req.params.id}`);
-      }
-    },
-  );
+router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  try {
+    await Project.findByIdAndUpdate(
+      req.params.id,
+      { $set: { status: 'Retired' } },
+    );
+    res.send(`/projects/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
   '/projects/:id/complete',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const completedProject = await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: 'Completed' },
@@ -660,7 +697,7 @@ router.put(
             // SAVE AREA
             await projectArea.save();
             // REDIRECT
-            res.redirect(`/projects/${req.params.id}`);
+            res.send(`/projects/${req.params.id}`);
           } else {
             console.log('No projectArea');
           }
@@ -680,7 +717,7 @@ router.put(
 router.get(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundProject = await Project.findById(req.params.id);
       try {
@@ -695,7 +732,7 @@ router.get(
             realSystems.push(foundSystems[i]);
           }
         }
-        res.render('projects/addedgesystem', {
+        res.send({
           project: foundProject,
           systems: realSystems,
         });
@@ -712,7 +749,7 @@ router.get(
 router.post(
   '/projects/:id/addedgesystem',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND SYSTEM
     try {
       const foundSystem = await System.findById(req.body.systemid);
@@ -723,7 +760,7 @@ router.post(
           $set: { edgesystem: foundSystem },
         });
         if (foundProject) {
-          res.redirect(`/projects/${foundProject._id}`);
+          res.send(`/projects/${foundProject._id}`);
         } else {
           console.log('No foundProject');
         }
@@ -737,10 +774,10 @@ router.post(
 );
 
 // PROJECT ASSET CREATION
-router.get(
+router.put(
   '/projects/:id/generateassets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -781,12 +818,12 @@ router.get(
                     console.log("Tree #1 - " + treeAssetArray[0]);
                     console.log(treeAssetArray[0].species);
                     console.log(treeAssetArray[0].lat);
-                    res.redirect("/projects/" + req.params.id); */
+                    res.send("/projects/" + req.params.id); */
           console.log(`Trees Assets: ${treeAssetArray.length}`);
           console.log(`Trees Markets: ${treeMarkerArray.length}`);
           console.log(`Trees Row Refs: ${treeAssetRowRef.length}`);
           /*
-                                        res.redirect("/projects/" + req.params.id);
+                                        res.send("/projects/" + req.params.id);
                     */
           // CREATE ASSETS
           try {
@@ -809,6 +846,7 @@ router.get(
                   for (let i = 0; i < createdAssets.length; i++) {
                     const ref = treeAssetRowRef[i];
                     console.log(`ref ${ref}`);
+                    // @ts-ignore
                     foundRows[ref].assets.push(createdAssets[i]);
                   }
                   // SAVE ROWS INDIVIDUALLY
@@ -816,7 +854,7 @@ router.get(
                     await foundRows[i].save();
                   }
                   console.log('Assets added to project');
-                  res.redirect(`/projects/${req.params.id}`);
+                  res.send(`/projects/${req.params.id}`);
                 } catch (err) {
                   console.log(err);
                 }
@@ -842,104 +880,104 @@ router.get(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-router.get('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-  // FIND PROJECT
-  try {
-    const foundProject = await Project.findById(req.params.id)
-      .populate({ path: 'system', populate: { path: 'model.species' } })
-      .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
-      .populate('layer')
-      .exec();
-    if (foundProject) {
-      const layout = gisObj.systemBasedLayout(foundProject);
-      // CREATE ROWS ON PROJECT
-      const rows: {
-      geometry: string;
-      name: string;
-      rowlength: number;
-    }[] = [];
-      for (let i = 0; i < layout.rowLineArray.length; i++) {
-        const row = {
-          geometry: JSON.stringify(layout.rowLineArray[i]),
-          name: `Row ${i}`,
-          // CREATE ROW LENGTH
-          rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
-        };
-        // PUSH TO ARRAY
-        rows.push(row);
-      }
-      console.log(rows[0]);
-      // CREATE AREAS
-      const areas: {
-      geometry: string;
-      name: string;
-      size: number;
-    }[] = [];
-      for (let i = 0; i < layout.alleyPolygonArray.length; i++) {
-        const alleyGeometry = layout.alleyPolygonArray[i];
-        const alley = {
-          geometry: JSON.stringify(layout.alleyPolygonArray[i]),
-          name: `Alley ${i}`,
-          size: area(alleyGeometry),
-        };
-        // PUSH TO ARRAY
-        areas.push(alley);
-      }
-      for (let i = 0; i < layout.bedPolygonArray.length; i++) {
-        const bedGeometry = layout.bedPolygonArray[i];
-        const treeStrip = {
-          geometry: JSON.stringify(layout.bedPolygonArray[i]),
-          name: `Tree Strip ${i}`,
-          size: area(bedGeometry),
-        };
-        // PUSH TO ARRAY
-        areas.push(treeStrip);
-      }
-      // const rowCollection = JSON.stringify(layout.rowLineCollection);
-      // CREATE AREAS ON AREA
-      // const alleyCollection = JSON.stringify(layout.bedPolygonCollection);
+// router.post('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+//   // FIND PROJECT
+//   try {
+//     const foundProject = await Project.findById(req.params.id)
+//       .populate({ path: 'system', populate: { path: 'model.species' } })
+//       .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
+//       .populate('layer')
+//       .exec();
+//     if (foundProject) {
+//       const layout = gisObj.systemBasedLayout(foundProject);
+//       // CREATE ROWS ON PROJECT
+//       const rows: {
+//         geometry: string;
+//         name: string;
+//         rowlength: number;
+//       }[] = [];
+//       for (let i = 0; i < layout.rowLineArray.length; i++) {
+//         const row = {
+//           geometry: JSON.stringify(layout.rowLineArray[i]),
+//           name: `Row ${i}`,
+//           // CREATE ROW LENGTH
+//           rowlength: turfLength(layout.rowLineArray[i], { units: 'meters' }),
+//         };
+//         // PUSH TO ARRAY
+//         rows.push(row);
+//       }
+//       console.log(rows[0]);
+//       // CREATE AREAS
+//       const areas: {
+//         geometry: string;
+//         name: string;
+//         size: number;
+//       }[] = [];
+//       for (let i = 0; i < layout.alleyPolygonArray.length; i++) {
+//         const alleyGeometry = layout.alleyPolygonArray[i];
+//         const alley = {
+//           geometry: JSON.stringify(layout.alleyPolygonArray[i]),
+//           name: `Alley ${i}`,
+//           size: area(alleyGeometry),
+//         };
+//         // PUSH TO ARRAY
+//         areas.push(alley);
+//       }
+//       for (let i = 0; i < layout.bedPolygonArray.length; i++) {
+//         const bedGeometry = layout.bedPolygonArray[i];
+//         const treeStrip = {
+//           geometry: JSON.stringify(layout.bedPolygonArray[i]),
+//           name: `Tree Strip ${i}`,
+//           size: area(bedGeometry),
+//         };
+//         // PUSH TO ARRAY
+//         areas.push(treeStrip);
+//       }
+//       // const rowCollection = JSON.stringify(layout.rowLineCollection);
+//       // CREATE AREAS ON AREA
+//       // const alleyCollection = JSON.stringify(layout.bedPolygonCollection);
 
-      // CREATE ROWS
-      try {
-        const createdRows = await Row.insertMany(rows);
-        // CREATE AREAS
-        try {
-          const createdAreas = await Area.insertMany(areas);
-          try {
-            const updatedProject = await Project.findByIdAndUpdate(
-              req.params.id,
-              {
-                $push: {
-                  rows: { $each: createdRows },
-                  areas: { $each: createdAreas },
-                },
-              },
-            );
-            if (updatedProject) {
-              res.redirect(`/projects/${updatedProject._id}/layout`);
-            } else {
-              console.log('No updatedProject');
-            }
-          } catch (err) {
-            console.log(err);
-          }
-        } catch (err) {
-          console.log(err);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
-});
+//       // CREATE ROWS
+//       try {
+//         const createdRows = await Row.insertMany(rows);
+//         // CREATE AREAS
+//         try {
+//           const createdAreas = await Area.insertMany(areas);
+//           try {
+//             const updatedProject = await Project.findByIdAndUpdate(
+//               req.params.id,
+//               {
+//                 $push: {
+//                   rows: { $each: createdRows },
+//                   areas: { $each: createdAreas },
+//                 },
+//               },
+//             );
+//             if (updatedProject) {
+//               res.send(`/projects/${updatedProject._id}/layout`);
+//             } else {
+//               console.log('No updatedProject');
+//             }
+//           } catch (err) {
+//             console.log(err);
+//           }
+//         } catch (err) {
+//           console.log(err);
+//         }
+//       } catch (err) {
+//         console.log(err);
+//       }
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// });
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   '/projects/:id/deleterows',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -956,7 +994,7 @@ router.get(
             );
             if (updatedProject) {
               // REDIRECT
-              res.redirect(`/projects/${updatedProject._id}/layout`);
+              res.send(`/projects/${updatedProject._id}/layout`);
             } else {
               console.log('No updatedProject');
             }
@@ -979,7 +1017,7 @@ router.get(
 router.get(
   '/projects/:id/assets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1005,7 +1043,7 @@ router.get(
           treeCanopyArray.push(circle1);
         }
         const treeMarkers = turf.featureCollection(treeCanopyArray);
-        const treeCollection = JSON.stringify(treeMarkers);
+        // const treeCollection = JSON.stringify(treeMarkers);
         // UNIQUE TREE SPECIES
         const uniqueSpecies = unique(allTrees);
         // UNIQUE SPECIES COUNTS
@@ -1027,9 +1065,9 @@ router.get(
           uniqueSpeciesCount.push(speciesCount);
         }
         console.log(uniqueSpeciesCount);
-        res.render('projects/assets', {
+        res.send({
           project: foundProject,
-          trees: treeCollection,
+          trees: treeMarkers,
           treecounts: uniqueSpeciesCount,
         });
       } else {
@@ -1045,7 +1083,7 @@ router.get(
 router.delete(
   '/projects/:id',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
@@ -1080,10 +1118,10 @@ router.delete(
               try {
                 await Project.findByIdAndRemove(req.params.id);
                 console.log('project deleted');
-                res.redirect('/projects');
+                res.send('/projects');
               } catch (err) {
                 console.log(err);
-                res.redirect('/projects');
+                res.send('/projects');
               }
             } catch (err) {
               console.log(err);
@@ -1107,16 +1145,16 @@ router.delete(
 
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
-  '/layers/:id/projects/new/:system',
+  '/layers/:id/systems/:system/projects/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
         const foundSystem = await System.findById(req.params.system);
-        res.render('projects/new', {
+        res.send({
           layer: foundLayer,
           system: foundSystem,
         });
@@ -1132,10 +1170,11 @@ router.get(
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
-  '/layers/:id/projects',
+  '/layers/:id/systems/:system/projects',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // Lookup place using id
+
     try {
       const foundLayer = await Layer.findById(req.params.id)
         .populate('rows')
@@ -1144,14 +1183,14 @@ router.post(
       const createdProject = await Project.create(req.body.project);
 
       // FIND SYSTEM AND ADD TO PROJECT
-      const foundSystem = await System.findById(req.body.systemid)
+      const foundSystem = await System.findById(req.params.system)
         .populate('model.species')
         .exec();
 
       if (foundLayer && createdProject && foundSystem) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user?._id;
+        createdProject.owner.id = req.user?._id.toString()!;
         createdProject.system = foundSystem;
         createdProject.layer = foundLayer;
         createdProject.financial = {
@@ -1181,19 +1220,19 @@ router.post(
             createdProject.rows = createdRows;
             // Save the project
             await createdProject.save();
-            res.redirect(`/projects/${createdProject._id}`);
+            res.send(createdProject);
           } catch (err) {
             console.log(err);
           }
         } else {
           // Save the project
           await createdProject.save();
-          res.redirect(`/projects/${createdProject._id}`);
+          res.send(createdProject);
         }
       }
     } catch (err) {
       console.log(err);
-      res.redirect(`/layers/${req.params.id}`);
+      res.send(`/layers/${req.params.id}`);
     }
   },
 );
@@ -1202,14 +1241,14 @@ router.post(
 router.delete(
   '/projects/:id/allassets',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
-          await foundProject.assets[i].remove();
+          await foundProject.assets[i].deleteOne();
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
@@ -1218,7 +1257,7 @@ router.delete(
             console.log(err);
           }
         }
-        res.redirect(`/projects/${foundProject.id}`);
+        res.send(`/projects/${foundProject.id}`);
       } else {
         console.log('No foundProject');
       }
@@ -1232,7 +1271,7 @@ router.delete(
 router.get(
   '/projects/:id/row/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1244,7 +1283,7 @@ router.get(
           const foundSequences = await Sequence.find(
             { 'owner.id': req.user?._id },
           );
-          res.render('projects/row', {
+          res.send({
             project: foundProject,
             sequences: foundSequences,
           });
@@ -1259,10 +1298,10 @@ router.get(
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // REDIRECT IF NO GEOMETRY
   if (req.body.geometry === '') {
-    res.redirect('back');
+    res.send('back');
   } else {
     // CREATE ROW HERE?
     const tempGeo = JSON.parse(req.body.geometry);
@@ -1287,7 +1326,7 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
         // CREATE ROW
         if (foundProject) {
           console.log('Row has been added to project');
-          res.redirect(`/projects/${foundProject.id}/layout`);
+          res.send(`/projects/${foundProject.id}/layout`);
         } else {
           console.log('No foundProject');
         }
@@ -1304,7 +1343,7 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
 router.get(
   '/projects/:id/row/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1321,7 +1360,7 @@ router.get(
           const foundSequences = await Sequence.find(
             { 'owner.id': req.user?._id },
           );
-          res.render('projects/editrow', {
+          res.send({
             project: foundProject,
             row: foundRow,
             sequences: foundSequences,
@@ -1342,7 +1381,7 @@ router.get(
 router.put(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CREATE ROW HERE?
     const row: any = {
       name: req.body.row.name,
@@ -1357,7 +1396,7 @@ router.put(
       if (foundProject) {
         try {
           await Row.findByIdAndUpdate(req.params.pid, row);
-          res.redirect(`/projects/${foundProject._id}/layout`);
+          res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1372,7 +1411,7 @@ router.put(
 router.delete(
   '/projects/:id/row/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -1380,15 +1419,15 @@ router.delete(
       if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
         updatedProject.rows.forEach(async (row) => {
-          if (row._id === req.params.pid) {
-            await row.remove();
+          if (row._id.toString() === req.params.pid) {
+            await row.deleteOne();
           }
         });
         // DELETE ROW
         try {
           await Row.findByIdAndRemove(req.params.pid);
           console.log(`Length after ${updatedProject.rows.length}`);
-          res.redirect(`/projects/${updatedProject._id}/layout`);
+          res.send(`/projects/${updatedProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1405,7 +1444,7 @@ router.delete(
 router.get(
   '/projects/:id/areas/:pid/edit',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
@@ -1422,7 +1461,7 @@ router.get(
           const foundRotations = await Rotation.find(
             { 'owner.id': req.user?._id },
           );
-          res.render('projects/editarea', {
+          res.send({
             project: foundProject,
             area: foundArea,
             rotations: foundRotations,
@@ -1443,11 +1482,13 @@ router.get(
 router.put(
   '/projects/:id/areas/:pid',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CREATE AREA HERE?
+
     const area: any = {
       name: req.body.area.name,
     };
+
     if (!(req.body.rotationid === 'none') && req.body.rotationid) {
       area.rotation = req.body.rotationid;
     }
@@ -1462,7 +1503,7 @@ router.put(
             area,
           );
           console.log(`Updated area: ${updatedArea}`);
-          res.redirect(`/projects/${foundProject._id}/layout`);
+          res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1473,47 +1514,188 @@ router.put(
   },
 );
 
+// --------- PROJECT FINANCIALS ROUTE TEMP --------
+// PROJECT FINANCIALS ROUTE
+router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  try {
+    const foundProject = await Project.findById(req.params.id)
+      .populate({ path: 'system', populate: { path: 'model.species' } })
+      .populate('edgesystem')
+      .populate('layer')
+      .populate('rows')
+      .populate({
+        path: 'rows',
+        populate: { path: 'sequence', populate: { path: 'model.species' } },
+      })
+      .exec();
+    if (foundProject) {
+      // USE MIDDLEWARE TO DYNAMICALLY CALCULATE THE ESTABLISHMENT AND CASH-FLOW BUDGET
+      const establishmentBudget = dyFiMo.establishment(foundProject);
+      const managementBudget = dyFiMo.management(foundProject);
+      // SETUP LABELS AND YoY CASH-FLOW INCLUDING
+      const labels: any[] = [];
+      for (let i = 0; i < foundProject.financial.period; i++) {
+        const label = i + 1;
+        JSON.stringify(label);
+        labels.push(label);
+      }
+
+      const YoY = managementBudget.totals;
+      YoY[0] -= establishmentBudget.total;
+      // ADD BUDGET DATA TO GRAPH DATASETS
+
+      // CALCULATE ACCUMULATIVE CASH-FLOW
+      const sumArray: number[] = [];
+      let sum = 0;
+      for (let i = 0; i < foundProject.financial.period; i++) {
+        sum += YoY[i];
+        sumArray.push(sum);
+      }
+      let npv = 0;
+      for (let i = 0; i < YoY.length; i++) {
+        const discountedTotal = YoY[i] * ((1 - (foundProject.financial.discountRate)) ** (i + 1));
+        npv += discountedTotal;
+      }
+
+      const parsedLabels = labels;
+      const parseddataset = YoY;
+      const parsedsum = sumArray;
+
+      let listofSpeciesIds: string[] = [];
+
+      if (foundProject.rows.length > 0) {
+        foundProject.rows.forEach((row) => {
+          row.sequence?.uniqueSpecies.forEach((uniqueSpecie) => {
+            listofSpeciesIds.push(uniqueSpecie.id.toString());
+          });
+        });
+      } else {
+        listofSpeciesIds = foundProject.system.uniqueSpecies.map(
+          (us) => us.id as string,
+        );
+      }
+
+      listofSpeciesIds = _.uniq(listofSpeciesIds);
+
+      console.log('species', listofSpeciesIds);
+
+      const species: ISpeciesSchema[] = await Species.aggregate([
+        {
+          $match: {
+            _id: {
+              $in: listofSpeciesIds!.map((id) => new mongoose.Types.ObjectId(id)),
+            },
+          },
+        },
+      ]);
+
+      const populatedSpecies = await Species.populate(species, {
+        path: 'activities',
+      });
+
+      res.send({
+        species: populatedSpecies,
+        project: foundProject,
+        labels: parsedLabels,
+        dataset: parseddataset,
+        sum: parsedsum,
+        npv,
+      });
+    } else {
+      console.log('No foundProject');
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+router.patch('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  const project = await Project.findById(req.params.id);
+
+  project!.financial.discountRate = req.body.discountrate;
+  project!.financial.period = req.body.timeperiod;
+  await project!.save();
+
+  res.send();
+});
+
+router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  const project = await Project.findById(req.params.id).populate('system');
+
+  const system = project?.system;
+
+  const newActivities: [{
+    id: string,
+    activities: [{
+      activityType: string;
+      subtype: string;
+      name: string;
+      time: {
+        startMonth: number;
+        endMonth: number;
+      };
+      price: number;
+    }]
+
+  }] = req.body.map((newactivity) => ({
+    id: newactivity.id,
+    activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
+  }));
+
+  system!.uniqueSpecies.forEach((uniqueSpecies) => {
+    const match = newActivities.find((el) => el.id === uniqueSpecies.id.toString());
+
+    if (match) {
+      uniqueSpecies.activities = match!.activities;
+    }
+  });
+
+  await system?.save();
+
+  res.send();
+});
+
 // --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
 
 // ALIGNMENT NEW ROUTE
 router.get(
-    '/projects/:id/alignmentrow/new',
-    middleware.isLoggedIn,
-    async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
-      // FIND PROJECT
-      try {
-        const foundProject = await Project.findById(req.params.id)
-            .populate('layer')
-            .exec();
-        if (foundProject) {
-          // FIND MY SYSTEMS
-          try {
-            const foundSequences = await Sequence.find(
-                { 'owner.id': req.user?._id },
-            );
-            res.render('projects/alignmentrow', {
-              project: foundProject,
-              sequences: foundSequences,
-            });
-          } catch (err) {
-            console.log(err);
-          }
+  '/projects/:id/alignmentrow/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    // FIND PROJECT
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate('layer')
+        .exec();
+      if (foundProject) {
+        // FIND MY SYSTEMS
+        try {
+          const foundSequences = await Sequence.find(
+            { 'owner.id': req.user?._id },
+          );
+          res.send({
+            project: foundProject,
+            sequences: foundSequences,
+          });
+        } catch (err) {
+          console.log(err);
         }
-      } catch (err) {
-        console.log(err);
       }
-    },
+    } catch (err) {
+      console.log(err);
+    }
+  },
 );
 
 // UPDATE PROJECT ALIGNMENT
-router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
     await Project.findByIdAndUpdate(
-        req.params.id,
-        {alignment: "bearing", bearingline: req.body.geometry},
+      req.params.id,
+      { alignment: 'bearing', bearingline: req.body.geometry },
     );
     // req.flash("success", "Successfully added service");
-    res.redirect(`/projects/${req.params.id}/layout`);
+    res.send(`/projects/${req.params.id}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -1525,7 +1707,7 @@ router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: expr
 router.get(
   '/projects/:id/budgetpdf',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND PROJECT
 
     // GENERATE PDF TEST

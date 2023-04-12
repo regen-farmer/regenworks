@@ -1,22 +1,22 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IActivitySchema } from './activity';
 import { IFarmFlowSchema } from './farmflow';
 import { INoteSchema } from './note';
 import { IRotationSchema } from './rotation';
 import { IUserSchema } from './user';
 
-export interface IAreaSchema extends Document {
+export interface IAreaSchema {
     name: string,
     description: string,
     geometry: string,
     size: number,
-    rotation: IRotationSchema,
+    rotation: HydratedDocument<IRotationSchema>,
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>
     },
-    activities: IActivitySchema[],
-    farmflows: IFarmFlowSchema[],
-    notes: INoteSchema[]
+    activities: HydratedDocument<IActivitySchema>[],
+    farmflows: HydratedDocument<IFarmFlowSchema>[],
+    notes: HydratedDocument<INoteSchema>[]
 }
 
 // AREA SCHEMA SETUP
@@ -55,4 +55,8 @@ const areaSchema = new Schema<IAreaSchema>({
   ],
 });
 
-export default model('Area', areaSchema);
+const Area = model('Area', areaSchema);
+
+export default Area;
+
+export type AreaDocument = ReturnType<(typeof Area)['hydrate']>;

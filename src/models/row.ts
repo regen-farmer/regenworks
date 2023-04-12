@@ -1,24 +1,24 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { IActivitySchema } from './activity';
 import { IAssetSchema } from './asset';
 import { IFarmFlowSchema } from './farmflow';
 import { INoteSchema } from './note';
 import { ISequenceSchema } from './sequence';
 
-export interface IRowSchema extends Document {
+export interface IRowSchema {
     geometry: string,
-    sequence: ISequenceSchema,
+    sequence: HydratedDocument<ISequenceSchema>,
     name: string,
     assets: [
-        IAssetSchema
+        HydratedDocument<IAssetSchema>
     ],
     activities: [
-        IActivitySchema ],
+      HydratedDocument<IActivitySchema> ],
     farmflows: [
-        IFarmFlowSchema
+        HydratedDocument<IFarmFlowSchema>
     ],
     notes: [
-        INoteSchema
+        HydratedDocument<INoteSchema>
     ],
     rowlength: number
 }
@@ -58,4 +58,6 @@ const rowSchema = new Schema<IRowSchema>({
   rowlength: Number,
 });
 
-export default model('Row', rowSchema);
+const Row = model('Row', rowSchema);
+export default Row;
+export type RowDocument = ReturnType<(typeof Row)['hydrate']>;

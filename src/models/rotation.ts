@@ -1,15 +1,15 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema, HydratedDocument } from 'mongoose';
 import { ISpeciesSchema } from './species';
 import { IUserSchema } from './user';
 
-export interface IRotationSchema extends Document {
+export interface IRotationSchema {
     name: string,
     description: string,
     model: [
         {
             speciesmix: [
                 {
-                    species:ISpeciesSchema,
+                    species:HydratedDocument<ISpeciesSchema>,
                     amount: number
                 }
             ],
@@ -24,7 +24,7 @@ export interface IRotationSchema extends Document {
         }
     ],
     owner: {
-        id: IUserSchema
+        id: HydratedDocument<IUserSchema>| string
     }
 }
 
@@ -61,4 +61,6 @@ const rotationSchema = new Schema<IRotationSchema>({
   },
 });
 
-export default model('Rotation', rotationSchema);
+const Rotation = model('Rotation', rotationSchema);
+export default Rotation;
+export type RotationDocument = ReturnType<(typeof Rotation)['hydrate']>;

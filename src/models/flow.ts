@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface IFlowSchema extends Document {
+export interface IFlowSchema {
     name: string,
     type: string,
     unit: string,
@@ -19,4 +19,6 @@ const flowSchema = new Schema<IFlowSchema>({
   source: String,
 });
 
-export default model('Flow', flowSchema);
+const Flow = model('Flow', flowSchema);
+export default Flow;
+export type FlowDocument = ReturnType<(typeof Flow)['hydrate']>;

@@ -8,7 +8,8 @@ import Row from '../models/row';
 import Area from '../models/area';
 import Species, { ISpeciesSchema } from '../models/species';
 import middleware from '../middleware';
-import { IUserSchema } from '../models/user';
+import { UserDocument } from '../models/user';
+import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
@@ -16,25 +17,24 @@ const router = express.Router();
 router.get(
   '/parcels/:id/farmflows',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    try {
     // FIND PARCEL
-    Parcel.findById(req.params.id)
-      .populate({
-        path: 'layers',
-        populate: { path: 'rows', populate: { path: 'farmflows' } },
-      })
-      .populate({
-        path: 'layers',
-        populate: { path: 'areas', populate: { path: 'farmflows' } },
-      })
-      .exec((err, foundParcel) => {
-        if (err) {
-          console.log(err);
-        } else {
-          // RENDER ACTIVITIES
-          res.render('farmflows/index', { parcel: foundParcel });
-        }
-      });
+      const foundParcel = await Parcel.findById(req.params.id)
+        .populate({
+          path: 'layers',
+          populate: { path: 'rows', populate: { path: 'farmflows' } },
+        })
+        .populate({
+          path: 'layers',
+          populate: { path: 'areas', populate: { path: 'farmflows' } },
+        })
+        .exec();
+      // RENDER ACTIVITIES
+      res.send({ parcel: foundParcel });
+    } catch (err) {
+      console.log(err);
+    }
   },
 );
 
@@ -43,7 +43,7 @@ router.get(
 router.get(
   '/parcels/:id/layers/:pid/rows/:rid/farmflows/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND ROW SEQUENCE SPECIES
     const foundRow = await Row.findById(req.params.rid)
       .populate({ path: 'sequence', populate: { path: 'model.species' } })
@@ -59,7 +59,7 @@ router.get(
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
-        res.render('farmflows/rownew', {
+        res.send({
           parcelid: req.params.id,
           layerid: req.params.pid,
           rowid: req.params.rid,
@@ -67,7 +67,7 @@ router.get(
           species: uniqueSpecies,
         });
       } else {
-        res.redirect('back');
+        res.send('back');
       }
     }
   },
@@ -77,7 +77,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/rows/:rid/farmflows',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND SPECIES
     try {
       const foundSpecies = await Species.findById(req.body.species);
@@ -91,7 +91,7 @@ router.post(
           req.params.rid,
           { $push: { farmflows: createdFarmflow } },
         );
-        res.redirect(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${req.params.id}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -106,7 +106,7 @@ router.post(
 router.get(
   '/parcels/:id/layers/:pid/areas/:rid/farmflows/new',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND AREA ROTATION SPECIES
     const foundArea = await Area.findById(req.params.rid)
       .populate({
@@ -125,7 +125,7 @@ router.get(
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
       const uniqueSpecies = unique(allSpecies);
       console.log(uniqueSpecies);
-      res.render('farmflows/areanew', {
+      res.send({
         parcelid: req.params.id,
         layerid: req.params.pid,
         areaid: req.params.rid,
@@ -133,7 +133,7 @@ router.get(
         species: uniqueSpecies,
       });
     } else {
-      res.redirect('back');
+      res.send('back');
     }
   },
 );
@@ -142,7 +142,7 @@ router.get(
 router.post(
   '/parcels/:id/layers/:pid/areas/:rid/farmflows',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // FIND SPECIES
     try {
       const foundSpecies = await Species.findById(req.body.species);
@@ -156,7 +156,7 @@ router.post(
           req.params.rid,
           { $push: { farmflows: createdFarmflow } },
         );
-        res.redirect(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${req.params.id}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -170,7 +170,7 @@ router.post(
 router.get(
   '/parcels/:id/layers/:pid/farmflows/viz',
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: IUserSchema}, res: express.Response) => {
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // CREATE ACTIVITY
     const foundLayer = await Layer.findById(req.params.pid)
       .populate({ path: 'rows', populate: { path: 'farmflows' } })
@@ -306,9 +306,9 @@ router.get(
       }
       console.log(`max: ${max}`);
       console.log(`min: ${min}`);
-      res.redirect(`/parcels/${req.params.id}/farmflows`);
+      res.send(`/parcels/${req.params.id}/farmflows`);
       /*
-            res.render("farmflows/viz");
+            res.send("farmflows/viz");
 */
     }
   },

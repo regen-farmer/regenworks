@@ -1,6 +1,6 @@
-import { Document, model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 
-export interface ILogSchema extends Document {
+export interface ILogSchema {
     message: string,
     level: string,
     timestamp: number
@@ -13,4 +13,6 @@ const logSchema = new Schema<ILogSchema>({
   timestamp: Number,
 });
 
-export default model('Log', logSchema);
+const Log = model('Log', logSchema);
+export default Log;
+export type LogDocument = ReturnType<(typeof Log)['hydrate']>;
