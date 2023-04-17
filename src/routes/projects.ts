@@ -103,7 +103,7 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
     geocoder.geocode(req.body.service.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
-        return res.send('back');
+        return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
       }
 
       const lat = data[0].latitude;
@@ -1302,7 +1302,7 @@ router.get(
 router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // REDIRECT IF NO GEOMETRY
   if (req.body.geometry === '') {
-    res.send('back');
+    res.status(400).send({ error: 'No geometry found' });
   } else {
     // CREATE ROW HERE?
     const tempGeo = JSON.parse(req.body.geometry);

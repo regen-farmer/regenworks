@@ -24,7 +24,7 @@ router.get('/practices/:id', middleware.isLoggedIn, async (req: express.Request 
         res.send({ practice: foundPractice, parcel: foundParcel });
       } else {
         // req.flash("error", "You don't have permission to do that.");
-        res.send('back');
+        res.status(401).send({ error: 'User is not owner of this farm' });
       }
     } catch (err) {
       console.log(err);

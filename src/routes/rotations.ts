@@ -35,7 +35,7 @@ router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req: ex
     }
   } else {
     console.log('Length must be divisible with distance between species in rotation.');
-    res.send('back');
+    res.status(400).send({ error: 'Length must be divisible with distance between species in rotation.' });
   }
 });
 

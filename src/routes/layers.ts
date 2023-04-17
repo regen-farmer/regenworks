@@ -269,7 +269,7 @@ router.post(
         if (err) {
           console.log('error', err.message);
           // console.log(err);
-          res.send('back');
+          res.status(500).send({ error: 'Error while parsing uploaded file' });
         } else {
           const string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0]
             .LinearRing[0].coordinates[0];

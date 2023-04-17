@@ -76,7 +76,7 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.send('back');
+      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
     }
     const lat = data[0].latitude;
     const lng = data[0].longitude;
@@ -319,7 +319,7 @@ router.put(
       if (err || !data.length) {
         console.log(err);
         console.log(data);
-        return res.send('back');
+        return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
       }
       parcel.lat = data[0].latitude;
       parcel.lng = data[0].longitude;
@@ -416,7 +416,7 @@ router.get(
           if (err || !data.length) {
             console.log(err);
             console.log(data);
-            return res.send('back');
+            return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
           }
           console.log(data[0].country);
           console.log(data[0].administrativeLevels?.level1long);

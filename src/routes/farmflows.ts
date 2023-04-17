@@ -67,7 +67,7 @@ router.get(
           species: uniqueSpecies,
         });
       } else {
-        res.send('back');
+        res.status(400).send({ error: 'Row with the requested id does not exist' });
       }
     }
   },
@@ -133,7 +133,7 @@ router.get(
         species: uniqueSpecies,
       });
     } else {
-      res.send('back');
+      res.status(400).send({ error: 'Area with the requested id does not exist' });
     }
   },
 );

@@ -12,14 +12,14 @@ export async function checkParcelOwnership(req: express.Request & { user?: UserD
         next();
       } else {
         // req.flash("error", "You don't have permission to do that.");
-        res.send('back');
+        res.status(401).send({ error: 'You don\'t have permission to access this farm' });
       }
     } catch (err) {
-      res.send('back');
+      res.status(400).send({ error: 'The farm could not be found' });
     }
   } else {
     // req.flash("error", "You need to be logged in to do that.");
-    res.send('back'); // Sends the user back to the previous page they were on.
+    res.status(400).send({ error: 'No user id recieved' }); // Sends the user back to the previous page they were on.
   }
 }
 
@@ -38,14 +38,14 @@ export async function checkUserOwnership(req: express.Request & { user?: UserDoc
         console.log('progress!!');
         next();
       } else {
-        res.send('back');
+        res.status(401).send({ error: 'The owner of this farm doesn\'t match the recieved user id' });
       }
     } catch (err) {
-      res.send('back');
+      res.status(400).send({ error: 'User not found' });
     }
   } else {
     // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
-    res.send('back');
+    res.status(400).send({ error: 'email not verified' });
   }
 }
 
@@ -65,13 +65,13 @@ export async function adminIsLoggedIn(req: express.Request & { user?: UserDocume
       next();
     } else {
       // req.flash("error", "You do not have permission to do that.");
-      res.status(400).send({
-        message: 'User is not admin',
+      res.status(401).send({
+        error: 'User is not admin',
       });
     }
   } else {
     // req.flash("error", "You need to be logged in to do that!");
-    res.send('back');
+    res.status(400).send({ error: 'User not found' });
   }
 }
 
