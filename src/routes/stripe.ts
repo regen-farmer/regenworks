@@ -86,6 +86,7 @@ router.post(
             quantity: 1,
           },
         ],
+        allow_promotion_codes: true,
         customer: customer?.valueOf().toString(),
         mode: 'subscription',
         currency: currency.valueOf().toString(),
