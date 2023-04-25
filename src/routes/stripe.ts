@@ -37,7 +37,7 @@ export const StripeIds = {
     prices: {
       month: {
         DEV: 'price_1Mlsh3KY1xVwmVYOyWLcgjip',
-        PROD: 'price_1MlstPKY1xVwmVYOvBjFSobc',
+        PROD: 'price_1N0WOvKY1xVwmVYOubwlcAPn',
       },
       sixmonths: {
         DEV: 'price_1Mlsh3KY1xVwmVYOe5FlVbzv',
@@ -163,7 +163,7 @@ router.post(
       { plan: 'Farm', email: 'archie@spainshallestate.co.uk', expiration: '21/6/23' },
       { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
-      { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
+      // { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
     ];
 
     console.log('arrived');
