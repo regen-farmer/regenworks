@@ -31,6 +31,7 @@ const geocoder = NodeGeocoder(options);
 
 // PARCEL INDEX ROUTE
 router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  console.log('Get all parcels for user');
   // Get all parcels from DB
   try {
     const allUserParcels = await Parcel.find({ 'owner.id': req.user?._id });

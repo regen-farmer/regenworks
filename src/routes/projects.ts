@@ -1168,6 +1168,90 @@ router.get(
   },
 );
 
+router.get(
+  '/layers/:id/projects/new',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    // CHECK OWNERSHIP!!!
+    // FIND LAYER ID
+    try {
+      const foundLayer = await Layer.findById(req.params.id);
+      res.send({
+        layer: foundLayer,
+      });
+    } catch (err) {
+      console.log(err);
+      // res.flash(err);
+    }
+  },
+);
+
+// LAYER PROJECT CREATE ROUTE
+router.post(
+  '/layers/:id/projects',
+  middleware.isLoggedIn,
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    // Lookup place using id
+
+    try {
+      const foundLayer = await Layer.findById(req.params.id)
+        .populate('rows')
+        .exec();
+
+      const createdProject = await Project.create(req.body.project);
+
+      if (foundLayer && createdProject) {
+        // CREATE CURRENCY
+        // ADD PROJECT STUFF
+        createdProject.owner.id = req.user?._id.toString()!;
+        createdProject.layer = foundLayer;
+        createdProject.financial = {
+          discountRate: 0.05,
+          period: 20,
+        };
+
+        createdProject.status = 'planning';
+        // Connect new project to layer
+        foundLayer.projects.push(createdProject);
+        await foundLayer.save();
+        // Save rows from layer on project - Do it so that they are just blank for now
+        if (req.body.existingrows === 'on') {
+          const newRows: {
+            geometry: string;
+            name: string;
+          }[] = [];
+          for (let i = 0; i < foundLayer.rows.length; i++) {
+            const row = {
+              geometry: foundLayer.rows[i].geometry,
+              name: foundLayer.rows[i].name,
+            };
+            newRows.push(row);
+          }
+          try {
+            const createdRows = await Row.insertMany(newRows);
+
+            createdProject.rows = createdRows;
+            // Save the project
+            await createdProject.save();
+            res.send(createdProject);
+          } catch (err) {
+            console.log(err);
+          }
+        } else {
+          // Save the project
+          await createdProject.save();
+          res.send(createdProject);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+      res.send(`/layers/${req.params.id}`);
+    }
+  },
+);
+
+
+
 // LAYER PROJECT CREATE ROUTE
 router.post(
   '/layers/:id/systems/:system/projects',
