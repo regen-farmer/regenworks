@@ -42,7 +42,7 @@ router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { us
 });
 
 // PARCEL NEW ROUTE
-router.get('/parcels/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/new-parcel', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Find all products in database and pass to ejs
   try {
     const foundPractices = await Practice.find();

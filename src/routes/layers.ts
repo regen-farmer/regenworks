@@ -35,7 +35,7 @@ const parser = new xml2js.Parser();
 
 // NESTED PARCEL LAYER NEW ROUTE
 router.get(
-  '/parcels/:id/layers/new',
+  '/parcels/:id/new-layer',
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
