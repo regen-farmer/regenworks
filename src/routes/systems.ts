@@ -22,6 +22,29 @@ router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request &
   }
 });
 
+router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  const foundProject = await Project.findById(req.params.projectId);
+
+  // FIND SYSTEM AND ADD TO PROJECT
+  const foundSystem = await System.findById(req.params.systemId)
+    .populate('model.species')
+    .exec();
+
+  if (foundProject && foundSystem) {
+    // CREATE CURRENCY
+    // ADD PROJECT STUFF
+    foundProject.system = foundSystem;
+
+    try {
+      // Save the project
+      await foundProject.save();
+      res.send(foundProject);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+});
+
 // NESTED AREA SYSTEM INDEX
 /* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
     // FIND LAYER ID
