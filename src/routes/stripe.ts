@@ -164,7 +164,7 @@ router.post(
       { plan: 'Farm', email: 'archie@spainshallestate.co.uk', expiration: '21/6/23' },
       { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
       { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
-      // { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
+      { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
     ];
 
     console.log('arrived');
