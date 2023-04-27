@@ -22,6 +22,29 @@ router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request &
   }
 });
 
+router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  const foundProject = await Project.findById(req.params.projectId);
+
+  // FIND SYSTEM AND ADD TO PROJECT
+  const foundSystem = await System.findById(req.params.systemId)
+    .populate('model.species')
+    .exec();
+
+  if (foundProject && foundSystem) {
+    // CREATE CURRENCY
+    // ADD PROJECT STUFF
+    foundProject.system = foundSystem;
+
+    try {
+      // Save the project
+      await foundProject.save();
+      res.send(foundProject);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+});
+
 // NESTED AREA SYSTEM INDEX
 /* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
     // FIND LAYER ID
@@ -73,7 +96,7 @@ router.post(
       console.log(
         'Length must be divisible with distance between speciee in rows.',
       );
-      res.send('back');
+      res.status(400).send({ error: 'Length must be divisible with distance between speciee in rows.' });
     }
   },
 );
@@ -915,7 +938,7 @@ router.delete(
           console.log(`${foundLayersPresent.length} present found`);
           if (foundLayersPresent.length > 0) {
             // SEND BACK IF LAYERS
-            res.send('back');
+            res.status(500).send({ error: 'Can\'t delete system because layers exist' });
           } else {
             // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
             try {
@@ -925,7 +948,7 @@ router.delete(
               console.log(`${foundProjects.length} projects found`);
               if (foundProjects.length > 0) {
                 // SEND BACK IF PROJECTS
-                res.send('back');
+                res.status(500).send({ error: 'Can\'t delete system because projects exist' });
               } else {
                 // CHECK EDGE SYSTEM!?
                 // DELETE IN FUTURE DRAFT

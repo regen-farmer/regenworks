@@ -31,6 +31,7 @@ const geocoder = NodeGeocoder(options);
 
 // PARCEL INDEX ROUTE
 router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  console.log('Get all parcels for user');
   // Get all parcels from DB
   try {
     const allUserParcels = await Parcel.find({ 'owner.id': req.user?._id });
@@ -41,7 +42,7 @@ router.get('/parcels', middleware.isLoggedIn, async (req: express.Request & { us
 });
 
 // PARCEL NEW ROUTE
-router.get('/parcels/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/new-parcel', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Find all products in database and pass to ejs
   try {
     const foundPractices = await Practice.find();
@@ -76,7 +77,7 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.send('back');
+      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
     }
     const lat = data[0].latitude;
     const lng = data[0].longitude;
@@ -318,7 +319,7 @@ router.put(
       if (err || !data.length) {
         console.log(err);
         console.log(data);
-        return res.send('back');
+        return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
       }
       parcel.lat = data[0].latitude;
       parcel.lng = data[0].longitude;
@@ -415,7 +416,7 @@ router.get(
           if (err || !data.length) {
             console.log(err);
             console.log(data);
-            return res.send('back');
+            return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
           }
           console.log(data[0].country);
           console.log(data[0].administrativeLevels?.level1long);

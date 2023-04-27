@@ -43,7 +43,7 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.send('back');
+      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
@@ -110,7 +110,7 @@ router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.send('back');
+      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
