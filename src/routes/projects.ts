@@ -1041,7 +1041,7 @@ router.post(
         // CREATE CURRENCY
         // ADD PROJECT STUFF
         createdProject.owner.id = req.user?._id.toString()!;
-        createdProject.layer = foundLayer;
+        createdProject.layer = foundLayer.id;
         createdProject.financial = {
           discountRate: 0.05,
           period: 20,
@@ -1049,7 +1049,7 @@ router.post(
 
         createdProject.status = 'planning';
         // Connect new project to layer
-        foundLayer.projects.push(createdProject);
+        foundLayer.projects.push(createdProject.id);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
         if (req.body.existingrows === 'on') {
@@ -1648,7 +1648,6 @@ router.get(
     myDoc.end();
   },
 );
-
 
 // PROJECT SHOW ROUTE
 router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
