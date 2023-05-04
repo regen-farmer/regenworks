@@ -14,6 +14,7 @@ export interface IUserSchema {
         HydratedDocument<IParcelSchema>
     ],
     currentProject: HydratedDocument<IParcelSchema>,
+    countryCode: string,
     registrationDate: number,
     membership: number,
     farmLimit: number,
@@ -44,6 +45,7 @@ const UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Parcel',
   },
+  countryCode: { type: String, default: '', require: false },
   registrationDate: Number,
   membership: Number,
   farmLimit: Number,

@@ -148,6 +148,22 @@ router.put('/users/:id', middleware.checkUserOwnership, async (req: express.Requ
 // });
 
 // SET CURRENTPROJECT //
+
+router.put('/users/:id/countrycode', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  // const foundUser = await User.findById(req.user?.id);
+  if (!(req.body.countryCode.length === 2)) {
+    res.status(400);
+  }
+  console.log('cc body ', req.body.countryCode as string);
+  const updateUser = await User.findByIdAndUpdate(req.user?.id, { countryCode: req.body.countryCode }, { new: true });
+  console.log('cc', updateUser?.countryCode);
+  if (updateUser) {
+    res.send(updateUser);
+  } else {
+    res.status(400).send({ error: 'User not found' });
+  }
+});
+
 router.put('/users/:id/currentproject', middleware.checkUserOwnership, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   console.log('im here 2');
   try {
