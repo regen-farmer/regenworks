@@ -173,8 +173,7 @@ router.post(
           position: number[];
           width: number;
         }[] = [];
-        // DO COUNT FOR ROW WIDTH
-        let xPosition = 0;
+
         // SPECIES ARRAY FOR UNIQUE SPECIES
         const allSpecies: string[] = [];
         // ADD SPECIES TO MODEL
@@ -191,7 +190,7 @@ router.post(
                 const species = {
                   species: system.model[i].species[j].id,
                   position: [
-                    Number(system.model[i].distance) + xPosition,
+                    i,
                     Number(system.model[i].species[j].y),
                   ],
                   width: Number(system.model[i].width),
@@ -200,8 +199,6 @@ router.post(
               }
             }
           }
-
-          xPosition += Number(system.model[i].distance);
         }
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         console.log(`Unique species:${allSpecies}`);
@@ -766,8 +763,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         position: number[];
         width: number;
       }[] = [];
-      // DO COUNT FOR ROW WIDTH
-      let xPosition = 0;
+
       // SPECIES ARRAY FOR UNIQUE SPECIES
       const allSpecies: string[] = [];
       // ADD SPECIES TO MODEL
@@ -782,7 +778,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
               const species = {
                 species: system.model[i].species[j].id,
                 position: [
-                  Number(system.model[i].distance) + xPosition,
+                  i,
                   Number(system.model[i].species[j].y),
                 ],
                 width: Number(system.model[i].width),
@@ -797,14 +793,13 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           const species = {
             species: system.model[i].species.id,
             position: [
-              Number(system.model[i].distance) + xPosition,
+              i,
               Number(system.model[i].species.y),
             ],
             width: Number(system.model[i].width),
           };
           model.push(species);
         }
-        xPosition += Number(system.model[i].distance);
       }
       console.log(model);
       system.model = model;
