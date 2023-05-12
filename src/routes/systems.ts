@@ -103,56 +103,57 @@ router.post(
 
 // NESTED AREA SYSTEM NEW ROUTE
 router.get(
-  '/layers/:id/systems/new',
+  '/new-system',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    console.log('new system');
     // FIND LAYER ID
+    // try {
+    //   const foundLayer = await Layer.findById(req.params.id);
+    // FIND ALL SPECIES IN THE DATABASE
     try {
-      const foundLayer = await Layer.findById(req.params.id);
-      // FIND ALL SPECIES IN THE DATABASE
+      const foundSpecies = await Species.find();
+      // SORT SPECIES
+      foundSpecies.sort((a, b) => {
+        if (a.nameCommon < b.nameCommon) {
+          return -1;
+        }
+        if (a.nameCommon > b.nameCommon) {
+          return 1;
+        }
+        return 0;
+      });
+      // FIND ALL ANIMALS AND SORT
       try {
-        const foundSpecies = await Species.find();
-        // SORT SPECIES
-        foundSpecies.sort((a, b) => {
-          if (a.nameCommon < b.nameCommon) {
+        const foundAnimals = await Animal.find();
+        // SORT ANIMALS
+        foundAnimals.sort((a, b) => {
+          if (a.name < b.name) {
             return -1;
           }
-          if (a.nameCommon > b.nameCommon) {
+          if (a.name > b.name) {
             return 1;
           }
           return 0;
         });
-        // FIND ALL ANIMALS AND SORT
-        try {
-          const foundAnimals = await Animal.find();
-          // SORT ANIMALS
-          foundAnimals.sort((a, b) => {
-            if (a.name < b.name) {
-              return -1;
-            }
-            if (a.name > b.name) {
-              return 1;
-            }
-            return 0;
-          });
-          // RENDER NEW SYSTEM PAGE WITH SPECIES
-          res.send({
-            layer: foundLayer,
-            species: foundSpecies,
-            animals: foundAnimals,
-            rows: req.query.rows,
-            distance: req.query.distance,
-            length: req.query.length,
-          });
-        } catch (err) {
-          console.log(err);
-        }
+        // RENDER NEW SYSTEM PAGE WITH SPECIES
+        res.send({
+          // layer: foundLayer,
+          species: foundSpecies,
+          animals: foundAnimals,
+          rows: req.query.rows,
+          distance: req.query.distance,
+          length: req.query.length,
+        });
       } catch (err) {
         console.log(err);
       }
     } catch (err) {
       console.log(err);
     }
+    // } catch (err) {
+    //   console.log(err);
+    // }
   },
 );
 
