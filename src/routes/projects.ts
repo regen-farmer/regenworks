@@ -24,6 +24,7 @@ import dyFiMo from '../middleware/financials';
 import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 import Species, { ISpeciesSchema } from '../models/species';
+// import SystemDesign from '../models/systemdesign';
 
 // =======
 // var express = require("express");
@@ -128,8 +129,6 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
   }
 });
 
-
-
 // PROJECT EDIT ROUTE
 router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
@@ -153,8 +152,12 @@ router.get(
         .populate('edgesystem')
         .populate('layer')
         .populate({
-          path: 'rows',
-          populate: { path: 'sequence', populate: { path: 'model.species' } },
+          path: 'systemdesign',
+          populate: { path: 'rows.sequence', populate: { path: 'species' } },
+        })
+        .populate({
+          path: 'systemdesign',
+          populate: { path: 'rows', populate: { path: 'groundcover' } },
         })
         .populate({
           path: 'areas',
@@ -164,11 +167,17 @@ router.get(
           },
         })
         .exec();
+
+      if (!foundProject?.systemdesign) {
+        res.send({ project: foundProject });
+      }
+
       if (foundProject) {
         // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
-        const foundSystem = await System.findById(foundProject.system)
-          .populate('model.species')
-          .exec();
+        // const foundSystemDesign = await SystemDesign.findById(foundProject.systemdesign)
+        //   .populate('rows.sequence.species')
+        //   .populate('rows.groundcover')
+        //   .exec();
         // EDGE SYSTEM FIND, IF ONE
         // var edgesystem = '5e6639bc8add4f22f0820200'
         // if (foundProject.edgesystem) {
@@ -179,15 +188,15 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
-        let layout;
+        const layout = gisObj.systemBasedLayout(foundProject);
         // IF ROWS, DO XXX
-        if (foundProject.rows && foundProject.rows.length > 0) {
-          // DO ROW LAYOUT
-          layout = gisObj.rowBasedLayout(foundProject);
-        } else {
-          // DO PARAMETRIC LAYOUT
-          layout = gisObj.systemBasedLayout(foundProject);
-        }
+        // if (foundProject.rows && foundProject.rows.length > 0) {
+        // DO ROW LAYOUT
+        // layout = gisObj.rowBasedLayout(foundProject);
+        // } else {
+        // DO PARAMETRIC LAYOUT
+        // layout = gisObj.systemBasedLayout(foundProject);
+        // }
 
         // CREATE FEATURECOLLECTION FOR ROWS*/
         const featurecollection = turf.featureCollection(layout.rowLineArray);
@@ -328,7 +337,7 @@ router.get(
         const marginArea = 0;
         res.send({
           project: foundProject,
-          system: foundSystem,
+          // system: foundSystem,
           collection,
           trees: treeCollection,
           species: uniqueSpeciesCount,

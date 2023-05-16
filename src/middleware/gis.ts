@@ -19,10 +19,37 @@ import {
 } from '@turf/turf';
 import { options } from 'pdfkit';
 import { IProjectSchema } from '../models/project';
-import { ISpeciesSchema } from '../models/species';
+import Species, { ISpeciesSchema, SpeciesDocument } from '../models/species';
+import System from '../models/system';
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
+  const systemModel: {
+      species: SpeciesDocument,
+      position: number[]
+      width: number
+    }[] = [];
+
+  // console.log('systemdesign', JSON.stringify(project.systemdesign));
+
+  project.systemdesign.rows.forEach((row, rowIdx) => {
+    row.sequence.forEach((sequenceElement, elementIdx) => {
+      console.log('sequenceElement.species', sequenceElement.species);
+      systemModel.push({
+        position: [rowIdx, row.sequence.slice(0, elementIdx + 1).reduce((acc:number, curr):number => {
+          acc += curr?.spacingAfter ?? 0;
+          return acc;
+        }, 0)],
+        species: sequenceElement.species!,
+        width: row.width,
+      });
+    });
+  });
+
+  console.log(systemModel);
+
+  project.system.set('model', systemModel);
+
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
   let { headland } = project;
@@ -163,6 +190,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   }[], row: number }[] = [];
 
   project.system.model.forEach((species) => {
+    
     allSpecies.push(species.species.nameCommon);
     let count = 0;
     for (let i = 0; i < dataset.length; i++) {
@@ -417,7 +445,7 @@ export function systemBasedLayout(project: IProjectSchema) {
         distance += distanceArray[j];
         const bufferLine1 = buffer(line, (distance * calibrateDistance), { units: 'meters' });
         const rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
-        console.log(`Row point count: ${rowPoints1.features.length}`);
+        // console.log(`Row point count: ${rowPoints1.features.length}`);
         // DO IF HERE TO CHECK SEPARATE ROWS
         let row1;
         if ((rowPoints1.features[0].geometry.coordinates[0] < 0 && rowPoints1.features[1].geometry.coordinates[0] > 0) || (rowPoints1.features[0].geometry.coordinates[0] > 0 && rowPoints1.features[1].geometry.coordinates[0] < 0)) {
@@ -453,7 +481,7 @@ export function systemBasedLayout(project: IProjectSchema) {
         distance += distanceArray[j];
         const bufferLine1 = buffer(line, (distance * calibrateDistance), { units: 'meters' });
         const rowPoints1 = lineIntersect(bufferLine1, offsetPolygon);
-        console.log(`Row point count: ${rowPoints1.features.length}`);
+        // console.log(`Row point count: ${rowPoints1.features.length}`);
         // DO IF HERE TO CHECK SEPARATE ROWS
         for (let k = 0; k < rowPoints1.features.length / 2; k += 1) {
           let row1;
@@ -470,8 +498,8 @@ export function systemBasedLayout(project: IProjectSchema) {
         const alleyBufferLine2 = buffer(line, ((distance + (treeRowWidthArray[j] / 2)) * calibrateDistance), { units: 'meters' });
         const alleyPoints2 = lineIntersect(alleyBufferLine2, offsetPolygon);
         // CHECK POINTS IN TREE STRIP POLYGONS
-        console.log(`treeStripPoints1: ${alleyPoints1.features.length}`);
-        console.log(`treeStripPoints2: ${alleyPoints2.features.length}`);
+        // console.log(`treeStripPoints1: ${alleyPoints1.features.length}`);
+        // console.log(`treeStripPoints2: ${alleyPoints2.features.length}`);
         // CHECK IF SAME LENGTH - OTHERWISE CAN'T MAKE POLYGON
         if (alleyPoints1.features.length === alleyPoints2.features.length) {
           for (let k = 0; k < alleyPoints1.features.length / 2; k += 1) {
@@ -599,7 +627,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     if (countWidth < rowRest) {
       const bufferLine2 = buffer(line, ((distance + countWidth) * calibrateDistance), { units: 'meters' });
       const rowPoints2 = lineIntersect(bufferLine2, offsetPolygon);
-      console.log(`Row point count: ${rowPoints2.features.length}`);
+      // console.log(`Row point count: ${rowPoints2.features.length}`);
       // DO IF HERE TO CHECK SEPARATE ROWS
       // CHECK IF ROWS CROSS MEDIAN LINE (GOES FROM NEGATIVE TO POSITIVE)
       let row2;
@@ -746,6 +774,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   }[] = [];
   for (let i = 0; i < dataset.length; i++) {
     if (!(dataset[i].array[0].species.form === 'grass')) {
+      // console.log('dataset[i]', dataset[i]);
       treeRows.push(dataset[i]);
     }
   }
@@ -801,6 +830,9 @@ export function systemBasedLayout(project: IProjectSchema) {
         lng: firstTreeMarker.geometry.coordinates[1],
         name: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].species.nameCommon,
       };
+
+      console.log(asset);
+
       treeAssetArray.push(asset);
       treeAssetRowRef.push(i);
     }
