@@ -48,8 +48,6 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   console.log(systemModel);
 
-  project.system.set('model', systemModel);
-
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
   let { headland } = project;
@@ -189,8 +187,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     width: number;
   }[], row: number }[] = [];
 
-  project.system.model.forEach((species) => {
-    
+  systemModel.forEach((species) => {
     allSpecies.push(species.species.nameCommon);
     let count = 0;
     for (let i = 0; i < dataset.length; i++) {
