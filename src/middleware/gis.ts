@@ -16,7 +16,7 @@ import {
   LineString,
 } from '@turf/turf';
 import { IProjectSchema } from '../models/project';
-import { ISpeciesSchema, SpeciesDocument } from '../models/species';
+import { ISpeciesSchema } from '../models/species';
 import { createEdge } from './gis/edge_system';
 import { oldSystemModel } from './gis/old_system_model';
 
@@ -24,7 +24,9 @@ import { oldSystemModel } from './gis/old_system_model';
 export function systemBasedLayout(project: IProjectSchema) {
   // Convert System Design to old syntax System['model']
 
-  const systemModel = oldSystemModel(project);
+  const { allSpecies, systemRows } = oldSystemModel(project);
+
+  
 
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
@@ -42,40 +44,6 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const offsetPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
 
-  // FIND SYSTEM ROWS
-  const allSpecies: string[] = [];
-  const systemRows: { array: {
-    species: ISpeciesSchema;
-    position: number[];
-    width: number;
-  }[], row: number }[] = [];
-
-  systemModel.forEach((species) => {
-    allSpecies.push(species.species.nameCommon);
-    let count = 0;
-    for (let i = 0; i < systemRows.length; i++) {
-      if (systemRows[i].row === species.position[0]) {
-        systemRows[i].array.push(species);
-        count += 1;
-      }
-    }
-    if (count === 0) {
-      systemRows.push({ row: species.position[0], array: [species] });
-    }
-  });
-  // SORT FIRST ROW ITEMS
-
-  for (let i = 0; i < systemRows.length; i++) {
-    systemRows[i].array.sort((a, b) => {
-      if (a.position[1] < b.position[1]) {
-        return -1;
-      }
-      if (a.position[1] > b.position[1]) {
-        return 1;
-      }
-      return 0;
-    });
-  }
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
   const layout_sortedrows = systemRows;
   // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH

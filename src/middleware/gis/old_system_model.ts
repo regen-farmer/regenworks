@@ -1,5 +1,5 @@
 import { IProjectSchema } from '../../models/project';
-import { SpeciesDocument } from '../../models/species';
+import { ISpeciesSchema, SpeciesDocument } from '../../models/species';
 
 export function oldSystemModel(project: IProjectSchema) {
   const systemModel: {
@@ -22,5 +22,40 @@ export function oldSystemModel(project: IProjectSchema) {
     });
   });
 
-  return systemModel;
+  // FIND SYSTEM ROWS
+  const allSpecies: string[] = [];
+  const systemRows: { array: {
+    species: ISpeciesSchema;
+    position: number[];
+    width: number;
+  }[], row: number }[] = [];
+
+  systemModel.forEach((species) => {
+    allSpecies.push(species.species.nameCommon);
+    let count = 0;
+    for (let i = 0; i < systemRows.length; i++) {
+      if (systemRows[i].row === species.position[0]) {
+        systemRows[i].array.push(species);
+        count += 1;
+      }
+    }
+    if (count === 0) {
+      systemRows.push({ row: species.position[0], array: [species] });
+    }
+  });
+  // SORT FIRST ROW ITEMS
+
+  for (let i = 0; i < systemRows.length; i++) {
+    systemRows[i].array.sort((a, b) => {
+      if (a.position[1] < b.position[1]) {
+        return -1;
+      }
+      if (a.position[1] > b.position[1]) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  return { allSpecies, systemRows };
 }
