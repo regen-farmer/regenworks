@@ -796,7 +796,6 @@ export function systemBasedLayout(project: IProjectSchema) {
     // offsetArrayCollection: layout_offsetArrayCollection,
     rowLineArray: layout_rowLineArray,
     rowLineCollection: layout_rowLineCollection,
-    rowWidth: layout_rowWidth,
     sortedrows: layout_sortedrows,
     treeArray: layout_treeArray,
     treeAssetArray: layout_treeAssetArray,
