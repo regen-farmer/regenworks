@@ -17,7 +17,7 @@ import {
 } from '@turf/turf';
 import { IProjectSchema } from '../models/project';
 import { ISpeciesSchema, SpeciesDocument } from '../models/species';
-import { createEdgeSystem } from './gis/edge_system';
+import { createEdge } from './gis/edge_system';
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
@@ -59,7 +59,7 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const offsetPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
 
-  const { edgeTreeCanopyArray, edgeRowArray } = createEdgeSystem(project, calibrateDistance, polygon);
+  const { edgeTreeCanopyArray, edgeRowArray } = createEdge(project, calibrateDistance, polygon);
 
   // FIND SYSTEM ROWS
   const allSpecies: string[] = [];

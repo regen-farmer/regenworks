@@ -4,7 +4,7 @@ import {
 import { IProjectSchema } from '../../models/project';
 import { ISpeciesSchema } from '../../models/species';
 
-export function createEdgeSystem(project: IProjectSchema, calibrateDistance:number, polygon:any) {
+export function createEdge(project: IProjectSchema, calibrateDistance:number, polygon:any) {
   // EDGE WORK - Start
   const edgeRowDataset: {row: number, array: {
     species: ISpeciesSchema;
