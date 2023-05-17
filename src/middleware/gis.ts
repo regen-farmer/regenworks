@@ -18,30 +18,13 @@ import {
 import { IProjectSchema } from '../models/project';
 import { ISpeciesSchema, SpeciesDocument } from '../models/species';
 import { createEdge } from './gis/edge_system';
+import { oldSystemModel } from './gis/old_system_model';
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
   // Convert System Design to old syntax System['model']
 
-  const systemModel: {
-      species: SpeciesDocument,
-      position: number[]
-      width: number
-    }[] = [];
-
-  project.systemdesign.rows.forEach((row, rowIdx) => {
-    row.sequence.forEach((sequenceElement, elementIdx) => {
-      console.log('sequenceElement.species', sequenceElement.species);
-      systemModel.push({
-        position: [rowIdx, row.sequence.slice(0, elementIdx + 1).reduce((acc:number, curr):number => {
-          acc += curr?.spacingAfter ?? 0;
-          return acc;
-        }, 0)],
-        species: sequenceElement.species!,
-        width: row.width,
-      });
-    });
-  });
+  const systemModel = oldSystemModel(project);
 
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
@@ -59,11 +42,9 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const offsetPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
 
-  const { edgeTreeCanopyArray, edgeRowArray } = createEdge(project, calibrateDistance, polygon);
-
   // FIND SYSTEM ROWS
   const allSpecies: string[] = [];
-  const dataset: { array: {
+  const systemRows: { array: {
     species: ISpeciesSchema;
     position: number[];
     width: number;
@@ -72,20 +53,20 @@ export function systemBasedLayout(project: IProjectSchema) {
   systemModel.forEach((species) => {
     allSpecies.push(species.species.nameCommon);
     let count = 0;
-    for (let i = 0; i < dataset.length; i++) {
-      if (dataset[i].row === species.position[0]) {
-        dataset[i].array.push(species);
+    for (let i = 0; i < systemRows.length; i++) {
+      if (systemRows[i].row === species.position[0]) {
+        systemRows[i].array.push(species);
         count += 1;
       }
     }
     if (count === 0) {
-      dataset.push({ row: species.position[0], array: [species] });
+      systemRows.push({ row: species.position[0], array: [species] });
     }
   });
   // SORT FIRST ROW ITEMS
 
-  for (let i = 0; i < dataset.length; i++) {
-    dataset[i].array.sort((a, b) => {
+  for (let i = 0; i < systemRows.length; i++) {
+    systemRows[i].array.sort((a, b) => {
       if (a.position[1] < b.position[1]) {
         return -1;
       }
@@ -96,12 +77,12 @@ export function systemBasedLayout(project: IProjectSchema) {
     });
   }
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
-  const layout_sortedrows = dataset;
+  const layout_sortedrows = systemRows;
   // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
   // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
   let rowWidth = 0;
-  for (let i = 0; i < dataset.length; i++) {
-    rowWidth += dataset[i].array[0].width;
+  for (let i = 0; i < systemRows.length; i++) {
+    rowWidth += systemRows[i].array[0].width;
   }
   const layout_rowWidth = rowWidth;
   // ROW PARAMETERS
@@ -113,63 +94,63 @@ export function systemBasedLayout(project: IProjectSchema) {
   const alleyWidthArray: number[] = [];
   let alleyWidthArrayCount = 0;
   const alleyWidths: number[] = [];
-  for (let i = 0; i < dataset.length + 1; i++) {
+  for (let i = 0; i < systemRows.length + 1; i++) {
     // SET ROW LENGTHS
     // IF FIRST ROW
     if (i === 0) {
-      if (dataset[i].array[0].species.form === 'grass' || dataset[i].array[0].species.form === 'herb') {
-        rowWidthArrayCount += dataset[i].array[0].width;
+      if (systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb') {
+        rowWidthArrayCount += systemRows[i].array[0].width;
         // SET ALLEY COUNT
-        alleyWidthArrayCount += dataset[i].array[0].width / 2;
+        alleyWidthArrayCount += systemRows[i].array[0].width / 2;
         alleyWidthArray.push(alleyWidthArrayCount);
         alleyWidthArrayCount = 0;
-        alleyWidths.push(dataset[i].array[0].width);
+        alleyWidths.push(systemRows[i].array[0].width);
       } else {
-        rowWidthArrayCount += dataset[i].array[0].width / 2;
+        rowWidthArrayCount += systemRows[i].array[0].width / 2;
         rowWidthArray.push(rowWidthArrayCount);
         rowWidthArrayCount = 0;
-        treeRowWidthArray.push(dataset[i].array[0].width);
+        treeRowWidthArray.push(systemRows[i].array[0].width);
         // SET ALLEY COUNT
-        alleyWidthArrayCount += dataset[i].array[0].width;
+        alleyWidthArrayCount += systemRows[i].array[0].width;
       }
       // IF LAST ROW - OR IS THIS OFF?!
-    } else if (i === dataset.length) {
-      rowWidthArrayCount += dataset[i - 1].array[0].width / 2;
+    } else if (i === systemRows.length) {
+      rowWidthArrayCount += systemRows[i - 1].array[0].width / 2;
       rowWidthArray.push(rowWidthArrayCount);
       // ALLEYS
-      alleyWidthArrayCount += dataset[i - 1].array[0].width / 2;
+      alleyWidthArrayCount += systemRows[i - 1].array[0].width / 2;
       alleyWidthArray.push(alleyWidthArrayCount);
       // FOR ALL OTHER ROWS
     } else {
       // CHECK IF ROW BEFORE WAS GRASS
-      if ((dataset[i - 1].array[0].species.form === 'grass' || dataset[i - 1].array[0].species.form === 'herb') && i === 1) {
-        rowWidthArrayCount += dataset[i].array[0].width / 2;
+      if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
+        rowWidthArrayCount += systemRows[i].array[0].width / 2;
       } else {
-        rowWidthArrayCount = rowWidthArrayCount + dataset[i].array[0].width / 2 + dataset[i - 1].array[0].width / 2;
+        rowWidthArrayCount = rowWidthArrayCount + systemRows[i].array[0].width / 2 + systemRows[i - 1].array[0].width / 2;
       }
       // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
-      if (!(dataset[i].array[0].species.form === 'grass' || dataset[i].array[0].species.form === 'herb')) {
+      if (!(systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb')) {
         rowWidthArray.push(rowWidthArrayCount);
         rowWidthArrayCount = 0;
-        treeRowWidthArray.push(dataset[i].array[0].width);
+        treeRowWidthArray.push(systemRows[i].array[0].width);
       }
       // ALLEYS
-      if (dataset[i].array[0].species.form === 'grass' || dataset[i].array[0].species.form === 'herb') {
-        if ((dataset[i - 1].array[0].species.form === 'grass' || dataset[i - 1].array[0].species.form === 'herb') && i === 1) {
-          alleyWidthArrayCount += dataset[i - 1].array[0].width / 2;
+      if (systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb') {
+        if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
+          alleyWidthArrayCount += systemRows[i - 1].array[0].width / 2;
         }
-        alleyWidthArrayCount += dataset[i].array[0].width / 2;
+        alleyWidthArrayCount += systemRows[i].array[0].width / 2;
         // DO IF TO CHECK IF FIRST INDEX WAS ALLEY
         alleyWidthArray.push(alleyWidthArrayCount);
         alleyWidthArrayCount = 0;
-        alleyWidths.push(dataset[i].array[0].width);
-        if (i < dataset.length - 1) {
-          alleyWidthArrayCount += dataset[i].array[0].width / 2;
+        alleyWidths.push(systemRows[i].array[0].width);
+        if (i < systemRows.length - 1) {
+          alleyWidthArrayCount += systemRows[i].array[0].width / 2;
         }
-      } else if ((dataset[i - 1].array[0].species.form === 'grass' || dataset[i - 1].array[0].species.form === 'herb') && i === 1) {
-        alleyWidthArrayCount = alleyWidthArrayCount + dataset[i - 1].array[0].width / 2 + dataset[i].array[0].width;
+      } else if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
+        alleyWidthArrayCount = alleyWidthArrayCount + systemRows[i - 1].array[0].width / 2 + systemRows[i].array[0].width;
       } else {
-        alleyWidthArrayCount += dataset[i].array[0].width;
+        alleyWidthArrayCount += systemRows[i].array[0].width;
       }
     }
   }
@@ -307,9 +288,9 @@ export function systemBasedLayout(project: IProjectSchema) {
   const alleySpeciesArrayCount: ISpeciesSchema[] = [];
   const alleySpeciesArray: ISpeciesSchema[][] = [];
   // ALLEY SPECIES ARRAY
-  for (let i = 0; i < dataset.length; i++) {
-    if (dataset[i].array[0].species.form === 'grass') {
-      alleySpeciesArrayCount.push(dataset[i].array[0].species);
+  for (let i = 0; i < systemRows.length; i++) {
+    if (systemRows[i].array[0].species.form === 'grass') {
+      alleySpeciesArrayCount.push(systemRows[i].array[0].species);
     }
   }
   console.log(`${alleySpeciesArrayCount.length} ---- CHECK ---- ${alleyWidthArray.length}`);
@@ -628,11 +609,7 @@ export function systemBasedLayout(project: IProjectSchema) {
      var checkDistance = turfLength(distanceCheckLine.features[0], {units: "meters"});
      console.log("Distance check " + checkDistance); */
   // CREATE FEATURECOLLECTION FOR ROWS
-  const layout_rowLineArray = rowArray;
-  for (let i = 0; i < edgeRowArray.length; i++) {
-    // ADD EDGEROWS
-    layout_rowLineArray.push(edgeRowArray[i]);
-  }
+
   const layout_rowLineCollection = turf.featureCollection(rowArray);
   // CREATE FEATURE COLLECTION FOR EDGEROWS
   /*    var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
@@ -652,17 +629,17 @@ export function systemBasedLayout(project: IProjectSchema) {
     }[];
     row: number;
   }[] = [];
-  for (let i = 0; i < dataset.length; i++) {
-    if (!(dataset[i].array[0].species.form === 'grass')) {
+  for (let i = 0; i < systemRows.length; i++) {
+    if (!(systemRows[i].array[0].species.form === 'grass')) {
       // console.log('dataset[i]', dataset[i]);
-      treeRows.push(dataset[i]);
+      treeRows.push(systemRows[i]);
     }
   }
   // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
   let systemModelLength = 0;
-  for (let i = 0; i < dataset.length; i++) {
-    if (dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength) {
-      systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1];
+  for (let i = 0; i < systemRows.length; i++) {
+    if (systemRows[i].array[(systemRows[i].array.length - 1)].position[1] > systemModelLength) {
+      systemModelLength = systemRows[i].array[(systemRows[i].array.length - 1)].position[1];
     }
   }
   // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
@@ -774,15 +751,8 @@ export function systemBasedLayout(project: IProjectSchema) {
       treeCanopyArray.push(circle1);
     }
   }
-  const layout_treeAssetRowRef = treeAssetRowRef;
-  const layout_treeArray = treeArray;
-  const layout_treeMarkerArray = treeCanopyArray;
-  const layout_treeAssetArray = treeAssetArray;
   // const layout_offsetArrayCollection: any[] = []; // CAN DELETE THIS AT SOME POINT. JUST USED IT TO ENSURE VIZ OF LINES IN LAYOUT ANGLED WAS WORKING
-  // ADD EDGE TREE MARKERS
-  for (let i = 0; i < edgeTreeCanopyArray.length; i++) {
-    layout_treeMarkerArray.push(edgeTreeCanopyArray[i]);
-  }
+
   const layout_treeMarkerCollection = turf.featureCollection(treeCanopyArray);
   // CALCULATE TREE COUNT
   //   const areaSize = project.layer.size;
@@ -832,6 +802,19 @@ export function systemBasedLayout(project: IProjectSchema) {
     console.log(checkLength + " meters long"); */
   // CALCULATE MARGIN AREA
   //   const marginArea = area(polygon) - area(offsetPolygon);
+
+  // Edge System
+  const { edgeTreeCanopyArray, edgeRowArray } = createEdge(project, calibrateDistance, polygon);
+  rowArray.concat(edgeRowArray);
+  treeCanopyArray.concat(edgeTreeCanopyArray);
+
+  // CREATE Return OBJECT
+  const layout_rowLineArray = rowArray;
+  const layout_treeAssetRowRef = treeAssetRowRef;
+  const layout_treeArray = treeArray;
+  const layout_treeMarkerArray = treeCanopyArray;
+  const layout_treeAssetArray = treeAssetArray;
+
   return {
     alleyPolygonArray: layout_alleyPolygonArray,
     alleySpeciesArray: layout_alleySpeciesArray,
