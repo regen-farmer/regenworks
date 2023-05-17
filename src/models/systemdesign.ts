@@ -21,7 +21,7 @@ export interface ISystemDesignSchema {
   layout: string,
   alignment: string,
   bearing: number,
-  headland: number,
+  margin: number,
   bearingline: string,
 }
 
@@ -52,7 +52,7 @@ const systemdesignSchema = new Schema<ISystemDesignSchema>({
   layout: { type: String, default: 'straight' },
   alignment: { type: String, default: 'north' },
   bearing: { type: Number, default: 0 },
-  headland: { type: Number, default: 0 },
+  margin: { type: Number, default: 0 },
   bearingline: String,
 });
 
