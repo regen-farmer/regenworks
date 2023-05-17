@@ -65,7 +65,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     // SET ROW LENGTHS
     // IF FIRST ROW
     if (i === 0) {
-      if (systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb') {
+      if (systemRows[i].groundcover?.form === 'grass' || systemRows[i].groundcover?.form === 'herb') {
         rowWidthArrayCount += systemRows[i].width;
         // SET ALLEY COUNT
         alleyWidthArrayCount += systemRows[i].width / 2;
@@ -90,20 +90,20 @@ export function systemBasedLayout(project: IProjectSchema) {
       // FOR ALL OTHER ROWS
     } else {
       // CHECK IF ROW BEFORE WAS GRASS
-      if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+      if ((systemRows[i - 1].groundcover?.form === 'grass' || systemRows[i - 1].groundcover?.form === 'herb') && i === 1) {
         rowWidthArrayCount += systemRows[i].width / 2;
       } else {
         rowWidthArrayCount = rowWidthArrayCount + systemRows[i].width / 2 + systemRows[i - 1].width / 2;
       }
       // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
-      if (!(systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb')) {
+      if (!(systemRows[i].groundcover?.form === 'grass' || systemRows[i].groundcover?.form === 'herb')) {
         rowWidthArray.push(rowWidthArrayCount);
         rowWidthArrayCount = 0;
         treeRowWidthArray.push(systemRows[i].width);
       }
       // ALLEYS
-      if (systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb') {
-        if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+      if (systemRows[i].groundcover?.form === 'grass' || systemRows[i].groundcover?.form === 'herb') {
+        if ((systemRows[i - 1].groundcover?.form === 'grass' || systemRows[i - 1].groundcover?.form === 'herb') && i === 1) {
           alleyWidthArrayCount += systemRows[i - 1].width / 2;
         }
         alleyWidthArrayCount += systemRows[i].width / 2;
@@ -114,7 +114,7 @@ export function systemBasedLayout(project: IProjectSchema) {
         if (i < systemRows.length - 1) {
           alleyWidthArrayCount += systemRows[i].width / 2;
         }
-      } else if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+      } else if ((systemRows[i - 1].groundcover?.form === 'grass' || systemRows[i - 1].groundcover?.form === 'herb') && i === 1) {
         alleyWidthArrayCount = alleyWidthArrayCount + systemRows[i - 1].width / 2 + systemRows[i].width;
       } else {
         alleyWidthArrayCount += systemRows[i].width;
@@ -256,7 +256,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   const alleySpeciesArray: ISpeciesSchema[][] = [];
   // ALLEY SPECIES ARRAY
   for (let i = 0; i < systemRows.length; i++) {
-    if (systemRows[i].sequence[0].species.form === 'grass') {
+    if (systemRows[i].groundcover?.form === 'grass') {
       alleySpeciesArrayCount.push(systemRows[i].sequence[0].species);
     }
   }
@@ -597,7 +597,7 @@ export function systemBasedLayout(project: IProjectSchema) {
       width: number;
     }[] = [];
   for (let i = 0; i < systemRows.length; i++) {
-    if (!(systemRows[i].sequence[0].species.form === 'grass')) {
+    if (!(systemRows[i].groundcover?.form === 'grass')) {
       // console.log('dataset[i]', dataset[i]);
       treeRows.push(systemRows[i]);
     }
