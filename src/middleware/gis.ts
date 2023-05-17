@@ -21,13 +21,13 @@ import { createEdge } from './gis/edge_system';
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
+  // Convert System Design to old syntax System['model']
+
   const systemModel: {
       species: SpeciesDocument,
       position: number[]
       width: number
     }[] = [];
-
-  // console.log('systemdesign', JSON.stringify(project.systemdesign));
 
   project.systemdesign.rows.forEach((row, rowIdx) => {
     row.sequence.forEach((sequenceElement, elementIdx) => {
