@@ -305,15 +305,7 @@ router.get(
                     for(let i=0;allSpecies.length > i;i++){
                         allSpeciesCopy.push(allSpecies[i]);
                     } */
-        // UNIQUE ITEM COUNTS
-        let rowWidth = 0;
 
-        // @ts-ignore
-        if (layout.rowWidth) {
-          // ONLY USED FOR SYSTEM BASED
-          // @ts-ignore
-          rowWidth = layout.rowWidth;
-        }
         let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
         if (layout.uniqueSpeciesCount) {
           uniqueSpeciesCount = layout.uniqueSpeciesCount;
@@ -342,7 +334,6 @@ router.get(
           collection,
           trees: treeCollection,
           species: uniqueSpeciesCount,
-          rowWidth,
           treeArea: treeRowArea,
           marginArea,
           strips: stripsCollection,
@@ -438,13 +429,7 @@ router.get(
           const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
           const treeCollection = JSON.stringify(treeMarkers);
           // UNIQUE ITEM COUNTS
-          let rowWidth = 0;
-          // @ts-ignore
-          if (layout.rowWidth) {
-            // ONLY USED FOR SYSTEM BASED
-            // @ts-ignore
-            rowWidth = layout.rowWidth;
-          }
+
           let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
           if (layout.uniqueSpeciesCount) {
             uniqueSpeciesCount = layout.uniqueSpeciesCount;
@@ -459,7 +444,6 @@ router.get(
             collection,
             trees: treeCollection,
             species: uniqueSpeciesCount,
-            rowWidth,
             treeArea: treeRowArea,
             marginArea,
             strips: stripsCollection,

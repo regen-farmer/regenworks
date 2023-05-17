@@ -25,7 +25,7 @@ import { absolutePosition } from './get_absolute_position';
 export function systemBasedLayout(project: IProjectSchema) {
   // Convert System Design to old syntax System['model']
 
-  const systemRows = _.cloneDeep(project.systemdesign.rows);
+  const systemRows = project.systemdesign.rows;
 
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
@@ -47,11 +47,8 @@ export function systemBasedLayout(project: IProjectSchema) {
   const layout_sortedrows = project.systemdesign.rows;
   // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
   // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
-  let rowWidth = 0;
-  for (let i = 0; i < systemRows.length; i++) {
-    rowWidth += systemRows[i].width;
-  }
-  const layout_rowWidth = rowWidth;
+  const systemWidth = systemRows.reduce((a, b) => a + (b.width || 0), 0);
+
   // ROW PARAMETERS
   const rowWidthArray: number[] = [];
   let rowWidthArrayCount = 0;
@@ -198,8 +195,8 @@ export function systemBasedLayout(project: IProjectSchema) {
         lengthLine = lengthLineSplit.features[1];
         console.log(splitLines.features[0]);
         console.log(Math.floor((turfLength(lengthLine, {units: "meters"})))); */
-    rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / rowWidth);
-    rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
+    rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / systemWidth);
+    rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
     /*    console.log(rowCount);
     console.log(`rest ${rowRest}`); */
     // -------- ANGLED ROWS ---------
@@ -213,8 +210,8 @@ export function systemBasedLayout(project: IProjectSchema) {
     /*
     console.log((turfLength(lengthLine, { units: 'meters' })));
 */
-    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / rowWidth);
-    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
+    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / systemWidth);
+    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
     /*    console.log(`rest ${rowRest}`);
     console.log(rowCount); */
     // CREATE ROW LINE
@@ -230,8 +227,8 @@ export function systemBasedLayout(project: IProjectSchema) {
     /*
     console.log((turfLength(lengthLine, { units: 'meters' })));
 */
-    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / rowWidth);
-    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / rowWidth) - rowCount) * rowWidth;
+    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / systemWidth);
+    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
     /*    console.log(`rest ${rowRest}`);
     console.log(rowCount); */
     // CREATE ROW LINE
