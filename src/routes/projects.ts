@@ -19,11 +19,12 @@ import Rotation from '../models/rotation';
 import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
-import gisObj from '../middleware/gis';
+import { systemBasedLayout } from '../middleware/gis/system_based_layout';
 import dyFiMo from '../middleware/financials';
 import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 import Species, { ISpeciesSchema } from '../models/species';
+import { rowBasedLayout } from '../middleware/gis/row_based_layout';
 // import SystemDesign from '../models/systemdesign';
 
 // =======
@@ -188,14 +189,14 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
-        const layout = gisObj.systemBasedLayout(foundProject);
+        const layout = systemBasedLayout(foundProject);
         // IF ROWS, DO XXX
         // if (foundProject.rows && foundProject.rows.length > 0) {
         // DO ROW LAYOUT
-        // layout = gisObj.rowBasedLayout(foundProject);
+        // layout = rowBasedLayout(foundProject);
         // } else {
         // DO PARAMETRIC LAYOUT
-        // layout = gisObj.systemBasedLayout(foundProject);
+        // layout = systemBasedLayout(foundProject);
         // }
 
         // CREATE FEATURECOLLECTION FOR ROWS*/
@@ -421,10 +422,10 @@ router.get(
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
-            layout = gisObj.rowBasedLayout(foundProject);
+            layout = rowBasedLayout(foundProject);
           } else {
             // DO PARAMETRIC LAYOUT
-            layout = gisObj.systemBasedLayout(foundProject);
+            layout = systemBasedLayout(foundProject);
           }
           const featurecollection = turf.featureCollection(layout.rowLineArray);
           const collection = JSON.stringify(featurecollection);
@@ -649,10 +650,10 @@ router.put(
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
-            layout = gisObj.rowBasedLayout(foundProject);
+            layout = rowBasedLayout(foundProject);
           } else {
             // DO PARAMETRIC LAYOUT
-            layout = gisObj.systemBasedLayout(foundProject);
+            layout = systemBasedLayout(foundProject);
           }
 
           const treeAssetRowRef = layout.treeAssetRowRef;
@@ -734,7 +735,7 @@ router.put(
 //       .populate('layer')
 //       .exec();
 //     if (foundProject) {
-//       const layout = gisObj.systemBasedLayout(foundProject);
+//       const layout = systemBasedLayout(foundProject);
 //       // CREATE ROWS ON PROJECT
 //       const rows: {
 //         geometry: string;

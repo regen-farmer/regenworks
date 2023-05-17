@@ -15,18 +15,17 @@ import {
   circle,
   LineString,
 } from '@turf/turf';
-import { IProjectSchema } from '../models/project';
-import { ISpeciesSchema } from '../models/species';
-import { createEdge } from './gis/edge_system';
-import { oldSystemModel } from './gis/old_system_model';
+import _ from 'lodash';
+import { IProjectSchema } from '../../models/project';
+import { ISpeciesSchema } from '../../models/species';
+import { createEdge } from './edge_system';
+import { absolutePosition } from './get_absolute_position';
 
 // SYSTEM BASED LAYOUT
 export function systemBasedLayout(project: IProjectSchema) {
   // Convert System Design to old syntax System['model']
 
-  const { allSpecies, systemRows } = oldSystemModel(project);
-
-  
+  const systemRows = _.cloneDeep(project.systemdesign.rows);
 
   // SET TEMP VARIABLES
   const polygon = JSON.parse(project.layer.geometry);
@@ -45,12 +44,12 @@ export function systemBasedLayout(project: IProjectSchema) {
   const offsetPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
 
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
-  const layout_sortedrows = systemRows;
+  const layout_sortedrows = project.systemdesign.rows;
   // SET ROW WIDTH - ACTUALLY START BY SETTING TO SYSTEM WIDTH
   // HAVE ARRAY INSTEAD AND ONLY SELECT ROWS WITH TREES?!
   let rowWidth = 0;
   for (let i = 0; i < systemRows.length; i++) {
-    rowWidth += systemRows[i].array[0].width;
+    rowWidth += systemRows[i].width;
   }
   const layout_rowWidth = rowWidth;
   // ROW PARAMETERS
@@ -66,59 +65,59 @@ export function systemBasedLayout(project: IProjectSchema) {
     // SET ROW LENGTHS
     // IF FIRST ROW
     if (i === 0) {
-      if (systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb') {
-        rowWidthArrayCount += systemRows[i].array[0].width;
+      if (systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb') {
+        rowWidthArrayCount += systemRows[i].width;
         // SET ALLEY COUNT
-        alleyWidthArrayCount += systemRows[i].array[0].width / 2;
+        alleyWidthArrayCount += systemRows[i].width / 2;
         alleyWidthArray.push(alleyWidthArrayCount);
         alleyWidthArrayCount = 0;
-        alleyWidths.push(systemRows[i].array[0].width);
+        alleyWidths.push(systemRows[i].width);
       } else {
-        rowWidthArrayCount += systemRows[i].array[0].width / 2;
+        rowWidthArrayCount += systemRows[i].width / 2;
         rowWidthArray.push(rowWidthArrayCount);
         rowWidthArrayCount = 0;
-        treeRowWidthArray.push(systemRows[i].array[0].width);
+        treeRowWidthArray.push(systemRows[i].width);
         // SET ALLEY COUNT
-        alleyWidthArrayCount += systemRows[i].array[0].width;
+        alleyWidthArrayCount += systemRows[i].width;
       }
       // IF LAST ROW - OR IS THIS OFF?!
     } else if (i === systemRows.length) {
-      rowWidthArrayCount += systemRows[i - 1].array[0].width / 2;
+      rowWidthArrayCount += systemRows[i - 1].width / 2;
       rowWidthArray.push(rowWidthArrayCount);
       // ALLEYS
-      alleyWidthArrayCount += systemRows[i - 1].array[0].width / 2;
+      alleyWidthArrayCount += systemRows[i - 1].width / 2;
       alleyWidthArray.push(alleyWidthArrayCount);
       // FOR ALL OTHER ROWS
     } else {
       // CHECK IF ROW BEFORE WAS GRASS
-      if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
-        rowWidthArrayCount += systemRows[i].array[0].width / 2;
+      if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+        rowWidthArrayCount += systemRows[i].width / 2;
       } else {
-        rowWidthArrayCount = rowWidthArrayCount + systemRows[i].array[0].width / 2 + systemRows[i - 1].array[0].width / 2;
+        rowWidthArrayCount = rowWidthArrayCount + systemRows[i].width / 2 + systemRows[i - 1].width / 2;
       }
       // SET COUNTER TO 0 IF CURRENT ROW IS NOT GRASS
-      if (!(systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb')) {
+      if (!(systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb')) {
         rowWidthArray.push(rowWidthArrayCount);
         rowWidthArrayCount = 0;
-        treeRowWidthArray.push(systemRows[i].array[0].width);
+        treeRowWidthArray.push(systemRows[i].width);
       }
       // ALLEYS
-      if (systemRows[i].array[0].species.form === 'grass' || systemRows[i].array[0].species.form === 'herb') {
-        if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
-          alleyWidthArrayCount += systemRows[i - 1].array[0].width / 2;
+      if (systemRows[i].sequence[0].species.form === 'grass' || systemRows[i].sequence[0].species.form === 'herb') {
+        if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+          alleyWidthArrayCount += systemRows[i - 1].width / 2;
         }
-        alleyWidthArrayCount += systemRows[i].array[0].width / 2;
+        alleyWidthArrayCount += systemRows[i].width / 2;
         // DO IF TO CHECK IF FIRST INDEX WAS ALLEY
         alleyWidthArray.push(alleyWidthArrayCount);
         alleyWidthArrayCount = 0;
-        alleyWidths.push(systemRows[i].array[0].width);
+        alleyWidths.push(systemRows[i].width);
         if (i < systemRows.length - 1) {
-          alleyWidthArrayCount += systemRows[i].array[0].width / 2;
+          alleyWidthArrayCount += systemRows[i].width / 2;
         }
-      } else if ((systemRows[i - 1].array[0].species.form === 'grass' || systemRows[i - 1].array[0].species.form === 'herb') && i === 1) {
-        alleyWidthArrayCount = alleyWidthArrayCount + systemRows[i - 1].array[0].width / 2 + systemRows[i].array[0].width;
+      } else if ((systemRows[i - 1].sequence[0].species.form === 'grass' || systemRows[i - 1].sequence[0].species.form === 'herb') && i === 1) {
+        alleyWidthArrayCount = alleyWidthArrayCount + systemRows[i - 1].width / 2 + systemRows[i].width;
       } else {
-        alleyWidthArrayCount += systemRows[i].array[0].width;
+        alleyWidthArrayCount += systemRows[i].width;
       }
     }
   }
@@ -257,8 +256,8 @@ export function systemBasedLayout(project: IProjectSchema) {
   const alleySpeciesArray: ISpeciesSchema[][] = [];
   // ALLEY SPECIES ARRAY
   for (let i = 0; i < systemRows.length; i++) {
-    if (systemRows[i].array[0].species.form === 'grass') {
-      alleySpeciesArrayCount.push(systemRows[i].array[0].species);
+    if (systemRows[i].sequence[0].species.form === 'grass') {
+      alleySpeciesArrayCount.push(systemRows[i].sequence[0].species);
     }
   }
   console.log(`${alleySpeciesArrayCount.length} ---- CHECK ---- ${alleyWidthArray.length}`);
@@ -590,15 +589,15 @@ export function systemBasedLayout(project: IProjectSchema) {
                    var stringbox = JSON.stringify(box); */
   // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
   const treeRows: {
-    array: {
+    sequence: {
         species: ISpeciesSchema;
-        position: number[];
-        width: number;
-    }[];
-    row: number;
-  }[] = [];
+        spacingAfter: number;
+        position?: number;
+      }[];
+      width: number;
+    }[] = [];
   for (let i = 0; i < systemRows.length; i++) {
-    if (!(systemRows[i].array[0].species.form === 'grass')) {
+    if (!(systemRows[i].sequence[0].species.form === 'grass')) {
       // console.log('dataset[i]', dataset[i]);
       treeRows.push(systemRows[i]);
     }
@@ -606,8 +605,8 @@ export function systemBasedLayout(project: IProjectSchema) {
   // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
   let systemModelLength = 0;
   for (let i = 0; i < systemRows.length; i++) {
-    if (systemRows[i].array[(systemRows[i].array.length - 1)].position[1] > systemModelLength) {
-      systemModelLength = systemRows[i].array[(systemRows[i].array.length - 1)].position[1];
+    if (absolutePosition(systemRows[i].sequence, systemRows[i].sequence.length - 1) > systemModelLength) {
+      systemModelLength = absolutePosition(systemRows[i].sequence, systemRows[i].sequence.length - 1);
     }
   }
   // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
@@ -628,32 +627,32 @@ export function systemBasedLayout(project: IProjectSchema) {
     const rowLength = turfLength(rowArray[i], { units: 'meters' });
     // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
     /* var systemModelLength = 0;
-        if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
-            systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
+        if(dataset[0].sequence[(dataset[0].sequence.length - 1)].position <= 1){
+            systemModelLength = dataset[1].sequence[(dataset[1].sequence.length - 1)].position;
         } else {
-            systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+            systemModelLength = dataset[0].sequence[(dataset[0].sequence.length - 1)].position;
         } */
     const systemModelCount = Math.floor(rowLength / systemModelLength);
     const systemModelRowRest = ((rowLength / systemModelLength) - Math.floor(rowLength / systemModelLength)) * systemModelLength;
     // CALCULATE AREA
-    // treeRowArea += rowLength * treeRows[treeRowCount].array[0].width;
+    // treeRowArea += rowLength * treeRows[treeRowCount].width;
     // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
     /*
-    console.log(`Position: ${treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].position[1]}`);
+    console.log(`Position: ${treeRows[treeRowCount].sequence[(treeRows[treeRowCount].sequence.length) - 1].position}`);
 */
-    if (!(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].position[1] < systemModelLength)) {
-      treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].species);
+    if (!(absolutePosition(treeRows[treeRowCount].sequence, (treeRows[treeRowCount].sequence.length) - 1) < systemModelLength)) {
+      treeArray.push(treeRows[treeRowCount].sequence[(treeRows[treeRowCount].sequence.length) - 1].species);
       const firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
       treeMarkerArray.push(firstTreeMarker);
       // ASSET ARRAY
       const asset = {
-        species: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].species.id,
-        form: treeRows[treeRowCount].array[
-          treeRows[treeRowCount].array.length - 1
+        species: treeRows[treeRowCount].sequence[(treeRows[treeRowCount].sequence.length) - 1].species.id,
+        form: treeRows[treeRowCount].sequence[
+          treeRows[treeRowCount].sequence.length - 1
         ].species.form,
         lat: firstTreeMarker.geometry.coordinates[0],
         lng: firstTreeMarker.geometry.coordinates[1],
-        name: treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length) - 1].species.nameCommon,
+        name: treeRows[treeRowCount].sequence[(treeRows[treeRowCount].sequence.length) - 1].species.nameCommon,
       };
 
       console.log(asset);
@@ -663,40 +662,40 @@ export function systemBasedLayout(project: IProjectSchema) {
     }
     // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
     for (let j = 0; j < systemModelCount; j++) {
-      for (let k = 0; k < treeRows[treeRowCount].array.length; k++) {
+      for (let k = 0; k < treeRows[treeRowCount].sequence.length; k++) {
         // ADD TREE SPECIES TO COUNT ARRAY
-        treeArray.push(treeRows[treeRowCount].array[k].species);
+        treeArray.push(treeRows[treeRowCount].sequence[k].species);
         // CREATE TREE POINTS FOR MARKERS
-        const treeMarker = along(rowArray[i], (j * systemModelLength + treeRows[treeRowCount].array[k].position[1]), { units: 'meters' });
+        const treeMarker = along(rowArray[i], (j * systemModelLength + absolutePosition(treeRows[treeRowCount].sequence, k)), { units: 'meters' });
         treeMarkerArray.push(treeMarker);
         // ASSET ARRAY
         const asset = {
-          species: treeRows[treeRowCount].array[k].species.id,
-          form: treeRows[treeRowCount].array[k].species.form,
+          species: treeRows[treeRowCount].sequence[k].species.id,
+          form: treeRows[treeRowCount].sequence[k].species.form,
 
           lat: treeMarker.geometry.coordinates[0],
           lng: treeMarker.geometry.coordinates[1],
-          name: treeRows[treeRowCount].array[k].species.nameCommon,
+          name: treeRows[treeRowCount].sequence[k].species.nameCommon,
         };
         treeAssetArray.push(asset);
         treeAssetRowRef.push(i);
       }
     }
     // ADD REST
-    for (let j = 0; j < treeRows[treeRowCount].array.length; j++) {
-      if (treeRows[treeRowCount].array[j].position[1] < systemModelRowRest) {
-        treeArray.push(treeRows[treeRowCount].array[j].species);
+    for (let j = 0; j < treeRows[treeRowCount].sequence.length; j++) {
+      if (absolutePosition(treeRows[treeRowCount].sequence, j) < systemModelRowRest) {
+        treeArray.push(treeRows[treeRowCount].sequence[j].species);
         // ADD POINT MARKER FOR REMAINING TREES
-        const treeMarker2 = along(rowArray[i], (systemModelCount * systemModelLength + treeRows[treeRowCount].array[j].position[1]), { units: 'meters' });
+        const treeMarker2 = along(rowArray[i], (systemModelCount * systemModelLength + absolutePosition(treeRows[treeRowCount].sequence, j)), { units: 'meters' });
         treeMarkerArray.push(treeMarker2);
         // ASSET ARRAY
         const asset = {
-          species: treeRows[treeRowCount].array[j].species.id,
-          form: treeRows[treeRowCount].array[j].species.form,
+          species: treeRows[treeRowCount].sequence[j].species.id,
+          form: treeRows[treeRowCount].sequence[j].species.form,
 
           lat: treeMarker2.geometry.coordinates[0],
           lng: treeMarker2.geometry.coordinates[1],
-          name: treeRows[treeRowCount].array[j].species.nameCommon,
+          name: treeRows[treeRowCount].sequence[j].species.nameCommon,
         };
         treeAssetArray.push(asset);
         treeAssetRowRef.push(i);
@@ -725,9 +724,17 @@ export function systemBasedLayout(project: IProjectSchema) {
   // CALCULATE TREE COUNT
   //   const areaSize = project.layer.size;
   // GRID SIZE
-  //   const areaGrid = rowWidth * dataset[0].array[(dataset[0].array.length - 1)].position[1]; // CHECK THAT THIS IS WORKING
+  //   const areaGrid = rowWidth * dataset[0].sequence[(dataset[0].sequence.length - 1)].position; // CHECK THAT THIS IS WORKING
   //   const gridCount = areaSize / areaGrid;
   // COPY ALL SPECIES
+
+  const allSpecies: string[] = [];
+  project.systemdesign.rows.forEach((row) => {
+    row.sequence.forEach((sequenceElement) => {
+      allSpecies.push(sequenceElement.species.nameCommon);
+    });
+  });
+
   const allSpeciesCopy: string[] = [];
   for (let i = 0; allSpecies.length > i; i++) {
     allSpeciesCopy.push(allSpecies[i]);
@@ -804,312 +811,3 @@ export function systemBasedLayout(project: IProjectSchema) {
     uniqueSpecies: layout_uniqueSpecies,
   };
 }
-
-// ROW AND AREA BASED LAYOUT
-export function rowBasedLayout(project: IProjectSchema) {
-  //
-
-  // SORT FIRST ROW ITEMS
-
-  // VIZ ROWS
-  const allSpecies: string[] = [];
-  const rowArray: any[] = [];
-  const placesArray: turf.Feature<turf.Point, {
-    description: string;
-  }>[] = [];
-  for (let i = 0; i < project.rows.length; i++) {
-    // ROW VIZ
-    const rowGeometry = JSON.parse(project.rows[i].geometry);
-    rowArray.push(rowGeometry);
-    // PLACES
-    const properties = {
-      description: project.rows[i].name,
-    };
-    const place = turf.point(rowGeometry.geometry.coordinates[1], properties);
-    placesArray.push(place);
-  }
-  // ROW LABELS (BEFORE ROWS ARE PARSED)
-  //   const placesCollection = turf.featureCollection(placesArray);
-  //   const places = JSON.stringify(placesCollection);
-  // CREATE PLACES FEATURE
-  const layout_rowLineArray = rowArray;
-  const layout_rowLineCollection = turf.featureCollection(rowArray);
-  /*
-    var collection = JSON.stringify(featurecollection);
-*/
-  // COUNT ASSETS IN ROW SYSTEMS - ONLY TAKE FIRST ROW?!
-  /* for(let i=0;i<foundLayer.rows.length;i++){
-        for(let j=0;j<foundLayer.rows[i].system.model.length;j++){
-            foundLayer.rows[i].system.populate("model." + j + ".species");
-        }
-    } */
-  // MAYBE RENAME THIS ONE!?!
-  const treeAssetsArray: {
-    marker: turf.Feature<turf.Point, turf.Properties>;
-    species: ISpeciesSchema;
-  }[] = [];
-  // SET COLLECTIVE TREE ARRAY
-  const treeMarkerArray: turf.Feature<turf.Point, turf.Properties>[] = [];
-  const treeAssetArray: {
-      species: string;
-      lat: number;
-      lng: number;
-      name: string;
-  }[] = [];
-  const treeAssetRowRef: number[] = [];
-  const treeArray: ISpeciesSchema[] = [];
-  // FIND SYSTEM ROWS
-  for (let i = 0; i < project.rows.length; i++) {
-    // SET ROW DATA
-    if (project.rows[i].sequence) {
-      const datasetRows = project.rows[i].sequence.model;
-      project.rows[i].sequence.model.forEach((species) => {
-        allSpecies.push(species.species.nameCommon);
-        /* var count = 0;
-                for (j = 0; j < datasetRows.length; j++) {
-                    if (datasetRows[j].row === species.position[0]) {
-                        datasetRows[j].array.push(species);
-                        count = count + 1;
-                    }
-                }
-                if (count === 0) {
-                    datasetRows.push({row: species.position[0], array: [species]});
-                } */
-      });
-      // SORT ROW ITEMS
-      datasetRows.sort((a, b) => {
-        if (a.position < b.position) {
-          return -1;
-        }
-        if (a.position > b.position) {
-          return 1;
-        }
-        return 0;
-      });
-      // ROW LENGTH
-      const rowLine = JSON.parse(project.rows[i].geometry);
-      const rowLength = turfLength(rowLine, { units: 'meters' });
-      console.log(`Row length ${rowLength}`);
-      // SYSTEM MODEL LENGTH
-      const systemModelLength = project.rows[i].sequence.sequencelength;
-      /* if (datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1] <= 1) {
-                systemModelLength = datasetRows[1].array[(datasetRows[1].array.length - 1)].position[1];
-            } else {
-                systemModelLength = datasetRows[0].array[(datasetRows[0].array.length - 1)].position[1];
-            } */
-      console.log(`System model length:${systemModelLength}`);
-      // FIND MODEL COUNT AND REST
-      const systemModelCount = Math.floor(rowLength / systemModelLength);
-      const systemModelRowRest = ((rowLength / systemModelLength) - Math.floor(rowLength / systemModelLength)) * systemModelLength;
-      // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
-      const firstTreeMarker = turf.point(rowLine.geometry.coordinates[0]);
-      treeMarkerArray.push(firstTreeMarker);
-      const firstAsset = {
-        marker: firstTreeMarker,
-        species: datasetRows[(datasetRows.length - 1)].species,
-      };
-      treeAssetsArray.push(firstAsset);
-      treeArray.push(datasetRows[(datasetRows.length - 1)].species);
-      // ASSET ARRAY
-      const firstTreeAsset = {
-        species: datasetRows[(datasetRows.length - 1)].species.id,
-        lat: firstTreeMarker.geometry.coordinates[0],
-        lng: firstTreeMarker.geometry.coordinates[1],
-        name: datasetRows[(datasetRows.length - 1)].species.nameCommon,
-      };
-      treeAssetArray.push(firstTreeAsset);
-      treeAssetRowRef.push(i);
-      // ROW MARKERS
-      // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-      for (let j = 0; j < systemModelCount; j++) {
-        for (let k = 0; k < datasetRows.length; k++) {
-          // CREATE COORDINATES FOR THE TREE
-          const treeMarker = along(rowLine, (j * systemModelLength + datasetRows[k].position), { units: 'meters' });
-          //
-          const asset = {
-            marker: treeMarker,
-            species: datasetRows[k].species,
-          };
-          // ADD TREE OBJECT TO ARRAY
-          treeMarkerArray.push(treeMarker);
-          treeAssetsArray.push(asset);
-          treeArray.push(datasetRows[k].species);
-          // ASSET ARRAY
-          const treeAsset1 = {
-            species: datasetRows[k].species.id,
-            lat: treeMarker.geometry.coordinates[0],
-            lng: treeMarker.geometry.coordinates[1],
-            name: datasetRows[k].species.nameCommon,
-          };
-          treeAssetArray.push(treeAsset1);
-          treeAssetRowRef.push(i);
-        }
-      }
-      // ADD REST
-      for (let j = 0; j < datasetRows.length; j++) {
-        if (datasetRows[j].position < systemModelRowRest) {
-          /*
-                                                            treeArray.push(treeRows[treeRowCount].array[j].species);
-                    */
-          // ADD POINT MARKER FOR REMAINING TREES
-          const treeMarker2 = along(rowLine, (systemModelCount * systemModelLength + datasetRows[j].position), { units: 'meters' });
-          const asset2 = {
-            marker: treeMarker2,
-            species: datasetRows[j].species,
-          };
-          treeMarkerArray.push(treeMarker2);
-          treeAssetsArray.push(asset2);
-          treeArray.push(datasetRows[j].species);
-          // ASSET ARRAY
-          const treeAsset2 = {
-            species: datasetRows[j].species.id,
-            lat: treeMarker2.geometry.coordinates[0],
-            lng: treeMarker2.geometry.coordinates[1],
-            name: datasetRows[j].species.nameCommon,
-          };
-          treeAssetArray.push(treeAsset2);
-          treeAssetRowRef.push(i);
-        }
-      }
-    }
-  }
-  // DO POINT COLLECTION
-  const treeCanopyArray: turf.Feature<turf.Polygon, turf.Properties>[] = [];
-  //   const vegeCanopyArray = [];
-  if (treeAssetsArray.length < 5000) {
-    for (let i = 0; i < treeAssetsArray.length; i++) {
-      // FIND TREE DIMENSIONS
-      const diameter = 2;
-      /* if(treeAssetsArray[i].species.form === "shrub" || treeAssetsArray[i].species.form === "giantherb" ){
-                diameter = 0.2;
-            } else if (treeAssetsArray[i].species.form === "herb"){
-                diameter = 0.1;
-            } */
-      const circle1 = circle(treeAssetsArray[i].marker.geometry.coordinates, diameter, { units: 'meters' });
-      treeCanopyArray.push(circle1);
-      // SYNTROPIC CLASS HERE
-      /*
-            if(treeAssetsArray[i].species.height > 15){
-                treeCanopyArray.push(circle1);
-            } else {
-                vegeCanopyArray.push(circle1);
-            } */
-    }
-  }
-  const layout_treeAssetRowRef = treeAssetRowRef;
-  const layout_treeArray = treeAssetsArray;
-  const layout_treeAssetArray = treeAssetArray;
-  const layout_treeMarkerArray = treeCanopyArray;
-  const layout_treeMarkerCollection = turf.featureCollection(treeCanopyArray);
-  /*
-    var treeCollection = JSON.stringify(treeMarkers);
-*/
-  // INSERT SYSTEM CLASSIFICATION
-  //   const vegeMarkers = turf.featureCollection(vegeCanopyArray);
-  /*
-    var vegeCollection = JSON.stringify(vegeMarkers);
-*/
-  // DO TREE NAMES COLLECTION
-  const treenames: turf.Feature<turf.Point, {
-    description: string;
-  }>[] = [];
-  for (let i = 0; i < treeAssetsArray.length; i++) {
-    const properties1 = {
-      description: treeAssetsArray[i].species.nameCommon.slice(0, 3),
-    };
-    const treename = turf.point(treeAssetsArray[i].marker.geometry.coordinates, properties1);
-    treenames.push(treename);
-  }
-  const layout_treeNameLabelCollection = turf.featureCollection(treenames);
-  /*
-    var treeNameCollection = JSON.stringify(treenamemarks);
-*/
-  // VIZ ROWS
-  const alleyPolygonArray: turf.Feature<turf.Polygon, {
-    name: string;
-  }>[] = [];
-  const bedPolygonArray: turf.Feature<turf.Polygon, {
-    name: string;
-  }>[] = [];
-  const alleySpeciesArray: ISpeciesSchema[][] = [];
-  for (let i = 0; i < project.areas.length; i++) {
-    // ROW VIZ
-    const areaGeometry = JSON.parse(project.areas[i].geometry);
-    if (project.areas[i].name.charAt(0) === 'A') {
-      alleyPolygonArray.push(areaGeometry);
-      // ADD SPECIES TO ALLEY ARRAY
-      if (project.areas[i].rotation && project.areas[i].rotation.model.length > 0) {
-        const alleySpeciesCount: ISpeciesSchema[] = [];
-        for (let j = 0; j < project.areas[i].rotation.model.length; j++) {
-          // ADD SPECIES TO ALLEY ARRAY
-          alleySpeciesCount.push(project.areas[i].rotation.model[j].speciesmix[0].species);
-        }
-        alleySpeciesArray.push(alleySpeciesCount);
-      }
-    } else if (project.areas[i].name.charAt(0) === 'T' || project.areas[i].name.charAt(0) === 'W') {
-      bedPolygonArray.push(areaGeometry);
-    } else {
-      alleyPolygonArray.push(areaGeometry);
-    }
-  }
-  const layout_treeRowArea = 0; // CHANGE THIS LATER ON WHEN AREAS ARE WORKING
-  const layout_bedPolygonArray = bedPolygonArray; // POPULATE THIS AS WELL WITH AREA
-  const layout_alleyPolygonArray = alleyPolygonArray;
-  const layout_alleySpeciesArray = alleySpeciesArray;
-  console.log(`Alley species array count: ${alleySpeciesArray.length}`);
-  console.log(`Alley polygon array count: ${alleyPolygonArray.length}`);
-  // COUNT ASSETS
-
-  // COMBINE ASSETS AND ROW BASED
-
-  // COPY ALL SPECIES
-  const allSpeciesCopy: string[] = [];
-  for (let i = 0; allSpecies.length > i; i++) {
-    allSpeciesCopy.push(allSpecies[i]);
-  }
-  // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-  const uniqueSpecies = [...new Set(allSpeciesCopy)];
-  // UNIQUE ITEM COUNTS
-  const uniqueSpeciesCount: {
-    id: string;
-    uniqueCount: number;
-  }[] = [];
-  for (let i = 0; uniqueSpecies.length > i; i++) {
-    let count = 0;
-    for (let j = 0; j < treeAssetsArray.length; j++) {
-      if (treeAssetsArray[j].species.nameCommon === uniqueSpecies[i]) count += 1;
-    }
-    const speciesCount = {
-      id: uniqueSpecies[i],
-      uniqueCount: count,
-    };
-    uniqueSpeciesCount.push(speciesCount);
-  }
-  const layout_uniqueSpeciesCount = uniqueSpeciesCount;
-  const uniqueTreeSpecies = [...new Set(treeArray)];
-  const layout_uniqueSpecies = uniqueTreeSpecies;
-  // JUST SEND BLANK
-  const layout_offsetArray: any[] = [];
-
-  return {
-    alleyPolygonArray: layout_alleyPolygonArray,
-    alleySpeciesArray: layout_alleySpeciesArray,
-    bedPolygonArray: layout_bedPolygonArray,
-    offsetArray: layout_offsetArray,
-    rowLineArray: layout_rowLineArray,
-    rowLineCollection: layout_rowLineCollection,
-    uniqueSpecies: layout_uniqueSpecies,
-    uniqueSpeciesCount: layout_uniqueSpeciesCount,
-    treeAssetArray: layout_treeAssetArray,
-    treeAssetRowRef: layout_treeAssetRowRef,
-    treeArray: layout_treeArray,
-    treeMarkerArray: layout_treeMarkerArray,
-    treeMarkerCollection: layout_treeMarkerCollection,
-    treeNameLabelCollection: layout_treeNameLabelCollection,
-    treeRowArea: layout_treeRowArea,
-  };
-}
-
-export default {
-  systemBasedLayout, rowBasedLayout,
-};

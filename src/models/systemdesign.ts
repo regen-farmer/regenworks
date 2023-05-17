@@ -4,8 +4,8 @@ import { ISpeciesSchema } from './species';
 export interface ISystemDesignSchema {
   rows: {
       sequence: {
-      species?: HydratedDocument<ISpeciesSchema>,
-      spacingAfter?: number
+      species: HydratedDocument<ISpeciesSchema>,
+      spacingAfter: number
     }[],
     headland?: {
       before?: number,
