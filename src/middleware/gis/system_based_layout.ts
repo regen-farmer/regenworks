@@ -257,7 +257,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   // ALLEY SPECIES ARRAY
   for (let i = 0; i < systemRows.length; i++) {
     if (systemRows[i].groundcover?.form === 'grass') {
-      alleySpeciesArrayCount.push(systemRows[i].sequence[0].species);
+      alleySpeciesArrayCount.push(systemRows[i].groundcover!);
     }
   }
   console.log(`${alleySpeciesArrayCount.length} ---- CHECK ---- ${alleyWidthArray.length}`);
