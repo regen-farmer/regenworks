@@ -110,6 +110,9 @@ width: number
       treeRowArray.push(treeRow);
     }
 
+    // Add second half of the row width
+    accumulatingWidth += rows[currentRowIdx].width === 0 ? 0 : rows[currentRowIdx].width / 2;
+
     // Prepare for next row. Cycle through rows in system design
     currentRowIdx++;
     if (currentRowIdx === rows.length) {

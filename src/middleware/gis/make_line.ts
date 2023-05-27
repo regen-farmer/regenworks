@@ -13,11 +13,11 @@ import {
 import { ISystemDesignSchema } from '../../models/systemdesign';
 
 export function makeInitialLine(systemdesign: ISystemDesignSchema, polygon, offsetPolygon) {
-  let line;
-  let rowCount = 0;
-  let rowRest = 0;
+  let lineIntersectingAreaInsideMargin: turf.Feature<LineString, turf.Properties>;
+  let widthOfAreaInsideMargin: number;
   const tempOffsetArray: any[] = [];
-  const systemWidth = systemdesign.rows.reduce((a, b) => a + (b.width || 0), 0);
+
+  systemdesign.alignment = 'north';
 
   if (systemdesign.alignment === 'bearing') {
     // -------- ANGLED ROWS ---------
@@ -71,9 +71,9 @@ export function makeInitialLine(systemdesign: ISystemDesignSchema, polygon, offs
     const moveDistance = turfLength(moveLengthLine, { units: 'meters' });
     // SEE OFFSET
     const moveLine = transformTranslate(lengthLineBearing, moveDistance, moveBearing, { units: 'meters' });
-    line = transformScale(moveLine, 6);
+    lineIntersectingAreaInsideMargin = transformScale(moveLine, 6);
     tempOffsetArray.push(alignPolygon);
-    tempOffsetArray.push(line);
+    tempOffsetArray.push(lineIntersectingAreaInsideMargin);
     tempOffsetArray.push(moveLine);
     /*
     console.log(`movedLine: ${moveLine.geometry.coordinates}`);
@@ -87,49 +87,26 @@ export function makeInitialLine(systemdesign: ISystemDesignSchema, polygon, offs
         lengthLine = lengthLineSplit.features[1];
         console.log(splitLines.features[0]);
         console.log(Math.floor((turfLength(lengthLine, {units: "meters"})))); */
-    rowCount = Math.floor((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / systemWidth);
-    rowRest = (((turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
-    /*    console.log(rowCount);
-    console.log(`rest ${rowRest}`); */
+
+    widthOfAreaInsideMargin = turfLength(lengthLineOffsetRotatedPolygon, { units: 'meters' });
     // -------- ANGLED ROWS ---------
   } else if (systemdesign.alignment === 'north') {
     // -------- NORTH/SOURTH ROWS ---------
-    // CREATE BOUNDING BOX (IF ANGLE IS 0)
     const box = bboxPolygon(bbox(offsetPolygon));
-    // TAKE TOP SIDE OF BOUNDING BOX
-
     const lengthLine = turf.lineString([box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]], { name: 'line-0' });
-    // ESTIMATE AMOUNT OF ROWS
-    /*
-    console.log((turfLength(lengthLine, { units: 'meters' })));
-*/
-    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / systemWidth);
-    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
-    /*    console.log(`rest ${rowRest}`);
-    console.log(rowCount); */
-    // CREATE ROW LINE
-    line = turf.lineString([box.geometry.coordinates[0][3], box.geometry.coordinates[0][4]], { name: 'line-1' });
+    widthOfAreaInsideMargin = turfLength(lengthLine, { units: 'meters' });
+    lineIntersectingAreaInsideMargin = turf.lineString([box.geometry.coordinates[0][3], box.geometry.coordinates[0][4]], { name: 'line-1' });
     // -------- NORTH/SOURTH ROWS ---------
   } else {
     // -------- WEST/EAST ROWS ---------
-    // CREATE BOUNDING BOX
     const box = bboxPolygon(bbox(offsetPolygon));
-    // TAKE TOP SIDE OF BOUNDING BOX
     const lengthLine = turf.lineString([box.geometry.coordinates[0][1], box.geometry.coordinates[0][2]], { name: 'line-0' });
-    // ESTIMATE AMOUNT OF ROWS
-    /*
-    console.log((turfLength(lengthLine, { units: 'meters' })));
-*/
-    rowCount = Math.floor((turfLength(lengthLine, { units: 'meters' })) / systemWidth);
-    rowRest = (((turfLength(lengthLine, { units: 'meters' })) / systemWidth) - rowCount) * systemWidth;
-    /*    console.log(`rest ${rowRest}`);
-    console.log(rowCount); */
-    // CREATE ROW LINE
-    line = turf.lineString([box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]], { name: 'line-1' });
+    widthOfAreaInsideMargin = turfLength(lengthLine, { units: 'meters' });
+    lineIntersectingAreaInsideMargin = turf.lineString([box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]], { name: 'line-1' });
     // -------- WEST/EAST ROWS ---------
   }
 
   return {
-    line, rowCount, rowRest, tempOffsetArray,
+    lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin,
   };
 }
