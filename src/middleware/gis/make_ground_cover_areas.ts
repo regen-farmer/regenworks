@@ -58,14 +58,14 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
   // eslint-disable-next-line no-constant-condition
   while (true) {
 
-    console.log('widthOfAreaInsideMargin', widthOfAreaInsideMargin);
-    console.log('accumulatingWidth', accumulatingWidth);
-    console.log('rows[currentRowIdx].width', rows[currentRowIdx].width);
-    console.log('accumulatingWidth * calibrateDistance', accumulatingWidth * calibrateDistance);
+    // console.log('widthOfAreaInsideMargin', widthOfAreaInsideMargin);
+    // console.log('accumulatingWidth', accumulatingWidth);
+    // console.log('rows[currentRowIdx].width', rows[currentRowIdx].width);
+    // console.log('accumulatingWidth * calibrateDistance', accumulatingWidth * calibrateDistance);
 
     // Complete if there isn't room for more lines
     if (accumulatingWidth > widthOfAreaInsideMargin) {
-      console.log('accumulatingWidth too big - BREAK');
+      // console.log('accumulatingWidth too big - BREAK');
       break;
     }
 
@@ -87,7 +87,7 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
 
     
     
-    groundCoverAreas.push(elongatedDonutBuffer);
+    // groundCoverAreas.push(elongatedDonutBuffer);
   
 
 
@@ -99,23 +99,23 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
     
     
     
-    // const intersectionAreas = intersect(offsetPolygon, elongatedDonutBuffer);
-    // // // Check if turf value is a polygon or a multipolygon
-    // if (intersectionAreas?.geometry.type === 'Polygon') {
+    const intersectionAreas = intersect(offsetPolygon, elongatedDonutBuffer);
+    // // Check if turf value is a polygon or a multipolygon
+    if (intersectionAreas?.geometry.type === 'Polygon') {
 
-    //   console.log('Polygon found');
+      // console.log('Polygon found');
 
 
-    //   const area = intersectionAreas as turf.Feature<turf.Polygon, turf.Properties>;
-    //   groundCoverAreas.push(turf.polygon(area.geometry.coordinates, { name: `alleypoly${groundCoverAreas.length}` }));
-    // } else if (intersectionAreas?.geometry.type === 'MultiPolygon') {
+      const area = intersectionAreas as turf.Feature<turf.Polygon, turf.Properties>;
+      groundCoverAreas.push(turf.polygon(area.geometry.coordinates, { name: `alleypoly${groundCoverAreas.length}` }));
+    } else if (intersectionAreas?.geometry.type === 'MultiPolygon') {
 
-    //   console.log('MultiPolygon found');
-    //   const area = intersectionAreas as turf.Feature<turf.MultiPolygon, turf.Properties>;
-    //   area.geometry.coordinates.forEach((polygon) => {
-    //     groundCoverAreas.push(turf.polygon(polygon, { name: `alleypoly${groundCoverAreas.length}` }));
-    //   });
-    // }
+      // console.log('MultiPolygon found');
+      const area = intersectionAreas as turf.Feature<turf.MultiPolygon, turf.Properties>;
+      area.geometry.coordinates.forEach((polygon) => {
+        groundCoverAreas.push(turf.polygon(polygon, { name: `alleypoly${groundCoverAreas.length}` }));
+      });
+    }
 
 
     // // Handle each segment if there are multiple areas

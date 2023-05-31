@@ -7,10 +7,6 @@ export interface ISystemDesignSchema {
       species: HydratedDocument<ISpeciesSchema>,
       spacingAfter: number
     }[],
-    headland?: {
-      before?: number,
-      after?: number
-    },
     offset?: {
       before?: number,
       after?: number
@@ -18,11 +14,9 @@ export interface ISystemDesignSchema {
     groundcover?: HydratedDocument<ISpeciesSchema>,
     width: number
   }[],
-  layout: string,
-  alignment: string,
   bearing: number,
   margin: number,
-  bearingline: string,
+  headland: number,
 }
 
 const systemdesignSchema = new Schema<ISystemDesignSchema>({
@@ -35,10 +29,6 @@ const systemdesignSchema = new Schema<ISystemDesignSchema>({
       },
       spacingAfter: Number,
     }],
-    headland: {
-      before: Number,
-      after: Number,
-    },
     offset: {
       before: Number,
       after: Number,
@@ -49,11 +39,9 @@ const systemdesignSchema = new Schema<ISystemDesignSchema>({
     },
     width: Number,
   }],
-  layout: { type: String, default: 'straight' },
-  alignment: { type: String, default: 'north' },
   bearing: { type: Number, default: 0 },
   margin: { type: Number, default: 0 },
-  bearingline: String,
+  headland: { type: Number, default: 0 },
 });
 
 const SystemDesign = model('SystemDesign', systemdesignSchema);

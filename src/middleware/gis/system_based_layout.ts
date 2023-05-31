@@ -40,7 +40,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   console.log(`Distance check ${calibrateDistance}`);
   // CREATE HEADLAND + PERIMETER SYSTEM WIDTH
 
-  const offsetPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
+  const marginInnerBoundPolygon = buffer(polygon, -project.systemdesign.margin * calibrateDistance, { units: 'meters' });
 
   // SAVE DATASET - ONLY REASON FOR THIS IS TO USE IT IN VIEW?!
   const layout_sortedrows = project.systemdesign.rows;
@@ -49,17 +49,18 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const {
     lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin,
-  } = makeInitialLines(project.systemdesign, polygon, offsetPolygon);
+  } = makeInitialLines(project.systemdesign, marginInnerBoundPolygon);
 
   // Tree Row Calculations
-  const treeRowLines = makeTreeRowLines(offsetPolygon, calibrateDistance, lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin, project.systemdesign.rows);
+  const treeRowLines = makeTreeRowLines(marginInnerBoundPolygon, calibrateDistance, lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin, project.systemdesign.rows);
 
   // Ground Cover Area Calculations
-  const groundCoverAreas = makeGroundCoverAreas(offsetPolygon, calibrateDistance, lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin, project.systemdesign.rows);
+  const groundCoverAreas = makeGroundCoverAreas(marginInnerBoundPolygon, calibrateDistance, lineIntersectingAreaInsideMargin, widthOfAreaInsideMargin, project.systemdesign.rows);
 
   console.log('treeRowArray.length', treeRowLines.length);
 
   return {
+    marginInnerBoundPolygon,
     treeRowLines,
     groundCoverAreas,
   };

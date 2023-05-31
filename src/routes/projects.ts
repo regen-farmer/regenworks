@@ -147,11 +147,16 @@ router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    console.time('layoutRoute');
     try {
+
+
+      console.time('getProject');
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'system', populate: { path: 'model.species' } })
-        .populate('edgesystem')
+        // .populate({ path: 'system', populate: { path: 'model.species' } })
+        // .populate('edgesystem')
         .populate('layer')
+        .populate('systemdesign')
         .populate({
           path: 'systemdesign',
           populate: { path: 'rows.sequence', populate: { path: 'species' } },
@@ -160,14 +165,15 @@ router.get(
           path: 'systemdesign',
           populate: { path: 'rows', populate: { path: 'groundcover' } },
         })
-        .populate({
-          path: 'areas',
-          populate: {
-            path: 'rotation',
-            populate: { path: 'model.speciesmix.species' },
-          },
-        })
+        // .populate({
+        //   path: 'areas',
+        //   populate: {
+        //     path: 'rotation',
+        //     populate: { path: 'model.speciesmix.species' },
+        //   },
+        // })
         .exec();
+      console.timeEnd('getProject');
 
       if (!foundProject?.systemdesign) {
         res.send({ project: foundProject });
@@ -189,8 +195,9 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
+        console.time('systemBasedLayout');
         const layout = systemBasedLayout(foundProject);
-
+        console.timeEnd('systemBasedLayout');
         res.send({
           project: foundProject,
           // system: foundSystem,
@@ -198,6 +205,7 @@ router.get(
           groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
 
         });
+        console.timeEnd('layoutRoute');
         return;
 
 
@@ -358,6 +366,7 @@ router.get(
     } catch (err) {
       console.log(err);
     }
+    
   },
 );
 
@@ -1676,7 +1685,7 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
         .populate('activities')
         .exec();
       if (foundProject) {
-      // TEST WITH BLANK
+        // TEST WITH BLANK
         let estPostings: IPostingSchema[] = [];
         if (foundProject.budgets.establishment) {
           estPostings = foundProject.budgets.establishment.postings;
@@ -1700,16 +1709,16 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
             let years = 0;
             if (
               foundProject.budgets.establishment
-            || foundProject.budgets.management
+              || foundProject.budgets.management
             ) {
-            // var totalEstablishment = 0;
+              // var totalEstablishment = 0;
               if (establishementPostings.length > 0) {
                 for (let i = 0; i < establishementPostings.length; i++) {
-                /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
-                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
-                            } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
-                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
-                            } */
+                  /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                  YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
+                              } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                  YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                              } */
                   if (establishementPostings[i].year) {
                     if (establishementPostings[i].year > years) {
                       years = establishementPostings[i].year;
@@ -1719,11 +1728,11 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
               }
               if (managementPostings.length > 0) {
                 for (let i = 0; i < managementPostings.length; i++) {
-                /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
-                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
-                            } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
-                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
-                            } */
+                  /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                  YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
+                              } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                  YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                              } */
                   if (managementPostings[i].year) {
                     if (managementPostings[i].year > years) {
                       years = managementPostings[i].year;
@@ -1731,10 +1740,10 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
                   }
                 }
               }
-            /* for(let i=0;i<foundProject.financial.period;i++){
-                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                    }
-                    irr = irr - totalEstablishment; */
+              /* for(let i=0;i<foundProject.financial.period;i++){
+                          irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                      }
+                      irr = irr - totalEstablishment; */
             }
             console.log(irr);
             console.log(`Years: ${years}`);
@@ -1749,23 +1758,23 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
             // SET UP
             if (
               foundProject.budgets.establishment
-            || foundProject.budgets.management
+              || foundProject.budgets.management
             ) {
-            // var totalEstablishment = 0;
+              // var totalEstablishment = 0;
               if (establishementPostings.length > 0) {
                 for (let i = 0; i < establishementPostings.length; i++) {
                   if (
                     establishementPostings[i].postType === 'labor'
-                  || establishementPostings[i].postType === 'material'
+                    || establishementPostings[i].postType === 'material'
                   ) {
                     YoY[establishementPostings[i].year] -= establishementPostings[i].value
-                    * establishementPostings[i].amount;
+                      * establishementPostings[i].amount;
                   } else if (
                     establishementPostings[i].postType === 'product'
-                  || establishementPostings[i].postType === 'service'
+                    || establishementPostings[i].postType === 'service'
                   ) {
                     YoY[establishementPostings[i].year] += establishementPostings[i].value
-                    * establishementPostings[i].amount;
+                      * establishementPostings[i].amount;
                   }
                 }
               }
@@ -1773,21 +1782,21 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
                 for (let i = 0; i < managementPostings.length; i++) {
                   if (
                     managementPostings[i].postType === 'labor'
-                  || managementPostings[i].postType === 'material'
+                    || managementPostings[i].postType === 'material'
                   ) {
                     YoY[managementPostings[i].year] -= managementPostings[i].value * managementPostings[i].amount;
                   } else if (
                     managementPostings[i].postType === 'product'
-                  || managementPostings[i].postType === 'service'
+                    || managementPostings[i].postType === 'service'
                   ) {
                     YoY[managementPostings[i].year] += managementPostings[i].value * managementPostings[i].amount;
                   }
                 }
               }
-            /* for(let i=0;i<foundProject.financial.period;i++){
-                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                    }
-                    irr = irr - totalEstablishment; */
+              /* for(let i=0;i<foundProject.financial.period;i++){
+                          irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                      }
+                      irr = irr - totalEstablishment; */
             }
             const parsedLabels = JSON.stringify(labels);
             // GENERATE DATA FOR GRAPH

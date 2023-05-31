@@ -8,24 +8,12 @@ import {
 import _ from 'lodash';
 import { ISpeciesSchema } from '../../models/species';
 
-function calculateHeadlandOffset(headland?: {
-  before?: number | undefined;
-  after?: number | undefined;
-}, offset?: {
+function calculateHeadlandOffset(offset?: {
 before?: number | undefined;
 after?: number | undefined;
 } | undefined): {before: number, after: number} {
   let before = 0;
   let after = 0;
-
-  if (headland) {
-    if (headland.before) {
-      before += headland.before;
-    }
-    if (headland.after) {
-      after += headland.after;
-    }
-  }
 
   if (offset) {
     if (offset.before) {
@@ -95,10 +83,10 @@ width: number
 
       // Add spacing before and after
 
-      const { before, after } = calculateHeadlandOffset(rows[currentRowIdx].headland, rows[currentRowIdx].offset);
+      const { before, after } = calculateHeadlandOffset(rows[currentRowIdx].offset);
 
       if (before + after >= length(treeRow, { units: 'meters' })) {
-        console.log('Headland and offset are longer than tree row line. Skipping');
+        console.log('offset are longer than tree row line. Skipping');
         // eslint-disable-next-line no-continue
         continue;
       }
