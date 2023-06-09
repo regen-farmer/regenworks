@@ -119,63 +119,25 @@ export function systemBasedLayout(project: IProjectSchema) {
     }
   });
 
-  // CALCULATE TREE COUNT
-  //   const areaSize = project.layer.size;
-  // GRID SIZE
-  //   const areaGrid = rowWidth * dataset[0].sequence[(dataset[0].sequence.length - 1)].position; // CHECK THAT THIS IS WORKING
-  //   const gridCount = areaSize / areaGrid;
-  // COPY ALL SPECIES
 
-  // const allSpecies: string[] = [];
-  // project.systemdesign.rows.forEach((row) => {
-  //   row.sequence.forEach((sequenceElement) => {
-  //     allSpecies.push(sequenceElement.species.nameCommon);
-  //   });
-  // });
 
-  // const allSpeciesCopy: string[] = [];
-  // for (let i = 0; allSpecies.length > i; i++) {
-  //   allSpeciesCopy.push(allSpecies[i]);
-  // }
-  // // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-  // const uniqueSpecies = [...new Set(allSpeciesCopy)];
-  // // UNIQUE ITEM COUNTS
-  // const uniqueSpeciesCount: {
-  //   id: string;
-  // 	_id: string
-  //   uniqueCount: number;
-  // }[] = [];
-  // for (let i = 0; uniqueSpecies.length > i; i++) {
-  //   let count = 0;
-  //   let form;
-  //   let _id;
-  //   for (let j = 0; j < treeArray.length; j++) {
-  //     if (treeArray[j].nameCommon === uniqueSpecies[i]) {
-  //       count += 1;
-  //       form = treeArray[j].form;
-  //       _id = treeArray[j].id;
-  //     }
-  //   }
-  //   const speciesCount = {
-  //     id: uniqueSpecies[i],
-  //     form,
-  //     _id,
-  //     uniqueCount: count,
-  //   };
-  //   uniqueSpeciesCount.push(speciesCount);
-  // }
-  // const layout_uniqueSpeciesCount = uniqueSpeciesCount;
-  // const uniqueTreeSpecies = [...new Set(treeArray)];
-  // const layout_uniqueSpecies = uniqueTreeSpecies;
+  const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
+    if(!marker.species) return counts;
+    console.log('marker.species', marker.species)
 
-  // UNIQUE AREA COUNT
+    const speciesId = marker.species.id;
+    if (!counts[speciesId]) {
+      counts[speciesId] = {
+        species: marker.species,
+        count: 0,
+      };
+    }
+    counts[speciesId].count++;
+    return counts;
+  }, {});
+  
+  const speciesCountArray = Object.values(speciesCounts);
 
-  /* // CHECK LENGTH OF LINE BEFORE CUTTING
-      var checkLine = turf.lineString([polygon.geometry.coordinates[0][1],polygon.geometry.coordinates[0][2]],{name: "checkLine"});
-      var checkLength = turfLength(checkLine, {units: "meters"});
-      console.log(checkLength + " meters long"); */
-  // CALCULATE MARGIN AREA
-  //   const marginArea = area(polygon) - area(offsetPolygon);
 
   // // Edge System
   // const { edgeTreeCanopyArray, edgeRowArray } = createEdge(project, calibrateDistance, polygon);
@@ -183,6 +145,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   // treeCanopyArray.concat(edgeTreeCanopyArray);
 
   return {
+    speciesCountArray,
     headlandSides,
     sidesCloseToBearing,
     treeRowLines,

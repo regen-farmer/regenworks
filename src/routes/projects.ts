@@ -205,6 +205,7 @@ router.get(
           groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
           headlandPolygon: layout.headlandPolygon,
           marginPolygon: layout.marginPolygon,
+          speciesCountArray: layout.speciesCountArray,
 
           sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
           intersectionPoints: turf.featureCollection(layout.intersectionPoints),
