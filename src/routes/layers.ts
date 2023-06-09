@@ -416,7 +416,7 @@ router.get(
   ) => {
     // MAKE LAYER OWNERSHIP MIDDLEWARE
 
-    console.log('IM HERE');
+    // console.log('IM HERE');
     try {
       const foundLayer = await Layer.findById(req.params.id)
         .populate('systems.future')
@@ -472,7 +472,7 @@ router.get(
                 }
                 return 0;
               });
-              console.log(dataset[i].array[0]);
+              // console.log(dataset[i].array[0]);
             }
             try {
               // FIND SPECIES AND POPULATE FLOWS

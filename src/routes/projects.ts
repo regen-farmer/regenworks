@@ -201,8 +201,17 @@ router.get(
         res.send({
           project: foundProject,
           // system: foundSystem,
-          treeRowLines: turf.featureCollection(layout.treeRowLines),
+          treeRowLines: layout.treeRowLines,
           groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+          headlandPolygon: layout.headlandPolygon,
+          marginPolygon: layout.marginPolygon,
+
+          sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
+          intersectionPoints: turf.featureCollection(layout.intersectionPoints),
+          headlandSides: turf.featureCollection(layout.headlandSides),
+          treeMarkerArray: layout.treeMarkerArray,
+          // combinedHeadlandSides: layout.combinedHeadlandSides,
+          // combinedHeadlandSides: layout.combinedHeadlandSides,
 
         });
         console.timeEnd('layoutRoute');
@@ -366,7 +375,7 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-    
+
   },
 );
 
