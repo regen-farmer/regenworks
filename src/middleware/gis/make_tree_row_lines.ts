@@ -153,10 +153,6 @@ export function makeTreeRowLines(
         treeRow.geometry.coordinates[1]
       );
 
-      // console.log(
-      //   `Row bearing ${rowBearing}, ${lineIntersectingAreaInsideMarginBearing}, ${newRowBearing}`
-      // );
-
       // Add spacing before and after
 
       const { before, after } = calculateHeadlandOffset(
