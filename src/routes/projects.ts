@@ -19,11 +19,13 @@ import Rotation from '../models/rotation';
 import Row from '../models/row';
 import Area from '../models/area';
 import middleware from '../middleware';
-import gisObj from '../middleware/gis';
+import { systemBasedLayout } from '../middleware/gis/system_based_layout';
 import dyFiMo from '../middleware/financials';
 import { UserDocument } from '../models/user';
 import { Auth0IDToken } from '../app';
 import Species, { ISpeciesSchema } from '../models/species';
+import { rowBasedLayout } from '../middleware/gis/row_based_layout';
+// import SystemDesign from '../models/systemdesign';
 
 // =======
 // var express = require("express");
@@ -128,8 +130,6 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
   }
 });
 
-
-
 // PROJECT EDIT ROUTE
 router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
@@ -147,28 +147,44 @@ router.get(
   '/projects/:id/layout',
   middleware.isLoggedIn,
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    console.time('layoutRoute');
     try {
+
+
+      console.time('getProject');
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'system', populate: { path: 'model.species' } })
-        .populate('edgesystem')
+        // .populate({ path: 'system', populate: { path: 'model.species' } })
+        // .populate('edgesystem')
         .populate('layer')
+        .populate('systemdesign')
         .populate({
-          path: 'rows',
-          populate: { path: 'sequence', populate: { path: 'model.species' } },
+          path: 'systemdesign',
+          populate: { path: 'rows.sequence', populate: { path: 'species' } },
         })
         .populate({
-          path: 'areas',
-          populate: {
-            path: 'rotation',
-            populate: { path: 'model.speciesmix.species' },
-          },
+          path: 'systemdesign',
+          populate: { path: 'rows', populate: { path: 'groundcover' } },
         })
+        // .populate({
+        //   path: 'areas',
+        //   populate: {
+        //     path: 'rotation',
+        //     populate: { path: 'model.speciesmix.species' },
+        //   },
+        // })
         .exec();
+      console.timeEnd('getProject');
+
+      if (!foundProject?.systemdesign) {
+        res.send({ project: foundProject });
+      }
+
       if (foundProject) {
         // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
-        const foundSystem = await System.findById(foundProject.system)
-          .populate('model.species')
-          .exec();
+        // const foundSystemDesign = await SystemDesign.findById(foundProject.systemdesign)
+        //   .populate('rows.sequence.species')
+        //   .populate('rows.groundcover')
+        //   .exec();
         // EDGE SYSTEM FIND, IF ONE
         // var edgesystem = '5e6639bc8add4f22f0820200'
         // if (foundProject.edgesystem) {
@@ -179,172 +195,188 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
-        let layout;
-        // IF ROWS, DO XXX
-        if (foundProject.rows && foundProject.rows.length > 0) {
-          // DO ROW LAYOUT
-          layout = gisObj.rowBasedLayout(foundProject);
-        } else {
-          // DO PARAMETRIC LAYOUT
-          layout = gisObj.systemBasedLayout(foundProject);
-        }
-
-        // CREATE FEATURECOLLECTION FOR ROWS*/
-        const featurecollection = turf.featureCollection(layout.rowLineArray);
-        const collection = featurecollection;
-        const bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
-        const stripsCollection = bedArrayPolygons;
-        const alleyArrayPolygons = turf.featureCollection(
-          layout.alleyPolygonArray,
-        );
-        const alleysCollection = alleyArrayPolygons;
-        // TEMP TESTING LINES
-        const offsetArrayCollection = turf.featureCollection(layout.offsetArray);
-        const offsetCollection = offsetArrayCollection;
-        console.log(`Length off offset array: ${layout.offsetArray}`);
-        // CREATE FEATURE COLLECTION FOR EDGEROWS
-        /*   var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
-                    var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection); */
-        // OFFSET LINE
-        /*               var offsetline = lineOffset(line, -(3),{units: "meters"});
-                                    var rowPoints = lineIntersect(offsetline, offsetPolygon);
-                                    var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
-                                    var stringline = JSON.stringify(row);
-                                    var stringbox = JSON.stringify(box); */
-        // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
-        /* var treeRows = [];
-                    for(let i=0;i<dataset.length;i++){
-                        if(!(dataset[i].array[0].species.form === "grass")){
-                            treeRows.push(dataset[i]);
-                        }
-                    }
-                    // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
-                    var systemModelLength = 0;
-                    for(let i=0;i<dataset.length;i++){
-                        if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
-                            systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
-                        }
-                    }
-                    // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
-                    var treeRowCount = 0;
-                    var treeCountArray = [];
-                    var treeMarkerArray = [];
-                    var treeArray = [];
-                    var treeRowArea = 0;
-                    for(let i=0;i<rowArray.length;i++){
-                        // COUNT SYSTEM MODEL ITERATIONS IN ROW
-                        var rowLength = turfLength(rowArray[i], {units: "meters"});
-                        // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
-                        /!*var systemModelLength = 0;
-                        if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
-                            systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
-                        } else {
-                            systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
-                        }*!/
-                        var systemModelCount = Math.floor(rowLength/systemModelLength);
-                        var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
-                        // CALCULATE AREA
-                        treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
-                        // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
-                        console.log("Position: " + treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1]);
-                        if(!(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1] < systemModelLength)){
-                            treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
-                            var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
-                            treeMarkerArray.push(firstTreeMarker);
-                        }
-                        // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
-                        for(let j=0;j<systemModelCount;j++){
-                            for(let k=0;k<treeRows[treeRowCount].array.length;k++){
-                                // ADD TREE SPECIES TO COUNT ARRAY
-                                treeArray.push(treeRows[treeRowCount].array[k].species);
-                                // CREATE TREE POINTS FOR MARKERS
-                                var treeMarker = along(rowArray[i], (j*systemModelLength + treeRows[treeRowCount].array[k].position[1]), {units: "meters"});
-                                treeMarkerArray.push(treeMarker);
-                            }
-                        }
-                        // ADD REST
-                        for(let j=0;j<treeRows[treeRowCount].array.length;j++){
-                            if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
-                                treeArray.push(treeRows[treeRowCount].array[j].species);
-                                // ADD POINT MARKER FOR REMAINING TREES
-                                var treeMarker2 = along(rowArray[i], (systemModelCount*systemModelLength + treeRows[treeRowCount].array[j].position[1]), {units: "meters"});
-                                treeMarkerArray.push(treeMarker2);
-                            }
-                        }
-                        // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
-                        if(treeRowCount >= treeRows.length - 1){
-                            treeRowCount = 0;
-                        } else {
-                            treeRowCount = treeRowCount + 1;
-                        }
-                    }
-                    console.log(treeArray.length);
-                    console.log(treeMarkerArray.length);
-                    // DO POINT COLLECTION
-                    var treeCanopyArray = [];
-                    if(treeMarkerArray.length < 3000){
-                        for(let i=0;i<treeMarkerArray.length;i++){
-                            var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
-                            treeCanopyArray.push(circle1);
-                        }
-                    } */
-        const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
-        const treeCollection = treeMarkers;
-        /* // COPY ALL SPECIES
-                    var allSpeciesCopy = [];
-                    for(let i=0;allSpecies.length > i;i++){
-                        allSpeciesCopy.push(allSpecies[i]);
-                    } */
-        // UNIQUE ITEM COUNTS
-        let rowWidth = 0;
-
-        // @ts-ignore
-        if (layout.rowWidth) {
-          // ONLY USED FOR SYSTEM BASED
-          // @ts-ignore
-          rowWidth = layout.rowWidth;
-        }
-        let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
-        if (layout.uniqueSpeciesCount) {
-          uniqueSpeciesCount = layout.uniqueSpeciesCount;
-        }
-        // CALCULATE AREA SIZES
-        const treeRowArea = layout.treeRowArea;
-        // TREE ROW LENGTHS
-        /* if (foundProject.rows && foundProject.rows.length > 0) {
-          // DO ROW LENGTH
-          console.log(`rows ${foundProject.rows[0]}`);
-          for (let i = 0; i < foundProject.rows.length; i++) {
-            const rowGeometry = JSON.parse(foundProject.rows[i].geometry);
-            foundProject.rows[i].rowlength = turfLength(rowGeometry, {
-              units: 'meters',
-            });
-          }
-        } */
-        /* for(let i=0;i<layout.alleyPolygonArray.length;i++){
-                        console.log("area" + i + area(layout.alleyPolygonArray[i]));
-                    } */
-        // TEMP VALUE HERE
-        const marginArea = 0;
+        console.time('systemBasedLayout');
+        const layout = systemBasedLayout(foundProject);
+        console.timeEnd('systemBasedLayout');
         res.send({
           project: foundProject,
-          system: foundSystem,
-          collection,
-          trees: treeCollection,
-          species: uniqueSpeciesCount,
-          rowWidth,
-          treeArea: treeRowArea,
-          marginArea,
-          strips: stripsCollection,
-          alleys: alleysCollection,
-          offset: offsetCollection,
-          treeAssetArray: layout.treeAssetArray,
+          // system: foundSystem,
+          treeRowLines: layout.treeRowLines,
+          groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+          headlandPolygon: layout.headlandPolygon,
+          marginPolygon: layout.marginPolygon,
+          speciesCountArray: layout.speciesCountArray,
+
+          sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
+          intersectionPoints: turf.featureCollection(layout.intersectionPoints),
+          headlandSides: turf.featureCollection(layout.headlandSides),
+          treeMarkerArray: layout.treeMarkerArray,
+          // combinedHeadlandSides: layout.combinedHeadlandSides,
+          // combinedHeadlandSides: layout.combinedHeadlandSides,
 
         });
+        console.timeEnd('layoutRoute');
+        return;
+
+
+
+        // // IF ROWS, DO XXX
+        // // if (foundProject.rows && foundProject.rows.length > 0) {
+        // // DO ROW LAYOUT
+        // // layout = rowBasedLayout(foundProject);
+        // // } else {
+        // // DO PARAMETRIC LAYOUT
+        // // layout = systemBasedLayout(foundProject);
+        // // }
+
+        // // CREATE FEATURECOLLECTION FOR ROWS*/
+        // const featurecollection = turf.featureCollection(layout.rowLineArray);
+        // const collection = featurecollection;
+        // const bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
+        // const stripsCollection = bedArrayPolygons;
+        // const alleyArrayPolygons = turf.featureCollection(
+        //   layout.alleyPolygonArray,
+        // );
+        // const alleysCollection = alleyArrayPolygons;
+        // // TEMP TESTING LINES
+        // const offsetArrayCollection = turf.featureCollection(layout.offsetArray);
+        // const offsetCollection = offsetArrayCollection;
+        // console.log(`Length off offset array: ${layout.offsetArray}`);
+        // // CREATE FEATURE COLLECTION FOR EDGEROWS
+        // /*   var edgeRowFeatureCollection = turf.featureCollection(edgeRowArray);
+        //             var edgeRowCollection = JSON.stringify(edgeRowFeatureCollection); */
+        // // OFFSET LINE
+        // /*               var offsetline = lineOffset(line, -(3),{units: "meters"});
+        //                             var rowPoints = lineIntersect(offsetline, offsetPolygon);
+        //                             var row = turf.lineString([[rowPoints.features[0].geometry.coordinates[0],rowPoints.features[0].geometry.coordinates[1]],[rowPoints.features[1].geometry.coordinates[0],rowPoints.features[1].geometry.coordinates[1]]],{name: "line-2"});
+        //                             var stringline = JSON.stringify(row);
+        //                             var stringbox = JSON.stringify(box); */
+        // // CLEAN DATASET FROM ANNUALS - ONLY WORKS IF ANNUALS IN FIRST POSITION
+        // /* var treeRows = [];
+        //             for(let i=0;i<dataset.length;i++){
+        //                 if(!(dataset[i].array[0].species.form === "grass")){
+        //                     treeRows.push(dataset[i]);
+        //                 }
+        //             }
+        //             // CYCLE THROUGH ALL ROWS TO FIND SYSTEM LENGTH
+        //             var systemModelLength = 0;
+        //             for(let i=0;i<dataset.length;i++){
+        //                 if(dataset[i].array[(dataset[i].array.length - 1)].position[1] > systemModelLength){
+        //                     systemModelLength = dataset[i].array[(dataset[i].array.length - 1)].position[1]
+        //                 }
+        //             }
+        //             // CALCULATE TREE COUNT REAL BASED ON ROW LENGTH AND SPECIES IN ROWS
+        //             var treeRowCount = 0;
+        //             var treeCountArray = [];
+        //             var treeMarkerArray = [];
+        //             var treeArray = [];
+        //             var treeRowArea = 0;
+        //             for(let i=0;i<rowArray.length;i++){
+        //                 // COUNT SYSTEM MODEL ITERATIONS IN ROW
+        //                 var rowLength = turfLength(rowArray[i], {units: "meters"});
+        //                 // IF POSITION y IS 1, USE NEXT ROW TO FIND SYSTEM MODEL LENGTH?! THIS IS ONLY TEMP SOLUTION
+        //                 /!*var systemModelLength = 0;
+        //                 if(dataset[0].array[(dataset[0].array.length - 1)].position[1] <= 1){
+        //                     systemModelLength = dataset[1].array[(dataset[1].array.length - 1)].position[1];
+        //                 } else {
+        //                     systemModelLength = dataset[0].array[(dataset[0].array.length - 1)].position[1];
+        //                 }*!/
+        //                 var systemModelCount = Math.floor(rowLength/systemModelLength);
+        //                 var systemModelRowRest = ((rowLength/systemModelLength) - Math.floor(rowLength/systemModelLength))*systemModelLength;
+        //                 // CALCULATE AREA
+        //                 treeRowArea = treeRowArea + rowLength * treeRows[treeRowCount].array[0].width;
+        //                 // ADD FIRST TREE IN EACH ROW - ADD LAST SPECIES IN ARRAY - DO IF TO CHECK DISTANCE
+        //                 console.log("Position: " + treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1]);
+        //                 if(!(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].position[1] < systemModelLength)){
+        //                     treeArray.push(treeRows[treeRowCount].array[(treeRows[treeRowCount].array.length)-1].species);
+        //                     var firstTreeMarker = turf.point(rowArray[i].geometry.coordinates[0]);
+        //                     treeMarkerArray.push(firstTreeMarker);
+        //                 }
+        //                 // CALCULATE LENGTH ITERATIONS - EITHER ADD TO ARRAY COUNTER OR JUST SORT LATER
+        //                 for(let j=0;j<systemModelCount;j++){
+        //                     for(let k=0;k<treeRows[treeRowCount].array.length;k++){
+        //                         // ADD TREE SPECIES TO COUNT ARRAY
+        //                         treeArray.push(treeRows[treeRowCount].array[k].species);
+        //                         // CREATE TREE POINTS FOR MARKERS
+        //                         var treeMarker = along(rowArray[i], (j*systemModelLength + treeRows[treeRowCount].array[k].position[1]), {units: "meters"});
+        //                         treeMarkerArray.push(treeMarker);
+        //                     }
+        //                 }
+        //                 // ADD REST
+        //                 for(let j=0;j<treeRows[treeRowCount].array.length;j++){
+        //                     if(treeRows[treeRowCount].array[j].position[1] < systemModelRowRest){
+        //                         treeArray.push(treeRows[treeRowCount].array[j].species);
+        //                         // ADD POINT MARKER FOR REMAINING TREES
+        //                         var treeMarker2 = along(rowArray[i], (systemModelCount*systemModelLength + treeRows[treeRowCount].array[j].position[1]), {units: "meters"});
+        //                         treeMarkerArray.push(treeMarker2);
+        //                     }
+        //                 }
+        //                 // ALIGN ROW ARRAY WITH SYSTEM ROWS (I.E. START NEW ROW MODEL COUNT.) AND REST LAST ROW
+        //                 if(treeRowCount >= treeRows.length - 1){
+        //                     treeRowCount = 0;
+        //                 } else {
+        //                     treeRowCount = treeRowCount + 1;
+        //                 }
+        //             }
+        //             console.log(treeArray.length);
+        //             console.log(treeMarkerArray.length);
+        //             // DO POINT COLLECTION
+        //             var treeCanopyArray = [];
+        //             if(treeMarkerArray.length < 3000){
+        //                 for(let i=0;i<treeMarkerArray.length;i++){
+        //                     var circle1 = circle(treeMarkerArray[i].geometry.coordinates, 1, {units: "meters"});
+        //                     treeCanopyArray.push(circle1);
+        //                 }
+        //             } */
+        // const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
+        // const treeCollection = treeMarkers;
+        // /* // COPY ALL SPECIES
+        //             var allSpeciesCopy = [];
+        //             for(let i=0;allSpecies.length > i;i++){
+        //                 allSpeciesCopy.push(allSpecies[i]);
+        //             } */
+
+        // let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
+        // if (layout.uniqueSpeciesCount) {
+        //   uniqueSpeciesCount = layout.uniqueSpeciesCount;
+        // }
+        // // CALCULATE AREA SIZES
+        // const treeRowArea = layout.treeRowArea;
+        // // TREE ROW LENGTHS
+        // /* if (foundProject.rows && foundProject.rows.length > 0) {
+        //   // DO ROW LENGTH
+        //   console.log(`rows ${foundProject.rows[0]}`);
+        //   for (let i = 0; i < foundProject.rows.length; i++) {
+        //     const rowGeometry = JSON.parse(foundProject.rows[i].geometry);
+        //     foundProject.rows[i].rowlength = turfLength(rowGeometry, {
+        //       units: 'meters',
+        //     });
+        //   }
+        // } */
+        // /* for(let i=0;i<layout.alleyPolygonArray.length;i++){
+        //                 console.log("area" + i + area(layout.alleyPolygonArray[i]));
+        //             } */
+        // // TEMP VALUE HERE
+        // const marginArea = 0;
+        // res.send({
+        //   project: foundProject,
+        //   // system: foundSystem,
+        //   collection,
+        //   trees: treeCollection,
+        //   species: uniqueSpeciesCount,
+        //   treeArea: treeRowArea,
+        //   marginArea,
+        //   strips: stripsCollection,
+        //   alleys: alleysCollection,
+        //   offset: offsetCollection,
+        //   treeAssetArray: layout.treeAssetArray,
+
+        // });
       }
     } catch (err) {
       console.log(err);
     }
+
   },
 );
 
@@ -412,10 +444,10 @@ router.get(
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
-            layout = gisObj.rowBasedLayout(foundProject);
+            layout = rowBasedLayout(foundProject);
           } else {
             // DO PARAMETRIC LAYOUT
-            layout = gisObj.systemBasedLayout(foundProject);
+            layout = systemBasedLayout(foundProject);
           }
           const featurecollection = turf.featureCollection(layout.rowLineArray);
           const collection = JSON.stringify(featurecollection);
@@ -428,13 +460,7 @@ router.get(
           const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
           const treeCollection = JSON.stringify(treeMarkers);
           // UNIQUE ITEM COUNTS
-          let rowWidth = 0;
-          // @ts-ignore
-          if (layout.rowWidth) {
-            // ONLY USED FOR SYSTEM BASED
-            // @ts-ignore
-            rowWidth = layout.rowWidth;
-          }
+
           let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
           if (layout.uniqueSpeciesCount) {
             uniqueSpeciesCount = layout.uniqueSpeciesCount;
@@ -449,7 +475,6 @@ router.get(
             collection,
             trees: treeCollection,
             species: uniqueSpeciesCount,
-            rowWidth,
             treeArea: treeRowArea,
             marginArea,
             strips: stripsCollection,
@@ -640,10 +665,10 @@ router.put(
           // IF ROWS, DO XXX
           if (foundProject.rows && foundProject.rows.length > 0) {
             // DO ROW LAYOUT
-            layout = gisObj.rowBasedLayout(foundProject);
+            layout = rowBasedLayout(foundProject);
           } else {
             // DO PARAMETRIC LAYOUT
-            layout = gisObj.systemBasedLayout(foundProject);
+            layout = systemBasedLayout(foundProject);
           }
 
           const treeAssetRowRef = layout.treeAssetRowRef;
@@ -725,7 +750,7 @@ router.put(
 //       .populate('layer')
 //       .exec();
 //     if (foundProject) {
-//       const layout = gisObj.systemBasedLayout(foundProject);
+//       const layout = systemBasedLayout(foundProject);
 //       // CREATE ROWS ON PROJECT
 //       const rows: {
 //         geometry: string;
@@ -1670,7 +1695,7 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
         .populate('activities')
         .exec();
       if (foundProject) {
-      // TEST WITH BLANK
+        // TEST WITH BLANK
         let estPostings: IPostingSchema[] = [];
         if (foundProject.budgets.establishment) {
           estPostings = foundProject.budgets.establishment.postings;
@@ -1694,16 +1719,16 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
             let years = 0;
             if (
               foundProject.budgets.establishment
-            || foundProject.budgets.management
+              || foundProject.budgets.management
             ) {
-            // var totalEstablishment = 0;
+              // var totalEstablishment = 0;
               if (establishementPostings.length > 0) {
                 for (let i = 0; i < establishementPostings.length; i++) {
-                /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
-                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
-                            } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
-                                YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
-                            } */
+                  /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+                                  YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
+                              } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
+                                  YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
+                              } */
                   if (establishementPostings[i].year) {
                     if (establishementPostings[i].year > years) {
                       years = establishementPostings[i].year;
@@ -1713,11 +1738,11 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
               }
               if (managementPostings.length > 0) {
                 for (let i = 0; i < managementPostings.length; i++) {
-                /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
-                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
-                            } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
-                                YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
-                            } */
+                  /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                                  YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
+                              } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
+                                  YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
+                              } */
                   if (managementPostings[i].year) {
                     if (managementPostings[i].year > years) {
                       years = managementPostings[i].year;
@@ -1725,10 +1750,10 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
                   }
                 }
               }
-            /* for(let i=0;i<foundProject.financial.period;i++){
-                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                    }
-                    irr = irr - totalEstablishment; */
+              /* for(let i=0;i<foundProject.financial.period;i++){
+                          irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                      }
+                      irr = irr - totalEstablishment; */
             }
             console.log(irr);
             console.log(`Years: ${years}`);
@@ -1743,23 +1768,23 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
             // SET UP
             if (
               foundProject.budgets.establishment
-            || foundProject.budgets.management
+              || foundProject.budgets.management
             ) {
-            // var totalEstablishment = 0;
+              // var totalEstablishment = 0;
               if (establishementPostings.length > 0) {
                 for (let i = 0; i < establishementPostings.length; i++) {
                   if (
                     establishementPostings[i].postType === 'labor'
-                  || establishementPostings[i].postType === 'material'
+                    || establishementPostings[i].postType === 'material'
                   ) {
                     YoY[establishementPostings[i].year] -= establishementPostings[i].value
-                    * establishementPostings[i].amount;
+                      * establishementPostings[i].amount;
                   } else if (
                     establishementPostings[i].postType === 'product'
-                  || establishementPostings[i].postType === 'service'
+                    || establishementPostings[i].postType === 'service'
                   ) {
                     YoY[establishementPostings[i].year] += establishementPostings[i].value
-                    * establishementPostings[i].amount;
+                      * establishementPostings[i].amount;
                   }
                 }
               }
@@ -1767,21 +1792,21 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
                 for (let i = 0; i < managementPostings.length; i++) {
                   if (
                     managementPostings[i].postType === 'labor'
-                  || managementPostings[i].postType === 'material'
+                    || managementPostings[i].postType === 'material'
                   ) {
                     YoY[managementPostings[i].year] -= managementPostings[i].value * managementPostings[i].amount;
                   } else if (
                     managementPostings[i].postType === 'product'
-                  || managementPostings[i].postType === 'service'
+                    || managementPostings[i].postType === 'service'
                   ) {
                     YoY[managementPostings[i].year] += managementPostings[i].value * managementPostings[i].amount;
                   }
                 }
               }
-            /* for(let i=0;i<foundProject.financial.period;i++){
-                        irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
-                    }
-                    irr = irr - totalEstablishment; */
+              /* for(let i=0;i<foundProject.financial.period;i++){
+                          irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
+                      }
+                      irr = irr - totalEstablishment; */
             }
             const parsedLabels = JSON.stringify(labels);
             // GENERATE DATA FOR GRAPH

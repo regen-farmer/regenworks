@@ -6,6 +6,7 @@ import { IBudgetSchema } from './budget';
 import { ILayerSchema } from './layer';
 import { IRowSchema } from './row';
 import { ISystemSchema } from './system';
+import { ISystemDesignSchema } from './systemdesign';
 import { IUserSchema } from './user';
 
 export interface IProjectSchema {
@@ -23,6 +24,7 @@ export interface IProjectSchema {
     layer: HydratedDocument<ILayerSchema>,
     activities: HydratedDocument<IActivitySchema>[],
     system: HydratedDocument<ISystemSchema>,
+    systemdesign: HydratedDocument<ISystemDesignSchema>,
     edgesystem:HydratedDocument<ISystemSchema>,
     budgets: {
         establishment: HydratedDocument<IBudgetSchema>,
@@ -74,6 +76,10 @@ const projectSchema = new Schema<IProjectSchema>({
   system: {
     type: Schema.Types.ObjectId,
     ref: 'System',
+  },
+  systemdesign: {
+    type: Schema.Types.ObjectId,
+    ref: 'SystemDesign',
   },
   edgesystem: {
     type: Schema.Types.ObjectId,

@@ -3,7 +3,8 @@
 import area from '@turf/area';
 import _ from 'lodash';
 import { IProjectSchema } from '../models/project';
-import gisObj from './gis';
+import { rowBasedLayout } from './gis/row_based_layout';
+import { systemBasedLayout } from './gis/system_based_layout';
 
 // DYNAMIC ESTABLISHMENT BUDGET
 export function establishment(project: IProjectSchema) {
@@ -14,7 +15,7 @@ export function establishment(project: IProjectSchema) {
   // IF ROWS, DO XXX
   if (project.rows && project.rows.length > 0) {
     // DO ROW LAYOUT
-    layout = gisObj.rowBasedLayout(project);
+    layout = rowBasedLayout(project);
 
     project.rows.forEach((row, rowIdx) => {
       const trees = _.filter(layout.treeAssetArray, { rowRef: rowIdx });
@@ -74,7 +75,7 @@ export function establishment(project: IProjectSchema) {
     // console.log('postings', postings)
   } else {
     // DO PARAMETRIC LAYOUT
-    layout = gisObj.systemBasedLayout(project);
+    layout = systemBasedLayout(project);
 
     // GET SPECIES COUNT ARRAY
     let uniqueSpeciesCount: any[] = [];
@@ -149,7 +150,7 @@ export function management(project: IProjectSchema) {
   // IF ROWS, DO XXX
   if (project.rows && project.rows.length > 0) {
     // DO ROW LAYOUT
-    layout = gisObj.rowBasedLayout(project);
+    layout = rowBasedLayout(project);
 
     for (let j = 0; j < period; j++) {
       project.rows.forEach((row, rowIdx) => {
@@ -324,7 +325,7 @@ export function management(project: IProjectSchema) {
     }
   } else {
     // DO PARAMETRIC LAYOUT
-    layout = gisObj.systemBasedLayout(project);
+    layout = systemBasedLayout(project);
 
     let uniqueSpeciesCount: any[] = [];
     let uniqueSpecies: any[] = [];
