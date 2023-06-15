@@ -123,7 +123,7 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
     if(!marker.species) return counts;
-    console.log('marker.species', marker.species)
+    // console.log('marker.species', marker.species)
 
     const speciesId = marker.species.id;
     if (!counts[speciesId]) {

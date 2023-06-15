@@ -153,9 +153,9 @@ export function makeTreeRowLines(
         treeRow.geometry.coordinates[1]
       );
 
-      console.log(
-        `Row bearing ${rowBearing}, ${lineIntersectingAreaInsideMarginBearing}, ${newRowBearing}`
-      );
+      // console.log(
+      //   `Row bearing ${rowBearing}, ${lineIntersectingAreaInsideMarginBearing}, ${newRowBearing}`
+      // );
 
       // Add spacing before and after
 
