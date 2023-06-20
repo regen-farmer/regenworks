@@ -55,7 +55,7 @@ export function applyHeadland(
   });
 
   const headlandBuffers = sidesDifferentFromBearing.map((side) =>
-    buffer(side, headland + calibrateDistance, { units: "meters" })
+    buffer(side, headland + calibrateDistance, { units: "meters", steps: 20 })
   );
 
   let headlandPolygon = marginPolygon;
