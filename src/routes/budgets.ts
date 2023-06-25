@@ -7,10 +7,11 @@ import System from '../models/system';
 import Posting, { IPostingSchema } from '../models/posting';
 import Parcel from '../models/parcel';
 import middleware from '../middleware';
-import gisObj from '../middleware/gis';
+import {systemBasedLayout} from '../middleware/gis/system_based_layout';
 import { UserDocument } from '../models/user';
 import { ISpeciesSchema } from '../models/species';
 import { Auth0IDToken } from '../app';
+import { rowBasedLayout } from '../middleware/gis/row_based_layout';
 
 const router = express.Router();
 
@@ -325,10 +326,10 @@ router.post(
             // IF ROWS, DO XXX
             if (foundProject.rows && foundProject.rows.length > 0) {
               // DO ROW LAYOUT
-              layout = gisObj.rowBasedLayout(foundProject);
+              layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = gisObj.systemBasedLayout(foundProject);
+              layout = systemBasedLayout(foundProject);
             }
 
             let uniqueSpeciesCount: {
@@ -395,10 +396,10 @@ router.post(
                   //         // IF ROWS, DO XXX
                   //         if(foundProject.rows && foundProject.rows.length > 0){
                   //             // DO ROW LAYOUT
-                  //             layout = gisObj.rowBasedLayout(foundProject);
+                  //             layout = rowBasedLayout(foundProject);
                   //         } else {
                   //             // DO PARAMETRIC LAYOUT
-                  //             layout = gisObj.systemBasedLayout(foundProject);
+                  //             layout = systemBasedLayout(foundProject);
                   //         }
                   //         var uniqueSpeciesCount: any[] = [];
                   //         var uniqueSpecies: any[] = [];
@@ -648,10 +649,10 @@ router.post(
             // IF ROWS, DO XXX
             if (foundProject.rows && foundProject.rows.length > 0) {
               // DO ROW LAYOUT
-              layout = gisObj.rowBasedLayout(foundProject);
+              layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = gisObj.systemBasedLayout(foundProject);
+              layout = systemBasedLayout(foundProject);
             }
             let uniqueSpeciesCount: {
               id: string;
@@ -721,10 +722,10 @@ router.post(
                   //         // IF ROWS, DO XXX
                   //         if(foundProject.rows && foundProject.rows.length > 0){
                   //             // DO ROW LAYOUT
-                  //             layout = gisObj.rowBasedLayout(foundProject);
+                  //             layout = rowBasedLayout(foundProject);
                   //         } else {
                   //             // DO PARAMETRIC LAYOUT
-                  //             layout = gisObj.systemBasedLayout(foundProject);
+                  //             layout = systemBasedLayout(foundProject);
                   //         }
                   //         var uniqueSpeciesCount: any[] = [];
                   //         var uniqueSpecies: any[] = [];

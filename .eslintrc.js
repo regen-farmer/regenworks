@@ -5,6 +5,7 @@ module.exports = {
   },
   extends: [
     'airbnb-base',
+    'prettier',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -38,6 +39,8 @@ module.exports = {
     'no-await-in-loop': ['off'],
     'func-names': ['error'],
     'no-console': ['off'],
+    'import/no-default-export': ['warn'],
+    'import/prefer-default-export': ['off'],
     camelcase: ['off'],
   },
   settings: {

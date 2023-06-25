@@ -101,61 +101,6 @@ router.post(
   },
 );
 
-// NESTED AREA SYSTEM NEW ROUTE
-router.get(
-  '/layers/:id/systems/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    // FIND LAYER ID
-    try {
-      const foundLayer = await Layer.findById(req.params.id);
-      // FIND ALL SPECIES IN THE DATABASE
-      try {
-        const foundSpecies = await Species.find();
-        // SORT SPECIES
-        foundSpecies.sort((a, b) => {
-          if (a.nameCommon < b.nameCommon) {
-            return -1;
-          }
-          if (a.nameCommon > b.nameCommon) {
-            return 1;
-          }
-          return 0;
-        });
-        // FIND ALL ANIMALS AND SORT
-        try {
-          const foundAnimals = await Animal.find();
-          // SORT ANIMALS
-          foundAnimals.sort((a, b) => {
-            if (a.name < b.name) {
-              return -1;
-            }
-            if (a.name > b.name) {
-              return 1;
-            }
-            return 0;
-          });
-          // RENDER NEW SYSTEM PAGE WITH SPECIES
-          res.send({
-            layer: foundLayer,
-            species: foundSpecies,
-            animals: foundAnimals,
-            rows: req.query.rows,
-            distance: req.query.distance,
-            length: req.query.length,
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  },
-);
-
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
   '/layers/:id/systems',
@@ -173,8 +118,7 @@ router.post(
           position: number[];
           width: number;
         }[] = [];
-        // DO COUNT FOR ROW WIDTH
-        let xPosition = 0;
+
         // SPECIES ARRAY FOR UNIQUE SPECIES
         const allSpecies: string[] = [];
         // ADD SPECIES TO MODEL
@@ -191,7 +135,7 @@ router.post(
                 const species = {
                   species: system.model[i].species[j].id,
                   position: [
-                    Number(system.model[i].distance) + xPosition,
+                    i,
                     Number(system.model[i].species[j].y),
                   ],
                   width: Number(system.model[i].width),
@@ -200,8 +144,6 @@ router.post(
               }
             }
           }
-
-          xPosition += Number(system.model[i].distance);
         }
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         console.log(`Unique species:${allSpecies}`);
@@ -766,8 +708,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         position: number[];
         width: number;
       }[] = [];
-      // DO COUNT FOR ROW WIDTH
-      let xPosition = 0;
+
       // SPECIES ARRAY FOR UNIQUE SPECIES
       const allSpecies: string[] = [];
       // ADD SPECIES TO MODEL
@@ -782,7 +723,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
               const species = {
                 species: system.model[i].species[j].id,
                 position: [
-                  Number(system.model[i].distance) + xPosition,
+                  i,
                   Number(system.model[i].species[j].y),
                 ],
                 width: Number(system.model[i].width),
@@ -797,14 +738,13 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           const species = {
             species: system.model[i].species.id,
             position: [
-              Number(system.model[i].distance) + xPosition,
+              i,
               Number(system.model[i].species.y),
             ],
             width: Number(system.model[i].width),
           };
           model.push(species);
         }
-        xPosition += Number(system.model[i].distance);
       }
       console.log(model);
       system.model = model;

@@ -4,12 +4,14 @@ import { ISequenceSchema } from './sequence';
 import { ISpeciesSchema } from './species';
 import { ISystemflowSchema } from './systemflow';
 import { IUserSchema } from './user';
+// import { ISystemDesignSchema } from './systemdesign';
 
 // SYSTEM SCHEMA SETUP
 
 export interface ISystemSchema {
   name: string
-  description: string
+  description: string,
+  // design: HydratedDocument<ISystemDesignSchema>,
   rows: [{ width: number; sequense: [HydratedDocument<ISequenceSchema>] }]
   model: [
     {
@@ -59,6 +61,10 @@ export interface ISystemSchema {
 const systemSchema = new Schema<ISystemSchema>({
   name: String,
   description: String,
+  // design: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'SystemDesign',
+  // },
   rows: [
     {
       width: Number,
