@@ -8,7 +8,6 @@ import {
   lineSplit,
   along,
   circle,
-  bearing,
 } from "@turf/turf";
 import { IProjectSchema } from "../../models/project.js";
 import { ISpeciesSchema } from "../../models/species.js";
@@ -103,7 +102,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     circle: turf.Feature<turf.Polygon, turf.Properties>;
   }[] = [];
 
-  treeRowLines.forEach((treeRowLine, i) => {
+  treeRowLines.forEach((treeRowLine) => {
 
     if (
       systemRows[treeRowLine.systemDesignRowIndex].sequence.reduce(
