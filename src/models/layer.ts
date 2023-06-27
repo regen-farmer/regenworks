@@ -70,8 +70,8 @@ export interface ILayerSchema {
     layout: string,
     headland: number,
     rows: HydratedDocument<IRowSchema>[],
-    areas: [
-      HydratedDocument<IAreaSchema>
+    areas: 
+      HydratedDocument<IAreaSchema>[
     ],
     soiltests: [
         HydratedDocument<ISoiltestSchema>

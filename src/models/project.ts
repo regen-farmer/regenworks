@@ -41,7 +41,7 @@ export interface IProjectSchema {
     bearingline: string,
     status: string,
     rows: HydratedDocument<IRowSchema>[],
-    areas: [HydratedDocument<IAreaSchema>]
+    areas: HydratedDocument<IAreaSchema>[]
 }
 
 // PROJECT SCHEMA SETUP

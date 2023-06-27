@@ -1,30 +1,29 @@
-import express from 'express';
-import unique from 'array-unique';
-import {
-  helpers as turf, length as turfLength, circle,
-} from '@turf/turf';
-import PDFDocument from 'pdfkit';
-import NodeGeocoder from 'node-geocoder';
-import mongoose from 'mongoose';
-import _ from 'lodash';
-import Project from '../models/project';
-import Layer from '../models/layer';
-import System, { ISystemSchema } from '../models/system';
-import Budget from '../models/budget';
-import Activity from '../models/activity';
-import Asset from '../models/asset';
-import Posting, { IPostingSchema } from '../models/posting';
-import Sequence from '../models/sequence';
-import Rotation from '../models/rotation';
-import Row from '../models/row';
-import Area from '../models/area';
-import middleware from '../middleware';
-import { systemBasedLayout } from '../middleware/gis/system_based_layout';
-import dyFiMo from '../middleware/financials';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
-import Species, { ISpeciesSchema } from '../models/species';
-import { rowBasedLayout } from '../middleware/gis/row_based_layout';
+import express from "express";
+import unique from "array-unique";
+import { helpers as turf, length as turfLength, circle } from "@turf/turf";
+import PDFDocument from "pdfkit";
+import NodeGeocoder from "node-geocoder";
+import mongoose, { HydratedDocument } from "mongoose";
+import _ from "lodash";
+import Project from "../models/project";
+import Layer from "../models/layer";
+import System, { ISystemSchema } from "../models/system";
+import Budget from "../models/budget";
+import Activity from "../models/activity";
+import Asset from "../models/asset";
+import Posting, { IPostingSchema } from "../models/posting";
+import Sequence from "../models/sequence";
+import Rotation from "../models/rotation";
+import Row from "../models/row";
+import Area from "../models/area";
+import middleware from "../middleware";
+import { systemBasedLayout } from "../middleware/gis/system_based_layout";
+import dyFiMo from "../middleware/financials";
+import { UserDocument } from "../models/user";
+import { Auth0IDToken } from "../app";
+import Species, { ISpeciesSchema } from "../models/species";
+import { rowBasedLayout } from "../middleware/gis/row_based_layout";
+import SystemDesign, { SystemDesignDocument } from "../models/systemdesign";
 // import SystemDesign from '../models/systemdesign';
 
 // =======
@@ -72,7 +71,7 @@ import { rowBasedLayout } from '../middleware/gis/row_based_layout';
 const router = express.Router();
 
 const options: NodeGeocoder.Options = {
-  provider: 'google',
+  provider: "google",
   apiKey: process.env.GEOCODER_API_KEY,
   formatter: null,
 };
@@ -80,90 +79,121 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // GET ALL USERS PROJECTS IN DB
-  try {
-    const allProjects = await Project.find({ 'owner.id': req.user?._id });
-    res.send({ projects: allProjects });
-  } catch (err) {
-    console.log(err);
+router.get(
+  "/projects",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    // GET ALL USERS PROJECTS IN DB
+    try {
+      const allProjects = await Project.find({ "owner.id": req.user?._id });
+      res.send({ projects: allProjects });
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const place = undefined;
-  res.send({ place });
-});
+router.get(
+  "/projects/new",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    const place = undefined;
+    res.send({ place });
+  }
+);
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // Create a new project
-  try {
-    const service = await Project.create(req.body.project);
-    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.service.location, async (err, data) => {
-      if (err || !data.length) {
-        console.log(err);
-        return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
-      }
+router.post(
+  "/projects",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    // Create a new project
+    try {
+      const service = await Project.create(req.body.project);
+      // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+      geocoder.geocode(req.body.service.location, async (err, data) => {
+        if (err || !data.length) {
+          console.log(err);
+          return res
+            .status(500)
+            .send({ error: `Error while geocoding: ${err.toString()}` });
+        }
 
-      const lat = data[0].latitude;
-      const lng = data[0].longitude;
-      const loc = data[0].formattedAddress;
+        const lat = data[0].latitude;
+        const lng = data[0].longitude;
+        const loc = data[0].formattedAddress;
 
-      if (lat && lng && loc) {
-        service.lat = lat;
-        service.lng = lng;
-        service.location = loc;
-        // Add ID to experience
-        service.owner.id = req.user?._id.toString()!;
-        // Save the service - Not need if created after this step
-        await service.save();
-        // Redirect to projects INDEX page
-        // req.flash("success", "Successfully added service");
-        res.send('/projects');
-      }
-    });
-  } catch (err) {
-    console.log(err);
+        if (lat && lng && loc) {
+          service.lat = lat;
+          service.lng = lng;
+          service.location = loc;
+          // Add ID to experience
+          service.owner.id = req.user?._id.toString()!;
+          // Save the service - Not need if created after this step
+          await service.save();
+          // Redirect to projects INDEX page
+          // req.flash("success", "Successfully added service");
+          res.send("/projects");
+        }
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // MAKE SERVICE OWNERSHIP MIDDLEWARE
-  // Find specific project in database
-  try {
-    const foundProject = await Project.findById(req.params.id);
-    res.send({ project: foundProject });
-  } catch (err) {
-    console.log(err);
+router.get(
+  "/projects/:id/edit",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    // MAKE SERVICE OWNERSHIP MIDDLEWARE
+    // Find specific project in database
+    try {
+      const foundProject = await Project.findById(req.params.id);
+      res.send({ project: foundProject });
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
-  '/projects/:id/layout',
+  "/projects/:id/layout",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    console.time('layoutRoute');
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    console.time("layoutRoute");
     try {
-
-
-      console.time('getProject');
+      console.time("getProject");
       const foundProject = await Project.findById(req.params.id)
         // .populate({ path: 'system', populate: { path: 'model.species' } })
         // .populate('edgesystem')
-        .populate('layer')
-        .populate('systemdesign')
+        .populate("layer")
+        .populate("systemdesign")
         .populate({
-          path: 'systemdesign',
-          populate: { path: 'rows.sequence', populate: { path: 'species' } },
+          path: "systemdesign",
+          populate: { path: "rows.sequence", populate: { path: "species" } },
         })
         .populate({
-          path: 'systemdesign',
-          populate: { path: 'rows', populate: { path: 'groundcover' } },
+          path: "systemdesign",
+          populate: { path: "rows", populate: { path: "groundcover" } },
         })
         // .populate({
         //   path: 'areas',
@@ -173,7 +203,7 @@ router.get(
         //   },
         // })
         .exec();
-      console.timeEnd('getProject');
+      console.timeEnd("getProject");
 
       if (!foundProject?.systemdesign) {
         res.send({ project: foundProject });
@@ -195,9 +225,9 @@ router.get(
         //   .exec()
 
         // SET VARIABLES HERE
-        console.time('systemBasedLayout');
+        console.time("systemBasedLayout");
         const layout = systemBasedLayout(foundProject);
-        console.timeEnd('systemBasedLayout');
+        console.timeEnd("systemBasedLayout");
         res.send({
           project: foundProject,
           // system: foundSystem,
@@ -207,18 +237,17 @@ router.get(
           marginPolygon: layout.marginPolygon,
           speciesCountArray: layout.speciesCountArray,
 
-          sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
+          sidesCloseToBearing: turf.featureCollection(
+            layout.sidesCloseToBearing
+          ),
           intersectionPoints: turf.featureCollection(layout.intersectionPoints),
           headlandSides: turf.featureCollection(layout.headlandSides),
           treeMarkerArray: layout.treeMarkerArray,
           // combinedHeadlandSides: layout.combinedHeadlandSides,
           // combinedHeadlandSides: layout.combinedHeadlandSides,
-
         });
-        console.timeEnd('layoutRoute');
+        console.timeEnd("layoutRoute");
         return;
-
-
 
         // // IF ROWS, DO XXX
         // // if (foundProject.rows && foundProject.rows.length > 0) {
@@ -376,59 +405,69 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-
-  },
+  }
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    await Project.findByIdAndUpdate(
-      req.params.id,
-      req.body.project,
-    );
-    // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}`);
-  } catch (err) {
-    console.log(err);
+router.put(
+  "/projects/:id",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    try {
+      await Project.findByIdAndUpdate(req.params.id, req.body.project);
+      // req.flash("success", "Successfully added service");
+      res.send(`/projects/${req.params.id}`);
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    await Project.findByIdAndUpdate(
-      req.params.id,
-      req.body.project,
-    );
-    // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}/layout`);
-  } catch (err) {
-    console.log(err);
+router.put(
+  "/projects/:id/layout",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    try {
+      await Project.findByIdAndUpdate(req.params.id, req.body.project);
+      // req.flash("success", "Successfully added service");
+      res.send(`/projects/${req.params.id}/layout`);
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // PROJECT VIZ ROUTE
 router.get(
-  '/projects/:id/viz',
+  "/projects/:id/viz",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'system', populate: { path: 'model.species' } })
-        .populate('edgesystem')
-        .populate('layer')
+        .populate({ path: "system", populate: { path: "model.species" } })
+        .populate("edgesystem")
+        .populate("layer")
         .populate({
-          path: 'rows',
-          populate: { path: 'sequence', populate: { path: 'model.species' } },
+          path: "rows",
+          populate: { path: "sequence", populate: { path: "model.species" } },
         })
-        .populate('areas')
+        .populate("areas")
         .exec();
       if (foundProject) {
         // CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
         try {
           const foundSystem = await System.findById(foundProject.system)
-            .populate('model.species')
+            .populate("model.species")
             .exec();
           // EDGE SYSTEM FIND, IF ONE
           // var edgesystem = '5e6639bc8add4f22f0820200'
@@ -451,17 +490,19 @@ router.get(
           }
           const featurecollection = turf.featureCollection(layout.rowLineArray);
           const collection = JSON.stringify(featurecollection);
-          const bedArrayPolygons = turf.featureCollection(layout.bedPolygonArray);
+          const bedArrayPolygons = turf.featureCollection(
+            layout.bedPolygonArray
+          );
           const stripsCollection = JSON.stringify(bedArrayPolygons);
           const alleyArrayPolygons = turf.featureCollection(
-            layout.alleyPolygonArray,
+            layout.alleyPolygonArray
           );
           const alleysCollection = JSON.stringify(alleyArrayPolygons);
           const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
           const treeCollection = JSON.stringify(treeMarkers);
           // UNIQUE ITEM COUNTS
 
-          let uniqueSpeciesCount: { id: string; uniqueCount: number; }[] = [];
+          let uniqueSpeciesCount: { id: string; uniqueCount: number }[] = [];
           if (layout.uniqueSpeciesCount) {
             uniqueSpeciesCount = layout.uniqueSpeciesCount;
           }
@@ -484,57 +525,75 @@ router.get(
           console.log(err);
         }
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+router.get(
+  "/projects/:id/3dviz",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    res.send();
+  }
+);
 
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
-  '/projects/:id/implement',
+  "/projects/:id/implement",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     try {
-      await Project.findByIdAndUpdate(
-        req.params.id,
-        { $set: { status: 'Implementation' } },
-      );
+      await Project.findByIdAndUpdate(req.params.id, {
+        $set: { status: "Implementation" },
+      });
       res.send(`/projects/${req.params.id}`);
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    await Project.findByIdAndUpdate(
-      req.params.id,
-      { $set: { status: 'Retired' } },
-    );
-    res.send(`/projects/${req.params.id}`);
-  } catch (err) {
-    console.log(err);
+router.put(
+  "/projects/:id/retire",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    try {
+      await Project.findByIdAndUpdate(req.params.id, {
+        $set: { status: "Retired" },
+      });
+      res.send(`/projects/${req.params.id}`);
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
-  '/projects/:id/complete',
+  "/projects/:id/complete",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     try {
       const completedProject = await Project.findByIdAndUpdate(req.params.id, {
-        $set: { status: 'Completed' },
+        $set: { status: "Completed" },
       });
       if (completedProject) {
         // FIND AREA, UPDATE PRESENT SYSTEM AND PUSH OLD PRESENT SYSTEM TO PAST SYSTEMS
@@ -560,35 +619,38 @@ router.put(
             // REDIRECT
             res.send(`/projects/${req.params.id}`);
           } else {
-            console.log('No projectArea');
+            console.log("No projectArea");
           }
         } catch (err) {
           console.log(err);
         }
       } else {
-        console.log('No completedProject');
+        console.log("No completedProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // ADD PROJECT EDGE SYSTEM NEW
 router.get(
-  '/projects/:id/addedgesystem',
+  "/projects/:id/addedgesystem",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     try {
       const foundProject = await Project.findById(req.params.id);
       try {
-        const foundSystems = await System.find({ 'owner.id': req.user?._id });
+        const foundSystems = await System.find({ "owner.id": req.user?._id });
         // SORT OUT MONOCULTURE SYSTEMS
         const realSystems: ISystemSchema[] = [];
         for (let i = 0; i < foundSystems.length; i++) {
-          const systemNameSplit = foundSystems[i].name.split(' ');
+          const systemNameSplit = foundSystems[i].name.split(" ");
           if (
-            !(systemNameSplit[systemNameSplit.length - 1] === 'monoculture')
+            !(systemNameSplit[systemNameSplit.length - 1] === "monoculture")
           ) {
             realSystems.push(foundSystems[i]);
           }
@@ -603,14 +665,17 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
-  '/projects/:id/addedgesystem',
+  "/projects/:id/addedgesystem",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND SYSTEM
     try {
       const foundSystem = await System.findById(req.body.systemid);
@@ -623,7 +688,7 @@ router.post(
         if (foundProject) {
           res.send(`/projects/${foundProject._id}`);
         } else {
-          console.log('No foundProject');
+          console.log("No foundProject");
         }
       } catch (err) {
         console.log(err);
@@ -631,29 +696,32 @@ router.post(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // PROJECT ASSET CREATION
 router.put(
-  '/projects/:id/generateassets',
+  "/projects/:id/generateassets",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'system', populate: { path: 'model.species' } })
-        .populate('edgesystem')
-        .populate('layer')
+        .populate({ path: "system", populate: { path: "model.species" } })
+        .populate("edgesystem")
+        .populate("layer")
         .populate({
-          path: 'rows',
-          populate: { path: 'sequence', populate: { path: 'model.species' } },
+          path: "rows",
+          populate: { path: "sequence", populate: { path: "model.species" } },
         })
         .populate({
-          path: 'areas',
+          path: "areas",
           populate: {
-            path: 'rotation',
-            populate: { path: 'model.speciesmix.species' },
+            path: "rotation",
+            populate: { path: "model.speciesmix.species" },
           },
         })
         .exec();
@@ -694,7 +762,7 @@ router.put(
             try {
               const updatedProject = await Project.findByIdAndUpdate(
                 foundProject._id,
-                { $push: { assets: { $each: createdAssets } } },
+                { $push: { assets: { $each: createdAssets } } }
               );
 
               // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
@@ -714,13 +782,13 @@ router.put(
                   for (let i = 0; i < foundRows.length; i++) {
                     await foundRows[i].save();
                   }
-                  console.log('Assets added to project');
+                  console.log("Assets added to project");
                   res.send(`/projects/${req.params.id}`);
                 } catch (err) {
                   console.log(err);
                 }
               } else {
-                console.log('No updatedProject');
+                console.log("No updatedProject");
               }
             } catch (err) {
               console.log(err);
@@ -732,12 +800,12 @@ router.put(
           console.log(err);
         }
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
@@ -836,9 +904,12 @@ router.put(
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
-  '/projects/:id/deleterows',
+  "/projects/:id/deleterows",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id);
@@ -851,13 +922,13 @@ router.get(
               req.params.id,
               {
                 $set: { rows: [] },
-              },
+              }
             );
             if (updatedProject) {
               // REDIRECT
               res.send(`/projects/${updatedProject._id}/layout`);
             } else {
-              console.log('No updatedProject');
+              console.log("No updatedProject");
             }
           } catch (err) {
             console.log(err);
@@ -866,24 +937,27 @@ router.get(
           console.log(err);
         }
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // PROJECT ASSET SHOW PAGE
 router.get(
-  '/projects/:id/assets',
+  "/projects/:id/assets",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate('assets')
-        .populate('layer')
+        .populate("assets")
+        .populate("layer")
         .exec();
 
       const allTrees: string[] = [];
@@ -897,7 +971,7 @@ router.get(
             foundProject.assets[i].lng,
           ]);
           const circle1 = circle(point.geometry.coordinates, 1, {
-            units: 'meters',
+            units: "meters",
           });
           allTrees.push(foundProject.assets[i].name);
           allTreesArray.push(foundProject.assets[i].name);
@@ -932,19 +1006,22 @@ router.get(
           treecounts: uniqueSpeciesCount,
         });
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // SERVICES DELETE ROUTE
 router.delete(
-  '/projects/:id',
+  "/projects/:id",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
@@ -956,16 +1033,16 @@ router.delete(
           await Layer.findByIdAndUpdate(foundProject.layer, {
             $pull: { projects: foundProject._id },
           });
-          console.log('project removed from layer');
+          console.log("project removed from layer");
 
           // DELETE BUDGET(S)
           try {
             await Budget.findByIdAndRemove(foundProject.budgets.establishment);
-            console.log('establishment budget deleted from project');
+            console.log("establishment budget deleted from project");
 
             try {
               await Budget.findByIdAndRemove(foundProject.budgets.management);
-              console.log('management budget deleted from project');
+              console.log("management budget deleted from project");
               // DELETE ACTIVITIES
               foundProject.activities.forEach(async (activity) => {
                 try {
@@ -978,11 +1055,11 @@ router.delete(
               // DELETE PROJECT
               try {
                 await Project.findByIdAndRemove(req.params.id);
-                console.log('project deleted');
-                res.send('/projects');
+                console.log("project deleted");
+                res.send("/projects");
               } catch (err) {
                 console.log(err);
-                res.send('/projects');
+                res.send("/projects");
               }
             } catch (err) {
               console.log(err);
@@ -994,21 +1071,24 @@ router.delete(
           console.log(err);
         }
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // --------------- NESTED ROUTES ---------------- //
 
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
-  '/layers/:id/systems/:system/projects/new',
+  "/layers/:id/systems/:system/projects/new",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
@@ -1026,14 +1106,17 @@ router.get(
       console.log(err);
       // res.flash(err);
     }
-  },
+  }
 );
 
 router.get(
-  '/layers/:id/new-project',
+  "/layers/:id/new-project",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    console.log('THIS ROUTE');
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    console.log("THIS ROUTE");
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
@@ -1045,19 +1128,22 @@ router.get(
       console.log(err);
       // res.flash(err);
     }
-  },
+  }
 );
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
-  '/layers/:id/projects',
+  "/layers/:id/projects",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // Lookup place using id
 
     try {
       const foundLayer = await Layer.findById(req.params.id)
-        .populate('rows')
+        .populate("rows")
         .exec();
 
       const createdProject = await Project.create(req.body.project);
@@ -1072,12 +1158,12 @@ router.post(
           period: 20,
         };
 
-        createdProject.status = 'planning';
+        createdProject.status = "planning";
         // Connect new project to layer
         foundLayer.projects.push(createdProject.id);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if (req.body.existingrows === 'on') {
+        if (req.body.existingrows === "on") {
           const newRows: {
             geometry: string;
             name: string;
@@ -1109,26 +1195,29 @@ router.post(
       console.log(err);
       res.send(`/layers/${req.params.id}`);
     }
-  },
+  }
 );
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
-  '/layers/:id/systems/:system/projects',
+  "/layers/:id/systems/:system/projects",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // Lookup place using id
 
     try {
       const foundLayer = await Layer.findById(req.params.id)
-        .populate('rows')
+        .populate("rows")
         .exec();
 
       const createdProject = await Project.create(req.body.project);
 
       // FIND SYSTEM AND ADD TO PROJECT
       const foundSystem = await System.findById(req.params.system)
-        .populate('model.species')
+        .populate("model.species")
         .exec();
 
       if (foundLayer && createdProject && foundSystem) {
@@ -1141,12 +1230,12 @@ router.post(
           discountRate: 0.05,
           period: 20,
         };
-        createdProject.status = 'planning';
+        createdProject.status = "planning";
         // Connect new project to layer
         foundLayer.projects.push(createdProject);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if (req.body.existingrows === 'on') {
+        if (req.body.existingrows === "on") {
           const newRows: {
             geometry: string;
             name: string;
@@ -1178,17 +1267,22 @@ router.post(
       console.log(err);
       res.send(`/layers/${req.params.id}`);
     }
-  },
+  }
 );
 
 // PROJECT ASSETS DELETE ROUTE
 router.delete(
-  '/projects/:id/allassets',
+  "/projects/:id/allassets",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id).populate('assets');
+      const foundProject = await Project.findById(req.params.id).populate(
+        "assets"
+      );
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
@@ -1196,37 +1290,40 @@ router.delete(
           // DELETE ASSET
           try {
             await Asset.findByIdAndRemove(foundProject.assets[i]);
-            console.log('Deleted asset');
+            console.log("Deleted asset");
           } catch (err) {
             console.log(err);
           }
         }
         res.send(`/projects/${foundProject.id}`);
       } else {
-        console.log('No foundProject');
+        console.log("No foundProject");
       }
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // ROW NEW ROUTE
 router.get(
-  '/projects/:id/row/new',
+  "/projects/:id/row/new",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate('layer')
+        .populate("layer")
         .exec();
       if (foundProject) {
         // FIND MY SYSTEMS
         try {
-          const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
-          );
+          const foundSequences = await Sequence.find({
+            "owner.id": req.user?._id,
+          });
           res.send({
             project: foundProject,
             sequences: foundSequences,
@@ -1238,72 +1335,82 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // REDIRECT IF NO GEOMETRY
-  if (req.body.geometry === '') {
-    res.status(400).send({ error: 'No geometry found' });
-  } else {
-    // CREATE ROW HERE?
-    const tempGeo = JSON.parse(req.body.geometry);
-    const row: any = {
-      geometry: req.body.geometry,
-      name: req.body.row.name,
-      // ADD ROW LENGTH PARAM
-      rowlength: turfLength(tempGeo, { units: 'meters' }),
-    };
-    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-      row.sequence = req.body.sequenceid;
-    }
-    console.log(row);
-    // CREATE ROW
-    try {
-      const createdRow = await Row.create(row);
-      // FIND PROJECT
+router.post(
+  "/projects/:id/row",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    // REDIRECT IF NO GEOMETRY
+    if (req.body.geometry === "") {
+      res.status(400).send({ error: "No geometry found" });
+    } else {
+      // CREATE ROW HERE?
+      const tempGeo = JSON.parse(req.body.geometry);
+      const row: any = {
+        geometry: req.body.geometry,
+        name: req.body.row.name,
+        // ADD ROW LENGTH PARAM
+        rowlength: turfLength(tempGeo, { units: "meters" }),
+      };
+      if (!(req.body.sequenceid === "none") && req.body.sequenceid) {
+        row.sequence = req.body.sequenceid;
+      }
+      console.log(row);
+      // CREATE ROW
       try {
-        const foundProject = await Project.findByIdAndUpdate(req.params.id, {
-          $addToSet: { rows: createdRow },
-        });
-        // CREATE ROW
-        if (foundProject) {
-          console.log('Row has been added to project');
-          res.send(`/projects/${foundProject.id}/layout`);
-        } else {
-          console.log('No foundProject');
+        const createdRow = await Row.create(row);
+        // FIND PROJECT
+        try {
+          const foundProject = await Project.findByIdAndUpdate(req.params.id, {
+            $addToSet: { rows: createdRow },
+          });
+          // CREATE ROW
+          if (foundProject) {
+            console.log("Row has been added to project");
+            res.send(`/projects/${foundProject.id}/layout`);
+          } else {
+            console.log("No foundProject");
+          }
+        } catch (err) {
+          console.log(err);
         }
       } catch (err) {
         console.log(err);
       }
-    } catch (err) {
-      console.log(err);
     }
   }
-});
+);
 
 // EDIT ROW
 router.get(
-  '/projects/:id/row/:pid/edit',
+  "/projects/:id/row/:pid/edit",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'rows', populate: { path: 'sequence' } })
-        .populate('layer')
+        .populate({ path: "rows", populate: { path: "sequence" } })
+        .populate("layer")
         .exec();
       // FIND ROW
       try {
         const foundRow = await Row.findById(req.params.pid)
-          .populate('sequence')
+          .populate("sequence")
           .exec();
         // FIND MY SYSTEMS
         try {
-          const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
-          );
+          const foundSequences = await Sequence.find({
+            "owner.id": req.user?._id,
+          });
           res.send({
             project: foundProject,
             row: foundRow,
@@ -1318,19 +1425,22 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // UPDATE ROW
 router.put(
-  '/projects/:id/row/:pid',
+  "/projects/:id/row/:pid",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // CREATE ROW HERE?
     const row: any = {
       name: req.body.row.name,
     };
-    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
+    if (!(req.body.sequenceid === "none") && req.body.sequenceid) {
       row.sequence = req.body.sequenceid;
     }
     // FIND PROJECT
@@ -1348,14 +1458,17 @@ router.put(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // DELETE ROW
 router.delete(
-  '/projects/:id/row/:pid',
+  "/projects/:id/row/:pid",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND LAYER
     try {
       const updatedProject = await Project.findById(req.params.id);
@@ -1379,32 +1492,35 @@ router.delete(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // ---------------- AREAS
 
 // EDIT AREA
 router.get(
-  '/projects/:id/areas/:pid/edit',
+  "/projects/:id/areas/:pid/edit",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND LAYER
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate({ path: 'areas', populate: { path: 'rotation' } })
-        .populate('layer')
+        .populate({ path: "areas", populate: { path: "rotation" } })
+        .populate("layer")
         .exec();
       // FIND ROW
       try {
         const foundArea = await Area.findById(req.params.pid)
-          .populate('rotation')
+          .populate("rotation")
           .exec();
         // FIND MY SYSTEMS
         try {
-          const foundRotations = await Rotation.find(
-            { 'owner.id': req.user?._id },
-          );
+          const foundRotations = await Rotation.find({
+            "owner.id": req.user?._id,
+          });
           res.send({
             project: foundProject,
             area: foundArea,
@@ -1419,21 +1535,24 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // UPDATE AREA
 router.put(
-  '/projects/:id/areas/:pid',
+  "/projects/:id/areas/:pid",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // CREATE AREA HERE?
 
     const area: any = {
       name: req.body.area.name,
     };
 
-    if (!(req.body.rotationid === 'none') && req.body.rotationid) {
+    if (!(req.body.rotationid === "none") && req.body.rotationid) {
       area.rotation = req.body.rotationid;
     }
     // FIND PROJECT
@@ -1444,7 +1563,7 @@ router.put(
         try {
           const updatedArea = await Area.findByIdAndUpdate(
             req.params.pid,
-            area,
+            area
           );
           console.log(`Updated area: ${updatedArea}`);
           res.send(`/projects/${foundProject._id}/layout`);
@@ -1455,168 +1574,202 @@ router.put(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // --------- PROJECT FINANCIALS ROUTE TEMP --------
 // PROJECT FINANCIALS ROUTE
-router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const foundProject = await Project.findById(req.params.id)
-      .populate({ path: 'system', populate: { path: 'model.species' } })
-      .populate('edgesystem')
-      .populate('layer')
-      .populate('rows')
-      .populate({
-        path: 'rows',
-        populate: { path: 'sequence', populate: { path: 'model.species' } },
-      })
-      .exec();
-    if (foundProject) {
-      // USE MIDDLEWARE TO DYNAMICALLY CALCULATE THE ESTABLISHMENT AND CASH-FLOW BUDGET
-      const establishmentBudget = dyFiMo.establishment(foundProject);
-      const managementBudget = dyFiMo.management(foundProject);
-      // SETUP LABELS AND YoY CASH-FLOW INCLUDING
-      const labels: any[] = [];
-      for (let i = 0; i < foundProject.financial.period; i++) {
-        const label = i + 1;
-        JSON.stringify(label);
-        labels.push(label);
-      }
+router.get(
+  "/projects/:id/financials",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    try {
+      const foundProject = await Project.findById(req.params.id)
+        .populate({ path: "system", populate: { path: "model.species" } })
+        .populate("edgesystem")
+        .populate("layer")
+        .populate("rows")
+        .populate({
+          path: "rows",
+          populate: { path: "sequence", populate: { path: "model.species" } },
+        })
+        .exec();
+      if (foundProject) {
+        // USE MIDDLEWARE TO DYNAMICALLY CALCULATE THE ESTABLISHMENT AND CASH-FLOW BUDGET
+        const establishmentBudget = dyFiMo.establishment(foundProject);
+        const managementBudget = dyFiMo.management(foundProject);
+        // SETUP LABELS AND YoY CASH-FLOW INCLUDING
+        const labels: any[] = [];
+        for (let i = 0; i < foundProject.financial.period; i++) {
+          const label = i + 1;
+          JSON.stringify(label);
+          labels.push(label);
+        }
 
-      const YoY = managementBudget.totals;
-      YoY[0] -= establishmentBudget.total;
-      // ADD BUDGET DATA TO GRAPH DATASETS
+        const YoY = managementBudget.totals;
+        YoY[0] -= establishmentBudget.total;
+        // ADD BUDGET DATA TO GRAPH DATASETS
 
-      // CALCULATE ACCUMULATIVE CASH-FLOW
-      const sumArray: number[] = [];
-      let sum = 0;
-      for (let i = 0; i < foundProject.financial.period; i++) {
-        sum += YoY[i];
-        sumArray.push(sum);
-      }
-      let npv = 0;
-      for (let i = 0; i < YoY.length; i++) {
-        const discountedTotal = YoY[i] * ((1 - (foundProject.financial.discountRate)) ** (i + 1));
-        npv += discountedTotal;
-      }
+        // CALCULATE ACCUMULATIVE CASH-FLOW
+        const sumArray: number[] = [];
+        let sum = 0;
+        for (let i = 0; i < foundProject.financial.period; i++) {
+          sum += YoY[i];
+          sumArray.push(sum);
+        }
+        let npv = 0;
+        for (let i = 0; i < YoY.length; i++) {
+          const discountedTotal =
+            YoY[i] * (1 - foundProject.financial.discountRate) ** (i + 1);
+          npv += discountedTotal;
+        }
 
-      const parsedLabels = labels;
-      const parseddataset = YoY;
-      const parsedsum = sumArray;
+        const parsedLabels = labels;
+        const parseddataset = YoY;
+        const parsedsum = sumArray;
 
-      let listofSpeciesIds: string[] = [];
+        let listofSpeciesIds: string[] = [];
 
-      if (foundProject.rows.length > 0) {
-        foundProject.rows.forEach((row) => {
-          row.sequence?.uniqueSpecies.forEach((uniqueSpecie) => {
-            listofSpeciesIds.push(uniqueSpecie.id.toString());
+        if (foundProject.rows.length > 0) {
+          foundProject.rows.forEach((row) => {
+            row.sequence?.uniqueSpecies.forEach((uniqueSpecie) => {
+              listofSpeciesIds.push(uniqueSpecie.id.toString());
+            });
           });
-        });
-      } else {
-        listofSpeciesIds = foundProject.system.uniqueSpecies.map(
-          (us) => us.id as string,
-        );
-      }
+        } else {
+          listofSpeciesIds = foundProject.system.uniqueSpecies.map(
+            (us) => us.id as string
+          );
+        }
 
-      listofSpeciesIds = _.uniq(listofSpeciesIds);
+        listofSpeciesIds = _.uniq(listofSpeciesIds);
 
-      console.log('species', listofSpeciesIds);
+        console.log("species", listofSpeciesIds);
 
-      const species: ISpeciesSchema[] = await Species.aggregate([
-        {
-          $match: {
-            _id: {
-              $in: listofSpeciesIds!.map((id) => new mongoose.Types.ObjectId(id)),
+        const species: ISpeciesSchema[] = await Species.aggregate([
+          {
+            $match: {
+              _id: {
+                $in: listofSpeciesIds!.map(
+                  (id) => new mongoose.Types.ObjectId(id)
+                ),
+              },
             },
           },
-        },
-      ]);
+        ]);
 
-      const populatedSpecies = await Species.populate(species, {
-        path: 'activities',
-      });
+        const populatedSpecies = await Species.populate(species, {
+          path: "activities",
+        });
 
-      res.send({
-        species: populatedSpecies,
-        project: foundProject,
-        labels: parsedLabels,
-        dataset: parseddataset,
-        sum: parsedsum,
-        npv,
-      });
-    } else {
-      console.log('No foundProject');
+        res.send({
+          species: populatedSpecies,
+          project: foundProject,
+          labels: parsedLabels,
+          dataset: parseddataset,
+          sum: parsedsum,
+          npv,
+        });
+      } else {
+        console.log("No foundProject");
+      }
+    } catch (err) {
+      console.log(err);
     }
-  } catch (err) {
-    console.log(err);
   }
-});
+);
 
-router.patch('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const project = await Project.findById(req.params.id);
+router.patch(
+  "/projects/:id/financials",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    const project = await Project.findById(req.params.id);
 
-  project!.financial.discountRate = req.body.discountrate;
-  project!.financial.period = req.body.timeperiod;
-  await project!.save();
+    project!.financial.discountRate = req.body.discountrate;
+    project!.financial.period = req.body.timeperiod;
+    await project!.save();
 
-  res.send();
-});
+    res.send();
+  }
+);
 
-router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const project = await Project.findById(req.params.id).populate('system');
+router.patch(
+  "/projects/:id/financials/activities",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    const project = await Project.findById(req.params.id).populate("system");
 
-  const system = project?.system;
+    const system = project?.system;
 
-  const newActivities: [{
-    id: string,
-    activities: [{
-      activityType: string;
-      subtype: string;
-      name: string;
-      time: {
-        startMonth: number;
-        endMonth: number;
-      };
-      price: number;
-    }]
+    const newActivities: [
+      {
+        id: string;
+        activities: [
+          {
+            activityType: string;
+            subtype: string;
+            name: string;
+            time: {
+              startMonth: number;
+              endMonth: number;
+            };
+            price: number;
+          }
+        ];
+      }
+    ] = req.body.map((newactivity) => ({
+      id: newactivity.id,
+      activities: newactivity.activities
+        .filter((el) => el !== "none")
+        .map((el) => JSON.parse(el)),
+    }));
 
-  }] = req.body.map((newactivity) => ({
-    id: newactivity.id,
-    activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
-  }));
+    system!.uniqueSpecies.forEach((uniqueSpecies) => {
+      const match = newActivities.find(
+        (el) => el.id === uniqueSpecies.id.toString()
+      );
 
-  system!.uniqueSpecies.forEach((uniqueSpecies) => {
-    const match = newActivities.find((el) => el.id === uniqueSpecies.id.toString());
+      if (match) {
+        uniqueSpecies.activities = match!.activities;
+      }
+    });
 
-    if (match) {
-      uniqueSpecies.activities = match!.activities;
-    }
-  });
+    await system?.save();
 
-  await system?.save();
-
-  res.send();
-});
+    res.send();
+  }
+);
 
 // --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
 
 // ALIGNMENT NEW ROUTE
 router.get(
-  '/projects/:id/alignmentrow/new',
+  "/projects/:id/alignmentrow/new",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(req.params.id)
-        .populate('layer')
+        .populate("layer")
         .exec();
       if (foundProject) {
         // FIND MY SYSTEMS
         try {
-          const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
-          );
+          const foundSequences = await Sequence.find({
+            "owner.id": req.user?._id,
+          });
           res.send({
             project: foundProject,
             sequences: foundSequences,
@@ -1628,229 +1781,435 @@ router.get(
     } catch (err) {
       console.log(err);
     }
-  },
+  }
 );
 
 // UPDATE PROJECT ALIGNMENT
-router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    await Project.findByIdAndUpdate(
-      req.params.id,
-      { alignment: 'bearing', bearingline: req.body.geometry },
-    );
-    // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}/layout`);
-  } catch (err) {
-    console.log(err);
+router.put(
+  "/projects/:id/alignmentrow",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
+    try {
+      await Project.findByIdAndUpdate(req.params.id, {
+        alignment: "bearing",
+        bearingline: req.body.geometry,
+      });
+      // req.flash("success", "Successfully added service");
+      res.send(`/projects/${req.params.id}/layout`);
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 // -------------------- PDFS
 
 // BUDGET PDF
 router.get(
-  '/projects/:id/budgetpdf',
+  "/projects/:id/budgetpdf",
   middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     // FIND PROJECT
 
     // GENERATE PDF TEST
     const myDoc = new PDFDocument({ bufferPages: true });
 
     const buffers: any[] = [];
-    myDoc.on('data', buffers.push.bind(buffers));
-    myDoc.on('end', () => {
+    myDoc.on("data", buffers.push.bind(buffers));
+    myDoc.on("end", () => {
       const pdfData = Buffer.concat(buffers);
       res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(pdfData),
-        'Content-Type': 'application/pdf',
-        'Content-disposition': 'attachment;filename=test.pdf',
+        "Content-Length": Buffer.byteLength(pdfData),
+        "Content-Type": "application/pdf",
+        "Content-disposition": "attachment;filename=test.pdf",
       });
     });
 
-    myDoc.font('Times-Roman').fontSize(12).text('this is a test text');
+    myDoc.font("Times-Roman").fontSize(12).text("this is a test text");
 
     myDoc.end();
-  },
+  }
 );
 
 // PROJECT SHOW ROUTE
-router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const foundLayer = await Layer.findById(req.params.layerid)
-      .populate('systems.future')
-      .populate('projects')
-      .populate('systems.present')
-      .populate('systems.past')
-      .exec();
-
+router.get(
+  "/layers/:layerid/projects/:id",
+  middleware.isLoggedIn,
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response
+  ) => {
     try {
-      const foundProject = await Project.findById(req.params.id)
-        .populate('layer')
-        .populate('assets')
-        .populate('budgets.establishment')
-        .populate('budgets.management')
-        .populate('system')
-        .populate('edgesystem')
-        .populate('activities')
+      const foundLayer = await Layer.findById(req.params.layerid)
+        .populate("systems.future")
+        .populate("projects")
+        .populate("systems.present")
+        .populate("systems.past")
         .exec();
-      if (foundProject) {
-        // TEST WITH BLANK
-        let estPostings: IPostingSchema[] = [];
-        if (foundProject.budgets.establishment) {
-          estPostings = foundProject.budgets.establishment.postings;
-        }
 
-        try {
-          const establishementPostings = await Posting.find({ _id: estPostings });
-
-          console.log(`Establishment postings: ${establishementPostings.length}`);
+      try {
+        const foundProject = await Project.findById(req.params.id)
+          .populate("layer")
+          .populate("assets")
+          .populate("budgets.establishment")
+          .populate("budgets.management")
+          .populate("system")
+          .populate("edgesystem")
+          .populate("activities")
+          .exec();
+        if (foundProject) {
           // TEST WITH BLANK
-          let manPostings: IPostingSchema[] = [];
-          if (foundProject.budgets.management) {
-            manPostings = foundProject.budgets.management.postings;
+          let estPostings: IPostingSchema[] = [];
+          if (foundProject.budgets.establishment) {
+            estPostings = foundProject.budgets.establishment.postings;
           }
 
           try {
-            const managementPostings = await Posting.find({ _id: manPostings });
-            console.log(`Management postings: ${managementPostings.length}`);
-            const irr = 0;
-            // SET YEARS VARIABLE FOR BOTH GRAPH AND BUDGET
-            let years = 0;
-            if (
-              foundProject.budgets.establishment
-              || foundProject.budgets.management
-            ) {
-              // var totalEstablishment = 0;
-              if (establishementPostings.length > 0) {
-                for (let i = 0; i < establishementPostings.length; i++) {
-                  /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
+            const establishementPostings = await Posting.find({
+              _id: estPostings,
+            });
+
+            console.log(
+              `Establishment postings: ${establishementPostings.length}`
+            );
+            // TEST WITH BLANK
+            let manPostings: IPostingSchema[] = [];
+            if (foundProject.budgets.management) {
+              manPostings = foundProject.budgets.management.postings;
+            }
+
+            try {
+              const managementPostings = await Posting.find({
+                _id: manPostings,
+              });
+              console.log(`Management postings: ${managementPostings.length}`);
+              const irr = 0;
+              // SET YEARS VARIABLE FOR BOTH GRAPH AND BUDGET
+              let years = 0;
+              if (
+                foundProject.budgets.establishment ||
+                foundProject.budgets.management
+              ) {
+                // var totalEstablishment = 0;
+                if (establishementPostings.length > 0) {
+                  for (let i = 0; i < establishementPostings.length; i++) {
+                    /* if(establishementPostings[i].postType === "labor" || establishementPostings[i].postType === "material"){
                                   YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] - (establishementPostings[i].value * establishementPostings[i].amount);
                               } else if(establishementPostings[i].postType === "product" || establishementPostings[i].postType === "service"){
                                   YoY[establishementPostings[i].year] = YoY[establishementPostings[i].year] + (establishementPostings[i].value * establishementPostings[i].amount);
                               } */
-                  if (establishementPostings[i].year) {
-                    if (establishementPostings[i].year > years) {
-                      years = establishementPostings[i].year;
+                    if (establishementPostings[i].year) {
+                      if (establishementPostings[i].year > years) {
+                        years = establishementPostings[i].year;
+                      }
                     }
                   }
                 }
-              }
-              if (managementPostings.length > 0) {
-                for (let i = 0; i < managementPostings.length; i++) {
-                  /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
+                if (managementPostings.length > 0) {
+                  for (let i = 0; i < managementPostings.length; i++) {
+                    /* if(managementPostings[i].postType === "labor" || managementPostings[i].postType === "material"){
                                   YoY[managementPostings[i].year] = YoY[managementPostings[i].year] - (managementPostings[i].value * managementPostings[i].amount);
                               } else if(managementPostings[i].postType === "product" || managementPostings[i].postType === "service"){
                                   YoY[managementPostings[i].year] = YoY[managementPostings[i].year] + (managementPostings[i].value * managementPostings[i].amount);
                               } */
-                  if (managementPostings[i].year) {
-                    if (managementPostings[i].year > years) {
-                      years = managementPostings[i].year;
+                    if (managementPostings[i].year) {
+                      if (managementPostings[i].year > years) {
+                        years = managementPostings[i].year;
+                      }
                     }
                   }
                 }
-              }
-              /* for(let i=0;i<foundProject.financial.period;i++){
+                /* for(let i=0;i<foundProject.financial.period;i++){
                           irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
                       }
                       irr = irr - totalEstablishment; */
-            }
-            console.log(irr);
-            console.log(`Years: ${years}`);
-            // SET UP
-            const YoY: number[] = [];
-            const labels: number[] = [];
-            for (let i = 1; i < years + 1; i++) {
-              const label = i;
-              labels.push(label);
-              YoY.push(0);
-            }
-            // SET UP
-            if (
-              foundProject.budgets.establishment
-              || foundProject.budgets.management
-            ) {
-              // var totalEstablishment = 0;
-              if (establishementPostings.length > 0) {
-                for (let i = 0; i < establishementPostings.length; i++) {
-                  if (
-                    establishementPostings[i].postType === 'labor'
-                    || establishementPostings[i].postType === 'material'
-                  ) {
-                    YoY[establishementPostings[i].year] -= establishementPostings[i].value
-                      * establishementPostings[i].amount;
-                  } else if (
-                    establishementPostings[i].postType === 'product'
-                    || establishementPostings[i].postType === 'service'
-                  ) {
-                    YoY[establishementPostings[i].year] += establishementPostings[i].value
-                      * establishementPostings[i].amount;
+              }
+              console.log(irr);
+              console.log(`Years: ${years}`);
+              // SET UP
+              const YoY: number[] = [];
+              const labels: number[] = [];
+              for (let i = 1; i < years + 1; i++) {
+                const label = i;
+                labels.push(label);
+                YoY.push(0);
+              }
+              // SET UP
+              if (
+                foundProject.budgets.establishment ||
+                foundProject.budgets.management
+              ) {
+                // var totalEstablishment = 0;
+                if (establishementPostings.length > 0) {
+                  for (let i = 0; i < establishementPostings.length; i++) {
+                    if (
+                      establishementPostings[i].postType === "labor" ||
+                      establishementPostings[i].postType === "material"
+                    ) {
+                      YoY[establishementPostings[i].year] -=
+                        establishementPostings[i].value *
+                        establishementPostings[i].amount;
+                    } else if (
+                      establishementPostings[i].postType === "product" ||
+                      establishementPostings[i].postType === "service"
+                    ) {
+                      YoY[establishementPostings[i].year] +=
+                        establishementPostings[i].value *
+                        establishementPostings[i].amount;
+                    }
                   }
                 }
-              }
-              if (managementPostings.length > 0) {
-                for (let i = 0; i < managementPostings.length; i++) {
-                  if (
-                    managementPostings[i].postType === 'labor'
-                    || managementPostings[i].postType === 'material'
-                  ) {
-                    YoY[managementPostings[i].year] -= managementPostings[i].value * managementPostings[i].amount;
-                  } else if (
-                    managementPostings[i].postType === 'product'
-                    || managementPostings[i].postType === 'service'
-                  ) {
-                    YoY[managementPostings[i].year] += managementPostings[i].value * managementPostings[i].amount;
+                if (managementPostings.length > 0) {
+                  for (let i = 0; i < managementPostings.length; i++) {
+                    if (
+                      managementPostings[i].postType === "labor" ||
+                      managementPostings[i].postType === "material"
+                    ) {
+                      YoY[managementPostings[i].year] -=
+                        managementPostings[i].value *
+                        managementPostings[i].amount;
+                    } else if (
+                      managementPostings[i].postType === "product" ||
+                      managementPostings[i].postType === "service"
+                    ) {
+                      YoY[managementPostings[i].year] +=
+                        managementPostings[i].value *
+                        managementPostings[i].amount;
+                    }
                   }
                 }
-              }
-              /* for(let i=0;i<foundProject.financial.period;i++){
+                /* for(let i=0;i<foundProject.financial.period;i++){
                           irr = irr + (YoY[i])/(1+foundProject.financial.discountRate)^i;
                       }
                       irr = irr - totalEstablishment; */
-            }
-            const parsedLabels = JSON.stringify(labels);
-            // GENERATE DATA FOR GRAPH
+              }
+              const parsedLabels = JSON.stringify(labels);
+              // GENERATE DATA FOR GRAPH
 
-            // ROI
-            const roi = 0;
-            // CALCULATE DATASET
-            const sumArray: number[] = [];
-            let sum = 0;
-            for (let i = 0; i < years; i++) {
-              sum += YoY[i];
-              sumArray.push(sum);
+              // ROI
+              const roi = 0;
+              // CALCULATE DATASET
+              const sumArray: number[] = [];
+              let sum = 0;
+              for (let i = 0; i < years; i++) {
+                sum += YoY[i];
+                sumArray.push(sum);
+              }
+              console.log(YoY[0]);
+              console.log(YoY.length);
+              const parseddataset = JSON.stringify(YoY);
+              const parsedsum = JSON.stringify(sumArray);
+              // CHECK LENGTH IS IDENTICAL
+              res.send({
+                layer: foundLayer,
+                project: foundProject,
+                years,
+                roi,
+                irr,
+                labels: parsedLabels,
+                dataset: parseddataset,
+                sum: parsedsum,
+              });
+            } catch (err) {
+              console.log(err);
             }
-            console.log(YoY[0]);
-            console.log(YoY.length);
-            const parseddataset = JSON.stringify(YoY);
-            const parsedsum = JSON.stringify(sumArray);
-            // CHECK LENGTH IS IDENTICAL
-            res.send({
-              layer: foundLayer,
-              project: foundProject,
-              years,
-              roi,
-              irr,
-              labels: parsedLabels,
-              dataset: parseddataset,
-              sum: parsedsum,
-            });
           } catch (err) {
             console.log(err);
           }
-        } catch (err) {
-          console.log(err);
+        } else {
+          console.log("No foundProject");
         }
-      } else {
-        console.log('No foundProject');
+      } catch (err) {
+        console.log(err);
       }
     } catch (err) {
       console.log(err);
     }
-  } catch (err) {
-    console.log(err);
   }
-});
+);
+
+router.get(
+  "/port-scenarios",
+  async (req: express.Request, res: express.Response) => {
+    // Find all projects, that has a system, populate everything
+
+    const foundProjects = await Project.find()
+      // const foundProject = await Project.findById(req.params.id)
+      .populate({ path: "system", populate: { path: "model.species" } })
+      .populate("systemdesign")
+      .exec();
+
+    // console.log("foundProjects:", foundProjects.length);
+
+    const filteredProjects = foundProjects!
+      .filter((project) => project.layer !== undefined)
+      .filter((project) => project.system !== undefined);
+    // .filter((project) => project.systemdesign === undefined);
+
+    console.log("filteredProjects:", filteredProjects.length);
+
+    // Go through each project / system
+
+    filteredProjects.forEach(async (project) => {
+      // Create an empty system design
+
+      let systemDesign;
+
+      if (project.systemdesign) {
+        systemDesign = project.systemdesign;
+      } else {
+        systemDesign = new SystemDesign();
+      }
+
+      systemDesign.rows = [];
+
+      // Move values from the project over;
+      systemDesign.margin = project.headland ?? 0;
+
+      if (project.alignment === "north") {
+        systemDesign.bearing = 0;
+      } else if (project.alignment === "west") {
+        systemDesign.bearing = 90;
+      } else if (project.bearing) {
+        systemDesign.bearing = project.bearing;
+      } else {
+        systemDesign.bearing = 0;
+      }
+
+      //------------------------------------------------------------
+      // Generate the "dataset" like the gis middleware did prev.
+      //------------------------------------------------------------
+
+      const rowsObject: {
+        array: {
+          species: HydratedDocument<ISpeciesSchema>;
+          // Position is 0: row index, 1: absolute position in sequence
+          position: number[];
+          width: number;
+        }[];
+        row: number;
+      }[] = [];
+
+      project.system.model.forEach((species) => {
+        let count = 0;
+        for (let i = 0; i < rowsObject.length; i++) {
+          if (rowsObject[i].row === species.position[0]) {
+            rowsObject[i].array.push(species);
+            count += 1;
+          }
+        }
+        if (count === 0) {
+          rowsObject.push({ row: species.position[0], array: [species] });
+        }
+      });
+
+      // Sort the rows
+      for (let i = 0; i < rowsObject.length; i++) {
+        rowsObject.sort((a, b) => {
+          if (a.row < b.row) {
+            return -1;
+          }
+          if (a.row > b.row) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+
+      const rowsArrayAbsolutePosition = _.values(rowsObject);
+
+      // Sort the rows
+      rowsArrayAbsolutePosition.sort((a, b) => a.row - b.row);
+
+      // Sort plants within each tree row, based on their absolute position
+      rowsArrayAbsolutePosition.forEach((rowOldFormat) => {
+        rowOldFormat.array.sort((a, b) => a.position[1] - b.position[1]);
+      });
+
+      const rowsArrayRelativePosition: {
+        sequence: {
+          species: HydratedDocument<ISpeciesSchema>;
+          spacingAfter: number;
+        }[];
+        width: number;
+      }[] = [];
+
+      rowsArrayAbsolutePosition.forEach((rowOldFormat) => {
+        const rowAbsolutePosition: {
+          sequence: {
+            species: HydratedDocument<ISpeciesSchema>;
+            spacingAfter: number;
+          }[];
+          width: number;
+        } = {
+          sequence: rowOldFormat.array.map((entry, i) => {
+            let spacingAfter = 0;
+
+            // the absolute position of first element is the spacing after of the last element
+            if (i === rowOldFormat.array.length - 1) {
+              spacingAfter = rowOldFormat.array[0].position[1];
+            } else {
+              spacingAfter =
+                rowOldFormat.array[i + 1].position[1] -
+                rowOldFormat.array[i].position[1];
+            }
+
+            return {
+              species: entry.species,
+              spacingAfter,
+            };
+          }),
+          width: rowOldFormat.array[0].width,
+        };
+
+        rowsArrayRelativePosition.push(rowAbsolutePosition);
+      });
+
+      //------------------------------------------------------------
+      // Go through each row, and add it to the system design
+      //------------------------------------------------------------
+
+      rowsArrayRelativePosition.forEach((rowRelativePosition) => {
+        // If any alley crops are part of the sequence, set those as a groundcover
+        const groundcoverSpecies = rowRelativePosition.sequence.findIndex(
+          (entry) =>
+            entry.species.form === "grass" || entry.species.form === "herb"
+        );
+
+        if (groundcoverSpecies > -1) {
+          systemDesign.rows.push({
+            width: rowRelativePosition.width,
+            groundcover:
+              rowRelativePosition.sequence[groundcoverSpecies].species,
+            sequence: [],
+          });
+        } else {
+          systemDesign.rows.push({
+            width: rowRelativePosition.width,
+            sequence: rowRelativePosition.sequence,
+          });
+        }
+      });
+
+      console.log("project.systemdesign:", JSON.stringify(systemDesign));
+
+      await systemDesign.save();
+      project.rows = []
+      project.areas = []
+      project.systemdesign = systemDesign;
+      await project.save();
+      console.log("saved");
+    });
+
+    res.send("done");
+  }
+);
 
 // --------------- NESTED ROUTES ---------------- //
 
