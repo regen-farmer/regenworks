@@ -2,9 +2,9 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import area from '@turf/area';
 import _ from 'lodash';
-import { IProjectSchema } from '../models/project';
-import { rowBasedLayout } from './gis/row_based_layout';
-import { systemBasedLayout } from './gis/system_based_layout';
+import { IProjectSchema } from '../models/project.js';
+import { rowBasedLayout } from './gis/row_based_layout.js';
+import { systemBasedLayout } from './gis/system_based_layout.js';
 
 // DYNAMIC ESTABLISHMENT BUDGET
 export function establishment(project: IProjectSchema) {

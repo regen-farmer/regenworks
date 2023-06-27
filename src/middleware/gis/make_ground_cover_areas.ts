@@ -1,34 +1,11 @@
 import {
   helpers as turf,
-  lineIntersect,
   buffer,
-  along,
-  length,
   mask,
   intersect,
-  difference
 } from '@turf/turf';
-import _ from 'lodash';
-import { ISpeciesSchema } from '../../models/species';
+import { ISpeciesSchema } from '../../models/species.js';
 
-function calculateHeadland(headland?: {
-  before?: number | undefined;
-  after?: number | undefined;
-}): { before: number, after: number } {
-  let before = 0;
-  let after = 0;
-
-  if (headland) {
-    if (headland.before) {
-      before += headland.before;
-    }
-    if (headland.after) {
-      after += headland.after;
-    }
-  }
-
-  return { before, after };
-}
 
 export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>, calibrateDistance: number, lineIntersectingAreaInsideMargin: turf.Feature<turf.LineString, turf.Properties>, widthOfAreaInsideMargin: number, rows: {
   sequence: {
@@ -82,23 +59,6 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
       elongatedDonutBuffer = buffer(lineIntersectingAreaInsideMargin, (rows[currentRowIdx].width * calibrateDistance), { units: 'meters' });
     }
 
-    // Mask big polygon with the smaller to find the difference (a en elongated donut shape)
-    
-
-    
-    
-    // groundCoverAreas.push(elongatedDonutBuffer);
-  
-
-
-    // console.log('intersectionAreas', typeof elongatedDonutBuffer);
-
-    
-    
-    
-    
-    
-    
     const intersectionAreas = intersect(offsetPolygon, elongatedDonutBuffer);
     // // Check if turf value is a polygon or a multipolygon
     if (intersectionAreas?.geometry.type === 'Polygon') {
@@ -116,30 +76,6 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
         groundCoverAreas.push(turf.polygon(polygon, { name: `alleypoly${groundCoverAreas.length}` }));
       });
     }
-
-
-    // // Handle each segment if there are multiple areas
-    // for (let k = 0; k < intersectionAreas?.type; k++) {
-    //   let treeRow = turf.lineString([sortedIntersectionPoints[k * 2].geometry.coordinates, sortedIntersectionPoints[k * 2 + 1].geometry.coordinates], { name: `line-${groundCoverAreas.length}` });
-
-    //   // Add spacing before and after
-
-    //   const { before, after } = calculateHeadland(rows[currentRowIdx].headland);
-
-    //   if (before + after >= length(treeRow, { units: 'meters' })) {
-    //     console.log('Headland and offset are longer than tree row line. Skipping');
-    //     // eslint-disable-next-line no-continue
-    //     continue;
-    //   }
-
-    //   treeRow = turf.lineString([along(treeRow, before, { units: 'meters' }).geometry.coordinates, along(treeRow, length(treeRow, { units: 'meters' }) - after, { units: 'meters' }).geometry.coordinates], { name: `line-${groundCoverAreas.length}` });
-
-    //   // Add offset before
-
-    //   groundCoverAreas.push(treeRow);
-    // }
-
-
 
     // Add row width
     accumulatingWidth += rows[currentRowIdx].width;

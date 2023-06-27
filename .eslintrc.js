@@ -18,18 +18,9 @@ module.exports = {
   rules: {
     'no-plusplus': ['off'],
     'max-len': ['off'],
+    'import/no-unresolved': ['off'],
     'prefer-destructuring': ['off'],
     'vars-on-top': ['off'],
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        jsx: 'never',
-        ts: 'never',
-        tsx: 'never',
-      },
-    ],
     'no-underscore-dangle': ['off'],
     'consistent-return': ['off'],
     'no-param-reassign': ['off'],

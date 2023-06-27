@@ -1,9 +1,9 @@
 import {
   model, Schema, HydratedDocument,
 } from 'mongoose';
-import { ILayerSchema } from './layer';
-import { ISpeciesSchema } from './species';
-import { IUserSchema } from './user';
+import { ILayerSchema } from './layer.js';
+import { ISpeciesSchema } from './species.js';
+import { IUserSchema } from './user.js';
 
 export interface IActivitySchema {
     _id: string;

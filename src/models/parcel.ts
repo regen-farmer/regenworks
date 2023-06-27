@@ -1,8 +1,8 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { ILayerSchema } from './layer';
-import { IPracticesSchema } from './practice';
-import { IProjectSchema } from './project';
-import { IUserSchema } from './user';
+import { ILayerSchema } from './layer.js';
+import { IPracticesSchema } from './practice.js';
+import { IProjectSchema } from './project.js';
+import { IUserSchema } from './user.js';
 
 export interface IParcelSchema {
     name: string,

@@ -1,11 +1,11 @@
 import express from 'express';
-import Rotation from '../models/rotation';
-import Layer from '../models/layer';
-import Project from '../models/project';
-import Species from '../models/species';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Rotation from '../models/rotation.js';
+import Layer from '../models/layer.js';
+import Project from '../models/project.js';
+import Species from '../models/species.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

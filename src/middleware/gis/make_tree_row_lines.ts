@@ -8,7 +8,7 @@ import {
   transformRotate,
 } from "@turf/turf";
 import _ from "lodash";
-import { ISpeciesSchema } from "../../models/species";
+import { ISpeciesSchema } from "../../models/species.js";
 
 function calculateHeadlandOffset(
   offset?:
@@ -102,7 +102,7 @@ export function makeTreeRowLines(
     if (
       _.uniqBy(
         bufferLineIntersectionPoints.features,
-        (feature) => feature.geometry.coordinates[0]
+        (feature: turf.Feature) => feature.geometry.coordinates[0]
       ).length === bufferLineIntersectionPoints.features.length
     ) {
       sortedIntersectionPoints = _.sortBy(
@@ -112,7 +112,7 @@ export function makeTreeRowLines(
     } else if (
       _.uniqBy(
         bufferLineIntersectionPoints.features,
-        (feature) => feature.geometry.coordinates[1]
+        (feature: turf.Feature) => feature.geometry.coordinates[1]
       ).length === bufferLineIntersectionPoints.features.length
     ) {
       sortedIntersectionPoints = _.sortBy(
@@ -148,12 +148,6 @@ export function makeTreeRowLines(
         treeRow = transformRotate(treeRow, 180);
       }
 
-      const newRowBearing = turfBearing(
-        treeRow.geometry.coordinates[0],
-        treeRow.geometry.coordinates[1]
-      );
-
-      // Add spacing before and after
 
       const { before, after } = calculateHeadlandOffset(
         rows[currentRowIdx].offset

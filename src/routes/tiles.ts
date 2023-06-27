@@ -6,8 +6,8 @@ import { PNG } from 'pngjs';
 // @ts-ignore
 import PNGCrop from 'png-crop';
 import express from 'express';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

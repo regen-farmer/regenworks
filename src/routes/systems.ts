@@ -1,14 +1,14 @@
 import express from 'express';
 import unique from 'array-unique';
-import System, { ISystemSchema } from '../models/system';
-import Layer from '../models/layer';
-import Species, { ISpeciesSchema } from '../models/species';
-import Parcel from '../models/parcel';
-import Animal from '../models/animal';
-import Project from '../models/project';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import System, { ISystemSchema } from '../models/system.js';
+import Layer from '../models/layer.js';
+import Species, { ISpeciesSchema } from '../models/species.js';
+import Parcel from '../models/parcel.js';
+import Animal from '../models/animal.js';
+import Project from '../models/project.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

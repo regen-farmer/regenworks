@@ -1,9 +1,9 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IActivitySchema } from './activity';
-import { IAssetSchema } from './asset';
-import { IFarmFlowSchema } from './farmflow';
-import { INoteSchema } from './note';
-import { ISequenceSchema } from './sequence';
+import { IActivitySchema } from './activity.js';
+import { IAssetSchema } from './asset.js';
+import { IFarmFlowSchema } from './farmflow.js';
+import { INoteSchema } from './note.js';
+import { ISequenceSchema } from './sequence.js';
 
 export interface IRowSchema {
     geometry: string,

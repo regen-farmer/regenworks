@@ -1,10 +1,10 @@
 import express from 'express';
-import Systemflow from '../models/systemflow';
-import System from '../models/system';
-import Species from '../models/species';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Systemflow from '../models/systemflow.js';
+import System from '../models/system.js';
+import Species from '../models/species.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

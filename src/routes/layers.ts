@@ -11,16 +11,16 @@ import {
 } from '@turf/turf';
 import multer from 'multer';
 import xml2js from 'xml2js';
-import Layer from '../models/layer';
-import Parcel from '../models/parcel';
-import System, { ISystemSchema } from '../models/system';
-import Species, { ISpeciesSchema } from '../models/species';
-import Animal from '../models/animal';
-import Sequence from '../models/sequence';
-import Row from '../models/row';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Layer from '../models/layer.js';
+import Parcel from '../models/parcel.js';
+import System, { ISystemSchema } from '../models/system.js';
+import Species, { ISpeciesSchema } from '../models/species.js';
+import Animal from '../models/animal.js';
+import Sequence from '../models/sequence.js';
+import Row from '../models/row.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 // SETUP MULTER
 // XML2JS

@@ -1,5 +1,5 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IUserSchema } from './user';
+import { IUserSchema } from './user.js';
 
 export interface ISoiltestSchema {
     name: string,

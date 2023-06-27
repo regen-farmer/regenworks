@@ -1,11 +1,11 @@
 import express from 'express';
-import Posting from '../models/posting';
-import Budget from '../models/budget';
-import Parcel from '../models/parcel';
-import Layer from '../models/layer';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Posting from '../models/posting.js';
+import Budget from '../models/budget.js';
+import Parcel from '../models/parcel.js';
+import Layer from '../models/layer.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

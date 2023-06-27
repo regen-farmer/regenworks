@@ -1,5 +1,5 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IFlowSchema } from './flow';
+import { IFlowSchema } from './flow.js';
 
 export interface ISpeciesSchema {
     id: string,

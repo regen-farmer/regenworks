@@ -1,7 +1,7 @@
 import express from 'express';
-import { Auth0IDToken } from '../app';
-import Parcel from '../models/parcel';
-import User, { UserDocument } from '../models/user';
+import { Auth0IDToken } from '../app.js';
+import Parcel from '../models/parcel.js';
+import User, { UserDocument } from '../models/user.js';
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
 export async function checkParcelOwnership(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
