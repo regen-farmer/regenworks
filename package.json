@@ -1,5 +1,5 @@
 {
-  "name": "grownlocal",
+  "name": "regenworks",
   "version": "1.0.0",
   "description": "",
   "dependencies": {
@@ -32,7 +32,7 @@
     "start": "npm run build && node dist/app.js",
     "watch": "npx nodemon ./src/app.ts"
   },
-  "author": "grownlocal",
+  "author": "Regen Farmer",
   "license": "ISC",
   "devDependencies": {
     "@types/array-unique": "^0.3.0",

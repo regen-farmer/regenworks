@@ -198,11 +198,11 @@ if (process.env.HTTPS === 'TRUE') {
 
   // @ts-ignore
   https.createServer({ key, cert }, app).listen(process.env.PORT, process.env.IP, () => {
-    console.log('The grown local Server Has Started!');
+    console.log('RegenWorks backend server has started!');
   });
 } else {
   // @ts-ignore
   app.listen(process.env.PORT, process.env.IP, () => {
-    console.log('The grown local Server Has Started!');
+    console.log('RegenWorks backend server has started!');
   });
 }

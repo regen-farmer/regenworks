@@ -19,8 +19,6 @@ import { Auth0IDToken } from '../app';
 
 const router = express.Router();
 
-console.log('GEOCODER', process.env.GEOCODER_API_KEY);
-
 const options: NodeGeocoder.Options = {
   provider: 'google',
   apiKey: process.env.GEOCODER_API_KEY,
