@@ -16,9 +16,21 @@ import { makeInitialLine } from "./make_line.js";
 import { makeTreeRowLines } from "./make_tree_row_lines.js";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas.js";
 import { applyHeadland } from "./headland.js";
+import SystemDesign from "../../models/systemdesign.js";
 
 export function systemBasedLayout(project: IProjectSchema) {
-  const systemRows = project.systemdesign.rows;
+
+  let systemdesign = project.systemdesign;
+  if (!systemdesign) {
+    systemdesign = new SystemDesign({
+      margin: 0,
+      headland: 0,
+      bearing: 0,
+      rows: [],
+    });
+  }
+
+  const systemRows = systemdesign.rows;
 
   const polygon = JSON.parse(project.layer.geometry);
   const boxCalibrate = bboxPolygon(bbox(polygon));
@@ -44,7 +56,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   // MARGIN
   const marginPolygon = buffer(
     polygon,
-    -project.systemdesign.margin * calibrateDistance,
+    -systemdesign.margin * calibrateDistance,
     { units: "meters" }
   );
 
@@ -57,14 +69,14 @@ export function systemBasedLayout(project: IProjectSchema) {
   } = applyHeadland(
     marginPolygon,
     calibrateDistance,
-    project.systemdesign.headland,
-    project.systemdesign.bearing
+    systemdesign.headland,
+    systemdesign.bearing
   );
 
   const {
     lineIntersectingPolygon: lineIntersectingAreaInsideMargin,
     widthOfPolygon: widthOfAreaInsideMargin,
-  } = makeInitialLine(project.systemdesign.bearing, headlandPolygon);
+  } = makeInitialLine(systemdesign.bearing, headlandPolygon);
 
   // TREE ROW LINES
   const treeRowLines = makeTreeRowLines(
@@ -72,7 +84,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
-    project.systemdesign.rows
+    systemdesign.rows
   );
 
   // GROUND COVER AREAS
@@ -81,7 +93,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
-    project.systemdesign.rows
+    systemdesign.rows
   );
 
   // INDIVIDUAL TREES
