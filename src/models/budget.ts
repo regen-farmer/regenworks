@@ -1,6 +1,6 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IPostingSchema } from './posting';
-import { IUserSchema } from './user';
+import { IPostingSchema } from './posting.js';
+import { IUserSchema } from './user.js';
 
 export interface IBudgetSchema {
     postings: HydratedDocument<IPostingSchema>[],

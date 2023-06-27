@@ -1,9 +1,9 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { AnimalDocument } from './animal';
-import { ISequenceSchema } from './sequence';
-import { ISpeciesSchema } from './species';
-import { ISystemflowSchema } from './systemflow';
-import { IUserSchema } from './user';
+import { AnimalDocument } from './animal.js';
+import { ISequenceSchema } from './sequence.js';
+import { ISpeciesSchema } from './species.js';
+import { ISystemflowSchema } from './systemflow.js';
+import { IUserSchema } from './user.js';
 // import { ISystemDesignSchema } from './systemdesign';
 
 // SYSTEM SCHEMA SETUP

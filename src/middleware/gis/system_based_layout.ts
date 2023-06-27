@@ -10,12 +10,12 @@ import {
   circle,
   bearing,
 } from "@turf/turf";
-import { IProjectSchema } from "../../models/project";
-import { ISpeciesSchema } from "../../models/species";
-import { makeInitialLine } from "./make_line";
-import { makeTreeRowLines } from "./make_tree_row_lines";
-import { makeGroundCoverAreas } from "./make_ground_cover_areas";
-import { applyHeadland } from "./headland";
+import { IProjectSchema } from "../../models/project.js";
+import { ISpeciesSchema } from "../../models/species.js";
+import { makeInitialLine } from "./make_line.js";
+import { makeTreeRowLines } from "./make_tree_row_lines.js";
+import { makeGroundCoverAreas } from "./make_ground_cover_areas.js";
+import { applyHeadland } from "./headland.js";
 
 export function systemBasedLayout(project: IProjectSchema) {
   const systemRows = project.systemdesign.rows;

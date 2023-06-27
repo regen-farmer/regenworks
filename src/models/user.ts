@@ -1,7 +1,7 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
 // import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
-import { INurserySchema } from './nursery';
-import { IParcelSchema } from './parcel';
+import { INurserySchema } from './nursery.js';
+import { IParcelSchema } from './parcel.js';
 
 export interface IUserSchema {
     externalId: string,

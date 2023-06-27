@@ -6,8 +6,8 @@ import {
   circle,
 } from '@turf/turf';
 import _ from 'lodash';
-import { IProjectSchema } from '../../models/project';
-import { ISpeciesSchema } from '../../models/species';
+import { IProjectSchema } from '../../models/project.js';
+import { ISpeciesSchema } from '../../models/species.js';
 
 export function rowBasedLayout(project: IProjectSchema) {
   //

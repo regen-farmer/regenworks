@@ -1,5 +1,5 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { ISpeciesSchema } from './species';
+import { ISpeciesSchema } from './species.js';
 
 export interface ISystemDesignSchema {
   rows: {

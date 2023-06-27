@@ -7,13 +7,13 @@ import {
   along,
 } from '@turf/turf';
 import NodeGeocoder from 'node-geocoder';
-import User, { UserDocument } from '../models/user';
-import Parcel from '../models/parcel';
-import Practice from '../models/practice';
-import Layer from '../models/layer';
-import middleware from '../middleware'; // Will automatically require the middleware "index" file as the standard
-import { ISpeciesSchema } from '../models/species';
-import { Auth0IDToken } from '../app';
+import User, { UserDocument } from '../models/user.js';
+import Parcel from '../models/parcel.js';
+import Practice from '../models/practice.js';
+import Layer from '../models/layer.js';
+import middleware from '../middleware/index.js'; // Will automatically require the middleware "index" file as the standard
+import { ISpeciesSchema } from '../models/species.js';
+import { Auth0IDToken } from '../app.js';
 
 // NODE GEOCODER CODE
 

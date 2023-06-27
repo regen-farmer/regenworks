@@ -1,13 +1,13 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IAreaSchema } from './area';
-import { IAssetSchema } from './asset';
-import { IBudgetSchema } from './budget';
-import { IProjectSchema } from './project';
-import { IRowSchema } from './row';
-import { ISaptestSchema } from './saptest';
-import { ISoiltestSchema } from './soiltest';
-import { ISystemSchema } from './system';
-import { IUserSchema } from './user';
+import { IAreaSchema } from './area.js';
+import { IAssetSchema } from './asset.js';
+import { IBudgetSchema } from './budget.js';
+import { IProjectSchema } from './project.js';
+import { IRowSchema } from './row.js';
+import { ISaptestSchema } from './saptest.js';
+import { ISoiltestSchema } from './soiltest.js';
+import { ISystemSchema } from './system.js';
+import { IUserSchema } from './user.js';
 
 export interface ILayerSchema {
     name: string,

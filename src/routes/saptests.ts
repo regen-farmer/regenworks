@@ -1,10 +1,10 @@
 import express from 'express';
-import Parcel from '../models/parcel';
-import Layer from '../models/layer';
-import Saptest from '../models/saptest';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Parcel from '../models/parcel.js';
+import Layer from '../models/layer.js';
+import Saptest from '../models/saptest.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

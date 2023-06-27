@@ -14,35 +14,35 @@ import https from 'https';
 // import Parcel from './models/parcel';
 // import seedDB from "./seeds";
 import cors from 'cors';
-import User, { IUserSchema, UserDocument } from './models/user';
+import User, { IUserSchema, UserDocument } from './models/user.js';
 // REQUIRE ROUTE FILES
-import tilesRoutes from './routes/tiles';
-import parcelRoutes from './routes/parcels';
-import indexRoutes from './routes/index';
-import activityRoutes from './routes/activities';
-import projectRoutes from './routes/projects';
-import layerRoutes from './routes/layers';
-import practiceRoutes from './routes/practices';
-import assetRoutes from './routes/assets';
-import systemRoutes from './routes/systems';
-import systemdesignRoutes from './routes/systemdesigns';
-import speciesRoutes from './routes/species';
-import flowRoutes from './routes/flows';
-import systemflowRoutes from './routes/systemflows';
-import animalRoutes from './routes/animals';
-import budgetRoutes from './routes/budgets';
-import postingRoutes from './routes/postings';
-import nurseryRoutes from './routes/nurseries';
-import nurseryproductRoutes from './routes/nurseryproducts';
-import sequenceRoutes from './routes/sequences';
-import areaRoutes from './routes/areas';
-import noteRoutes from './routes/notes';
-import soiltestRoutes from './routes/soiltests';
-import saptestRoutes from './routes/saptests';
-import farmflowRoutes from './routes/farmflows';
-import rotationRoutes from './routes/rotations';
-import varietyRoutes from './routes/varieties';
-import stripeRoutes from './routes/stripe';
+import tilesRoutes from './routes/tiles.js';
+import parcelRoutes from './routes/parcels.js';
+import indexRoutes from './routes/index.js';
+import activityRoutes from './routes/activities.js';
+import projectRoutes from './routes/projects.js';
+import layerRoutes from './routes/layers.js';
+import practiceRoutes from './routes/practices.js';
+import assetRoutes from './routes/assets.js';
+import systemRoutes from './routes/systems.js';
+import systemdesignRoutes from './routes/systemdesigns.js';
+import speciesRoutes from './routes/species.js';
+import flowRoutes from './routes/flows.js';
+import systemflowRoutes from './routes/systemflows.js';
+import animalRoutes from './routes/animals.js';
+import budgetRoutes from './routes/budgets.js';
+import postingRoutes from './routes/postings.js';
+import nurseryRoutes from './routes/nurseries.js';
+import nurseryproductRoutes from './routes/nurseryproducts.js';
+import sequenceRoutes from './routes/sequences.js';
+import areaRoutes from './routes/areas.js';
+import noteRoutes from './routes/notes.js';
+import soiltestRoutes from './routes/soiltests.js';
+import saptestRoutes from './routes/saptests.js';
+import farmflowRoutes from './routes/farmflows.js';
+import rotationRoutes from './routes/rotations.js';
+import varietyRoutes from './routes/varieties.js';
+import stripeRoutes from './routes/stripe.js';
 
 export type Auth0IDToken = {
   nickname: string,
@@ -67,7 +67,7 @@ connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(express.json());
 
-app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
+// app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride('_method')); // USE "_method" TO PASS PUT AND DELETE REQUESTS
 // seedDB(); // USE ONLY FOR SEEDING DATABAS
 

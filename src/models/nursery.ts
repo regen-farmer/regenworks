@@ -1,6 +1,6 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { INurseryProductSchema } from './nurseryproduct';
-import { IUserSchema } from './user';
+import { INurseryProductSchema } from './nurseryproduct.js';
+import { IUserSchema } from './user.js';
 
 export interface INurserySchema {
     name: string,
