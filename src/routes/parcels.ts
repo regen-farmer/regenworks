@@ -41,7 +41,7 @@ export default function indexRoutes(
   // PARCEL INDEX ROUTE
   router.get("/parcels", async (c) => {
     await middleware.isLoggedIn(c);
-    console.log("Get all parcels for user");
+    // console.log("Get all parcels for user");
     // Get all parcels from DB
     try {
       const allUserParcels = await Parcel.find({

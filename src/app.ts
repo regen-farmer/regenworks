@@ -9,6 +9,7 @@ import { cors } from 'hono/cors'
 import { connect } from "mongoose";
 import User, { IUserSchema, UserDocument } from "./models/user.js";
 import { serve } from '@hono/node-server'
+import { logger } from 'hono/logger'
 
 // REQUIRE ROUTES
 import indexRoutes from "./routes/index.js";
@@ -61,33 +62,11 @@ export type Variables = {
 };
 
 const app = new Hono<{ Variables: Variables }>();
+app.use('*', logger())
 app.use('*', cors())
 
 // APP SETUP
 connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
-
-// app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
-// seedDB(); // USE ONLY FOR SEEDING DATABAS
-
-// const config = {
-//   authRequired: false,
-//   auth0Logout: true,
-//   baseURL: process.env.AUTH0_BASE_URL,
-//   clientID: process.env.AUTH0_CLIENT_ID,
-//   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-//   secret: process.env.AUTH0_SECRET,
-// };
-
-// app.use(auth(config));
-let num = 0;
-app.use("*", async (c, next) => {
-  const ip = c.req.headers["x-forwarded-for"];
-  const method = c.req.method;
-  const url = c.req.url;
-
-  console.log(`${++num}. IP ${ip} ${method} ${url}`);
-  await next();
-});
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
 app.use(
@@ -106,7 +85,7 @@ app.use(
 
     async function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary
-      console.log("token in place", token === "undefined" ? false : true);
+      // console.log("token in place", token === "undefined" ? false : true);
 
       if (token === "undefined") {
         await next();

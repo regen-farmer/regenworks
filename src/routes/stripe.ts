@@ -178,9 +178,9 @@ router.post(
       { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
     ];
 
-    console.log('arrived');
+    // console.log('arrived');
     const payload = (await c.req.json());
-    console.log('payload', payload);
+    // console.log('payload', payload);
 
     const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
     let activeLegacySubscription;
@@ -222,7 +222,6 @@ router.post(
       returndata = { subscriptions: [], activeLegacySubscription };
     }
 
-    console.log('returndata', returndata);
     return c.json(returndata);
 
 
