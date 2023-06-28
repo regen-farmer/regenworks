@@ -1,9 +1,9 @@
 import express from 'express';
-import Project from '../models/project';
-import Area from '../models/area';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Project from '../models/project.js';
+import Area from '../models/area.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

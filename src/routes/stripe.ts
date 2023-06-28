@@ -2,8 +2,12 @@
 import Stripe from 'stripe';
 import express from 'express';
 import { format, getUnixTime, parse } from 'date-fns';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import dotenv from 'dotenv';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
+/* eslint-disable import/first */
+
+dotenv.config();
 
 const router = express.Router();
 

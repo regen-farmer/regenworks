@@ -1,9 +1,9 @@
 import express from 'express';
-import Practice from '../models/practice';
-import Parcel from '../models/parcel';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Practice from '../models/practice.js';
+import Parcel from '../models/parcel.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

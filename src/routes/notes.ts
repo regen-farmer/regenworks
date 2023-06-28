@@ -1,11 +1,11 @@
 import express from 'express';
-import Parcel from '../models/parcel';
-import Note from '../models/note';
-import Row from '../models/row';
-import Area from '../models/area';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Parcel from '../models/parcel.js';
+import Note from '../models/note.js';
+import Row from '../models/row.js';
+import Area from '../models/area.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

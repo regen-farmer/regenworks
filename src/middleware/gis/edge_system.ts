@@ -1,8 +1,8 @@
 import {
   helpers as turf, length as turfLength, buffer, polygonToLine, circle, along,
 } from '@turf/turf';
-import { IProjectSchema } from '../../models/project';
-import { ISpeciesSchema } from '../../models/species';
+import { IProjectSchema } from '../../models/project.js';
+import { ISpeciesSchema } from '../../models/species.js';
 
 export function createEdge(project: IProjectSchema, calibrateDistance:number, polygon:any) {
   // EDGE WORK - Start

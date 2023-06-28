@@ -4,13 +4,9 @@ import {
   lineString,
   helpers as turf,
   difference,
-  mask,
   flatten,
   length,
-  along,
-  intersect,
   lineIntersect,
-  transformRotate,
   transformScale,
 } from "@turf/turf";
 import _ from "lodash";
@@ -183,9 +179,9 @@ export function applyHeadland(
 
         // Add additional points similar to the one above to keep length of headland polygon array
         ...Array(
-          _.slice(headlandPolygonCoords, beforeIdx+1, afterIdx + 1).length - 2
+          _.slice(headlandPolygonCoords, beforeIdx + 1, afterIdx + 1).length - 2
         ).fill(intersectionBefore.features[0].geometry.coordinates),
-        
+
         intersectionAfter.features[0].geometry.coordinates,
         ..._.slice(headlandPolygonCoords, afterIdx + 1),
       ];
@@ -196,31 +192,26 @@ export function applyHeadland(
     }
 
     if (afterIdx < beforeIdx) {
-
       console.log(
         "headlandPolygonCoords.length 2: ",
         headlandPolygonCoords.length
       );
 
       headlandPolygonCoords = [
-        
-        
         // Add additional points similar to the one below to keep length of headland polygon array
-        
-        ...Array(
-          _.slice(headlandPolygonCoords, 0, afterIdx + 1).length
-        ).fill(intersectionAfter.features[0].geometry.coordinates),
+
+        ...Array(_.slice(headlandPolygonCoords, 0, afterIdx + 1).length).fill(
+          intersectionAfter.features[0].geometry.coordinates
+        ),
 
         ..._.slice(headlandPolygonCoords, afterIdx + 1, beforeIdx + 1),
-        
-        ...Array(
-          _.slice(headlandPolygonCoords, beforeIdx + 1).length-1
-        ).fill(intersectionBefore.features[0].geometry.coordinates),
-        intersectionAfter.features[0].geometry.coordinates,
 
+        ...Array(_.slice(headlandPolygonCoords, beforeIdx + 1).length - 1).fill(
+          intersectionBefore.features[0].geometry.coordinates
+        ),
+        intersectionAfter.features[0].geometry.coordinates,
       ];
 
-      
       console.log(
         "headlandPolygonCoords.length 2: ",
         headlandPolygonCoords.length
@@ -244,20 +235,23 @@ export function applyHeadland(
     // if (intersectionAfter) intersectionPoints.push(intersectionAfter);
   });
 
-  headlandPolygonCoords = _.remove(headlandPolygonCoords, (coord, i) => {
-    // remove duplicate points, but keep first and last point the same
-    if (i !== 0 && i !== headlandPolygonCoords.length - 1) {
-      if (
-        coord[0] === headlandPolygonCoords[i - 1][0] &&
-        coord[1] === headlandPolygonCoords[i - 1][1]
-      ) {
-        // console.log(coord[0], headlandPolygonCoords[i - 1][0], i);
-        return false;
+  headlandPolygonCoords = _.remove(
+    headlandPolygonCoords,
+    (coord: number[], i) => {
+      // remove duplicate points, but keep first and last point the same
+      if (i !== 0 && i !== headlandPolygonCoords.length - 1) {
+        if (
+          coord[0] === headlandPolygonCoords[i - 1][0] &&
+          coord[1] === headlandPolygonCoords[i - 1][1]
+        ) {
+          // console.log(coord[0], headlandPolygonCoords[i - 1][0], i);
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      return true;
+    }
+  );
 
   console.log(
     "headlandPolygonCoordslength Total",

@@ -1,6 +1,6 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { ISpeciesSchema } from './species';
-import { ISystemSchema } from './system';
+import { ISpeciesSchema } from './species.js';
+import { ISystemSchema } from './system.js';
 
 export interface ISystemflowSchema {
     name: string,

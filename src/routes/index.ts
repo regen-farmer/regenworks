@@ -1,9 +1,9 @@
 import express from 'express';
-import User, { UserDocument } from '../models/user';
-import Parcel from '../models/parcel';
-import Activity from '../models/activity';
-import middleware from '../middleware'; // Will automatically require the middleware "index" file as the standard
-import { Auth0IDToken } from '../app';
+import User, { UserDocument } from '../models/user.js';
+import Parcel from '../models/parcel.js';
+import Activity from '../models/activity.js';
+import middleware from '../middleware/index.js'; // Will automatically require the middleware "index" file as the standard
+import { Auth0IDToken } from '../app.js';
 
 // import logger from '../middleware/logger';
 

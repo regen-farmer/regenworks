@@ -1,10 +1,10 @@
 import express from 'express';
-import Flow from '../models/flow';
-import Species from '../models/species';
-import Parcel from '../models/parcel';
-import middleware from '../middleware';
-import { UserDocument } from '../models/user';
-import { Auth0IDToken } from '../app';
+import Flow from '../models/flow.js';
+import Species from '../models/species.js';
+import Parcel from '../models/parcel.js';
+import middleware from '../middleware/index.js';
+import { UserDocument } from '../models/user.js';
+import { Auth0IDToken } from '../app.js';
 
 const router = express.Router();
 

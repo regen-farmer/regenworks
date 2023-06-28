@@ -1,9 +1,9 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { IActivitySchema } from './activity';
-import { IFarmFlowSchema } from './farmflow';
-import { INoteSchema } from './note';
-import { IRotationSchema } from './rotation';
-import { IUserSchema } from './user';
+import { IActivitySchema } from './activity.js';
+import { IFarmFlowSchema } from './farmflow.js';
+import { INoteSchema } from './note.js';
+import { IRotationSchema } from './rotation.js';
+import { IUserSchema } from './user.js';
 
 export interface IAreaSchema {
     name: string,

@@ -1,6 +1,6 @@
 import { model, Schema, HydratedDocument } from 'mongoose';
-import { ISpeciesSchema } from './species';
-import { IUserSchema } from './user';
+import { ISpeciesSchema } from './species.js';
+import { IUserSchema } from './user.js';
 
 export interface IRotationSchema {
     name: string,

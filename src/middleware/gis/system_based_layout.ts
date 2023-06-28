@@ -8,17 +8,28 @@ import {
   lineSplit,
   along,
   circle,
-  bearing,
 } from "@turf/turf";
-import { IProjectSchema } from "../../models/project";
-import { ISpeciesSchema } from "../../models/species";
-import { makeInitialLine } from "./make_line";
-import { makeTreeRowLines } from "./make_tree_row_lines";
-import { makeGroundCoverAreas } from "./make_ground_cover_areas";
-import { applyHeadland } from "./headland";
+import { IProjectSchema } from "../../models/project.js";
+import { ISpeciesSchema } from "../../models/species.js";
+import { makeInitialLine } from "./make_line.js";
+import { makeTreeRowLines } from "./make_tree_row_lines.js";
+import { makeGroundCoverAreas } from "./make_ground_cover_areas.js";
+import { applyHeadland } from "./headland.js";
+import SystemDesign from "../../models/systemdesign.js";
 
 export function systemBasedLayout(project: IProjectSchema) {
-  const systemRows = project.systemdesign.rows;
+
+  let systemdesign = project.systemdesign;
+  if (!systemdesign) {
+    systemdesign = new SystemDesign({
+      margin: 0,
+      headland: 0,
+      bearing: 0,
+      rows: [],
+    });
+  }
+
+  const systemRows = systemdesign.rows;
 
   const polygon = JSON.parse(project.layer.geometry);
   const boxCalibrate = bboxPolygon(bbox(polygon));
@@ -44,7 +55,7 @@ export function systemBasedLayout(project: IProjectSchema) {
   // MARGIN
   const marginPolygon = buffer(
     polygon,
-    -project.systemdesign.margin * calibrateDistance,
+    -systemdesign.margin * calibrateDistance,
     { units: "meters" }
   );
 
@@ -57,14 +68,14 @@ export function systemBasedLayout(project: IProjectSchema) {
   } = applyHeadland(
     marginPolygon,
     calibrateDistance,
-    project.systemdesign.headland,
-    project.systemdesign.bearing
+    systemdesign.headland,
+    systemdesign.bearing
   );
 
   const {
     lineIntersectingPolygon: lineIntersectingAreaInsideMargin,
     widthOfPolygon: widthOfAreaInsideMargin,
-  } = makeInitialLine(project.systemdesign.bearing, headlandPolygon);
+  } = makeInitialLine(systemdesign.bearing, headlandPolygon);
 
   // TREE ROW LINES
   const treeRowLines = makeTreeRowLines(
@@ -72,7 +83,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
-    project.systemdesign.rows
+    systemdesign.rows
   );
 
   // GROUND COVER AREAS
@@ -81,7 +92,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
-    project.systemdesign.rows
+    systemdesign.rows
   );
 
   // INDIVIDUAL TREES
@@ -91,7 +102,7 @@ export function systemBasedLayout(project: IProjectSchema) {
     circle: turf.Feature<turf.Polygon, turf.Properties>;
   }[] = [];
 
-  treeRowLines.forEach((treeRowLine, i) => {
+  treeRowLines.forEach((treeRowLine) => {
 
     if (
       systemRows[treeRowLine.systemDesignRowIndex].sequence.reduce(
@@ -123,7 +134,6 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
     if(!marker.species) return counts;
-    // console.log('marker.species', marker.species)
 
     const speciesId = marker.species.id;
     if (!counts[speciesId]) {
