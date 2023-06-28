@@ -40,10 +40,11 @@ router.get(
 router.post('/projects/:entityid/areas', async (c) => {
 await middleware.isLoggedIn(c);
   // CREATE AREA HERE?
+  const payload = await c.req.json();
   const area = {
-    geometry: (await c.req.json()).geometry,
-    name: (await c.req.json()).area.name,
-    size: (await c.req.json()).layersize,
+    geometry: payload.geometry,
+    name: payload.area.name,
+    size: payload.layersize,
   };
   // CREATE ROW
   try {

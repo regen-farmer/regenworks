@@ -74,9 +74,10 @@ export default function indexRoutes(
 router.post(
   '/stripe/checkout_session',
   async (c) => {
+    const payload = await c.req.json();
     const {
       email, priceId, currency, callbackUrl, customer,
-    } = (await c.req.json());
+    } = payload;
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
     const logdata = {
@@ -179,7 +180,7 @@ router.post(
     ];
 
     // console.log('arrived');
-    const payload = (await c.req.json());
+    const payload = await c.req.json();
     // console.log('payload', payload);
 
     const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
@@ -233,7 +234,7 @@ router.put(
   async (c) => {
     console.log('DELETE here');
     console.log('reqbody, ', c.req.param('subscriptionId'));
-    const payload = (await c.req.json());
+    const payload = await c.req.json();
     console.log('payload', payload);
 
     if (c.req.param('subscriptionId')) {
@@ -258,7 +259,7 @@ router.put(
   async (c) => {
     console.log('DELETE here');
     console.log('reqbody, ', c.req.param('subscriptionId'));
-    const payload = (await c.req.json());
+    const payload = await c.req.json();
     console.log('payload', payload);
 
     if (c.req.param('subscriptionId')) {

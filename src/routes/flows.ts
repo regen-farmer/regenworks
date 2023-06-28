@@ -47,13 +47,14 @@ await middleware.isLoggedIn(c);
 router.post('/species/:entityid/flows', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND SPECIES
+  const payload = await c.req.json();
   try {
     const foundSpecies = await Species.findById(c.req.param('entityid'));
-    console.log((await c.req.json()).flow);
+    console.log(payload.flow);
 
     if (foundSpecies) {
       try {
-        const createdFlow = await Flow.create((await c.req.json()).flow);
+        const createdFlow = await Flow.create(payload.flow);
         foundSpecies.flows.push(createdFlow);
         await foundSpecies.save();
         return c.json(`/species/${foundSpecies._id}`);

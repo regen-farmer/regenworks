@@ -51,10 +51,11 @@ await middleware.isLoggedIn(c);
 // ANIMAL CREATE
 router.post('/nurseries', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // SET INITIAL VARIABLE
-  const newNursery = (await c.req.json()).nursery;
+  const newNursery = payload.nursery;
   // GEOLOCATION
-  geocoder.geocode((await c.req.json()).nursery.location, async (err, data) => {
+  geocoder.geocode(payload.nursery.location, async (err, data) => {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
@@ -121,11 +122,12 @@ await middleware.isLoggedIn(c);
 // NURSERY UPDATE
 router.put('/nurseries/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
-  const newNursery = (await c.req.json()).nursery;
+  const newNursery = payload.nursery;
   // GEOLOCATION
-  geocoder.geocode((await c.req.json()).nursery.location, async (err, data) => {
+  geocoder.geocode(payload.nursery.location, async (err, data) => {
     if (err || !data.length) {
       console.log(err);
       console.log(data);

@@ -51,9 +51,10 @@ await middleware.isLoggedIn(c);
 // ASSET CREATE ROUTE
 router.post('/assets', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // Create a new experience
   try {
-    const createdAsset = await Asset.create((await c.req.json()).asset);
+    const createdAsset = await Asset.create(payload.asset);
     // Add ID to experience
     createdAsset.owner.id = c.get('user')?._id.toString()!;
     // Save the asset - Not needed if created after this step
@@ -111,11 +112,12 @@ router.get(
 // ASSET UPDATE ROUTE
 router.put('/assets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // UPDATE ASSET
   try {
     const updatedAsset = await Asset.findByIdAndUpdate(
       c.req.param('entityid'),
-      (await c.req.json()).asset,
+      payload.asset,
     );
     if (updatedAsset) {
       return c.json(`/assets/${updatedAsset._id}`);
@@ -186,10 +188,11 @@ router.post(
   '/layers/:entityid/assets',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
-        const createdAsset = await Asset.create((await c.req.json()).asset);
+        const createdAsset = await Asset.create(payload.asset);
 
         // Add user ID to experience
         createdAsset.owner.id = c.get('user')?._id.toString()!;

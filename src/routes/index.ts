@@ -154,9 +154,10 @@ await middleware.isLoggedIn(c);
   router.put("/users/:entityid", async (c) => {
 
     await middleware.checkUserOwnership(c);
+    const payload = await c.req.json();
 
     try {
-      await User.findByIdAndUpdate(c.req.param('entityid'), (await c.req.json()).user);
+      await User.findByIdAndUpdate(c.req.param('entityid'), payload.user);
       return c.json(`/users/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
@@ -184,14 +185,16 @@ await middleware.isLoggedIn(c);
   // SET CURRENTPROJECT //
 
   router.put("/users/:entityid/countrycode", async (c) => {
+
+    const payload = await c.req.json();
     // const foundUser = await User.findById(c.get('user')?.id);
-    if (!((await c.req.json()).countryCode.length === 2)) {
+    if (!(payload.countryCode.length === 2)) {
       c.status(400);
     }
-    console.log("cc body ", (await c.req.json()).countryCode as string);
+    console.log("cc body ", payload.countryCode as string);
     const updateUser = await User.findByIdAndUpdate(
       c.get("user")?.id,
-      { countryCode: (await c.req.json()).countryCode },
+      { countryCode: payload.countryCode },
       { new: true }
     );
     console.log("cc", updateUser?.countryCode);
@@ -208,12 +211,13 @@ await middleware.isLoggedIn(c);
     
     async (c) => {
       await middleware.checkUserOwnership(c);
+      const payload = await c.req.json();
       console.log("im here 2");
       try {
         const foundUser = await User.findById(c.get("user")?.id);
         console.log("im here 3");
         try {
-          const foundParcel = await Parcel.findById((await c.req.json()).parcelid);
+          const foundParcel = await Parcel.findById(payload.parcelid);
           console.log("im here 4", foundUser, foundParcel);
           if (foundUser && foundParcel) {
             console.log("im here 5");

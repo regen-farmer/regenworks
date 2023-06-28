@@ -68,27 +68,28 @@ export default function indexRoutes(
   // PARCEL CREATE ROUTE
   router.post("/parcels", async (c) => {
     await middleware.isLoggedIn(c);
+    const payload = await c.req.json();
     // Create variable with new place posted from place form
-    const name = (await c.req.json()).parcel.name;
+    const name = payload.parcel.name;
     const climate = {
-      annualaverageprec: (await c.req.json()).parcel.climate.annualaverageprec,
+      annualaverageprec: payload.parcel.climate.annualaverageprec,
       hardiness: {
         low: -1,
         high: 16,
       },
     };
-    const soilType = (await c.req.json()).parcel.soilType;
-    const agType = (await c.req.json()).parcel.agType;
-    const size = (await c.req.json()).parcel.size;
-    const description = (await c.req.json()).parcel.description;
-    const practices = (await c.req.json()).practiceids;
-    const measurement = (await c.req.json()).parcel.measurement;
+    const soilType = payload.parcel.soilType;
+    const agType = payload.parcel.agType;
+    const size = payload.parcel.size;
+    const description = payload.parcel.description;
+    const practices = payload.practiceids;
+    const measurement = payload.parcel.measurement;
     const owner = {
       id: c.get("user")?._id,
     };
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
     geocoder.geocode(
-      (await c.req.json()).parcel.location,
+      payload.parcel.location,
       async (err, data) => {
         if (err || !data.length) {
           console.log(err);
@@ -225,7 +226,7 @@ export default function indexRoutes(
               foundUser.currentProject = newlyCreated;
               await foundUser.save();
               // Save JSON file to geometry
-              newlyCreated.geometry = (await c.req.json()).geometry;
+              newlyCreated.geometry = payload.geometry;
               // Save the layer
               await newlyCreated.save();
               // ADD PRECIPITATION?HARDINESS?

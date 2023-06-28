@@ -62,12 +62,13 @@ router.post(
   '/layers/:entityid/sequences',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
         try {
-          const createdSequence = await Sequence.create((await c.req.json()).sequence);
+          const createdSequence = await Sequence.create(payload.sequence);
           // SAVE SEQUENCE ON LAYER?
           createdSequence.owner.id = c.get('user')?._id.toString()!;
           await createdSequence.save();
@@ -206,11 +207,12 @@ router.put(
   '/layers/:layerid/sequences/:sequenceid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(c.req.param('layerid'));
       try {
-        await Sequence.findByIdAndUpdate(c.req.param('sequenceid'), (await c.req.json()).sequence);
+        await Sequence.findByIdAndUpdate(c.req.param('sequenceid'), payload.sequence);
         if (foundLayer) {
           return c.json({});
         }
@@ -268,13 +270,14 @@ router.post(
   '/projects/:entityid/sequences',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND LAYER
     try {
       const foundProject = await Project.findById(c.req.param('entityid'));
 
       if (foundProject) {
         try {
-          const createdSequence = await Sequence.create((await c.req.json()).sequence);
+          const createdSequence = await Sequence.create(payload.sequence);
 
           // SAVE SEQUENCE ON LAYER?
           createdSequence.owner.id = c.get('user')?._id.toString()!;
@@ -391,12 +394,13 @@ router.put(
   '/projects/:entityid/sequences/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND LAYER
     try {
       const foundProject = await Project.findById(c.req.param('entityid'));
       console.log('FP', foundProject);
       try {
-        await Sequence.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).sequence);
+        await Sequence.findByIdAndUpdate(c.req.param('pid'), payload.sequence);
         if (foundProject) {
           return c.json({});
         }
@@ -411,6 +415,7 @@ router.put(
 
 router.patch('/sequence/:entityid/financials/activities', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   const sequence = await Sequence.findById(c.req.param('entityid'));
 
   const newActivities: [{
@@ -426,7 +431,7 @@ await middleware.isLoggedIn(c);
       price: number;
     }]
 
-  }] = (await c.req.json()).map((newactivity) => ({
+  }] = payload.map((newactivity) => ({
     id: newactivity.id,
     activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));

@@ -295,7 +295,7 @@ router.post(
 //             const foundParcel = await Parcel.findById(c.req.param('entityid'));
 //             if (foundParcel) {
 //               try {
-//                 const createdLayer = await Layer.create((await c.req.json()).layer);
+//                 const createdLayer = await Layer.create(payload.layer);
 //                 createdLayer.owner.id = c.get('user')?._id.toString()!;
 //                 createdLayer.geometry = geometry;
 //                 // CALCULATE LAYER SIZE
@@ -313,8 +313,8 @@ router.post(
 //                 if (createdLayer.type === 'agroforestry') {
 //                   return c.json(`/layers/${createdLayer._id}/systems/new`);
 //                 } else {
-//                   let tempspecies = (await c.req.json()).maincrop;
-//                   if ((await c.req.json()).maincrop === '') {
+//                   let tempspecies = payload.maincrop;
+//                   if (payload.maincrop === '') {
 //                     tempspecies = '5e665452cccc150b186d4cd1';
 //                   }
 //                   try {
@@ -338,10 +338,10 @@ router.post(
 //                         animals: [],
 //                       };
 //                       // FIND ANIMAL AND PUSH TO SYSTEM
-//                       if (!((await c.req.json()).animal === '')) {
+//                       if (!(payload.animal === '')) {
 //                         try {
 //                           const foundAnimal = await Animal.findById(
-//                             (await c.req.json()).animal,
+//                             payload.animal,
 //                           );
 //                           presentsystem.animals.push(foundAnimal);
 //                           // CREATE SYSTEM
@@ -517,10 +517,11 @@ router.put(
   '/layers/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const updatedLayer = await Layer.findByIdAndUpdate(
         c.req.param('entityid'),
-        (await c.req.json()).layer,
+        payload.layer,
       );
       console.log(updatedLayer);
       return c.json(`/layers/${c.req.param('entityid')}`);
@@ -587,10 +588,11 @@ router.post(
   '/layers/:entityid/presentsystem',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
       try {
-        const foundSystem = await System.findById((await c.req.json()).systemid);
+        const foundSystem = await System.findById(payload.systemid);
         // PUSH CURRENT SYSTEM TO PAST
         if (foundLayer && foundSystem) {
           if (foundLayer.systems.present) {
@@ -626,10 +628,11 @@ router.post(
   '/layers/:entityid/editfuture',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
       try {
-        const foundSystem = await System.findById((await c.req.json()).systemid);
+        const foundSystem = await System.findById(payload.systemid);
         if (foundLayer && foundSystem) {
           foundLayer.systems.future.push(foundSystem);
           await foundLayer.save();
@@ -982,6 +985,8 @@ router.post(
   '/layers/:entityid/split',
   async (c) => {
     await middleware.isLoggedIn(c)
+
+    const payload = await c.req.json();
     // FIND LAYER
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
@@ -989,7 +994,7 @@ router.post(
         // FIND LAYER GEOMETRY
         const polygon = JSON.parse(foundLayer.geometry);
         // PARSE SPLIT LINE
-        const splitLine = JSON.parse((await c.req.json()).geometry);
+        const splitLine = JSON.parse(payload.geometry);
         console.log(splitLine);
         // CHECK THAT ALL LINE POINTS EXCEPT LAST ARE WITHIN POLYGON
 
@@ -1131,20 +1136,22 @@ router.post(
   '/layers/:entityid/row',
   async (c) => {
     await middleware.isLoggedIn(c)
+
+    const payload = await c.req.json();
     // IF NO GEOMETRY
-    if ((await c.req.json()).geometry === '') {
+    if (payload.geometry === '') {
       return c.json({});
     } else {
       // CREATE ROW HERE?
-      const tempGeo = JSON.parse((await c.req.json()).geometry);
+      const tempGeo = JSON.parse(payload.geometry);
       const row: any = {
-        geometry: (await c.req.json()).geometry,
-        name: (await c.req.json()).row.name,
+        geometry: payload.geometry,
+        name: payload.row.name,
         // ADD ROW LENGTH PARAM
         rowlength: turfLength(tempGeo, { units: 'meters' }),
       };
-      if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
-        row.sequence = (await c.req.json()).sequenceid;
+      if (!(payload.sequenceid === 'none') && payload.sequenceid) {
+        row.sequence = payload.sequenceid;
       }
       console.log(row);
       // CREATE ROW
@@ -1210,12 +1217,14 @@ router.put(
   '/layers/:entityid/row/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+
+    const payload = await c.req.json();
     // CREATE ROW HERE?
     const row: any = {
-      name: (await c.req.json()).row.name,
+      name: payload.row.name,
     };
-    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
-      row.sequence = (await c.req.json()).sequenceid;
+    if (!(payload.sequenceid === 'none') && payload.sequenceid) {
+      row.sequence = payload.sequenceid;
     }
     // FIND LAYER
     try {

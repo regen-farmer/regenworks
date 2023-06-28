@@ -113,11 +113,12 @@ await middleware.isLoggedIn(c);
 // SERVICES CREATE ROUTE
 router.post('/projects', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // Create a new project
   try {
-    const service = await Project.create((await c.req.json()).project);
+    const service = await Project.create(payload.project);
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode((await c.req.json()).service.location, async (err, data) => {
+    geocoder.geocode(payload.service.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
         c.status(500)
@@ -217,10 +218,11 @@ router.get(
 // PROJECT UPDATE ROUTE
 router.put('/projects/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   try {
     await Project.findByIdAndUpdate(
       c.req.param('entityid'),
-      (await c.req.json()).project,
+      payload.project,
     );
     // req.flash("success", "Successfully added service");
     return c.json(`/projects/${c.req.param('entityid')}`);
@@ -232,10 +234,11 @@ await middleware.isLoggedIn(c);
 // PROJECT UPDATE ROUTE
 router.put('/projects/:entityid/layout', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   try {
     await Project.findByIdAndUpdate(
       c.req.param('entityid'),
-      (await c.req.json()).project,
+      payload.project,
     );
     // req.flash("success", "Successfully added service");
     return c.json(`/projects/${c.req.param('entityid')}/layout`);
@@ -449,9 +452,10 @@ router.post(
   '/projects/:entityid/addedgesystem',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND SYSTEM
     try {
-      const foundSystem = await System.findById((await c.req.json()).systemid);
+      const foundSystem = await System.findById(payload.systemid);
 
       // FIND PROJECT
       try {
@@ -892,6 +896,7 @@ router.post(
   '/layers/:entityid/projects',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // Lookup place using id
 
     try {
@@ -899,7 +904,7 @@ router.post(
         .populate('rows')
         .exec();
 
-      const createdProject = await Project.create((await c.req.json()).project);
+      const createdProject = await Project.create(payload.project);
 
       if (foundLayer && createdProject) {
         // CREATE CURRENCY
@@ -916,7 +921,7 @@ router.post(
         foundLayer.projects.push(createdProject.id);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if ((await c.req.json()).existingrows === 'on') {
+        if (payload.existingrows === 'on') {
           const newRows: {
             geometry: string;
             name: string;
@@ -956,6 +961,7 @@ router.post(
   '/layers/:entityid/systems/:system/projects',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // Lookup place using id
 
     try {
@@ -963,7 +969,7 @@ router.post(
         .populate('rows')
         .exec();
 
-      const createdProject = await Project.create((await c.req.json()).project);
+      const createdProject = await Project.create(payload.project);
 
       // FIND SYSTEM AND ADD TO PROJECT
       const foundSystem = await System.findById(c.req.param('system'))
@@ -985,7 +991,7 @@ router.post(
         foundLayer.projects.push(createdProject);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if ((await c.req.json()).existingrows === 'on') {
+        if (payload.existingrows === 'on') {
           const newRows: {
             geometry: string;
             name: string;
@@ -1083,21 +1089,22 @@ router.get(
 // ROW CREATE ROUTE
 router.post('/projects/:entityid/row', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // REDIRECT IF NO GEOMETRY
-  if ((await c.req.json()).geometry === '') {
+  if (payload.geometry === '') {
     c.status(400)
 return c.json({ error: 'No geometry found' });
   } else {
     // CREATE ROW HERE?
-    const tempGeo = JSON.parse((await c.req.json()).geometry);
+    const tempGeo = JSON.parse(payload.geometry);
     const row: any = {
-      geometry: (await c.req.json()).geometry,
-      name: (await c.req.json()).row.name,
+      geometry: payload.geometry,
+      name: payload.row.name,
       // ADD ROW LENGTH PARAM
       rowlength: turfLength(tempGeo, { units: 'meters' }),
     };
-    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
-      row.sequence = (await c.req.json()).sequenceid;
+    if (!(payload.sequenceid === 'none') && payload.sequenceid) {
+      row.sequence = payload.sequenceid;
     }
     console.log(row);
     // CREATE ROW
@@ -1167,12 +1174,13 @@ router.put(
   '/projects/:entityid/row/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CREATE ROW HERE?
     const row: any = {
-      name: (await c.req.json()).row.name,
+      name: payload.row.name,
     };
-    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
-      row.sequence = (await c.req.json()).sequenceid;
+    if (!(payload.sequenceid === 'none') && payload.sequenceid) {
+      row.sequence = payload.sequenceid;
     }
     // FIND PROJECT
     try {
@@ -1197,6 +1205,7 @@ router.delete(
   '/projects/:entityid/row/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    
     // FIND LAYER
     try {
       const updatedProject = await Project.findById(c.req.param('entityid'));
@@ -1268,14 +1277,15 @@ router.put(
   '/projects/:entityid/areas/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CREATE AREA HERE?
 
     const area: any = {
-      name: (await c.req.json()).area.name,
+      name: payload.area.name,
     };
 
-    if (!((await c.req.json()).rotationid === 'none') && (await c.req.json()).rotationid) {
-      area.rotation = (await c.req.json()).rotationid;
+    if (!(payload.rotationid === 'none') && payload.rotationid) {
+      area.rotation = payload.rotationid;
     }
     // FIND PROJECT
     try {
@@ -1397,10 +1407,11 @@ await middleware.isLoggedIn(c);
 
 router.patch('/projects/:entityid/financials', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   const project = await Project.findById(c.req.param('entityid'));
 
-  project!.financial.discountRate = (await c.req.json()).discountrate;
-  project!.financial.period = (await c.req.json()).timeperiod;
+  project!.financial.discountRate = payload.discountrate;
+  project!.financial.period = payload.timeperiod;
   await project!.save();
 
   return c.json({});
@@ -1408,6 +1419,7 @@ await middleware.isLoggedIn(c);
 
 router.patch('/projects/:entityid/financials/activities', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   const project = await Project.findById(c.req.param('entityid')).populate('system');
 
   const system = project?.system;
@@ -1425,7 +1437,7 @@ await middleware.isLoggedIn(c);
       price: number;
     }]
 
-  }] = (await c.req.json()).map((newactivity) => ({
+  }] = payload.map((newactivity) => ({
     id: newactivity.id,
     activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));
@@ -1478,10 +1490,11 @@ router.get(
 // UPDATE PROJECT ALIGNMENT
 router.put('/projects/:entityid/alignmentrow', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   try {
     await Project.findByIdAndUpdate(
       c.req.param('entityid'),
-      { alignment: 'bearing', bearingline: (await c.req.json()).geometry },
+      { alignment: 'bearing', bearingline: payload.geometry },
     );
     // req.flash("success", "Successfully added service");
     return c.json(`/projects/${c.req.param('entityid')}/layout`);

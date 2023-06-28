@@ -39,9 +39,10 @@ await middleware.isLoggedIn(c);
 // SPECIES CREATE
 router.post('/species', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // ONLY ADMIN ACCESS?
   try {
-    const createdSpecies = await Species.create((await c.req.json()).species);
+    const createdSpecies = await Species.create(payload.species);
     console.log(createdSpecies);
     return c.json(createdSpecies);
   } catch (err) {
@@ -78,10 +79,11 @@ await middleware.isLoggedIn(c);
 // SPECIES UPDATE
 router.put('/species/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   try {
     const updatedSpecies = await Species.findByIdAndUpdate(
       c.req.param('entityid'),
-      (await c.req.json()).species,
+      payload.species,
     );
     console.log(updatedSpecies);
     return c.json(`/species/${c.req.param('entityid')}`);
@@ -111,23 +113,24 @@ router.post(
   '/species/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
-    const types = (await c.req.json()).activity.activityType.split(' ');
+    const types = payload.activity.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: (await c.req.json()).activity.name,
+      name: payload.activity.name,
       time: {
-        startMonth: (await c.req.json()).activity.time.startMonth,
-        endMonth: (await c.req.json()).activity.time.endMonth,
+        startMonth: payload.activity.time.startMonth,
+        endMonth: payload.activity.time.endMonth,
       },
-      price: (await c.req.json()).activity.price,
+      price: payload.activity.price,
     };
     try {
       const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('entityid'), {
         $addToSet: { activities: activity },
       });
-      console.log(`${(await c.req.json()).activity.name} has been added to the species`);
+      console.log(`${payload.activity.name} has been added to the species`);
       return c.json(`/species/${updatedSpecies?._id}`);
     } catch (err) {
       console.log(err);
@@ -165,17 +168,18 @@ router.put(
   '/species/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
-    const types = (await c.req.json()).activity.activityType.split(' ');
+    const types = payload.activity.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: (await c.req.json()).activity.name,
+      name: payload.activity.name,
       time: {
-        startMonth: (await c.req.json()).activity.time.startMonth,
-        endMonth: (await c.req.json()).activity.time.endMonth,
+        startMonth: payload.activity.time.startMonth,
+        endMonth: payload.activity.time.endMonth,
       },
-      price: (await c.req.json()).activity.price,
+      price: payload.activity.price,
     };
     // FIND SPECIES
     try {
@@ -213,9 +217,10 @@ router.put(
   '/species/:entityid/nutrients',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('entityid'), {
-        $set: { nutrients: (await c.req.json()).nutrients },
+        $set: { nutrients: payload.nutrients },
       });
       if (updatedSpecies) {
         return c.json(`/species/${updatedSpecies._id}`);

@@ -88,6 +88,7 @@ router.put(
   '/projects/:projectid/set-systemdesign',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND PROJECT
     const foundProject = await Project.findById(c.req.param('projectid')).populate('systemdesign');
 
@@ -98,11 +99,11 @@ router.put(
       if (foundProject.systemdesign) {
         console.log('##### found system design #####');
 
-        await foundProject.systemdesign.replaceOne((await c.req.json()));
+        await foundProject.systemdesign.replaceOne(payload);
       } else {
         console.log('##### didnt find system design #####');
 
-        const newSystemDesign = await new SystemDesign((await c.req.json()));
+        const newSystemDesign = await new SystemDesign(payload);
         await newSystemDesign.save();
         foundProject.systemdesign = newSystemDesign;
         await foundProject.save();

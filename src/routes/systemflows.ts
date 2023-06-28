@@ -49,10 +49,11 @@ await middleware.isLoggedIn(c);
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
 router.post('/systems/:entityid/flows', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // FIND SYSTEM
   try {
     const foundSystem = await System.findById(c.req.param('entityid'));
-    const flow = (await c.req.json()).flow;
+    const flow = payload.flow;
     const data: any[] = [];
     for (let i = 0; i < flow.data.length; i++) {
       if (!(flow.data[i].species === '')) {
@@ -63,7 +64,7 @@ await middleware.isLoggedIn(c);
 
     if (foundSystem) {
       try {
-        const createdSystemflow = await Systemflow.create((await c.req.json()).flow);
+        const createdSystemflow = await Systemflow.create(payload.flow);
         foundSystem.flows.push(createdSystemflow);
         await foundSystem.save();
         return c.json(`/systems/${foundSystem._id}`);

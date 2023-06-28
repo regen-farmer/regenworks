@@ -43,16 +43,17 @@ await middleware.isLoggedIn(c);
 // PARCEL LAYER SOIL TEST CREATE
 router.post('/parcels/:entityid/layers/:pid/saptests', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // PARSE COORDINATES
-  /* var sapTest = (await c.req.json()).saptest;
-    var parsedCoordinates = (await c.req.json()).coordinates.split(", ");
+  /* var sapTest = payload.saptest;
+    var parsedCoordinates = payload.coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
     return c.json("/parcels/" + c.req.param('entityid') + "/status"); */
   // CREATE SOIL TEST
   try {
-    const createdSaptest = await Saptest.create((await c.req.json()).saptest);
+    const createdSaptest = await Saptest.create(payload.saptest);
     try {
       await Layer.findByIdAndUpdate(c.req.param('pid'), { $push: { saptests: createdSaptest } });
       // RENDER PARCEL LAYER SAP TEST PAGE

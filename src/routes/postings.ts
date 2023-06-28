@@ -45,13 +45,14 @@ router.post(
   '/budgets/:entityid/postings',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {
       const foundBudget = await Budget.findById(c.req.param('entityid'));
       if (foundBudget) {
         try {
-          const createdPosting = await Posting.create((await c.req.json()).posting);
+          const createdPosting = await Posting.create(payload.posting);
           console.log(createdPosting);
           // SAVE POSTING ON BUDGET
           foundBudget.postings.push(createdPosting);
@@ -95,11 +96,12 @@ router.put(
   '/budgets/:entityid/postings/:postid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND POSTING AND UPDATE
     try {
       await Posting.findByIdAndUpdate(
         c.req.param('postid'),
-        (await c.req.json()).posting,
+        payload.posting,
       );
       return c.json(`/budgets/${c.req.param('entityid')}`);
     } catch (err) {
@@ -138,6 +140,7 @@ router.post(
   '/parcels/:entityid/layers/:bid/accounts/postings',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {
@@ -149,7 +152,7 @@ router.post(
           const foundBudget = await Budget.findById(foundLayer.accounts._id);
           if (foundBudget) {
             try {
-              const createdPosting = await Posting.create((await c.req.json()).posting);
+              const createdPosting = await Posting.create(payload.posting);
               console.log(createdPosting);
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);

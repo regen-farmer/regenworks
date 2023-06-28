@@ -56,15 +56,16 @@ await middleware.isLoggedIn(c);
 // VATERTY CREATE
 router.post('/varieties', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // CLEAN NONE OPTIONS
-  const variety = (await c.req.json()).variety;
-  if ((await c.req.json()).variety.species === '') {
+  const variety = payload.variety;
+  if (payload.variety.species === '') {
     delete variety.species;
   }
-  if ((await c.req.json()).variety.hybrid === '') {
+  if (payload.variety.hybrid === '') {
     delete variety.hybrid;
   }
-  if ((await c.req.json()).variety.rootstock.species === '') {
+  if (payload.variety.rootstock.species === '') {
     delete variety.rootstock.species;
   }
   // CREATE VARIETY

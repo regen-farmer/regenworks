@@ -114,10 +114,11 @@ await middleware.isLoggedIn(c);
 // BUDGET UPDATE ROUTE
 router.post('/budgets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   try {
     const updatedBudget = await Budget.findByIdAndUpdate(
       c.req.param('entityid'),
-      (await c.req.json()).budget,
+      payload.budget,
     );
     if (updatedBudget) {
       return c.json(`/budgets/${updatedBudget._id}`);
@@ -196,7 +197,7 @@ router.get(
 //   middleware.isLoggedIn,
 //   async (c) => {
 //     const foundProject = await Project.findById(c.req.param('entityid'));
-//     const createdBudget = await Budget.create((await c.req.json()).budget);
+//     const createdBudget = await Budget.create(payload.budget);
 
 //     if (foundProject) {
 //     // BUDGET OWNER
@@ -297,6 +298,7 @@ router.post(
   '/projects/:entityid/generateestablishment',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(c.req.param('entityid'))
@@ -316,13 +318,13 @@ router.post(
         .exec();
       if (foundProject) {
         // CREATE BUDGET AND PLACE IN PROJECT
-        // const budget = (await c.req.json()).budget;
+        // const budget = payload.budget;
         try {
           const createdBudget = await Budget.create({});
           foundProject.budgets.establishment = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings: string[] = (await c.req.json()).speciespostings;
+          const speciesPostings: string[] = payload.speciespostings;
           const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
@@ -608,6 +610,7 @@ router.post(
   '/projects/:entityid/generatemanagement',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND PROJECT
     try {
       const foundProject = await Project.findById(c.req.param('entityid'))
@@ -637,13 +640,13 @@ router.post(
 
       if (foundProject) {
         // CREATE BUDGET AND PLACE IN PROJECT
-        const budget = (await c.req.json()).budget;
+        const budget = payload.budget;
         try {
           const createdBudget = await Budget.create(budget);
           foundProject.budgets.management = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings: string[] = (await c.req.json()).speciespostings;
+          const speciesPostings: string[] = payload.speciespostings;
           const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
@@ -683,7 +686,7 @@ router.post(
             /// //////////////////
             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
             const postings: IPostingSchema[] = [];
-            const period = (await c.req.json()).period;
+            const period = payload.period;
             // FIND UNIQUE AREA SPECIES
             const uniqueAreaSpecies: ISpeciesSchema[] = [];
             // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
@@ -753,7 +756,7 @@ router.post(
                   //         /////////////////////
                   //         // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
                   //         var postings: any[] = [];
-                  //         var period = (await c.req.json()).period;
+                  //         var period = payload.period;
                   //         // FIND UNIQUE AREA SPECIES
                   //         var uniqueAreaSpecies: any[] = [];
                   //         // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS

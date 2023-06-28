@@ -53,16 +53,17 @@ router.post(
   '/parcels/:entityid/layers/:pid/soiltests',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // PARSE COORDINATES
-    /* var soilTest = (await c.req.json()).soiltest;
-    var parsedCoordinates = (await c.req.json()).coordinates.split(", ");
+    /* var soilTest = payload.soiltest;
+    var parsedCoordinates = payload.coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
     return c.json("/parcels/" + c.req.param('entityid') + "/status"); */
     // CREATE SOIL TEST
     try {
-      const createdSoiltest = await Soiltest.create((await c.req.json()).soiltest);
+      const createdSoiltest = await Soiltest.create(payload.soiltest);
       try {
         await Layer.findByIdAndUpdate(
           c.req.param('pid'),

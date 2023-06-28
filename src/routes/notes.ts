@@ -45,9 +45,10 @@ await middleware.isLoggedIn(c);
 // CREATE NOTE ON ROW
 router.post('/parcels/:entityid/layers/:pid/rows/:rid/notes', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // CREATE ACTIVITY
   try {
-    const createdNote = await Note.create((await c.req.json()).note);
+    const createdNote = await Note.create(payload.note);
     try {
       await Row.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });
       return c.json(`/parcels/${c.req.param('entityid')}/notes`);
@@ -70,8 +71,9 @@ await middleware.isLoggedIn(c);
 // CREATE NOTE ON ROW
 router.post('/parcels/:entityid/layers/:pid/areas/:rid/notes', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // CREATE ACTIVITY
-  const createdNote = await Note.create((await c.req.json()).note);
+  const createdNote = await Note.create(payload.note);
 
   try {
     await Area.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });

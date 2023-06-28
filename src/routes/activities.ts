@@ -62,7 +62,8 @@ router.get(
   async (c) => {
     await middleware.isLoggedIn(c);
     const parcel = undefined;
-    console.log((await c.req.json()).picked);
+    const payload = await c.req.json();
+    console.log(payload.picked);
     try {
       const foundLayers = await Layer.find({ 'owner.id': c.get('user')?._id });
       // console.log("Reached this far");
@@ -81,9 +82,10 @@ router.post(
   '/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // Create a new experience
     try {
-      const createdActivity = await Activity.create((await c.req.json()).activity);
+      const createdActivity = await Activity.create(payload.activity);
       // Add  ID to experience
       createdActivity.owner.id = c.get('user')!;
       createdActivity.status = true;
@@ -166,10 +168,11 @@ router.put(
   '/activities/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const updatedActivity = await Activity.findByIdAndUpdate(
         c.req.param('entityid'),
-        (await c.req.json()).activity,
+        payload.activity,
       );
       console.log(updatedActivity);
       return c.json(`/activities/${c.req.param('entityid')}`);
@@ -251,7 +254,7 @@ router.get(
 //     const foundParcel = await Parcel.findById(c.req.param('entityid'));
 //     if (foundParcel) {
 //       try {
-//         const activity = await Activity.create((await c.req.json()).activity);
+//         const activity = await Activity.create(payload.activity);
 //         console.log(activity);
 //         // Add  ID to task.
 //         activity.owner.id = c.get('user')?._id;
@@ -292,11 +295,12 @@ router.post(
   '/projects/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const foundProject = await Project.findById(c.req.param('entityid'));
       if (foundProject) {
         try {
-          const createdActivity = await Activity.create((await c.req.json()).activity);
+          const createdActivity = await Activity.create(payload.activity);
           // Add ID to task.
           createdActivity.status = true;
           createdActivity.owner.id = c.get('user')!;
@@ -398,9 +402,10 @@ router.put(
   '/projects/:entityid/activities/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // FIND ACTIVITY AND UPDATE
     try {
-      await Activity.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).activity);
+      await Activity.findByIdAndUpdate(c.req.param('pid'), payload.activity);
       return c.json(`/projects/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
@@ -487,18 +492,19 @@ router.post(
   '/parcels/:entityid/layers/:pid/rows/:rid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json()
     // CREATE ACTIVITY
-    const types = (await c.req.json()).activityType.split(' ');
+    const types = payload.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: (await c.req.json()).activity.name,
-      description: (await c.req.json()).activity.description,
+      name: payload.activity.name,
+      description: payload.activity.description,
       start: {
-        date: (await c.req.json()).activity.start.date,
+        date: payload.activity.start.date,
       },
-      time: (await c.req.json()).activity.time,
-      species: (await c.req.json()).activity.species,
+      time: payload.activity.time,
+      species: payload.activity.species,
     };
     try {
       const createdActivity = await Activity.create(activity);
@@ -561,18 +567,19 @@ router.post(
   '/parcels/:entityid/layers/:pid/areas/:rid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CREATE ACTIVITY
-    const types = (await c.req.json()).activityType.split(' ');
+    const types = payload.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: (await c.req.json()).activity.name,
-      description: (await c.req.json()).activity.description,
+      name: payload.activity.name,
+      description: payload.activity.description,
       start: {
-        date: (await c.req.json()).activity.start.date,
+        date: payload.activity.start.date,
       },
-      time: (await c.req.json()).activity.time,
-      species: (await c.req.json()).activity.species,
+      time: payload.activity.time,
+      species: payload.activity.species,
     };
     try {
       const createdActivity = await Activity.create(activity);

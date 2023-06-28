@@ -81,7 +81,7 @@ app.use(
 
     const jwt = c.req.headers.get("authorization");
 
-    // console.log('body:', (await c.req.json()))
+    // console.log('body:', payload)
 
     async function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary

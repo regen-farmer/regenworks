@@ -75,18 +75,19 @@ router.post(
   '/nurseries/:entityid/nurseryproducts',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CLEAN NONE OPTIONS
-    const product = (await c.req.json()).product;
-    if ((await c.req.json()).product.species === '') {
+    const product = payload.product;
+    if (payload.product.species === '') {
       delete product.species;
     }
-    if ((await c.req.json()).product.hybrid === '') {
+    if (payload.product.hybrid === '') {
       delete product.hybrid;
     }
-    if ((await c.req.json()).product.rootstock === '') {
+    if (payload.product.rootstock === '') {
       delete product.rootstock;
     }
-    if ((await c.req.json()).product.availability) {
+    if (payload.product.availability) {
       product.availability = true;
     }
     // FIND NURSERY
@@ -193,35 +194,36 @@ router.put(
   '/nurseries/:entityid/nurseryproducts/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CLEAN NONE OPTIONS
-    const product = (await c.req.json()).product;
-    if ((await c.req.json()).product.species === '') {
+    const product = payload.product;
+    if (payload.product.species === '') {
       delete product.species;
     }
-    if ((await c.req.json()).product.hybrid === '') {
+    if (payload.product.hybrid === '') {
       delete product.hybrid;
     }
-    if ((await c.req.json()).product.rootstock === '') {
+    if (payload.product.rootstock === '') {
       delete product.rootstock;
     }
-    if ((await c.req.json()).product.availability) {
+    if (payload.product.availability) {
       product.availability = true;
     } else {
       product.availability = false;
     }
-    console.log((await c.req.json()).product.availability);
-    console.log(typeof (await c.req.json()).product.availability);
+    console.log(payload.product.availability);
+    console.log(typeof payload.product.availability);
     try {
       const updatedProduct = await NurseryProduct.findByIdAndUpdate(
         c.req.param('pid'),
         product,
       );
       // REDIRECT TO PRODUCT
-      /* if((await c.req.json()).product.hybrid === ""){
+      /* if(payload.product.hybrid === ""){
                 updatedProduct.hybrid = {};
                 updatedProduct.save();
             }
-            if((await c.req.json()).product.rootstock === ""){
+            if(payload.product.rootstock === ""){
                 delete updatedProduct.rootstock;
                 updatedProduct.save();
             } */

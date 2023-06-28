@@ -82,11 +82,12 @@ export default function indexRoutes(
   // CREATE FARMFLOW ON ROW
   router.post("/parcels/:entityid/layers/:pid/rows/:rid/farmflows", async (c) => {
     await middleware.isLoggedIn(c);
+    const payload = await c.req.json();
     // FIND SPECIES
     try {
-      const foundSpecies = await Species.findById((await c.req.json()).species);
+      const foundSpecies = await Species.findById(payload.species);
       // CREATE ACTIVITY
-      const newFarmFlow = (await c.req.json()).farmflow;
+      const newFarmFlow = payload.farmflow;
       newFarmFlow.species = foundSpecies;
       const createdFarmflow = await Farmflow.create(newFarmFlow);
 
@@ -141,11 +142,12 @@ export default function indexRoutes(
   // CREATE FARMFLOW ON AREA
   router.post("/parcels/:entityid/layers/:pid/areas/:rid/farmflows", async (c) => {
     await middleware.isLoggedIn(c);
+    const payload = await c.req.json();
     // FIND SPECIES
     try {
-      const foundSpecies = await Species.findById((await c.req.json()).species);
+      const foundSpecies = await Species.findById(payload.species);
       // CREATE ACTIVITY
-      const newFarmFlow = (await c.req.json()).farmflow;
+      const newFarmFlow = payload.farmflow;
       newFarmFlow.species = foundSpecies;
       const createdFarmflow = await Farmflow.create(newFarmFlow);
 

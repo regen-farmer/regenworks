@@ -93,16 +93,17 @@ router.post(
   '/layers/:entityid/systems/newgrid',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     // CHECK LENGTH IS DIVISIBLE
-    if (((await c.req.json()).length / (await c.req.json()).distance) % 1 === 0) {
+    if ((payload.length / payload.distance) % 1 === 0) {
       // FIND LAYER
       try {
         const foundLayer = await Layer.findById(c.req.param('entityid'));
         return c.json(
           `/layers/${foundLayer?._id
-          }/systems/new?rows=${(await c.req.json()).rows
-          }&distance=${(await c.req.json()).distance
-          }&length=${(await c.req.json()).length}`,
+          }/systems/new?rows=${payload.rows
+          }&distance=${payload.distance
+          }&length=${payload.length}`,
         );
       } catch (err) {
         console.log(err);
@@ -122,10 +123,11 @@ router.post(
   '/layers/:entityid/systems',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
-        const system = (await c.req.json()).system;
+        const system = payload.system;
 
         console.log('system received', JSON.stringify(system));
 
@@ -183,7 +185,7 @@ router.post(
           }
         }
         // SET BOOLEAN
-        if ((await c.req.json()).system.shared) {
+        if (payload.system.shared) {
           system.shared = true;
         }
         // CREATE SYSTEM
@@ -709,6 +711,7 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put('/systems/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
+const payload = await c.req.json();
   // NEED TO CHECK OWNERSHIP HERE!!! YES
   try {
     const foundSystem = await System.findById(c.req.param('entityid'));
@@ -716,9 +719,9 @@ await middleware.isLoggedIn(c);
     if (foundSystem) {
       // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
       // GET SYSTEM
-      const system = (await c.req.json()).system;
+      const system = payload.system;
       // SET BOOLEAN
-      if ((await c.req.json()).system.shared) {
+      if (payload.system.shared) {
         system.shared = true;
       }
       // NEW GRID MODEL SETUP
@@ -1280,12 +1283,13 @@ router.put(
   '/systems/:entityid/occurrences',
   async (c) => {
     await middleware.isLoggedIn(c)
+    const payload = await c.req.json();
     try {
       const updatedSystem = await System.findByIdAndUpdate(c.req.param('entityid'), {
-        $addToSet: { occurrences: (await c.req.json()).occurrence },
+        $addToSet: { occurrences: payload.occurrence },
       });
       if (updatedSystem) {
-        console.log(`${(await c.req.json()).occurrence} has been added to the system`);
+        console.log(`${payload.occurrence} has been added to the system`);
         return c.json(`/systems/${updatedSystem._id}`);
       } else {
         console.log('No updatedSystem');

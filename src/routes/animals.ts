@@ -33,8 +33,9 @@ export default function indexRoutes(
   // ANIMAL CREATE
   router.post("/animals", async (c) => {
     await middleware.isLoggedIn(c);
+    const payload = await c.req.json();
     try {
-      const createdAnimal = await Animal.create((await c.req.json()).animal);
+      const createdAnimal = await Animal.create(payload.animal);
       console.log(`Animal created: ${createdAnimal}`);
       return c.json("/animals");
     } catch (err) {
