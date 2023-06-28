@@ -1,5 +1,5 @@
 import proj4 from 'proj4';
-import joinImages from 'join-images';
+import {joinImages} from 'join-images';
 import sharp from 'sharp';
 import { PNG } from 'pngjs';
 
