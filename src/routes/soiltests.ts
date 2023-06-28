@@ -23,12 +23,12 @@ export default function indexRoutes(
 
 // PARCEL LAYER SOIL TEST NEW
 router.get(
-  '/parcels/:id/layers/:pid/soiltests/new',
+  '/parcels/:entityid/layers/:pid/soiltests/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate('layers')
         .exec();
       // FIND LAYER
@@ -50,7 +50,7 @@ router.get(
 
 // PARCEL LAYER SOIL TEST CREATE
 router.post(
-  '/parcels/:id/layers/:pid/soiltests',
+  '/parcels/:entityid/layers/:pid/soiltests',
   async (c) => {
     await middleware.isLoggedIn(c)
     // PARSE COORDINATES
@@ -59,7 +59,7 @@ router.post(
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    return c.json("/parcels/" + c.req.param('id') + "/status"); */
+    return c.json("/parcels/" + c.req.param('entityid') + "/status"); */
     // CREATE SOIL TEST
     try {
       const createdSoiltest = await Soiltest.create((await c.req.json()).soiltest);
@@ -69,7 +69,7 @@ router.post(
           { $push: { soiltests: createdSoiltest } },
         );
         // RENDER PARCEL LAYER SOIL TEST PAGE
-        return c.json(`/parcels/${c.req.param('id')}/status`);
+        return c.json(`/parcels/${c.req.param('entityid')}/status`);
       } catch (err) {
         console.log(err);
       }
@@ -81,12 +81,12 @@ router.post(
 
 // PARCEL
 router.get(
-  '/parcels/:id/soiltests/viz',
+  '/parcels/:entityid/soiltests/viz',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({ path: 'layers', populate: { path: 'soiltests' } })
         .exec();
       if (foundParcel) {

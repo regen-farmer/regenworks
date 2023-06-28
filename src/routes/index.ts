@@ -125,11 +125,11 @@ await middleware.isLoggedIn(c);
   });
 
   // SHOW USER ROUTE
-  router.get("/users/:id", async (c) => {
+  router.get("/users/:entityid", async (c) => {
 
     await middleware.checkUserOwnership(c);
     try {
-      const foundUser = await User.findById(c.req.param('id'))
+      const foundUser = await User.findById(c.req.param('entityid'))
         .populate("parcels")
         .exec();
       return c.json({ user: foundUser });
@@ -139,11 +139,11 @@ await middleware.isLoggedIn(c);
   });
 
   // USER EDIT ROUTE
-  router.get("/users/:id/edit", async (c) => {
+  router.get("/users/:entityid/edit", async (c) => {
 
     await middleware.checkUserOwnership(c);
     try {
-      const foundUser = await User.findById(c.req.param("id"));
+      const foundUser = await User.findById(c.req.param('entityid'));
       return c.json({ user: foundUser });
     } catch (err) {
       console.log(err);
@@ -151,24 +151,24 @@ await middleware.isLoggedIn(c);
   });
 
   // USER UPDATE ROUTE
-  router.put("/users/:id", async (c) => {
+  router.put("/users/:entityid", async (c) => {
 
     await middleware.checkUserOwnership(c);
 
     try {
-      await User.findByIdAndUpdate(c.req.param("id"), (await c.req.json()).user);
-      return c.json(`/users/${c.req.param("id")}`);
+      await User.findByIdAndUpdate(c.req.param('entityid'), (await c.req.json()).user);
+      return c.json(`/users/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
     }
   });
 
   // USER DELETE ROUTE
-  // router.delete("/users/:id", async function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+  // router.delete("/users/:entityid", async function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
     // await middleware.checkUserOwnership(c)
   //     try {
 
-  //         let user = await User.findByIdAndRemove(c.req.param('id'));
+  //         let user = await User.findByIdAndRemove(c.req.param('entityid'));
 
   //         // Flash message
   //         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
@@ -183,7 +183,7 @@ await middleware.isLoggedIn(c);
 
   // SET CURRENTPROJECT //
 
-  router.put("/users/:id/countrycode", async (c) => {
+  router.put("/users/:entityid/countrycode", async (c) => {
     // const foundUser = await User.findById(c.get('user')?.id);
     if (!((await c.req.json()).countryCode.length === 2)) {
       c.status(400);
@@ -204,7 +204,7 @@ await middleware.isLoggedIn(c);
   });
 
   router.put(
-    "/users/:id/currentproject",
+    "/users/:entityid/currentproject",
     
     async (c) => {
       await middleware.checkUserOwnership(c);
@@ -232,13 +232,13 @@ await middleware.isLoggedIn(c);
   );
 
   // PARCEL STATUS PAGE
-  router.get("/parcels/:id/status", async (c) => {
+  router.get("/parcels/:entityid/status", async (c) => {
     // FIND PARCEL
 
     await middleware.isLoggedIn(c);
 
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({ path: "layers", populate: { path: "soiltests" } })
         .exec();
       return c.json({ parcel: foundParcel });

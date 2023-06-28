@@ -60,10 +60,10 @@ await middleware.isLoggedIn(c);
 });
 
 // NESTED AREA SYSTEM INDEX
-/* router.get("/layers/:id/systems", function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+/* router.get("/layers/:entityid/systems", function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
   await middleware.isLoggedIn(c)
     // FIND LAYER ID
-    Layer.findById(c.req.param('id')).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
+    Layer.findById(c.req.param('entityid')).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err) {
             console.log(err);
         } else {
@@ -74,12 +74,12 @@ await middleware.isLoggedIn(c);
 
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
-  '/layers/:id/systems/newgrid',
+  '/layers/:entityid/systems/newgrid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
 
       return c.json({ layer: foundLayer });
     } catch (err) {
@@ -90,14 +90,14 @@ router.get(
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
-  '/layers/:id/systems/newgrid',
+  '/layers/:entityid/systems/newgrid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CHECK LENGTH IS DIVISIBLE
     if (((await c.req.json()).length / (await c.req.json()).distance) % 1 === 0) {
       // FIND LAYER
       try {
-        const foundLayer = await Layer.findById(c.req.param('id'));
+        const foundLayer = await Layer.findById(c.req.param('entityid'));
         return c.json(
           `/layers/${foundLayer?._id
           }/systems/new?rows=${(await c.req.json()).rows
@@ -119,11 +119,11 @@ return c.json({ error: 'Length must be divisible with distance between speciee i
 
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
-  '/layers/:id/systems',
+  '/layers/:entityid/systems',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
         const system = (await c.req.json()).system;
 
@@ -218,11 +218,11 @@ router.post(
 
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
-  '/layers/:id/systems/compare',
+  '/layers/:entityid/systems/compare',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
-    const foundLayer = await Layer.findById(c.req.param('id'))
+    const foundLayer = await Layer.findById(c.req.param('entityid'))
       .populate('systems.future')
       .exec();
     if (foundLayer) {
@@ -323,9 +323,9 @@ router.get(
 );
 
 // SYSTEM SHOW ROUTE
-router.get('/systems/:id', async (c) => {
+router.get('/systems/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
-  const foundSystem = await System.findById(c.req.param('id'))
+  const foundSystem = await System.findById(c.req.param('entityid'))
     .populate('model.species')
     .populate('animals')
     .exec();
@@ -398,10 +398,10 @@ await middleware.isLoggedIn(c);
 
 // SYSTEM EDIT ROUTE
 router.get(
-  '/systems/:id/edit',
+  '/systems/:entityid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
-    const foundSystem = await System.findById(c.req.param('id'))
+    const foundSystem = await System.findById(c.req.param('entityid'))
       .populate('model.species')
       .populate('animals')
       .exec();
@@ -541,10 +541,10 @@ router.get(
 );
 
 // SYSTEM EDIT ROUTE OLD
-router.get('/systems/:id/editold', async (c) => {
+router.get('/systems/:entityid/editold', async (c) => {
 await middleware.isLoggedIn(c);
   try {
-    const foundSystem = await System.findById(c.req.param('id'))
+    const foundSystem = await System.findById(c.req.param('entityid'))
       .populate('rows.sequense')
       .populate('animals')
       .exec();
@@ -593,10 +593,10 @@ await middleware.isLoggedIn(c);
 
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get(
-  '/systems/:id/edit/:speciesid',
+  '/systems/:entityid/edit/:speciesid',
   async (c) => {
     await middleware.isLoggedIn(c)
-    const foundSystem = await System.findById(c.req.param('id'))
+    const foundSystem = await System.findById(c.req.param('entityid'))
       .populate('model.species')
       .populate('animals')
       .exec();
@@ -707,11 +707,11 @@ router.get(
 );
 
 // SYSTEM UPDATE ROUTE
-router.put('/systems/:id', async (c) => {
+router.put('/systems/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // NEED TO CHECK OWNERSHIP HERE!!! YES
   try {
-    const foundSystem = await System.findById(c.req.param('id'));
+    const foundSystem = await System.findById(c.req.param('entityid'));
 
     if (foundSystem) {
       // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
@@ -786,7 +786,7 @@ await middleware.isLoggedIn(c);
         console.log('OWNER');
         try {
           const updatedSystem = await System.findByIdAndUpdate(
-            c.req.param('id'),
+            c.req.param('entityid'),
             system,
           );
           if (updatedSystem) {
@@ -882,7 +882,7 @@ await middleware.isLoggedIn(c);
 
 // SYSTEM DELETE ROUTE
 router.delete(
-  '/layers/:id/systems/:pid',
+  '/layers/:entityid/systems/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
@@ -962,11 +962,11 @@ router.delete(
 
 // SYSTEM SUCCESSION ROUTE
 router.get(
-  '/systems/:id/succession',
+  '/systems/:entityid/succession',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundSystem = await System.findById(c.req.param('id'))
+      const foundSystem = await System.findById(c.req.param('entityid'))
         .populate('rows')
         .exec();
       return c.json({ system: foundSystem });
@@ -978,10 +978,10 @@ router.get(
 
 // SYSTEM COMPOSITION ROUTE
 router.get(
-  '/systems/:id/composition',
+  '/systems/:entityid/composition',
   async (c) => {
     await middleware.isLoggedIn(c)
-    const foundSystem = await System.findById(c.req.param('id'))
+    const foundSystem = await System.findById(c.req.param('entityid'))
       .populate('model.species')
       .exec();
     if (foundSystem) {
@@ -1042,7 +1042,7 @@ router.get(
 
 // SYSTEM ASSESSMENT ROUTE
 router.get(
-  '/layers/:id/analysis',
+  '/layers/:entityid/analysis',
   async (c) => {
     await middleware.isLoggedIn(c)
     const foundSystems = await System.find()
@@ -1052,7 +1052,7 @@ router.get(
       .exec();
     if (foundSystems) {
       // FIND LAYER
-      const foundLayer = await Layer.findById(c.req.param('id'))
+      const foundLayer = await Layer.findById(c.req.param('entityid'))
         .populate('systems.present')
         .exec();
       if (foundLayer) {
@@ -1224,11 +1224,11 @@ router.get(
 
 // LAYER MY SYSTEMS FIND
 router.get(
-  '/layers/:id/mysystems',
+  '/layers/:entityid/mysystems',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       try {
         const foundSystems = await System.find({ 'owner.id': c.get('user')?._id })
           .populate('model.species')
@@ -1263,11 +1263,11 @@ router.get(
 
 // SYSTEM OCCURRENCE NEW ROUTE
 router.get(
-  '/systems/:id/occurrences/new',
+  '/systems/:entityid/occurrences/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundSystem = await System.findById(c.req.param('id'));
+      const foundSystem = await System.findById(c.req.param('entityid'));
       return c.json({ system: foundSystem });
     } catch (err) {
       console.log(err);
@@ -1277,11 +1277,11 @@ router.get(
 
 // SYSTEM OCCURRANCE CREATE ROUTE
 router.put(
-  '/systems/:id/occurrences',
+  '/systems/:entityid/occurrences',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const updatedSystem = await System.findByIdAndUpdate(c.req.param('id'), {
+      const updatedSystem = await System.findByIdAndUpdate(c.req.param('entityid'), {
         $addToSet: { occurrences: (await c.req.json()).occurrence },
       });
       if (updatedSystem) {

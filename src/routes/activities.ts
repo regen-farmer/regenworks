@@ -99,11 +99,11 @@ router.post(
 
 // ACTIVITY SHOW ROUTES
 router.get(
-  '/activities/:id',
+  '/activities/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundActivity = await Activity.findById(c.req.param('id'))
+      const foundActivity = await Activity.findById(c.req.param('entityid'))
         .populate('layer')
         .exec();
       if (foundActivity) {
@@ -137,13 +137,13 @@ router.get(
 
 // ACTIVITY EDIT ROUTE
 router.get(
-  '/activities/:id/edit',
+  '/activities/:entityid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     // Find specific activity in database
     try {
-      const foundActivity = await Activity.findById(c.req.param('id'));
+      const foundActivity = await Activity.findById(c.req.param('entityid'));
 
       try {
         const foundLayers = await Layer.find({ 'owner.id': c.get('user')?._id });
@@ -163,16 +163,16 @@ router.get(
 
 // ACTIVITY UPDATE ROUTE
 router.put(
-  '/activities/:id',
+  '/activities/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
       const updatedActivity = await Activity.findByIdAndUpdate(
-        c.req.param('id'),
+        c.req.param('entityid'),
         (await c.req.json()).activity,
       );
       console.log(updatedActivity);
-      return c.json(`/activities/${c.req.param('id')}`);
+      return c.json(`/activities/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
     }
@@ -183,12 +183,12 @@ router.put(
 
 // ACTIVITY DELETE ROUTE
 router.delete(
-  '/activities/:id',
+  '/activities/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     try {
-      await Activity.findByIdAndRemove(c.req.param('id'));
+      await Activity.findByIdAndRemove(c.req.param('entityid'));
       return c.json('/activities');
     } catch (err) {
       console.log(err);
@@ -201,12 +201,12 @@ router.delete(
 
 // PARCEL ACTIVITIES
 router.get(
-  '/parcels/:id/activities',
+  '/parcels/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({ path: 'layers', populate: { path: 'rows' } })
         .populate({ path: 'layers', populate: { path: 'areas' } })
         .exec();
@@ -220,12 +220,12 @@ router.get(
 
 // PLACE ACTIVITY NEW ROUTE
 router.get(
-  '/parcels/:id/activities/new',
+  '/parcels/:entityid/activities/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PLACE ID
     try {
-      const foundparcel = Parcel.findById(c.req.param('id'));
+      const foundparcel = Parcel.findById(c.req.param('entityid'));
       try {
         const foundLayers = await Layer.find({ type: 'patch' });
         console.log('Reached this far');
@@ -244,11 +244,11 @@ router.get(
 );
 
 // PLACE EXPERIENCES CREATE ROUTE
-// router.post('/parcels/:id/activities', async (c) => {
+// router.post('/parcels/:entityid/activities', async (c) => {
 // await middleware.isLoggedIn(c);
 //   // Lookup place using id
 //   try {
-//     const foundParcel = await Parcel.findById(c.req.param('id'));
+//     const foundParcel = await Parcel.findById(c.req.param('entityid'));
 //     if (foundParcel) {
 //       try {
 //         const activity = await Activity.create((await c.req.json()).activity);
@@ -269,17 +269,17 @@ router.get(
 //     }
 //   } catch (err) {
 //     console.log(err);
-//     return c.json(`/parcels/${c.req.param('id')}`);
+//     return c.json(`/parcels/${c.req.param('entityid')}`);
 //   }
 // });
 
 // PROJECT ACTIVITY NEW ROUTE
 router.get(
-  '/projects/:id/activities/new',
+  '/projects/:entityid/activities/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       return c.json({ project: foundProject });
     } catch (err) {
       console.log(err);
@@ -289,11 +289,11 @@ router.get(
 
 // PROJECT ACTIVITY CREATE ROUTE
 router.post(
-  '/projects/:id/activities',
+  '/projects/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       if (foundProject) {
         try {
           const createdActivity = await Activity.create((await c.req.json()).activity);
@@ -319,12 +319,12 @@ router.post(
 
 // GENERATE ACTIVITIES
 router.get(
-  '/projects/:id/generateactivities',
+  '/projects/:entityid/generateactivities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({
           path: 'budgets.establishment',
           populate: { path: 'postings' },
@@ -375,12 +375,12 @@ router.get(
 
 // PROJECT EDIT ACTIVITY ROUTE
 router.get(
-  '/projects/:id/activities/:pid/edit',
+  '/projects/:entityid/activities/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT WITH ACTIVITY
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       try {
         const foundActivity = await Activity.findById(c.req.param('pid'));
         return c.json({ project: foundProject, activity: foundActivity });
@@ -395,13 +395,13 @@ router.get(
 
 // PROJECT UPDATE ACTIVITY ROUTE
 router.put(
-  '/projects/:id/activities/:pid',
+  '/projects/:entityid/activities/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND ACTIVITY AND UPDATE
     try {
       await Activity.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).activity);
-      return c.json(`/projects/${c.req.param('id')}`);
+      return c.json(`/projects/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
     }
@@ -410,7 +410,7 @@ router.put(
 
 // DELETE ACTIVITY IN PROJECT
 router.delete(
-  '/projects/:id/activities/:pid',
+  '/projects/:entityid/activities/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND ACTIVITY
@@ -419,7 +419,7 @@ router.delete(
 
       // FIND PROJECT
       try {
-        const updatedProject = await Project.findById(c.req.param('id'));
+        const updatedProject = await Project.findById(c.req.param('entityid'));
         if (updatedProject) {
           // REMOVE ACTIVITY FROM PROJECT
           updatedProject.activities.forEach(async (activity) => {
@@ -448,7 +448,7 @@ router.delete(
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
 router.get(
-  '/parcels/:id/layers/:pid/rows/:rid/activities/new',
+  '/parcels/:entityid/layers/:pid/rows/:rid/activities/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND ROW SEQUENCE SPECIES
@@ -467,7 +467,7 @@ router.get(
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
         return c.json({
-          parcelid: c.req.param('id'),
+          parcelid: c.req.param('entityid'),
           layerid: c.req.param('pid'),
           rowid: c.req.param('rid'),
           row: foundRow,
@@ -484,7 +484,7 @@ router.get(
 );
 
 router.post(
-  '/parcels/:id/layers/:pid/rows/:rid/activities',
+  '/parcels/:entityid/layers/:pid/rows/:rid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CREATE ACTIVITY
@@ -506,7 +506,7 @@ router.post(
         await Row.findByIdAndUpdate(c.req.param('rid'), {
           $push: { activities: createdActivity },
         });
-        return c.json(`/parcels/${c.req.param('id')}/activities`);
+        return c.json(`/parcels/${c.req.param('entityid')}/activities`);
       } catch (err) {
         console.log(err);
       }
@@ -519,7 +519,7 @@ router.post(
 // --------------- NESTED ROUTES AREA BASED ---------------- //
 
 router.get(
-  '/parcels/:id/layers/:pid/areas/:rid/activities/new',
+  '/parcels/:entityid/layers/:pid/areas/:rid/activities/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND AREA ROTATION SPECIES
@@ -542,7 +542,7 @@ router.get(
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
         return c.json({
-          parcelid: c.req.param('id'),
+          parcelid: c.req.param('entityid'),
           layerid: c.req.param('pid'),
           areaid: c.req.param('rid'),
           area: foundArea,
@@ -558,7 +558,7 @@ router.get(
 );
 
 router.post(
-  '/parcels/:id/layers/:pid/areas/:rid/activities',
+  '/parcels/:entityid/layers/:pid/areas/:rid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CREATE ACTIVITY
@@ -580,7 +580,7 @@ router.post(
         await Area.findByIdAndUpdate(c.req.param('rid'), {
           $push: { activities: createdActivity },
         });
-        return c.json(`/parcels/${c.req.param('id')}/activities`);
+        return c.json(`/parcels/${c.req.param('entityid')}/activities`);
       } catch (err) {
         console.log(err);
       }

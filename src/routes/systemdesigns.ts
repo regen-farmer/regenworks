@@ -30,7 +30,7 @@ router.get(
     console.log('new system');
     // FIND LAYER ID
     // try {
-    //   const foundLayer = await Layer.findById(c.req.param('id'));
+    //   const foundLayer = await Layer.findById(c.req.param('entityid'));
     // FIND ALL SPECIES IN THE DATABASE
 
     const foundProject = await Project.findById(c.req.param('projectid')).populate('systemdesign');

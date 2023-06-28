@@ -147,12 +147,12 @@ return c.json({ error: `Error while geocoding: ${err.toString()}` });
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', async (c) => {
+router.get('/projects/:entityid/edit', async (c) => {
 await middleware.isLoggedIn(c);
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     return c.json({ project: foundProject });
   } catch (err) {
     console.log(err);
@@ -161,13 +161,13 @@ await middleware.isLoggedIn(c);
 
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
-  '/projects/:id/layout',
+  '/projects/:entityid/layout',
   async (c) => {
     await middleware.isLoggedIn(c)
     console.time('layoutRoute');
     try {
       console.time('getProject');
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         
         .populate('layer')
         .populate('systemdesign')
@@ -215,30 +215,30 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', async (c) => {
+router.put('/projects/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       (await c.req.json()).project,
     );
     // req.flash("success", "Successfully added service");
-    return c.json(`/projects/${c.req.param('id')}`);
+    return c.json(`/projects/${c.req.param('entityid')}`);
   } catch (err) {
     console.log(err);
   }
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', async (c) => {
+router.put('/projects/:entityid/layout', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       (await c.req.json()).project,
     );
     // req.flash("success", "Successfully added service");
-    return c.json(`/projects/${c.req.param('id')}/layout`);
+    return c.json(`/projects/${c.req.param('entityid')}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -246,11 +246,11 @@ await middleware.isLoggedIn(c);
 
 // PROJECT VIZ ROUTE
 router.get(
-  '/projects/:id/viz',
+  '/projects/:entityid/viz',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate('edgesystem')
         .populate('layer')
@@ -329,22 +329,22 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', async (c) => {
+router.get('/projects/:entityid/3dviz', async (c) => {
 await middleware.isLoggedIn(c);
   return c.json({});
 });
 
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
-  '/projects/:id/implement',
+  '/projects/:entityid/implement',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
       await Project.findByIdAndUpdate(
-        c.req.param('id'),
+        c.req.param('entityid'),
         { $set: { status: 'Implementation' } },
       );
-      return c.json(`/projects/${c.req.param('id')}`);
+      return c.json(`/projects/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
     }
@@ -352,14 +352,14 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', async (c) => {
+router.put('/projects/:entityid/retire', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       { $set: { status: 'Retired' } },
     );
-    return c.json(`/projects/${c.req.param('id')}`);
+    return c.json(`/projects/${c.req.param('entityid')}`);
   } catch (err) {
     console.log(err);
   }
@@ -367,11 +367,11 @@ await middleware.isLoggedIn(c);
 
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
-  '/projects/:id/complete',
+  '/projects/:entityid/complete',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const completedProject = await Project.findByIdAndUpdate(c.req.param('id'), {
+      const completedProject = await Project.findByIdAndUpdate(c.req.param('entityid'), {
         $set: { status: 'Completed' },
       });
       if (completedProject) {
@@ -396,7 +396,7 @@ router.put(
             // SAVE AREA
             await projectArea.save();
             // REDIRECT
-            return c.json(`/projects/${c.req.param('id')}`);
+            return c.json(`/projects/${c.req.param('entityid')}`);
           } else {
             console.log('No projectArea');
           }
@@ -414,11 +414,11 @@ router.put(
 
 // ADD PROJECT EDGE SYSTEM NEW
 router.get(
-  '/projects/:id/addedgesystem',
+  '/projects/:entityid/addedgesystem',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       try {
         const foundSystems = await System.find({ 'owner.id': c.get('user')?._id });
         // SORT OUT MONOCULTURE SYSTEMS
@@ -446,7 +446,7 @@ router.get(
 
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
-  '/projects/:id/addedgesystem',
+  '/projects/:entityid/addedgesystem',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND SYSTEM
@@ -455,7 +455,7 @@ router.post(
 
       // FIND PROJECT
       try {
-        const foundProject = await Project.findByIdAndUpdate(c.req.param('id'), {
+        const foundProject = await Project.findByIdAndUpdate(c.req.param('entityid'), {
           $set: { edgesystem: foundSystem },
         });
         if (foundProject) {
@@ -474,12 +474,12 @@ router.post(
 
 // PROJECT ASSET CREATION
 router.put(
-  '/projects/:id/generateassets',
+  '/projects/:entityid/generateassets',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate('edgesystem')
         .populate('layer')
@@ -517,12 +517,12 @@ router.put(
                     console.log("Tree #1 - " + treeAssetArray[0]);
                     console.log(treeAssetArray[0].species);
                     console.log(treeAssetArray[0].lat);
-                    return c.json("/projects/" + c.req.param('id')); */
+                    return c.json("/projects/" + c.req.param('entityid')); */
           console.log(`Trees Assets: ${treeAssetArray.length}`);
           console.log(`Trees Markets: ${treeMarkerArray.length}`);
           console.log(`Trees Row Refs: ${treeAssetRowRef.length}`);
           /*
-                                        return c.json("/projects/" + c.req.param('id'));
+                                        return c.json("/projects/" + c.req.param('entityid'));
                     */
           // CREATE ASSETS
           try {
@@ -553,7 +553,7 @@ router.put(
                     await foundRows[i].save();
                   }
                   console.log('Assets added to project');
-                  return c.json(`/projects/${c.req.param('id')}`);
+                  return c.json(`/projects/${c.req.param('entityid')}`);
                 } catch (err) {
                   console.log(err);
                 }
@@ -579,11 +579,11 @@ router.put(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-// router.post('/projects/:id/explode', async (c) => {
+// router.post('/projects/:entityid/explode', async (c) => {
 // await middleware.isLoggedIn(c);
 //   // FIND PROJECT
 //   try {
-//     const foundProject = await Project.findById(c.req.param('id'))
+//     const foundProject = await Project.findById(c.req.param('entityid'))
 //       .populate({ path: 'system', populate: { path: 'model.species' } })
 //       .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
 //       .populate('layer')
@@ -645,7 +645,7 @@ router.put(
 //           const createdAreas = await Area.insertMany(areas);
 //           try {
 //             const updatedProject = await Project.findByIdAndUpdate(
-//               c.req.param('id'),
+//               c.req.param('entityid'),
 //               {
 //                 $push: {
 //                   rows: { $each: createdRows },
@@ -675,19 +675,19 @@ router.put(
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
-  '/projects/:id/deleterows',
+  '/projects/:entityid/deleterows',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       if (foundProject) {
         try {
           await Row.deleteMany({ _id: { $in: foundProject.rows } });
           // DELETE ROWS
           try {
             const updatedProject = await Project.findByIdAndUpdate(
-              c.req.param('id'),
+              c.req.param('entityid'),
               {
                 $set: { rows: [] },
               },
@@ -715,12 +715,12 @@ router.get(
 
 // PROJECT ASSET SHOW PAGE
 router.get(
-  '/projects/:id/assets',
+  '/projects/:entityid/assets',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('assets')
         .populate('layer')
         .exec();
@@ -781,13 +781,13 @@ router.get(
 
 // SERVICES DELETE ROUTE
 router.delete(
-  '/projects/:id',
+  '/projects/:entityid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
 
       // REMOVE PROJECT REFERENCE FROM LAYER
       if (foundProject) {
@@ -816,7 +816,7 @@ router.delete(
 
               // DELETE PROJECT
               try {
-                await Project.findByIdAndRemove(c.req.param('id'));
+                await Project.findByIdAndRemove(c.req.param('entityid'));
                 console.log('project deleted');
                 return c.json('/projects');
               } catch (err) {
@@ -845,13 +845,13 @@ router.delete(
 
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
-  '/layers/:id/systems/:system/projects/new',
+  '/layers/:entityid/systems/:system/projects/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       try {
         const foundSystem = await System.findById(c.req.param('system'));
         return c.json({
@@ -869,14 +869,14 @@ router.get(
 );
 
 router.get(
-  '/layers/:id/new-project',
+  '/layers/:entityid/new-project',
   async (c) => {
     await middleware.isLoggedIn(c)
     console.log('THIS ROUTE');
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       return c.json({
         layer: foundLayer,
       });
@@ -889,13 +889,13 @@ router.get(
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
-  '/layers/:id/projects',
+  '/layers/:entityid/projects',
   async (c) => {
     await middleware.isLoggedIn(c)
     // Lookup place using id
 
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'))
+      const foundLayer = await Layer.findById(c.req.param('entityid'))
         .populate('rows')
         .exec();
 
@@ -946,20 +946,20 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      return c.json(`/layers/${c.req.param('id')}`);
+      return c.json(`/layers/${c.req.param('entityid')}`);
     }
   },
 );
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
-  '/layers/:id/systems/:system/projects',
+  '/layers/:entityid/systems/:system/projects',
   async (c) => {
     await middleware.isLoggedIn(c)
     // Lookup place using id
 
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'))
+      const foundLayer = await Layer.findById(c.req.param('entityid'))
         .populate('rows')
         .exec();
 
@@ -1015,19 +1015,19 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      return c.json(`/layers/${c.req.param('id')}`);
+      return c.json(`/layers/${c.req.param('entityid')}`);
     }
   },
 );
 
 // PROJECT ASSETS DELETE ROUTE
 router.delete(
-  '/projects/:id/allassets',
+  '/projects/:entityid/allassets',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id')).populate('assets');
+      const foundProject = await Project.findById(c.req.param('entityid')).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
@@ -1052,12 +1052,12 @@ router.delete(
 
 // ROW NEW ROUTE
 router.get(
-  '/projects/:id/row/new',
+  '/projects/:entityid/row/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('layer')
         .exec();
       if (foundProject) {
@@ -1081,7 +1081,7 @@ router.get(
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', async (c) => {
+router.post('/projects/:entityid/row', async (c) => {
 await middleware.isLoggedIn(c);
   // REDIRECT IF NO GEOMETRY
   if ((await c.req.json()).geometry === '') {
@@ -1105,7 +1105,7 @@ return c.json({ error: 'No geometry found' });
       const createdRow = await Row.create(row);
       // FIND PROJECT
       try {
-        const foundProject = await Project.findByIdAndUpdate(c.req.param('id'), {
+        const foundProject = await Project.findByIdAndUpdate(c.req.param('entityid'), {
           $addToSet: { rows: createdRow },
         });
         // CREATE ROW
@@ -1126,12 +1126,12 @@ return c.json({ error: 'No geometry found' });
 
 // EDIT ROW
 router.get(
-  '/projects/:id/row/:pid/edit',
+  '/projects/:entityid/row/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({ path: 'rows', populate: { path: 'sequence' } })
         .populate('layer')
         .exec();
@@ -1164,7 +1164,7 @@ router.get(
 
 // UPDATE ROW
 router.put(
-  '/projects/:id/row/:pid',
+  '/projects/:entityid/row/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CREATE ROW HERE?
@@ -1176,7 +1176,7 @@ router.put(
     }
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       // FIND AND UPDATE ROW
       if (foundProject) {
         try {
@@ -1194,12 +1194,12 @@ router.put(
 
 // DELETE ROW
 router.delete(
-  '/projects/:id/row/:pid',
+  '/projects/:entityid/row/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const updatedProject = await Project.findById(c.req.param('id'));
+      const updatedProject = await Project.findById(c.req.param('entityid'));
       // REMOVE ROW
       if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
@@ -1227,12 +1227,12 @@ router.delete(
 
 // EDIT AREA
 router.get(
-  '/projects/:id/areas/:pid/edit',
+  '/projects/:entityid/areas/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({ path: 'areas', populate: { path: 'rotation' } })
         .populate('layer')
         .exec();
@@ -1265,7 +1265,7 @@ router.get(
 
 // UPDATE AREA
 router.put(
-  '/projects/:id/areas/:pid',
+  '/projects/:entityid/areas/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CREATE AREA HERE?
@@ -1279,7 +1279,7 @@ router.put(
     }
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       // FIND AND UPDATE AREA
       if (foundProject) {
         try {
@@ -1301,10 +1301,10 @@ router.put(
 
 // --------- PROJECT FINANCIALS ROUTE TEMP --------
 // PROJECT FINANCIALS ROUTE
-router.get('/projects/:id/financials', async (c) => {
+router.get('/projects/:entityid/financials', async (c) => {
 await middleware.isLoggedIn(c);
   try {
-    const foundProject = await Project.findById(c.req.param('id'))
+    const foundProject = await Project.findById(c.req.param('entityid'))
       .populate({ path: 'system', populate: { path: 'model.species' } })
       .populate('edgesystem')
       .populate('layer')
@@ -1395,9 +1395,9 @@ await middleware.isLoggedIn(c);
   }
 });
 
-router.patch('/projects/:id/financials', async (c) => {
+router.patch('/projects/:entityid/financials', async (c) => {
 await middleware.isLoggedIn(c);
-  const project = await Project.findById(c.req.param('id'));
+  const project = await Project.findById(c.req.param('entityid'));
 
   project!.financial.discountRate = (await c.req.json()).discountrate;
   project!.financial.period = (await c.req.json()).timeperiod;
@@ -1406,9 +1406,9 @@ await middleware.isLoggedIn(c);
   return c.json({});
 });
 
-router.patch('/projects/:id/financials/activities', async (c) => {
+router.patch('/projects/:entityid/financials/activities', async (c) => {
 await middleware.isLoggedIn(c);
-  const project = await Project.findById(c.req.param('id')).populate('system');
+  const project = await Project.findById(c.req.param('entityid')).populate('system');
 
   const system = project?.system;
 
@@ -1447,12 +1447,12 @@ await middleware.isLoggedIn(c);
 
 // ALIGNMENT NEW ROUTE
 router.get(
-  '/projects/:id/alignmentrow/new',
+  '/projects/:entityid/alignmentrow/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('layer')
         .exec();
       if (foundProject) {
@@ -1476,15 +1476,15 @@ router.get(
 );
 
 // UPDATE PROJECT ALIGNMENT
-router.put('/projects/:id/alignmentrow', async (c) => {
+router.put('/projects/:entityid/alignmentrow', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       { alignment: 'bearing', bearingline: (await c.req.json()).geometry },
     );
     // req.flash("success", "Successfully added service");
-    return c.json(`/projects/${c.req.param('id')}/layout`);
+    return c.json(`/projects/${c.req.param('entityid')}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -1494,7 +1494,7 @@ await middleware.isLoggedIn(c);
 
 // BUDGET PDF
 // router.get(
-//   '/projects/:id/budgetpdf',
+//   '/projects/:entityid/budgetpdf',
 //   async (c) => {
 //     await middleware.isLoggedIn(c)
 //     // FIND PROJECT

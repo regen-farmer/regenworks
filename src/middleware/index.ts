@@ -7,7 +7,7 @@ import User, { UserDocument } from '../models/user.js';
 export async function checkParcelOwnership(c) {
   if (c.get('user')) {
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'));
+      const foundParcel = await Parcel.findById(c.req.param('entityid'));
       if (foundParcel?.owner.id.toString() === c.get('user')?._id.toString()) {
         return;
       } else {
@@ -35,7 +35,7 @@ export async function checkUserOwnership(c) {
   // console.log("IM HERE 1 ", req.idToken)
   if (c.get('idToken') && c.get('idToken').email_verified) {
     try {
-      const foundUser = await User.findById(c.req.param('id'));
+      const foundUser = await User.findById(c.req.param('entityid'));
 
       if (foundUser && foundUser.id === c.get('user')?.id) {
         console.log('progress!!');

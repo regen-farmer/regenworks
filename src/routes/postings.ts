@@ -27,12 +27,12 @@ export default function indexRoutes(
 
 // NESTED POSTING BUDGET NEW ROUTE
 router.get(
-  '/budgets/:id/postings/new',
+  '/budgets/:entityid/postings/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND BUDGET ID
     try {
-      const foundBudget = await Budget.findById(c.req.param('id'));
+      const foundBudget = await Budget.findById(c.req.param('entityid'));
       return c.json({ budget: foundBudget });
     } catch (err) {
       console.log(err);
@@ -42,13 +42,13 @@ router.get(
 
 // NESTED POSTING BUDGET CREATE ROUTE
 router.post(
-  '/budgets/:id/postings',
+  '/budgets/:entityid/postings',
   async (c) => {
     await middleware.isLoggedIn(c)
     // BUDGET MIDDLEWARE!!! VIP
     // CREATE POSTING FIRST AND INSERT IN BUDGET
     try {
-      const foundBudget = await Budget.findById(c.req.param('id'));
+      const foundBudget = await Budget.findById(c.req.param('entityid'));
       if (foundBudget) {
         try {
           const createdPosting = await Posting.create((await c.req.json()).posting);
@@ -69,12 +69,12 @@ router.post(
 
 // NESTED POSTING BUDGET EDIT ROUTE - WITH THESE I CAN CHECK BUDGET OWNERSHIP
 router.get(
-  '/budgets/:id/postings/:postid/edit',
+  '/budgets/:entityid/postings/:postid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND BUDGET
     try {
-      const foundBudget = await Budget.findById(c.req.param('id'));
+      const foundBudget = await Budget.findById(c.req.param('entityid'));
       try {
         const foundPosting = await Posting.findById(c.req.param('postid'));
         return c.json({
@@ -92,7 +92,7 @@ router.get(
 
 // NESTED POSTING BUDGET UPDATE ROUTE
 router.put(
-  '/budgets/:id/postings/:postid',
+  '/budgets/:entityid/postings/:postid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND POSTING AND UPDATE
@@ -101,7 +101,7 @@ router.put(
         c.req.param('postid'),
         (await c.req.json()).posting,
       );
-      return c.json(`/budgets/${c.req.param('id')}`);
+      return c.json(`/budgets/${c.req.param('entityid')}`);
     } catch (err) {
       console.log(err);
     }
@@ -110,12 +110,12 @@ router.put(
 
 // POSTING PARCEL BUDGET NEW
 router.get(
-  '/parcels/:id/layers/:bid/accounts/postings/new',
+  '/parcels/:entityid/layers/:bid/accounts/postings/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND BUDGET ID
     try {
-      const foundParcel = await Parcel.findById(c.req.param('id'))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({ path: 'layers', populate: { path: 'budget' } })
         .exec();
       try {
@@ -135,7 +135,7 @@ router.get(
 
 // POSTING PARCEL BUDGET CREATE ROUTE
 router.post(
-  '/parcels/:id/layers/:bid/accounts/postings',
+  '/parcels/:entityid/layers/:bid/accounts/postings',
   async (c) => {
     await middleware.isLoggedIn(c)
     // BUDGET MIDDLEWARE!!! VIP
@@ -154,7 +154,7 @@ router.post(
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);
               await foundBudget.save();
-              return c.json(`/parcels/${c.req.param('id')}/accounts`);
+              return c.json(`/parcels/${c.req.param('entityid')}/accounts`);
             } catch (err) {
               console.log(err);
             }

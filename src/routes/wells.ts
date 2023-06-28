@@ -22,11 +22,11 @@ export default function indexRoutes(
 // import Animal from "../models/animal.js";
 
 // NESTED PARCEL WELL NEW ROUTE
-router.get('/parcels/:id/wells/new', async (c) => {
+router.get('/parcels/:entityid/wells/new', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND PARCEL ID
   try {
-    const foundParcel = await Parcel.findById(c.req.param('id'));
+    const foundParcel = await Parcel.findById(c.req.param('entityid'));
     return c.json({ parcel: foundParcel });
   } catch (err) {
     console.log(err);

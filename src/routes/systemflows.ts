@@ -23,11 +23,11 @@ export default function indexRoutes(
 // SYSTEMFLOW INDEX ROUTE
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
-router.get('/systems/:id/flows/new', async (c) => {
+router.get('/systems/:entityid/flows/new', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND SYSTEM ID
   try {
-    const foundSystem = await System.findById(c.req.param('id'));
+    const foundSystem = await System.findById(c.req.param('entityid'));
     const foundSpecies = await Species.find();
 
     // SORT SPECIES
@@ -47,11 +47,11 @@ await middleware.isLoggedIn(c);
 });
 
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
-router.post('/systems/:id/flows', async (c) => {
+router.post('/systems/:entityid/flows', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND SYSTEM
   try {
-    const foundSystem = await System.findById(c.req.param('id'));
+    const foundSystem = await System.findById(c.req.param('entityid'));
     const flow = (await c.req.json()).flow;
     const data: any[] = [];
     for (let i = 0; i < flow.data.length; i++) {

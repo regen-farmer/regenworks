@@ -23,12 +23,12 @@ export default function indexRoutes(
 
 // SEQUENCE NEW
 router.get(
-  '/layers/:id/sequences/new',
+  '/layers/:entityid/sequences/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       // FIND ALL SPECIES
       try {
         const foundSpecies = await Species.find();
@@ -59,12 +59,12 @@ router.get(
 
 // SEQUENCE CREATE
 router.post(
-  '/layers/:id/sequences',
+  '/layers/:entityid/sequences',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
         try {
           const createdSequence = await Sequence.create((await c.req.json()).sequence);
@@ -85,12 +85,12 @@ router.post(
 
 // SEQUENCE SHOW
 router.get(
-  '/layers/:id/sequences/:pid',
+  '/layers/:entityid/sequences/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       // FIND SEQUENCE
       try {
         const foundSequence = await Sequence.findById(c.req.param('pid'));
@@ -110,12 +110,12 @@ router.get(
 
 // SEQUENCE EDIT
 router.get(
-  '/layers/:id/sequences/:pid/edit',
+  '/layers/:entityid/sequences/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'))
+      const foundLayer = await Layer.findById(c.req.param('entityid'))
         .populate({ path: 'rows.sequence', populate: { path: 'model.species' } })
         .exec();
         // FIND SEQUENCES
@@ -229,12 +229,12 @@ router.put(
 
 // SEQUENCE NEW
 router.get(
-  '/projects/:id/sequences/new',
+  '/projects/:entityid/sequences/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       // FIND ALL SPECIES
       try {
         const foundSpecies = await Species.find();
@@ -265,12 +265,12 @@ router.get(
 
 // SEQUENCE CREATE
 router.post(
-  '/projects/:id/sequences',
+  '/projects/:entityid/sequences',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
 
       if (foundProject) {
         try {
@@ -293,12 +293,12 @@ router.post(
 
 // PROJECT SEQUENCE EDIT ROUTE
 router.get(
-  '/projects/:id/sequences/:pid/edit',
+  '/projects/:entityid/sequences/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({
           path: 'rows.sequence',
           populate: { path: 'model.species' },
@@ -388,12 +388,12 @@ router.get(
 
 // PROJECT SEQUENCE UPDATE
 router.put(
-  '/projects/:id/sequences/:pid',
+  '/projects/:entityid/sequences/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       console.log('FP', foundProject);
       try {
         await Sequence.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).sequence);
@@ -409,9 +409,9 @@ router.put(
   },
 );
 
-router.patch('/sequence/:id/financials/activities', async (c) => {
+router.patch('/sequence/:entityid/financials/activities', async (c) => {
 await middleware.isLoggedIn(c);
-  const sequence = await Sequence.findById(c.req.param('id'));
+  const sequence = await Sequence.findById(c.req.param('entityid'));
 
   const newActivities: [{
     id: string,

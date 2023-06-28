@@ -65,11 +65,11 @@ await middleware.isLoggedIn(c);
 });
 
 // ASSET SHOW ROUTES
-router.get('/assets/:id', async (c) => {
+router.get('/assets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // Find specific asset
   try {
-    const foundAsset = await Asset.findById(c.req.param('id'))
+    const foundAsset = await Asset.findById(c.req.param('entityid'))
       .populate('layer')
       .exec();
     return c.json({ asset: foundAsset });
@@ -80,12 +80,12 @@ await middleware.isLoggedIn(c);
 
 // ASSET EDIT ROUTE
 router.get(
-  '/assets/:id/edit',
+  '/assets/:entityid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND ASSET AND RENDER EDIT PAGE
     try {
-      const foundAsset = await Asset.findById(c.req.param('id'))
+      const foundAsset = await Asset.findById(c.req.param('entityid'))
         .populate('species')
         .exec();
       if (foundAsset) {
@@ -109,12 +109,12 @@ router.get(
 );
 
 // ASSET UPDATE ROUTE
-router.put('/assets/:id', async (c) => {
+router.put('/assets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // UPDATE ASSET
   try {
     const updatedAsset = await Asset.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       (await c.req.json()).asset,
     );
     if (updatedAsset) {
@@ -128,12 +128,12 @@ await middleware.isLoggedIn(c);
 });
 
 // ASSET DELETE ROUTE
-router.delete('/assets/:id', async (c) => {
+router.delete('/assets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
   // FIND ASSET
   try {
-    const foundAsset = await Asset.findById(c.req.param('id'));
+    const foundAsset = await Asset.findById(c.req.param('entityid'));
     console.log(foundAsset);
     // REMOVE ASSET FROM PROJECT
     if (foundAsset) {
@@ -148,7 +148,7 @@ await middleware.isLoggedIn(c);
 
             // DELETE ASSET
             try {
-              await Asset.findByIdAndRemove(c.req.param('id'));
+              await Asset.findByIdAndRemove(c.req.param('entityid'));
               return c.json(`/projects/${foundProject._id}`);
             } catch (err) {
               console.log(err);
@@ -169,11 +169,11 @@ await middleware.isLoggedIn(c);
 
 // AREA ASSET NEW ROUTE
 router.get(
-  '/layers/:id/assets/new',
+  '/layers/:entityid/assets/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       return c.json({ layer: foundLayer });
     } catch (err) {
       console.log(err);
@@ -183,11 +183,11 @@ router.get(
 
 // AREA ASSET CREATE ROUTE
 router.post(
-  '/layers/:id/assets',
+  '/layers/:entityid/assets',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
         const createdAsset = await Asset.create((await c.req.json()).asset);
 

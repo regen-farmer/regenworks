@@ -25,11 +25,11 @@ export default function indexRoutes(
   >
 ) {
   // PARCEL FARMFLOWS
-  router.get("/parcels/:id/farmflows", async (c) => {
+  router.get("/parcels/:entityid/farmflows", async (c) => {
     await middleware.isLoggedIn(c);
     try {
       // FIND PARCEL
-      const foundParcel = await Parcel.findById(c.req.param("id"))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({
           path: "layers",
           populate: { path: "rows", populate: { path: "farmflows" } },
@@ -48,7 +48,7 @@ export default function indexRoutes(
 
   // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-  router.get("/parcels/:id/layers/:pid/rows/:rid/farmflows/new", async (c) => {
+  router.get("/parcels/:entityid/layers/:pid/rows/:rid/farmflows/new", async (c) => {
     await middleware.isLoggedIn(c);
     // FIND ROW SEQUENCE SPECIES
     const foundRow = await Row.findById(c.req.param('rid'))
@@ -66,7 +66,7 @@ export default function indexRoutes(
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
         return c.json({
-          parcelid: c.req.param("id"),
+          parcelid: c.req.param('entityid'),
           layerid: c.req.param('pid'),
           rowid: c.req.param('rid'),
           row: foundRow,
@@ -80,7 +80,7 @@ export default function indexRoutes(
   });
 
   // CREATE FARMFLOW ON ROW
-  router.post("/parcels/:id/layers/:pid/rows/:rid/farmflows", async (c) => {
+  router.post("/parcels/:entityid/layers/:pid/rows/:rid/farmflows", async (c) => {
     await middleware.isLoggedIn(c);
     // FIND SPECIES
     try {
@@ -94,7 +94,7 @@ export default function indexRoutes(
         await Row.findByIdAndUpdate(c.req.param('rid'), {
           $push: { farmflows: createdFarmflow },
         });
-        return c.json(`/parcels/${c.req.param("id")}/farmflows`);
+        return c.json(`/parcels/${c.req.param('entityid')}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -105,7 +105,7 @@ export default function indexRoutes(
 
   // --------------- NESTED ROUTES AREA BASED ---------------- //
 
-  router.get("/parcels/:id/layers/:pid/areas/:rid/farmflows/new", async (c) => {
+  router.get("/parcels/:entityid/layers/:pid/areas/:rid/farmflows/new", async (c) => {
     await middleware.isLoggedIn(c);
     // FIND AREA ROTATION SPECIES
     const foundArea = await Area.findById(c.req.param('rid'))
@@ -126,7 +126,7 @@ export default function indexRoutes(
       const uniqueSpecies = unique(allSpecies);
       console.log(uniqueSpecies);
       return c.json({
-        parcelid: c.req.param("id"),
+        parcelid: c.req.param('entityid'),
         layerid: c.req.param('pid'),
         areaid: c.req.param('rid'),
         area: foundArea,
@@ -139,7 +139,7 @@ export default function indexRoutes(
   });
 
   // CREATE FARMFLOW ON AREA
-  router.post("/parcels/:id/layers/:pid/areas/:rid/farmflows", async (c) => {
+  router.post("/parcels/:entityid/layers/:pid/areas/:rid/farmflows", async (c) => {
     await middleware.isLoggedIn(c);
     // FIND SPECIES
     try {
@@ -153,7 +153,7 @@ export default function indexRoutes(
         await Area.findByIdAndUpdate(c.req.param('rid'), {
           $push: { farmflows: createdFarmflow },
         });
-        return c.json(`/parcels/${c.req.param("id")}/farmflows`);
+        return c.json(`/parcels/${c.req.param('entityid')}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -163,7 +163,7 @@ export default function indexRoutes(
   });
 
   // VIZ YIELDS
-  router.get("/parcels/:id/layers/:pid/farmflows/viz", async (c) => {
+  router.get("/parcels/:entityid/layers/:pid/farmflows/viz", async (c) => {
     await middleware.isLoggedIn(c);
     // CREATE ACTIVITY
     const foundLayer = await Layer.findById(c.req.param('pid'))
@@ -301,7 +301,7 @@ export default function indexRoutes(
       }
       console.log(`max: ${max}`);
       console.log(`min: ${min}`);
-      return c.json(`/parcels/${c.req.param("id")}/farmflows`);
+      return c.json(`/parcels/${c.req.param('entityid')}/farmflows`);
       /*
             return c.json("farmflows/viz");
 */

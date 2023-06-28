@@ -22,11 +22,11 @@ export default function indexRoutes(
 ) {
 
 // PARCEL NOTES
-router.get('/parcels/:id/notes', async (c) => {
+router.get('/parcels/:entityid/notes', async (c) => {
 await middleware.isLoggedIn(c);
   try {
   // FIND PARCEL
-    const foundParcel = await Parcel.findById(c.req.param('id')).populate({ path: 'layers', populate: { path: 'rows', populate: { path: 'notes' } } }).populate({ path: 'layers', populate: { path: 'areas', populate: { path: 'notes' } } }).exec();
+    const foundParcel = await Parcel.findById(c.req.param('entityid')).populate({ path: 'layers', populate: { path: 'rows', populate: { path: 'notes' } } }).populate({ path: 'layers', populate: { path: 'areas', populate: { path: 'notes' } } }).exec();
     // RENDER ACTIVITIES
     return c.json({ parcel: foundParcel });
   } catch (err) {
@@ -36,21 +36,21 @@ await middleware.isLoggedIn(c);
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/rows/:rid/notes/new', async (c) => {
+router.get('/parcels/:entityid/layers/:pid/rows/:rid/notes/new', async (c) => {
 await middleware.isLoggedIn(c);
   // RENDER NEW ACTIVITY PAGE
-  return c.json({ parcelid: c.req.param('id'), layerid: c.req.param('pid'), rowid: c.req.param('rid') });
+  return c.json({ parcelid: c.req.param('entityid'), layerid: c.req.param('pid'), rowid: c.req.param('rid') });
 });
 
 // CREATE NOTE ON ROW
-router.post('/parcels/:id/layers/:pid/rows/:rid/notes', async (c) => {
+router.post('/parcels/:entityid/layers/:pid/rows/:rid/notes', async (c) => {
 await middleware.isLoggedIn(c);
   // CREATE ACTIVITY
   try {
     const createdNote = await Note.create((await c.req.json()).note);
     try {
       await Row.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });
-      return c.json(`/parcels/${c.req.param('id')}/notes`);
+      return c.json(`/parcels/${c.req.param('entityid')}/notes`);
     } catch (err) {
       console.log(err);
     }
@@ -61,21 +61,21 @@ await middleware.isLoggedIn(c);
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/areas/:rid/notes/new', async (c) => {
+router.get('/parcels/:entityid/layers/:pid/areas/:rid/notes/new', async (c) => {
 await middleware.isLoggedIn(c);
   // RENDER NEW ACTIVITY PAGE
-  return c.json({ parcelid: c.req.param('id'), layerid: c.req.param('pid'), areaid: c.req.param('rid') });
+  return c.json({ parcelid: c.req.param('entityid'), layerid: c.req.param('pid'), areaid: c.req.param('rid') });
 });
 
 // CREATE NOTE ON ROW
-router.post('/parcels/:id/layers/:pid/areas/:rid/notes', async (c) => {
+router.post('/parcels/:entityid/layers/:pid/areas/:rid/notes', async (c) => {
 await middleware.isLoggedIn(c);
   // CREATE ACTIVITY
   const createdNote = await Note.create((await c.req.json()).note);
 
   try {
     await Area.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });
-    return c.json(`/parcels/${c.req.param('id')}/notes`);
+    return c.json(`/parcels/${c.req.param('entityid')}/notes`);
   } catch (err) {
     console.log(err);
   }

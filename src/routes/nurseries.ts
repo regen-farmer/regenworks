@@ -91,12 +91,12 @@ await middleware.isLoggedIn(c);
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', async (c) => {
+router.get('/nurseries/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // DO OWNERSHIP MODEL
   // FIND NURSERY
   try {
-    const foundNursery = await Nursery.findById(c.req.param('id'))
+    const foundNursery = await Nursery.findById(c.req.param('entityid'))
       .populate('products')
       .exec();
     // RENDER SHOW PAGE
@@ -107,11 +107,11 @@ await middleware.isLoggedIn(c);
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', async (c) => {
+router.get('/nurseries/:entityid/edit', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND NURSERY
   try {
-    const foundNursery = await Nursery.findById(c.req.param('id'));
+    const foundNursery = await Nursery.findById(c.req.param('entityid'));
     return c.json({ nursery: foundNursery });
   } catch (err) {
     console.log(err);
@@ -119,7 +119,7 @@ await middleware.isLoggedIn(c);
 });
 
 // NURSERY UPDATE
-router.put('/nurseries/:id', async (c) => {
+router.put('/nurseries/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
@@ -138,7 +138,7 @@ await middleware.isLoggedIn(c);
     newNursery.location = data[0].formattedAddress;
     try {
       const updateNursery = await Nursery.findByIdAndUpdate(
-        c.req.param('id'),
+        c.req.param('entityid'),
         newNursery,
       );
       // REDIRECT

@@ -37,12 +37,12 @@ router.get('/nurseryproducts', async (c) => {
 
 // NURSERY PRODUCT NURSERY NEW
 router.get(
-  '/nurseries/:id/nurseryproducts/new',
+  '/nurseries/:entityid/nurseryproducts/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(c.req.param('id'));
+      const foundNursery = await Nursery.findById(c.req.param('entityid'));
       // FIND ALL SPECIES
       try {
         const allSpecies = await Species.find();
@@ -72,7 +72,7 @@ router.get(
 
 // NURSERY PRODUCT NURSERY CREATE
 router.post(
-  '/nurseries/:id/nurseryproducts',
+  '/nurseries/:entityid/nurseryproducts',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CLEAN NONE OPTIONS
@@ -91,7 +91,7 @@ router.post(
     }
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(c.req.param('id'));
+      const foundNursery = await Nursery.findById(c.req.param('entityid'));
       // CREATE PRODUCT
       if (foundNursery) {
         try {
@@ -116,12 +116,12 @@ router.post(
 
 // NURSERY PRODUCT SHOW
 router.get(
-  '/nurseries/:id/nurseryproducts/:pid',
+  '/nurseries/:entityid/nurseryproducts/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(c.req.param('id'));
+      const foundNursery = await Nursery.findById(c.req.param('entityid'));
       try {
       // FIND PRODUCT
         const foundProduct = await NurseryProduct.findById(c.req.param('pid'))
@@ -144,12 +144,12 @@ router.get(
 
 // NURSERY PRODUCT EDIT
 router.get(
-  '/nurseries/:id/nurseryproducts/:pid/edit',
+  '/nurseries/:entityid/nurseryproducts/:pid/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(c.req.param('id'));
+      const foundNursery = await Nursery.findById(c.req.param('entityid'));
       // FIND PRODUCT
       try {
         const foundProduct = await NurseryProduct.findById(c.req.param('pid'))
@@ -190,7 +190,7 @@ router.get(
 
 // NURSERY PRODUCT UPDATE
 router.put(
-  '/nurseries/:id/nurseryproducts/:pid',
+  '/nurseries/:entityid/nurseryproducts/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // CLEAN NONE OPTIONS
@@ -228,7 +228,7 @@ router.put(
       if (updatedProduct) {
         return c.json(
           `/nurseries/${
-            c.req.param('id')
+            c.req.param('entityid')
           }/nurseryproducts/${
             updatedProduct._id}`,
         );

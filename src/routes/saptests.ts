@@ -21,11 +21,11 @@ export default function indexRoutes(
 ) {
 
 // PARCEL LAYER SAP TEST NEW
-router.get('/parcels/:id/layers/:pid/saptests/new', async (c) => {
+router.get('/parcels/:entityid/layers/:pid/saptests/new', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND PARCEL
   try {
-    const foundParcel = Parcel.findById(c.req.param('id')).populate('layers').exec();
+    const foundParcel = Parcel.findById(c.req.param('entityid')).populate('layers').exec();
     // FIND LAYER
 
     try {
@@ -41,7 +41,7 @@ await middleware.isLoggedIn(c);
 });
 
 // PARCEL LAYER SOIL TEST CREATE
-router.post('/parcels/:id/layers/:pid/saptests', async (c) => {
+router.post('/parcels/:entityid/layers/:pid/saptests', async (c) => {
 await middleware.isLoggedIn(c);
   // PARSE COORDINATES
   /* var sapTest = (await c.req.json()).saptest;
@@ -49,14 +49,14 @@ await middleware.isLoggedIn(c);
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    return c.json("/parcels/" + c.req.param('id') + "/status"); */
+    return c.json("/parcels/" + c.req.param('entityid') + "/status"); */
   // CREATE SOIL TEST
   try {
     const createdSaptest = await Saptest.create((await c.req.json()).saptest);
     try {
       await Layer.findByIdAndUpdate(c.req.param('pid'), { $push: { saptests: createdSaptest } });
       // RENDER PARCEL LAYER SAP TEST PAGE
-      return c.json(`/parcels/${c.req.param('id')}/status`);
+      return c.json(`/parcels/${c.req.param('entityid')}/status`);
     } catch (err) {
       console.log(err);
     }

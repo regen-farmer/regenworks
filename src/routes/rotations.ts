@@ -22,11 +22,11 @@ export default function indexRoutes(
 ) {
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/layers/:id/rotations/steps', async (c) => {
+router.get('/layers/:entityid/rotations/steps', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundLayer = await Layer.findById(c.req.param('id'));
+    const foundLayer = await Layer.findById(c.req.param('entityid'));
     return c.json({ layer: foundLayer, project: '' });
   } catch (err) {
     console.log(err);
@@ -34,13 +34,13 @@ await middleware.isLoggedIn(c);
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/layers/:id/rotations/steps', async (c) => {
+router.post('/layers/:entityid/rotations/steps', async (c) => {
 await middleware.isLoggedIn(c);
   // CHECK LENGTH IS DIVISIBLE
   if (((await c.req.json()).length / (await c.req.json()).distance) % 1 === 0) {
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(c.req.param('id'));
+      const foundLayer = await Layer.findById(c.req.param('entityid'));
       if (foundLayer) {
         return c.json(`/layers/${foundLayer._id}/rotations/new?distance=${(await c.req.json()).distance}&length=${(await c.req.json()).length}`);
       }
@@ -55,11 +55,11 @@ return c.json({ error: 'Length must be divisible with distance between species i
 });
 
 // ROTATION NEW
-router.get('/layers/:id/rotations/new', async (c) => {
+router.get('/layers/:entityid/rotations/new', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundLayer = await Layer.findById(c.req.param('id'));
+    const foundLayer = await Layer.findById(c.req.param('entityid'));
     // FIND ALL SPECIES
     try {
       const foundSpecies = await Species.find();
@@ -87,11 +87,11 @@ await middleware.isLoggedIn(c);
 // SEQUENCE CREATE
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/projects/:id/rotations/steps', async (c) => {
+router.get('/projects/:entityid/rotations/steps', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     return c.json({ project: foundProject });
   } catch (err) {
     console.log(err);
@@ -99,11 +99,11 @@ await middleware.isLoggedIn(c);
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/projects/:id/rotations/steps', async (c) => {
+router.post('/projects/:entityid/rotations/steps', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND PROJECT
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     if (foundProject) {
       return c.json(`/projects/${foundProject._id}/rotations/new?steps=${(await c.req.json()).steps}`);
     }
@@ -113,11 +113,11 @@ await middleware.isLoggedIn(c);
 });
 
 // ROTATION NEW
-router.get('/projects/:id/rotations/new', async (c) => {
+router.get('/projects/:entityid/rotations/new', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     // FIND ALL SPECIES
     try {
       const foundSpecies = await Species.find();
@@ -142,11 +142,11 @@ await middleware.isLoggedIn(c);
 });
 
 // CREATE PROJECT ROTATION
-router.post('/projects/:id/rotations', async (c) => {
+router.post('/projects/:entityid/rotations', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     if (foundProject) {
       // const model:any[] = [];
       // // CHECK IF ARRAY
@@ -199,11 +199,11 @@ await middleware.isLoggedIn(c);
 });
 
 // EDIT PROJECT ROTATION
-router.get('/projects/:id/rotations/:pid/edit', async (c) => {
+router.get('/projects/:entityid/rotations/:pid/edit', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(c.req.param('id')).populate({ path: 'areas.rotation', populate: { path: 'model.species' } }).exec();
+    const foundProject = await Project.findById(c.req.param('entityid')).populate({ path: 'areas.rotation', populate: { path: 'model.species' } }).exec();
     // FIND SEQUENCES
     try {
       const foundRotation = await Rotation.findById(c.req.param('pid')).populate('model.speciesmix.species').exec();
@@ -219,12 +219,12 @@ await middleware.isLoggedIn(c);
 });
 
 // UPDATE PROJECT ROTATION
-router.put('/projects/:id/rotations/:pid', async (c) => {
+router.put('/projects/:entityid/rotations/:pid', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND LAYER
   const rotation = (await c.req.json()).rotation;
   try {
-    const foundProject = await Project.findById(c.req.param('id'));
+    const foundProject = await Project.findById(c.req.param('entityid'));
     if (foundProject) {
       try {
         await Rotation.findByIdAndUpdate(c.req.param('pid'), rotation);

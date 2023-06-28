@@ -50,11 +50,11 @@ await middleware.isLoggedIn(c);
 });
 
 // SPECIES SHOW
-router.get('/species/:id', async (c) => {
+router.get('/species/:entityid', async (c) => {
   await middleware.adminIsLoggedIn(c)
   try {
   // ONLY ADMIN ACCESS?
-    const foundSpecies = await Species.findById(c.req.param('id'))
+    const foundSpecies = await Species.findById(c.req.param('entityid'))
       .populate('flows')
       .exec();
     return c.json({ species: foundSpecies });
@@ -64,11 +64,11 @@ router.get('/species/:id', async (c) => {
 });
 
 // SPECIES EDIT
-router.get('/species/:id/edit', async (c) => {
+router.get('/species/:entityid/edit', async (c) => {
 await middleware.isLoggedIn(c);
   // ONLY ADMIN ACCESS?
   try {
-    const foundSpecies = await Species.findById(c.req.param('id'));
+    const foundSpecies = await Species.findById(c.req.param('entityid'));
     return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
@@ -76,15 +76,15 @@ await middleware.isLoggedIn(c);
 });
 
 // SPECIES UPDATE
-router.put('/species/:id', async (c) => {
+router.put('/species/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     const updatedSpecies = await Species.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       (await c.req.json()).species,
     );
     console.log(updatedSpecies);
-    return c.json(`/species/${c.req.param('id')}`);
+    return c.json(`/species/${c.req.param('entityid')}`);
   } catch (err) {
     console.log(err);
   }
@@ -94,11 +94,11 @@ await middleware.isLoggedIn(c);
 
 // SPECIES ACTIVITY NEW ROUTE
 router.get(
-  '/species/:id/activities/new',
+  '/species/:entityid/activities/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(c.req.param('id'));
+      const foundSpecies = await Species.findById(c.req.param('entityid'));
       return c.json({ species: foundSpecies });
     } catch (err) {
       console.log(err);
@@ -108,7 +108,7 @@ router.get(
 
 // SPECIES ACTIVITY CREATE ROUTE
 router.post(
-  '/species/:id/activities',
+  '/species/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
@@ -124,7 +124,7 @@ router.post(
       price: (await c.req.json()).activity.price,
     };
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('id'), {
+      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('entityid'), {
         $addToSet: { activities: activity },
       });
       console.log(`${(await c.req.json()).activity.name} has been added to the species`);
@@ -137,11 +137,11 @@ router.post(
 
 // SPECIES ACTIVITY EDIT ROUTE
 router.get(
-  '/species/:id/activities/edit',
+  '/species/:entityid/activities/edit',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(c.req.param('id'));
+      const foundSpecies = await Species.findById(c.req.param('entityid'));
       if (foundSpecies) {
         if (c.req.query('index') && typeof c.req.query('index') === 'string') {
           const activity = foundSpecies.activities[parseInt(c.req.query('index')!, 10)];
@@ -162,7 +162,7 @@ router.get(
 
 // SPECIES ACTIVITY UPDATE ROUTE
 router.put(
-  '/species/:id/activities',
+  '/species/:entityid/activities',
   async (c) => {
     await middleware.isLoggedIn(c)
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
@@ -179,7 +179,7 @@ router.put(
     };
     // FIND SPECIES
     try {
-      const updatedSpecies = await Species.findById(c.req.param('id'));
+      const updatedSpecies = await Species.findById(c.req.param('entityid'));
       if (updatedSpecies) {
       // CHANGE ACTIVITY DETAILS
         if (c.req.query('index') && typeof c.req.query('index') === 'string') {
@@ -196,11 +196,11 @@ router.put(
 
 // SPECIES NUTRIENTS CREATE ROUTE
 router.get(
-  '/species/:id/nutrients/new',
+  '/species/:entityid/nutrients/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(c.req.param('id'));
+      const foundSpecies = await Species.findById(c.req.param('entityid'));
       return c.json({ species: foundSpecies });
     } catch (err) {
       console.log(err);
@@ -210,11 +210,11 @@ router.get(
 
 // SPECIES NUTRIENTS UPDATE ROUTE
 router.put(
-  '/species/:id/nutrients',
+  '/species/:entityid/nutrients',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('id'), {
+      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('entityid'), {
         $set: { nutrients: (await c.req.json()).nutrients },
       });
       if (updatedSpecies) {

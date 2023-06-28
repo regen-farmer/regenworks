@@ -25,10 +25,10 @@ export default function indexRoutes(
   // PRACTICE CREATE ROUTE
 
   // PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
-  router.get("/practices/:id", async (c) => {
+  router.get("/practices/:entityid", async (c) => {
 await middleware.isLoggedIn(c);
     try {
-      const foundPractice = await Practice.findById(c.req.param("id"));
+      const foundPractice = await Practice.findById(c.req.param('entityid'));
       try {
         const foundParcel = await Parcel.findById(c.req.query('parcelid'));
         if (

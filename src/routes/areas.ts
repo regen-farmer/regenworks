@@ -21,12 +21,12 @@ export default function indexRoutes(
 
 // NEW AREA ON PROJECT
 router.get(
-  '/projects/:id/areas/new',
+  '/projects/:entityid/areas/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('layer')
         .exec();
       return c.json({ project: foundProject });
@@ -37,7 +37,7 @@ router.get(
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', async (c) => {
+router.post('/projects/:entityid/areas', async (c) => {
 await middleware.isLoggedIn(c);
   // CREATE AREA HERE?
   const area = {
@@ -51,7 +51,7 @@ await middleware.isLoggedIn(c);
     // FIND PROJECT
     try {
       const updatedProject = await Project.findByIdAndUpdate(
-        c.req.param('id'),
+        c.req.param('entityid'),
         { $addToSet: { areas: createdArea } },
       );
       if (updatedProject) {
@@ -70,12 +70,12 @@ await middleware.isLoggedIn(c);
 
 // DELETE AREA ON PROJECT
 router.delete(
-  '/projects/:id/areas/:pid',
+  '/projects/:entityid/areas/:pid',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const updatedProject = await Project.findById(c.req.param('id'));
+      const updatedProject = await Project.findById(c.req.param('entityid'));
 
       if (updatedProject) {
       // REMOVE ROW
@@ -103,19 +103,19 @@ router.delete(
 
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
-  '/projects/:id/deleteareas',
+  '/projects/:entityid/deleteareas',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'));
+      const foundProject = await Project.findById(c.req.param('entityid'));
       // DELETE AREAS
       if (foundProject) {
         try {
           await Area.deleteMany({ _id: { $in: foundProject.areas } });
           // CLEAR AREA ARRAY ON PROJECT
           try {
-            const updatedProject = await Project.findByIdAndUpdate(c.req.param('id'), {
+            const updatedProject = await Project.findByIdAndUpdate(c.req.param('entityid'), {
               $set: { areas: [] },
             });
             if (updatedProject) {

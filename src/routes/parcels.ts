@@ -244,10 +244,10 @@ export default function indexRoutes(
   });
 
   // PARCEL SHOW ROUTE
-  router.get("/parcels/:id", async (c) => {
+  router.get("/parcels/:entityid", async (c) => {
     await middleware.checkParcelOwnership(c);
     try {
-      const foundParcel = await Parcel.findById(c.req.param("id"))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate("practices")
         .populate("layers")
         .exec();
@@ -309,13 +309,13 @@ export default function indexRoutes(
 
   // PARCEL EDIT ROUTE
   router.get(
-    "/parcels/:id/edit",
+    "/parcels/:entityid/edit",
     
     async (c) => {
       await middleware.checkParcelOwnership(c);
       try {
         // Find specific place in database
-        const foundParcel = await Parcel.findById(c.req.param("id"))
+        const foundParcel = await Parcel.findById(c.req.param('entityid'))
           .populate("practices")
           .exec();
         // RENDER EDIT PAGE FOR PARCEL
@@ -362,10 +362,10 @@ export default function indexRoutes(
   });
 
   // PLACES DESTROY ROUTE
-  router.delete("/parcels/:id", async (c) => {
+  router.delete("/parcels/:entityid", async (c) => {
     await middleware.checkParcelOwnership(c);
     try {
-      await Parcel.findByIdAndRemove(c.req.param("id"));
+      await Parcel.findByIdAndRemove(c.req.param('entityid'));
       return c.json(`/users/${c.get("user")?.id}`);
     } catch (err) {
       console.log(err);
@@ -375,11 +375,11 @@ export default function indexRoutes(
 
   // ANALYSIS ROUTE FOR ALL PARCEL LAYERS
   router.get(
-    "/parcels/:id/analysis",
+    "/parcels/:entityid/analysis",
     async (c) => {
       await middleware.checkParcelOwnership(c);
       try {
-        const foundParcel = await Parcel.findById(c.req.param("id"))
+        const foundParcel = await Parcel.findById(c.req.param('entityid'))
           .populate("layers")
           .exec();
         return c.json({ parcel: foundParcel });
@@ -391,11 +391,11 @@ export default function indexRoutes(
 
   // SUCCESSION ROUTE FOR ALL SYSTEMS IN PARCEL LAYERS
   router.get(
-    "/parcels/:id/composition",
+    "/parcels/:entityid/composition",
     async (c) => {
       await middleware.checkParcelOwnership(c);
       try {
-        const foundParcel = await Parcel.findById(c.req.param("id"))
+        const foundParcel = await Parcel.findById(c.req.param('entityid'))
           .populate("layers")
           .exec();
         if (foundParcel) {
@@ -425,11 +425,11 @@ export default function indexRoutes(
 
   // BIGQUERY PARCEL LAT LNG TEST
   router.get(
-    "/parcels/:id/climate",
+    "/parcels/:entityid/climate",
     async (c) => {
       await middleware.checkParcelOwnership(c);
       try {
-        const foundParcel = await Parcel.findById(c.req.param("id"));
+        const foundParcel = await Parcel.findById(c.req.param('entityid'));
         if (foundParcel) {
           geocoder.geocode(foundParcel.location, async (err, data) => {
             if (err || !data.length) {
@@ -474,11 +474,11 @@ export default function indexRoutes(
   );
 
   // PARCEL
-  router.get("/parcels/:id/layout", async (c) => {
+  router.get("/parcels/:entityid/layout", async (c) => {
     await middleware.isLoggedIn(c);
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(c.req.param("id"))
+      const foundParcel = await Parcel.findById(c.req.param('entityid'))
         .populate({ path: "layers", populate: { path: "areas" } })
         .populate({
           path: "layers",

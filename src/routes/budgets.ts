@@ -34,11 +34,11 @@ export default function indexRoutes(
 // BUDGET CREATE ROUTE
 
 // BUDGET SHOW ROUTE
-router.get('/budgets/:id', async (c) => {
+router.get('/budgets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   // CHECK OWNERSHIP ASAP
   try {
-    const foundBudget = await Budget.findById(c.req.param('id'))
+    const foundBudget = await Budget.findById(c.req.param('entityid'))
       .populate('postings')
       .exec();
     // FIND BUDGET LENGTH
@@ -101,10 +101,10 @@ await middleware.isLoggedIn(c);
 });
 
 // BUDGET EDIT ROUTE
-router.get('/budgets/:id/edit', async (c) => {
+router.get('/budgets/:entityid/edit', async (c) => {
 await middleware.isLoggedIn(c);
   try {
-    const foundBudget = await Budget.findById(c.req.param('id'));
+    const foundBudget = await Budget.findById(c.req.param('entityid'));
     return c.json({ budget: foundBudget });
   } catch (err) {
     console.log(err);
@@ -112,11 +112,11 @@ await middleware.isLoggedIn(c);
 });
 
 // BUDGET UPDATE ROUTE
-router.post('/budgets/:id', async (c) => {
+router.post('/budgets/:entityid', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     const updatedBudget = await Budget.findByIdAndUpdate(
-      c.req.param('id'),
+      c.req.param('entityid'),
       (await c.req.json()).budget,
     );
     if (updatedBudget) {
@@ -132,10 +132,10 @@ await middleware.isLoggedIn(c);
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get('/parcels/:id/accounts', async (c) => {
+router.get('/parcels/:entityid/accounts', async (c) => {
 await middleware.isLoggedIn(c);
   try {
-    const foundParcel = await Parcel.findById(c.req.param('id'))
+    const foundParcel = await Parcel.findById(c.req.param('entityid'))
       .populate({
         path: 'layers',
         populate: { path: 'accounts', populate: { path: 'postings' } },
@@ -151,11 +151,11 @@ await middleware.isLoggedIn(c);
 
 // PROJECT BUDGET NEW ROUTE
 router.get(
-  '/projects/:id/budgets/new',
+  '/projects/:entityid/budgets/new',
   async (c) => {
     await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('system')
         .exec();
 
@@ -192,10 +192,10 @@ router.get(
 
 // PROJECT BUDGET CREATE ROUTE
 // router.post(
-//   '/projects/:id/budgets',
+//   '/projects/:entityid/budgets',
 //   middleware.isLoggedIn,
 //   async (c) => {
-//     const foundProject = await Project.findById(c.req.param('id'));
+//     const foundProject = await Project.findById(c.req.param('entityid'));
 //     const createdBudget = await Budget.create((await c.req.json()).budget);
 
 //     if (foundProject) {
@@ -214,12 +214,12 @@ router.get(
 
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get(
-  '/projects/:id/generateestablishment',
+  '/projects/:entityid/generateestablishment',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('system')
         .populate({
           path: 'rows',
@@ -294,12 +294,12 @@ router.get(
 
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
 router.post(
-  '/projects/:id/generateestablishment',
+  '/projects/:entityid/generateestablishment',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('layer')
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate({
@@ -513,12 +513,12 @@ router.post(
 
 // GENERATE NEW PROJECT CASH-FLOW BUDGET
 router.get(
-  '/projects/:id/generatemanagement',
+  '/projects/:entityid/generatemanagement',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate({
           path: 'rows',
           populate: { path: 'sequence', populate: { path: 'model.species' } },
@@ -605,12 +605,12 @@ router.get(
 
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
 router.post(
-  '/projects/:id/generatemanagement',
+  '/projects/:entityid/generatemanagement',
   async (c) => {
     await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(c.req.param('id'))
+      const foundProject = await Project.findById(c.req.param('entityid'))
         .populate('layer')
         .populate({
           path: 'system',

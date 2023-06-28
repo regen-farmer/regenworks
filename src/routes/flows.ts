@@ -21,11 +21,11 @@ export default function indexRoutes(
 ) {
 
 // PARCEL FLOWS
-router.get('/parcels/:id/flows', async (c) => {
+router.get('/parcels/:entityid/flows', async (c) => {
 await middleware.isLoggedIn(c);
   try {
     // FIND PARCEL
-    const foundParcel = await Parcel.findById(c.req.param('id')).populate({ path: 'layers', populate: { path: 'rows' } }).exec();
+    const foundParcel = await Parcel.findById(c.req.param('entityid')).populate({ path: 'layers', populate: { path: 'rows' } }).exec();
     return c.json({ parcel: foundParcel });
   } catch (err) {
     console.log(err);
@@ -33,10 +33,10 @@ await middleware.isLoggedIn(c);
 });
 
 // NESTED SPECIES FLOW NEW ROUTE
-router.get('/species/:id/flows/new', async (c) => {
+router.get('/species/:entityid/flows/new', async (c) => {
 await middleware.isLoggedIn(c);
   try {
-    const foundSpecies = await Species.findById(c.req.param('id'));
+    const foundSpecies = await Species.findById(c.req.param('entityid'));
     return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
@@ -44,11 +44,11 @@ await middleware.isLoggedIn(c);
 });
 
 // NESTED SPECIES FLOW CREATE ROUTE
-router.post('/species/:id/flows', async (c) => {
+router.post('/species/:entityid/flows', async (c) => {
 await middleware.isLoggedIn(c);
   // FIND SPECIES
   try {
-    const foundSpecies = await Species.findById(c.req.param('id'));
+    const foundSpecies = await Species.findById(c.req.param('entityid'));
     console.log((await c.req.json()).flow);
 
     if (foundSpecies) {
