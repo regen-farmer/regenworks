@@ -4,17 +4,30 @@ import System from '../models/system.js';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // SYSTEMFLOW INDEX ROUTE
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
-router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/systems/:id/flows/new', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND SYSTEM ID
   try {
-    const foundSystem = await System.findById(req.params.id);
+    const foundSystem = await System.findById(c.req.param('id'));
     const foundSpecies = await Species.find();
 
     // SORT SPECIES
@@ -27,18 +40,19 @@ router.get('/systems/:id/flows/new', middleware.isLoggedIn, async (req: express.
       }
       return 0;
     });
-    res.send({ system: foundSystem, species: foundSpecies });
+    return c.json({ system: foundSystem, species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
-router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/systems/:id/flows', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND SYSTEM
   try {
-    const foundSystem = await System.findById(req.params.id);
-    const flow = req.body.flow;
+    const foundSystem = await System.findById(c.req.param('id'));
+    const flow = (await c.req.json()).flow;
     const data: any[] = [];
     for (let i = 0; i < flow.data.length; i++) {
       if (!(flow.data[i].species === '')) {
@@ -49,10 +63,10 @@ router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Req
 
     if (foundSystem) {
       try {
-        const createdSystemflow = await Systemflow.create(req.body.flow);
+        const createdSystemflow = await Systemflow.create((await c.req.json()).flow);
         foundSystem.flows.push(createdSystemflow);
         await foundSystem.save();
-        res.send(`/systems/${foundSystem._id}`);
+        return c.json(`/systems/${foundSystem._id}`);
       } catch (err) {
         console.log(err);
       }
@@ -62,4 +76,4 @@ router.post('/systems/:id/flows', middleware.isLoggedIn, async (req: express.Req
   }
 });
 
-export default router;
+}

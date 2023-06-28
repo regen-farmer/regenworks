@@ -22,7 +22,7 @@ import middleware from '../middleware/index.js';
 import { systemBasedLayout } from '../middleware/gis/system_based_layout.js';
 import dyFiMo from '../middleware/financials.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 import Species, { ISpeciesSchema } from '../models/species.js';
 import { rowBasedLayout } from '../middleware/gis/row_based_layout.js';
 // import SystemDesign from '../models/systemdesign.js';
@@ -69,7 +69,19 @@ import { rowBasedLayout } from '../middleware/gis/row_based_layout.js';
 
 // NODE GEOCODER CODE
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 const options: NodeGeocoder.Options = {
   provider: 'google',
@@ -80,32 +92,36 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // PROJECTS INDEX ROUTE
-router.get('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects', async (c) => {
+await middleware.isLoggedIn(c);
   // GET ALL USERS PROJECTS IN DB
   try {
-    const allProjects = await Project.find({ 'owner.id': req.user?._id });
-    res.send({ projects: allProjects });
+    const allProjects = await Project.find({ 'owner.id': c.get('user')?._id });
+    return c.json({ projects: allProjects });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SERVICES NEW ROUTE
-router.get('/projects/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/new', async (c) => {
+await middleware.isLoggedIn(c);
   const place = undefined;
-  res.send({ place });
+  return c.json({ place });
 });
 
 // SERVICES CREATE ROUTE
-router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects', async (c) => {
+await middleware.isLoggedIn(c);
   // Create a new project
   try {
-    const service = await Project.create(req.body.project);
+    const service = await Project.create((await c.req.json()).project);
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
-    geocoder.geocode(req.body.service.location, async (err, data) => {
+    geocoder.geocode((await c.req.json()).service.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
-        return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
+        c.status(500)
+return c.json({ error: `Error while geocoding: ${err.toString()}` });
       }
 
       const lat = data[0].latitude;
@@ -117,12 +133,12 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
         service.lng = lng;
         service.location = loc;
         // Add ID to experience
-        service.owner.id = req.user?._id.toString()!;
+        service.owner.id = c.get('user')?._id.toString()!;
         // Save the service - Not need if created after this step
         await service.save();
         // Redirect to projects INDEX page
         // req.flash("success", "Successfully added service");
-        res.send('/projects');
+        return c.json('/projects');
       }
     });
   } catch (err) {
@@ -131,12 +147,13 @@ router.post('/projects', middleware.isLoggedIn, async (req: express.Request & { 
 });
 
 // PROJECT EDIT ROUTE
-router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/edit', async (c) => {
+await middleware.isLoggedIn(c);
   // MAKE SERVICE OWNERSHIP MIDDLEWARE
   // Find specific project in database
   try {
-    const foundProject = await Project.findById(req.params.id);
-    res.send({ project: foundProject });
+    const foundProject = await Project.findById(c.req.param('id'));
+    return c.json({ project: foundProject });
   } catch (err) {
     console.log(err);
   }
@@ -145,12 +162,12 @@ router.get('/projects/:id/edit', middleware.isLoggedIn, async (req: express.Requ
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
   '/projects/:id/layout',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     console.time('layoutRoute');
     try {
       console.time('getProject');
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         
         .populate('layer')
         .populate('systemdesign')
@@ -171,7 +188,7 @@ router.get(
         console.time('systemBasedLayout');
         const layout = systemBasedLayout(foundProject);
         console.timeEnd('systemBasedLayout');
-        res.send({
+        return c.json({
           project: foundProject,
           treeRowLines: layout.treeRowLines,
           groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
@@ -188,7 +205,7 @@ router.get(
         console.timeEnd('layoutRoute');
         
       } else {
-        res.send({'error':'no project found'});
+        return c.json({'error':'no project found'});
       }
     } catch (err) {
       console.log(err);
@@ -198,28 +215,30 @@ router.get(
 );
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      req.params.id,
-      req.body.project,
+      c.req.param('id'),
+      (await c.req.json()).project,
     );
     // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}`);
+    return c.json(`/projects/${c.req.param('id')}`);
   } catch (err) {
     console.log(err);
   }
 });
 
 // PROJECT UPDATE ROUTE
-router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/layout', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      req.params.id,
-      req.body.project,
+      c.req.param('id'),
+      (await c.req.json()).project,
     );
     // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}/layout`);
+    return c.json(`/projects/${c.req.param('id')}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -228,10 +247,10 @@ router.put('/projects/:id/layout', middleware.isLoggedIn, async (req: express.Re
 // PROJECT VIZ ROUTE
 router.get(
   '/projects/:id/viz',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate('edgesystem')
         .populate('layer')
@@ -286,7 +305,7 @@ router.get(
           const treeRowArea = layout.treeRowArea;
           // TEMP VALUE HERE
           const marginArea = 0;
-          res.send({
+          return c.json({
             project: foundProject,
             system: foundSystem,
             collection,
@@ -310,21 +329,22 @@ router.get(
 );
 
 // PROJECT 3D VIZ
-router.get('/projects/:id/3dviz', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
+router.get('/projects/:id/3dviz', async (c) => {
+await middleware.isLoggedIn(c);
+  return c.json({});
 });
 
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
   '/projects/:id/implement',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
       await Project.findByIdAndUpdate(
-        req.params.id,
+        c.req.param('id'),
         { $set: { status: 'Implementation' } },
       );
-      res.send(`/projects/${req.params.id}`);
+      return c.json(`/projects/${c.req.param('id')}`);
     } catch (err) {
       console.log(err);
     }
@@ -332,13 +352,14 @@ router.put(
 );
 
 // PROJECT STATUS CHANGE ROUTE - RETIRED
-router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/retire', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      req.params.id,
+      c.req.param('id'),
       { $set: { status: 'Retired' } },
     );
-    res.send(`/projects/${req.params.id}`);
+    return c.json(`/projects/${c.req.param('id')}`);
   } catch (err) {
     console.log(err);
   }
@@ -347,10 +368,10 @@ router.put('/projects/:id/retire', middleware.isLoggedIn, async (req: express.Re
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
   '/projects/:id/complete',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const completedProject = await Project.findByIdAndUpdate(req.params.id, {
+      const completedProject = await Project.findByIdAndUpdate(c.req.param('id'), {
         $set: { status: 'Completed' },
       });
       if (completedProject) {
@@ -375,7 +396,7 @@ router.put(
             // SAVE AREA
             await projectArea.save();
             // REDIRECT
-            res.send(`/projects/${req.params.id}`);
+            return c.json(`/projects/${c.req.param('id')}`);
           } else {
             console.log('No projectArea');
           }
@@ -394,12 +415,12 @@ router.put(
 // ADD PROJECT EDGE SYSTEM NEW
 router.get(
   '/projects/:id/addedgesystem',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       try {
-        const foundSystems = await System.find({ 'owner.id': req.user?._id });
+        const foundSystems = await System.find({ 'owner.id': c.get('user')?._id });
         // SORT OUT MONOCULTURE SYSTEMS
         const realSystems: ISystemSchema[] = [];
         for (let i = 0; i < foundSystems.length; i++) {
@@ -410,7 +431,7 @@ router.get(
             realSystems.push(foundSystems[i]);
           }
         }
-        res.send({
+        return c.json({
           project: foundProject,
           systems: realSystems,
         });
@@ -426,19 +447,19 @@ router.get(
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
   '/projects/:id/addedgesystem',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND SYSTEM
     try {
-      const foundSystem = await System.findById(req.body.systemid);
+      const foundSystem = await System.findById((await c.req.json()).systemid);
 
       // FIND PROJECT
       try {
-        const foundProject = await Project.findByIdAndUpdate(req.params.id, {
+        const foundProject = await Project.findByIdAndUpdate(c.req.param('id'), {
           $set: { edgesystem: foundSystem },
         });
         if (foundProject) {
-          res.send(`/projects/${foundProject._id}`);
+          return c.json(`/projects/${foundProject._id}`);
         } else {
           console.log('No foundProject');
         }
@@ -454,11 +475,11 @@ router.post(
 // PROJECT ASSET CREATION
 router.put(
   '/projects/:id/generateassets',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate('edgesystem')
         .populate('layer')
@@ -496,12 +517,12 @@ router.put(
                     console.log("Tree #1 - " + treeAssetArray[0]);
                     console.log(treeAssetArray[0].species);
                     console.log(treeAssetArray[0].lat);
-                    res.send("/projects/" + req.params.id); */
+                    return c.json("/projects/" + c.req.param('id')); */
           console.log(`Trees Assets: ${treeAssetArray.length}`);
           console.log(`Trees Markets: ${treeMarkerArray.length}`);
           console.log(`Trees Row Refs: ${treeAssetRowRef.length}`);
           /*
-                                        res.send("/projects/" + req.params.id);
+                                        return c.json("/projects/" + c.req.param('id'));
                     */
           // CREATE ASSETS
           try {
@@ -532,7 +553,7 @@ router.put(
                     await foundRows[i].save();
                   }
                   console.log('Assets added to project');
-                  res.send(`/projects/${req.params.id}`);
+                  return c.json(`/projects/${c.req.param('id')}`);
                 } catch (err) {
                   console.log(err);
                 }
@@ -558,10 +579,11 @@ router.put(
 );
 
 // PROJECT LAYOUT EXPLODE ROUTE
-// router.post('/projects/:id/explode', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+// router.post('/projects/:id/explode', async (c) => {
+// await middleware.isLoggedIn(c);
 //   // FIND PROJECT
 //   try {
-//     const foundProject = await Project.findById(req.params.id)
+//     const foundProject = await Project.findById(c.req.param('id'))
 //       .populate({ path: 'system', populate: { path: 'model.species' } })
 //       .populate({ path: 'edgesystem', populate: { path: 'model.species' } })
 //       .populate('layer')
@@ -623,7 +645,7 @@ router.put(
 //           const createdAreas = await Area.insertMany(areas);
 //           try {
 //             const updatedProject = await Project.findByIdAndUpdate(
-//               req.params.id,
+//               c.req.param('id'),
 //               {
 //                 $push: {
 //                   rows: { $each: createdRows },
@@ -632,7 +654,7 @@ router.put(
 //               },
 //             );
 //             if (updatedProject) {
-//               res.send(`/projects/${updatedProject._id}/layout`);
+//               return c.json(`/projects/${updatedProject._id}/layout`);
 //             } else {
 //               console.log('No updatedProject');
 //             }
@@ -654,25 +676,25 @@ router.put(
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   '/projects/:id/deleterows',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       if (foundProject) {
         try {
           await Row.deleteMany({ _id: { $in: foundProject.rows } });
           // DELETE ROWS
           try {
             const updatedProject = await Project.findByIdAndUpdate(
-              req.params.id,
+              c.req.param('id'),
               {
                 $set: { rows: [] },
               },
             );
             if (updatedProject) {
               // REDIRECT
-              res.send(`/projects/${updatedProject._id}/layout`);
+              return c.json(`/projects/${updatedProject._id}/layout`);
             } else {
               console.log('No updatedProject');
             }
@@ -694,11 +716,11 @@ router.get(
 // PROJECT ASSET SHOW PAGE
 router.get(
   '/projects/:id/assets',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('assets')
         .populate('layer')
         .exec();
@@ -743,7 +765,7 @@ router.get(
           uniqueSpeciesCount.push(speciesCount);
         }
         console.log(uniqueSpeciesCount);
-        res.send({
+        return c.json({
           project: foundProject,
           trees: treeMarkers,
           treecounts: uniqueSpeciesCount,
@@ -760,12 +782,12 @@ router.get(
 // SERVICES DELETE ROUTE
 router.delete(
   '/projects/:id',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE PROJECT OWNERSHIP MIDDLEWARE
     // FIND PROJECT FIRST FOR REFERENCES
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
 
       // REMOVE PROJECT REFERENCE FROM LAYER
       if (foundProject) {
@@ -794,12 +816,12 @@ router.delete(
 
               // DELETE PROJECT
               try {
-                await Project.findByIdAndRemove(req.params.id);
+                await Project.findByIdAndRemove(c.req.param('id'));
                 console.log('project deleted');
-                res.send('/projects');
+                return c.json('/projects');
               } catch (err) {
                 console.log(err);
-                res.send('/projects');
+                return c.json('/projects');
               }
             } catch (err) {
               console.log(err);
@@ -824,15 +846,15 @@ router.delete(
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
   '/layers/:id/systems/:system/projects/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       try {
-        const foundSystem = await System.findById(req.params.system);
-        res.send({
+        const foundSystem = await System.findById(c.req.param('system'));
+        return c.json({
           layer: foundLayer,
           system: foundSystem,
         });
@@ -848,14 +870,14 @@ router.get(
 
 router.get(
   '/layers/:id/new-project',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     console.log('THIS ROUTE');
     // CHECK OWNERSHIP!!!
     // FIND LAYER ID
     try {
-      const foundLayer = await Layer.findById(req.params.id);
-      res.send({
+      const foundLayer = await Layer.findById(c.req.param('id'));
+      return c.json({
         layer: foundLayer,
       });
     } catch (err) {
@@ -868,21 +890,21 @@ router.get(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   '/layers/:id/projects',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // Lookup place using id
 
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate('rows')
         .exec();
 
-      const createdProject = await Project.create(req.body.project);
+      const createdProject = await Project.create((await c.req.json()).project);
 
       if (foundLayer && createdProject) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user?._id.toString()!;
+        createdProject.owner.id = c.get('user')?._id.toString()!;
         createdProject.layer = foundLayer.id;
         createdProject.financial = {
           discountRate: 0.05,
@@ -894,7 +916,7 @@ router.post(
         foundLayer.projects.push(createdProject.id);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if (req.body.existingrows === 'on') {
+        if ((await c.req.json()).existingrows === 'on') {
           const newRows: {
             geometry: string;
             name: string;
@@ -912,19 +934,19 @@ router.post(
             createdProject.rows = createdRows;
             // Save the project
             await createdProject.save();
-            res.send(createdProject);
+            return c.json(createdProject);
           } catch (err) {
             console.log(err);
           }
         } else {
           // Save the project
           await createdProject.save();
-          res.send(createdProject);
+          return c.json(createdProject);
         }
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      return c.json(`/layers/${c.req.param('id')}`);
     }
   },
 );
@@ -932,26 +954,26 @@ router.post(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   '/layers/:id/systems/:system/projects',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // Lookup place using id
 
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate('rows')
         .exec();
 
-      const createdProject = await Project.create(req.body.project);
+      const createdProject = await Project.create((await c.req.json()).project);
 
       // FIND SYSTEM AND ADD TO PROJECT
-      const foundSystem = await System.findById(req.params.system)
+      const foundSystem = await System.findById(c.req.param('system'))
         .populate('model.species')
         .exec();
 
       if (foundLayer && createdProject && foundSystem) {
         // CREATE CURRENCY
         // ADD PROJECT STUFF
-        createdProject.owner.id = req.user?._id.toString()!;
+        createdProject.owner.id = c.get('user')?._id.toString()!;
         createdProject.system = foundSystem;
         createdProject.layer = foundLayer;
         createdProject.financial = {
@@ -963,7 +985,7 @@ router.post(
         foundLayer.projects.push(createdProject);
         await foundLayer.save();
         // Save rows from layer on project - Do it so that they are just blank for now
-        if (req.body.existingrows === 'on') {
+        if ((await c.req.json()).existingrows === 'on') {
           const newRows: {
             geometry: string;
             name: string;
@@ -981,19 +1003,19 @@ router.post(
             createdProject.rows = createdRows;
             // Save the project
             await createdProject.save();
-            res.send(createdProject);
+            return c.json(createdProject);
           } catch (err) {
             console.log(err);
           }
         } else {
           // Save the project
           await createdProject.save();
-          res.send(createdProject);
+          return c.json(createdProject);
         }
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      return c.json(`/layers/${c.req.param('id')}`);
     }
   },
 );
@@ -1001,11 +1023,11 @@ router.post(
 // PROJECT ASSETS DELETE ROUTE
 router.delete(
   '/projects/:id/allassets',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id).populate('assets');
+      const foundProject = await Project.findById(c.req.param('id')).populate('assets');
       // FIND ASSETS AND DELETE
       if (foundProject) {
         for (let i = foundProject.assets.length - 1; i >= 0; i--) {
@@ -1018,7 +1040,7 @@ router.delete(
             console.log(err);
           }
         }
-        res.send(`/projects/${foundProject.id}`);
+        return c.json(`/projects/${foundProject.id}`);
       } else {
         console.log('No foundProject');
       }
@@ -1031,20 +1053,20 @@ router.delete(
 // ROW NEW ROUTE
 router.get(
   '/projects/:id/row/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('layer')
         .exec();
       if (foundProject) {
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
+            { 'owner.id': c.get('user')?._id },
           );
-          res.send({
+          return c.json({
             project: foundProject,
             sequences: foundSequences,
           });
@@ -1059,21 +1081,23 @@ router.get(
 );
 
 // ROW CREATE ROUTE
-router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects/:id/row', async (c) => {
+await middleware.isLoggedIn(c);
   // REDIRECT IF NO GEOMETRY
-  if (req.body.geometry === '') {
-    res.status(400).send({ error: 'No geometry found' });
+  if ((await c.req.json()).geometry === '') {
+    c.status(400)
+return c.json({ error: 'No geometry found' });
   } else {
     // CREATE ROW HERE?
-    const tempGeo = JSON.parse(req.body.geometry);
+    const tempGeo = JSON.parse((await c.req.json()).geometry);
     const row: any = {
-      geometry: req.body.geometry,
-      name: req.body.row.name,
+      geometry: (await c.req.json()).geometry,
+      name: (await c.req.json()).row.name,
       // ADD ROW LENGTH PARAM
       rowlength: turfLength(tempGeo, { units: 'meters' }),
     };
-    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-      row.sequence = req.body.sequenceid;
+    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
+      row.sequence = (await c.req.json()).sequenceid;
     }
     console.log(row);
     // CREATE ROW
@@ -1081,13 +1105,13 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
       const createdRow = await Row.create(row);
       // FIND PROJECT
       try {
-        const foundProject = await Project.findByIdAndUpdate(req.params.id, {
+        const foundProject = await Project.findByIdAndUpdate(c.req.param('id'), {
           $addToSet: { rows: createdRow },
         });
         // CREATE ROW
         if (foundProject) {
           console.log('Row has been added to project');
-          res.send(`/projects/${foundProject.id}/layout`);
+          return c.json(`/projects/${foundProject.id}/layout`);
         } else {
           console.log('No foundProject');
         }
@@ -1103,25 +1127,25 @@ router.post('/projects/:id/row', middleware.isLoggedIn, async (req: express.Requ
 // EDIT ROW
 router.get(
   '/projects/:id/row/:pid/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({ path: 'rows', populate: { path: 'sequence' } })
         .populate('layer')
         .exec();
       // FIND ROW
       try {
-        const foundRow = await Row.findById(req.params.pid)
+        const foundRow = await Row.findById(c.req.param('pid'))
           .populate('sequence')
           .exec();
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
+            { 'owner.id': c.get('user')?._id },
           );
-          res.send({
+          return c.json({
             project: foundProject,
             row: foundRow,
             sequences: foundSequences,
@@ -1141,23 +1165,23 @@ router.get(
 // UPDATE ROW
 router.put(
   '/projects/:id/row/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CREATE ROW HERE?
     const row: any = {
-      name: req.body.row.name,
+      name: (await c.req.json()).row.name,
     };
-    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-      row.sequence = req.body.sequenceid;
+    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
+      row.sequence = (await c.req.json()).sequenceid;
     }
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       // FIND AND UPDATE ROW
       if (foundProject) {
         try {
-          await Row.findByIdAndUpdate(req.params.pid, row);
-          res.send(`/projects/${foundProject._id}/layout`);
+          await Row.findByIdAndUpdate(c.req.param('pid'), row);
+          return c.json(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1171,24 +1195,24 @@ router.put(
 // DELETE ROW
 router.delete(
   '/projects/:id/row/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const updatedProject = await Project.findById(req.params.id);
+      const updatedProject = await Project.findById(c.req.param('id'));
       // REMOVE ROW
       if (updatedProject) {
         console.log(`Length before ${updatedProject.rows.length}`);
         updatedProject.rows.forEach(async (row) => {
-          if (row._id.toString() === req.params.pid) {
+          if (row._id.toString() === c.req.param('pid')) {
             await row.deleteOne();
           }
         });
         // DELETE ROW
         try {
-          await Row.findByIdAndRemove(req.params.pid);
+          await Row.findByIdAndRemove(c.req.param('pid'));
           console.log(`Length after ${updatedProject.rows.length}`);
-          res.send(`/projects/${updatedProject._id}/layout`);
+          return c.json(`/projects/${updatedProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1204,25 +1228,25 @@ router.delete(
 // EDIT AREA
 router.get(
   '/projects/:id/areas/:pid/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({ path: 'areas', populate: { path: 'rotation' } })
         .populate('layer')
         .exec();
       // FIND ROW
       try {
-        const foundArea = await Area.findById(req.params.pid)
+        const foundArea = await Area.findById(c.req.param('pid'))
           .populate('rotation')
           .exec();
         // FIND MY SYSTEMS
         try {
           const foundRotations = await Rotation.find(
-            { 'owner.id': req.user?._id },
+            { 'owner.id': c.get('user')?._id },
           );
-          res.send({
+          return c.json({
             project: foundProject,
             area: foundArea,
             rotations: foundRotations,
@@ -1242,29 +1266,29 @@ router.get(
 // UPDATE AREA
 router.put(
   '/projects/:id/areas/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CREATE AREA HERE?
 
     const area: any = {
-      name: req.body.area.name,
+      name: (await c.req.json()).area.name,
     };
 
-    if (!(req.body.rotationid === 'none') && req.body.rotationid) {
-      area.rotation = req.body.rotationid;
+    if (!((await c.req.json()).rotationid === 'none') && (await c.req.json()).rotationid) {
+      area.rotation = (await c.req.json()).rotationid;
     }
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       // FIND AND UPDATE AREA
       if (foundProject) {
         try {
           const updatedArea = await Area.findByIdAndUpdate(
-            req.params.pid,
+            c.req.param('pid'),
             area,
           );
           console.log(`Updated area: ${updatedArea}`);
-          res.send(`/projects/${foundProject._id}/layout`);
+          return c.json(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1277,9 +1301,10 @@ router.put(
 
 // --------- PROJECT FINANCIALS ROUTE TEMP --------
 // PROJECT FINANCIALS ROUTE
-router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/financials', async (c) => {
+await middleware.isLoggedIn(c);
   try {
-    const foundProject = await Project.findById(req.params.id)
+    const foundProject = await Project.findById(c.req.param('id'))
       .populate({ path: 'system', populate: { path: 'model.species' } })
       .populate('edgesystem')
       .populate('layer')
@@ -1354,7 +1379,7 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
         path: 'activities',
       });
 
-      res.send({
+      return c.json({
         species: populatedSpecies,
         project: foundProject,
         labels: parsedLabels,
@@ -1370,18 +1395,20 @@ router.get('/projects/:id/financials', middleware.isLoggedIn, async (req: expres
   }
 });
 
-router.patch('/projects/:id/financials', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const project = await Project.findById(req.params.id);
+router.patch('/projects/:id/financials', async (c) => {
+await middleware.isLoggedIn(c);
+  const project = await Project.findById(c.req.param('id'));
 
-  project!.financial.discountRate = req.body.discountrate;
-  project!.financial.period = req.body.timeperiod;
+  project!.financial.discountRate = (await c.req.json()).discountrate;
+  project!.financial.period = (await c.req.json()).timeperiod;
   await project!.save();
 
-  res.send();
+  return c.json({});
 });
 
-router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const project = await Project.findById(req.params.id).populate('system');
+router.patch('/projects/:id/financials/activities', async (c) => {
+await middleware.isLoggedIn(c);
+  const project = await Project.findById(c.req.param('id')).populate('system');
 
   const system = project?.system;
 
@@ -1398,7 +1425,7 @@ router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async
       price: number;
     }]
 
-  }] = req.body.map((newactivity) => ({
+  }] = (await c.req.json()).map((newactivity) => ({
     id: newactivity.id,
     activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));
@@ -1413,7 +1440,7 @@ router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async
 
   await system?.save();
 
-  res.send();
+  return c.json({});
 });
 
 // --------- SYSTEM LAYOUT CUSTOM ALIGNMENT ROUTES --------
@@ -1421,20 +1448,20 @@ router.patch('/projects/:id/financials/activities', middleware.isLoggedIn, async
 // ALIGNMENT NEW ROUTE
 router.get(
   '/projects/:id/alignmentrow/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('layer')
         .exec();
       if (foundProject) {
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find(
-            { 'owner.id': req.user?._id },
+            { 'owner.id': c.get('user')?._id },
           );
-          res.send({
+          return c.json({
             project: foundProject,
             sequences: foundSequences,
           });
@@ -1449,14 +1476,15 @@ router.get(
 );
 
 // UPDATE PROJECT ALIGNMENT
-router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/alignmentrow', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     await Project.findByIdAndUpdate(
-      req.params.id,
-      { alignment: 'bearing', bearingline: req.body.geometry },
+      c.req.param('id'),
+      { alignment: 'bearing', bearingline: (await c.req.json()).geometry },
     );
     // req.flash("success", "Successfully added service");
-    res.send(`/projects/${req.params.id}/layout`);
+    return c.json(`/projects/${c.req.param('id')}/layout`);
   } catch (err) {
     console.log(err);
   }
@@ -1465,36 +1493,38 @@ router.put('/projects/:id/alignmentrow', middleware.isLoggedIn, async (req: expr
 // -------------------- PDFS
 
 // BUDGET PDF
-router.get(
-  '/projects/:id/budgetpdf',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    // FIND PROJECT
+// router.get(
+//   '/projects/:id/budgetpdf',
+//   async (c) => {
+//     await middleware.isLoggedIn(c)
+//     // FIND PROJECT
 
-    // GENERATE PDF TEST
-    const myDoc = new PDFDocument({ bufferPages: true });
+//     // GENERATE PDF TEST
+//     const myDoc = new PDFDocument({ bufferPages: true });
 
-    const buffers: any[] = [];
-    myDoc.on('data', buffers.push.bind(buffers));
-    myDoc.on('end', () => {
-      const pdfData = Buffer.concat(buffers);
-      res.writeHead(200, {
-        'Content-Length': Buffer.byteLength(pdfData),
-        'Content-Type': 'application/pdf',
-        'Content-disposition': 'attachment;filename=test.pdf',
-      });
-    });
+//     const buffers: any[] = [];
+//     myDoc.on('data', buffers.push.bind(buffers));
+//     myDoc.on('end', () => {
+//       const pdfData = Buffer.concat(buffers);
+//       res.writeHead(200, {
+//         'Content-Length': Buffer.byteLength(pdfData),
+//         'Content-Type': 'application/pdf',
+//         'Content-disposition': 'attachment;filename=test.pdf',
+//       });
+//     });
 
-    myDoc.font('Times-Roman').fontSize(12).text('this is a test text');
+//     myDoc.font('Times-Roman').fontSize(12).text('this is a test text');
 
-    myDoc.end();
-  },
-);
+//     myDoc.end();
+//   },
+// );
 
 // PROJECT SHOW ROUTE
-router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/layers/:layerid/projects/:projectsid', async (c) => {
+  // await middleware.isLoggedIn(c);
+  c.text('test')
   try {
-    const foundLayer = await Layer.findById(req.params.layerid)
+    const foundLayer = await Layer.findById(c.req.param('layerid'))
       .populate('systems.future')
       .populate('projects')
       .populate('systems.present')
@@ -1502,7 +1532,7 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
       .exec();
 
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('projectsid'))
         .populate('layer')
         .populate('assets')
         .populate('budgets.establishment')
@@ -1642,7 +1672,7 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
             const parseddataset = JSON.stringify(YoY);
             const parsedsum = JSON.stringify(sumArray);
             // CHECK LENGTH IS IDENTICAL
-            res.send({
+            return c.json({
               layer: foundLayer,
               project: foundProject,
               years,
@@ -1671,4 +1701,4 @@ router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: e
 
 // --------------- NESTED ROUTES ---------------- //
 
-export default router;
+}

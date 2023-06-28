@@ -3,21 +3,33 @@ import Project from '../models/project.js';
 import Area from '../models/area.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // NEW AREA ON PROJECT
 router.get(
   '/projects/:id/areas/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('layer')
         .exec();
-      res.send({ project: foundProject });
+      return c.json({ project: foundProject });
     } catch (err) {
       console.log(err);
     }
@@ -25,12 +37,13 @@ router.get(
 );
 
 // CREATE AREA ON PROJECT
-router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects/:id/areas', async (c) => {
+await middleware.isLoggedIn(c);
   // CREATE AREA HERE?
   const area = {
-    geometry: req.body.geometry,
-    name: req.body.area.name,
-    size: req.body.layersize,
+    geometry: (await c.req.json()).geometry,
+    name: (await c.req.json()).area.name,
+    size: (await c.req.json()).layersize,
   };
   // CREATE ROW
   try {
@@ -38,12 +51,12 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Re
     // FIND PROJECT
     try {
       const updatedProject = await Project.findByIdAndUpdate(
-        req.params.id,
+        c.req.param('id'),
         { $addToSet: { areas: createdArea } },
       );
       if (updatedProject) {
         console.log('Area has been added to project');
-        res.send(`/projects/${updatedProject.id}/layout`);
+        return c.json(`/projects/${updatedProject.id}/layout`);
       } else {
         console.log('Project wasn\'t updated');
       }
@@ -58,26 +71,26 @@ router.post('/projects/:id/areas', middleware.isLoggedIn, async (req: express.Re
 // DELETE AREA ON PROJECT
 router.delete(
   '/projects/:id/areas/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const updatedProject = await Project.findById(req.params.id);
+      const updatedProject = await Project.findById(c.req.param('id'));
 
       if (updatedProject) {
       // REMOVE ROW
         console.log(`Length before ${updatedProject.areas.length}`);
         updatedProject.areas.forEach(async (area) => {
-          if (area._id.toString() === req.params.pid) {
+          if (area._id.toString() === c.req.param('pid')) {
             await area.deleteOne();
           }
         });
         await updatedProject.save();
         // DELETE ROW
         try {
-          await Area.findByIdAndRemove(req.params.pid);
+          await Area.findByIdAndRemove(c.req.param('pid'));
           console.log(`Length after ${updatedProject.areas.length}`);
-          res.send(`/projects/${updatedProject._id}/layout`);
+          return c.json(`/projects/${updatedProject._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -91,22 +104,22 @@ router.delete(
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   '/projects/:id/deleteareas',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       // DELETE AREAS
       if (foundProject) {
         try {
           await Area.deleteMany({ _id: { $in: foundProject.areas } });
           // CLEAR AREA ARRAY ON PROJECT
           try {
-            const updatedProject = await Project.findByIdAndUpdate(req.params.id, {
+            const updatedProject = await Project.findByIdAndUpdate(c.req.param('id'), {
               $set: { areas: [] },
             });
             if (updatedProject) {
-              res.send(`/projects/${updatedProject._id}/layout`);
+              return c.json(`/projects/${updatedProject._id}/layout`);
             } else {
               console.log('project wasn\'t updated');
             }
@@ -123,4 +136,4 @@ router.get(
   },
 );
 
-export default router;
+}

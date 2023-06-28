@@ -10,11 +10,23 @@ import Area from '../models/area.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
 import { ISpeciesSchema } from '../models/species.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
 // NODE GEOCODER CODE
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // const options:NodeGeocoder.Options = {
 //   provider: 'google',
@@ -27,20 +39,17 @@ const router = express.Router();
 // ACTIVITY INDEX ROUTE
 router.get(
   '/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // Get all activities from DB
     try {
-      const allActivities = await Activity.find({ 'owner.id': req.user?._id });
+      const allActivities = await Activity.find({ 'owner.id': c.get('user')?._id });
       allActivities.sort(
         (a, b) => Date.parse(a.start.date.toString())
           - Date.parse(b.start.date.toString()),
       );
       allActivities.slice(0, 4);
-      res.send({ activities: allActivities });
+      return c.json({ activities: allActivities });
     } catch (err) {
       console.log(err);
     }
@@ -50,20 +59,17 @@ router.get(
 // ACTIVITY NEW ROUTE
 router.get(
   '/activities/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c);
     const parcel = undefined;
-    console.log(req.body.picked);
+    console.log((await c.req.json()).picked);
     try {
-      const foundLayers = await Layer.find({ 'owner.id': req.user?._id });
+      const foundLayers = await Layer.find({ 'owner.id': c.get('user')?._id });
       // console.log("Reached this far");
       // foundLayers.forEach(function(layer){
       //     console.log(layer.id);
       // });
-      res.send({ parcel, layers: foundLayers });
+      return c.json({ parcel, layers: foundLayers });
     } catch (err) {
       console.log(err);
     }
@@ -73,20 +79,17 @@ router.get(
 // ACTIVITY CREATE ROUTE
 router.post(
   '/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // Create a new experience
     try {
-      const createdActivity = await Activity.create(req.body.activity);
+      const createdActivity = await Activity.create((await c.req.json()).activity);
       // Add  ID to experience
-      createdActivity.owner.id = req.user!;
+      createdActivity.owner.id = c.get('user')!;
       createdActivity.status = true;
       // Save the service - Not need if created after this step
       await createdActivity.save();
-      res.send('/activities');
+      return c.json('/activities');
       console.log(createdActivity);
     } catch (err) {
       console.log(err);
@@ -97,13 +100,10 @@ router.post(
 // ACTIVITY SHOW ROUTES
 router.get(
   '/activities/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundActivity = await Activity.findById(req.params.id)
+      const foundActivity = await Activity.findById(c.req.param('id'))
         .populate('layer')
         .exec();
       if (foundActivity) {
@@ -125,7 +125,7 @@ router.get(
         const monthNumber = parseInt(dateParts[1], 10) - 1;
         const month = monthNames[monthNumber];
         const day = parseInt(dateParts[2], 10);
-        res.send({ activity: foundActivity, month, day });
+        return c.json({ activity: foundActivity, month, day });
       } else {
         console.log('No activity found');
       }
@@ -138,23 +138,20 @@ router.get(
 // ACTIVITY EDIT ROUTE
 router.get(
   '/activities/:id/edit',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     // Find specific activity in database
     try {
-      const foundActivity = await Activity.findById(req.params.id);
+      const foundActivity = await Activity.findById(c.req.param('id'));
 
       try {
-        const foundLayers = await Layer.find({ 'owner.id': req.user?._id });
+        const foundLayers = await Layer.find({ 'owner.id': c.get('user')?._id });
         console.log('Reached this far');
         foundLayers.forEach((layer) => {
           console.log(layer.id);
         });
-        res.send({ activity: foundActivity, layers: foundLayers });
+        return c.json({ activity: foundActivity, layers: foundLayers });
       } catch (err) {
         console.log(err);
       }
@@ -167,18 +164,15 @@ router.get(
 // ACTIVITY UPDATE ROUTE
 router.put(
   '/activities/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
       const updatedActivity = await Activity.findByIdAndUpdate(
-        req.params.id,
-        req.body.activity,
+        c.req.param('id'),
+        (await c.req.json()).activity,
       );
       console.log(updatedActivity);
-      res.send(`/activities/${req.params.id}`);
+      return c.json(`/activities/${c.req.param('id')}`);
     } catch (err) {
       console.log(err);
     }
@@ -190,18 +184,15 @@ router.put(
 // ACTIVITY DELETE ROUTE
 router.delete(
   '/activities/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE ACTIVITY OWNERSHIP MIDDLEWARE
     try {
-      await Activity.findByIdAndRemove(req.params.id);
-      res.send('/activities');
+      await Activity.findByIdAndRemove(c.req.param('id'));
+      return c.json('/activities');
     } catch (err) {
       console.log(err);
-      res.send('/activities');
+      return c.json('/activities');
     }
   },
 );
@@ -211,19 +202,16 @@ router.delete(
 // PARCEL ACTIVITIES
 router.get(
   '/parcels/:id/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(req.params.id)
+      const foundParcel = await Parcel.findById(c.req.param('id'))
         .populate({ path: 'layers', populate: { path: 'rows' } })
         .populate({ path: 'layers', populate: { path: 'areas' } })
         .exec();
       // RENDER ACTIVITIES
-      res.send({ parcel: foundParcel });
+      return c.json({ parcel: foundParcel });
     } catch (err) {
       console.log(err);
     }
@@ -233,21 +221,18 @@ router.get(
 // PLACE ACTIVITY NEW ROUTE
 router.get(
   '/parcels/:id/activities/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PLACE ID
     try {
-      const foundparcel = Parcel.findById(req.params.id);
+      const foundparcel = Parcel.findById(c.req.param('id'));
       try {
         const foundLayers = await Layer.find({ type: 'patch' });
         console.log('Reached this far');
         foundLayers.forEach((layer) => {
           console.log(layer.id);
         });
-        res.send({ parcel: foundparcel, layers: foundLayers });
+        return c.json({ parcel: foundparcel, layers: foundLayers });
       } catch (err) {
         console.log(err);
       }
@@ -259,16 +244,17 @@ router.get(
 );
 
 // PLACE EXPERIENCES CREATE ROUTE
-// router.post('/parcels/:id/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+// router.post('/parcels/:id/activities', async (c) => {
+// await middleware.isLoggedIn(c);
 //   // Lookup place using id
 //   try {
-//     const foundParcel = await Parcel.findById(req.params.id);
+//     const foundParcel = await Parcel.findById(c.req.param('id'));
 //     if (foundParcel) {
 //       try {
-//         const activity = await Activity.create(req.body.activity);
+//         const activity = await Activity.create((await c.req.json()).activity);
 //         console.log(activity);
 //         // Add  ID to task.
-//         activity.owner.id = req.user?._id;
+//         activity.owner.id = c.get('user')?._id;
 //         // Save the task
 //         activity.save();
 //         // Connect new task to parcel
@@ -276,28 +262,25 @@ router.get(
 //         foundParcel.save();
 //         // Redirect to parcels SHOW page
 //         // req.flash("success", "Successfully added comment");
-//         res.send(`/parcels/${foundParcel._id}`);
+//         return c.json(`/parcels/${foundParcel._id}`);
 //       } catch (err) {
 //         console.log(err);
 //       }
 //     }
 //   } catch (err) {
 //     console.log(err);
-//     res.send(`/parcels/${req.params.id}`);
+//     return c.json(`/parcels/${c.req.param('id')}`);
 //   }
 // });
 
 // PROJECT ACTIVITY NEW ROUTE
 router.get(
   '/projects/:id/activities/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(req.params.id);
-      res.send({ project: foundProject });
+      const foundProject = await Project.findById(c.req.param('id'));
+      return c.json({ project: foundProject });
     } catch (err) {
       console.log(err);
     }
@@ -307,26 +290,23 @@ router.get(
 // PROJECT ACTIVITY CREATE ROUTE
 router.post(
   '/projects/:id/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       if (foundProject) {
         try {
-          const createdActivity = await Activity.create(req.body.activity);
+          const createdActivity = await Activity.create((await c.req.json()).activity);
           // Add ID to task.
           createdActivity.status = true;
-          createdActivity.owner.id = req.user!;
+          createdActivity.owner.id = c.get('user')!;
           await createdActivity.save();
           // Connect new task to project
           foundProject.activities.push(createdActivity);
           await foundProject.save();
           // Redirect to project SHOW page
           // req.flash("success", "Successfully added comment");
-          res.send(`/projects/${foundProject._id}`);
+          return c.json(`/projects/${foundProject._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -340,14 +320,11 @@ router.post(
 // GENERATE ACTIVITIES
 router.get(
   '/projects/:id/generateactivities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({
           path: 'budgets.establishment',
           populate: { path: 'postings' },
@@ -382,7 +359,7 @@ router.get(
               $push: { activities: { $each: createdActivities } },
             });
             console.log('Activities added to project implementation plan');
-            res.send(`/projects/${foundProject._id}`);
+            return c.json(`/projects/${foundProject._id}`);
           } catch (err) {
             console.log(err);
           }
@@ -399,17 +376,14 @@ router.get(
 // PROJECT EDIT ACTIVITY ROUTE
 router.get(
   '/projects/:id/activities/:pid/edit',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT WITH ACTIVITY
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       try {
-        const foundActivity = await Activity.findById(req.params.pid);
-        res.send({ project: foundProject, activity: foundActivity });
+        const foundActivity = await Activity.findById(c.req.param('pid'));
+        return c.json({ project: foundProject, activity: foundActivity });
       } catch (err) {
         console.log(err);
       }
@@ -422,15 +396,12 @@ router.get(
 // PROJECT UPDATE ACTIVITY ROUTE
 router.put(
   '/projects/:id/activities/:pid',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND ACTIVITY AND UPDATE
     try {
-      await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
-      res.send(`/projects/${req.params.id}`);
+      await Activity.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).activity);
+      return c.json(`/projects/${c.req.param('id')}`);
     } catch (err) {
       console.log(err);
     }
@@ -440,18 +411,15 @@ router.put(
 // DELETE ACTIVITY IN PROJECT
 router.delete(
   '/projects/:id/activities/:pid',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND ACTIVITY
     try {
-      const foundActivity = await Activity.findById(req.params.pid);
+      const foundActivity = await Activity.findById(c.req.param('pid'));
 
       // FIND PROJECT
       try {
-        const updatedProject = await Project.findById(req.params.id);
+        const updatedProject = await Project.findById(c.req.param('id'));
         if (updatedProject) {
           // REMOVE ACTIVITY FROM PROJECT
           updatedProject.activities.forEach(async (activity) => {
@@ -462,8 +430,8 @@ router.delete(
           await updatedProject.save();
           // DELETE ACTIVITY
           try {
-            await Activity.findByIdAndRemove(req.params.pid);
-            res.send(`/projects/${updatedProject._id}`);
+            await Activity.findByIdAndRemove(c.req.param('pid'));
+            return c.json(`/projects/${updatedProject._id}`);
           } catch (err) {
             console.log(err);
           }
@@ -481,14 +449,11 @@ router.delete(
 
 router.get(
   '/parcels/:id/layers/:pid/rows/:rid/activities/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND ROW SEQUENCE SPECIES
     try {
-      const foundRow = await Row.findById(req.params.rid)
+      const foundRow = await Row.findById(c.req.param('rid'))
         .populate({ path: 'sequence', populate: { path: 'model.species' } })
         .exec();
       // FIND ALL SPECIES
@@ -501,15 +466,16 @@ router.get(
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
-        res.send({
-          parcelid: req.params.id,
-          layerid: req.params.pid,
-          rowid: req.params.rid,
+        return c.json({
+          parcelid: c.req.param('id'),
+          layerid: c.req.param('pid'),
+          rowid: c.req.param('rid'),
           row: foundRow,
           species: uniqueSpecies,
         });
       } else {
-        res.status(400).send({ error: 'Row with the requested id does not exist' });
+        c.status(400)
+        return c.json({ error: 'Row with the requested id does not exist' });
       }
     } catch (err) {
       console.log(err);
@@ -519,31 +485,28 @@ router.get(
 
 router.post(
   '/parcels/:id/layers/:pid/rows/:rid/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CREATE ACTIVITY
-    const types = req.body.activityType.split(' ');
+    const types = (await c.req.json()).activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: req.body.activity.name,
-      description: req.body.activity.description,
+      name: (await c.req.json()).activity.name,
+      description: (await c.req.json()).activity.description,
       start: {
-        date: req.body.activity.start.date,
+        date: (await c.req.json()).activity.start.date,
       },
-      time: req.body.activity.time,
-      species: req.body.activity.species,
+      time: (await c.req.json()).activity.time,
+      species: (await c.req.json()).activity.species,
     };
     try {
       const createdActivity = await Activity.create(activity);
       try {
-        await Row.findByIdAndUpdate(req.params.rid, {
+        await Row.findByIdAndUpdate(c.req.param('rid'), {
           $push: { activities: createdActivity },
         });
-        res.send(`/parcels/${req.params.id}/activities`);
+        return c.json(`/parcels/${c.req.param('id')}/activities`);
       } catch (err) {
         console.log(err);
       }
@@ -557,15 +520,12 @@ router.post(
 
 router.get(
   '/parcels/:id/layers/:pid/areas/:rid/activities/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND AREA ROTATION SPECIES
 
     try {
-      const foundArea = await Area.findById(req.params.rid)
+      const foundArea = await Area.findById(c.req.param('rid'))
         .populate({
           path: 'rotation',
           populate: { path: 'model.speciesmix.species' },
@@ -581,15 +541,15 @@ router.get(
         // FIND UNIQUE SPECIES / REMOVE DUPLICATES
         const uniqueSpecies = unique(allSpecies);
         console.log(uniqueSpecies);
-        res.send({
-          parcelid: req.params.id,
-          layerid: req.params.pid,
-          areaid: req.params.rid,
+        return c.json({
+          parcelid: c.req.param('id'),
+          layerid: c.req.param('pid'),
+          areaid: c.req.param('rid'),
           area: foundArea,
           species: uniqueSpecies,
         });
       } else {
-        res.send({ error: 'Area with the requested id does not exist' });
+        return c.json({ error: 'Area with the requested id does not exist' });
       }
     } catch (err) {
       console.log(err);
@@ -599,31 +559,28 @@ router.get(
 
 router.post(
   '/parcels/:id/layers/:pid/areas/:rid/activities',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CREATE ACTIVITY
-    const types = req.body.activityType.split(' ');
+    const types = (await c.req.json()).activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: req.body.activity.name,
-      description: req.body.activity.description,
+      name: (await c.req.json()).activity.name,
+      description: (await c.req.json()).activity.description,
       start: {
-        date: req.body.activity.start.date,
+        date: (await c.req.json()).activity.start.date,
       },
-      time: req.body.activity.time,
-      species: req.body.activity.species,
+      time: (await c.req.json()).activity.time,
+      species: (await c.req.json()).activity.species,
     };
     try {
       const createdActivity = await Activity.create(activity);
       try {
-        await Area.findByIdAndUpdate(req.params.rid, {
+        await Area.findByIdAndUpdate(c.req.param('rid'), {
           $push: { activities: createdActivity },
         });
-        res.send(`/parcels/${req.params.id}/activities`);
+        return c.json(`/parcels/${c.req.param('id')}/activities`);
       } catch (err) {
         console.log(err);
       }
@@ -632,5 +589,5 @@ router.post(
     }
   },
 );
+}
 
-export default router;

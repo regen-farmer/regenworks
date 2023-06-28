@@ -1,41 +1,57 @@
-import express from 'express';
-import Practice from '../models/practice.js';
-import Parcel from '../models/parcel.js';
-import middleware from '../middleware/index.js';
-import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import express from "express";
+import Practice from "../models/practice.js";
+import Parcel from "../models/parcel.js";
+import middleware from "../middleware/index.js";
+import { UserDocument } from "../models/user.js";
+import { Auth0IDToken, Variables } from "../app.js";
 
-const router = express.Router();
+import { Hono } from "hono";
 
-// PRACTICE INDEX ROUTE
+// import logger from '../middleware/logger';
 
-// PRACTICE NEW ROUTE
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
+  // PRACTICE INDEX ROUTE
 
-// PRACTICE CREATE ROUTE
+  // PRACTICE NEW ROUTE
 
-// PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
-router.get('/practices/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const foundPractice = await Practice.findById(req.params.id);
+  // PRACTICE CREATE ROUTE
+
+  // PRACTICE SHOW ROUTE - NEED TO REFACTOR FOR NO PARCEL ID QUERY
+  router.get("/practices/:id", async (c) => {
+await middleware.isLoggedIn(c);
     try {
-      const foundParcel = await Parcel.findById(req.query.parcelid);
-      if (foundParcel && foundParcel.owner.id.toString() === req.user?._id.toString()) { // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
-        console.log(foundParcel);
-        res.send({ practice: foundPractice, parcel: foundParcel });
-      } else {
-        // req.flash("error", "You don't have permission to do that.");
-        res.status(401).send({ error: 'User is not owner of this farm' });
+      const foundPractice = await Practice.findById(c.req.param("id"));
+      try {
+        const foundParcel = await Parcel.findById(c.req.query('parcelid'));
+        if (
+          foundParcel &&
+          foundParcel.owner.id.toString() === c.get("user")?._id.toString()
+        ) {
+          // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
+          console.log(foundParcel);
+          return c.json({ practice: foundPractice, parcel: foundParcel });
+        } else {
+          // req.flash("error", "You don't have permission to do that.");
+          c.status(401);
+          return c.json({ error: "User is not owner of this farm" });
+        }
+      } catch (err) {
+        console.log(err);
       }
     } catch (err) {
       console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
+  });
 
-// PRACTICE UPDATE ROUTE
+  // PRACTICE UPDATE ROUTE
 
-// PRACTICE DELETE ROUTE
-
-export default router;
+  // PRACTICE DELETE ROUTE
+}

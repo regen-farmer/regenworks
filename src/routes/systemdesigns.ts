@@ -5,23 +5,35 @@ import Animal from '../models/animal.js';
 import Project from '../models/project.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 import SystemDesign from '../models/systemdesign.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // NESTED AREA SYSTEM NEW ROUTE
 router.get(
   '/projects/:projectid/set-system',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     console.log('new system');
     // FIND LAYER ID
     // try {
-    //   const foundLayer = await Layer.findById(req.params.id);
+    //   const foundLayer = await Layer.findById(c.req.param('id'));
     // FIND ALL SPECIES IN THE DATABASE
 
-    const foundProject = await Project.findById(req.params.projectid).populate('systemdesign');
+    const foundProject = await Project.findById(c.req.param('projectid')).populate('systemdesign');
 
     if (foundProject) {
       try {
@@ -50,14 +62,14 @@ router.get(
             return 0;
           });
           // RENDER NEW SYSTEM PAGE WITH SPECIES
-          res.send({
+          return c.json({
             // layer: foundLayer,
             systemdesign: foundProject.systemdesign,
             species: foundSpecies,
             animals: foundAnimals,
-            rows: req.query.rows,
-            distance: req.query.distance,
-            length: req.query.length,
+            rows: c.req.query('rows'),
+            distance: c.req.query('distance'),
+            length: c.req.query('length'),
           });
         } catch (err) {
           console.log(err);
@@ -74,10 +86,10 @@ router.get(
 
 router.put(
   '/projects/:projectid/set-systemdesign',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
-    const foundProject = await Project.findById(req.params.projectid).populate('systemdesign');
+    const foundProject = await Project.findById(c.req.param('projectid')).populate('systemdesign');
 
     // CHeck if project exists
     if (foundProject) {
@@ -86,21 +98,23 @@ router.put(
       if (foundProject.systemdesign) {
         console.log('##### found system design #####');
 
-        await foundProject.systemdesign.replaceOne(req.body);
+        await foundProject.systemdesign.replaceOne((await c.req.json()));
       } else {
         console.log('##### didnt find system design #####');
 
-        const newSystemDesign = await new SystemDesign(req.body);
+        const newSystemDesign = await new SystemDesign((await c.req.json()));
         await newSystemDesign.save();
         foundProject.systemdesign = newSystemDesign;
         await foundProject.save();
       }
 
-      res.sendStatus(200);
+      c.status(200);
+      return c.json({})
     } else {
-      res.status(400).send({ error: 'Project not found' });
+      c.status(400)
+return c.json({ error: 'Project not found' });
     }
   },
 );
 
-export default router;
+}

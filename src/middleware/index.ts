@@ -1,25 +1,28 @@
 import express from 'express';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 import Parcel from '../models/parcel.js';
 import User, { UserDocument } from '../models/user.js';
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
-export async function checkParcelOwnership(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
-  if (req.user) {
+export async function checkParcelOwnership(c) {
+  if (c.get('user')) {
     try {
-      const foundParcel = await Parcel.findById(req.params.id);
-      if (foundParcel?.owner.id.toString() === req.user?._id.toString()) {
-        next();
+      const foundParcel = await Parcel.findById(c.req.param('id'));
+      if (foundParcel?.owner.id.toString() === c.get('user')?._id.toString()) {
+        return;
       } else {
         // req.flash("error", "You don't have permission to do that.");
-        res.status(401).send({ error: 'You don\'t have permission to access this farm' });
+        c.status(401)
+return c.json({ error: 'You don\'t have permission to access this farm' });
       }
     } catch (err) {
-      res.status(400).send({ error: 'The farm could not be found' });
+      c.status(400)
+return c.json({ error: 'The farm could not be found' });
     }
   } else {
     // req.flash("error", "You need to be logged in to do that.");
-    res.status(400).send({ error: 'No user id recieved' }); // Sends the user back to the previous page they were on.
+    c.status(400)
+return c.json({ error: 'No user id recieved' }); // Sends the user back to the previous page they were on.
   }
 }
 
@@ -28,65 +31,70 @@ export async function checkParcelOwnership(req: express.Request & { user?: UserD
 // CHECK BUDGET OWNERSHIP MIDDLEWARE
 
 // CHECK USER OWNERSHIP MIDDLEWARE
-export async function checkUserOwnership(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
+export async function checkUserOwnership(c) {
   // console.log("IM HERE 1 ", req.idToken)
-  if (req.idToken && req.idToken.email_verified) {
+  if (c.get('idToken') && c.get('idToken').email_verified) {
     try {
-      const foundUser = await User.findById(req.params.id);
+      const foundUser = await User.findById(c.req.param('id'));
 
-      if (foundUser && foundUser.id === req.user?.id) {
+      if (foundUser && foundUser.id === c.get('user')?.id) {
         console.log('progress!!');
-        next();
+        return;
       } else {
-        res.status(401).send({ error: 'The owner of this farm doesn\'t match the recieved user id' });
+        c.status(401)
+        return c.json({ error: 'The owner of this farm doesn\'t match the recieved user id' });
       }
     } catch (err) {
-      res.status(400).send({ error: 'User not found' });
+      c.status(400)
+      return c.json({ error: 'User not found' });
     }
   } else {
     // req.flash("error", "Du skal være logget ind for at foretage denne handling".);
-    res.status(400).send({ error: 'email not verified' });
+    c.status(400)
+    return c.json({ error: 'email not verified' });
   }
 }
 
 // CHECK IF A USER IS LOGGED IN
-export async function isLoggedIn(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
-  if (req.idToken && req.idToken.email_verified) {
-    return next();
+export async function isLoggedIn(c) {
+  if (c.get('idToken') && c.get('idToken').email_verified) {
+    return;
   }
   // req.flash("error", "You need to be logged in to do that!");
-  res.send();
+  return c.json({});
 }
 
 // CHECK ADMIN USER IS LOGGED IN
-export async function adminIsLoggedIn(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction) {
-  if (req.user) {
-    if (req.user?.isAdmin) {
-      next();
+export async function adminIsLoggedIn(c) {
+  if (c.get('user')) {
+    if (c.get('user')?.isAdmin) {
+      return;
     } else {
       // req.flash("error", "You do not have permission to do that.");
-      res.status(401).send({
+      c.status(401)
+return c.json({
         error: 'User is not admin',
       });
     }
   } else {
     // req.flash("error", "You need to be logged in to do that!");
-    res.status(400).send({ error: 'User not found' });
+    c.status(400)
+return c.json({ error: 'User not found' });
   }
 }
 
 /* // CHECK ADMIN USER IS LOGGED IN
-middlewareObj.throttler = function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response, next: express.NextFunction){
+middlewareObj.throttler = function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response: express.NextFunction){
     if(req.isAuthenticated()){
         if(req.oidc.user.isAdmin){
             next();
         } else {
             // req.flash("error", "You do not have permission to do that.");
-            res.send("back");
+            return c.json("back");
         }
     } else {
         // req.flash("error", "You need to be logged in to do that!");
-        res.send("back");
+        return c.json("back");
     }
 }; */
 

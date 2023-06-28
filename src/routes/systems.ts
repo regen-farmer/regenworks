@@ -8,25 +8,39 @@ import Animal from '../models/animal.js';
 import Project from '../models/project.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // SYSTEM INDEX
-router.get('/systems', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/systems', async (c) => {
+  await middleware.adminIsLoggedIn(c);
   try {
     const foundSystems = await System.find();
-    res.send({ systems: foundSystems });
+    return c.json({ systems: foundSystems });
   } catch (err) {
     console.log(err);
   }
 });
 
-router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const foundProject = await Project.findById(req.params.projectId);
+router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick', async (c) => {
+await middleware.isLoggedIn(c);
+  const foundProject = await Project.findById(c.req.param('projectId'));
 
   // FIND SYSTEM AND ADD TO PROJECT
-  const foundSystem = await System.findById(req.params.systemId)
+  const foundSystem = await System.findById(c.req.param('systemId'))
     .populate('model.species')
     .exec();
 
@@ -38,7 +52,7 @@ router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:syst
     try {
       // Save the project
       await foundProject.save();
-      res.send(foundProject);
+      return c.json(foundProject);
     } catch (err) {
       console.log(err);
     }
@@ -46,13 +60,14 @@ router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:syst
 });
 
 // NESTED AREA SYSTEM INDEX
-/* router.get("/layers/:id/systems", middleware.isLoggedIn, function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+/* router.get("/layers/:id/systems", function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+  await middleware.isLoggedIn(c)
     // FIND LAYER ID
-    Layer.findById(req.params.id).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
+    Layer.findById(c.req.param('id')).populate("systems.future").populate("systems.present").populate("systems.past").exec(function(err, foundLayer){
         if(err) {
             console.log(err);
         } else {
-            res.send("systems/index", {layer: foundLayer});
+            return c.json("systems/index", {layer: foundLayer});
         }
     });
 }); */
@@ -60,13 +75,13 @@ router.put('/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:syst
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   '/layers/:id/systems/newgrid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
 
-      res.send({ layer: foundLayer });
+      return c.json({ layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -76,18 +91,18 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   '/layers/:id/systems/newgrid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CHECK LENGTH IS DIVISIBLE
-    if ((req.body.length / req.body.distance) % 1 === 0) {
+    if (((await c.req.json()).length / (await c.req.json()).distance) % 1 === 0) {
       // FIND LAYER
       try {
-        const foundLayer = await Layer.findById(req.params.id);
-        res.send(
+        const foundLayer = await Layer.findById(c.req.param('id'));
+        return c.json(
           `/layers/${foundLayer?._id
-          }/systems/new?rows=${req.body.rows
-          }&distance=${req.body.distance
-          }&length=${req.body.length}`,
+          }/systems/new?rows=${(await c.req.json()).rows
+          }&distance=${(await c.req.json()).distance
+          }&length=${(await c.req.json()).length}`,
         );
       } catch (err) {
         console.log(err);
@@ -96,7 +111,8 @@ router.post(
       console.log(
         'Length must be divisible with distance between speciee in rows.',
       );
-      res.status(400).send({ error: 'Length must be divisible with distance between speciee in rows.' });
+      c.status(400)
+return c.json({ error: 'Length must be divisible with distance between speciee in rows.' });
     }
   },
 );
@@ -104,12 +120,12 @@ router.post(
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
   '/layers/:id/systems',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       if (foundLayer) {
-        const system = req.body.system;
+        const system = (await c.req.json()).system;
 
         console.log('system received', JSON.stringify(system));
 
@@ -167,7 +183,7 @@ router.post(
           }
         }
         // SET BOOLEAN
-        if (req.body.system.shared) {
+        if ((await c.req.json()).system.shared) {
           system.shared = true;
         }
         // CREATE SYSTEM
@@ -175,7 +191,7 @@ router.post(
           const createdSystem = await System.create(system);
           console.log(createdSystem);
           // ADD OWNER
-          createdSystem.owner.id = req.user?._id.toString()!;
+          createdSystem.owner.id = c.get('user')?._id.toString()!;
           await createdSystem.save();
           // IF LAYER IS AGROFORESTRY AND NO PRESENT, PUSH TO CURRENT
           if (
@@ -189,7 +205,7 @@ router.post(
           }
           await foundLayer.save();
           console.log('success');
-          res.send();
+          return c.json({});
         } catch (err) {
           console.log(err);
         }
@@ -203,10 +219,10 @@ router.post(
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
   '/layers/:id/systems/compare',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
-    const foundLayer = await Layer.findById(req.params.id)
+    const foundLayer = await Layer.findById(c.req.param('id'))
       .populate('systems.future')
       .exec();
     if (foundLayer) {
@@ -297,7 +313,7 @@ router.get(
           // @ts-ignore
           foundSystems[i].nutritional = nutritional[0];
         }
-        res.send({
+        return c.json({
           layer: foundLayer,
           systems: foundSystems,
         });
@@ -307,8 +323,9 @@ router.get(
 );
 
 // SYSTEM SHOW ROUTE
-router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const foundSystem = await System.findById(req.params.id)
+router.get('/systems/:id', async (c) => {
+await middleware.isLoggedIn(c);
+  const foundSystem = await System.findById(c.req.param('id'))
     .populate('model.species')
     .populate('animals')
     .exec();
@@ -366,7 +383,7 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         .populate('flows')
         .exec();
 
-      res.send({
+      return c.json({
         system: foundSystem,
         species: foundSpecies,
         rows: dataset,
@@ -382,9 +399,9 @@ router.get('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
 // SYSTEM EDIT ROUTE
 router.get(
   '/systems/:id/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    const foundSystem = await System.findById(req.params.id)
+  async (c) => {
+    await middleware.isLoggedIn(c)
+    const foundSystem = await System.findById(c.req.param('id'))
       .populate('model.species')
       .populate('animals')
       .exec();
@@ -496,19 +513,19 @@ router.get(
             distance = distanceDifference[0];
           }
           console.log(distance);
-          if (req.query.distance && typeof req.query.distance === 'string') {
+          if (c.req.query('distance') && typeof c.req.query('distance') === 'string') {
             console.log('Distance query');
-            distance /= parseInt(req.query.distance, 10);
+            distance /= parseInt(c.req.query('distance')!, 10);
           }
           // JUST SET NEW VARIABLE TO CONTROL NEW ROW
           let newRow = -1;
-          if (req.query.row && typeof req.query.row === 'string') {
-            console.log(`Row query ${req.query.row}`);
-            newRow = parseInt(req.query.row, 10);
+          if (c.req.query('row') && typeof c.req.query('row') === 'string') {
+            console.log(`Row query ${c.req.query('row')}`);
+            newRow = parseInt(c.req.query('row')!, 10);
             console.log(typeof newRow);
           }
           // CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
-          res.send({
+          return c.json({
             system: foundSystem,
             species: foundSpecies,
             animals: foundAnimals,
@@ -524,9 +541,10 @@ router.get(
 );
 
 // SYSTEM EDIT ROUTE OLD
-router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/systems/:id/editold', async (c) => {
+await middleware.isLoggedIn(c);
   try {
-    const foundSystem = await System.findById(req.params.id)
+    const foundSystem = await System.findById(c.req.param('id'))
       .populate('rows.sequense')
       .populate('animals')
       .exec();
@@ -557,7 +575,7 @@ router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Re
           }
           return 0;
         });
-        res.send({
+        return c.json({
           system: foundSystem,
           species: foundSpecies,
           animals: foundAnimals,
@@ -576,9 +594,9 @@ router.get('/systems/:id/editold', middleware.isLoggedIn, async (req: express.Re
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get(
   '/systems/:id/edit/:speciesid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    const foundSystem = await System.findById(req.params.id)
+  async (c) => {
+    await middleware.isLoggedIn(c)
+    const foundSystem = await System.findById(c.req.param('id'))
       .populate('model.species')
       .populate('animals')
       .exec();
@@ -608,7 +626,7 @@ router.get(
         }
       });
       // PUSH NEW SPECIES TO LIST
-      allSpecies.push(req.params.speciesid);
+      allSpecies.push(c.req.param('speciesid'));
       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
       const uniqueSpecies = unique(allSpecies);
       // FIND ALL SPECIES IN SYSTEM
@@ -669,12 +687,12 @@ router.get(
         }
         // NEWROW
         let newRow = -1;
-        if (req.query.row && typeof req.query.row === 'string') {
-          console.log(`Row query ${req.query.row}`);
-          newRow = parseInt(req.query.row, 10);
+        if (c.req.query('row') && typeof c.req.query('row') === 'string') {
+          console.log(`Row query ${c.req.query('row')}`);
+          newRow = parseInt(c.req.query('row')!, 10);
           console.log(typeof newRow);
         }
-        res.send({
+        return c.json({
           system: foundSystem,
           species: foundSpecies,
           animals: foundSystem.animals,
@@ -689,17 +707,18 @@ router.get(
 );
 
 // SYSTEM UPDATE ROUTE
-router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/systems/:id', async (c) => {
+await middleware.isLoggedIn(c);
   // NEED TO CHECK OWNERSHIP HERE!!! YES
   try {
-    const foundSystem = await System.findById(req.params.id);
+    const foundSystem = await System.findById(c.req.param('id'));
 
     if (foundSystem) {
       // CLEAN SYSTEM - MAKE MIDDLEWARE FOR THIS
       // GET SYSTEM
-      const system = req.body.system;
+      const system = (await c.req.json()).system;
       // SET BOOLEAN
-      if (req.body.system.shared) {
+      if ((await c.req.json()).system.shared) {
         system.shared = true;
       }
       // NEW GRID MODEL SETUP
@@ -761,17 +780,17 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
           system.animals.splice(i, 1);
         }
       }
-      if (foundSystem.owner.id === req.user?._id.toString()) {
+      if (foundSystem.owner.id === c.get('user')?._id.toString()) {
         // if true, update existing system
 
         console.log('OWNER');
         try {
           const updatedSystem = await System.findByIdAndUpdate(
-            req.params.id,
+            c.req.param('id'),
             system,
           );
           if (updatedSystem) {
-            res.send({
+            return c.json({
               updatedSystem,
             });
           } else {
@@ -787,13 +806,13 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         const createdSystem = await System.create(system);
 
         // Add owner
-        createdSystem.owner.id = req.user?._id.toString()!;
+        createdSystem.owner.id = c.get('user')?._id.toString()!;
         createdSystem.shared = false;
         await createdSystem.save();
         // REPLACE IN PRESENT
         try {
           const foundLayersPresent = await Layer.find({
-            'owner.id': req.user?._id,
+            'owner.id': c.get('user')?._id,
             'systems.present': foundSystem._id,
           });
           console.log(`${foundLayersPresent.length} present found`);
@@ -813,7 +832,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         // REPLACE IN FUTURE DRAFT
         try {
           const foundLayersFuture = await Layer.find({
-            'owner.id': req.user?._id,
+            'owner.id': c.get('user')?._id,
             'systems.future': foundSystem._id,
           });
           console.log(`${foundLayersFuture.length} future drafts found`);
@@ -837,7 +856,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         // REPLACE IN PROJECT
         try {
           const foundProjects = await Project.find({
-            'owner.id': req.user?._id,
+            'owner.id': c.get('user')?._id,
             system: foundSystem._id,
           });
           console.log(`${foundProjects.length} projects found`);
@@ -853,7 +872,7 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
         }
         // Redirect to system page
 
-        res.send({ createdSystem });
+        return c.json({ createdSystem });
       }
     }
   } catch (err) {
@@ -864,38 +883,40 @@ router.put('/systems/:id', middleware.isLoggedIn, async (req: express.Request & 
 // SYSTEM DELETE ROUTE
 router.delete(
   '/layers/:id/systems/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND SYSTEM - ONLY POSSIBLE TO GET TO THIS ROUTE IF YOUR ARE THE OWNER BCS VIEW HAS IF OWNER STATEMENT
     try {
-      const foundSystem = await System.findById(req.params.pid);
+      const foundSystem = await System.findById(c.req.param('pid'));
       // CHECK FOR SYSTEM IN LAYER PRESENT. IF THERE, BACK.
       if (foundSystem) {
         try {
           const foundLayersPresent = await Layer.find(
-            { 'owner.id': req.user?._id, 'systems.present': foundSystem._id },
+            { 'owner.id': c.get('user')?._id, 'systems.present': foundSystem._id },
           );
           console.log(`${foundLayersPresent.length} present found`);
           if (foundLayersPresent.length > 0) {
             // SEND BACK IF LAYERS
-            res.status(500).send({ error: 'Can\'t delete system because layers exist' });
+            c.status(500)
+            return c.json({ error: 'Can\'t delete system because layers exist' });
           } else {
             // CHECK FOR SYSTEM IN PROJECT. IF THERE, BACK.
             try {
               const foundProjects = await Project.find(
-                { 'owner.id': req.user?._id, system: foundSystem._id },
+                { 'owner.id': c.get('user')?._id, system: foundSystem._id },
               );
               console.log(`${foundProjects.length} projects found`);
               if (foundProjects.length > 0) {
                 // SEND BACK IF PROJECTS
-                res.status(500).send({ error: 'Can\'t delete system because projects exist' });
+                c.status(500)
+                return c.json({ error: 'Can\'t delete system because projects exist' });
               } else {
                 // CHECK EDGE SYSTEM!?
                 // DELETE IN FUTURE DRAFT
                 try {
                   const foundLayersFuture = await Layer.find(
                     {
-                      'owner.id': req.user?._id,
+                      'owner.id': c.get('user')?._id,
                       'systems.future': foundSystem._id,
                     },
                   );
@@ -917,7 +938,7 @@ router.delete(
                   }
                   // DELETE SYSTEM NOW
                   try {
-                    await System.findByIdAndRemove(req.params.pid);
+                    await System.findByIdAndRemove(c.req.param('pid'));
                   } catch (err) {
                     console.log(err);
                   }
@@ -942,13 +963,13 @@ router.delete(
 // SYSTEM SUCCESSION ROUTE
 router.get(
   '/systems/:id/succession',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundSystem = await System.findById(req.params.id)
+      const foundSystem = await System.findById(c.req.param('id'))
         .populate('rows')
         .exec();
-      res.send({ system: foundSystem });
+      return c.json({ system: foundSystem });
     } catch (err) {
       console.log(err);
     }
@@ -958,9 +979,9 @@ router.get(
 // SYSTEM COMPOSITION ROUTE
 router.get(
   '/systems/:id/composition',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    const foundSystem = await System.findById(req.params.id)
+  async (c) => {
+    await middleware.isLoggedIn(c)
+    const foundSystem = await System.findById(c.req.param('id'))
       .populate('model.species')
       .exec();
     if (foundSystem) {
@@ -978,7 +999,7 @@ router.get(
           .exec();
 
         try {
-          const foundParcel = await Parcel.findById(req.user?.currentProject);
+          const foundParcel = await Parcel.findById(c.get('user')?.currentProject);
 
           if (foundParcel && foundSystem) {
             try {
@@ -1000,7 +1021,7 @@ router.get(
               );
 
               console.log(foundSuitableSpecies);
-              res.send({
+              return c.json({
                 system: foundSystem,
                 species: foundSpecies,
                 suitablespecies: foundSuitableSpecies,
@@ -1022,8 +1043,8 @@ router.get(
 // SYSTEM ASSESSMENT ROUTE
 router.get(
   '/layers/:id/analysis',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     const foundSystems = await System.find()
       .populate('model.species')
       .populate('flows')
@@ -1031,7 +1052,7 @@ router.get(
       .exec();
     if (foundSystems) {
       // FIND LAYER
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate('systems.present')
         .exec();
       if (foundLayer) {
@@ -1040,7 +1061,7 @@ router.get(
           .populate('animals')
           .exec();
         if (foundSystem) {
-          const foundParcel = await Parcel.findById(req.user?.currentProject);
+          const foundParcel = await Parcel.findById(c.get('user')?.currentProject);
           if (foundParcel) {
             // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
             // let commodity = '';
@@ -1182,9 +1203,9 @@ router.get(
             }
             console.log(`Proven systems for this area: ${systemsproven.length}`);
             if (systems.length < 1) {
-              res.send(`layers/${foundLayer._id}`);
+              return c.json(`layers/${foundLayer._id}`);
             } else {
-              res.send({
+              return c.json({
                 layer: foundLayer,
                 systems,
                 systemsproven,
@@ -1204,12 +1225,12 @@ router.get(
 // LAYER MY SYSTEMS FIND
 router.get(
   '/layers/:id/mysystems',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       try {
-        const foundSystems = await System.find({ 'owner.id': req.user?._id })
+        const foundSystems = await System.find({ 'owner.id': c.get('user')?._id })
           .populate('model.species')
           .populate('flows')
           .populate('animals')
@@ -1227,7 +1248,7 @@ router.get(
             realSystems.push(foundSystems[i]);
           }
         }
-        res.send({
+        return c.json({
           layer: foundLayer,
           systems: realSystems,
         });
@@ -1243,11 +1264,11 @@ router.get(
 // SYSTEM OCCURRENCE NEW ROUTE
 router.get(
   '/systems/:id/occurrences/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundSystem = await System.findById(req.params.id);
-      res.send({ system: foundSystem });
+      const foundSystem = await System.findById(c.req.param('id'));
+      return c.json({ system: foundSystem });
     } catch (err) {
       console.log(err);
     }
@@ -1257,15 +1278,15 @@ router.get(
 // SYSTEM OCCURRANCE CREATE ROUTE
 router.put(
   '/systems/:id/occurrences',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const updatedSystem = await System.findByIdAndUpdate(req.params.id, {
-        $addToSet: { occurrences: req.body.occurrence },
+      const updatedSystem = await System.findByIdAndUpdate(c.req.param('id'), {
+        $addToSet: { occurrences: (await c.req.json()).occurrence },
       });
       if (updatedSystem) {
-        console.log(`${req.body.occurrence} has been added to the system`);
-        res.send(`/systems/${updatedSystem._id}`);
+        console.log(`${(await c.req.json()).occurrence} has been added to the system`);
+        return c.json(`/systems/${updatedSystem._id}`);
       } else {
         console.log('No updatedSystem');
       }
@@ -1275,4 +1296,4 @@ router.put(
   },
 );
 
-export default router;
+}

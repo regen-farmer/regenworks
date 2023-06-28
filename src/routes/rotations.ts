@@ -5,45 +5,61 @@ import Project from '../models/project.js';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/layers/:id/rotations/steps', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundLayer = await Layer.findById(req.params.id);
-    res.send({ layer: foundLayer, project: '' });
+    const foundLayer = await Layer.findById(c.req.param('id'));
+    return c.json({ layer: foundLayer, project: '' });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/layers/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/layers/:id/rotations/steps', async (c) => {
+await middleware.isLoggedIn(c);
   // CHECK LENGTH IS DIVISIBLE
-  if ((req.body.length / req.body.distance) % 1 === 0) {
+  if (((await c.req.json()).length / (await c.req.json()).distance) % 1 === 0) {
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       if (foundLayer) {
-        res.send(`/layers/${foundLayer._id}/rotations/new?distance=${req.body.distance}&length=${req.body.length}`);
+        return c.json(`/layers/${foundLayer._id}/rotations/new?distance=${(await c.req.json()).distance}&length=${(await c.req.json()).length}`);
       }
     } catch (err) {
       console.log(err);
     }
   } else {
     console.log('Length must be divisible with distance between species in rotation.');
-    res.status(400).send({ error: 'Length must be divisible with distance between species in rotation.' });
+    c.status(400)
+return c.json({ error: 'Length must be divisible with distance between species in rotation.' });
   }
 });
 
 // ROTATION NEW
-router.get('/layers/:id/rotations/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/layers/:id/rotations/new', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundLayer = await Layer.findById(req.params.id);
+    const foundLayer = await Layer.findById(c.req.param('id'));
     // FIND ALL SPECIES
     try {
       const foundSpecies = await Species.find();
@@ -57,8 +73,8 @@ router.get('/layers/:id/rotations/new', middleware.isLoggedIn, async (req: expre
         }
         return 0;
       });
-      res.send({
-        layer: foundLayer, project: '', species: foundSpecies, distance: req.query.distance, length: req.query.length,
+      return c.json({
+        layer: foundLayer, project: '', species: foundSpecies, distance: c.req.query('distance'), length: c.req.query('length'),
       });
     } catch (err) {
       console.log(err);
@@ -71,23 +87,25 @@ router.get('/layers/:id/rotations/new', middleware.isLoggedIn, async (req: expre
 // SEQUENCE CREATE
 
 // NEW AREA SYSTEM GRID NEW ROUTE
-router.get('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/rotations/steps', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(req.params.id);
-    res.send({ project: foundProject });
+    const foundProject = await Project.findById(c.req.param('id'));
+    return c.json({ project: foundProject });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
-router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects/:id/rotations/steps', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND PROJECT
   try {
-    const foundProject = await Project.findById(req.params.id);
+    const foundProject = await Project.findById(c.req.param('id'));
     if (foundProject) {
-      res.send(`/projects/${foundProject._id}/rotations/new?steps=${req.body.steps}`);
+      return c.json(`/projects/${foundProject._id}/rotations/new?steps=${(await c.req.json()).steps}`);
     }
   } catch (err) {
     console.log(err);
@@ -95,10 +113,11 @@ router.post('/projects/:id/rotations/steps', middleware.isLoggedIn, async (req: 
 });
 
 // ROTATION NEW
-router.get('/projects/:id/rotations/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/rotations/new', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(req.params.id);
+    const foundProject = await Project.findById(c.req.param('id'));
     // FIND ALL SPECIES
     try {
       const foundSpecies = await Species.find();
@@ -113,7 +132,7 @@ router.get('/projects/:id/rotations/new', middleware.isLoggedIn, async (req: exp
         }
         return 0;
       });
-      res.send({ project: foundProject, species: foundSpecies, steps: req.query.steps });
+      return c.json({ project: foundProject, species: foundSpecies, steps: c.req.query('steps') });
     } catch (err) {
       console.log(err);
     }
@@ -123,52 +142,53 @@ router.get('/projects/:id/rotations/new', middleware.isLoggedIn, async (req: exp
 });
 
 // CREATE PROJECT ROTATION
-router.post('/projects/:id/rotations', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/projects/:id/rotations', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(req.params.id);
+    const foundProject = await Project.findById(c.req.param('id'));
     if (foundProject) {
       // const model:any[] = [];
       // // CHECK IF ARRAY
-      // if (!(req.body.model.speciesmix.species instanceof Array)) {
+      // if (!((await c.req.json()).model.speciesmix.species instanceof Array)) {
       //   const speciesmix: any = {
-      //     species: req.body.model.speciesmix.species,
+      //     species: (await c.req.json()).model.speciesmix.species,
       //   };
       //   model.push(speciesmix);
       // } else {
-      //   for (let i = 0; i < req.body.model.speciesmix.speciwwes.length; i++) {
+      //   for (let i = 0; i < (await c.req.json()).model.speciesmix.speciwwes.length; i++) {
       //   // FIX IF ONLY ONE ITEM IN ROW
       //   // IF SPECIES ID IS NULL
-      //     if (!(req.body.model.speciesmix.species[i] === '')) {
+      //     if (!((await c.req.json()).model.speciesmix.species[i] === '')) {
       //       const speciesmix: any = {
       //         speciesmix: [
       //           {
-      //             species: req.body.model.speciesmix.species[i],
+      //             species: (await c.req.json()).model.speciesmix.species[i],
       //             amount: 0,
       //           },
       //         ],
       //         planting: {
-      //           year: req.body.model.planting.year[i],
-      //           month: req.body.model.planting.month[i],
+      //           year: (await c.req.json()).model.planting.year[i],
+      //           month: (await c.req.json()).model.planting.month[i],
       //         },
       //         harvest: {
-      //           year: req.body.model.harvest.year[i],
-      //           month: req.body.model.harvest.month[i],
+      //           year: (await c.req.json()).model.harvest.year[i],
+      //           month: (await c.req.json()).model.harvest.month[i],
       //         },
       //       };
       //       model.push(speciesmix);
       //     }
       //   }
       // }
-      const rotation = req.body.rotation;
-      // rotation.model = req.body.model;
+      const rotation = (await c.req.json()).rotation;
+      // rotation.model = (await c.req.json()).model;
       try {
         const createdRotation = await Rotation.create(rotation);
         console.log(`rotation: ${createdRotation}`);
         // SAVE SEQUENCE ON LAYER?
-        createdRotation.owner.id = req.user?._id.toString()!;
+        createdRotation.owner.id = c.get('user')?._id.toString()!;
         await createdRotation.save();
-        res.send(createdRotation);
+        return c.json(createdRotation);
       } catch (err) {
         console.log(err);
       }
@@ -179,16 +199,17 @@ router.post('/projects/:id/rotations', middleware.isLoggedIn, async (req: expres
 });
 
 // EDIT PROJECT ROTATION
-router.get('/projects/:id/rotations/:pid/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/projects/:id/rotations/:pid/edit', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
   try {
-    const foundProject = await Project.findById(req.params.id).populate({ path: 'areas.rotation', populate: { path: 'model.species' } }).exec();
+    const foundProject = await Project.findById(c.req.param('id')).populate({ path: 'areas.rotation', populate: { path: 'model.species' } }).exec();
     // FIND SEQUENCES
     try {
-      const foundRotation = await Rotation.findById(req.params.pid).populate('model.speciesmix.species').exec();
+      const foundRotation = await Rotation.findById(c.req.param('pid')).populate('model.speciesmix.species').exec();
 
       // FIND ALL SPECIES
-      res.send({ project: foundProject, rotation: foundRotation });
+      return c.json({ project: foundProject, rotation: foundRotation });
     } catch (err) {
       console.log(err);
     }
@@ -198,15 +219,16 @@ router.get('/projects/:id/rotations/:pid/edit', middleware.isLoggedIn, async (re
 });
 
 // UPDATE PROJECT ROTATION
-router.put('/projects/:id/rotations/:pid', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/projects/:id/rotations/:pid', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND LAYER
-  const rotation = req.body.rotation;
+  const rotation = (await c.req.json()).rotation;
   try {
-    const foundProject = await Project.findById(req.params.id);
+    const foundProject = await Project.findById(c.req.param('id'));
     if (foundProject) {
       try {
-        await Rotation.findByIdAndUpdate(req.params.pid, rotation);
-        res.send(`/projects/${foundProject._id}/layout`);
+        await Rotation.findByIdAndUpdate(c.req.param('pid'), rotation);
+        return c.json(`/projects/${foundProject._id}/layout`);
       } catch (err) {
         console.log(err);
       }
@@ -215,4 +237,4 @@ router.put('/projects/:id/rotations/:pid', middleware.isLoggedIn, async (req: ex
     console.log(err);
   }
 });
-export default router;
+}

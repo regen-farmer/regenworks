@@ -2,71 +2,89 @@ import express from 'express';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // SPECIES INDEX
-router.get('/species', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/species', async (c) => {
+  await middleware.adminIsLoggedIn(c);
   try {
     const foundSpecies = await Species.find();
-    res.send({ species: foundSpecies });
+    return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES NEW
-router.get('/species/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/species/new', async (c) => {
+await middleware.isLoggedIn(c);
   // ONLY ADMIN ACCESS?
-  res.send();
+  return c.json({});
 });
 
 // SPECIES CREATE
-router.post('/species', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/species', async (c) => {
+await middleware.isLoggedIn(c);
   // ONLY ADMIN ACCESS?
   try {
-    const createdSpecies = await Species.create(req.body.species);
+    const createdSpecies = await Species.create((await c.req.json()).species);
     console.log(createdSpecies);
-    res.send(createdSpecies);
+    return c.json(createdSpecies);
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES SHOW
-router.get('/species/:id', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/species/:id', async (c) => {
+  await middleware.adminIsLoggedIn(c)
   try {
   // ONLY ADMIN ACCESS?
-    const foundSpecies = await Species.findById(req.params.id)
+    const foundSpecies = await Species.findById(c.req.param('id'))
       .populate('flows')
       .exec();
-    res.send({ species: foundSpecies });
+    return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES EDIT
-router.get('/species/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/species/:id/edit', async (c) => {
+await middleware.isLoggedIn(c);
   // ONLY ADMIN ACCESS?
   try {
-    const foundSpecies = await Species.findById(req.params.id);
-    res.send({ species: foundSpecies });
+    const foundSpecies = await Species.findById(c.req.param('id'));
+    return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // SPECIES UPDATE
-router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/species/:id', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     const updatedSpecies = await Species.findByIdAndUpdate(
-      req.params.id,
-      req.body.species,
+      c.req.param('id'),
+      (await c.req.json()).species,
     );
     console.log(updatedSpecies);
-    res.send(`/species/${req.params.id}`);
+    return c.json(`/species/${c.req.param('id')}`);
   } catch (err) {
     console.log(err);
   }
@@ -77,11 +95,11 @@ router.put('/species/:id', middleware.isLoggedIn, async (req: express.Request & 
 // SPECIES ACTIVITY NEW ROUTE
 router.get(
   '/species/:id/activities/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(req.params.id);
-      res.send({ species: foundSpecies });
+      const foundSpecies = await Species.findById(c.req.param('id'));
+      return c.json({ species: foundSpecies });
     } catch (err) {
       console.log(err);
     }
@@ -91,26 +109,26 @@ router.get(
 // SPECIES ACTIVITY CREATE ROUTE
 router.post(
   '/species/:id/activities',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
-    const types = req.body.activity.activityType.split(' ');
+    const types = (await c.req.json()).activity.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: req.body.activity.name,
+      name: (await c.req.json()).activity.name,
       time: {
-        startMonth: req.body.activity.time.startMonth,
-        endMonth: req.body.activity.time.endMonth,
+        startMonth: (await c.req.json()).activity.time.startMonth,
+        endMonth: (await c.req.json()).activity.time.endMonth,
       },
-      price: req.body.activity.price,
+      price: (await c.req.json()).activity.price,
     };
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
+      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('id'), {
         $addToSet: { activities: activity },
       });
-      console.log(`${req.body.activity.name} has been added to the species`);
-      res.send(`/species/${updatedSpecies?._id}`);
+      console.log(`${(await c.req.json()).activity.name} has been added to the species`);
+      return c.json(`/species/${updatedSpecies?._id}`);
     } catch (err) {
       console.log(err);
     }
@@ -120,20 +138,20 @@ router.post(
 // SPECIES ACTIVITY EDIT ROUTE
 router.get(
   '/species/:id/activities/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(req.params.id);
+      const foundSpecies = await Species.findById(c.req.param('id'));
       if (foundSpecies) {
-        if (req.query.index && typeof req.query.index === 'string') {
-          const activity = foundSpecies.activities[parseInt(req.query.index, 10)];
-          res.send({
+        if (c.req.query('index') && typeof c.req.query('index') === 'string') {
+          const activity = foundSpecies.activities[parseInt(c.req.query('index')!, 10)];
+          return c.json({
             species: foundSpecies,
             activity,
-            index: req.query.index,
+            index: c.req.query('index'),
           });
         } else {
-          console.warn('req.query.index is not string type:', req.query.index);
+          console.warn('c.req.query(\'index\') is not string type:', c.req.query('index'));
         }
       }
     } catch (err) {
@@ -145,29 +163,29 @@ router.get(
 // SPECIES ACTIVITY UPDATE ROUTE
 router.put(
   '/species/:id/activities',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // SPLIT TYPE TO MAIN AND SUB ACTIVITY TYPE
-    const types = req.body.activity.activityType.split(' ');
+    const types = (await c.req.json()).activity.activityType.split(' ');
     const activity = {
       activityType: types[0],
       subtype: types[1],
-      name: req.body.activity.name,
+      name: (await c.req.json()).activity.name,
       time: {
-        startMonth: req.body.activity.time.startMonth,
-        endMonth: req.body.activity.time.endMonth,
+        startMonth: (await c.req.json()).activity.time.startMonth,
+        endMonth: (await c.req.json()).activity.time.endMonth,
       },
-      price: req.body.activity.price,
+      price: (await c.req.json()).activity.price,
     };
     // FIND SPECIES
     try {
-      const updatedSpecies = await Species.findById(req.params.id);
+      const updatedSpecies = await Species.findById(c.req.param('id'));
       if (updatedSpecies) {
       // CHANGE ACTIVITY DETAILS
-        if (req.query.index && typeof req.query.index === 'string') {
-          updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
+        if (c.req.query('index') && typeof c.req.query('index') === 'string') {
+          updatedSpecies.activities[parseInt(c.req.query('index')!, 10)] = activity;
           await updatedSpecies.save();
-          res.send(`/species/${updatedSpecies._id}`);
+          return c.json(`/species/${updatedSpecies._id}`);
         }
       }
     } catch (err) {
@@ -179,11 +197,11 @@ router.put(
 // SPECIES NUTRIENTS CREATE ROUTE
 router.get(
   '/species/:id/nutrients/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundSpecies = await Species.findById(req.params.id);
-      res.send({ species: foundSpecies });
+      const foundSpecies = await Species.findById(c.req.param('id'));
+      return c.json({ species: foundSpecies });
     } catch (err) {
       console.log(err);
     }
@@ -193,14 +211,14 @@ router.get(
 // SPECIES NUTRIENTS UPDATE ROUTE
 router.put(
   '/species/:id/nutrients',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
-        $set: { nutrients: req.body.nutrients },
+      const updatedSpecies = await Species.findByIdAndUpdate(c.req.param('id'), {
+        $set: { nutrients: (await c.req.json()).nutrients },
       });
       if (updatedSpecies) {
-        res.send(`/species/${updatedSpecies._id}`);
+        return c.json(`/species/${updatedSpecies._id}`);
       }
     } catch (err) {
       console.log(err);
@@ -208,4 +226,4 @@ router.put(
   },
 );
 
-export default router;
+}

@@ -5,25 +5,37 @@ import Layer from '../models/layer.js';
 import Soiltest from '../models/soiltest.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // PARCEL LAYER SOIL TEST NEW
 router.get(
   '/parcels/:id/layers/:pid/soiltests/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(req.params.id)
+      const foundParcel = await Parcel.findById(c.req.param('id'))
         .populate('layers')
         .exec();
       // FIND LAYER
 
       try {
-        const foundLayer = await Layer.findById(req.params.pid);
-        res.send({
+        const foundLayer = await Layer.findById(c.req.param('pid'));
+        return c.json({
           parcel: foundParcel,
           layer: foundLayer,
         });
@@ -39,25 +51,25 @@ router.get(
 // PARCEL LAYER SOIL TEST CREATE
 router.post(
   '/parcels/:id/layers/:pid/soiltests',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // PARSE COORDINATES
-    /* var soilTest = req.body.soiltest;
-    var parsedCoordinates = req.body.coordinates.split(", ");
+    /* var soilTest = (await c.req.json()).soiltest;
+    var parsedCoordinates = (await c.req.json()).coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    res.send("/parcels/" + req.params.id + "/status"); */
+    return c.json("/parcels/" + c.req.param('id') + "/status"); */
     // CREATE SOIL TEST
     try {
-      const createdSoiltest = await Soiltest.create(req.body.soiltest);
+      const createdSoiltest = await Soiltest.create((await c.req.json()).soiltest);
       try {
         await Layer.findByIdAndUpdate(
-          req.params.pid,
+          c.req.param('pid'),
           { $push: { soiltests: createdSoiltest } },
         );
         // RENDER PARCEL LAYER SOIL TEST PAGE
-        res.send(`/parcels/${req.params.id}/status`);
+        return c.json(`/parcels/${c.req.param('id')}/status`);
       } catch (err) {
         console.log(err);
       }
@@ -70,11 +82,11 @@ router.post(
 // PARCEL
 router.get(
   '/parcels/:id/soiltests/viz',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PARCEL
     try {
-      const foundParcel = await Parcel.findById(req.params.id)
+      const foundParcel = await Parcel.findById(c.req.param('id'))
         .populate({ path: 'layers', populate: { path: 'soiltests' } })
         .exec();
       if (foundParcel) {
@@ -145,7 +157,7 @@ router.get(
         const collection4 = JSON.stringify(featurecollection4);
         const featurecollection5 = turf.featureCollection(geometryArray5);
         const collection5 = JSON.stringify(featurecollection5);
-        res.send({
+        return c.json({
           parcel: foundParcel,
           collection1,
           collection2,
@@ -155,7 +167,7 @@ router.get(
           places,
         });
 
-        /* Layer.findById(req.params.pid, function(err, foundLayer){
+        /* Layer.findById(c.req.param('pid'), function(err, foundLayer){
            if(err){
                console.log(err);
            } else {
@@ -171,4 +183,4 @@ router.get(
   },
 );
 
-export default router;
+}

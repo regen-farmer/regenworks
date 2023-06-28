@@ -10,10 +10,22 @@ import middleware from '../middleware/index.js';
 import {systemBasedLayout} from '../middleware/gis/system_based_layout.js';
 import { UserDocument } from '../models/user.js';
 import { ISpeciesSchema } from '../models/species.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 import { rowBasedLayout } from '../middleware/gis/row_based_layout.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // BUDGET INDEX ROUTE
 
@@ -22,10 +34,11 @@ const router = express.Router();
 // BUDGET CREATE ROUTE
 
 // BUDGET SHOW ROUTE
-router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/budgets/:id', async (c) => {
+await middleware.isLoggedIn(c);
   // CHECK OWNERSHIP ASAP
   try {
-    const foundBudget = await Budget.findById(req.params.id)
+    const foundBudget = await Budget.findById(c.req.param('id'))
       .populate('postings')
       .exec();
     // FIND BUDGET LENGTH
@@ -74,7 +87,7 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & 
           }
         }
       }
-      res.send({
+      return c.json({
         budget: foundBudget,
         total: postingsArray,
         years,
@@ -88,24 +101,26 @@ router.get('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & 
 });
 
 // BUDGET EDIT ROUTE
-router.get('/budgets/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/budgets/:id/edit', async (c) => {
+await middleware.isLoggedIn(c);
   try {
-    const foundBudget = await Budget.findById(req.params.id);
-    res.send({ budget: foundBudget });
+    const foundBudget = await Budget.findById(c.req.param('id'));
+    return c.json({ budget: foundBudget });
   } catch (err) {
     console.log(err);
   }
 });
 
 // BUDGET UPDATE ROUTE
-router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/budgets/:id', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     const updatedBudget = await Budget.findByIdAndUpdate(
-      req.params.id,
-      req.body.budget,
+      c.req.param('id'),
+      (await c.req.json()).budget,
     );
     if (updatedBudget) {
-      res.send(`/budgets/${updatedBudget._id}`);
+      return c.json(`/budgets/${updatedBudget._id}`);
     } else {
       console.log('No updatedBudget');
     }
@@ -117,15 +132,16 @@ router.post('/budgets/:id', middleware.isLoggedIn, async (req: express.Request &
 // BUDGET DELETE ROUTE
 
 // PARCEL BUDGET SHOW ROUTE
-router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/accounts', async (c) => {
+await middleware.isLoggedIn(c);
   try {
-    const foundParcel = await Parcel.findById(req.params.id)
+    const foundParcel = await Parcel.findById(c.req.param('id'))
       .populate({
         path: 'layers',
         populate: { path: 'accounts', populate: { path: 'postings' } },
       })
       .exec();
-    res.send({ parcel: foundParcel });
+    return c.json({ parcel: foundParcel });
   } catch (err) {
     console.log(err);
   }
@@ -136,10 +152,10 @@ router.get('/parcels/:id/accounts', middleware.isLoggedIn, async (req: express.R
 // PROJECT BUDGET NEW ROUTE
 router.get(
   '/projects/:id/budgets/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('system')
         .exec();
 
@@ -157,7 +173,7 @@ router.get(
             });
             // FIND UNIQUE SPECIES / REMOVE DUPLICATES
             const uniqueSpecies = unique(allSpecies);
-            res.send({
+            return c.json({
               project: foundProject,
               species: uniqueSpecies,
             });
@@ -178,20 +194,20 @@ router.get(
 // router.post(
 //   '/projects/:id/budgets',
 //   middleware.isLoggedIn,
-//   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-//     const foundProject = await Project.findById(req.params.id);
-//     const createdBudget = await Budget.create(req.body.budget);
+//   async (c) => {
+//     const foundProject = await Project.findById(c.req.param('id'));
+//     const createdBudget = await Budget.create((await c.req.json()).budget);
 
 //     if (foundProject) {
 //     // BUDGET OWNER
-//       createdBudget.owner.id = req.user?._id;
+//       createdBudget.owner.id = c.get('user')?._id;
 //       createdBudget.save();
 //       // SAVE BUDGET TO PROJECT
 
 //       // TODO
 //       foundProject.budget = createdBudget;
 //       foundProject.save();
-//       res.send(`/projects/${foundProject._id}`);
+//       return c.json(`/projects/${foundProject._id}`);
 //     }
 //   },
 // );
@@ -199,11 +215,11 @@ router.get(
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get(
   '/projects/:id/generateestablishment',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('system')
         .populate({
           path: 'rows',
@@ -250,20 +266,20 @@ router.get(
           const uniqueSpecies = unique(allSpecies);
           // SEND ARRAY OF SUBTYPES
           const subtypes = ['bed', 'plant', 'method'];
-          res.send({
+          return c.json({
             project: foundProject,
             species: uniqueSpecies,
             subtypes,
           });
-          if (foundProject) {
-            try {
-              await System.findById(foundProject.system)
-                .populate('model.species')
-                .exec();
-            } catch (err) {
-              console.log(err);
-            }
-          }
+          // if (foundProject) {
+          //   try {
+          //     await System.findById(foundProject.system)
+          //       .populate('model.species')
+          //       .exec();
+          //   } catch (err) {
+          //     console.log(err);
+          //   }
+          // }
         } catch (err) {
           console.log(err);
         }
@@ -279,11 +295,11 @@ router.get(
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
 router.post(
   '/projects/:id/generateestablishment',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('layer')
         .populate({ path: 'system', populate: { path: 'model.species' } })
         .populate({
@@ -300,13 +316,13 @@ router.post(
         .exec();
       if (foundProject) {
         // CREATE BUDGET AND PLACE IN PROJECT
-        // const budget = req.body.budget;
+        // const budget = (await c.req.json()).budget;
         try {
           const createdBudget = await Budget.create({});
           foundProject.budgets.establishment = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings: string[] = req.body.speciespostings;
+          const speciesPostings: string[] = (await c.req.json()).speciespostings;
           const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
@@ -451,7 +467,7 @@ router.post(
                   //                         console.log(err);
                   //                     } else {
                   //                         console.log("Postings added to budget");
-                  //                         res.send("/projects/" + foundProject._id);
+                  //                         return c.json("/projects/" + foundProject._id);
                   //                     }
                   //                 });
                   //             }
@@ -473,7 +489,7 @@ router.post(
                   { $push: { postings: { $each: createdPostings } } },
                 );
                 console.log('Postings added to budget');
-                res.send(`/projects/${foundProject._id}`);
+                return c.json(`/projects/${foundProject._id}`);
               } catch (err) {
                 console.log(err);
               }
@@ -498,11 +514,11 @@ router.post(
 // GENERATE NEW PROJECT CASH-FLOW BUDGET
 router.get(
   '/projects/:id/generatemanagement',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({
           path: 'rows',
           populate: { path: 'sequence', populate: { path: 'model.species' } },
@@ -570,7 +586,7 @@ router.get(
           const uniqueSpecies = unique(allSpecies);
           // SEND ARRAY OF SUBTYPES
           const subtypes = ['compost', 'pruning', 'weedcontrol', 'harvest'];
-          res.send({
+          return c.json({
             project: foundProject,
             species: uniqueSpecies,
             subtypes,
@@ -590,11 +606,11 @@ router.get(
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
 router.post(
   '/projects/:id/generatemanagement',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate('layer')
         .populate({
           path: 'system',
@@ -621,13 +637,13 @@ router.post(
 
       if (foundProject) {
         // CREATE BUDGET AND PLACE IN PROJECT
-        const budget = req.body.budget;
+        const budget = (await c.req.json()).budget;
         try {
           const createdBudget = await Budget.create(budget);
           foundProject.budgets.management = createdBudget;
           await foundProject.save();
           // PARSE QUERY
-          const speciesPostings: string[] = req.body.speciespostings;
+          const speciesPostings: string[] = (await c.req.json()).speciespostings;
           const speciesPostingsArray: string[][] = [];
           for (let i = 0; i < speciesPostings.length; i++) {
             // REMOVE NONE ONES
@@ -667,7 +683,7 @@ router.post(
             /// //////////////////
             // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
             const postings: IPostingSchema[] = [];
-            const period = req.body.period;
+            const period = (await c.req.json()).period;
             // FIND UNIQUE AREA SPECIES
             const uniqueAreaSpecies: ISpeciesSchema[] = [];
             // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
@@ -737,7 +753,7 @@ router.post(
                   //         /////////////////////
                   //         // FIND SPECIES ACTIVITIES AND CREATE POSTINGS
                   //         var postings: any[] = [];
-                  //         var period = req.body.period;
+                  //         var period = (await c.req.json()).period;
                   //         // FIND UNIQUE AREA SPECIES
                   //         var uniqueAreaSpecies: any[] = [];
                   //         // AREA SIZES IN PERIOD BASED ON AREAS AND SPECIES IN ROTATIONS
@@ -882,7 +898,7 @@ router.post(
                   //                         console.log(err);
                   //                     } else {
                   //                         console.log("Postings added to budget");
-                  //                         res.send("/projects/" + foundProject._id);
+                  //                         return c.json("/projects/" + foundProject._id);
                   //                     }
                   //                 });
                   //             }
@@ -1042,7 +1058,7 @@ router.post(
                   $push: { postings: { $each: createdPostings } },
                 });
                 console.log('Postings added to budget');
-                res.send(`/projects/${foundProject._id}`);
+                return c.json(`/projects/${foundProject._id}`);
               } catch (err) {
                 console.log(err);
               }
@@ -1064,4 +1080,4 @@ router.post(
   },
 );
 
-export default router;
+}

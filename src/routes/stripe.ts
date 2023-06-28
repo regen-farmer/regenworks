@@ -4,12 +4,16 @@ import express from 'express';
 import { format, getUnixTime, parse } from 'date-fns';
 import dotenv from 'dotenv';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 /* eslint-disable import/first */
 
 dotenv.config();
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+
 
 export function getDevProdStatus(): 'DEV' | 'PROD' {
   const status = process.env.STRIPE_MODE as 'DEV' | 'PROD';
@@ -56,16 +60,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   maxNetworkRetries: 2,
 });
 
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
+
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
 router.post(
   '/stripe/checkout_session',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
     const {
       email, priceId, currency, callbackUrl, customer,
-    } = req.body;
+    } = (await c.req.json());
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
     const logdata = {
@@ -102,20 +113,19 @@ router.post(
         tax_id_collection: { enabled: true },
       });
       console.log(session.url!);
-      res.status(200).send(JSON.stringify({ checkoutUrl: session.url! }));
+      c.status(200)
+      return c.text(JSON.stringify({ checkoutUrl: session.url! }));
     } catch (err: any) {
       console.log('here');
-      return res.status(err.statusCode || 500).send(err.message);
+      c.status(err.statusCode || 500)
+      return c.text(err.message);
     }
   },
 );
 
 router.get(
   '/stripe/get_prices',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
     const farmMonth = await stripe.prices.retrieve(StripeIds.farm.prices.month[getDevProdStatus()], {
       expand: ['currency_options'],
     });
@@ -134,7 +144,7 @@ router.get(
 
     console.log(advisor6Months);
 
-    res.send(
+    return c.json(
       JSON.stringify({
         farmMonth,
         farm6Months,
@@ -147,10 +157,7 @@ router.get(
 
 router.post(
   '/stripe/get_customer',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
     const legacyCustomers = [
       { plan: 'Farm', email: 'ruben@schevichoven.nl', expiration: '22/8/23' },
       { plan: 'Farm', email: 'guilherme.moreira@engenharia.ufjf.br', expiration: '3/7/23' },
@@ -172,7 +179,7 @@ router.post(
     ];
 
     console.log('arrived');
-    const payload = req.body;
+    const payload = (await c.req.json());
     console.log('payload', payload);
 
     const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
@@ -201,71 +208,75 @@ router.post(
 
     const customer = customers.data[0];
 
+    let returndata;
     if (customer?.id) {
       const subscriptions = await stripe.subscriptions.list({
         limit: 10,
         customer: customer.id,
       });
 
-      res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
+      
+
+      returndata = { customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription };
     } else {
-      res.send(JSON.stringify({ subscriptions: [], activeLegacySubscription }));
+      returndata = { subscriptions: [], activeLegacySubscription };
     }
+
+    console.log('returndata', returndata);
+    return c.json(returndata);
+
+
   },
 );
 
 router.put(
   '/stripe/cancel_subscription/:subscriptionId',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
     console.log('DELETE here');
-    console.log('reqbody, ', req.params.subscriptionId);
-    const payload = req.body;
+    console.log('reqbody, ', c.req.param('subscriptionId'));
+    const payload = (await c.req.json());
     console.log('payload', payload);
 
-    if (req.params.subscriptionId) {
+    if (c.req.param('subscriptionId')) {
       // await stripe.subscriptions.del(
-      //   req.params.subscriptionId,
+      //   c.req.param('subscriptionId'),
       // );
 
       await stripe.subscriptions.update(
-        req.params.subscriptionId,
+        c.req.param('subscriptionId'),
         { cancel_at_period_end: true },
       );
-      res.send(JSON.stringify({}));
+      return c.json(JSON.stringify({}));
     } else {
-      res.status(400).send(JSON.stringify({ error: 'No subscriptionId found' }));
+      c.status(400)
+return c.json(JSON.stringify({ error: 'No subscriptionId found' }));
     }
   },
 );
 
 router.put(
   '/stripe/resume_subscription/:subscriptionId',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
     console.log('DELETE here');
-    console.log('reqbody, ', req.params.subscriptionId);
-    const payload = req.body;
+    console.log('reqbody, ', c.req.param('subscriptionId'));
+    const payload = (await c.req.json());
     console.log('payload', payload);
 
-    if (req.params.subscriptionId) {
+    if (c.req.param('subscriptionId')) {
       // await stripe.subscriptions.del(
-      //   req.params.subscriptionId,
+      //   c.req.param('subscriptionId'),
       // );
 
       await stripe.subscriptions.update(
-        req.params.subscriptionId,
+        c.req.param('subscriptionId'),
         { cancel_at_period_end: false },
       );
-      res.send(JSON.stringify({}));
+      return c.json(JSON.stringify({}));
     } else {
-      res.status(400).send(JSON.stringify({ error: 'No subscriptionId found' }));
+      c.status(400)
+return c.json(JSON.stringify({ error: 'No subscriptionId found' }));
     }
   },
 );
 
-export default router;
+}

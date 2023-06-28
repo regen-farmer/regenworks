@@ -4,44 +4,59 @@ import Species from '../models/species.js';
 import Parcel from '../models/parcel.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // PARCEL FLOWS
-router.get('/parcels/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/flows', async (c) => {
+await middleware.isLoggedIn(c);
   try {
     // FIND PARCEL
-    const foundParcel = await Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows' } }).exec();
-    res.send({ parcel: foundParcel });
+    const foundParcel = await Parcel.findById(c.req.param('id')).populate({ path: 'layers', populate: { path: 'rows' } }).exec();
+    return c.json({ parcel: foundParcel });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NESTED SPECIES FLOW NEW ROUTE
-router.get('/species/:id/flows/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/species/:id/flows/new', async (c) => {
+await middleware.isLoggedIn(c);
   try {
-    const foundSpecies = await Species.findById(req.params.id);
-    res.send({ species: foundSpecies });
+    const foundSpecies = await Species.findById(c.req.param('id'));
+    return c.json({ species: foundSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NESTED SPECIES FLOW CREATE ROUTE
-router.post('/species/:id/flows', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/species/:id/flows', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND SPECIES
   try {
-    const foundSpecies = await Species.findById(req.params.id);
-    console.log(req.body.flow);
+    const foundSpecies = await Species.findById(c.req.param('id'));
+    console.log((await c.req.json()).flow);
 
     if (foundSpecies) {
       try {
-        const createdFlow = await Flow.create(req.body.flow);
+        const createdFlow = await Flow.create((await c.req.json()).flow);
         foundSpecies.flows.push(createdFlow);
         await foundSpecies.save();
-        res.send(`/species/${foundSpecies._id}`);
+        return c.json(`/species/${foundSpecies._id}`);
       } catch (err) {
         console.log(err);
       }
@@ -55,4 +70,4 @@ router.post('/species/:id/flows', middleware.isLoggedIn, async (req: express.Req
 
 // NESTED SYSTEM FLOW CREATE ROUTE
 
-export default router;
+}

@@ -1,31 +1,44 @@
-import express from 'express';
-import Animal from '../models/animal.js';
-import middleware from '../middleware/index.js';
-import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import express from "express";
+import Animal from "../models/animal.js";
+import middleware from "../middleware/index.js";
+import { UserDocument } from "../models/user.js";
+import { Auth0IDToken, Variables } from "../app.js";
 
-const router = express.Router();
+import { Hono } from "hono";
 
-// ANIMAL INDEX
-router.get('/animals', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const foundAnimals = await Animal.find();
-  res.send({ animals: foundAnimals });
-});
+// import logger from '../middleware/logger';
 
-// ANIMAL NEW
-router.get('/animals/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => { // ADMIN LOGIN REQUIRED
-  res.send();
-});
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
+  // ANIMAL INDEX
+  router.get("/animals", async (c) => {
+    await middleware.isLoggedIn(c);
+    const foundAnimals = await Animal.find();
+    return c.json({ animals: foundAnimals });
+  });
 
-// ANIMAL CREATE
-router.post('/animals', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const createdAnimal = await Animal.create(req.body.animal);
-    console.log(`Animal created: ${createdAnimal}`);
-    res.send('/animals');
-  } catch (err) {
-    console.log(err);
-  }
-});
+  // ANIMAL NEW
+  router.get("/animals/new", async (c) => {
+    await middleware.isLoggedIn(c); // ADMIN LOGIN REQUIRED
+    return c.json({});
+  });
 
-export default router;
+  // ANIMAL CREATE
+  router.post("/animals", async (c) => {
+    await middleware.isLoggedIn(c);
+    try {
+      const createdAnimal = await Animal.create((await c.req.json()).animal);
+      console.log(`Animal created: ${createdAnimal}`);
+      return c.json("/animals");
+    } catch (err) {
+      console.log(err);
+    }
+  });
+}

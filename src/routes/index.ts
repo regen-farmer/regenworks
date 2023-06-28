@@ -1,201 +1,249 @@
-import express from 'express';
-import User, { UserDocument } from '../models/user.js';
-import Parcel from '../models/parcel.js';
-import Activity from '../models/activity.js';
-import middleware from '../middleware/index.js'; // Will automatically require the middleware "index" file as the standard
-import { Auth0IDToken } from '../app.js';
+import User, { UserDocument } from "../models/user.js";
+import Parcel from "../models/parcel.js";
+import Activity from "../models/activity.js";
+import middleware from "../middleware/index.js"; // Will automatically require the middleware "index" file as the standard
+import { Auth0IDToken, Variables } from "../app.js";
+import { Hono } from "hono";
 
 // import logger from '../middleware/logger';
 
-const router = express.Router();
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
+  // ROOT ROUTE
+  router.get("/", async (c) => {
+    return c.text("test");
+  });
+  // ROOT ROUTE
+  router.get("/test", async (c) => {
+    return c.text("test2");
+  });
 
-// ROOT ROUTE
-router.get('/', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
 
-// ROOT ROUTE
-router.get('/myuser', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send({ user: req.user });
-});
+  // ROOT ROUTE
+  router.get("/myuser", async (c) => {
+    return c.json({ user: c.get("user") });
+  });
 
-// ABOUT ROUTE
-router.get('/about', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // ABOUT ROUTE
+  router.get("/about", async (c) => {
+    return c.json({});
+  });
 
-// TERMS ROUTE
-router.get('/terms', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // TERMS ROUTE
+  router.get("/terms", async (c) => {
+    return c.json({});
+  });
 
-// PRIVACY ROUTE
-router.get('/privacy', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // PRIVACY ROUTE
+  router.get("/privacy", async (c) => {
+    return c.json({});
+  });
 
-// FEEDBACK ROUTE
-router.get('/feedback', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // FEEDBACK ROUTE
+  router.get("/feedback", async (c) => {
+await middleware.isLoggedIn(c);
+    return c.json({});
+  });
 
-// COMPOSITION ROUTE
-router.get('/composition', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // COMPOSITION ROUTE
+  router.get("/composition", async (c) => {
+await middleware.isLoggedIn(c);
+    return c.json({});
+  });
 
-// SUCCESSION ROUTE
-router.get('/succession', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // SUCCESSION ROUTE
+  router.get("/succession", async (c) => {
+await middleware.isLoggedIn(c);
+    return c.json({});
+  });
 
-// QUESTIONNAIRE ROUTE
-router.get('/questionnaire', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // QUESTIONNAIRE ROUTE
+  router.get("/questionnaire", async (c) => {
+    return c.json({});
+  });
 
-// SUPPORT ROUTE
-router.get('/support', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // SUPPORT ROUTE
+  router.get("/support", async (c) => {
+    return c.json({});
+  });
 
-// PLANNING ROUTE
-router.get('/planning', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.send();
-});
+  // PLANNING ROUTE
+  router.get("/planning", async (c) => {
+await middleware.isLoggedIn(c);
+    return c.json({});
+  });
 
-// DASHBOARD ROUTE
-router.get('/dashboard', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const allParcels = await Parcel.find({ 'owner.id': req.user?._id });
+  // DASHBOARD ROUTE
+  router.get("/dashboard", async (c) => {
+await middleware.isLoggedIn(c);
     try {
-      const allActivities = await Activity.find({ 'owner.id': req.user?._id });
-      allActivities.sort((a, b) => Date.parse(a.start.date.toString()) - Date.parse(b.start.date.toString()));
-      allActivities.slice(0, 4);
-      res.send({ activities: allActivities, parcels: allParcels });
-    } catch (err) {
-      console.log(err);
-    }
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// NEW USER ROUTE
-// router.get("/users/new", function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
-//     logger.info('Sign up page requested', {timestamp: Date.now()});
-//     res.send("users/new");
-// });
-
-// robots.txt
-router.get('/robots.txt', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  res.type('text/plain');
-  res.send();
-});
-
-// ADMIN PANEL
-router.get('/admindash', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // GET LOGS
-
-  res.send();
-});
-
-// SHOW USER ROUTE
-router.get('/users/:id', middleware.checkUserOwnership, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const foundUser = await User.findById(req.params.id).populate('parcels').exec();
-    res.send({ user: foundUser });
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// USER EDIT ROUTE
-router.get('/users/:id/edit', middleware.checkUserOwnership, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    const foundUser = await User.findById(req.params.id);
-    res.send({ user: foundUser });
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// USER UPDATE ROUTE
-router.put('/users/:id', middleware.checkUserOwnership, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  try {
-    await User.findByIdAndUpdate(req.params.id, req.body.user);
-    res.send(`/users/${req.params.id}`);
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// USER DELETE ROUTE
-// router.delete("/users/:id", middleware.checkUserOwnership, async function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
-//     try {
-
-//         let user = await User.findByIdAndRemove(req.params.id);
-
-//         // Flash message
-//         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
-//         res.send("/logout");
-//     }
-//     catch (err){
-//         console.log(err);
-//         // Flash message
-//         res.send("/parcels");
-//     }
-// });
-
-// SET CURRENTPROJECT //
-
-router.put('/users/:id/countrycode', async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // const foundUser = await User.findById(req.user?.id);
-  if (!(req.body.countryCode.length === 2)) {
-    res.status(400);
-  }
-  console.log('cc body ', req.body.countryCode as string);
-  const updateUser = await User.findByIdAndUpdate(req.user?.id, { countryCode: req.body.countryCode }, { new: true });
-  console.log('cc', updateUser?.countryCode);
-  if (updateUser) {
-    res.send(updateUser);
-  } else {
-    res.status(400).send({ error: 'User not found' });
-  }
-});
-
-router.put('/users/:id/currentproject', middleware.checkUserOwnership, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  console.log('im here 2');
-  try {
-    const foundUser = await User.findById(req.user?.id);
-    console.log('im here 3');
-    try {
-      const foundParcel = await Parcel.findById(req.body.parcelid);
-      console.log('im here 4', foundUser, foundParcel);
-      if (foundUser && foundParcel) {
-        console.log('im here 5');
-        foundUser.currentProject = foundParcel.id;
-        await foundUser.save();
-        console.log(`${foundParcel.name} has been set to active project`);
-        res.send(foundUser);
+      const allParcels = await Parcel.find({ "owner.id": c.get("user")?._id });
+      try {
+        const allActivities = await Activity.find({
+          "owner.id": c.get("user")?._id,
+        });
+        allActivities.sort(
+          (a, b) =>
+            Date.parse(a.start.date.toString()) -
+            Date.parse(b.start.date.toString())
+        );
+        allActivities.slice(0, 4);
+        return c.json({ activities: allActivities, parcels: allParcels });
+      } catch (err) {
+        console.log(err);
       }
     } catch (err) {
       console.log(err);
     }
-  } catch (err) {
-    console.log(err);
-  }
-});
+  });
 
-// PARCEL STATUS PAGE
-router.get('/parcels/:id/status', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  // FIND PARCEL
-  try {
-    const foundParcel = await Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'soiltests' } }).exec();
-    res.send({ parcel: foundParcel });
-  } catch (err) {
-    console.log(err);
-  }
-});
+  // NEW USER ROUTE
+  // router.get("/users/new", function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+  //     logger.info('Sign up page requested', {timestamp: Date.now()});
+  //     return c.json("users/new");
+  // });
 
-export default router;
+  // robots.txt
+  router.get("/robots.txt", async (c) => {
+    return c.text('');
+  });
+
+  // ADMIN PANEL
+  router.get("/admindash", async (c) => {
+
+    await middleware.adminIsLoggedIn(c)
+    // GET LOGS
+
+    return c.json({});
+  });
+
+  // SHOW USER ROUTE
+  router.get("/users/:id", async (c) => {
+
+    await middleware.checkUserOwnership(c);
+    try {
+      const foundUser = await User.findById(c.req.param('id'))
+        .populate("parcels")
+        .exec();
+      return c.json({ user: foundUser });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  // USER EDIT ROUTE
+  router.get("/users/:id/edit", async (c) => {
+
+    await middleware.checkUserOwnership(c);
+    try {
+      const foundUser = await User.findById(c.req.param("id"));
+      return c.json({ user: foundUser });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  // USER UPDATE ROUTE
+  router.put("/users/:id", async (c) => {
+
+    await middleware.checkUserOwnership(c);
+
+    try {
+      await User.findByIdAndUpdate(c.req.param("id"), (await c.req.json()).user);
+      return c.json(`/users/${c.req.param("id")}`);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  // USER DELETE ROUTE
+  // router.delete("/users/:id", async function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
+    // await middleware.checkUserOwnership(c)
+  //     try {
+
+  //         let user = await User.findByIdAndRemove(c.req.param('id'));
+
+  //         // Flash message
+  //         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
+  //         return c.json("/logout");
+  //     }
+  //     catch (err){
+  //         console.log(err);
+  //         // Flash message
+  //         return c.json("/parcels");
+  //     }
+  // });
+
+  // SET CURRENTPROJECT //
+
+  router.put("/users/:id/countrycode", async (c) => {
+    // const foundUser = await User.findById(c.get('user')?.id);
+    if (!((await c.req.json()).countryCode.length === 2)) {
+      c.status(400);
+    }
+    console.log("cc body ", (await c.req.json()).countryCode as string);
+    const updateUser = await User.findByIdAndUpdate(
+      c.get("user")?.id,
+      { countryCode: (await c.req.json()).countryCode },
+      { new: true }
+    );
+    console.log("cc", updateUser?.countryCode);
+    if (updateUser) {
+      return c.json(updateUser);
+    } else {
+      c.status(400)
+      return c.json({ error: "User not found" });
+    }
+  });
+
+  router.put(
+    "/users/:id/currentproject",
+    
+    async (c) => {
+      await middleware.checkUserOwnership(c);
+      console.log("im here 2");
+      try {
+        const foundUser = await User.findById(c.get("user")?.id);
+        console.log("im here 3");
+        try {
+          const foundParcel = await Parcel.findById((await c.req.json()).parcelid);
+          console.log("im here 4", foundUser, foundParcel);
+          if (foundUser && foundParcel) {
+            console.log("im here 5");
+            foundUser.currentProject = foundParcel.id;
+            await foundUser.save();
+            console.log(`${foundParcel.name} has been set to active project`);
+            return c.json(foundUser);
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  );
+
+  // PARCEL STATUS PAGE
+  router.get("/parcels/:id/status", async (c) => {
+    // FIND PARCEL
+
+    await middleware.isLoggedIn(c);
+
+    try {
+      const foundParcel = await Parcel.findById(c.req.param('id'))
+        .populate({ path: "layers", populate: { path: "soiltests" } })
+        .exec();
+      return c.json({ parcel: foundParcel });
+    } catch (err) {
+      console.log(err);
+    }
+  });
+}

@@ -4,19 +4,32 @@ import Nursery from '../models/nursery.js';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // ADMIN ALL VARIETIES
-router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseryproducts', async (c) => {
+  await middleware.adminIsLoggedIn(c);
   try {
     const foundNurseryProducts = await NurseryProduct.find()
       .populate('species')
       .populate('rootstock')
       .populate('hybrid')
       .exec();
-    res.send({ products: foundNurseryProducts });
+    return c.json({ products: foundNurseryProducts });
   } catch (err) {
     console.log(err);
   }
@@ -25,11 +38,11 @@ router.get('/nurseryproducts', middleware.adminIsLoggedIn, async (req: express.R
 // NURSERY PRODUCT NURSERY NEW
 router.get(
   '/nurseries/:id/nurseryproducts/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(req.params.id);
+      const foundNursery = await Nursery.findById(c.req.param('id'));
       // FIND ALL SPECIES
       try {
         const allSpecies = await Species.find();
@@ -44,7 +57,7 @@ router.get(
           }
           return 0;
         });
-        res.send({
+        return c.json({
           nursery: foundNursery,
           species: allSpecies,
         });
@@ -60,37 +73,37 @@ router.get(
 // NURSERY PRODUCT NURSERY CREATE
 router.post(
   '/nurseries/:id/nurseryproducts',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CLEAN NONE OPTIONS
-    const product = req.body.product;
-    if (req.body.product.species === '') {
+    const product = (await c.req.json()).product;
+    if ((await c.req.json()).product.species === '') {
       delete product.species;
     }
-    if (req.body.product.hybrid === '') {
+    if ((await c.req.json()).product.hybrid === '') {
       delete product.hybrid;
     }
-    if (req.body.product.rootstock === '') {
+    if ((await c.req.json()).product.rootstock === '') {
       delete product.rootstock;
     }
-    if (req.body.product.availability) {
+    if ((await c.req.json()).product.availability) {
       product.availability = true;
     }
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(req.params.id);
+      const foundNursery = await Nursery.findById(c.req.param('id'));
       // CREATE PRODUCT
       if (foundNursery) {
         try {
           const createdProduct = await NurseryProduct.create(product);
           // SET OWNERSHIP
-          createdProduct.owner.id = req.user?._id.toString()!;
+          createdProduct.owner.id = c.get('user')?._id.toString()!;
           await createdProduct.save();
           // INSERT PRODUCT IN NURSERY
           foundNursery.products.push(createdProduct);
           await foundNursery.save();
           // REDIRECT TO NURSERY
-          res.send(`/nurseries/${foundNursery._id}`);
+          return c.json(`/nurseries/${foundNursery._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -104,19 +117,19 @@ router.post(
 // NURSERY PRODUCT SHOW
 router.get(
   '/nurseries/:id/nurseryproducts/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(req.params.id);
+      const foundNursery = await Nursery.findById(c.req.param('id'));
       try {
       // FIND PRODUCT
-        const foundProduct = await NurseryProduct.findById(req.params.pid)
+        const foundProduct = await NurseryProduct.findById(c.req.param('pid'))
           .populate('species')
           .populate('rootstock')
           .populate('hybrid')
           .exec();
-        res.send({
+        return c.json({
           nursery: foundNursery,
           product: foundProduct,
         });
@@ -132,14 +145,14 @@ router.get(
 // NURSERY PRODUCT EDIT
 router.get(
   '/nurseries/:id/nurseryproducts/:pid/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND NURSERY
     try {
-      const foundNursery = await Nursery.findById(req.params.id);
+      const foundNursery = await Nursery.findById(c.req.param('id'));
       // FIND PRODUCT
       try {
-        const foundProduct = await NurseryProduct.findById(req.params.pid)
+        const foundProduct = await NurseryProduct.findById(c.req.param('pid'))
           .populate('species')
           .populate('rootstock')
           .populate('hybrid')
@@ -158,7 +171,7 @@ router.get(
             }
             return 0;
           });
-          res.send({
+          return c.json({
             nursery: foundNursery,
             product: foundProduct,
             species: allSpecies,
@@ -178,44 +191,44 @@ router.get(
 // NURSERY PRODUCT UPDATE
 router.put(
   '/nurseries/:id/nurseryproducts/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CLEAN NONE OPTIONS
-    const product = req.body.product;
-    if (req.body.product.species === '') {
+    const product = (await c.req.json()).product;
+    if ((await c.req.json()).product.species === '') {
       delete product.species;
     }
-    if (req.body.product.hybrid === '') {
+    if ((await c.req.json()).product.hybrid === '') {
       delete product.hybrid;
     }
-    if (req.body.product.rootstock === '') {
+    if ((await c.req.json()).product.rootstock === '') {
       delete product.rootstock;
     }
-    if (req.body.product.availability) {
+    if ((await c.req.json()).product.availability) {
       product.availability = true;
     } else {
       product.availability = false;
     }
-    console.log(req.body.product.availability);
-    console.log(typeof req.body.product.availability);
+    console.log((await c.req.json()).product.availability);
+    console.log(typeof (await c.req.json()).product.availability);
     try {
       const updatedProduct = await NurseryProduct.findByIdAndUpdate(
-        req.params.pid,
+        c.req.param('pid'),
         product,
       );
       // REDIRECT TO PRODUCT
-      /* if(req.body.product.hybrid === ""){
+      /* if((await c.req.json()).product.hybrid === ""){
                 updatedProduct.hybrid = {};
                 updatedProduct.save();
             }
-            if(req.body.product.rootstock === ""){
+            if((await c.req.json()).product.rootstock === ""){
                 delete updatedProduct.rootstock;
                 updatedProduct.save();
             } */
       if (updatedProduct) {
-        res.send(
+        return c.json(
           `/nurseries/${
-            req.params.id
+            c.req.param('id')
           }/nurseryproducts/${
             updatedProduct._id}`,
         );
@@ -230,4 +243,4 @@ router.put(
 
 // NURSERY PRODUCT DUPLICATE
 
-export default router;
+}

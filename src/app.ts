@@ -3,16 +3,17 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import express from "express";
+import { Hono } from "hono";
+import { cors } from 'hono/cors'
+
 import { connect } from "mongoose";
-import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
-import cors from "cors";
 import User, { IUserSchema, UserDocument } from "./models/user.js";
+import { serve } from '@hono/node-server'
 
 // REQUIRE ROUTES
+import indexRoutes from "./routes/index.js";
 import tilesRoutes from "./routes/tiles.js";
 import parcelRoutes from "./routes/parcels.js";
-import indexRoutes from "./routes/index.js";
 import activityRoutes from "./routes/activities.js";
 import projectRoutes from "./routes/projects.js";
 import layerRoutes from "./routes/layers.js";
@@ -52,17 +53,20 @@ export type Auth0IDToken = {
   sub: string;
   sid: string;
 };
-const app = express();
 
-app.use(cors());
+export type Variables = {
+  currentUser: any;
+  user?: UserDocument;
+  idToken?: Auth0IDToken;
+};
+
+const app = new Hono<{ Variables: Variables }>();
+app.use('*', cors())
 
 // APP SETUP
 connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
-app.use(express.json());
-
 // app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
-app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
 // seedDB(); // USE ONLY FOR SEEDING DATABAS
 
 // const config = {
@@ -76,34 +80,36 @@ app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQU
 
 // app.use(auth(config));
 let num = 0;
-app.use((req, res, next) => {
-  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  const method = req.method;
-  const url = req.url;
+app.use("*", async (c, next) => {
+  const ip = c.req.headers["x-forwarded-for"];
+  const method = c.req.method;
+  const url = c.req.url;
 
   console.log(`${++num}. IP ${ip} ${method} ${url}`);
-  next();
+  await next();
 });
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
 app.use(
+  "*",
   async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-    next: express.NextFunction
+    // req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    // res: express.Response,
+    c,
+    next
   ) => {
-    res.locals.currentUser = undefined;
+    c.set("currentUser", undefined);
 
-    const jwt = req.headers.authorization;
+    const jwt = c.req.headers.get("authorization");
 
-    // console.log('body:', req.body)
+    // console.log('body:', (await c.req.json()))
 
-    function parseJwt(token) {
+    async function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary
       console.log("token in place", token === "undefined" ? false : true);
 
       if (token === "undefined") {
-        return;
+        await next();
       }
 
       return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
@@ -114,11 +120,11 @@ app.use(
     // console.log('jwt in place', jwt);
 
     if (jwt && typeof jwt === "string") {
-      idToken = parseJwt(jwt);
+      idToken = await parseJwt(jwt);
       if (!idToken) {
         console.log("no id token");
-        res.status(404).send("Invalid token");
-        return;
+        c.status(404);
+        return c.text("invalid token");
       }
     } else {
       console.log("no jwt");
@@ -129,7 +135,7 @@ app.use(
       const user = await User.findOne({ email: idToken.email }).exec();
 
       if (user) {
-        req.user = user;
+        c.set("user", user);
       } else {
         // Create a new user if none exist
         const newUser = await User.create({
@@ -143,65 +149,72 @@ app.use(
 
         const savedUser = await newUser.save();
 
-        req.user = savedUser;
+        c.set("user", savedUser);
       }
     } else {
       console.log("No oidc user");
     }
 
-    req.idToken = idToken;
+    c.set("idToken", idToken);
 
-    res.locals.currentUser = req.user;
+    c.set("currentUser", c.get("user"));
 
-    next();
+    await next();
   }
 );
 
 // MAKES THE APP ACTUALLY USE THE ROUTES
-app.use(indexRoutes);
-app.use("", tilesRoutes);
-app.use("", parcelRoutes); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
-app.use("", activityRoutes);
-app.use("", projectRoutes);
-app.use("", layerRoutes);
-app.use("", practiceRoutes);
-app.use("", assetRoutes);
-app.use("", systemRoutes);
-app.use("", systemdesignRoutes);
-app.use("", speciesRoutes);
-app.use("", flowRoutes);
-app.use("", systemflowRoutes);
-app.use("", animalRoutes);
-app.use("", budgetRoutes);
-app.use("", postingRoutes);
-app.use("", nurseryRoutes);
-app.use("", nurseryproductRoutes);
-app.use("", sequenceRoutes);
-app.use("", areaRoutes);
-app.use("", noteRoutes);
-app.use("", soiltestRoutes);
-app.use("", saptestRoutes);
-app.use("", farmflowRoutes);
-app.use("", rotationRoutes);
-app.use("", varietyRoutes);
-app.use("", stripeRoutes);
+indexRoutes(app);
+tilesRoutes(app);
+parcelRoutes(app); // THE "" CAN BE CHANGED TO "/parcels FOR SHORTER FILES
+activityRoutes(app);
+projectRoutes(app);
+layerRoutes(app);
+practiceRoutes(app);
+assetRoutes(app);
+systemRoutes(app);
+systemdesignRoutes(app);
+speciesRoutes(app);
+flowRoutes(app);
+systemflowRoutes(app);
+animalRoutes(app);
+budgetRoutes(app);
+postingRoutes(app);
+nurseryRoutes(app);
+nurseryproductRoutes(app);
+sequenceRoutes(app);
+areaRoutes(app);
+noteRoutes(app);
+soiltestRoutes(app);
+saptestRoutes(app);
+farmflowRoutes(app);
+rotationRoutes(app);
+varietyRoutes(app);
+stripeRoutes(app);
 
 // 404 ROUTE
 app.get(
   "*",
   async (
-    req: express.Request & { user?: IUserSchema },
-    res: express.Response
+    c
   ) => {
-    res.status(404).send("404");
+    c.status(404)
+    return c.text("404");
   }
 );
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 
-app.listen(
-  process.env.PORT ? parseInt(process.env.PORT) : 3001,
-  process.env.IP ?? "127.0.0.1",
-  () => {
-    console.log("RegenWorks backend server has started!");
-  }
-);
+console.log('serve!')
+serve({
+  fetch: app.fetch,
+  port: 8787, // Port number, default is 3000
+}, (info) => {
+  console.log(`Listening on http://localhost:${info.port}`) // Listening on http://localhost:3000
+})
+// app.listen(
+  
+//   process.env.IP ?? "127.0.0.1",
+//   () => {
+//     console.log("RegenWorks backend server has started!");
+//   }
+// );

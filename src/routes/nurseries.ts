@@ -3,10 +3,22 @@ import NodeGeocoder from 'node-geocoder';
 import Nursery from '../models/nursery.js';
 import User, { UserDocument } from '../models/user.js';
 import middleware from '../middleware/index.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
 // NODE GEOCODER CODE
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 const options: NodeGeocoder.Options = {
   provider: 'google',
@@ -17,33 +29,37 @@ const options: NodeGeocoder.Options = {
 const geocoder = NodeGeocoder(options);
 
 // NURSERY INDEX
-router.get('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND NURSERY BASED ON USER
   try {
-    const foundNurseries = await Nursery.find({ 'owner.id': req.user?._id });
+    const foundNurseries = await Nursery.find({ 'owner.id': c.get('user')?._id });
     console.log(foundNurseries.length);
-    res.send({ nurseries: foundNurseries });
+    return c.json({ nurseries: foundNurseries });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY NEW
-router.get('/nurseries/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/new', async (c) => {
+await middleware.isLoggedIn(c);
   // ADMIN LOGIN REQUIRED
-  res.send();
+  return c.json({});
 });
 
 // ANIMAL CREATE
-router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/nurseries', async (c) => {
+await middleware.isLoggedIn(c);
   // SET INITIAL VARIABLE
-  const newNursery = req.body.nursery;
+  const newNursery = (await c.req.json()).nursery;
   // GEOLOCATION
-  geocoder.geocode(req.body.nursery.location, async (err, data) => {
+  geocoder.geocode((await c.req.json()).nursery.location, async (err, data) => {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
+      c.status(500)
+      return c.json({ error: `Error while geocoding: ${err.toString()}` });
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
@@ -52,18 +68,18 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
     try {
       const createdNursery = await Nursery.create(newNursery);
       // SET OWNERSHIP
-      createdNursery.owner.id = req.user?._id.toString()!;
+      createdNursery.owner.id = c.get('user')?._id.toString()!;
       await createdNursery.save();
       // ADD TO USER
       try {
-        const foundUser = await User.findById(req.user?._id);
+        const foundUser = await User.findById(c.get('user')?._id);
         // Add the parcel to the users parcels for referencing
         if (foundUser) {
           foundUser.nurseries.push(createdNursery);
           await foundUser.save();
           // REDIRECT
           console.log(`Nursery created: ${createdNursery}`);
-          res.send(`/nurseries/${createdNursery._id}`);
+          return c.json(`/nurseries/${createdNursery._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -75,42 +91,46 @@ router.post('/nurseries', middleware.isLoggedIn, async (req: express.Request & {
 });
 
 // NURSERY SHOW
-router.get('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/:id', async (c) => {
+await middleware.isLoggedIn(c);
   // DO OWNERSHIP MODEL
   // FIND NURSERY
   try {
-    const foundNursery = await Nursery.findById(req.params.id)
+    const foundNursery = await Nursery.findById(c.req.param('id'))
       .populate('products')
       .exec();
     // RENDER SHOW PAGE
-    res.send({ nursery: foundNursery });
+    return c.json({ nursery: foundNursery });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY EDIT
-router.get('/nurseries/:id/edit', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/nurseries/:id/edit', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND NURSERY
   try {
-    const foundNursery = await Nursery.findById(req.params.id);
-    res.send({ nursery: foundNursery });
+    const foundNursery = await Nursery.findById(c.req.param('id'));
+    return c.json({ nursery: foundNursery });
   } catch (err) {
     console.log(err);
   }
 });
 
 // NURSERY UPDATE
-router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.put('/nurseries/:id', async (c) => {
+await middleware.isLoggedIn(c);
   // SETUP NEW GEO
   // SET INITIAL VARIABLE
-  const newNursery = req.body.nursery;
+  const newNursery = (await c.req.json()).nursery;
   // GEOLOCATION
-  geocoder.geocode(req.body.nursery.location, async (err, data) => {
+  geocoder.geocode((await c.req.json()).nursery.location, async (err, data) => {
     if (err || !data.length) {
       console.log(err);
       console.log(data);
-      return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
+      c.status(500)
+      return c.json({ error: `Error while geocoding: ${err.toString()}` });
     }
     // SET NEW LATS
     newNursery.lat = data[0].latitude;
@@ -118,13 +138,13 @@ router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
     newNursery.location = data[0].formattedAddress;
     try {
       const updateNursery = await Nursery.findByIdAndUpdate(
-        req.params.id,
+        c.req.param('id'),
         newNursery,
       );
       // REDIRECT
       if (updateNursery) {
         console.log(`Nursery update: ${updateNursery}`);
-        res.send(`/nurseries/${updateNursery._id}`);
+        return c.json(`/nurseries/${updateNursery._id}`);
       } else {
         console.log('No updateNursery');
       }
@@ -134,4 +154,4 @@ router.put('/nurseries/:id', middleware.isLoggedIn, async (req: express.Request 
   });
 });
 
-export default router;
+}

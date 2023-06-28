@@ -3,23 +3,37 @@ import Variety from '../models/variety.js';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // VARIETY INDEX
-router.get('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/varieties', async (c) => {
+await middleware.isLoggedIn(c);
   // Get all varieties from DB
   try {
-    const allUserVarieties = await Variety.find({ 'owner.id': req.user?._id }).populate('species').exec();
-    res.send({ varieties: allUserVarieties });
+    const allUserVarieties = await Variety.find({ 'owner.id': c.get('user')?._id }).populate('species').exec();
+    return c.json({ varieties: allUserVarieties });
   } catch (err) {
     console.log(err);
   }
 });
 
 // VARIETY NEW
-router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/varieties/new', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND ALL SPECIES
   try {
     const allSpecies = await Species.find();
@@ -33,33 +47,34 @@ router.get('/varieties/new', middleware.isLoggedIn, async (req: express.Request 
       }
       return 0;
     });
-    res.send({ species: allSpecies });
+    return c.json({ species: allSpecies });
   } catch (err) {
     console.log(err);
   }
 });
 
 // VATERTY CREATE
-router.post('/varieties', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/varieties', async (c) => {
+await middleware.isLoggedIn(c);
   // CLEAN NONE OPTIONS
-  const variety = req.body.variety;
-  if (req.body.variety.species === '') {
+  const variety = (await c.req.json()).variety;
+  if ((await c.req.json()).variety.species === '') {
     delete variety.species;
   }
-  if (req.body.variety.hybrid === '') {
+  if ((await c.req.json()).variety.hybrid === '') {
     delete variety.hybrid;
   }
-  if (req.body.variety.rootstock.species === '') {
+  if ((await c.req.json()).variety.rootstock.species === '') {
     delete variety.rootstock.species;
   }
   // CREATE VARIETY
   const createdVariety = await Variety.create(variety);
 
   // SET OWNERSHIP
-  createdVariety.owner.id = req.user?._id.toString()!;
+  createdVariety.owner.id = c.get('user')?._id.toString()!;
   await createdVariety.save();
   // REDIRECT TO USER
-  res.send(`/users/${req.user?._id}`);
+  return c.json(`/users/${c.get('user')?._id}`);
 });
 
-export default router;
+}

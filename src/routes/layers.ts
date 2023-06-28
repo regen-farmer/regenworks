@@ -20,12 +20,24 @@ import Sequence from '../models/sequence.js';
 import Row from '../models/row.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
 // SETUP MULTER
 // XML2JS
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 const storage = multer.memoryStorage();
 const uploadMem = multer({ storage });
 
@@ -36,14 +48,11 @@ const parser = new xml2js.Parser();
 // NESTED PARCEL LAYER NEW ROUTE
 router.get(
   '/parcels/:id/new-layer',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PARCEL ID
     try {
-      const foundParcel = await Parcel.findById(req.params.id);
+      const foundParcel = await Parcel.findById(c.req.param('id'));
       try {
         const foundSpecies = await Species.find();
         foundSpecies.sort((a, b) => {
@@ -66,7 +75,7 @@ router.get(
             }
             return 0;
           });
-          res.send({
+          return c.json({
             parcel: foundParcel,
             species: foundSpecies,
             animals: foundAnimals,
@@ -88,14 +97,11 @@ router.get(
 // NESTED PARCEL LAYER NEW WITH UPLOAD ROUTE
 router.get(
   '/parcels/:id/layers/newkml',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PARCEL ID
     try {
-      const foundParcel = await Parcel.findById(req.params.id);
+      const foundParcel = await Parcel.findById(c.req.param('id'));
       try {
         const foundSpecies = await Species.find();
         foundSpecies.sort((a, b) => {
@@ -119,7 +125,7 @@ router.get(
             }
             return 0;
           });
-          res.send({
+          return c.json({
             parcel: foundParcel,
             species: foundSpecies,
             animals: foundAnimals,
@@ -141,29 +147,26 @@ router.get(
 // NESTED PARCEL LAYER CREATE ROUTE
 router.post(
   '/parcels/:id/layers',
-  middleware.checkParcelOwnership,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.checkParcelOwnership(c);
     // Lookup place using id
     try {
       console.log('im here 1');
-      const foundParcel = await Parcel.findById(req.params.id);
+      const foundParcel = await Parcel.findById(c.req.param('id'));
       if (foundParcel) {
         try {
           console.log('im here 2');
-          const layer = await Layer.create(req.body.layer);
+          const layer = await Layer.create((await c.req.json()).layer);
           // Add user ID to Layer.
           console.log('im here 2.1');
-          layer.owner.id = req.user?._id.toString()!;
+          layer.owner.id = c.get('user')?._id.toString()!;
 
           console.log('im here 2.2');
           // Save JSON file to geometry
-          layer.geometry = req.body.geometry;
-          layer.size = req.body.layersize;
+          layer.geometry = (await c.req.json()).geometry;
+          layer.size = (await c.req.json()).layersize;
           console.log('im here 2.3');
-          const geometrycentroid = centroid(JSON.parse(req.body.geometry));
+          const geometrycentroid = centroid(JSON.parse((await c.req.json()).geometry));
 
           console.log('im here 3');
 
@@ -183,10 +186,10 @@ router.post(
           // Redirect to parcels SHOW page
           // req.flash("success", "Successfully added comment");
           /* if(layer.type == "agroforestry"){
-                       res.send("/layers/" + layer._id + '/systems/newgrid');
+                       return c.json("/layers/" + layer._id + '/systems/newgrid');
                    } else { */
-          let tempspecies = req.body.maincrop;
-          if (req.body.maincrop === '') {
+          let tempspecies = (await c.req.json()).maincrop;
+          if ((await c.req.json()).maincrop === '') {
             tempspecies = '5e665452cccc150b186d4cd1';
           }
           try {
@@ -205,14 +208,14 @@ router.post(
                 ],
                 shared: false,
                 owner: {
-                  id: req.user?._id,
+                  id: c.get('user')?._id,
                 },
                 animals: [],
               };
               // FIND ANIMAL AND PUSH TO SYSTEM
-              if (!(req.body.animal === '')) {
+              if (!((await c.req.json()).animal === '')) {
                 try {
-                  const foundAnimal = await Animal.findById(req.body.animal);
+                  const foundAnimal = await Animal.findById((await c.req.json()).animal);
                   presentsystem.animals.push(foundAnimal);
                   // CREATE SYSTEM
                   const createdSystem = await System.create(
@@ -223,7 +226,7 @@ router.post(
                   layer.systems.present = createdSystem;
                   await layer.save();
                   // IF FOREST OR ORCHARD GO TO LAYOUT
-                  res.send(layer);
+                  return c.json(layer);
                 } catch (err) {
                   console.log(err);
                 }
@@ -235,7 +238,7 @@ router.post(
                 layer.systems.present = createdSystem;
                 await layer.save();
 
-                res.send(layer);
+                return c.json(layer);
               }
             }
           } catch (err) {
@@ -247,178 +250,172 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.send();
+      return c.json({});
     }
   },
 );
 
 // NESTED PARCEL LAYER CREATE WITH UPLOAD ROUTE
-router.post(
-  '/parcels/:id/layersuploadkml',
-  middleware.checkParcelOwnership,
-  uploadMem.single('filename'),
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
-    // CHECK EXISTING AREAS SIZE!?
+// router.post(
+//   '/parcels/:id/layersuploadkml',
+//   middleware.checkParcelOwnership,
+//   uploadMem.single('filename'),
+//   async (c) => {
+//     // CHECK EXISTING AREAS SIZE!?
 
-    // PARSE UPLOADED FILE AND CREATE POLYGON
-    if (req.file) {
-      parser.parseString(req.file.buffer, async (err, result) => {
-        if (err) {
-          console.log('error', err.message);
-          // console.log(err);
-          res.status(500).send({ error: 'Error while parsing uploaded file' });
-        } else {
-          const string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0]
-            .LinearRing[0].coordinates[0];
-          const splitString = string.split(' ');
-          // CREATE NEW ARRAY HERE? OR IS THIS OBSOLETE?
-          const array: any[] = [];
-          for (let i = 0; i < splitString.length; i++) {
-            const apples = JSON.parse(`[${splitString[i]}]`);
-            array.push(apples);
-          }
-          // CHECK IF LAST ARRAY IS EMPTY?
-          if (array[array.length - 1].length === 0) {
-            console.log('last is empty array');
-            array.pop();
-          }
-          // THEN ADD HERE?!
-          const polygon = turf.polygon([array]);
-          const size = area(polygon);
-          const geometry = JSON.stringify(polygon);
-          // FIND PARCEL
-          try {
-            const foundParcel = await Parcel.findById(req.params.id);
-            if (foundParcel) {
-              try {
-                const createdLayer = await Layer.create(req.body.layer);
-                createdLayer.owner.id = req.user?._id.toString()!;
-                createdLayer.geometry = geometry;
-                // CALCULATE LAYER SIZE
-                createdLayer.size = size;
-                // GEOMETRY CENTROID FOR LAT AND LNG
-                const geometrycentroid = centroid(polygon.geometry);
-                createdLayer.lat = geometrycentroid.geometry.coordinates[1];
-                createdLayer.lng = geometrycentroid.geometry.coordinates[0];
-                // Save the layer
-                await createdLayer.save();
-                // PUSH LAYER TO PARCEL
-                foundParcel.layers.push(createdLayer);
-                await foundParcel.save();
-                // DEFINE SYSTEM
-                if (createdLayer.type === 'agroforestry') {
-                  res.send(`/layers/${createdLayer._id}/systems/new`);
-                } else {
-                  let tempspecies = req.body.maincrop;
-                  if (req.body.maincrop === '') {
-                    tempspecies = '5e665452cccc150b186d4cd1';
-                  }
-                  try {
-                    const foundSpecies = await Species.findById(tempspecies);
-                    if (foundSpecies) {
-                      // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
-                      const presentsystem: any = {
-                        name: `${foundSpecies.nameCommon} monoculture`,
-                        description: '',
-                        model: [
-                          {
-                            species: foundSpecies._id,
-                            width: 2,
-                            position: [1, 1],
-                          },
-                        ],
-                        shared: false,
-                        owner: {
-                          id: req.user?._id,
-                        },
-                        animals: [],
-                      };
-                      // FIND ANIMAL AND PUSH TO SYSTEM
-                      if (!(req.body.animal === '')) {
-                        try {
-                          const foundAnimal = await Animal.findById(
-                            req.body.animal,
-                          );
-                          presentsystem.animals.push(foundAnimal);
-                          // CREATE SYSTEM
-                          try {
-                            const createdSystem = await System.create(
-                              presentsystem,
-                            );
-                            // ADD SYSTEM TO PRESENT SYSTEM
-                            createdLayer.systems.present = createdSystem;
-                            await createdLayer.save();
-                            // IF FOREST OR ORCHARD GO TO LAYOUT
-                            if (
-                              createdLayer.type === 'forestry'
-                              || createdLayer.type === 'orchard'
-                            ) {
-                              res.send(`/layers/${createdLayer._id}/layout`);
-                            } else {
-                              res.send(`/layers/${createdLayer._id}`);
-                            }
-                          } catch (err) {
-                            console.log(err);
-                          }
-                        } catch (err) {
-                          console.log(err);
-                        }
-                      } else {
-                        // CREATE SYSTEM
-                        try {
-                          const createdSystem = await System.create(
-                            presentsystem as ISystemSchema,
-                          );
-                          // ADD SYSTEM TO PRESENT SYSTEM
-                          createdLayer.systems.present = createdSystem;
-                          await createdLayer.save();
-                          // IF FOREST OR ORCHARD GO TO LAYOUT
-                          if (
-                            createdLayer.type === 'forestry'
-                            || createdLayer.type === 'orchard'
-                          ) {
-                            res.send(`/layers/${createdLayer._id}/layout`);
-                          } else {
-                            res.send(`/layers/${createdLayer._id}`);
-                          }
-                        } catch (err) {
-                          console.log(err);
-                        }
-                      }
-                    }
-                  } catch (err) {
-                    console.log(err);
-                  }
-                }
-              } catch (err) {
-                console.log(err);
-              }
-            }
-          } catch (err) {
-            console.log(err);
-          }
-        }
-      });
-    }
-  },
-);
+//     // PARSE UPLOADED FILE AND CREATE POLYGON
+//     if (req.file) {
+//       parser.parseString(req.file.buffer, async (err, result) => {
+//         if (err) {
+//           console.log('error', err.message);
+//           // console.log(err);
+//           c.status(500).send({ error: 'Error while parsing uploaded file' });
+//         } else {
+//           const string = result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0]
+//             .LinearRing[0].coordinates[0];
+//           const splitString = string.split(' ');
+//           // CREATE NEW ARRAY HERE? OR IS THIS OBSOLETE?
+//           const array: any[] = [];
+//           for (let i = 0; i < splitString.length; i++) {
+//             const apples = JSON.parse(`[${splitString[i]}]`);
+//             array.push(apples);
+//           }
+//           // CHECK IF LAST ARRAY IS EMPTY?
+//           if (array[array.length - 1].length === 0) {
+//             console.log('last is empty array');
+//             array.pop();
+//           }
+//           // THEN ADD HERE?!
+//           const polygon = turf.polygon([array]);
+//           const size = area(polygon);
+//           const geometry = JSON.stringify(polygon);
+//           // FIND PARCEL
+//           try {
+//             const foundParcel = await Parcel.findById(c.req.param('id'));
+//             if (foundParcel) {
+//               try {
+//                 const createdLayer = await Layer.create((await c.req.json()).layer);
+//                 createdLayer.owner.id = c.get('user')?._id.toString()!;
+//                 createdLayer.geometry = geometry;
+//                 // CALCULATE LAYER SIZE
+//                 createdLayer.size = size;
+//                 // GEOMETRY CENTROID FOR LAT AND LNG
+//                 const geometrycentroid = centroid(polygon.geometry);
+//                 createdLayer.lat = geometrycentroid.geometry.coordinates[1];
+//                 createdLayer.lng = geometrycentroid.geometry.coordinates[0];
+//                 // Save the layer
+//                 await createdLayer.save();
+//                 // PUSH LAYER TO PARCEL
+//                 foundParcel.layers.push(createdLayer);
+//                 await foundParcel.save();
+//                 // DEFINE SYSTEM
+//                 if (createdLayer.type === 'agroforestry') {
+//                   return c.json(`/layers/${createdLayer._id}/systems/new`);
+//                 } else {
+//                   let tempspecies = (await c.req.json()).maincrop;
+//                   if ((await c.req.json()).maincrop === '') {
+//                     tempspecies = '5e665452cccc150b186d4cd1';
+//                   }
+//                   try {
+//                     const foundSpecies = await Species.findById(tempspecies);
+//                     if (foundSpecies) {
+//                       // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
+//                       const presentsystem: any = {
+//                         name: `${foundSpecies.nameCommon} monoculture`,
+//                         description: '',
+//                         model: [
+//                           {
+//                             species: foundSpecies._id,
+//                             width: 2,
+//                             position: [1, 1],
+//                           },
+//                         ],
+//                         shared: false,
+//                         owner: {
+//                           id: c.get('user')?._id,
+//                         },
+//                         animals: [],
+//                       };
+//                       // FIND ANIMAL AND PUSH TO SYSTEM
+//                       if (!((await c.req.json()).animal === '')) {
+//                         try {
+//                           const foundAnimal = await Animal.findById(
+//                             (await c.req.json()).animal,
+//                           );
+//                           presentsystem.animals.push(foundAnimal);
+//                           // CREATE SYSTEM
+//                           try {
+//                             const createdSystem = await System.create(
+//                               presentsystem,
+//                             );
+//                             // ADD SYSTEM TO PRESENT SYSTEM
+//                             createdLayer.systems.present = createdSystem;
+//                             await createdLayer.save();
+//                             // IF FOREST OR ORCHARD GO TO LAYOUT
+//                             if (
+//                               createdLayer.type === 'forestry'
+//                               || createdLayer.type === 'orchard'
+//                             ) {
+//                               return c.json(`/layers/${createdLayer._id}/layout`);
+//                             } else {
+//                               return c.json(`/layers/${createdLayer._id}`);
+//                             }
+//                           } catch (err) {
+//                             console.log(err);
+//                           }
+//                         } catch (err) {
+//                           console.log(err);
+//                         }
+//                       } else {
+//                         // CREATE SYSTEM
+//                         try {
+//                           const createdSystem = await System.create(
+//                             presentsystem as ISystemSchema,
+//                           );
+//                           // ADD SYSTEM TO PRESENT SYSTEM
+//                           createdLayer.systems.present = createdSystem;
+//                           await createdLayer.save();
+//                           // IF FOREST OR ORCHARD GO TO LAYOUT
+//                           if (
+//                             createdLayer.type === 'forestry'
+//                             || createdLayer.type === 'orchard'
+//                           ) {
+//                             return c.json(`/layers/${createdLayer._id}/layout`);
+//                           } else {
+//                             return c.json(`/layers/${createdLayer._id}`);
+//                           }
+//                         } catch (err) {
+//                           console.log(err);
+//                         }
+//                       }
+//                     }
+//                   } catch (err) {
+//                     console.log(err);
+//                   }
+//                 }
+//               } catch (err) {
+//                 console.log(err);
+//               }
+//             }
+//           } catch (err) {
+//             console.log(err);
+//           }
+//         }
+//       });
+//     }
+//   },
+// );
 
 // LAYER SHOW ROUTES
 router.get(
   '/layers/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE LAYER OWNERSHIP MIDDLEWARE
 
     // console.log('IM HERE');
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate('systems.future')
         .populate('projects')
         .populate('systems.present')
@@ -426,7 +423,7 @@ router.get(
         .exec();
       if (foundLayer) {
         if (foundLayer.systems.present === undefined) {
-          res.send(`/layers/${foundLayer._id}/systems/newgrid`);
+          return c.json(`/layers/${foundLayer._id}/systems/newgrid`);
         } else {
           const foundSystem = await System.findById(
             foundLayer.systems.present._id,
@@ -480,7 +477,7 @@ router.get(
                 .populate('flows')
                 .exec();
 
-              res.send({
+              return c.json({
                 layer: foundLayer,
                 presentsystem: foundSystem,
                 species: foundSpecies,
@@ -501,16 +498,13 @@ router.get(
 // LAYER EDIT ROUTE
 router.get(
   '/layers/:id/edit',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE LAYER OWNERSHIP MIDDLEWARE
     // Find specific activity in database
     try {
-      const foundLayer = await Layer.findById(req.params.id);
-      res.send({ layer: foundLayer });
+      const foundLayer = await Layer.findById(c.req.param('id'));
+      return c.json({ layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -520,18 +514,15 @@ router.get(
 // LAYER UPDATE ROUTE
 router.put(
   '/layers/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
       const updatedLayer = await Layer.findByIdAndUpdate(
-        req.params.id,
-        req.body.layer,
+        c.req.param('id'),
+        (await c.req.json()).layer,
       );
       console.log(updatedLayer);
-      res.send(`/layers/${req.params.id}`);
+      return c.json(`/layers/${c.req.param('id')}`);
     } catch (err) {
       console.log(err);
     }
@@ -541,22 +532,19 @@ router.put(
 // LAYER DELETE ROUTE
 router.delete(
   '/layers/:id',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CHECK OWNERSHIP
 
-    // console.log('userid', req.user?._id)
+    // console.log('userid', c.get('user')?._id)
 
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       // REMOVE LAYER FROM PARCEL
       if (foundLayer) {
         try {
           const foundParcels = await Parcel.find({
-            'owner.id': req.user?._id,
+            'owner.id': c.get('user')?._id,
           }).populate('layers');
           // CYCLE THROUGH PARCELS
           // eslint-disable-next-line no-unused-vars
@@ -571,24 +559,24 @@ router.delete(
             }
           }
           // REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
-          res.send();
+          return c.json({});
           // DELETE LAYER TEMP REMOVED
-          /* Layer.findByIdAndRemove(req.params.id, function(err){
+          /* Layer.findByIdAndRemove(c.req.param('id'), function(err){
                        if(err){
                            console.log(err);
-                           res.send("/parcels");
+                           return c.json("/parcels");
                        } else {
-                           res.send("/parcels");
+                           return c.json("/parcels");
                        }
                    }); */
         } catch (err) {
           console.log(err);
-          res.send();
+          return c.json({});
         }
       }
     } catch (err) {
       console.log(err);
-      res.send(`/users/${req.user?.id}`);
+      return c.json(`/users/${c.get('user')?.id}`);
     }
   },
 );
@@ -596,15 +584,12 @@ router.delete(
 // LAYER CURRENT SYSTEM UPDATE
 router.post(
   '/layers/:id/presentsystem',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       try {
-        const foundSystem = await System.findById(req.body.systemid);
+        const foundSystem = await System.findById((await c.req.json()).systemid);
         // PUSH CURRENT SYSTEM TO PAST
         if (foundLayer && foundSystem) {
           if (foundLayer.systems.present) {
@@ -624,7 +609,7 @@ router.post(
             `${foundSystem.name} has been removed from future systems`,
           );
           await foundLayer.save();
-          res.send(`/layers/${foundLayer._id}`);
+          return c.json(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -638,22 +623,19 @@ router.post(
 // LAYER ADD FUTURE SYSTEM DRAFT
 router.post(
   '/layers/:id/editfuture',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       try {
-        const foundSystem = await System.findById(req.body.systemid);
+        const foundSystem = await System.findById((await c.req.json()).systemid);
         if (foundLayer && foundSystem) {
           foundLayer.systems.future.push(foundSystem);
           await foundLayer.save();
           console.log(
             `Now there is ${foundLayer.systems.future.length} future drafts on this area`,
           );
-          res.send(`/layers/${foundLayer._id}`);
+          return c.json(`/layers/${foundLayer._id}`);
         }
       } catch (err) {
         console.log(err);
@@ -667,14 +649,11 @@ router.post(
 // LAYER CURRENT SYSTEM LAYOUT
 router.get(
   '/layers/:id/layout',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // MAKE LAYER OWNERSHIP MIDDLEWARE
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate('systems.present')
         .populate('assets')
         .populate({
@@ -962,7 +941,7 @@ router.get(
           const stripsCollection = bedArrayPolygons;
           const alleyArrayPolygons = turf.featureCollection(alleyPolygonArray);
           const alleysCollection = alleyArrayPolygons;
-          res.send({
+          return c.json({
             layer: foundLayer,
             presentsystem: foundSystem,
             species: foundSpecies,
@@ -985,15 +964,12 @@ router.get(
 // NEW SPLIT LAYER ROUTE
 router.get(
   '/layers/:id/split',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
-      res.send({ layer: foundLayer });
+      const foundLayer = await Layer.findById(c.req.param('id'));
+      return c.json({ layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -1003,19 +979,16 @@ router.get(
 // CREATE SPLIT LAYER ROUTE
 router.post(
   '/layers/:id/split',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       if (foundLayer) {
         // FIND LAYER GEOMETRY
         const polygon = JSON.parse(foundLayer.geometry);
         // PARSE SPLIT LINE
-        const splitLine = JSON.parse(req.body.geometry);
+        const splitLine = JSON.parse((await c.req.json()).geometry);
         console.log(splitLine);
         // CHECK THAT ALL LINE POINTS EXCEPT LAST ARE WITHIN POLYGON
 
@@ -1110,12 +1083,12 @@ router.post(
         console.log(`String poly ${JSON.stringify(newPolygon)}`);
         const newPolygonString = JSON.stringify(newPolygon);
         try {
-          await Layer.findByIdAndUpdate(req.params.id, {
+          await Layer.findByIdAndUpdate(c.req.param('id'), {
             $set: { geometry: newPolygonString },
           });
           // CREATE NEW LAYER WITH NEW NAME AND GEOMETRY
 
-          res.send(`/layers/${foundLayer._id}`);
+          return c.json(`/layers/${foundLayer._id}`);
         } catch (err) {
           console.log(err);
         }
@@ -1129,20 +1102,17 @@ router.post(
 // ROW NEW ROUTE
 router.get(
   '/layers/:id/row/new',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND PROJECT
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       // FIND MY SYSTEMS
       try {
         const foundSequences = await Sequence.find({
-          'owner.id': req.user?._id,
+          'owner.id': c.get('user')?._id,
         });
-        res.send({
+        return c.json({
           layer: foundLayer,
           sequences: foundSequences,
         });
@@ -1158,38 +1128,35 @@ router.get(
 // ROW CREATE ROUTE
 router.post(
   '/layers/:id/row',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // IF NO GEOMETRY
-    if (req.body.geometry === '') {
-      res.send();
+    if ((await c.req.json()).geometry === '') {
+      return c.json({});
     } else {
       // CREATE ROW HERE?
-      const tempGeo = JSON.parse(req.body.geometry);
+      const tempGeo = JSON.parse((await c.req.json()).geometry);
       const row: any = {
-        geometry: req.body.geometry,
-        name: req.body.row.name,
+        geometry: (await c.req.json()).geometry,
+        name: (await c.req.json()).row.name,
         // ADD ROW LENGTH PARAM
         rowlength: turfLength(tempGeo, { units: 'meters' }),
       };
-      if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-        row.sequence = req.body.sequenceid;
+      if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
+        row.sequence = (await c.req.json()).sequenceid;
       }
       console.log(row);
       // CREATE ROW
       try {
         const createdRow = await Row.create(row);
         try {
-          const updatedLayer = await Layer.findByIdAndUpdate(req.params.id, {
+          const updatedLayer = await Layer.findByIdAndUpdate(c.req.param('id'), {
             $addToSet: { rows: createdRow },
           });
 
           // CREATE ROW
           console.log('Row has been added to layer');
-          res.send(`/layers/${updatedLayer?.id}/layout`);
+          return c.json(`/layers/${updatedLayer?.id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1203,27 +1170,24 @@ router.post(
 // EDIT ROW
 router.get(
   '/layers/:id/row/:pid/edit',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate({ path: 'rows', populate: { path: 'sequence' } })
         .exec();
       // FIND ROW
       try {
-        const foundRow = await Row.findById(req.params.pid)
+        const foundRow = await Row.findById(c.req.param('pid'))
           .populate('sequence')
           .exec();
         // FIND MY SYSTEMS
         try {
           const foundSequences = await Sequence.find({
-            'owner.id': req.user?._id,
+            'owner.id': c.get('user')?._id,
           });
-          res.send({
+          return c.json({
             layer: foundLayer,
             row: foundRow,
             sequences: foundSequences,
@@ -1243,26 +1207,23 @@ router.get(
 // UPDATE ROW
 router.put(
   '/layers/:id/row/:pid',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // CREATE ROW HERE?
     const row: any = {
-      name: req.body.row.name,
+      name: (await c.req.json()).row.name,
     };
-    if (!(req.body.sequenceid === 'none') && req.body.sequenceid) {
-      row.sequence = req.body.sequenceid;
+    if (!((await c.req.json()).sequenceid === 'none') && (await c.req.json()).sequenceid) {
+      row.sequence = (await c.req.json()).sequenceid;
     }
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       // FIND AND UPDATE ROW
       try {
-        await Row.findByIdAndUpdate(req.params.pid, row);
+        await Row.findByIdAndUpdate(c.req.param('pid'), row);
         if (foundLayer) {
-          res.send(`/layers/${foundLayer._id}/layout`);
+          return c.json(`/layers/${foundLayer._id}/layout`);
         }
       } catch (err) {
         console.log(err);
@@ -1276,29 +1237,26 @@ router.put(
 // DELETE ROW
 router.delete(
   '/layers/:id/row/:pid',
-  middleware.isLoggedIn,
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND ROW
     // FIND LAYER
     try {
-      const updatedLayer = await Layer.findById(req.params.id);
+      const updatedLayer = await Layer.findById(c.req.param('id'));
       // REMOVE ROW
       if (updatedLayer) {
         console.log(`Length before ${updatedLayer.rows.length}`);
         updatedLayer.rows.forEach(async (row) => {
-          if (row._id.toString() === req.params.pid) {
+          if (row._id.toString() === c.req.param('pid')) {
             await row.deleteOne();
           }
         });
         // DELETE ROW
         try {
-          await Row.findByIdAndRemove(req.params.pid);
+          await Row.findByIdAndRemove(c.req.param('pid'));
 
           console.log(`Length after ${updatedLayer.rows.length}`);
-          res.send(`/layers/${updatedLayer._id}/layout`);
+          return c.json(`/layers/${updatedLayer._id}/layout`);
         } catch (err) {
           console.log(err);
         }
@@ -1309,4 +1267,4 @@ router.delete(
   },
 );
 
-export default router;
+}

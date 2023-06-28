@@ -5,18 +5,30 @@ import Project from '../models/project.js';
 import Species from '../models/species.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // SEQUENCE NEW
 router.get(
   '/layers/:id/sequences/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       // FIND ALL SPECIES
       try {
         const foundSpecies = await Species.find();
@@ -31,7 +43,7 @@ router.get(
           }
           return 0;
         });
-        res.send({
+        return c.json({
           layer: foundLayer,
           project: '',
           species: foundSpecies,
@@ -48,19 +60,19 @@ router.get(
 // SEQUENCE CREATE
 router.post(
   '/layers/:id/sequences',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       if (foundLayer) {
         try {
-          const createdSequence = await Sequence.create(req.body.sequence);
+          const createdSequence = await Sequence.create((await c.req.json()).sequence);
           // SAVE SEQUENCE ON LAYER?
-          createdSequence.owner.id = req.user?._id.toString()!;
+          createdSequence.owner.id = c.get('user')?._id.toString()!;
           await createdSequence.save();
 
-          res.send(createdSequence);
+          return c.json(createdSequence);
         } catch (err) {
           console.log(err);
         }
@@ -74,16 +86,16 @@ router.post(
 // SEQUENCE SHOW
 router.get(
   '/layers/:id/sequences/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id);
+      const foundLayer = await Layer.findById(c.req.param('id'));
       // FIND SEQUENCE
       try {
-        const foundSequence = await Sequence.findById(req.params.pid);
+        const foundSequence = await Sequence.findById(c.req.param('pid'));
 
-        res.send({
+        return c.json({
           layer: foundLayer,
           sequence: foundSequence,
         });
@@ -99,16 +111,16 @@ router.get(
 // SEQUENCE EDIT
 router.get(
   '/layers/:id/sequences/:pid/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.id)
+      const foundLayer = await Layer.findById(c.req.param('id'))
         .populate({ path: 'rows.sequence', populate: { path: 'model.species' } })
         .exec();
         // FIND SEQUENCES
       try {
-        const foundSequence = await Sequence.findById(req.params.pid)
+        const foundSequence = await Sequence.findById(c.req.param('pid'))
           .populate('model.species')
           .exec();
         if (foundSequence) {
@@ -169,7 +181,7 @@ router.get(
           } else {
             distance = distanceDifference[0];
           }
-          res.send({
+          return c.json({
             layer: foundLayer,
             project: '',
             sequence: foundSequence,
@@ -192,15 +204,15 @@ router.get(
 // SEQUENCE UPDATE
 router.put(
   '/layers/:layerid/sequences/:sequenceid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundLayer = await Layer.findById(req.params.layerid);
+      const foundLayer = await Layer.findById(c.req.param('layerid'));
       try {
-        await Sequence.findByIdAndUpdate(req.params.sequenceid, req.body.sequence);
+        await Sequence.findByIdAndUpdate(c.req.param('sequenceid'), (await c.req.json()).sequence);
         if (foundLayer) {
-          res.send({});
+          return c.json({});
         }
       } catch (err) {
         console.log(err);
@@ -218,11 +230,11 @@ router.put(
 // SEQUENCE NEW
 router.get(
   '/projects/:id/sequences/new',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       // FIND ALL SPECIES
       try {
         const foundSpecies = await Species.find();
@@ -236,11 +248,11 @@ router.get(
           }
           return 0;
         });
-        res.send({
+        return c.json({
           project: foundProject,
           species: foundSpecies,
-          distance: req.query.distance,
-          length: req.query.length,
+          distance: c.req.query('distance'),
+          length: c.req.query('length'),
         });
       } catch (err) {
         console.log(err);
@@ -254,21 +266,21 @@ router.get(
 // SEQUENCE CREATE
 router.post(
   '/projects/:id/sequences',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
 
       if (foundProject) {
         try {
-          const createdSequence = await Sequence.create(req.body.sequence);
+          const createdSequence = await Sequence.create((await c.req.json()).sequence);
 
           // SAVE SEQUENCE ON LAYER?
-          createdSequence.owner.id = req.user?._id.toString()!;
+          createdSequence.owner.id = c.get('user')?._id.toString()!;
           await createdSequence.save();
 
-          res.send(createdSequence);
+          return c.json(createdSequence);
         } catch (err) {
           console.log(err);
         }
@@ -282,11 +294,11 @@ router.post(
 // PROJECT SEQUENCE EDIT ROUTE
 router.get(
   '/projects/:id/sequences/:pid/edit',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id)
+      const foundProject = await Project.findById(c.req.param('id'))
         .populate({
           path: 'rows.sequence',
           populate: { path: 'model.species' },
@@ -294,7 +306,7 @@ router.get(
         .exec();
       // FIND SEQUENCES
       try {
-        const foundSequence = await Sequence.findById(req.params.pid)
+        const foundSequence = await Sequence.findById(c.req.param('pid'))
           .populate('model.species')
           .exec();
 
@@ -355,7 +367,7 @@ router.get(
           } else {
             distance = distanceDifference[0];
           }
-          res.send({
+          return c.json({
             project: foundProject,
             sequence: foundSequence,
             species: foundSpecies,
@@ -377,16 +389,16 @@ router.get(
 // PROJECT SEQUENCE UPDATE
 router.put(
   '/projects/:id/sequences/:pid',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  async (c) => {
+    await middleware.isLoggedIn(c)
     // FIND LAYER
     try {
-      const foundProject = await Project.findById(req.params.id);
+      const foundProject = await Project.findById(c.req.param('id'));
       console.log('FP', foundProject);
       try {
-        await Sequence.findByIdAndUpdate(req.params.pid, req.body.sequence);
+        await Sequence.findByIdAndUpdate(c.req.param('pid'), (await c.req.json()).sequence);
         if (foundProject) {
-          res.send();
+          return c.json({});
         }
       } catch (err) {
         console.log(err);
@@ -397,8 +409,9 @@ router.put(
   },
 );
 
-router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-  const sequence = await Sequence.findById(req.params.id);
+router.patch('/sequence/:id/financials/activities', async (c) => {
+await middleware.isLoggedIn(c);
+  const sequence = await Sequence.findById(c.req.param('id'));
 
   const newActivities: [{
     id: string,
@@ -413,7 +426,7 @@ router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async
       price: number;
     }]
 
-  }] = req.body.map((newactivity) => ({
+  }] = (await c.req.json()).map((newactivity) => ({
     id: newactivity.id,
     activities: newactivity.activities.filter((el) => el !== 'none').map((el) => JSON.parse(el)),
   }));
@@ -428,7 +441,7 @@ router.patch('/sequence/:id/financials/activities', middleware.isLoggedIn, async
 
   await sequence?.save();
 
-  res.send();
+  return c.json({});
 });
 
-export default router;
+}

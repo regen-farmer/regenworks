@@ -4,21 +4,34 @@ import Layer from '../models/layer.js';
 import Saptest from '../models/saptest.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // PARCEL LAYER SAP TEST NEW
-router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/saptests/new', async (c) => {
+await middleware.isLoggedIn(c);
   // FIND PARCEL
   try {
-    const foundParcel = Parcel.findById(req.params.id).populate('layers').exec();
+    const foundParcel = Parcel.findById(c.req.param('id')).populate('layers').exec();
     // FIND LAYER
 
     try {
-      const foundLayer = Layer.findById(req.params.pid);
+      const foundLayer = Layer.findById(c.req.param('pid'));
       // RENDER ACTIVITIES
-      res.send({ parcel: foundParcel, layer: foundLayer });
+      return c.json({ parcel: foundParcel, layer: foundLayer });
     } catch (err) {
       console.log(err);
     }
@@ -28,21 +41,22 @@ router.get('/parcels/:id/layers/:pid/saptests/new', middleware.isLoggedIn, async
 });
 
 // PARCEL LAYER SOIL TEST CREATE
-router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/saptests', async (c) => {
+await middleware.isLoggedIn(c);
   // PARSE COORDINATES
-  /* var sapTest = req.body.saptest;
-    var parsedCoordinates = req.body.coordinates.split(", ");
+  /* var sapTest = (await c.req.json()).saptest;
+    var parsedCoordinates = (await c.req.json()).coordinates.split(", ");
     console.log(parsedCoordinates);
     soiltest.lat = parsedCoordinates[0];
     soiltest.lat = parsedCoordinates[1];
-    res.send("/parcels/" + req.params.id + "/status"); */
+    return c.json("/parcels/" + c.req.param('id') + "/status"); */
   // CREATE SOIL TEST
   try {
-    const createdSaptest = await Saptest.create(req.body.saptest);
+    const createdSaptest = await Saptest.create((await c.req.json()).saptest);
     try {
-      await Layer.findByIdAndUpdate(req.params.pid, { $push: { saptests: createdSaptest } });
+      await Layer.findByIdAndUpdate(c.req.param('pid'), { $push: { saptests: createdSaptest } });
       // RENDER PARCEL LAYER SAP TEST PAGE
-      res.send(`/parcels/${req.params.id}/status`);
+      return c.json(`/parcels/${c.req.param('id')}/status`);
     } catch (err) {
       console.log(err);
     }
@@ -51,4 +65,4 @@ router.post('/parcels/:id/layers/:pid/saptests', middleware.isLoggedIn, async (r
   }
 });
 
-export default router;
+}

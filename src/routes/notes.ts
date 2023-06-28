@@ -5,17 +5,30 @@ import Row from '../models/row.js';
 import Area from '../models/area.js';
 import middleware from '../middleware/index.js';
 import { UserDocument } from '../models/user.js';
-import { Auth0IDToken } from '../app.js';
+import { Auth0IDToken, Variables } from '../app.js';
 
-const router = express.Router();
+import { Hono } from "hono";
+
+// import logger from '../middleware/logger';
+
+export default function indexRoutes(
+  router: Hono<
+    {
+      Variables: Variables;
+    },
+    {},
+    "/"
+  >
+) {
 
 // PARCEL NOTES
-router.get('/parcels/:id/notes', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/notes', async (c) => {
+await middleware.isLoggedIn(c);
   try {
   // FIND PARCEL
-    const foundParcel = await Parcel.findById(req.params.id).populate({ path: 'layers', populate: { path: 'rows', populate: { path: 'notes' } } }).populate({ path: 'layers', populate: { path: 'areas', populate: { path: 'notes' } } }).exec();
+    const foundParcel = await Parcel.findById(c.req.param('id')).populate({ path: 'layers', populate: { path: 'rows', populate: { path: 'notes' } } }).populate({ path: 'layers', populate: { path: 'areas', populate: { path: 'notes' } } }).exec();
     // RENDER ACTIVITIES
-    res.send({ parcel: foundParcel });
+    return c.json({ parcel: foundParcel });
   } catch (err) {
     console.log(err);
   }
@@ -23,19 +36,21 @@ router.get('/parcels/:id/notes', middleware.isLoggedIn, async (req: express.Requ
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/rows/:rid/notes/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/rows/:rid/notes/new', async (c) => {
+await middleware.isLoggedIn(c);
   // RENDER NEW ACTIVITY PAGE
-  res.send({ parcelid: req.params.id, layerid: req.params.pid, rowid: req.params.rid });
+  return c.json({ parcelid: c.req.param('id'), layerid: c.req.param('pid'), rowid: c.req.param('rid') });
 });
 
 // CREATE NOTE ON ROW
-router.post('/parcels/:id/layers/:pid/rows/:rid/notes', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/rows/:rid/notes', async (c) => {
+await middleware.isLoggedIn(c);
   // CREATE ACTIVITY
   try {
-    const createdNote = await Note.create(req.body.note);
+    const createdNote = await Note.create((await c.req.json()).note);
     try {
-      await Row.findByIdAndUpdate(req.params.rid, { $push: { notes: createdNote } });
-      res.send(`/parcels/${req.params.id}/notes`);
+      await Row.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });
+      return c.json(`/parcels/${c.req.param('id')}/notes`);
     } catch (err) {
       console.log(err);
     }
@@ -46,22 +61,24 @@ router.post('/parcels/:id/layers/:pid/rows/:rid/notes', middleware.isLoggedIn, a
 
 // --------------- NESTED ROUTES ROW BASED ---------------- //
 
-router.get('/parcels/:id/layers/:pid/areas/:rid/notes/new', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.get('/parcels/:id/layers/:pid/areas/:rid/notes/new', async (c) => {
+await middleware.isLoggedIn(c);
   // RENDER NEW ACTIVITY PAGE
-  res.send({ parcelid: req.params.id, layerid: req.params.pid, areaid: req.params.rid });
+  return c.json({ parcelid: c.req.param('id'), layerid: c.req.param('pid'), areaid: c.req.param('rid') });
 });
 
 // CREATE NOTE ON ROW
-router.post('/parcels/:id/layers/:pid/areas/:rid/notes', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+router.post('/parcels/:id/layers/:pid/areas/:rid/notes', async (c) => {
+await middleware.isLoggedIn(c);
   // CREATE ACTIVITY
-  const createdNote = await Note.create(req.body.note);
+  const createdNote = await Note.create((await c.req.json()).note);
 
   try {
-    await Area.findByIdAndUpdate(req.params.rid, { $push: { notes: createdNote } });
-    res.send(`/parcels/${req.params.id}/notes`);
+    await Area.findByIdAndUpdate(c.req.param('rid'), { $push: { notes: createdNote } });
+    return c.json(`/parcels/${c.req.param('id')}/notes`);
   } catch (err) {
     console.log(err);
   }
 });
 
-export default router;
+}
