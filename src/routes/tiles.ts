@@ -161,9 +161,6 @@ router.get(
         res.send('No picture');
         return;
       }
-
-      console.log('SHOUDL NOT BE HERE');
-
       const rowArrayBuffer = await Promise.all(rowImages.map(async (tile) => {
         console.log('kha 2', tile.picture);
         const arrayBuffer = Buffer.from(await tile.picture!.arrayBuffer());
@@ -189,7 +186,6 @@ router.get(
       rows.push(rowImage);
     }
 
-    console.log('kha 3');
 
     const row_buffers: Buffer[] = await Promise.all(rows.map(async (row) => row.png().toBuffer()));
 
@@ -205,6 +201,8 @@ router.get(
       stitched = sharp(await rows[0].png().toBuffer());
     } else {
       console.log('row_buffers.length', row_buffers.length);
+      res.send({error:'row_buffers.length == 0'});
+      return;
     }
 
     /// ///////////////////////////
