@@ -181,19 +181,11 @@ app.get(
     return c.text("404");
   }
 );
-// app.set("trust proxy", true);
 
 console.log('serve!')
 serve({
   fetch: app.fetch,
-  port: 8787, // Port number, default is 3000
+  port: 3001, // Port number, default is 3000
 }, (info) => {
   console.log(`Listening on http://localhost:${info.port}`) // Listening on http://localhost:3000
 })
-// app.listen(
-  
-//   process.env.IP ?? "127.0.0.1",
-//   () => {
-//     console.log("RegenWorks backend server has started!");
-//   }
-// );
