@@ -5,7 +5,6 @@ import middleware from "../middleware/index.js"; // Will automatically require t
 import { Auth0IDToken, Variables } from "../app.js";
 import { Hono } from "hono";
 
-// import logger from '../middleware/logger';
 
 export default function indexRoutes(
   router: Hono<
@@ -16,69 +15,12 @@ export default function indexRoutes(
     "/"
   >
 ) {
-  // ROOT ROUTE
-  router.get("/", async (c) => {
-    return c.text("test");
-  });
-  // ROOT ROUTE
-  router.get("/test", async (c) => {
-    return c.text("test2");
-  });
-
-
-  // ROOT ROUTE
+  
+  // Myuser ROUTE
   router.get("/myuser", async (c) => {
     return c.json({ user: c.get("user") });
   });
 
-  // ABOUT ROUTE
-  router.get("/about", async (c) => {
-    return c.json({});
-  });
-
-  // TERMS ROUTE
-  router.get("/terms", async (c) => {
-    return c.json({});
-  });
-
-  // PRIVACY ROUTE
-  router.get("/privacy", async (c) => {
-    return c.json({});
-  });
-
-  // FEEDBACK ROUTE
-  router.get("/feedback", async (c) => {
-await middleware.isLoggedIn(c);
-    return c.json({});
-  });
-
-  // COMPOSITION ROUTE
-  router.get("/composition", async (c) => {
-await middleware.isLoggedIn(c);
-    return c.json({});
-  });
-
-  // SUCCESSION ROUTE
-  router.get("/succession", async (c) => {
-await middleware.isLoggedIn(c);
-    return c.json({});
-  });
-
-  // QUESTIONNAIRE ROUTE
-  router.get("/questionnaire", async (c) => {
-    return c.json({});
-  });
-
-  // SUPPORT ROUTE
-  router.get("/support", async (c) => {
-    return c.json({});
-  });
-
-  // PLANNING ROUTE
-  router.get("/planning", async (c) => {
-await middleware.isLoggedIn(c);
-    return c.json({});
-  });
 
   // DASHBOARD ROUTE
   router.get("/dashboard", async (c) => {
