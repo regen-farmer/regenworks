@@ -75,15 +75,32 @@ app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQU
 // };
 
 // app.use(auth(config));
-let num = 0;
-app.use((req, res, next) => {
-  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  const method = req.method;
-  const url = req.url;
 
-  console.log(`${++num}. IP ${ip} ${method} ${url}`);
-  next();
-});
+
+const getDurationInMilliseconds = (start) => {
+  const NS_PER_SEC = 1e9
+  const NS_TO_MS = 1e6
+  const diff = process.hrtime(start)
+
+  return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS
+}
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl} [STARTED]`)
+  const start = process.hrtime()
+
+  res.on('finish', () => {            
+      const durationInMilliseconds = getDurationInMilliseconds (start)
+      console.log(`${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`)
+  })
+
+  res.on('close', () => {
+      const durationInMilliseconds = getDurationInMilliseconds (start)
+      console.log(`${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`)
+  })
+
+  next()
+})
 
 // // Use a function that sends the "currentUser" AND flash "success" and "error" messages through to all routes, so that login/register/logout is shown correctly on all routes
 app.use(
@@ -100,7 +117,7 @@ app.use(
 
     function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary
-      console.log("token in place", token === "undefined" ? false : true);
+      // console.log("token in place", token === "undefined" ? false : true);
 
       if (token === "undefined") {
         return;
@@ -116,12 +133,12 @@ app.use(
     if (jwt && typeof jwt === "string") {
       idToken = parseJwt(jwt);
       if (!idToken) {
-        console.log("no id token");
+        // console.log("no id token");
         res.status(404).send("Invalid token");
         return;
       }
     } else {
-      console.log("no jwt");
+      // console.log("no jwt");
     }
 
     if (idToken?.email) {
