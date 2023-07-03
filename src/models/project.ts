@@ -41,7 +41,8 @@ export interface IProjectSchema {
     bearingline: string,
     status: string,
     rows: HydratedDocument<IRowSchema>[],
-    areas: [HydratedDocument<IAreaSchema>]
+    areas: [HydratedDocument<IAreaSchema>],
+    isPublic: boolean,
 }
 
 // PROJECT SCHEMA SETUP
@@ -117,6 +118,7 @@ const projectSchema = new Schema<IProjectSchema>({
       ref: 'Area',
     },
   ],
+  isPublic: { type: Boolean, default: false },
 });
 
 const Project = model('Project', projectSchema);

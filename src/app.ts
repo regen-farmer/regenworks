@@ -132,13 +132,13 @@ app.use(
 
     if (jwt && typeof jwt === "string") {
       idToken = parseJwt(jwt);
-      if (!idToken) {
-        // console.log("no id token");
-        res.status(404).send("Invalid token");
-        return;
-      }
+      // if (!idToken) {
+      //   // console.log("no id token");
+      //   res.status(404).send("Invalid token");
+      //   return;
+      // }
     } else {
-      // console.log("no jwt");
+      console.log("no jwt");
     }
 
     if (idToken?.email) {
@@ -166,9 +166,13 @@ app.use(
       console.log("No oidc user");
     }
 
+    if (idToken){
     req.idToken = idToken;
+    }
 
+    if (req.user){
     res.locals.currentUser = req.user;
+  }
 
     next();
   }

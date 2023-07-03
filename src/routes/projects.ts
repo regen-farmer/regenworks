@@ -197,6 +197,59 @@ router.get(
   },
 );
 
+router.get(
+  '/projects/:id/design-preview',
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    console.time('layoutRoute');
+    try {
+      console.time('getProject');
+      const foundProject = await Project.findById(req.params.id)
+        
+        .populate('layer')
+        .populate('systemdesign')
+        .populate({
+          path: 'systemdesign',
+          populate: { path: 'rows.sequence', populate: { path: 'species' } },
+        })
+        .populate({
+          path: 'systemdesign',
+          populate: { path: 'rows', populate: { path: 'groundcover' } },
+        })
+        .exec();
+      console.timeEnd('getProject');
+
+
+      if (foundProject && foundProject.isPublic) {
+        
+        console.time('systemBasedLayout');
+        const layout = systemBasedLayout(foundProject);
+        console.timeEnd('systemBasedLayout');
+        res.send({
+          project: foundProject,
+          treeRowLines: layout.treeRowLines,
+          groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+          headlandPolygon: layout.headlandPolygon,
+          marginPolygon: layout.marginPolygon,
+          speciesCountArray: layout.speciesCountArray,
+
+          sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
+          intersectionPoints: turf.featureCollection(layout.intersectionPoints),
+          headlandSides: turf.featureCollection(layout.headlandSides),
+          treeMarkerArray: layout.treeMarkerArray,
+
+        });
+        console.timeEnd('layoutRoute');
+        
+      } else {
+        res.send({'error':'no project found'});
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+  },
+);
+
 // PROJECT UPDATE ROUTE
 router.put('/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   try {
@@ -1490,6 +1543,20 @@ router.get(
     myDoc.end();
   },
 );
+
+router.put('/projects/:projectid/set-public',async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+  const isPublic = req.body.isPublic;
+  const projectid = req.params.projectid;
+  const project = await Project.findById(projectid);
+
+  if (project && typeof isPublic === 'boolean') {
+      project.isPublic = isPublic;
+      await project.save();
+      res.sendStatus(200);
+  } else {
+    res.sendStatus(400);
+  }
+});
 
 // PROJECT SHOW ROUTE
 router.get('/layers/:layerid/projects/:id', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
