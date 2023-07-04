@@ -422,79 +422,88 @@ router.get(
     // console.log('IM HERE');
     try {
       const foundLayer = await Layer.findById(req.params.id)
-        .populate('systems.future')
+        // .populate('systems.future')
         .populate('projects')
-        .populate('systems.present')
-        .populate('systems.past')
+        // .populate('systems.present')
+        // .populate('systems.past')
         .exec();
-      if (foundLayer) {
-        if (foundLayer.systems.present === undefined) {
-          res.send(`/layers/${foundLayer._id}/systems/newgrid`);
-        } else {
-          const foundSystem = await System.findById(
-            foundLayer.systems.present._id,
-          )
-            .populate('model.species')
-            .populate('animals')
-            .exec();
 
-          if (foundSystem) {
-            // FIND ALL SPECIES IN SYSTEM
-            const allSpecies: ISpeciesSchema[] = [];
-            const dataset: {
-              row: number
-              array: {
-                species: ISpeciesSchema
-                position: number[]
-                width: number
-              }[]
-            }[] = [];
-            foundSystem.model.forEach((species) => {
-              allSpecies.push(species.species);
-              let count = 0;
-              for (let i = 0; i < dataset.length; i++) {
-                if (dataset[i].row === species.position[0]) {
-                  dataset[i].array.push(species);
-                  count += 1;
-                }
-              }
-              if (count === 0) {
-                dataset.push({ row: species.position[0], array: [species] });
-              }
-            });
-            // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-            const uniqueSpecies = unique(allSpecies);
-            // SORT FIRST ROW ITEMS
-            for (let i = 0; i < dataset.length; i++) {
-              dataset[i].array.sort((a, b) => {
-                if (a.position[1] < b.position[1]) {
-                  return -1;
-                }
-                if (a.position[1] > b.position[1]) {
-                  return 1;
-                }
-                return 0;
-              });
-              // console.log(dataset[i].array[0]);
-            }
-            try {
-              // FIND SPECIES AND POPULATE FLOWS
-              const foundSpecies = await Species.find({ _id: uniqueSpecies })
-                .populate('flows')
-                .exec();
+      res.send({
+        layer: foundLayer,
+        // presentsystem: foundSystem,
+        // species: foundSpecies,
+        // rows: dataset,
+      });
 
-              res.send({
-                layer: foundLayer,
-                presentsystem: foundSystem,
-                species: foundSpecies,
-                rows: dataset,
-              });
-            } catch (err) {
-              console.log(err);
-            }
-          }
-        }
-      }
+      
+      // if (foundLayer) {
+      //   if (foundLayer.systems.present === undefined) {
+      //     res.send(`/layers/${foundLayer._id}/systems/newgrid`);
+      //   } else {
+      //     const foundSystem = await System.findById(
+      //       foundLayer.systems.present._id,
+      //     )
+      //       .populate('model.species')
+      //       .populate('animals')
+      //       .exec();
+
+      //     if (foundSystem) {
+      //       // FIND ALL SPECIES IN SYSTEM
+      //       const allSpecies: ISpeciesSchema[] = [];
+      //       const dataset: {
+      //         row: number
+      //         array: {
+      //           species: ISpeciesSchema
+      //           position: number[]
+      //           width: number
+      //         }[]
+      //       }[] = [];
+      //       foundSystem.model.forEach((species) => {
+      //         allSpecies.push(species.species);
+      //         let count = 0;
+      //         for (let i = 0; i < dataset.length; i++) {
+      //           if (dataset[i].row === species.position[0]) {
+      //             dataset[i].array.push(species);
+      //             count += 1;
+      //           }
+      //         }
+      //         if (count === 0) {
+      //           dataset.push({ row: species.position[0], array: [species] });
+      //         }
+      //       });
+      //       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+      //       const uniqueSpecies = unique(allSpecies);
+      //       // SORT FIRST ROW ITEMS
+      //       for (let i = 0; i < dataset.length; i++) {
+      //         dataset[i].array.sort((a, b) => {
+      //           if (a.position[1] < b.position[1]) {
+      //             return -1;
+      //           }
+      //           if (a.position[1] > b.position[1]) {
+      //             return 1;
+      //           }
+      //           return 0;
+      //         });
+      //         // console.log(dataset[i].array[0]);
+      //       }
+      //       try {
+      //         // FIND SPECIES AND POPULATE FLOWS
+      //         const foundSpecies = await Species.find({ _id: uniqueSpecies })
+      //           .populate('flows')
+      //           .exec();
+
+      //         res.send({
+      //           layer: foundLayer,
+      //           presentsystem: foundSystem,
+      //           species: foundSpecies,
+      //           rows: dataset,
+      //         });
+      //       } catch (err) {
+      //         console.log(err);
+      //       }
+      //     }
+      //   }
+      // }
     } catch (err) {
       console.log(err);
     }
