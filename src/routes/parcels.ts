@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from 'express';
 import {
   centroid,
@@ -312,6 +315,7 @@ router.put(
     // UPDATE PARCEL
     const parcel = req.body.parcel;
     // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+
     geocoder.geocode(req.body.parcel.location, async (err, data) => {
       if (err || !data.length) {
         console.log(err);
