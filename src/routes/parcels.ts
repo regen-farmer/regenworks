@@ -322,8 +322,12 @@ router.put(
         console.log(data);
         return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
       }
-      parcel.lat = data[0].latitude;
-      parcel.lng = data[0].longitude;
+      
+      if (!parcel.lat || !parcel.lng) {
+        parcel.lat = data[0].latitude;
+        parcel.lng = data[0].longitude;
+      }
+
       parcel.location = data[0].formattedAddress;
       // UPDATE PARCEL
       try {
