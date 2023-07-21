@@ -307,6 +307,39 @@ router.get(
   },
 );
 
+
+// PLACES UPDATE ROUTE
+router.get(
+  '/geocoding',
+  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+    
+    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+    const address: string = req.body.address;
+
+    if (address)  {
+
+      geocoder.geocode(req.body.address, async (err, data) => {
+        if (err || !data.length) {
+          console.log(err);
+          console.log(data);
+          return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
+        }
+
+        const coordinates = {
+          lat: data[0].latitude,
+          lng: data[0].longitude,
+          location: data[0].formattedAddress
+        }
+        
+        res.status(200).send(coordinates);
+        
+      });
+    } else {
+      res.status(404).send({ error: 'No address provided' })
+    }
+  },
+);
+
 // PLACES UPDATE ROUTE
 router.put(
   '/parcels/:id',
@@ -314,7 +347,18 @@ router.put(
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     // UPDATE PARCEL
     const parcel = req.body.parcel;
-    // CONVERT ADDRESS TO COORDINATES USING GEOCODER
+    
+    try {
+        const updatedParcel = await Parcel.findByIdAndUpdate(
+          req.params.id,
+          parcel,
+        );
+        // console.log(updatedParcel);
+        res.send(updatedParcel);
+      } catch (err) {
+        console.log(err);
+      }
+      
 
     geocoder.geocode(req.body.parcel.location, async (err, data) => {
       if (err || !data.length) {
