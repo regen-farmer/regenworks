@@ -79,8 +79,18 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
       console.log(data);
       return res.status(500).send({ error: `Error while geocoding: ${err.toString()}` });
     }
-    const lat = data[0].latitude;
-    const lng = data[0].longitude;
+
+    let lat;
+    let lng;
+
+    if (req.body.parcel.lat && req.body.parcel.lng) {
+      lat = req.body.parcel.lat;
+      lng = req.body.parcel.lng;
+    } else {
+      lat = data[0].latitude;
+      lng = data[0].longitude;
+    }
+
     const location = data[0].formattedAddress;
     // HARDCODE COLD HARDINESS FOR CERTAIN REGIONS
     if (data[0].country === 'Brazil') {
