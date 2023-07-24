@@ -56,19 +56,19 @@ router.get('/new-parcel', middleware.isLoggedIn, async (req: express.Request & {
 router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
   // Create variable with new place posted from place form
   const name = req.body.parcel.name;
-  const climate = {
-    annualaverageprec: req.body.parcel.climate.annualaverageprec,
-    hardiness: {
-      low: -1,
-      high: 16,
-    },
-  };
-  const soilType = req.body.parcel.soilType;
-  const agType = req.body.parcel.agType;
-  const size = req.body.parcel.size;
-  const description = req.body.parcel.description;
-  const practices = req.body.practiceids;
-  const measurement = req.body.parcel.measurement;
+  // const climate = {
+  //   annualaverageprec: req.body.parcel.climate.annualaverageprec,
+  //   hardiness: {
+  //     low: -1,
+  //     high: 16,
+  //   },
+  // };
+  // const soilType = req.body.parcel.soilType;
+  // const agType = req.body.parcel.agType;
+  // const size = req.body.parcel.size;
+  // const description = req.body.parcel.description;
+  // const practices = req.body.practiceids;
+  // const measurement = req.body.parcel.measurement;
   const owner = {
     id: req.user?._id,
   };
@@ -93,116 +93,116 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
 
     const location = data[0].formattedAddress;
     // HARDCODE COLD HARDINESS FOR CERTAIN REGIONS
-    if (data[0].country === 'Brazil') {
-      climate.hardiness.low = 1;
-      climate.hardiness.high = 10;
-    }
-    if (data[0].country === 'Sweden') {
-      climate.hardiness.low = -18;
-      climate.hardiness.high = -12;
-    }
-    if (data[0].country === 'Canada') {
-      climate.hardiness.low = -34;
-      climate.hardiness.high = -29;
-    }
-    if (data[0].country === 'Denmark') {
-      climate.hardiness.low = -12;
-      climate.hardiness.high = -9;
-    }
-    if (data[0].country === 'Vietnam') {
-      climate.hardiness.low = 9;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'India') {
-      climate.hardiness.low = 9;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Guatemala') {
-      climate.hardiness.low = 4;
-      climate.hardiness.high = 10;
-    }
-    if (data[0].country === 'Nicaragua') {
-      climate.hardiness.low = 10;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Colombia') {
-      climate.hardiness.low = 4;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Costa Rica') {
-      climate.hardiness.low = 8;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Philippines') {
-      climate.hardiness.low = 10;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Greece') {
-      climate.hardiness.low = -7;
-      climate.hardiness.high = -1;
-    }
-    if (data[0].country === 'Uganda') {
-      climate.hardiness.low = 6;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Guinea-Bissau') {
-      climate.hardiness.low = 10;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Sri Lanka') {
-      climate.hardiness.low = 10;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'United Kingdom') {
-      climate.hardiness.low = -12;
-      climate.hardiness.high = -7;
-    }
-    if (data[0].country === 'Spain') {
-      climate.hardiness.low = -7;
-      climate.hardiness.high = -1;
-    }
-    if (data[0].country === 'Portugal') {
-      climate.hardiness.low = -7;
-      climate.hardiness.high = -1;
-    }
-    if (data[0].country === 'Saudi Arabia') {
-      climate.hardiness.low = 7;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'Myanmar') {
-      climate.hardiness.low = 10;
-      climate.hardiness.high = 16;
-    }
-    if (data[0].country === 'United States') {
-      climate.hardiness.low = -34;
-      climate.hardiness.high = -23;
-    }
-    if (data[0].country === 'Germany') {
-      climate.hardiness.low = -12;
-      climate.hardiness.high = -9;
-    }
-    if (data[0].country === 'Netherlands') {
-      climate.hardiness.low = -12;
-      climate.hardiness.high = -9;
-    }
-    if (data[0].country === 'Belgium') {
-      climate.hardiness.low = -12;
-      climate.hardiness.high = -9;
-    }
+    // if (data[0].country === 'Brazil') {
+    //   climate.hardiness.low = 1;
+    //   climate.hardiness.high = 10;
+    // }
+    // if (data[0].country === 'Sweden') {
+    //   climate.hardiness.low = -18;
+    //   climate.hardiness.high = -12;
+    // }
+    // if (data[0].country === 'Canada') {
+    //   climate.hardiness.low = -34;
+    //   climate.hardiness.high = -29;
+    // }
+    // if (data[0].country === 'Denmark') {
+    //   climate.hardiness.low = -12;
+    //   climate.hardiness.high = -9;
+    // }
+    // if (data[0].country === 'Vietnam') {
+    //   climate.hardiness.low = 9;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'India') {
+    //   climate.hardiness.low = 9;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Guatemala') {
+    //   climate.hardiness.low = 4;
+    //   climate.hardiness.high = 10;
+    // }
+    // if (data[0].country === 'Nicaragua') {
+    //   climate.hardiness.low = 10;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Colombia') {
+    //   climate.hardiness.low = 4;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Costa Rica') {
+    //   climate.hardiness.low = 8;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Philippines') {
+    //   climate.hardiness.low = 10;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Greece') {
+    //   climate.hardiness.low = -7;
+    //   climate.hardiness.high = -1;
+    // }
+    // if (data[0].country === 'Uganda') {
+    //   climate.hardiness.low = 6;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Guinea-Bissau') {
+    //   climate.hardiness.low = 10;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Sri Lanka') {
+    //   climate.hardiness.low = 10;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'United Kingdom') {
+    //   climate.hardiness.low = -12;
+    //   climate.hardiness.high = -7;
+    // }
+    // if (data[0].country === 'Spain') {
+    //   climate.hardiness.low = -7;
+    //   climate.hardiness.high = -1;
+    // }
+    // if (data[0].country === 'Portugal') {
+    //   climate.hardiness.low = -7;
+    //   climate.hardiness.high = -1;
+    // }
+    // if (data[0].country === 'Saudi Arabia') {
+    //   climate.hardiness.low = 7;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'Myanmar') {
+    //   climate.hardiness.low = 10;
+    //   climate.hardiness.high = 16;
+    // }
+    // if (data[0].country === 'United States') {
+    //   climate.hardiness.low = -34;
+    //   climate.hardiness.high = -23;
+    // }
+    // if (data[0].country === 'Germany') {
+    //   climate.hardiness.low = -12;
+    //   climate.hardiness.high = -9;
+    // }
+    // if (data[0].country === 'Netherlands') {
+    //   climate.hardiness.low = -12;
+    //   climate.hardiness.high = -9;
+    // }
+    // if (data[0].country === 'Belgium') {
+    //   climate.hardiness.low = -12;
+    //   climate.hardiness.high = -9;
+    // }
     // Create new parcel
     const newParcel = {
       name,
-      soilType,
-      agType,
-      size,
-      description,
+      // soilType,
+      // agType,
+      // size,
+      // description,
       location,
       lat,
       lng,
-      practices,
+      // practices,
       owner,
-      climate,
-      measurement,
+      // climate,
+      // measurement,
     };
     // Create a new parcel and save it to the database
     try {
