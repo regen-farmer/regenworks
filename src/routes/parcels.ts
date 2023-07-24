@@ -218,7 +218,7 @@ router.post('/parcels', middleware.isLoggedIn, async (req: express.Request & { u
           foundUser.currentProject = newlyCreated;
           await foundUser.save();
           // Save JSON file to geometry
-          newlyCreated.geometry = req.body.geometry;
+          // newlyCreated.geometry = req.body.geometry;
           // Save the layer
           await newlyCreated.save();
           // ADD PRECIPITATION?HARDINESS?
