@@ -309,7 +309,7 @@ router.get(
 
 
 // PLACES UPDATE ROUTE
-router.get(
+router.post(
   '/geocoding',
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     
