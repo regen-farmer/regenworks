@@ -956,250 +956,250 @@ router.get(
 );
 
 // SYSTEM COMPOSITION ROUTE
-router.get(
-  '/systems/:id/composition',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    const foundSystem = await System.findById(req.params.id)
-      .populate('model.species')
-      .exec();
-    if (foundSystem) {
-      // FIND ALL SPECIES IN SYSTEM
-      const allSpecies: ISpeciesSchema[] = [];
-      foundSystem.model.forEach((species) => {
-        allSpecies.push(species.species);
-      });
-      // FIND UNIQUE SPECIES / REMOVE DUPLICATES
-      const uniqueSpecies = unique(allSpecies);
-      // FIND SPECIES AND POPULATE FLOWS
-      try {
-        const foundSpecies = await Species.find({ _id: uniqueSpecies })
-          .populate('flows')
-          .exec();
+// router.get(
+//   '/systems/:id/composition',
+//   middleware.isLoggedIn,
+//   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+//     const foundSystem = await System.findById(req.params.id)
+//       .populate('model.species')
+//       .exec();
+//     if (foundSystem) {
+//       // FIND ALL SPECIES IN SYSTEM
+//       const allSpecies: ISpeciesSchema[] = [];
+//       foundSystem.model.forEach((species) => {
+//         allSpecies.push(species.species);
+//       });
+//       // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+//       const uniqueSpecies = unique(allSpecies);
+//       // FIND SPECIES AND POPULATE FLOWS
+//       try {
+//         const foundSpecies = await Species.find({ _id: uniqueSpecies })
+//           .populate('flows')
+//           .exec();
 
-        try {
-          const foundParcel = await Parcel.findById(req.user?.currentProject);
+//         try {
+//           const foundParcel = await Parcel.findById(req.user?.currentProject);
 
-          if (foundParcel && foundSystem) {
-            try {
-              const foundSuitableSpecies = await Species.find(
-                {
-                  'precipitation.max': {
-                    $gt: foundParcel.climate.annualaverageprec,
-                  },
-                  'precipitation.min': {
-                    $lt: foundParcel.climate.annualaverageprec,
-                  },
-                  'temperature.min': {
-                    $lt: foundParcel.climate.hardiness.high,
-                  },
-                  'temperature.max': {
-                    $gt: foundParcel.climate.hardiness.low,
-                  },
-                },
-              );
+//           if (foundParcel && foundSystem) {
+//             try {
+//               const foundSuitableSpecies = await Species.find(
+//                 {
+//                   'precipitation.max': {
+//                     $gt: foundParcel.climate.annualaverageprec,
+//                   },
+//                   'precipitation.min': {
+//                     $lt: foundParcel.climate.annualaverageprec,
+//                   },
+//                   'temperature.min': {
+//                     $lt: foundParcel.climate.hardiness.high,
+//                   },
+//                   'temperature.max': {
+//                     $gt: foundParcel.climate.hardiness.low,
+//                   },
+//                 },
+//               );
 
-              console.log(foundSuitableSpecies);
-              res.send({
-                system: foundSystem,
-                species: foundSpecies,
-                suitablespecies: foundSuitableSpecies,
-              });
-            } catch (err) {
-              console.log(err);
-            }
-          }
-        } catch (err) {
-          console.log(err);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  },
-);
+//               console.log(foundSuitableSpecies);
+//               res.send({
+//                 system: foundSystem,
+//                 species: foundSpecies,
+//                 suitablespecies: foundSuitableSpecies,
+//               });
+//             } catch (err) {
+//               console.log(err);
+//             }
+//           }
+//         } catch (err) {
+//           console.log(err);
+//         }
+//       } catch (err) {
+//         console.log(err);
+//       }
+//     }
+//   },
+// );
 
-// SYSTEM ASSESSMENT ROUTE
-router.get(
-  '/layers/:id/analysis',
-  middleware.isLoggedIn,
-  async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
-    const foundSystems = await System.find()
-      .populate('model.species')
-      .populate('flows')
-      .populate('animals')
-      .exec();
-    if (foundSystems) {
-      // FIND LAYER
-      const foundLayer = await Layer.findById(req.params.id)
-        .populate('systems.present')
-        .exec();
-      if (foundLayer) {
-        const foundSystem = await System.findById(foundLayer.systems.present.id)
-          .populate('model.species')
-          .populate('animals')
-          .exec();
-        if (foundSystem) {
-          const foundParcel = await Parcel.findById(req.user?.currentProject);
-          if (foundParcel) {
-            // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
-            // let commodity = '';
-            let commodityName = '';
-            foundSystem.model.forEach((species) => {
-              // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
-              if (
-                species.species.nameCommon === 'Arabian coffee'
-                || species.species.nameCommon === 'Cacao'
-                || species.species.nameCommon === 'Cashew'
-                || species.species.nameCommon === 'Coconut palm'
-                || species.species.nameCommon === 'Scots pine'
-              ) {
-                // commodity = species.species.id;
-                commodityName = species.species.nameCommon;
-              }
-            });
-            console.log(commodityName);
-            // CHECK IF SYSTEM HAS ANIMALS
-            let animals;
-            if (foundSystem.animals.length > 0) {
-              animals = foundSystem.animals[0];
-            }
-            const systems: ISystemSchema[] = [];
-            for (let i = 0; i < foundSystems.length; i++) {
-              if (
-                foundSystems[i].shared === true
-                && foundSystems[i].model.length > 0
-              ) {
-                // FIND ALL SPECIES IN SYSTEM
-                const allSpecies: string[] = [];
-                const allUtilities: string[] = [];
-                let grid = 0;
-                const dataset: {
-                  array: {
-                    species: ISpeciesSchema;
-                    position: number[];
-                    width: number;
-                  }[], row: number
-                }[] = [];
-                foundSystems[i].model.forEach((species) => {
-                  allSpecies.push(species.species.nameCommon);
-                  if (species.species.utilities.length > 0) {
-                    for (let j = 0; j < species.species.utilities.length; j++) {
-                      allUtilities.push(species.species.utilities[j]);
-                    }
-                  }
-                  // CREATE ADD SPECIES ROWS
-                  let count = 0;
-                  for (let j = 0; j < dataset.length; j++) {
-                    if (dataset[j].row === species.position[0]) {
-                      dataset[j].array.push(species);
-                      count += 1;
-                    }
-                  }
-                  if (count === 0) {
-                    dataset.push({
-                      row: species.position[0],
-                      array: [species],
-                    });
-                  }
-                });
-                // FIND UNIQUE SPECIES / REMOVE DUPLICATES
+// // SYSTEM ASSESSMENT ROUTE
+// router.get(
+//   '/layers/:id/analysis',
+//   middleware.isLoggedIn,
+//   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
+//     const foundSystems = await System.find()
+//       .populate('model.species')
+//       .populate('flows')
+//       .populate('animals')
+//       .exec();
+//     if (foundSystems) {
+//       // FIND LAYER
+//       const foundLayer = await Layer.findById(req.params.id)
+//         .populate('systems.present')
+//         .exec();
+//       if (foundLayer) {
+//         const foundSystem = await System.findById(foundLayer.systems.present.id)
+//           .populate('model.species')
+//           .populate('animals')
+//           .exec();
+//         if (foundSystem) {
+//           const foundParcel = await Parcel.findById(req.user?.currentProject);
+//           if (foundParcel) {
+//             // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
+//             // let commodity = '';
+//             let commodityName = '';
+//             foundSystem.model.forEach((species) => {
+//               // CHECK IF ONLY ONE SPECIES (MONOCULTURE)
+//               if (
+//                 species.species.nameCommon === 'Arabian coffee'
+//                 || species.species.nameCommon === 'Cacao'
+//                 || species.species.nameCommon === 'Cashew'
+//                 || species.species.nameCommon === 'Coconut palm'
+//                 || species.species.nameCommon === 'Scots pine'
+//               ) {
+//                 // commodity = species.species.id;
+//                 commodityName = species.species.nameCommon;
+//               }
+//             });
+//             console.log(commodityName);
+//             // CHECK IF SYSTEM HAS ANIMALS
+//             let animals;
+//             if (foundSystem.animals.length > 0) {
+//               animals = foundSystem.animals[0];
+//             }
+//             const systems: ISystemSchema[] = [];
+//             for (let i = 0; i < foundSystems.length; i++) {
+//               if (
+//                 foundSystems[i].shared === true
+//                 && foundSystems[i].model.length > 0
+//               ) {
+//                 // FIND ALL SPECIES IN SYSTEM
+//                 const allSpecies: string[] = [];
+//                 const allUtilities: string[] = [];
+//                 let grid = 0;
+//                 const dataset: {
+//                   array: {
+//                     species: ISpeciesSchema;
+//                     position: number[];
+//                     width: number;
+//                   }[], row: number
+//                 }[] = [];
+//                 foundSystems[i].model.forEach((species) => {
+//                   allSpecies.push(species.species.nameCommon);
+//                   if (species.species.utilities.length > 0) {
+//                     for (let j = 0; j < species.species.utilities.length; j++) {
+//                       allUtilities.push(species.species.utilities[j]);
+//                     }
+//                   }
+//                   // CREATE ADD SPECIES ROWS
+//                   let count = 0;
+//                   for (let j = 0; j < dataset.length; j++) {
+//                     if (dataset[j].row === species.position[0]) {
+//                       dataset[j].array.push(species);
+//                       count += 1;
+//                     }
+//                   }
+//                   if (count === 0) {
+//                     dataset.push({
+//                       row: species.position[0],
+//                       array: [species],
+//                     });
+//                   }
+//                 });
+//                 // FIND UNIQUE SPECIES / REMOVE DUPLICATES
 
-                // TODO: 24-Jan 2023 FIX UNIQUE SPECIES
+//                 // TODO: 24-Jan 2023 FIX UNIQUE SPECIES
 
-                const uniqueUtilities = unique(allUtilities);
-                foundSystems[i].uniqueUtilities = uniqueUtilities;
+//                 const uniqueUtilities = unique(allUtilities);
+//                 foundSystems[i].uniqueUtilities = uniqueUtilities;
 
-                // SORT ROW
-                for (let j = 0; j < dataset.length; j++) {
-                  dataset[j].array.sort((a, b) => {
-                    if (a.position[1] < b.position[1]) {
-                      return -1;
-                    }
-                    if (a.position[1] > b.position[1]) {
-                      return 1;
-                    }
-                    return 0;
-                  });
-                  grid += dataset[j].array[0].width;
-                }
-                // SAVE ROWS
-                // @ts-ignore
-                foundSystems[i].sortedrows = dataset;
-                // @ts-ignore
-                foundSystems[i].grid = grid;
-                systems.push(foundSystems[i]);
-              }
-            }
-            // COMMODITY SYSTEMS
-            const commoditysystems: ISystemSchema[] = [];
-            for (let i = 0; i < systems.length; i++) {
-              for (let j = 0; j < systems[i].model.length; j++) {
-                if (
-                  commodityName === systems[i].model[j].species.nameCommon
-                  && !commoditysystems.includes(systems[i])
-                ) {
-                  commoditysystems.push(systems[i]);
-                }
-              }
-            }
-            console.log(`Commodity systems: ${commoditysystems.length}`);
-            const systemsclimate: ISystemSchema[] = [];
-            for (let i = 0; i < systems.length; i++) {
-              let count = 0;
-              for (let j = 0; j < systems[i].model.length; j++) {
-                if (
-                  systems[i].model[j].species.precipitation.min
-                  < foundParcel.climate.annualaverageprec
-                  && systems[i].model[j].species.precipitation.max
-                  > foundParcel.climate.annualaverageprec
-                  && systems[i].model[j].species.temperature.min
-                  < foundParcel.climate.hardiness.high
-                  && systems[i].model[j].species.temperature.max
-                  > foundParcel.climate.hardiness.low
-                ) {
-                  count += 1;
-                }
-              }
-              if (count === systems[i].model.length) {
-                systemsclimate.push(systems[i]);
-              }
-            }
-            const animalsystems: ISystemSchema[] = [];
-            for (let i = 0; i < systemsclimate.length; i++) {
-              if (systemsclimate[i].animals.length > 0 && animals) {
-                animalsystems.push(systemsclimate[i]);
-                /* if(systemsclimate[i].animals[0].equals(animals)) {
-                                            } */
-              }
-            }
-            console.log(`Animal systems: ${animalsystems.length}`);
-            const systemsproven: ISystemSchema[] = [];
-            for (let i = 0; i < systemsclimate.length; i++) {
-              if (systemsclimate[i].flows.length > 0) {
-                systemsproven.push(systemsclimate[i]);
-              }
-            }
-            console.log(`Proven systems for this area: ${systemsproven.length}`);
-            if (systems.length < 1) {
-              res.send(`layers/${foundLayer._id}`);
-            } else {
-              res.send({
-                layer: foundLayer,
-                systems,
-                systemsproven,
-                systemsclimate,
-                commoditysystems,
-                commodity: commodityName,
-                animalsystems,
-              });
-            }
-          }
-        }
-      }
-    }
-  },
-);
+//                 // SORT ROW
+//                 for (let j = 0; j < dataset.length; j++) {
+//                   dataset[j].array.sort((a, b) => {
+//                     if (a.position[1] < b.position[1]) {
+//                       return -1;
+//                     }
+//                     if (a.position[1] > b.position[1]) {
+//                       return 1;
+//                     }
+//                     return 0;
+//                   });
+//                   grid += dataset[j].array[0].width;
+//                 }
+//                 // SAVE ROWS
+//                 // @ts-ignore
+//                 foundSystems[i].sortedrows = dataset;
+//                 // @ts-ignore
+//                 foundSystems[i].grid = grid;
+//                 systems.push(foundSystems[i]);
+//               }
+//             }
+//             // COMMODITY SYSTEMS
+//             const commoditysystems: ISystemSchema[] = [];
+//             for (let i = 0; i < systems.length; i++) {
+//               for (let j = 0; j < systems[i].model.length; j++) {
+//                 if (
+//                   commodityName === systems[i].model[j].species.nameCommon
+//                   && !commoditysystems.includes(systems[i])
+//                 ) {
+//                   commoditysystems.push(systems[i]);
+//                 }
+//               }
+//             }
+//             console.log(`Commodity systems: ${commoditysystems.length}`);
+//             const systemsclimate: ISystemSchema[] = [];
+//             for (let i = 0; i < systems.length; i++) {
+//               let count = 0;
+//               for (let j = 0; j < systems[i].model.length; j++) {
+//                 if (
+//                   systems[i].model[j].species.precipitation.min
+//                   < foundParcel.climate.annualaverageprec
+//                   && systems[i].model[j].species.precipitation.max
+//                   > foundParcel.climate.annualaverageprec
+//                   && systems[i].model[j].species.temperature.min
+//                   < foundParcel.climate.hardiness.high
+//                   && systems[i].model[j].species.temperature.max
+//                   > foundParcel.climate.hardiness.low
+//                 ) {
+//                   count += 1;
+//                 }
+//               }
+//               if (count === systems[i].model.length) {
+//                 systemsclimate.push(systems[i]);
+//               }
+//             }
+//             const animalsystems: ISystemSchema[] = [];
+//             for (let i = 0; i < systemsclimate.length; i++) {
+//               if (systemsclimate[i].animals.length > 0 && animals) {
+//                 animalsystems.push(systemsclimate[i]);
+//                 /* if(systemsclimate[i].animals[0].equals(animals)) {
+//                                             } */
+//               }
+//             }
+//             console.log(`Animal systems: ${animalsystems.length}`);
+//             const systemsproven: ISystemSchema[] = [];
+//             for (let i = 0; i < systemsclimate.length; i++) {
+//               if (systemsclimate[i].flows.length > 0) {
+//                 systemsproven.push(systemsclimate[i]);
+//               }
+//             }
+//             console.log(`Proven systems for this area: ${systemsproven.length}`);
+//             if (systems.length < 1) {
+//               res.send(`layers/${foundLayer._id}`);
+//             } else {
+//               res.send({
+//                 layer: foundLayer,
+//                 systems,
+//                 systemsproven,
+//                 systemsclimate,
+//                 commoditysystems,
+//                 commodity: commodityName,
+//                 animalsystems,
+//               });
+//             }
+//           }
+//         }
+//       }
+//     }
+//   },
+// );
 
 // LAYER MY SYSTEMS FIND
 router.get(
