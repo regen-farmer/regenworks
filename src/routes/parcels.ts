@@ -242,7 +242,7 @@ router.get(
   async (req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response) => {
     try {
       const foundParcel = await Parcel.findById(req.params.id)
-        .populate('practices')
+        // .populate('practices')
         .populate('layers')
         .exec();
       if (foundParcel) {
@@ -307,7 +307,7 @@ router.get(
     try {
       // Find specific place in database
       const foundParcel = await Parcel.findById(req.params.id)
-        .populate('practices')
+        // .populate('practices')
         .exec();
       // RENDER EDIT PAGE FOR PARCEL
       res.send(foundParcel);
