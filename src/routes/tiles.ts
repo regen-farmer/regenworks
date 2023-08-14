@@ -162,15 +162,12 @@ router.get(
         return;
       }
       const rowArrayBuffer = await Promise.all(rowImages.map(async (tile) => {
-        console.log('kha 2', tile.picture);
         const arrayBuffer = Buffer.from(await tile.picture!.arrayBuffer());
         return arrayBuffer;
       }));
 
-      console.log('kha 1');
       let rowImage;
 
-      console.log('rowArrayBuffer.length', rowArrayBuffer.length);
       if (rowArrayBuffer.length > 1) {
         rowImage = await joinImages(rowArrayBuffer, {
           direction: 'horizontal',
@@ -181,7 +178,7 @@ router.get(
       } else if (rowArrayBuffer.length === 1) {
         rowImage = sharp(rowArrayBuffer[0]);
       } else {
-        console.log('rowArrayBuffer.length', rowArrayBuffer.length);
+        // console.log('rowArrayBuffer.length', rowArrayBuffer.length);
       }
       rows.push(rowImage);
     }
