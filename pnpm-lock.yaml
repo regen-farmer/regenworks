@@ -101,8 +101,8 @@ devDependencies:
     specifier: ^0.12.10
     version: 0.12.10
   '@types/xml2js':
-    specifier: ^0.4.11
-    version: 0.4.11
+    specifier: ^0.4.12
+    version: 0.4.12
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.3.0
     version: 6.5.0(@typescript-eslint/parser@6.5.0)(eslint@8.48.0)(typescript@5.2.2)
@@ -1674,8 +1674,8 @@ packages:
       '@types/webidl-conversions': 7.0.0
     dev: false
 
-  /@types/xml2js@0.4.11:
-    resolution: {integrity: sha512-JdigeAKmCyoJUiQljjr7tQG3if9NkqGUgwEUqBvV0N7LM4HyQk7UXCnusRa1lnvXAEYJ8mw8GtZWioagNztOwA==}
+  /@types/xml2js@0.4.12:
+    resolution: {integrity: sha512-CZPpQKBZ8db66EP5hCjwvYrLThgZvnyZrPXK2W+UI1oOaWezGt34iOaUCX4Jah2X8+rQqjvl9VKEIT8TR1I0rA==}
     dependencies:
       '@types/node': 20.5.7
     dev: true
