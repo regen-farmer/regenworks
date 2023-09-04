@@ -19,6 +19,8 @@ import SystemDesign from "../../models/systemdesign.js";
 
 export function systemBasedLayout(project: IProjectSchema) {
 
+  console.log(JSON.stringify(project))
+
   let systemdesign = project.systemdesign;
   if (!systemdesign) {
     systemdesign = new SystemDesign({
@@ -31,31 +33,13 @@ export function systemBasedLayout(project: IProjectSchema) {
 
   const systemRows = systemdesign.rows;
 
+  // console.log("HERE1", project.layer)
   const polygon = JSON.parse(project.layer.geometry);
-  const boxCalibrate = bboxPolygon(bbox(polygon));
-
-  const lineCalibrate = turf.lineString(
-    [
-      boxCalibrate.geometry.coordinates[0][2],
-      boxCalibrate.geometry.coordinates[0][3],
-    ],
-    { name: "line-35" }
-  );
-  const lineOffsetCalibrate = buffer(lineCalibrate, 10, { units: "meters" });
-  const rotatedCalibrateLine = transformRotate(lineCalibrate, 90);
-  const splitCalibrateLine = lineSplit(rotatedCalibrateLine, lineCalibrate);
-  const distanceCalibrateLine = lineSplit(
-    splitCalibrateLine.features[1],
-    lineOffsetCalibrate
-  );
-  const calibrateDistance =
-    10 / turfLength(distanceCalibrateLine.features[0], { units: "meters" });
-  console.log(`Distance check ${calibrateDistance}`);
-
+  
   // MARGIN
   const marginPolygon = buffer(
     polygon,
-    -systemdesign.margin * calibrateDistance,
+    -systemdesign.margin,
     { units: "meters" }
   );
 
@@ -67,7 +51,6 @@ export function systemBasedLayout(project: IProjectSchema) {
     intersectionPoints,
   } = applyHeadland(
     marginPolygon,
-    calibrateDistance,
     systemdesign.headland,
     systemdesign.bearing
   );
@@ -80,7 +63,6 @@ export function systemBasedLayout(project: IProjectSchema) {
   // TREE ROW LINES
   const treeRowLines = makeTreeRowLines(
     headlandPolygon,
-    calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
     systemdesign.rows
@@ -89,7 +71,6 @@ export function systemBasedLayout(project: IProjectSchema) {
   // GROUND COVER AREAS
   const groundCoverAreas = makeGroundCoverAreas(
     headlandPolygon,
-    calibrateDistance,
     lineIntersectingAreaInsideMargin,
     widthOfAreaInsideMargin,
     systemdesign.rows

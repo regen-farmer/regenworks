@@ -7,7 +7,7 @@ import {
 import { ISpeciesSchema } from '../../models/species.js';
 
 
-export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>, calibrateDistance: number, lineIntersectingAreaInsideMargin: turf.Feature<turf.LineString, turf.Properties>, widthOfAreaInsideMargin: number, rows: {
+export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>, lineIntersectingAreaInsideMargin: turf.Feature<turf.LineString, turf.Properties>, widthOfAreaInsideMargin: number, rows: {
   sequence: {
     species: ISpeciesSchema,
     spacingAfter: number
@@ -52,11 +52,11 @@ export function makeGroundCoverAreas(offsetPolygon: turf.Feature<turf.Polygon, t
 
     // This requires two buffers
     if (accumulatingWidth > 0) {
-      const bufferSmall = buffer(lineIntersectingAreaInsideMargin, (accumulatingWidth * calibrateDistance), { units: 'meters' });
-      const bufferBig = buffer(lineIntersectingAreaInsideMargin, ((accumulatingWidth + rows[currentRowIdx].width) * calibrateDistance), { units: 'meters' });
+      const bufferSmall = buffer(lineIntersectingAreaInsideMargin, (accumulatingWidth), { units: 'meters' });
+      const bufferBig = buffer(lineIntersectingAreaInsideMargin, ((accumulatingWidth + rows[currentRowIdx].width)), { units: 'meters' });
       elongatedDonutBuffer = mask(bufferSmall, bufferBig);
     } else {
-      elongatedDonutBuffer = buffer(lineIntersectingAreaInsideMargin, (rows[currentRowIdx].width * calibrateDistance), { units: 'meters' });
+      elongatedDonutBuffer = buffer(lineIntersectingAreaInsideMargin, (rows[currentRowIdx].width), { units: 'meters' });
     }
 
     const intersectionAreas = intersect(offsetPolygon, elongatedDonutBuffer);

@@ -1,6 +1,6 @@
 import {
-  buffer,
   bearing as turfBearing,
+  buffer
   lineString,
   helpers as turf,
   difference,
@@ -9,6 +9,7 @@ import {
   lineIntersect,
   transformScale,
 } from "@turf/turf";
+
 import _ from "lodash";
 
 function clampNumberToBetween0And180Degrees(bearing: number) {
@@ -25,7 +26,7 @@ function clampNumberToBetween0And180Degrees(bearing: number) {
 
 function getAllSides(polygon: turf.Feature<turf.Polygon, turf.Properties>) {
   const polygonCoords = polygon.geometry.coordinates[0];
-  const polygonSides = polygonCoords.map((coord, i) =>
+  const polygonSides: turf.Feature<turf.LineString>[] = polygonCoords.map((coord, i) =>
     lineString([coord, polygonCoords[(i + 1) % polygonCoords.length]])
   );
   return polygonSides;
@@ -33,15 +34,14 @@ function getAllSides(polygon: turf.Feature<turf.Polygon, turf.Properties>) {
 
 export function applyHeadland(
   marginPolygon: turf.Feature<turf.Polygon, turf.Properties>,
-  calibrateDistance: number,
   headland: number,
   fieldBearing: number,
   _bearingThreshold = 5
 ) {
   const marginPolygonSides = getAllSides(marginPolygon);
 
-  const sidesDifferentFromBearing = marginPolygonSides.filter((side) => {
-    let sideBearing = turfBearing(
+  const sidesDifferentFromBearing: turf.Feature<turf.LineString>[] = marginPolygonSides.filter((side) => {
+    let sideBearing: number = turfBearing(
       side.geometry.coordinates[0],
       side.geometry.coordinates[1]
     );
@@ -50,14 +50,19 @@ export function applyHeadland(
     return Math.abs(sideBearing - fieldBearing) > _bearingThreshold;
   });
 
-  const headlandBuffers = sidesDifferentFromBearing.map((side) =>
-    buffer(side, headland + calibrateDistance, { units: "meters", steps: 20 })
+  const headlandBuffers: turf.Feature <turf.Polygon>[] = sidesDifferentFromBearing.map((side) =>
+{
+    // if (headland < 0.01) {
+    //   return turf.lineToPolygon(side);
+    // }
+    return buffer(side, Math.max(headland+0.0000000000001), { units: "meters", steps: 20 })
+  }
   );
 
   let headlandPolygon = marginPolygon;
 
   headlandBuffers.forEach((headlandBuffer) => {
-    const diff = difference(headlandPolygon, headlandBuffer);
+    const diff: turf.Feature <turf.Polygon|turf.MultiPolygon>|null = difference(headlandPolygon, headlandBuffer);
     if (diff) {
       headlandPolygon = flatten(diff).features[0];
     }

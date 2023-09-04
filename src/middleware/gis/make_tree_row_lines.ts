@@ -35,7 +35,6 @@ function calculateHeadlandOffset(
 
 export function makeTreeRowLines(
   offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>,
-  calibrateDistance: number,
   lineIntersectingAreaInsideMargin: turf.Feature<
     turf.LineString,
     turf.Properties
@@ -87,7 +86,7 @@ export function makeTreeRowLines(
     // Find intersection points for new line
     const bufferLine = buffer(
       lineIntersectingAreaInsideMargin,
-      accumulatingWidth * calibrateDistance,
+      accumulatingWidth,
       { units: "meters" }
     );
     const bufferLineIntersectionPoints = lineIntersect(
