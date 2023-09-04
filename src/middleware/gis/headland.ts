@@ -26,8 +26,9 @@ function clampNumberToBetween0And180Degrees(bearing: number) {
 
 function getAllSides(polygon: turf.Feature<turf.Polygon, turf.Properties>) {
   const polygonCoords = polygon.geometry.coordinates[0];
-  const polygonSides: turf.Feature<turf.LineString>[] = polygonCoords.map((coord, i) =>
-    lineString([coord, polygonCoords[(i + 1) % polygonCoords.length]])
+  const polygonSides: turf.Feature<turf.LineString>[] = polygonCoords.map(
+    (coord, i) =>
+      lineString([coord, polygonCoords[(i + 1) % polygonCoords.length]])
   );
   return polygonSides;
 }
@@ -40,29 +41,36 @@ export function applyHeadland(
 ) {
   const marginPolygonSides = getAllSides(marginPolygon);
 
-  const sidesDifferentFromBearing: turf.Feature<turf.LineString>[] = marginPolygonSides.filter((side) => {
-    let sideBearing: number = turfBearing(
-      side.geometry.coordinates[0],
-      side.geometry.coordinates[1]
-    );
-    sideBearing = clampNumberToBetween0And180Degrees(sideBearing);
-    fieldBearing = clampNumberToBetween0And180Degrees(fieldBearing);
-    return Math.abs(sideBearing - fieldBearing) > _bearingThreshold;
-  });
+  const sidesDifferentFromBearing: turf.Feature<turf.LineString>[] =
+    marginPolygonSides.filter((side) => {
+      let sideBearing: number = turfBearing(
+        side.geometry.coordinates[0],
+        side.geometry.coordinates[1]
+      );
+      sideBearing = clampNumberToBetween0And180Degrees(sideBearing);
+      fieldBearing = clampNumberToBetween0And180Degrees(fieldBearing);
+      return Math.abs(sideBearing - fieldBearing) > _bearingThreshold;
+    });
 
-  const headlandBuffers: turf.Feature <turf.Polygon>[] = sidesDifferentFromBearing.map((side) =>
-{
-    // if (headland < 0.01) {
-    //   return turf.lineToPolygon(side);
-    // }
-    return buffer(side, Math.max(headland+0.0000000000001), { units: "meters", steps: 20 })
+  let headlandBuffers: turf.Feature<turf.Polygon>[] = [];
+
+  if (headland > 0.01) {
+    headlandBuffers = sidesDifferentFromBearing.map((side) => {
+      // if (headland < 0.01) {
+      //   return turf.lineToPolygon(side);
+      // }
+      return buffer(side, headland, {
+        units: "meters",
+        steps: 20,
+      });
+    });
   }
-  );
 
   let headlandPolygon = marginPolygon;
 
   headlandBuffers.forEach((headlandBuffer) => {
-    const diff: turf.Feature <turf.Polygon|turf.MultiPolygon>|null = difference(headlandPolygon, headlandBuffer);
+    const diff: turf.Feature<turf.Polygon | turf.MultiPolygon> | null =
+      difference(headlandPolygon, headlandBuffer);
     if (diff) {
       headlandPolygon = flatten(diff).features[0];
     }
@@ -264,6 +272,10 @@ export function applyHeadland(
   );
 
   headlandPolygon = turf.polygon([headlandPolygonCoords], { name: "poly1" });
+
+  if (headland < 0.01) {
+    headlandPolygon = marginPolygon;
+  }
 
   return {
     headlandSides: headlandBuffers,
