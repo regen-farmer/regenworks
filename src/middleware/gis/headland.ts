@@ -111,12 +111,16 @@ export function applyHeadland(
   let headlandPolygonCoords = headlandPolygon.geometry.coordinates[0];
 
   idxOfSidesParallelToBearing.forEach((idx) => {
+
+    console.log("IDX", idx)
     // Find the adjecent sides to parallel one that has length > 2 m
 
     let beforeIdx = idx;
 
     while (true) {
+      
       beforeIdx--;
+      
       if (beforeIdx < 0) {
         beforeIdx = headlandPolygonSides.length - 1;
       }
@@ -135,6 +139,9 @@ export function applyHeadland(
 
     while (true) {
       afterIdx++;
+      
+      // console.log('headlandPolygonSides.length', headlandPolygonSides.length)
+
       if (afterIdx > headlandPolygonSides.length - 1) {
         afterIdx = 0;
       }
@@ -219,7 +226,7 @@ export function applyHeadland(
 
         ..._.slice(headlandPolygonCoords, afterIdx + 1, beforeIdx + 1),
 
-        ...Array(_.slice(headlandPolygonCoords, beforeIdx + 1).length - 1).fill(
+        ...Array(_.slice(headlandPolygonCoords, beforeIdx).length - 1).fill(
           intersectionBefore.features[0].geometry.coordinates
         ),
         intersectionAfter.features[0].geometry.coordinates,
