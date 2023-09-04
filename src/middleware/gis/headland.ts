@@ -54,17 +54,17 @@ export function applyHeadland(
 
   let headlandBuffers: turf.Feature<turf.Polygon>[] = [];
 
-  if (headland > 0.01) {
+  // if (headland > 0.01) {
     headlandBuffers = sidesDifferentFromBearing.map((side) => {
       // if (headland < 0.01) {
       //   return turf.lineToPolygon(side);
       // }
-      return buffer(side, headland, {
+      return buffer(side, Math.max(headland,0.0000001), {
         units: "meters",
         steps: 20,
       });
     });
-  }
+  // }
 
   let headlandPolygon = marginPolygon;
 
