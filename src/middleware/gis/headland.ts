@@ -1,6 +1,6 @@
 import {
   bearing as turfBearing,
-  buffer
+  buffer,
   lineString,
   helpers as turf,
   difference,

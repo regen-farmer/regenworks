@@ -63,6 +63,9 @@ describe("systemBasedLayout - headlandPolygon", () => {
     };
 
     let layout = systemBasedLayout(project as unknown as ProjectDocument);
+
+    console.log('STARTFIELD', layout.headlandPolygon);
+
     expect(layout.headlandPolygon).toStrictEqual({
       type: "Feature",
       properties: {
