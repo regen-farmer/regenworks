@@ -1,4 +1,5 @@
 import {
+  point,
   bearing as turfBearing,
   buffer,
   lineString,
@@ -6,9 +7,9 @@ import {
   difference,
   flatten,
   length,
-  lineIntersect,
   transformScale,
 } from "@turf/turf";
+import proj4 from "proj4";
 
 import _ from "lodash";
 
@@ -54,16 +55,12 @@ export function applyHeadland(
 
   let headlandBuffers: turf.Feature<turf.Polygon>[] = [];
 
-  // if (headland > 0.01) {
-    headlandBuffers = sidesDifferentFromBearing.map((side) => {
-      // if (headland < 0.01) {
-      //   return turf.lineToPolygon(side);
-      // }
-      return buffer(side, Math.max(headland,0.0000001), {
-        units: "meters",
-        steps: 20,
-      });
+  headlandBuffers = sidesDifferentFromBearing.map((side) => {
+    return buffer(side, Math.max(headland, 0.0000001), {
+      units: "meters",
+      steps: 20,
     });
+  });
   // }
 
   let headlandPolygon = marginPolygon;
@@ -111,16 +108,14 @@ export function applyHeadland(
   let headlandPolygonCoords = headlandPolygon.geometry.coordinates[0];
 
   idxOfSidesParallelToBearing.forEach((idx) => {
-
-    console.log("IDX", idx)
+    console.log("IDX", idx);
     // Find the adjecent sides to parallel one that has length > 2 m
 
     let beforeIdx = idx;
 
     while (true) {
-      
       beforeIdx--;
-      
+
       if (beforeIdx < 0) {
         beforeIdx = headlandPolygonSides.length - 1;
       }
@@ -139,7 +134,7 @@ export function applyHeadland(
 
     while (true) {
       afterIdx++;
-      
+
       // console.log('headlandPolygonSides.length', headlandPolygonSides.length)
 
       if (afterIdx > headlandPolygonSides.length - 1) {
@@ -179,14 +174,52 @@ export function applyHeadland(
       extendedBearingSide,
     ];
 
-    const intersectionBefore = lineIntersect(
-      extendedBeforeSide,
-      extendedBearingSide
+    const mercator = proj4("EPSG:4326", "EPSG:3857");
+
+    function mercatorLineIntersect(line1, line2) {
+      // Convert the lines to Mercator coordinates
+      const line1Mercator = line1.geometry.coordinates.map((coord) =>
+        mercator.forward(coord)
+      );
+      const line2Mercator = line2.geometry.coordinates.map((coord) =>
+        mercator.forward(coord)
+      );
+
+      // Define the lines in the form y = mx + b
+      const m1 =
+        (line1Mercator[1][1] - line1Mercator[0][1]) /
+        (line1Mercator[1][0] - line1Mercator[0][0]);
+      const b1 = line1Mercator[0][1] - m1 * line1Mercator[0][0];
+
+      const m2 =
+        (line2Mercator[1][1] - line2Mercator[0][1]) /
+        (line2Mercator[1][0] - line2Mercator[0][0]);
+      const b2 = line2Mercator[0][1] - m2 * line2Mercator[0][0];
+
+      // Find the intersection point
+      const x = (b2 - b1) / (m1 - m2);
+      const y = m1 * x + b1;
+
+      // Convert the intersection point back to geographic coordinates
+      const intersection = mercator.inverse([x, y]);
+
+      return point(intersection);
+    }
+
+    let intersectionBefore = mercatorLineIntersect(
+      beforeSide,
+      headlandPolygonSides[idx]
     );
-    const intersectionAfter = lineIntersect(
-      extendedAfterSide,
-      extendedBearingSide
+
+    let intersectionAfter = mercatorLineIntersect(
+      afterSide,
+      headlandPolygonSides[idx]
     );
+
+    intersectionBefore = turf.featureCollection(intersectionBefore);
+    intersectionBefore.features = [intersectionBefore.features];
+    intersectionAfter = turf.featureCollection(intersectionAfter);
+    intersectionAfter.features = [intersectionAfter.features];
 
     if (beforeIdx < afterIdx) {
       console.log(
@@ -279,10 +312,6 @@ export function applyHeadland(
   );
 
   headlandPolygon = turf.polygon([headlandPolygonCoords], { name: "poly1" });
-
-  if (headland < 0.01) {
-    headlandPolygon = marginPolygon;
-  }
 
   return {
     headlandSides: headlandBuffers,
