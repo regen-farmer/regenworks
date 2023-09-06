@@ -64,10 +64,9 @@ export function applyHeadland(
   // }
 
   let headlandPolygon = marginPolygon;
-
+  let diff: turf.Feature<turf.Polygon | turf.MultiPolygon> | null = null;
   headlandBuffers.forEach((headlandBuffer) => {
-    const diff: turf.Feature<turf.Polygon | turf.MultiPolygon> | null =
-      difference(headlandPolygon, headlandBuffer);
+    diff = difference(headlandPolygon, headlandBuffer);
     if (diff) {
       headlandPolygon = flatten(diff).features[0];
     }
