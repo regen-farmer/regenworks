@@ -56,7 +56,7 @@ export function applyHeadland(
   let headlandBuffers: turf.Feature<turf.Polygon>[] = [];
 
   headlandBuffers = sidesDifferentFromBearing.map((side) => {
-    return buffer(side, Math.max(headland, 0.0000001), {
+    return buffer(side, Math.max(headland, 0.001), {
       units: "meters",
       steps: 20,
     });
