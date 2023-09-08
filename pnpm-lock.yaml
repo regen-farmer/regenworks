@@ -66,8 +66,8 @@ dependencies:
     specifier: ^0.32.4
     version: 0.32.5
   stripe:
-    specifier: ^12.18.0
-    version: 12.18.0
+    specifier: ^13.5.0
+    version: 13.5.0
   tsx:
     specifier: ^3.12.7
     version: 3.12.7
@@ -4395,8 +4395,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /stripe@12.18.0:
-    resolution: {integrity: sha512-cYjgBM2SY/dTm8Lr6eMyyONaHTZHA/QjHxFUIW5WH8FevSRIGAVtXEmBkUXF1fsqe7QvvRgQSGSJZmjDacegGg==}
+  /stripe@13.5.0:
+    resolution: {integrity: sha512-odGQbvkDVxR7ldxXth7kWaUv6M31bsPMYKCBR8oIIRDoiR4MfxWaLdz5h7QQDsGtelZugqx7AEVoC6twST+0VQ==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 20.5.7
