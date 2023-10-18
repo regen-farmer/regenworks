@@ -91,6 +91,7 @@ router.post(
           },
         ],
         allow_promotion_codes: true,
+        payment_method_collection: "if_required",
         customer: customer?.valueOf().toString(),
         mode: 'subscription',
         currency: currency.valueOf().toString(),
