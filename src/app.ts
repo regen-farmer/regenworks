@@ -113,8 +113,8 @@ app.use(
 
     const jwt = req.headers.authorization;
 
-    // console.log('body:', req.body)
-
+    
+    
     function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary
       // console.log("token in place", token === "undefined" ? false : true);
@@ -131,7 +131,10 @@ app.use(
     // console.log('jwt in place', jwt);
 
     if (jwt && typeof jwt === "string") {
-      idToken = parseJwt(jwt);
+      // idToken = parseJwt(jwt);
+      console.log('jwt:', jwt)
+      idToken = JSON.parse(jwt) as unknown as Auth0IDToken;
+      console.log('idToken:', idToken)
       // if (!idToken) {
       //   // console.log("no id token");
       //   res.status(404).send("Invalid token");
