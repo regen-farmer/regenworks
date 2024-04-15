@@ -52,9 +52,19 @@ export const StripeIds = {
 };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15',
+  apiVersion: '2024-04-10',
   maxNetworkRetries: 2,
 });
+
+router.put(
+  '/stripe/stripe_sid',
+  async (
+    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+    res: express.Response,
+  ) => {
+
+  }
+)
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
 router.post(
