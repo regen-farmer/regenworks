@@ -1,18 +1,18 @@
-import { model, Schema } from 'mongoose';
+import { model, Schema } from "mongoose";
 
 export interface ILogSchema {
-    message: string,
-    level: string,
-    timestamp: number
+	message: string;
+	level: string;
+	timestamp: number;
 }
 
 // LOG SCHEMA SETUP
 const logSchema = new Schema<ILogSchema>({
-  message: String,
-  level: String,
-  timestamp: Number,
+	message: String,
+	level: String,
+	timestamp: Number,
 });
 
-const Log = model('Log', logSchema);
+const Log = model("Log", logSchema);
 export default Log;
-export type LogDocument = ReturnType<(typeof Log)['hydrate']>;
+export type LogDocument = ReturnType<(typeof Log)["hydrate"]>;
