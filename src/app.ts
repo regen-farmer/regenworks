@@ -130,7 +130,7 @@ app.use(
 
     // console.log('jwt in place', jwt);
 
-    if (jwt && typeof jwt === "string") {
+    if (jwt && jwt !== "" && jwt !== 'undefined' && typeof jwt === "string") {
       // idToken = parseJwt(jwt);
       console.log('jwt:', jwt)
       idToken = JSON.parse(jwt) as unknown as Auth0IDToken;
