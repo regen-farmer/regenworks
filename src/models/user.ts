@@ -32,7 +32,7 @@ const UserSchema = new Schema({
   externalId: { type: String, unique: true, require: false },
   username: { type: String, unique: false, require: false },
   password: String,
-  email: { type: String, unique: true, require: true },
+  email: { type: String, unique: true, require: false },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   parcels: [

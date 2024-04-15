@@ -89,14 +89,14 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.originalUrl} [STARTED]`)
   const start = process.hrtime()
 
-  res.on('finish', () => {            
-      const durationInMilliseconds = getDurationInMilliseconds (start)
-      console.log(`${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`)
+  res.on('finish', () => {
+    const durationInMilliseconds = getDurationInMilliseconds(start)
+    console.log(`${req.method} ${req.originalUrl} [FINISHED] ${durationInMilliseconds.toLocaleString()} ms`)
   })
 
   res.on('close', () => {
-      const durationInMilliseconds = getDurationInMilliseconds (start)
-      console.log(`${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`)
+    const durationInMilliseconds = getDurationInMilliseconds(start)
+    console.log(`${req.method} ${req.originalUrl} [CLOSED] ${durationInMilliseconds.toLocaleString()} ms`)
   })
 
   next()
@@ -113,8 +113,8 @@ app.use(
 
     const jwt = req.headers.authorization;
 
-    
-    
+
+
     function parseJwt(token) {
       // eslint-disable-next-line no-unneeded-ternary
       // console.log("token in place", token === "undefined" ? false : true);
@@ -144,38 +144,67 @@ app.use(
       console.log("no jwt");
     }
 
-    if (idToken?.email) {
-      // Find any existing user
-      const user = await User.findOne({ email: idToken.email }).exec();
 
+    if (idToken?.sub) {
+      const user = await User.findOne({ externalId: idToken.sub }).exec();
       if (user) {
         req.user = user;
       } else {
-        // Create a new user if none exist
-        const newUser = await User.create({
-          externalId: idToken.sub,
-          email: idToken.email,
-          registrationDate: Date.now(),
-          membership: 1209600000,
-          farmLimit: 1,
-          isProject: true,
-        });
 
-        const savedUser = await newUser.save();
+        if (idToken?.email) {
+          // Find any existing user
+          const user = await User.findOne({ email: idToken.email }).exec();
 
-        req.user = savedUser;
+          if (user) {
+            user.externalId = idToken?.sub;
+            await user.save()
+            req.user = user;
+
+          } else {
+            // Create a new user if none exist
+            const newUser = await User.create({
+              externalId: idToken.sub,
+              email: idToken.email,
+              registrationDate: Date.now(),
+              membership: 1209600000,
+              farmLimit: 1,
+              isProject: true,
+            });
+
+            const savedUser = await newUser.save();
+
+            req.user = savedUser;
+          }
+        } else {
+          // Create a new user if none exist
+          const newUser = await User.create({
+            externalId: idToken.sub,
+            registrationDate: Date.now(),
+            membership: 1209600000,
+            farmLimit: 1,
+            isProject: true,
+          });
+
+          const savedUser = await newUser.save();
+
+          req.user = savedUser;
+        }
+
       }
+
     } else {
       console.log("No oidc user");
     }
 
-    if (idToken){
-    req.idToken = idToken;
+
+
+    if (idToken) {
+      req.idToken = idToken;
     }
 
-    if (req.user){
-    res.locals.currentUser = req.user;
-  }
+    if (req.user) {
+      res.locals.currentUser = req.user;
+    }
 
     next();
   }
