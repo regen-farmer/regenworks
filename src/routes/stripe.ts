@@ -56,15 +56,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   maxNetworkRetries: 2,
 });
 
-router.put(
-  '/stripe/stripe_sid',
-  async (
-    req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response,
-  ) => {
+// router.put(
+//   '/stripe/stripe_sid',
+//   async (
+//     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+//     res: express.Response,
+//   ) => {
 
-  }
-)
+//     // Get stripe session id
+//     const stripeSessionID = req.body.stripe_sid;
+
+//     // Get stripe session
+//     const session = await stripe.checkout.sessions.retrieve(stripeSessionID);
+
+//     // Get stripe customer
+//     const customer = session.customer;
+
+//     // Set stripe customer on mongodb user
+//     req.user.stripe_customer = customer;
+//   }
+// )
 
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
 router.post(
@@ -161,32 +172,7 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    const legacyCustomers = [
-      { plan: 'Advisor', email: 'sophie@regenfarmer.com', expiration: '1/1/50' },
-      { plan: 'Advisor', email: 'hello@regenfarmer.com', expiration: '1/1/50' },
-      { plan: 'Advisor', email: 'birk@regenfarmer.com', expiration: '1/1/50' },
-    ];
-
     const payload = req.body;
-    
-    const legacyUser = legacyCustomers.find((customer) => customer.email === payload.email);
-    let activeLegacySubscription;
-    if (legacyUser) {
-      const legacyUntil = parse(legacyUser.expiration, 'dd/MM/yy', new Date(Date.now()));
-
-      // const legacyUntil = new Date(legacyUser.expiration, 'dd/MM/yy');
-      // const today = Date.now();
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (getUnixTime(legacyUntil) >= getUnixTime(yesterday)) {
-        activeLegacySubscription = {
-          expirationDate: format(legacyUntil, 'PPP'),
-          plan: legacyUser.plan,
-          legacy: true,
-        };
-      }
-    }
 
     const customers = await stripe.customers.list({
       limit: 1,
@@ -201,9 +187,9 @@ router.post(
         customer: customer.id,
       });
 
-      res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data, activeLegacySubscription }));
+      res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data }));
     } else {
-      res.send(JSON.stringify({ subscriptions: [], activeLegacySubscription }));
+      res.send(JSON.stringify({ subscriptions: [] }));
     }
   },
 );
