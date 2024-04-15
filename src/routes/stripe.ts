@@ -96,7 +96,7 @@ router.post(
         currency: currency.valueOf().toString(),
         customer_email: customer ? undefined : email.valueOf().toString(),
         customer_update: customer ? { name: 'auto' } : undefined,
-        success_url: `${profilePage}?success=true`,
+        success_url: `${profilePage}?success=true&stripe_sid={CHECKOUT_SESSION_ID}`,
         cancel_url: `${profilePage}?canceled=true`,
         automatic_tax: { enabled: true },
         tax_id_collection: { enabled: true },
