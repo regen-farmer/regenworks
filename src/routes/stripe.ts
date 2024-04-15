@@ -167,38 +167,41 @@ router.get(
 );
 
 router.post(
-  '/stripe/get_customer',
+  '/stripe/get_subscriptions',
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
     const payload = req.body;
+    if (req.user.stripeCustomerId){
+      const subscriptions = await stripe.subscriptions.list({
+        limit: 10,
+        customer: payload.user.stripeCustomerId,
+      });
 
-    let customer;
+      res.send(JSON.stringify({ subscriptions: subscriptions.data }));
 
-    if (payload.user.stripeCustomerId){
-      customer = await stripe.customers.retrieve(payload.user.stripeCustomerId);
     } else {
       const customers = await stripe.customers.list({
         limit: 1,
         email: payload.user.email,
       });
   
-      customer = customers.data[0];
+      const customer = customers.data[0];
 
-      req.user.stripeCustomerId = customer.id;
-      await req.user.save();
-    }
+      if (customer?.id) {
+        req.user.stripeCustomerId = customer.id;
+        await req.user.save();
 
-    if (customer?.id) {
-      const subscriptions = await stripe.subscriptions.list({
-        limit: 10,
-        customer: customer.id,
-      });
+        const subscriptions = await stripe.subscriptions.list({
+          limit: 10,
+          customer: customer.id,
+        });
 
-      res.send(JSON.stringify({ customer: customer, subscriptions: subscriptions.data }));
-    } else {
-      res.send(JSON.stringify({ subscriptions: [] }));
+        res.send(JSON.stringify({ subscriptions: subscriptions.data }));
+      } else {
+        res.send(JSON.stringify({ subscriptions: [] }));
+      }
     }
   },
 );
