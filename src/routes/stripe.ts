@@ -153,7 +153,7 @@ router.get(
       expand: ['currency_options'],
     });
 
-    console.log(advisor6Months);
+    // console.log(advisor6Months);
 
     res.send(
       JSON.stringify({
@@ -207,25 +207,25 @@ router.post(
 );
 
 router.put(
-  '/stripe/cancel_subscription/:subscriptionId',
+  '/stripe/cancel_subscription/:subscriptionId/cancel_at_period_end/:cancelAtPeriodEnd',
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    console.log('DELETE here');
-    console.log('reqbody, ', req.params.subscriptionId);
-    const payload = req.body;
-    console.log('payload', payload);
-
+    
     if (req.params.subscriptionId) {
-      // await stripe.subscriptions.del(
-      //   req.params.subscriptionId,
-      // );
 
-      await stripe.subscriptions.update(
-        req.params.subscriptionId,
-        { cancel_at_period_end: true },
-      );
+      if (req.params.cancelAtPeriodEnd === 'false') {
+        await stripe.subscriptions.cancel(
+          req.params.subscriptionId
+        );
+      } else {
+        await stripe.subscriptions.update(
+          req.params.subscriptionId,
+          { cancel_at_period_end: true },
+        );
+      }
+
       res.send(JSON.stringify({}));
     } else {
       res.status(400).send(JSON.stringify({ error: 'No subscriptionId found' }));

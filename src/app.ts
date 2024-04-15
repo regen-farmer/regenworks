@@ -132,9 +132,9 @@ app.use(
 
     if (jwt && jwt !== "" && jwt !== 'undefined' && typeof jwt === "string") {
       // idToken = parseJwt(jwt);
-      console.log('jwt:', jwt)
+      // console.log('jwt:', jwt)
       idToken = JSON.parse(jwt) as unknown as Auth0IDToken;
-      console.log('idToken:', idToken)
+      // console.log('idToken:', idToken)
       // if (!idToken) {
       //   // console.log("no id token");
       //   res.status(404).send("Invalid token");
