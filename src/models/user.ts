@@ -5,6 +5,7 @@ import { IParcelSchema } from './parcel.js';
 
 export interface IUserSchema {
     externalId: string,
+    stripeCustomerId: string,
     username: string,
     password: string,
     email: string,
@@ -30,6 +31,7 @@ export interface IUserSchema {
 
 const UserSchema = new Schema({
   externalId: { type: String, unique: true, require: false },
+  stripeCustomerId: { type: String, unique: true, require: false },
   username: { type: String, unique: false, require: false },
   password: String,
   email: { type: String, unique: true, require: false },

@@ -174,12 +174,21 @@ router.post(
   ) => {
     const payload = req.body;
 
-    const customers = await stripe.customers.list({
-      limit: 1,
-      email: payload.email,
-    });
+    let customer;
 
-    const customer = customers.data[0];
+    if (payload.user.stripeCustomerId){
+      customer = await stripe.customers.retrieve(payload.user.stripeCustomerId);
+    } else {
+      const customers = await stripe.customers.list({
+        limit: 1,
+        email: payload.user.email,
+      });
+  
+      customer = customers.data[0];
+
+      req.user.stripeCustomerId = customer.id;
+      await req.user.save();
+    }
 
     if (customer?.id) {
       const subscriptions = await stripe.subscriptions.list({
@@ -187,7 +196,7 @@ router.post(
         customer: customer.id,
       });
 
-      res.send(JSON.stringify({ customer: customers.data[0], subscriptions: subscriptions.data }));
+      res.send(JSON.stringify({ customer: customer, subscriptions: subscriptions.data }));
     } else {
       res.send(JSON.stringify({ subscriptions: [] }));
     }
