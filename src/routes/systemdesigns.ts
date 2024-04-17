@@ -12,7 +12,7 @@ const router = express.Router();
 
 // NESTED AREA SYSTEM NEW ROUTE
 router.get(
-	"/projects/:projectid/set-system",
+	"/projects/:projectid/systemdesign",
 	middleware.isLoggedIn,
 	async (
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -29,44 +29,12 @@ router.get(
 		);
 
 		if (foundProject) {
+			// FIND ALL ANIMALS AND SORT
 			try {
-				const foundSpecies = await Species.find();
-				// SORT SPECIES
-				foundSpecies.sort((a, b) => {
-					if (a.nameCommon < b.nameCommon) {
-						return -1;
-					}
-					if (a.nameCommon > b.nameCommon) {
-						return 1;
-					}
-					return 0;
+				res.send({
+					// layer: foundLayer,
+					systemdesign: foundProject.systemdesign,
 				});
-				// FIND ALL ANIMALS AND SORT
-				try {
-					const foundAnimals = await Animal.find();
-					// SORT ANIMALS
-					foundAnimals.sort((a, b) => {
-						if (a.name < b.name) {
-							return -1;
-						}
-						if (a.name > b.name) {
-							return 1;
-						}
-						return 0;
-					});
-					// RENDER NEW SYSTEM PAGE WITH SPECIES
-					res.send({
-						// layer: foundLayer,
-						systemdesign: foundProject.systemdesign,
-						species: foundSpecies,
-						animals: foundAnimals,
-						rows: req.query.rows,
-						distance: req.query.distance,
-						length: req.query.length,
-					});
-				} catch (err) {
-					console.log(err);
-				}
 			} catch (err) {
 				console.log(err);
 			}

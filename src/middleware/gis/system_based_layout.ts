@@ -15,12 +15,10 @@ import { makeInitialLine } from "./make_line.js";
 import { makeTreeRowLines } from "./make_tree_row_lines.js";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas.js";
 import { applyHeadland } from "./headland.js";
-import SystemDesign from "../../models/systemdesign.js";
+import SystemDesign, { ISystemDesignSchema } from "../../models/systemdesign.js";
 
-export function systemBasedLayout(project: IProjectSchema) {
-	console.log(JSON.stringify(project));
+export function systemBasedLayout(systemdesign: ISystemDesignSchema, geometry: string) {
 
-	let systemdesign = project.systemdesign;
 	if (!systemdesign) {
 		systemdesign = new SystemDesign({
 			margin: 0,
@@ -33,7 +31,7 @@ export function systemBasedLayout(project: IProjectSchema) {
 	const systemRows = systemdesign.rows;
 
 	// console.log("HERE1", project.layer)
-	const polygon = JSON.parse(project.layer.geometry);
+	const polygon = JSON.parse(geometry);
 
 	// MARGIN
 	const marginPolygon = buffer(polygon, -systemdesign.margin, {
@@ -106,7 +104,7 @@ export function systemBasedLayout(project: IProjectSchema) {
 	const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
 		if (!marker.species) return counts;
 
-		const speciesId = marker.species.id;
+		const speciesId = marker.species.id ?? marker.species;
 		if (!counts[speciesId]) {
 			counts[speciesId] = {
 				species: marker.species,

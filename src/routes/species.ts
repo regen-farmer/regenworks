@@ -9,13 +9,23 @@ const router = express.Router();
 // SPECIES INDEX
 router.get(
 	"/species",
-	middleware.adminIsLoggedIn,
 	async (
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
 		try {
 			const foundSpecies = await Species.find();
+
+			foundSpecies.sort((a, b) => {
+				if (a.nameCommon < b.nameCommon) {
+					return -1;
+				}
+				if (a.nameCommon > b.nameCommon) {
+					return 1;
+				}
+				return 0;
+			});
+
 			res.send({ species: foundSpecies });
 		} catch (err) {
 			console.log(err);

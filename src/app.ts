@@ -8,6 +8,7 @@ import { connect } from "mongoose";
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 import cors from "cors";
 import User, { IUserSchema, UserDocument } from "./models/user.js";
+import bodyParser from 'body-parser'
 
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles.js";
@@ -59,7 +60,7 @@ app.use(cors());
 // APP SETUP
 connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
-app.use(express.json());
+app.use(bodyParser.json());
 
 // app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
@@ -154,6 +155,7 @@ app.use(
 			if (user) {
 				req.user = user;
 			} else if (idToken?.email) {
+				console.log("idToken", idToken)
 				// Find any existing user
 				const user = await User.findOne({ email: idToken.email }).exec();
 

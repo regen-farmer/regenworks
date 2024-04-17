@@ -170,6 +170,37 @@ router.get(
 	},
 );
 
+router.post(
+	"/projects/:id/preview",
+	middleware.isLoggedIn,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		
+		const payload: { geometry; systemdesign } = req.body;
+
+		try {
+			const layout = systemBasedLayout(payload.systemdesign, payload.geometry);
+
+			res.send({
+				treeRowLines: layout.treeRowLines,
+				groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+				headlandPolygon: layout.headlandPolygon,
+				marginPolygon: layout.marginPolygon,
+				speciesCountArray: layout.speciesCountArray,
+
+				sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
+				intersectionPoints: turf.featureCollection(layout.intersectionPoints),
+				headlandSides: turf.featureCollection(layout.headlandSides),
+				treeMarkerArray: layout.treeMarkerArray,
+			});
+		} catch (err) {
+			console.log(err);
+		}
+	},
+);
+
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
 	"/projects/:id/layout",
@@ -185,35 +216,35 @@ router.get(
 
 				.populate("layer")
 				.populate("systemdesign")
-				.populate({
-					path: "systemdesign",
-					populate: { path: "rows.sequence", populate: { path: "species" } },
-				})
-				.populate({
-					path: "systemdesign",
-					populate: { path: "rows", populate: { path: "groundcover" } },
-				})
+				// .populate({
+				// 	path: "systemdesign",
+				// 	populate: { path: "rows.sequence", populate: { path: "species" } },
+				// })
+				// .populate({
+				// 	path: "systemdesign",
+				// 	populate: { path: "rows", populate: { path: "groundcover" } },
+				// })
 				.exec();
 			console.timeEnd("getProject");
 
 			if (foundProject) {
 				console.time("systemBasedLayout");
-				const layout = systemBasedLayout(foundProject);
+				// const layout = systemBasedLayout(foundProject);
 				console.timeEnd("systemBasedLayout");
 				res.send({
 					project: foundProject,
-					treeRowLines: layout.treeRowLines,
-					groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
-					headlandPolygon: layout.headlandPolygon,
-					marginPolygon: layout.marginPolygon,
-					speciesCountArray: layout.speciesCountArray,
+					// treeRowLines: layout.treeRowLines,
+					// groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+					// headlandPolygon: layout.headlandPolygon,
+					// marginPolygon: layout.marginPolygon,
+					// speciesCountArray: layout.speciesCountArray,
 
-					sidesCloseToBearing: turf.featureCollection(
-						layout.sidesCloseToBearing,
-					),
-					intersectionPoints: turf.featureCollection(layout.intersectionPoints),
-					headlandSides: turf.featureCollection(layout.headlandSides),
-					treeMarkerArray: layout.treeMarkerArray,
+					// sidesCloseToBearing: turf.featureCollection(
+					// 	layout.sidesCloseToBearing,
+					// ),
+					// intersectionPoints: turf.featureCollection(layout.intersectionPoints),
+					// headlandSides: turf.featureCollection(layout.headlandSides),
+					// treeMarkerArray: layout.treeMarkerArray,
 				});
 				console.timeEnd("layoutRoute");
 			} else {
