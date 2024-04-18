@@ -282,7 +282,7 @@ router.get(
 
 			if (foundProject && foundProject.isPublic) {
 				console.time("systemBasedLayout");
-				const layout = systemBasedLayout(foundProject);
+				const layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
 				console.timeEnd("systemBasedLayout");
 				res.send({
 					project: foundProject,
@@ -345,94 +345,7 @@ router.put(
 	},
 );
 
-// PROJECT VIZ ROUTE
-router.get(
-	"/projects/:id/viz",
-	middleware.isLoggedIn,
-	async (
-		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-		res: express.Response,
-	) => {
-		try {
-			const foundProject = await Project.findById(req.params.id)
-				.populate({ path: "system", populate: { path: "model.species" } })
-				.populate("edgesystem")
-				.populate("layer")
-				.populate({
-					path: "rows",
-					populate: { path: "sequence", populate: { path: "model.species" } },
-				})
-				.populate("areas")
-				.exec();
-			if (foundProject) {
-				// CAN REMOVE THE TWO BELOW SYSTEMS AND JUST POPULATE IN ROUTE ABOVE
-				try {
-					const foundSystem = await System.findById(foundProject.system)
-						.populate("model.species")
-						.exec();
-					// EDGE SYSTEM FIND, IF ONE
-					// var edgesystem = '5e6639bc8add4f22f0820200'
-					// if (foundProject.edgesystem) {
-					//   edgesystem = foundProject.edgesystem
-					// }
 
-					//   let foundEdgeSystem = await System.findById(edgesystem)
-					//     .populate('model.species')
-					//     .exec()
-					// SET VARIABLES HERE
-					let layout;
-					// IF ROWS, DO XXX
-					if (foundProject.rows && foundProject.rows.length > 0) {
-						// DO ROW LAYOUT
-						layout = rowBasedLayout(foundProject);
-					} else {
-						// DO PARAMETRIC LAYOUT
-						layout = systemBasedLayout(foundProject);
-					}
-					const featurecollection = turf.featureCollection(layout.rowLineArray);
-					const collection = JSON.stringify(featurecollection);
-					const bedArrayPolygons = turf.featureCollection(
-						layout.bedPolygonArray,
-					);
-					const stripsCollection = JSON.stringify(bedArrayPolygons);
-					const alleyArrayPolygons = turf.featureCollection(
-						layout.alleyPolygonArray,
-					);
-					const alleysCollection = JSON.stringify(alleyArrayPolygons);
-					const treeMarkers = turf.featureCollection(layout.treeMarkerArray);
-					const treeCollection = JSON.stringify(treeMarkers);
-					// UNIQUE ITEM COUNTS
-
-					let uniqueSpeciesCount: { id: string; uniqueCount: number }[] = [];
-					if (layout.uniqueSpeciesCount) {
-						uniqueSpeciesCount = layout.uniqueSpeciesCount;
-					}
-					// CALCULATE AREA SIZES
-					const treeRowArea = layout.treeRowArea;
-					// TEMP VALUE HERE
-					const marginArea = 0;
-					res.send({
-						project: foundProject,
-						system: foundSystem,
-						collection,
-						trees: treeCollection,
-						species: uniqueSpeciesCount,
-						treeArea: treeRowArea,
-						marginArea,
-						strips: stripsCollection,
-						alleys: alleysCollection,
-					});
-				} catch (err) {
-					console.log(err);
-				}
-			} else {
-				console.log("No foundProject");
-			}
-		} catch (err) {
-			console.log(err);
-		}
-	},
-);
 
 // PROJECT 3D VIZ
 router.get(
