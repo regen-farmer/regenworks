@@ -204,7 +204,7 @@ router.post(
 // PROJECT LAYOUT EDIT ROUTE
 router.get(
 	"/projects/:id/layout",
-	middleware.isLoggedIn,
+	// middleware.isLoggedIn,
 	async (
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
@@ -335,6 +335,7 @@ router.put(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
+		console.log("Here")
 		try {
 			await Project.findByIdAndUpdate(req.params.id, req.body.project);
 			// req.flash("success", "Successfully added service");
