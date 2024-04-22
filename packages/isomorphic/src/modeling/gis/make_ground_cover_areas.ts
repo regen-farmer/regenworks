@@ -92,13 +92,13 @@ export function makeGroundCoverAreas(
 				turf.MultiPolygon,
 				turf.Properties
 			>;
-			area.geometry.coordinates.forEach((polygon) => {
+			for (const polygon of area.geometry.coordinates) {
 				groundCoverAreas.push(
 					turf.polygon(polygon, {
 						name: `alleypoly${groundCoverAreas.length}`,
 					}),
 				);
-			});
+			}
 		}
 
 		// Add row width

@@ -266,8 +266,6 @@ router.put(
 //     }
 // });
 
-
-
 router.put(
 	"/users/:id/countrycode",
 	async (
@@ -292,7 +290,6 @@ router.put(
 		}
 	},
 );
-
 
 // PARCEL STATUS PAGE
 router.get(

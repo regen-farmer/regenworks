@@ -106,7 +106,7 @@ export function applyHeadland(
 	// Find cords of headland polygon
 	let headlandPolygonCoords = headlandPolygon.geometry.coordinates[0];
 
-	for (let idx of idxOfSidesParallelToBearing) {
+	for (const idx of idxOfSidesParallelToBearing) {
 		console.log("IDX", idx);
 		// Find the adjecent sides to parallel one that has length > 2 m
 

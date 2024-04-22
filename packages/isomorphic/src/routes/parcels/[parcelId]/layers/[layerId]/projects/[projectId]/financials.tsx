@@ -581,8 +581,10 @@ export default function view() {
 																each={[
 																	data()?.species.find((species) => {
 																		// console.log('test', species._id, uniqueSpeciesSequence.id)
-																		return (species._id =
-																			uniqueSpeciesSequence.id.toString());
+																		species._id =
+																			uniqueSpeciesSequence.id.toString();
+
+																		return species;
 																	}),
 																]}
 															>

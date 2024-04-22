@@ -8,7 +8,7 @@ import { connect } from "mongoose";
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 import cors from "cors";
 import User, { IUserSchema, UserDocument } from "@rw/db/schemas/user";
-import bodyParser from 'body-parser'
+import bodyParser from "body-parser";
 
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles";
@@ -155,7 +155,7 @@ app.use(
 			if (user) {
 				req.user = user;
 			} else if (idToken?.email) {
-				console.log("idToken", idToken)
+				console.log("idToken", idToken);
 				// Find any existing user
 				const user = await User.findOne({ email: idToken.email }).exec();
 

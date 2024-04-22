@@ -1,12 +1,6 @@
 import { Select } from "@kobalte/core";
-import {
-	Show,
-	createEffect,
-	createMemo,
-	createResource,
-	createSignal,
-} from "solid-js";
-import { useLocation, useNavigate, useParams } from "@solidjs/router";
+import { Show, createMemo, createResource, createSignal } from "solid-js";
+import { useLocation, useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 import type { ProjectDocument } from "@rw/db/schemas/project";
@@ -82,8 +76,6 @@ export function ProjectSelect() {
 		// if (!status) {
 		// 	status = projectStatusList[4];
 		// }
-
-		console.log("Status", status);
 
 		return (
 			<>

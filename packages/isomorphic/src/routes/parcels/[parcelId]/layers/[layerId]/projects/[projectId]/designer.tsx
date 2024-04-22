@@ -6,14 +6,12 @@ import {
 	For,
 	Show,
 } from "solid-js";
-import { createStore, unwrap } from "solid-js/store";
+import { createStore } from "solid-js/store";
 import { A, useLocation, useParams } from "@solidjs/router";
 
 import { helpers as turf } from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
-import type { AnimalDocument } from "@rw/db/schemas/animal";
-import type { LayerDocument } from "@rw/db/schemas/layer";
 import type { ISpeciesSchema, SpeciesDocument } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { useHCControl } from "~/util/map_controls/useHCControl";

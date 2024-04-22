@@ -67,7 +67,7 @@ export function rowBasedLayout(project: IProjectSchema) {
 		// SET ROW DATA
 		if (project.rows[i].sequence) {
 			const datasetRows = project.rows[i].sequence.model;
-			project.rows[i].sequence.model.forEach((species) => {
+			for (const species of project.rows[i].sequence.model) {
 				allSpecies.push(species.species.nameCommon);
 				/* var count = 0;
                 for (j = 0; j < datasetRows.length; j++) {
@@ -79,7 +79,7 @@ export function rowBasedLayout(project: IProjectSchema) {
                 if (count === 0) {
                     datasetRows.push({row: species.position[0], array: [species]});
                 } */
-			});
+			}
 
 			// ROW LENGTH
 			const rowLine = JSON.parse(project.rows[i].geometry);

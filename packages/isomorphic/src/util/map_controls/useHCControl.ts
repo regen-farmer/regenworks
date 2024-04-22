@@ -101,15 +101,13 @@ export function useHCControl(map: maplibregl.Map) {
 			});
 
 			setHcAdded(true);
-		} else {
-			if (hcAdded()) {
-				map.removeLayer("wms-hc_0_25m-layer");
-				map.removeSource("wms-hc_0_25m-source");
-				map.removeLayer("wms-hc_0_5m-layer");
-				map.removeSource("wms-hc_0_5m-source");
-				map.removeLayer("wms-hc_2_5m-layer");
-				map.removeSource("wms-hc_2_5m-source");
-			}
+		} else if (hcAdded()) {
+			map.removeLayer("wms-hc_0_25m-layer");
+			map.removeSource("wms-hc_0_25m-source");
+			map.removeLayer("wms-hc_0_5m-layer");
+			map.removeSource("wms-hc_0_5m-source");
+			map.removeLayer("wms-hc_2_5m-layer");
+			map.removeSource("wms-hc_2_5m-source");
 		}
 	});
 }

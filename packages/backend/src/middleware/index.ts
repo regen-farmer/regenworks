@@ -48,11 +48,9 @@ export async function checkUserOwnership(
 				console.log("progress!!");
 				next();
 			} else {
-				res
-					.status(401)
-					.send({
-						error: "The owner of this farm doesn't match the recieved user id",
-					});
+				res.status(401).send({
+					error: "The owner of this farm doesn't match the recieved user id",
+				});
 			}
 		} catch (err) {
 			res.status(400).send({ error: "User not found" });

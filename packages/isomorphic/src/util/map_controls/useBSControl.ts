@@ -73,11 +73,9 @@ export function useBSControl(map: maplibregl.Map) {
 			});
 
 			setBsAdded(true);
-		} else {
-			if (bsAdded()) {
-				map.removeLayer("bluespot-wmts-layer");
-				map.removeSource("bluespot-wmts-source");
-			}
+		} else if (bsAdded()) {
+			map.removeLayer("bluespot-wmts-layer");
+			map.removeSource("bluespot-wmts-source");
 		}
 	});
 }

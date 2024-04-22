@@ -48,7 +48,10 @@ export default function view() {
 		// console.log('formdata: ', formData)
 		const formDataObj = {};
 		// @ts-ignore
-		formData.forEach((value, key) => (formDataObj[key] = value));
+		formData.forEach((value, key) => {
+			formDataObj[key] = value;
+			return formDataObj;
+		});
 		console.log("test1", formDataObj);
 		const parser = new MPObj.NestedParser(formDataObj, {
 			separator: "bracket",

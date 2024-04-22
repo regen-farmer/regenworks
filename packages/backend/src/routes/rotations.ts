@@ -52,12 +52,10 @@ router.post(
 			console.log(
 				"Length must be divisible with distance between species in rotation.",
 			);
-			res
-				.status(400)
-				.send({
-					error:
-						"Length must be divisible with distance between species in rotation.",
-				});
+			res.status(400).send({
+				error:
+					"Length must be divisible with distance between species in rotation.",
+			});
 		}
 	},
 );

@@ -1,6 +1,6 @@
 import type { Accessor } from "solid-js";
 import { createSignal, createEffect } from "solid-js";
-import type { ISpeciesSchema, SpeciesDocument } from "@rw/db/schemas/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import type { helpers as turf } from "@turf/turf";
 import type { Resource } from "solid-js";
 // @ts-ignore

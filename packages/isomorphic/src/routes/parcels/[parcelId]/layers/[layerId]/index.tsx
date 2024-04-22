@@ -204,7 +204,7 @@ export default function view() {
 											<>
 												<A
 													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
-													class={`list-group-item list-group-item-action ${status[3]}`}
+													class={`list-group-item list-group-item-action`}
 												>
 													{/* <div
 																	style={{

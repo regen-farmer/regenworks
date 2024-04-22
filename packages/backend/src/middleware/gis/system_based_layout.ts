@@ -17,8 +17,10 @@ import { makeGroundCoverAreas } from "./make_ground_cover_areas";
 import { applyHeadland } from "./headland";
 import SystemDesign, { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
 
-export function systemBasedLayout(systemdesign: ISystemDesignSchema, geometry: string) {
-
+export function systemBasedLayout(
+	systemdesign: ISystemDesignSchema,
+	geometry: string,
+) {
 	if (!systemdesign) {
 		systemdesign = new SystemDesign({
 			margin: 0,

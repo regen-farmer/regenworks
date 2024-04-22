@@ -177,7 +177,6 @@ router.post(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
-		
 		const payload: { geometry; systemdesign } = req.body;
 
 		try {
@@ -282,7 +281,10 @@ router.get(
 
 			if (foundProject && foundProject.isPublic) {
 				console.time("systemBasedLayout");
-				const layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+				const layout = systemBasedLayout(
+					foundProject.systemdesign,
+					foundProject.layer.geometry,
+				);
 				console.timeEnd("systemBasedLayout");
 				res.send({
 					project: foundProject,
@@ -335,7 +337,7 @@ router.put(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
-		console.log("Here")
+		console.log("Here");
 		try {
 			await Project.findByIdAndUpdate(req.params.id, req.body.project);
 			// req.flash("success", "Successfully added service");
@@ -345,8 +347,6 @@ router.put(
 		}
 	},
 );
-
-
 
 // PROJECT 3D VIZ
 router.get(

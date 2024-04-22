@@ -113,12 +113,10 @@ router.post(
 			console.log(
 				"Length must be divisible with distance between speciee in rows.",
 			);
-			res
-				.status(400)
-				.send({
-					error:
-						"Length must be divisible with distance between speciee in rows.",
-				});
+			res.status(400).send({
+				error:
+					"Length must be divisible with distance between speciee in rows.",
+			});
 		}
 	},
 );
@@ -947,11 +945,9 @@ router.delete(
 							console.log(`${foundProjects.length} projects found`);
 							if (foundProjects.length > 0) {
 								// SEND BACK IF PROJECTS
-								res
-									.status(500)
-									.send({
-										error: "Can't delete system because projects exist",
-									});
+								res.status(500).send({
+									error: "Can't delete system because projects exist",
+								});
 							} else {
 								// CHECK EDGE SYSTEM!?
 								// DELETE IN FUTURE DRAFT

@@ -1,6 +1,6 @@
 import { systemBasedLayout } from "./system_based_layout";
 import Layer from "@rw/db/schemas/layer";
-import { ProjectDocument } from "@rw/db/schemas/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 
 console.log(typeof Layer);
 describe("systemBasedLayout - headlandPolygon", () => {
@@ -559,7 +559,7 @@ describe("systemBasedLayout - headlandPolygon", () => {
 
 		const angle = [-34, 10, 20, 30];
 
-		angle.forEach((a) => {
+		for (const a of angle) {
 			project.systemdesign.bearing = a;
 
 			const layout = systemBasedLayout(project as unknown as ProjectDocument);
@@ -581,7 +581,7 @@ describe("systemBasedLayout - headlandPolygon", () => {
 					],
 				},
 			});
-		});
+		}
 	}, 5000);
 
 	test("Concave-field-aligned , bearing -34, headland 2", () => {
