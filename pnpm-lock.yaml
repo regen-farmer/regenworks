@@ -12,8 +12,11 @@ importers:
         specifier: ^8.3.1
         version: 8.3.2
 
-  packages/ts-backend:
+  packages/backend:
     dependencies:
+      '@rw/db':
+        specifier: workspace:*
+        version: link:../db
       '@turf/area':
         specifier: ^6.5.0
         version: 6.5.0
@@ -127,7 +130,9 @@ importers:
         specifier: ^5.4.5
         version: 5.4.5
 
-  packages/ts-isomorphic:
+  packages/db: {}
+
+  packages/isomorphic:
     dependencies:
       '@auth/core':
         specifier: 0.29.0
@@ -156,6 +161,9 @@ importers:
       '@popperjs/core':
         specifier: ^2.11.8
         version: 2.11.8
+      '@rw/db':
+        specifier: workspace:*
+        version: link:../db
       '@solid-mediakit/auth':
         specifier: ^2.0.11
         version: 2.0.11(@auth/core@0.29.0)(@solidjs/meta@0.29.3(solid-js@1.8.16))(@solidjs/router@0.13.2(solid-js@1.8.16))(@solidjs/start@1.0.0-rc.0(rollup@4.16.1)(solid-js@1.8.16)(vinxi@0.3.11(@types/node@20.12.7)(ioredis@5.4.1)(terser@5.30.4)(xml2js@0.6.2))(vite@5.2.10(@types/node@20.12.7)(terser@5.30.4)))(solid-js@1.8.16)(vinxi@0.3.11(@types/node@20.12.7)(ioredis@5.4.1)(terser@5.30.4)(xml2js@0.6.2))
