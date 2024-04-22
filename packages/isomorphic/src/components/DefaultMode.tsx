@@ -1,11 +1,11 @@
 import { A } from "@solidjs/router";
 // import { modes } from "~/routes/parcels/[parcelId]";
 // import { useDrawControl } from "~/util/map_controls/useDrawControl";
-// import { LayerDocument } from "~/models/layer";
+// import { LayerDocument } from "@rw/db/schemas/layer";
 import type { Map as MLMap } from "maplibre-gl";
 import type { Resource } from "solid-js";
 import type * as turf from "@turf/turf";
-import type { IParcelSchema } from "~/models/parcel";
+import type { IParcelSchema } from "@rw/db/schemas/parcel";
 
 type DefaultModeProps = {
 	data: Resource<

@@ -1,5 +1,5 @@
 // import { storage } from "~/auth/session";
-// import User, { type UserDocument } from "~/models/user";
+// import User, { type UserDocument } from "@rw/db/schemas/user";
 
 // export async function getMongoUserFromRequest(request: Request) {
 //   const cookie = request.headers.get("Cookie") ?? "";

@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import MPObj from "multipart-object";
 import { action } from "@solidjs/router";
-import type { SpeciesDocument } from "~/models/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 export default function view() {

@@ -1,5 +1,5 @@
-import type { AnimalDocument } from "~/models/animal";
-import type { SpeciesDocument } from "~/models/species";
+import type { AnimalDocument } from "@rw/db/schemas/animal";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 
 export function sortAnimalsByName(a: AnimalDocument, b: AnimalDocument) {
 	if (a.name < b.name) {

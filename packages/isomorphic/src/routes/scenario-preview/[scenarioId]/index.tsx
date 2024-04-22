@@ -18,9 +18,9 @@ import { use3DControl } from "~/util/map_controls/use3DControl";
 import { useBSControl } from "~/util/map_controls/useBSControl";
 import { useHCControl } from "~/util/map_controls/useHCControl";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
-import type { SpeciesDocument } from "~/models/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { systemBasedLayout } from "~/modeling/gis/system_based_layout";
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();

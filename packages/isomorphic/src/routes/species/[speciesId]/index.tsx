@@ -1,6 +1,6 @@
 import { A, useParams } from "@solidjs/router";
 import { For, Show, createResource } from "solid-js";
-import type { SpeciesDocument } from "~/models/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 export default function view() {

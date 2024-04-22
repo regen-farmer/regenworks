@@ -1,6 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { getRequestEvent } from "solid-js/web";
-import Project from "~/models/project";
+import Project from "@rw/db/schemas/project";
 import { apiResponseOptions } from "~/util/apiFetchOptions";
 
 export async function PATCH() {

@@ -12,18 +12,18 @@ import { A, useLocation, useParams } from "@solidjs/router";
 import { helpers as turf } from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
-import type { AnimalDocument } from "~/models/animal";
-import type { LayerDocument } from "~/models/layer";
-import type { ISpeciesSchema, SpeciesDocument } from "~/models/species";
+import type { AnimalDocument } from "@rw/db/schemas/animal";
+import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { ISpeciesSchema, SpeciesDocument } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { useHCControl } from "~/util/map_controls/useHCControl";
 import { useBSControl } from "~/util/map_controls/useBSControl";
 import maplibregl from "maplibre-gl";
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { ISystemDesignSchema } from "~/models/systemdesign";
+import type { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
 import { featureCollection } from "@turf/turf";
 import SplitView from "~/util/splitview/SplitView";
 import { use3DControl } from "~/util/map_controls/use3DControl";

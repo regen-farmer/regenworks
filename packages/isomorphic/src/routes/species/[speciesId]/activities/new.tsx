@@ -1,7 +1,7 @@
 import { createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate } from "@solidjs/router";
-import type { SpeciesDocument } from "~/models/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 export default function view() {

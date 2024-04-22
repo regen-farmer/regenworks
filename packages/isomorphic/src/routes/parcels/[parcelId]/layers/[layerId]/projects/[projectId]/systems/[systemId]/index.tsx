@@ -11,8 +11,8 @@ import { PalmTop } from "~/components/graphics/palmtop";
 import { ShrubTop } from "~/components/graphics/shrubtop";
 import { SocculentTop } from "~/components/graphics/succulenttop";
 import { TreeTop } from "~/components/graphics/treetop";
-import type { SpeciesDocument } from "~/models/species";
-import type { SystemDocument } from "~/models/system";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import "./index.css";
 

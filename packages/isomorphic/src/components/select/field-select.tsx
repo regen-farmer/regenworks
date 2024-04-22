@@ -3,7 +3,7 @@ import { Show, createMemo, createResource, createSignal } from "solid-js";
 import { useLocation, useNavigate, useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
-import type { LayerDocument } from "~/models/layer";
+import type { LayerDocument } from "@rw/db/schemas/layer";
 // import { breadcrumb } from '~/breadcrumb'
 
 export const [reloadSignal, setReloadSignal] = createSignal(1);

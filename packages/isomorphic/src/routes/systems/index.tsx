@@ -1,5 +1,5 @@
 import { For, createResource } from "solid-js";
-import type { SystemDocument } from "~/models/system";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 export default function view() {

@@ -7,9 +7,9 @@ import {
 } from "solid-js";
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import type { LayerDocument } from "~/models/layer";
-import type { SpeciesDocument } from "~/models/species";
-import type { SystemDocument } from "~/models/system";
+import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import maplibregl from "maplibre-gl";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { Button, Row } from "solid-bootstrap";

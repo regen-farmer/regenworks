@@ -13,9 +13,9 @@ import {
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
 import { mongoDBDBUser } from "~/auth/useAuth";
-import type { LayerDocument } from "~/models/layer";
-import type { ProjectDocument } from "~/models/project";
-import type { SystemDocument } from "~/models/system";
+import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { ProjectDocument } from "@rw/db/schemas/project";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 export default function view() {

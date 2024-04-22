@@ -1,5 +1,5 @@
 import { A, useParams } from "@solidjs/router";
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import type turf from "@turf/turf";
 import { For, createEffect, createResource } from "solid-js";

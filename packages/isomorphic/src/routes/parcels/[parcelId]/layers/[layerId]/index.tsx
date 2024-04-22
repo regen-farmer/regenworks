@@ -7,12 +7,12 @@ import {
 	Show,
 } from "solid-js";
 import maplibregl from "maplibre-gl";
-import type { LayerDocument } from "~/models/layer";
+import type { LayerDocument } from "@rw/db/schemas/layer";
 import { action, useLocation } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
 import { mongoDBDBUser } from "~/auth/useAuth";
-import type { SystemDocument } from "~/models/system";
-import type { SpeciesDocument } from "~/models/species";
+import type { SystemDocument } from "@rw/db/schemas/system";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";

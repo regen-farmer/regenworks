@@ -1,9 +1,9 @@
 import { createMemo, createResource, For, Show } from "solid-js";
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import type { AnimalDocument } from "~/models/animal";
-import type { SpeciesDocument } from "~/models/species";
-import type { SystemDocument } from "~/models/system";
+import type { AnimalDocument } from "@rw/db/schemas/animal";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import MPObj from "multipart-object";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";

@@ -2,8 +2,8 @@ import { For, createEffect, createResource, createSignal } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate, A } from "@solidjs/router";
 // import { SideBar } from "~/components/SideBar";
-import type { LayerDocument } from "~/models/layer";
-import type { SequenceDocument } from "~/models/sequence";
+import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { SequenceDocument } from "@rw/db/schemas/sequence";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 import maplibregl from "maplibre-gl";

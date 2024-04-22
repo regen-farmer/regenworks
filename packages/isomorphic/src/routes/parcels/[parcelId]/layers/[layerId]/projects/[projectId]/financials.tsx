@@ -7,11 +7,11 @@ import {
 	Show,
 } from "solid-js";
 import { action } from "@solidjs/router";
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import Chart from "chart.js/auto";
-import type { SpeciesDocument } from "~/models/species";
-import type { SequenceDocument } from "~/models/sequence";
+import type { SpeciesDocument } from "@rw/db/schemas/species";
+import type { SequenceDocument } from "@rw/db/schemas/sequence";
 import { A, useParams } from "@solidjs/router";
 
 export default function view() {

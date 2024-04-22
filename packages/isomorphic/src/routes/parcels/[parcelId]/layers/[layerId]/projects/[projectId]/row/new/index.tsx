@@ -7,8 +7,8 @@ import {
 } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, A, useNavigate } from "@solidjs/router";
-import type { ProjectDocument } from "~/models/project";
-import type { SequenceDocument } from "~/models/sequence";
+import type { ProjectDocument } from "@rw/db/schemas/project";
+import type { SequenceDocument } from "@rw/db/schemas/sequence";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 import maplibregl, { type IControl, type Map as MLMap } from "maplibre-gl";

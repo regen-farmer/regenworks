@@ -8,7 +8,7 @@ import {
 	Show,
 } from "solid-js";
 import maplibregl, { type IControl } from "maplibre-gl";
-import type { IParcelSchema } from "~/models/parcel";
+import type { IParcelSchema } from "@rw/db/schemas/parcel";
 
 import type * as turf from "@turf/turf";
 import "maplibre-gl/dist/maplibre-gl.css";

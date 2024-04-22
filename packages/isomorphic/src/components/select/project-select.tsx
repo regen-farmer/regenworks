@@ -9,7 +9,7 @@ import {
 import { useLocation, useNavigate, useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 // import { breadcrumb } from '~/breadcrumb'
 
 export const [reloadSignal, setReloadSignal] = createSignal(1);

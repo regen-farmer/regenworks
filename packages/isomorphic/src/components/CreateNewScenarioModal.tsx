@@ -4,10 +4,10 @@ import "~/styling/modal.css";
 import { action } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { Row } from "solid-bootstrap";
-import type { LayerDocument } from "~/models/layer";
-import type { SystemDocument } from "~/models/system";
+import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { SystemDocument } from "@rw/db/schemas/system";
 import { useParams } from "@solidjs/router";
-import type { ProjectDocument } from "~/models/project";
+import type { ProjectDocument } from "@rw/db/schemas/project";
 
 type CreateNewScenarioModalProps = {
 	modalOpen: () => boolean;
