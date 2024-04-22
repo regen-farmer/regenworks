@@ -2,12 +2,13 @@
   "name": "regenworks",
   "version": "1.0.0",
   "description": "",
-  
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "pnpm -F express-backend run dev"
   },
   "keywords": [],
-  "author": ""
-  
+  "author": "",
+  "dependencies": {
+    "mongoose": "^8.3.1"
+  }
 }

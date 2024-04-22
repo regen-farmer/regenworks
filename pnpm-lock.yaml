@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      mongoose:
+        specifier: ^8.3.1
+        version: 8.3.2
 
   packages/ts-backend:
     dependencies:
