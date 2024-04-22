@@ -10,11 +10,14 @@ import { makeInitialLine } from "./make_line";
 import { makeTreeRowLines } from "./make_tree_row_lines";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas";
 import { applyHeadland } from "./headland";
-import SystemDesign, { type ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
+import SystemDesign, {
+	type ISystemDesignSchema,
+} from "@rw/db/schemas/systemdesign";
 
-export function systemBasedLayout(systemdesign: ISystemDesignSchema, fieldGeometry: string) {
-	
-
+export function systemBasedLayout(
+	systemdesign: ISystemDesignSchema,
+	fieldGeometry: string,
+) {
 	if (!systemdesign) {
 		systemdesign = new SystemDesign({
 			margin: 0,
@@ -26,7 +29,6 @@ export function systemBasedLayout(systemdesign: ISystemDesignSchema, fieldGeomet
 
 	const systemRows = systemdesign.rows;
 
-	
 	const polygon = JSON.parse(fieldGeometry);
 
 	// MARGIN
@@ -95,7 +97,7 @@ export function systemBasedLayout(systemdesign: ISystemDesignSchema, fieldGeomet
 				treeSequenceIdx = (treeSequenceIdx + 1) % sequence.length;
 			}
 		}
-	};
+	}
 
 	const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
 		// console.log('marker.species', marker.species)
@@ -113,7 +115,7 @@ export function systemBasedLayout(systemdesign: ISystemDesignSchema, fieldGeomet
 		return counts;
 	}, {});
 
-	console.log("speciesCounts", speciesCounts)
+	console.log("speciesCounts", speciesCounts);
 
 	const speciesCountArray = Object.values(speciesCounts);
 	// console.log('speciesCountArray',speciesCountArray)

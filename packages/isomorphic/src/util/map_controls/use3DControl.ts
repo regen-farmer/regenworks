@@ -104,9 +104,10 @@ export function use3DControl(
 					// console.log('entry.species', entry.species)
 
 					if (entry.species) {
-
 						// console.log('entry.species', entry.species)
-						const cultivar = species()?.speciesById.get(entry.species._id ?? entry.species);
+						const cultivar = species()?.speciesById.get(
+							entry.species._id ?? entry.species,
+						);
 
 						// console.log("cultivar", cultivar)
 						return cultivar.form !== undefined;
@@ -119,7 +120,9 @@ export function use3DControl(
 			console.log("correctTreeAssetArray", correctTreeAssetArray);
 
 			const assetFormArrays = _.groupBy(correctTreeAssetArray, (entry) => {
-				const cultivar = species()?.speciesById.get(entry.species._id ??entry.species);
+				const cultivar = species()?.speciesById.get(
+					entry.species._id ?? entry.species,
+				);
 
 				if (cultivar?.family === "pinaceae") {
 					return "conifer";

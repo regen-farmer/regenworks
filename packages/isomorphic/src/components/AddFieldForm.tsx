@@ -7,10 +7,15 @@ type AddFieldFormProps = {
 	enterDefaultMode: (cancelled: boolean) => void;
 	name: () => string;
 	refetch: any;
-	removeDrawControl: ()=>void
+	removeDrawControl: () => void;
 };
 
-function AddFieldForm({ enterDefaultMode, name, refetch, removeDrawControl }: AddFieldFormProps) {
+function AddFieldForm({
+	enterDefaultMode,
+	name,
+	refetch,
+	removeDrawControl,
+}: AddFieldFormProps) {
 	const [submitDisabled, setSubmitDisabled] = createSignal<boolean>(false);
 	const params = useParams<{ parcelId: string }>();
 
@@ -37,10 +42,9 @@ function AddFieldForm({ enterDefaultMode, name, refetch, removeDrawControl }: Ad
 		await refetch();
 	});
 
-	function cancel(){
-
-		removeDrawControl()
-		enterDefaultMode(true)
+	function cancel() {
+		removeDrawControl();
+		enterDefaultMode(true);
 	}
 
 	return (

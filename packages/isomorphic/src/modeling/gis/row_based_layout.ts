@@ -5,7 +5,7 @@ import {
 	circle,
 } from "@turf/turf";
 import type { IProjectSchema } from "@rw/db/schemas/project";
-import type  { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
 
 export function rowBasedLayout(project: IProjectSchema) {
 	//

@@ -49,7 +49,6 @@ export function FieldSelect() {
 	}
 
 	const fields = createMemo(() => {
-	
 		if (!farmData()?.error) {
 			const fields = farmData()?.parcel.layers?.map((field: LayerDocument) =>
 				field._id.toString(),

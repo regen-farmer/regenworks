@@ -25,7 +25,6 @@ import type { ProjectDocument } from "@rw/db/schemas/project";
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
 
-
 	const [species, { refetch: speciesRefresh }] = createResource<{
 		species: SpeciesDocument[];
 		speciesById: Map<string, SpeciesDocument>;
@@ -73,16 +72,12 @@ const RouteDesignPreview: Component = () => {
 		speciesCountArray: any;
 	}>();
 
-
 	async function getSystemDesign() {
-
 		const layout = systemBasedLayout(
 			scenarioData()?.project.systemdesign,
 			scenarioData()?.project.layer.geometry,
 		);
 
-		
-		
 		setSystemLayout({
 			treeRowLines: layout.treeRowLines,
 			groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
@@ -174,16 +169,15 @@ const RouteDesignPreview: Component = () => {
 		}
 	});
 
-	createEffect(()=>{
+	createEffect(() => {
 		if (mapLoaded() && scenarioData()) {
 			getSystemDesign();
 		}
-	})
+	});
 
 	createEffect(() => {
 		if (mapLoaded() && systemLayout()) {
-
-			console.log("DRAW")
+			console.log("DRAW");
 			const debug = true;
 
 			const stripsVisible = true;
@@ -506,7 +500,11 @@ const RouteDesignPreview: Component = () => {
 									return (
 										<>
 											<span>
-												{species()?.speciesById.get(speciesEl.species).nameCommon}: {speciesEl.count}
+												{
+													species()?.speciesById.get(speciesEl.species)
+														.nameCommon
+												}
+												: {speciesEl.count}
 											</span>
 											<br />
 										</>

@@ -20,7 +20,6 @@ export const [stripeCustomer, setStripeCustomer]: [any, any] = createSignal();
 
 export const subscriptions = createMemo(() => {
 	if (stripeCustomer) {
-		
 		if (
 			stripeCustomer()?.subscriptions.find((s: any) => s.status === "active")
 		) {

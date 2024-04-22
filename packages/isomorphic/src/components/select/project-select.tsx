@@ -55,7 +55,6 @@ export function ProjectSelect() {
 		return projcetId;
 	});
 
-
 	const [fieldData, { refetch }] = createResource(
 		reloadSignal,
 		async (reloader) => {
@@ -69,8 +68,6 @@ export function ProjectSelect() {
 			return answer;
 		},
 	);
-
-
 
 	const navigate = useNavigate();
 
@@ -112,7 +109,6 @@ export function ProjectSelect() {
 		return projects;
 	});
 
-
 	return (
 		<Show when={projects()}>
 			<Select.Root
@@ -120,9 +116,11 @@ export function ProjectSelect() {
 				placeholder="Select scenario"
 				value={getProjectId()}
 				onChange={(val) => {
-						if (val) {
-							navigate(`/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${val}`);
-						}
+					if (val) {
+						navigate(
+							`/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${val}`,
+						);
+					}
 				}}
 				// valueComponent={(props: any) => {
 				//   return props.item ? fieldDisplay(props.item.rawValue) : ''

@@ -15,12 +15,10 @@ type AddFieldModalProps = {
 	setModalOpen: (modalOpen: boolean) => void;
 	setInput: (input: string) => void;
 	setKMLPolygon: (input: Feature<Polygon, Properties> | null) => void;
-	addDrawControl: ()=>void;
+	addDrawControl: () => void;
 	enterDefaultMode: (cancelled: boolean) => void;
 	removeDrawControl: () => void;
 };
-
-
 
 function AddFieldModal({
 	modalOpen,
@@ -29,7 +27,7 @@ function AddFieldModal({
 	setKMLPolygon,
 	addDrawControl,
 	enterDefaultMode,
-	removeDrawControl
+	removeDrawControl,
 }: AddFieldModalProps) {
 	const [error, setError] = createSignal<string>("");
 	// setInput and closeModal
@@ -42,11 +40,9 @@ function AddFieldModal({
 			setInternalKMLFile(null);
 
 			setModalOpen(false);
-			
-			console.log("Add draw control")
-			addDrawControl()
-			
 
+			console.log("Add draw control");
+			addDrawControl();
 		} else {
 			setError("Please enter a name");
 		}
@@ -54,7 +50,7 @@ function AddFieldModal({
 
 	function cancel() {
 		setModalOpen(false);
-		removeDrawControl()
+		removeDrawControl();
 		enterDefaultMode(true);
 	}
 

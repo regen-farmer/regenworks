@@ -55,14 +55,16 @@ export default function view() {
 		headland: 0,
 	});
 
-	
 	async function getSystemDesign() {
 		const start = Date.now();
 
 		setPreviewing(true);
 
 		// On client
-		const layout = systemBasedLayout(system, scenarioData()?.project.layer.geometry)
+		const layout = systemBasedLayout(
+			system,
+			scenarioData()?.project.layer.geometry,
+		);
 
 		setSystemLayout({
 			treeRowLines: layout.treeRowLines,
@@ -71,15 +73,11 @@ export default function view() {
 			marginPolygon: layout.marginPolygon,
 			speciesCountArray: layout.speciesCountArray,
 
-			sidesCloseToBearing: turf.featureCollection(
-				layout.sidesCloseToBearing,
-			),
+			sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
 			intersectionPoints: turf.featureCollection(layout.intersectionPoints),
 			headlandSides: turf.featureCollection(layout.headlandSides),
 			treeMarkerArray: layout.treeMarkerArray,
-		})
-
-	
+		});
 
 		// On server
 		// const response = await fetch(
@@ -135,9 +133,7 @@ export default function view() {
 
 			const result: {
 				project: ProjectDocument;
-
 			} = await response.json();
-
 
 			if (result) {
 				if (result?.project.systemdesign) {
@@ -162,7 +158,6 @@ export default function view() {
 			apiFetchOptions(),
 		);
 
-
 		const result = await response.json();
 
 		result.speciesById = new Map<string, any>(
@@ -171,8 +166,6 @@ export default function view() {
 
 		return result;
 	});
-
-	
 
 	createMemo(() => {
 		scenarioDataRefresh();
@@ -249,44 +242,43 @@ export default function view() {
 
 					setMapLoaded(true);
 
-					const unparsedFieldPolygon: any = scenarioData()?.project.layer.geometry;
-			const fieldPolygon = JSON.parse(
-				unparsedFieldPolygon!.replace(/&#34;/g, '"'),
-			);
+					const unparsedFieldPolygon: any =
+						scenarioData()?.project.layer.geometry;
+					const fieldPolygon = JSON.parse(
+						unparsedFieldPolygon!.replace(/&#34;/g, '"'),
+					);
 
-			// var offset = layoutData()?.offset
+					// var offset = layoutData()?.offset
 
-			const fieldPolygonVisible= true;
-			if (fieldPolygonVisible) {
-				if (map.getSource("fieldPolygon")) {
-					map.removeLayer("fieldPolygon");
-					map.removeSource("fieldPolygon");
-				}
+					const fieldPolygonVisible = true;
+					if (fieldPolygonVisible) {
+						if (map.getSource("fieldPolygon")) {
+							map.removeLayer("fieldPolygon");
+							map.removeSource("fieldPolygon");
+						}
 
-				map.addLayer({
-					id: "fieldPolygon",
-					type: "fill",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: {
-							type: "Feature",
-							geometry: {
-								type: "Polygon",
-								coordinates: fieldPolygon.geometry.coordinates,
+						map.addLayer({
+							id: "fieldPolygon",
+							type: "fill",
+							//@ts-ignore
+							source: {
+								type: "geojson",
+								data: {
+									type: "Feature",
+									geometry: {
+										type: "Polygon",
+										coordinates: fieldPolygon.geometry.coordinates,
+									},
+								},
 							},
-						},
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#b4aab4",
-						"fill-opacity": 0.5,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
-			}
-
-					
+							layout: {},
+							paint: {
+								"fill-color": "#b4aab4",
+								"fill-opacity": 0.5,
+								"fill-outline-color": "#F0F8FF",
+							},
+						});
+					}
 				});
 
 				// map.transformCameraUpdate = ({ center, zoom }) => {
@@ -322,7 +314,7 @@ export default function view() {
 
 			const stripsVisible = true;
 			// const fieldPolygonVisible = true;
-			
+
 			const headlandBuffersVisible = false;
 			const headlandIntersectionPointsVisible = false;
 			const bearingSidesVisible = false;
@@ -351,8 +343,6 @@ export default function view() {
 			// console.log("treeMarkerArray", treeMarkerArray);
 
 			// var treeRowArray = layoutData()?.treeRowArray
-
-			
 
 			// if (map.getSource('alleys')) {
 			//   map.removeLayer('alleys')
@@ -893,9 +883,7 @@ export default function view() {
 																							>
 																								{(species) => (
 																									<option value={species._id}>
-																										{
-																											species.nameCommon
-																										}
+																										{species.nameCommon}
 																									</option>
 																								)}
 																							</For>
@@ -1272,39 +1260,45 @@ export default function view() {
 							</div>
 						</div>
 
-						{systemLayout()?
-						<div
-							style={{
-								color: "white",
-								position: "absolute",
-								padding: "10px",
-								background: "#151515dd",
-								"border-radius": "10px",
-								"z-index": 10,
-								left: "10px",
-								bottom: "10px",
-							}}
-						>
-							<strong>
-								<span>Tree and shrub counts:</span>
-							</strong>
-							<br />
-
-							<For each={systemLayout()?.speciesCountArray}>
-								{(speciesEl) => {
-									// console.log("species", systemDesignData()?.species);
-									return (
-										<>
-											<span>
-												{species()?.speciesById.get(speciesEl.species).nameCommon}: {speciesEl.count}
-											</span>
-											<br />
-										</>
-									);
+						{systemLayout() ? (
+							<div
+								style={{
+									color: "white",
+									position: "absolute",
+									padding: "10px",
+									background: "#151515dd",
+									"border-radius": "10px",
+									"z-index": 10,
+									left: "10px",
+									bottom: "10px",
 								}}
-							</For>
-						</div>
-						:<></>}
+							>
+								<strong>
+									<span>Tree and shrub counts:</span>
+								</strong>
+								<br />
+
+								<For each={systemLayout()?.speciesCountArray}>
+									{(speciesEl) => {
+										// console.log("species", systemDesignData()?.species);
+										return (
+											<>
+												<span>
+													{
+														species()?.speciesById.get(speciesEl.species)
+															.nameCommon
+													}
+													: {speciesEl.count}
+												</span>
+												<br />
+											</>
+										);
+									}}
+								</For>
+							</div>
+						) : (
+							<></>
+						)}
 					</div>
 				</div>
 			</Show>

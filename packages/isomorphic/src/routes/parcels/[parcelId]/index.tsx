@@ -304,7 +304,7 @@ export default function view() {
 
 	function removeDrawControl() {
 		if (draw) {
-			if (map.hasControl(draw as unknown as IControl)){
+			if (map.hasControl(draw as unknown as IControl)) {
 				map.removeControl(draw as unknown as IControl);
 			}
 		}

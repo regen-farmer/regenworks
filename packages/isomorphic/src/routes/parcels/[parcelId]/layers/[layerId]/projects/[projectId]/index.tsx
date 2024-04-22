@@ -40,11 +40,10 @@ export default function view() {
 		return await response.json();
 	});
 
-	createMemo(()=>{
-		refetch()
-		return useLocation().pathname
-	})
-	
+	createMemo(() => {
+		refetch();
+		return useLocation().pathname;
+	});
 
 	const navigate = useNavigate();
 
@@ -188,7 +187,9 @@ export default function view() {
 	async function exportKML() {
 		setExportingKML(true);
 		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/projects/${params.projectId}/design-preview`,
+			`${import.meta.env.VITE_BACKEND_URL}/projects/${
+				params.projectId
+			}/design-preview`,
 			apiFetchOptions(),
 		);
 
@@ -225,9 +226,9 @@ export default function view() {
 		//   treeMarkerArray?.map((tree: any) => tree.circle)
 		// );
 
-		console.log(treeMarkerArray)
+		console.log(treeMarkerArray);
 		for (const entry of treeMarkerArray) {
-			console.log(entry)
+			console.log(entry);
 
 			if (entry.species?.nameCommon) {
 				kmlDoc += `<Placemark>
@@ -278,7 +279,6 @@ export default function view() {
 					<Row>
 						<div>
 							<Tabs defaultActiveKey={"info"}>
-							
 								<Tab eventKey="info" title="Info">
 									<div class="card">
 										<div class="card-body">
@@ -294,7 +294,7 @@ export default function view() {
 												<strong>Field: </strong> {data()?.project.layer.name}
 											</p> */}
 											<p>{data()?.project.description}</p>
-											
+
 											{/* <!--
             <a class="btn btn-dark" href="#">Duplicate this project (Coming soon)</a>
 --> */}
@@ -418,7 +418,7 @@ export default function view() {
 													</div>
 												</div>
 											</div>
-										
+
 											{/* <h2>System design</h2> */}
 											<A
 												href={`/parcels/${params.parcelId}/layers/${
@@ -467,9 +467,10 @@ export default function view() {
 											) : (
 												""
 											)}
-<br /><br />
+											<br />
+											<br />
 
-{mongoDBDBUser() &&
+											{mongoDBDBUser() &&
 											data()?.project.owner.id === mongoDBDBUser()._id ? (
 												<>
 													<button
@@ -536,11 +537,7 @@ export default function view() {
 											)}
 										</div>
 									</div>
-
-
 								</Tab>
-
-								
 
 								{false ? (
 									<Tab eventKey="systems" title="System">

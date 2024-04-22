@@ -2,6 +2,7 @@
   "name": "regenworks",
   "version": "1.0.0",
   "description": "",
+  "workspaces": ["packages/*"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "pnpm -F express-backend run dev"
@@ -10,5 +11,10 @@
   "author": "",
   "dependencies": {
     "mongoose": "^8.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.7.1",
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.5"
   }
 }

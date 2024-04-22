@@ -24,7 +24,10 @@ export const authOpts: SolidAuthConfig = {
 			clientSecret: import.meta.env.VITE_AUTH0_CLIENT_SECRET,
 			issuer: import.meta.env.VITE_AUTH0_ISSUER,
 			authorization: {
-				params: { scope: "email email_verified openid profile", prompt: "login" },
+				params: {
+					scope: "email email_verified openid profile",
+					prompt: "login",
+				},
 			},
 			async profile(profile, tokens) {
 				// setAuth0User(profile ?? "");

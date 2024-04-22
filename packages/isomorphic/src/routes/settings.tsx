@@ -159,7 +159,10 @@ const RouteViewAccount: Component = () => {
 		);
 	}
 
-	async function deleteSubscription(subscriptionId: string, cancel_at_period_end=true) {
+	async function deleteSubscription(
+		subscriptionId: string,
+		cancel_at_period_end = true,
+	) {
 		console.log(subscriptionId, "cancel_at_period_end", cancel_at_period_end);
 		await fetch(
 			`${
@@ -168,7 +171,7 @@ const RouteViewAccount: Component = () => {
 			{
 				method: "PUT",
 				body: JSON.stringify({
-					cancel_at_period_end: cancel_at_period_end
+					cancel_at_period_end: cancel_at_period_end,
 				}),
 				...apiFetchOptions,
 			},
@@ -355,7 +358,8 @@ const RouteViewAccount: Component = () => {
 																),
 															),
 															"PPP",
-														)}{" - "}
+														)}
+														{" - "}
 														<span
 															style={{
 																"text-decoration": "underline",
@@ -379,7 +383,6 @@ const RouteViewAccount: Component = () => {
 														>
 															Cancel subscription immediately
 														</span>
-
 													</span>
 												) : (
 													<>

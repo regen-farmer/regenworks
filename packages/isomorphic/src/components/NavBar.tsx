@@ -110,16 +110,16 @@ export function NavBar() {
 
 									<ProjectSelect />
 									<A
-                    style={{ "margin-left": "5px" }}
-                    href={
-                      getProjectId()
-                        ? `/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${getProjectId()}`
-                        : `/parcels/${getParcelId()}/layers/${getLayerId()}`
-                    }
-                    end={true}
-                  >
-                    <i class="fa-solid fa-lightbulb" />
-                  </A>
+										style={{ "margin-left": "5px" }}
+										href={
+											getProjectId()
+												? `/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${getProjectId()}`
+												: `/parcels/${getParcelId()}/layers/${getLayerId()}`
+										}
+										end={true}
+									>
+										<i class="fa-solid fa-lightbulb" />
+									</A>
 								</li>
 							</Show>
 						</Show>

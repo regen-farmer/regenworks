@@ -42,11 +42,11 @@ export default function view() {
 	});
 
 	const navigate = useNavigate();
-	
-	createMemo(()=>{
-		refetch()
-		return useLocation().pathname
-	})
+
+	createMemo(() => {
+		refetch();
+		return useLocation().pathname;
+	});
 
 	const [modalOpen, setModalOpen] = createSignal(false);
 
@@ -65,8 +65,6 @@ export default function view() {
 	const [mapContainer, setMapContainer] = createSignal<HTMLDivElement>();
 
 	createEffect(() => {
-
-
 		// console.log('mapcontainer', mapContainer(), 'data', data())
 		if (data() && mapContainer()) {
 			const areaLat = data()?.layer.lat;

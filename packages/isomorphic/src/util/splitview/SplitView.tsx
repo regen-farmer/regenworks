@@ -60,7 +60,6 @@ function SplitView({ children, startPercent = 50 }: SplitViewProps) {
 		window.addEventListener("mousemove", onMouseMove);
 		window.addEventListener("mouseup", onMouseUp);
 
-
 		return () => {
 			window.removeEventListener("mousemove", onMouseMove);
 			window.removeEventListener("mouseup", onMouseUp);

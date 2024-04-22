@@ -85,8 +85,9 @@ export function extendInnerPolygonToOuterPolygon(
 		}
 		return side;
 	});
-	const extendedInnerPolygonCoords = extendedInnerPolygonSides
-		.flatMap((side) => side.geometry.coordinates)
+	const extendedInnerPolygonCoords = extendedInnerPolygonSides.flatMap(
+		(side) => side.geometry.coordinates,
+	);
 	const extendedInnerPolygon = turf.polygon(
 		[extendedInnerPolygonCoords],
 		innerPolygon.properties,
