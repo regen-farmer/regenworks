@@ -1,0 +1,29 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"linter": {
+		"rules": {
+			"a11y": {
+                "useKeyWithClickEvents":"off",
+				"noSvgWithoutTitle": "off",
+				"useHeadingContent": "off",
+                "useKeyWithMouseEvents":"off",
+				"useAltText": "off",
+				"useButtonType": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"noParameterAssign":"off",
+				"useEnumInitializers": "off"
+
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noAssignInExpressions":"off"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noConstantCondition": "off"
+			}
+		}
+	}
+}

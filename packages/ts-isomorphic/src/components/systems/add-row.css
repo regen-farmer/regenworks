@@ -1,0 +1,29 @@
+.buttons {
+  display: none;
+  
+  /* min-width: '200px'; */
+  
+}
+
+.trigger .btn {
+  margin-right: 0;
+}
+
+.trigger {
+  /* flex: 1 1 200px; */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 10px;
+  
+}
+
+.trigger:hover .plus {
+  display: none;
+  
+}
+
+.trigger:hover .buttons {
+  display: flex;
+  flex-direction: column;
+}

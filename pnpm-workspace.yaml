@@ -1,0 +1,5 @@
+packages:
+  - "packages/*"
+options:
+  prefer-workspace-packages: true
+  strict-peer-dependencies: false
