@@ -253,7 +253,7 @@ router.put(
 // router.delete("/users/:id", middleware.checkUserOwnership, async function(req: express.Request & { user?: UserDocument, idToken?: Auth0IDToken }, res: express.Response){
 //     try {
 
-//         let user = await User.findByIdAndRemove(req.params.id);
+//         let user = await User.findByIdAndDelete(req.params.id);
 
 //         // Flash message
 //         logger.info('User "' + user?.email + '" was deleted', {timestamp: Date.now()});
@@ -266,7 +266,7 @@ router.put(
 //     }
 // });
 
-// SET CURRENTPROJECT //
+
 
 router.put(
 	"/users/:id/countrycode",
@@ -293,35 +293,6 @@ router.put(
 	},
 );
 
-router.put(
-	"/users/:id/currentproject",
-	middleware.checkUserOwnership,
-	async (
-		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-		res: express.Response,
-	) => {
-		console.log("im here 2");
-		try {
-			const foundUser = await User.findById(req.user?.id);
-			console.log("im here 3");
-			try {
-				const foundParcel = await Parcel.findById(req.body.parcelid);
-				console.log("im here 4", foundUser, foundParcel);
-				if (foundUser && foundParcel) {
-					console.log("im here 5");
-					foundUser.currentProject = foundParcel.id;
-					await foundUser.save();
-					console.log(`${foundParcel.name} has been set to active project`);
-					res.send(foundUser);
-				}
-			} catch (err) {
-				console.log(err);
-			}
-		} catch (err) {
-			console.log(err);
-		}
-	},
-);
 
 // PARCEL STATUS PAGE
 router.get(

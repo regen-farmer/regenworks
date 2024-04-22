@@ -87,7 +87,7 @@ router.delete(
 				await updatedProject.save();
 				// DELETE ROW
 				try {
-					await Area.findByIdAndRemove(req.params.pid);
+					await Area.findByIdAndDelete(req.params.pid);
 					console.log(`Length after ${updatedProject.areas.length}`);
 					res.send(`/projects/${updatedProject._id}/layout`);
 				} catch (err) {

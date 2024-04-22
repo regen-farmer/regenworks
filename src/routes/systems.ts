@@ -977,7 +977,7 @@ router.delete(
 									}
 									// DELETE SYSTEM NOW
 									try {
-										await System.findByIdAndRemove(req.params.pid);
+										await System.findByIdAndDelete(req.params.pid);
 									} catch (err) {
 										console.log(err);
 									}
@@ -1041,7 +1041,7 @@ router.get(
 //           .exec();
 
 //         try {
-//           const foundParcel = await Parcel.findById(req.user?.currentProject);
+//           const foundParcel = await Parcel.findById(); // GET from URL
 
 //           if (foundParcel && foundSystem) {
 //             try {
@@ -1103,7 +1103,7 @@ router.get(
 //           .populate('animals')
 //           .exec();
 //         if (foundSystem) {
-//           const foundParcel = await Parcel.findById(req.user?.currentProject);
+//           const foundParcel = await Parcel.findById(); // GET from URL
 //           if (foundParcel) {
 //             // FIND SYSTEMS WITH SAME COMMODITY AS EXISTING SYSTEM (ONLY IF MONOCULTURE?) - COUNT OCCURRENCES?
 //             // let commodity = '';

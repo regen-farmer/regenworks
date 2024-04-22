@@ -1,4 +1,5 @@
 .env
+.env.prod
 .idea/
 node_modules/
 seeds.js

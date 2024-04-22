@@ -584,7 +584,7 @@ router.delete(
 					// REMOVE LAYER FROM PARCEL HERE WHEN IT IS FOUND?!
 					res.send();
 					// DELETE LAYER TEMP REMOVED
-					/* Layer.findByIdAndRemove(req.params.id, function(err){
+					/* Layer.findByIdAndDelete(req.params.id, function(err){
                        if(err){
                            console.log(err);
                            res.send("/parcels");
@@ -1317,7 +1317,7 @@ router.delete(
 				});
 				// DELETE ROW
 				try {
-					await Row.findByIdAndRemove(req.params.pid);
+					await Row.findByIdAndDelete(req.params.pid);
 
 					console.log(`Length after ${updatedLayer.rows.length}`);
 					res.send(`/layers/${updatedLayer._id}/layout`);

@@ -198,7 +198,7 @@ router.delete(
 	) => {
 		// MAKE ACTIVITY OWNERSHIP MIDDLEWARE
 		try {
-			await Activity.findByIdAndRemove(req.params.id);
+			await Activity.findByIdAndDelete(req.params.id);
 			res.send("/activities");
 		} catch (err) {
 			console.log(err);
@@ -463,7 +463,7 @@ router.delete(
 					await updatedProject.save();
 					// DELETE ACTIVITY
 					try {
-						await Activity.findByIdAndRemove(req.params.pid);
+						await Activity.findByIdAndDelete(req.params.pid);
 						res.send(`/projects/${updatedProject._id}`);
 					} catch (err) {
 						console.log(err);

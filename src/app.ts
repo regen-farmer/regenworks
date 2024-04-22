@@ -169,8 +169,6 @@ app.use(
 						externalId: idToken.sub,
 						email: idToken.email,
 						registrationDate: Date.now(),
-						membership: 1209600000,
-						farmLimit: 1,
 						isProject: true,
 					});
 
@@ -183,8 +181,6 @@ app.use(
 				const newUser = await User.create({
 					externalId: idToken.sub,
 					registrationDate: Date.now(),
-					membership: 1209600000,
-					farmLimit: 1,
 					isProject: true,
 				});
 

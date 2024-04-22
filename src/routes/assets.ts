@@ -175,7 +175,7 @@ router.delete(
 
 							// DELETE ASSET
 							try {
-								await Asset.findByIdAndRemove(req.params.id);
+								await Asset.findByIdAndDelete(req.params.id);
 								res.send(`/projects/${foundProject._id}`);
 							} catch (err) {
 								console.log(err);

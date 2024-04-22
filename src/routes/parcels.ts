@@ -237,7 +237,6 @@ router.post(
 					// Add the parcel to the users parcels for referencing
 					if (foundUser) {
 						foundUser.parcels.push(newlyCreated);
-						foundUser.currentProject = newlyCreated;
 						await foundUser.save();
 						// Save JSON file to geometry
 						// newlyCreated.geometry = req.body.geometry;
@@ -444,7 +443,7 @@ router.delete(
 		res: express.Response,
 	) => {
 		try {
-			await Parcel.findByIdAndRemove(req.params.id);
+			await Parcel.findByIdAndDelete(req.params.id);
 			res.send(`/users/${req.user?.id}`);
 		} catch (err) {
 			console.log(err);
