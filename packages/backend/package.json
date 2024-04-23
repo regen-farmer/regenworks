@@ -33,6 +33,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --bun ./src/app.ts",
     "start": "bun --bun ./build/app.js",
+    "start-local": "bun run start",
     "build": "bun --bun build ./src/app.ts --target node --outdir ./build",
     "lint": "biome lint ./src",
     "format": "biome format --write ./src"
