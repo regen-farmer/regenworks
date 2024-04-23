@@ -23,6 +23,7 @@
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@popperjs/core": "^2.11.8",
     "@rw/db": "workspace:*",
+    "@rw/modelling": "workspace:*",
     "@solid-mediakit/auth": "^2.0.11",
     "@solid-primitives/media": "^2.2.9",
     "@solidjs/router": "0.13.2",

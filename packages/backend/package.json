@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@rw/db": "workspace:*",
+    "@rw/modelling": "workspace:*",
     "@turf/area": "^6.5.0",
     "@turf/turf": "^6.5.0",
     "@types/lodash": "^4.17.0",
@@ -25,7 +26,6 @@
     "pngjs": "^7.0.0",
     "proj4": "^2.11.0",
     "sharp": "^0.33.3",
-    "stripe": "^15.1.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.2",
     "winston": "^3.13.0",

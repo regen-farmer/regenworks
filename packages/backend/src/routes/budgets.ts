@@ -7,11 +7,11 @@ import System from "@rw/db/schemas/system";
 import Posting, { IPostingSchema } from "@rw/db/schemas/posting";
 import Parcel from "@rw/db/schemas/parcel";
 import middleware from "../middleware/index";
-import { systemBasedLayout } from "../middleware/gis/system_based_layout";
+import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import { UserDocument } from "@rw/db/schemas/user";
 import { ISpeciesSchema } from "@rw/db/schemas/species";
 import { Auth0IDToken } from "../app";
-import { rowBasedLayout } from "../middleware/gis/row_based_layout";
+import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
 
 const router = express.Router();
 
@@ -370,7 +370,7 @@ router.post(
 							layout = rowBasedLayout(foundProject);
 						} else {
 							// DO PARAMETRIC LAYOUT
-							layout = systemBasedLayout(foundProject);
+							layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
 						}
 
 						let uniqueSpeciesCount: {
@@ -702,7 +702,7 @@ router.post(
 							layout = rowBasedLayout(foundProject);
 						} else {
 							// DO PARAMETRIC LAYOUT
-							layout = systemBasedLayout(foundProject);
+							layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
 						}
 						let uniqueSpeciesCount: {
 							id: string;

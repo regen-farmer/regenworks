@@ -19,7 +19,7 @@ import { useBSControl } from "~/util/map_controls/useBSControl";
 import { useHCControl } from "~/util/map_controls/useHCControl";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import type { SpeciesDocument } from "@rw/db/schemas/species";
-import { systemBasedLayout } from "~/modeling/gis/system_based_layout";
+import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import type { ProjectDocument } from "@rw/db/schemas/project";
 
 const RouteDesignPreview: Component = () => {

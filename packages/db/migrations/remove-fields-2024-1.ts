@@ -1,4 +1,4 @@
-import User from "@rw/db/schemas/user";
+import User from "../schemas/user";
 
 import { connect } from "mongoose";
 

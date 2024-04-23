@@ -3,8 +3,8 @@
 import area from "@turf/area";
 import _ from "lodash";
 import { IProjectSchema } from "@rw/db/schemas/project";
-import { rowBasedLayout } from "./gis/row_based_layout";
-import { systemBasedLayout } from "./gis/system_based_layout";
+import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
+import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 
 // DYNAMIC ESTABLISHMENT BUDGET
 export function establishment(project: IProjectSchema) {
