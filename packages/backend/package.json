@@ -31,9 +31,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun ./src/app.ts",
-    "start": "bun ./build/app.js",
-    "build": "bun build ./src/app.ts --target node --outdir ./build",
+    "dev": "bun --bun ./src/app.ts",
+    "start": "bun --bun ./build/app.js",
+    "build": "bun --bun build ./src/app.ts --target node --outdir ./build",
     "lint": "biome lint ./src",
     "format": "biome format --write ./src"
   },
