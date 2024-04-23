@@ -245,10 +245,13 @@ app.get(
 );
 app.set("trust proxy", true);
 
+const PORT = process.env.BACKEND_PORT ? parseInt(process.env.BACKEND_PORT) : 3001
+const IP = process.env.BACKEND_IP ?? "127.0.0.1"
+
 app.listen(
-	process.env.BACKEND_PORT ? parseInt(process.env.BACKEND_PORT) : 3001,
-	process.env.IP ?? "127.0.0.1",
+	PORT,
+	IP,
 	() => {
-		console.log("RegenWorks backend server has started!");
+		console.log(`RegenWorks backend server has started on ${IP}:${PORT}`);
 	},
 );
