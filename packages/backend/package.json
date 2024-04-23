@@ -18,7 +18,6 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "method-override": "^3.0.0",
-    "mongoose": "^8.3.1",
     "multer": "^1.4.5-lts.1",
     "node-geocoder": "^4.3.0",
     "pdfkit": "^0.15.0",
@@ -35,8 +34,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun ./src/app.ts",
-    "start": "bun ./build/app.js",
-    "build": "bun build ./src/app.ts --target node --outdir ./build",
+    "start": "bun --bun ./build/app.js",
+    "build": "bun --bun build ./src/app.ts --target node --outdir ./build",
     "lint": "biome lint ./src",
     "format": "biome format --write ./src"
   },

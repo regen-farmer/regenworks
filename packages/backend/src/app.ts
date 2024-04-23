@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import { connect } from "mongoose";
+import mongoose from "mongoose";
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 import cors from "cors";
 import User, { IUserSchema, UserDocument } from "@rw/db/schemas/user";
@@ -58,7 +58,7 @@ const app = express();
 app.use(cors());
 
 // APP SETUP
-connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
 

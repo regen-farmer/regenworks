@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       mongoose:
-        specifier: ^8.3.1
+        specifier: ^8.3.2
         version: 8.3.2
     devDependencies:
       '@biomejs/biome':
@@ -66,9 +66,6 @@ importers:
       method-override:
         specifier: ^3.0.0
         version: 3.0.0
-      mongoose:
-        specifier: ^8.3.1
-        version: 8.3.2
       multer:
         specifier: ^1.4.5-lts.1
         version: 1.4.5-lts.1

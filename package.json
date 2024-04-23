@@ -1,6 +1,8 @@
 {
   "name": "regenworks",
-  "workspaces":["/packages/*"],
+  "workspaces": [
+    "/packages/*"
+  ],
   "version": "1.0.0",
   "description": "",
   "scripts": {
@@ -9,12 +11,12 @@
   },
   "keywords": [],
   "author": "",
-  "dependencies": {
-    "mongoose": "^8.3.1"
-  },
   "devDependencies": {
     "@biomejs/biome": "^1.7.1",
     "@types/node": "^20.12.7",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "mongoose": "^8.3.2"
   }
 }

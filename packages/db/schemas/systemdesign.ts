@@ -1,17 +1,17 @@
-import { model, Schema, HydratedDocument } from "mongoose";
+import mongoose from "mongoose";
 import { ISpeciesSchema } from "./species";
 
 export interface ISystemDesignSchema {
 	rows: {
 		sequence: {
-			species: HydratedDocument<ISpeciesSchema> | string;
+			species:mongoose.HydratedDocument<ISpeciesSchema> | string;
 			spacingAfter: number;
 		}[];
 		offset?: {
 			before?: number;
 			after?: number;
 		};
-		groundcover?: HydratedDocument<ISpeciesSchema>;
+		groundcover?: mongoose.HydratedDocument<ISpeciesSchema>;
 		width: number;
 	}[];
 	bearing: number;
@@ -19,13 +19,13 @@ export interface ISystemDesignSchema {
 	headland: number;
 }
 
-const systemdesignSchema = new Schema<ISystemDesignSchema>({
+const systemdesignSchema = new mongoose.Schema<ISystemDesignSchema>({
 	rows: [
 		{
 			sequence: [
 				{
 					species: {
-						type: Schema.Types.ObjectId,
+						type: mongoose.Schema.Types.ObjectId,
 						ref: "Species",
 					},
 					spacingAfter: Number,
@@ -36,7 +36,7 @@ const systemdesignSchema = new Schema<ISystemDesignSchema>({
 				after: Number,
 			},
 			groundcover: {
-				type: Schema.Types.ObjectId,
+				type: mongoose.Schema.Types.ObjectId,
 				ref: "Species",
 			},
 			width: Number,
@@ -47,6 +47,6 @@ const systemdesignSchema = new Schema<ISystemDesignSchema>({
 	headland: { type: Number, default: 0 },
 });
 
-const SystemDesign = model("SystemDesign", systemdesignSchema);
+const SystemDesign = mongoose.models?.SystemDesign || mongoose.model("SystemDesign", systemdesignSchema);
 export default SystemDesign;
 export type SystemDesignDocument = ReturnType<(typeof SystemDesign)["hydrate"]>;
