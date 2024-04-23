@@ -1,0 +1,23 @@
+main.paper {
+  padding: 20px;
+}
+
+.theme-dark main.paper {
+  color: white;
+}
+
+
+.paper .container {
+  padding: 20px;
+  border-radius: 10px;
+  background-color: white;
+  max-width: 800px;
+  border: 1px solid rgb(220,220,220);
+}
+
+.theme-dark .paper .container {
+  background-color: rgb(35, 35, 45);
+  border: 1px solid rgb(51, 52, 55);
+}
+
+

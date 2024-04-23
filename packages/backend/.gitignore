@@ -1,0 +1,11 @@
+.env
+.env.prod
+.idea/
+build/
+node_modules/
+seeds.js
+combined.log
+error.log
+dist
+**/.DS_Store
+*.pem
