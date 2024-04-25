@@ -626,7 +626,7 @@ export default function view() {
 		return (
 			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
 			100
-		).toFixed(2);
+		).toFixed(2).replace(".", ",");
 	}
 
 	async function saveSystem() {
@@ -1345,7 +1345,7 @@ export default function view() {
 																Number.parseFloat(
 																	systemLayout()?.groundCoverAreasM2[speciesEl],
 																) / 10000
-															).toFixed(2)} ha (${groundCoverPercentage(
+															).toFixed(2).replace(".", ",")} ha (${groundCoverPercentage(
 																systemLayout()?.groundCoverAreasM2[speciesEl],
 																scenarioData()?.project.layer.geometry,
 															)}%)`}
@@ -1366,7 +1366,7 @@ export default function view() {
 											<span>Margin & headland:</span>
 										</strong>
 										<br />
-										{`${(calculateMarginHeadlandArea() / 10000).toFixed(2)} ha`}
+										{`${(calculateMarginHeadlandArea() / 10000).toFixed(2).replace(".", ",")} ha`}
 										<br />
 									</>
 								) : (
@@ -1378,7 +1378,7 @@ export default function view() {
 								<br />
 								{`${(
 									fieldArea(scenarioData()?.project.layer.geometry) / 10000
-								).toFixed(2)} ha`}
+								).toFixed(2).replace(".", ",")} ha`}
 							</div>
 						) : (
 							<></>

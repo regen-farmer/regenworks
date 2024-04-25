@@ -247,8 +247,8 @@ export default function view() {
 						<p class="card-text">
 							Area size:{" "}
 							{data()?.layer.size! > 5000
-								? `${(data()?.layer.size! * 0.0001).toFixed(2)} hectare(s)`
-								: `${data()?.layer.size.toFixed(0)} m2`}
+								? `${(data()?.layer.size! * 0.0001).toFixed(2).replace(".", ",")} ha`
+								: `${data()?.layer.size.toFixed(0).replace(".", ",")} m2`}
 						</p>
 
 						<p>{data()?.layer.description ?? ""}</p>

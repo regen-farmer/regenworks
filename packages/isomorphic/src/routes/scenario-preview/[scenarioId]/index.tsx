@@ -497,7 +497,7 @@ const RouteDesignPreview: Component = () => {
 		return (
 			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
 			100
-		).toFixed(2);
+		).toFixed(2).replace(".", ",");
 	}
 
 	return (
@@ -564,7 +564,7 @@ const RouteDesignPreview: Component = () => {
 															Number.parseFloat(
 																systemLayout()?.groundCoverAreasM2[speciesEl],
 															) / 10000
-														).toFixed(2)} ha (${groundCoverPercentage(
+														).toFixed(2).replace(".", ",")} ha (${groundCoverPercentage(
 															systemLayout()?.groundCoverAreasM2[speciesEl],
 															scenarioData()?.project.layer.geometry,
 														)}%)`}
@@ -586,7 +586,7 @@ const RouteDesignPreview: Component = () => {
 										<span>Margin & headland:</span>
 									</strong>
 									<br />
-									{`${(calculateMarginHeadlandArea() / 10000).toFixed(2)} ha`}
+									{`${(calculateMarginHeadlandArea() / 10000).toFixed(2).replace(".", ",")} ha`}
 									<br />
 								</>
 							) : (
@@ -599,7 +599,7 @@ const RouteDesignPreview: Component = () => {
 							<br />
 							{`${(
 								fieldArea(scenarioData()?.project.layer.geometry) / 10000
-							).toFixed(2)} ha`}
+							).toFixed(2).replace(".", ",")} ha`}
 						</div>
 					</Show>
 				</div>
