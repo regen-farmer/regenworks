@@ -30,6 +30,7 @@ import { featureCollection } from "@turf/turf";
 import SplitView from "~/util/splitview/SplitView";
 import { use3DControl } from "~/util/map_controls/use3DControl";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
+import { MaptilerNavigationControl } from "@maptiler/sdk";
 
 export default function view() {
 	const params = useParams<{
@@ -243,6 +244,9 @@ export default function view() {
 						useHCControl(map);
 						useBSControl(map);
 					}
+
+					const nav = new MaptilerNavigationControl();
+					map.addControl(nav, 'top-right')
 
 					setMapLoaded(true);
 
