@@ -25,6 +25,7 @@ import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import type { ProjectDocument } from "@rw/db/schemas/project";
+import { MaptilerNavigationControl } from "@maptiler/sdk";
 
 
 const RouteDesignPreview: Component = () => {
@@ -168,6 +169,9 @@ const RouteDesignPreview: Component = () => {
 							useHCControl(map);
 							useBSControl(map);
 						}
+
+						const nav = new MaptilerNavigationControl();
+						map.addControl(nav, 'top-right')
 
 						setMapLoaded(true);
 					});

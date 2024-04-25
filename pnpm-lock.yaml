@@ -153,6 +153,9 @@ importers:
       '@mapbox/mapbox-gl-draw':
         specifier: ^1.4.3
         version: 1.4.3
+      '@maptiler/sdk':
+        specifier: ^2.0.3
+        version: 2.0.3
       '@popperjs/core':
         specifier: ^2.11.8
         version: 2.11.8
@@ -1122,6 +1125,12 @@ packages:
   '@maplibre/maplibre-gl-style-spec@20.1.1':
     resolution: {integrity: sha512-z85ARNPCBI2Cs5cPOS3DSbraTN+ue8zrcYVoSWBuNrD/mA+2SKAJ+hIzI22uN7gac6jBMnCdpPKRxS/V0KSZVQ==}
     hasBin: true
+
+  '@maptiler/client@1.8.1':
+    resolution: {integrity: sha512-G1z2xCBwT5WU1CqeukY3R4g1saSjKzi6tmg24LJWZHP81RQ4quVvwdmsx829BxITlFbFhND+BSphFgrDGmwhcA==}
+
+  '@maptiler/sdk@2.0.3':
+    resolution: {integrity: sha512-1rFqizEHvbsNKvB7VhOh3H3WPqCuxtwcPIC7I/RGevCQa7a9QAVxBcYHD16ZGP5YK2pnjhYiT2iNa8noqAQk0A==}
 
   '@math.gl/core@4.0.1':
     resolution: {integrity: sha512-9IewNjR9V66o+gYIIq5agFoHy6ZT6DRpRGQBfsUpZz4glAqOjVt64he8GGzjpmqfT+kKT4qwQ7nQl/hZLF15qA==}
@@ -3381,6 +3390,9 @@ packages:
   jpeg-exif@1.1.4:
     resolution: {integrity: sha512-a+bKEcCjtuW5WTdgeXFzswSrdqi0jk4XlEtZlx5A94wCoBpFjfFTbo/Tra5SpNCl/YFZPvcV1dJc+TAYeg6ROQ==}
 
+  js-base64@3.7.7:
+    resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -3998,6 +4010,10 @@ packages:
 
   queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
+
+  quick-lru@7.0.0:
+    resolution: {integrity: sha512-MX8gB7cVYTrYcFfAnfLlhRd0+Toyl8yX8uBx1MrX7K0jegiz9TumwOK27ldXrgDlHRdVi+MqU9Ssw6dr4BNreg==}
+    engines: {node: '>=18'}
 
   quickselect@1.1.1:
     resolution: {integrity: sha512-qN0Gqdw4c4KGPsBOQafj6yj/PA6c/L63f6CaZ/DCF/xF4Esu3jVmKLUDYxghFx8Kb/O7y9tI7x2RjTSXwdK1iQ==}
@@ -4714,6 +4730,10 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+
+  uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
 
   validate-html-nesting@1.2.2:
     resolution: {integrity: sha512-hGdgQozCsQJMyfK5urgFcWEqsSSrK63Awe0t/IMR0bZ0QMtnuaiHzThW81guu3qx9abLi99NEuiaN6P9gVYsNg==}
@@ -5832,6 +5852,18 @@ snapshots:
       minimist: 1.2.8
       rw: 1.3.3
       sort-object: 3.0.3
+
+  '@maptiler/client@1.8.1':
+    dependencies:
+      quick-lru: 7.0.0
+
+  '@maptiler/sdk@2.0.3':
+    dependencies:
+      '@maptiler/client': 1.8.1
+      events: 3.3.0
+      js-base64: 3.7.7
+      maplibre-gl: 4.1.3
+      uuid: 9.0.1
 
   '@math.gl/core@4.0.1':
     dependencies:
@@ -8782,6 +8814,8 @@ snapshots:
 
   jpeg-exif@1.1.4: {}
 
+  js-base64@3.7.7: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@4.1.0:
@@ -9481,6 +9515,8 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   queue-tick@1.0.1: {}
+
+  quick-lru@7.0.0: {}
 
   quickselect@1.1.1: {}
 
@@ -10270,6 +10306,8 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@9.0.1: {}
 
   validate-html-nesting@1.2.2: {}
 
