@@ -27,7 +27,6 @@ import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import type { ProjectDocument } from "@rw/db/schemas/project";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
 
-
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
 
@@ -171,7 +170,7 @@ const RouteDesignPreview: Component = () => {
 						}
 
 						const nav = new MaptilerNavigationControl();
-						map.addControl(nav, 'top-right')
+						map.addControl(nav, "top-right");
 
 						setMapLoaded(true);
 					});
@@ -487,14 +486,19 @@ const RouteDesignPreview: Component = () => {
 		return area;
 	}
 
-	function fieldArea(geometry: string): number{
-		return turfArea(JSON.parse(geometry))
+	function fieldArea(geometry: string): number {
+		return turfArea(JSON.parse(geometry));
 	}
 
-	function groundCoverPercentage(groundCoverArea: string, fieldGeometry: string): string{
-		return ((Number.parseFloat(groundCoverArea)/fieldArea(fieldGeometry))*100).toFixed(2)
+	function groundCoverPercentage(
+		groundCoverArea: string,
+		fieldGeometry: string,
+	): string {
+		return (
+			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
+			100
+		).toFixed(2);
 	}
-
 
 	return (
 		<>
@@ -543,51 +547,59 @@ const RouteDesignPreview: Component = () => {
 								}}
 							</For>
 
+							{Object.keys(systemLayout()?.groundCoverAreasM2).length > 0 ? (
+								<>
+									<strong>
+										<span>Ground cover:</span>
+									</strong>
+									<br />
+									<For each={Object.keys(systemLayout()?.groundCoverAreasM2)}>
+										{(speciesEl) => {
+											console.log("groundcover", speciesEl);
+											return (
+												<>
+													<span>
+														{species()?.speciesById.get(speciesEl).nameCommon}:{" "}
+														{`${(
+															Number.parseFloat(
+																systemLayout()?.groundCoverAreasM2[speciesEl],
+															) / 10000
+														).toFixed(2)} ha (${groundCoverPercentage(
+															systemLayout()?.groundCoverAreasM2[speciesEl],
+															scenarioData()?.project.layer.geometry,
+														)}%)`}
+													</span>
+													<br />
+												</>
+											);
+										}}
+									</For>
+								</>
+							) : (
+								<></>
+							)}
+							{(scenarioData()?.project.systemdesign.headland > 0 ||
+								scenarioData()?.project.systemdesign.margin > 0) &&
+							calculateMarginHeadlandArea() > 10 ? (
+								<>
+									<strong>
+										<span>Margin & headland:</span>
+									</strong>
+									<br />
+									{`${(calculateMarginHeadlandArea() / 10000).toFixed(2)} ha`}
+									<br />
+								</>
+							) : (
+								<></>
+							)}
 
-							{Object.keys(systemLayout()?.groundCoverAreasM2).length > 0 ? <>
-								<strong>
-									<span>Ground cover:</span>
-								</strong>
-								<br />
-								<For each={Object.keys(systemLayout()?.groundCoverAreasM2)}>
-									{(speciesEl) => {
-										console.log("groundcover", speciesEl);
-										return (
-											<>
-												<span>
-													{species()?.speciesById.get(speciesEl).nameCommon}:{" "}
-													{`${Number.parseFloat(
-														systemLayout()?.groundCoverAreasM2[speciesEl],
-													).toFixed(2)} m2 (${groundCoverPercentage(systemLayout()?.groundCoverAreasM2[speciesEl], scenarioData()?.project.layer.geometry)}%)`}
-													
-												</span>
-												<br />
-											</>
-										);
-									}}
-								</For>
-								</>:<></>}
-								{(scenarioData()?.project.systemdesign.headland > 0 || scenarioData()?.project.systemdesign.margin > 0) && calculateMarginHeadlandArea() > 10 ? (
-									<>
-										<strong>
-											<span>Margin & headland:</span>
-										</strong>
-										<br />
-										{calculateMarginHeadlandArea().toFixed(2)} m2
-										<br />
-									</>
-								) : (
-									<></>
-								)}
-							
 							<strong>
 								<span>Field area:</span>
 							</strong>
 							<br />
-							{fieldArea(scenarioData()?.project.layer.geometry).toFixed(2)} m2
-
-
-
+							{`${(
+								fieldArea(scenarioData()?.project.layer.geometry) / 10000
+							).toFixed(2)} ha`}
 						</div>
 					</Show>
 				</div>

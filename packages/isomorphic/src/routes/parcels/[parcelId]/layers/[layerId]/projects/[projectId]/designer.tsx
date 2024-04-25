@@ -246,7 +246,7 @@ export default function view() {
 					}
 
 					const nav = new MaptilerNavigationControl();
-					map.addControl(nav, 'top-right')
+					map.addControl(nav, "top-right");
 
 					setMapLoaded(true);
 
@@ -1341,9 +1341,11 @@ export default function view() {
 														<span>
 															{species()?.speciesById.get(speciesEl).nameCommon}
 															:{" "}
-															{`${Number.parseFloat(
-																systemLayout()?.groundCoverAreasM2[speciesEl],
-															).toFixed(2)} m2 (${groundCoverPercentage(
+															{`${(
+																Number.parseFloat(
+																	systemLayout()?.groundCoverAreasM2[speciesEl],
+																) / 10000
+															).toFixed(2)} ha (${groundCoverPercentage(
 																systemLayout()?.groundCoverAreasM2[speciesEl],
 																scenarioData()?.project.layer.geometry,
 															)}%)`}
@@ -1364,7 +1366,7 @@ export default function view() {
 											<span>Margin & headland:</span>
 										</strong>
 										<br />
-										{calculateMarginHeadlandArea().toFixed(2)} m2
+										{`${(calculateMarginHeadlandArea() / 10000).toFixed(2)} ha`}
 										<br />
 									</>
 								) : (
@@ -1374,8 +1376,9 @@ export default function view() {
 									<span>Field area:</span>
 								</strong>
 								<br />
-								{fieldArea(scenarioData()?.project.layer.geometry).toFixed(2)}{" "}
-								m2
+								{`${(
+									fieldArea(scenarioData()?.project.layer.geometry) / 10000
+								).toFixed(2)} ha`}
 							</div>
 						) : (
 							<></>
