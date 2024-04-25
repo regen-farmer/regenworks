@@ -1,4 +1,10 @@
-import { helpers as turf, buffer, mask, intersect } from "@turf/turf";
+import {
+	helpers as turf,
+	buffer,
+	mask,
+	intersect,
+	area as turfArea,
+} from "@turf/turf";
 import type { ISpeciesSchema } from "@rw/db/schemas/species";
 
 export function makeGroundCoverAreas(
@@ -24,9 +30,11 @@ export function makeGroundCoverAreas(
 		groundcover?: ISpeciesSchema;
 		width: number;
 	}[],
-): turf.Feature<turf.Polygon, turf.Properties>[] {
+): { groundCoverAreas: turf.Feature<turf.Polygon, turf.Properties>[], groundCoverAreasM2:any}  {
 	let accumulatingWidth = 0;
 	const groundCoverAreas: turf.Feature<turf.Polygon, turf.Properties>[] = [];
+	const groundCoverAreasM2 = {};
+
 	let currentRowIdx = 0;
 
 	if (!(rows.length > 0)) {
@@ -74,30 +82,43 @@ export function makeGroundCoverAreas(
 
 		const intersectionAreas = intersect(offsetPolygon, elongatedDonutBuffer);
 		// // Check if turf value is a polygon or a multipolygon
-		if (intersectionAreas?.geometry.type === "Polygon") {
-			// console.log('Polygon found');
 
-			const area = intersectionAreas as turf.Feature<
-				turf.Polygon,
-				turf.Properties
-			>;
-			groundCoverAreas.push(
-				turf.polygon(area.geometry.coordinates, {
+		const groundCoverId =
+			rows[currentRowIdx].groundcover?._id ?? rows[currentRowIdx].groundcover;
+		if (groundCoverId && !groundCoverAreasM2[groundCoverId]) {
+			groundCoverAreasM2[groundCoverId] = 0;
+		}
+
+		if (groundCoverId) {
+			if (intersectionAreas?.geometry.type === "Polygon") {
+				// console.log('Polygon found');
+
+				const area = intersectionAreas as turf.Feature<
+					turf.Polygon,
+					turf.Properties
+				>;
+
+				const newPolygon = turf.polygon(area.geometry.coordinates, {
 					name: `alleypoly${groundCoverAreas.length}`,
-				}),
-			);
-		} else if (intersectionAreas?.geometry.type === "MultiPolygon") {
-			// console.log('MultiPolygon found');
-			const area = intersectionAreas as turf.Feature<
-				turf.MultiPolygon,
-				turf.Properties
-			>;
-			for (const polygon of area.geometry.coordinates) {
-				groundCoverAreas.push(
-					turf.polygon(polygon, {
+				});
+				groundCoverAreasM2[groundCoverId] += turfArea(newPolygon)
+
+				groundCoverAreas.push(newPolygon);
+			} else if (intersectionAreas?.geometry.type === "MultiPolygon") {
+				// console.log('MultiPolygon found');
+				const area = intersectionAreas as turf.Feature<
+					turf.MultiPolygon,
+					turf.Properties
+				>;
+				for (const polygon of area.geometry.coordinates) {
+					const newPolygon = turf.polygon(polygon, {
 						name: `alleypoly${groundCoverAreas.length}`,
-					}),
-				);
+					});
+
+					groundCoverAreasM2[groundCoverId] += turfArea(newPolygon)
+
+					groundCoverAreas.push(newPolygon);
+				}
 			}
 		}
 
@@ -112,6 +133,6 @@ export function makeGroundCoverAreas(
 	}
 
 	console.log("groundCoverAreas.length", groundCoverAreas.length);
-
-	return groundCoverAreas;
+	console.log("groundCoverAreasM2", groundCoverAreasM2);
+	return { groundCoverAreas, groundCoverAreasM2 };
 }

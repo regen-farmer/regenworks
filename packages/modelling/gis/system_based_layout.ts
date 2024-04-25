@@ -4,7 +4,10 @@ import {
 	buffer,
 	along,
 	circle,
+	difference,
+	area
 } from "@turf/turf";
+
 import type { ISpeciesSchema } from "@rw/db/schemas/species";
 import { makeInitialLine } from "./make_line";
 import { makeTreeRowLines } from "./make_tree_row_lines";
@@ -58,7 +61,7 @@ export function systemBasedLayout(
 	);
 
 	// GROUND COVER AREAS
-	const groundCoverAreas = makeGroundCoverAreas(
+	const { groundCoverAreas, groundCoverAreasM2 } = makeGroundCoverAreas(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
@@ -124,6 +127,13 @@ export function systemBasedLayout(
 	// rowArray.concat(edgeRowArray);
 	// treeCanopyArray.concat(edgeTreeCanopyArray);
 
+
+	// const marginGeometry = difference(polygon, headlandPolygon)
+	// const marginArea = area(marginGeometry);
+	
+	// console.log("Margin area", marginArea, area(marginArea))
+
+
 	return {
 		speciesCountArray,
 		headlandSides,
@@ -134,5 +144,8 @@ export function systemBasedLayout(
 		groundCoverAreas,
 		intersectionPoints,
 		treeMarkerArray,
+		groundCoverAreasM2,
+		// marginGeometry,
+		// marginArea
 	};
 }

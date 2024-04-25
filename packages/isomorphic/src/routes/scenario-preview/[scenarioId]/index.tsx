@@ -2,7 +2,11 @@ import { featureCollection } from "@turf/turf";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { helpers as turf } from "@turf/turf";
+import {
+	helpers as turf,
+	difference as turfDifference,
+	area as turfArea,
+} from "@turf/turf";
 
 import {
 	type Component,
@@ -21,6 +25,7 @@ import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import type { ProjectDocument } from "@rw/db/schemas/project";
+
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
@@ -70,6 +75,7 @@ const RouteDesignPreview: Component = () => {
 		intersectionPoints: any;
 		treeMarkerArray: any;
 		speciesCountArray: any;
+		groundCoverAreasM2: any;
 	}>();
 
 	async function getSystemDesign() {
@@ -89,6 +95,7 @@ const RouteDesignPreview: Component = () => {
 			intersectionPoints: turf.featureCollection(layout.intersectionPoints),
 			headlandSides: turf.featureCollection(layout.headlandSides),
 			treeMarkerArray: layout.treeMarkerArray,
+			groundCoverAreasM2: layout.groundCoverAreasM2,
 		});
 	}
 
@@ -465,6 +472,26 @@ const RouteDesignPreview: Component = () => {
 		}
 	});
 
+	function calculateMarginHeadlandArea(): number {
+		const geometry = turfDifference(
+			JSON.parse(scenarioData()?.project.layer.geometry),
+			systemLayout()?.headlandPolygon,
+		);
+
+		const area = parseFloat(turfArea(geometry));
+
+		return area;
+	}
+
+	function fieldArea(geometry: string): number{
+		return turfArea(JSON.parse(geometry))
+	}
+
+	function groundCoverPercentage(groundCoverArea: string, fieldGeometry: string): string{
+		return ((Number.parseFloat(groundCoverArea)/fieldArea(fieldGeometry))*100).toFixed(2)
+	}
+
+
 	return (
 		<>
 			<div style={{ height: "100vh", position: "relative", flex: "1 1 100%" }}>
@@ -511,6 +538,52 @@ const RouteDesignPreview: Component = () => {
 									);
 								}}
 							</For>
+
+
+							{Object.keys(systemLayout()?.groundCoverAreasM2).length > 0 ? <>
+								<strong>
+									<span>Ground cover:</span>
+								</strong>
+								<br />
+								<For each={Object.keys(systemLayout()?.groundCoverAreasM2)}>
+									{(speciesEl) => {
+										console.log("groundcover", speciesEl);
+										return (
+											<>
+												<span>
+													{species()?.speciesById.get(speciesEl).nameCommon}:{" "}
+													{`${Number.parseFloat(
+														systemLayout()?.groundCoverAreasM2[speciesEl],
+													).toFixed(2)} m2 (${groundCoverPercentage(systemLayout()?.groundCoverAreasM2[speciesEl], scenarioData()?.project.layer.geometry)}%)`}
+													
+												</span>
+												<br />
+											</>
+										);
+									}}
+								</For>
+								</>:<></>}
+								{(scenarioData()?.project.systemdesign.headland > 0 || scenarioData()?.project.systemdesign.margin > 0) && calculateMarginHeadlandArea() > 10 ? (
+									<>
+										<strong>
+											<span>Margin & headland:</span>
+										</strong>
+										<br />
+										{calculateMarginHeadlandArea().toFixed(2)} m2
+										<br />
+									</>
+								) : (
+									<></>
+								)}
+							
+							<strong>
+								<span>Field area:</span>
+							</strong>
+							<br />
+							{fieldArea(scenarioData()?.project.layer.geometry).toFixed(2)} m2
+
+
+
 						</div>
 					</Show>
 				</div>
