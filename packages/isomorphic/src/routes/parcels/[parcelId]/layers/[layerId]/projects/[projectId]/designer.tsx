@@ -9,7 +9,11 @@ import {
 import { createStore } from "solid-js/store";
 import { A, useLocation, useParams } from "@solidjs/router";
 
-import { helpers as turf } from "@turf/turf";
+import {
+	helpers as turf,
+	difference as turfDifference,
+	area as turfArea,
+} from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
 import type { ISpeciesSchema, SpeciesDocument } from "@rw/db/schemas/species";
@@ -44,6 +48,7 @@ export default function view() {
 		intersectionPoints: any;
 		treeMarkerArray: any;
 		speciesCountArray: any;
+		groundCoverAreasM2: any;
 	}>();
 
 	const [system, setSystem] = createStore<ISystemDesignSchema>({
@@ -75,6 +80,7 @@ export default function view() {
 			intersectionPoints: turf.featureCollection(layout.intersectionPoints),
 			headlandSides: turf.featureCollection(layout.headlandSides),
 			treeMarkerArray: layout.treeMarkerArray,
+			groundCoverAreasM2: layout.groundCoverAreasM2,
 		});
 
 		// On server
@@ -593,6 +599,31 @@ export default function view() {
 
 	const [saving, setSaving] = createSignal(false);
 	const [previewing, setPreviewing] = createSignal(false);
+
+	function calculateMarginHeadlandArea(): number {
+		const geometry = turfDifference(
+			JSON.parse(scenarioData()?.project.layer.geometry),
+			systemLayout()?.headlandPolygon,
+		);
+
+		const area = parseFloat(turfArea(geometry));
+
+		return area;
+	}
+
+	function fieldArea(geometry: string): number {
+		return turfArea(JSON.parse(geometry));
+	}
+
+	function groundCoverPercentage(
+		groundCoverArea: string,
+		fieldGeometry: string,
+	): string {
+		return (
+			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
+			100
+		).toFixed(2);
+	}
 
 	async function saveSystem() {
 		setSaving(true);
@@ -1275,7 +1306,6 @@ export default function view() {
 									<span>Tree and shrub counts:</span>
 								</strong>
 								<br />
-
 								<For each={systemLayout()?.speciesCountArray}>
 									{(speciesEl) => {
 										// console.log("species", systemDesignData()?.species);
@@ -1293,6 +1323,55 @@ export default function view() {
 										);
 									}}
 								</For>
+								{Object.keys(systemLayout()?.groundCoverAreasM2).length > 0 ? (
+									<>
+										<strong>
+											<span>Ground cover:</span>
+										</strong>
+										<br />
+										<For each={Object.keys(systemLayout()?.groundCoverAreasM2)}>
+											{(speciesEl) => {
+												console.log("groundcover", speciesEl);
+												return (
+													<>
+														<span>
+															{species()?.speciesById.get(speciesEl).nameCommon}
+															:{" "}
+															{`${Number.parseFloat(
+																systemLayout()?.groundCoverAreasM2[speciesEl],
+															).toFixed(2)} m2 (${groundCoverPercentage(
+																systemLayout()?.groundCoverAreasM2[speciesEl],
+																scenarioData()?.project.layer.geometry,
+															)}%)`}
+														</span>
+														<br />
+													</>
+												);
+											}}
+										</For>
+									</>
+								) : (
+									<></>
+								)}
+								{(system.headland > 0 || system.margin > 0) &&
+								calculateMarginHeadlandArea() > 10 ? (
+									<>
+										<strong>
+											<span>Margin & headland:</span>
+										</strong>
+										<br />
+										{calculateMarginHeadlandArea().toFixed(2)} m2
+										<br />
+									</>
+								) : (
+									<></>
+								)}
+								<strong>
+									<span>Field area:</span>
+								</strong>
+								<br />
+								{fieldArea(scenarioData()?.project.layer.geometry).toFixed(2)}{" "}
+								m2
 							</div>
 						) : (
 							<></>
