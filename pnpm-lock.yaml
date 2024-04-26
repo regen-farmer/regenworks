@@ -12,8 +12,8 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2
       stripe:
-        specifier: ^15.1.0
-        version: 15.3.0
+        specifier: ^15.4.0
+        version: 15.4.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.7.1
@@ -989,8 +989,18 @@ packages:
     peerDependencies:
       '@loaders.gl/core': ^4.0.0
 
+  '@loaders.gl/images@4.2.1':
+    resolution: {integrity: sha512-w/CPNmnqu1eutOo3BJ30ad3CXHPs5vPa9ZzwAL6PQSMb+rqaCRVCfHlaDedzBh+KyPfC9C+q62ouQvzUT5XKDg==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.0.0
+
   '@loaders.gl/loader-utils@4.2.0':
     resolution: {integrity: sha512-kWM3yMTGLqkBwb/CdWhzQU6P17PZelyFvUm5LtPm1LHo1tVuxutBeo5wl0FuAraJIx4O4/oCR0iNdb4l58wKRg==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.0.0
+
+  '@loaders.gl/loader-utils@4.2.1':
+    resolution: {integrity: sha512-8algFDeaEB+ceXJK9/s/d/YjBfCEXXGrsIyGF18APfWTldzEwYoL/D8VV8RnklR7ICJjYCotBoF96USkoB9tMQ==}
     peerDependencies:
       '@loaders.gl/core': ^4.0.0
 
@@ -1006,6 +1016,11 @@ packages:
 
   '@loaders.gl/schema@4.2.0':
     resolution: {integrity: sha512-xM5PY3k9UvyXz6rgCyouGSIbfzdsmrR2zYEhI5prFYwgjnOJX0D5Wz4TpsuNQaVpsAGC6cZXgQU6nmhScQYJyQ==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.0.0
+
+  '@loaders.gl/schema@4.2.1':
+    resolution: {integrity: sha512-uhcQmeOJDmosWGlGRVEwx5zCTcME6Fy7QiR+IuEZaUyEkcFJZU8Ccit4d5ap9gHz1avANzan/+h2dECSpjd8wg==}
     peerDependencies:
       '@loaders.gl/core': ^4.0.0
 
@@ -1031,6 +1046,11 @@ packages:
 
   '@loaders.gl/worker-utils@4.2.0':
     resolution: {integrity: sha512-sTfalI6utDO7/0i89bE5Ex+uXK6Kull7U3IozkDNPSn6JhNwCvkujhcmQWEFxEPY0CQRVZBq95pjbCYbYYLJpQ==}
+    peerDependencies:
+      '@loaders.gl/core': ^4.0.0
+
+  '@loaders.gl/worker-utils@4.2.1':
+    resolution: {integrity: sha512-+cZEgmyHQ3SPYX8Lzeqd7JZaMPbbnJuQs7fyMbfBeb7hmkO4XNwo/tnk/vKSmP24YMugAbWrxRlKNI0CMbkOhw==}
     peerDependencies:
       '@loaders.gl/core': ^4.0.0
 
@@ -4444,8 +4464,8 @@ packages:
   strip-literal@1.3.0:
     resolution: {integrity: sha512-PugKzOsyXpArk0yWmUwqOZecSO0GH0bPoctLcqNDH9J04pVW3lflYE0ujElBGTloevcxF5MofAOZ7C5l2b+wLg==}
 
-  stripe@15.3.0:
-    resolution: {integrity: sha512-5J1NUZaCy0DnFINyxKWR+107BQ7gkhhOwMRp+ckHQP8j7+0HbwE8cN2Vi/qnja3k3sFC2ft6g6hcvM7lmavEAQ==}
+  stripe@15.4.0:
+    resolution: {integrity: sha512-o3STlHYUmJh1ogAem434As7hCMEGG43R1fFkX0NuxabnmZoOQ9Ytxuu+e5Tq5NSE3LPUIV64jbjQebHoZvLTKw==}
     engines: {node: '>=12.*'}
 
   strnum@1.0.5:
@@ -5226,8 +5246,8 @@ snapshots:
     dependencies:
       '@deck.gl/core': 9.0.10
       '@loaders.gl/core': 4.2.0
-      '@loaders.gl/images': 4.2.0(@loaders.gl/core@4.2.0)
-      '@loaders.gl/schema': 4.2.0(@loaders.gl/core@4.2.0)
+      '@loaders.gl/images': 4.2.1(@loaders.gl/core@4.2.0)
+      '@loaders.gl/schema': 4.2.1(@loaders.gl/core@4.2.0)
       '@luma.gl/core': 9.0.11
       '@luma.gl/engine': 9.0.11(@luma.gl/core@9.0.11)
       '@mapbox/tiny-sdf': 2.0.6
@@ -5649,11 +5669,23 @@ snapshots:
       '@loaders.gl/core': 4.2.0
       '@loaders.gl/loader-utils': 4.2.0(@loaders.gl/core@4.2.0)
 
+  '@loaders.gl/images@4.2.1(@loaders.gl/core@4.2.0)':
+    dependencies:
+      '@loaders.gl/core': 4.2.0
+      '@loaders.gl/loader-utils': 4.2.1(@loaders.gl/core@4.2.0)
+
   '@loaders.gl/loader-utils@4.2.0(@loaders.gl/core@4.2.0)':
     dependencies:
       '@loaders.gl/core': 4.2.0
       '@loaders.gl/schema': 4.2.0(@loaders.gl/core@4.2.0)
       '@loaders.gl/worker-utils': 4.2.0(@loaders.gl/core@4.2.0)
+      '@probe.gl/stats': 4.0.9
+
+  '@loaders.gl/loader-utils@4.2.1(@loaders.gl/core@4.2.0)':
+    dependencies:
+      '@loaders.gl/core': 4.2.0
+      '@loaders.gl/schema': 4.2.1(@loaders.gl/core@4.2.0)
+      '@loaders.gl/worker-utils': 4.2.1(@loaders.gl/core@4.2.0)
       '@probe.gl/stats': 4.0.9
 
   '@loaders.gl/math@4.2.0(@loaders.gl/core@4.2.0)':
@@ -5674,6 +5706,11 @@ snapshots:
       pbf: 3.2.1
 
   '@loaders.gl/schema@4.2.0(@loaders.gl/core@4.2.0)':
+    dependencies:
+      '@loaders.gl/core': 4.2.0
+      '@types/geojson': 7946.0.14
+
+  '@loaders.gl/schema@4.2.1(@loaders.gl/core@4.2.0)':
     dependencies:
       '@loaders.gl/core': 4.2.0
       '@types/geojson': 7946.0.14
@@ -5719,6 +5756,10 @@ snapshots:
       deep-strict-equal: 0.2.0
 
   '@loaders.gl/worker-utils@4.2.0(@loaders.gl/core@4.2.0)':
+    dependencies:
+      '@loaders.gl/core': 4.2.0
+
+  '@loaders.gl/worker-utils@4.2.1(@loaders.gl/core@4.2.0)':
     dependencies:
       '@loaders.gl/core': 4.2.0
 
@@ -10014,7 +10055,7 @@ snapshots:
     dependencies:
       acorn: 8.11.3
 
-  stripe@15.3.0:
+  stripe@15.4.0:
     dependencies:
       '@types/node': 20.12.7
       qs: 6.12.1
