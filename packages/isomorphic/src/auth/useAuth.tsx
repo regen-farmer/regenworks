@@ -12,7 +12,7 @@ import NewUser from "~/auth/signup";
 import { NavBar } from "~/components/NavBar";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { paymentPlan } from "~/util/paymentPlan";
-import { signOut } from "@solid-mediakit/auth";
+import { signOut } from "@solid-mediakit/auth/client";
 
 export const [auth0User, setAuth0User]: [any, any] = createSignal();
 export const [auth0Token, setAuth0Token]: [any, any] = createSignal();
