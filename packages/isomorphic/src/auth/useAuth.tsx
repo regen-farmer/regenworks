@@ -12,6 +12,7 @@ import NewUser from "~/auth/signup";
 import { NavBar } from "~/components/NavBar";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { paymentPlan } from "~/util/paymentPlan";
+import { signOut } from "@solid-mediakit/auth";
 
 export const [auth0User, setAuth0User]: [any, any] = createSignal();
 export const [auth0Token, setAuth0Token]: [any, any] = createSignal();
@@ -141,8 +142,16 @@ export const ShowAfterAuth = (props: any) => {
 						<br />
 						<p>
 							We've sent you a link to verify your email address. Click it and
-							sign in again. <a href="/api/auth/logout">Log out</a>.
+							sign in again.
 						</p>
+						<button
+							class="btn btn-sm btn-dark"
+							onClick={() => {
+								signOut({ redirectTo: "/" });
+							}}
+						>
+							Log out
+						</button>
 					</>
 				}
 			>

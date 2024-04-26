@@ -267,7 +267,7 @@ const RouteViewAccount: Component = () => {
 								signOut({ redirectTo: "/" });
 							}}
 						>
-							Logout
+							Log out
 						</button>
 
 						<br />
