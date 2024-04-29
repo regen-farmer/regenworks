@@ -1,13 +1,12 @@
 import {
 	createEffect,
-	createMemo,
 	createResource,
 	createSignal,
 	For,
 	Show,
 } from "solid-js";
 import { createStore } from "solid-js/store";
-import { A, useLocation, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 
 import {
 	helpers as turf,
@@ -26,11 +25,12 @@ import type { ProjectDocument } from "@rw/db/schemas/project";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
-import { featureCollection } from "@turf/turf";
+
 import { Resizable } from "corvu/resizable";
 import { use3DControl } from "~/util/map_controls/use3DControl";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
+import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
 
 export default function view() {
 	const params = useParams<{
@@ -172,10 +172,10 @@ export default function view() {
 		return result;
 	});
 
-	createMemo(() => {
-		scenarioDataRefresh();
-		return useLocation().pathname;
-	});
+	// createMemo(() => {
+	// 	scenarioDataRefresh();
+	// 	return useLocation().pathname;
+	// });
 
 	const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
 
@@ -303,297 +303,10 @@ export default function view() {
 		}
 	});
 
-	function drawLayers() {
-		if (mapLoaded() && systemLayout()) {
-			console.log("Draw layers!");
-
-			// const layerNames = ['correctgeometry', 'alleys', 'strips', 'col', 'trees']
-			// layerNames.forEach((layerName) => {
-			//   map.removeLayer(layerName)
-			// })
-
-			// var trees = layoutData()?.trees
-
-			// var alleys = layoutData()?.alleys
-
-			// var strips = layoutData()?.strips
-
-			const debug = true;
-
-			const stripsVisible = true;
-			// const fieldPolygonVisible = true;
-
-			const headlandBuffersVisible = false;
-			const headlandIntersectionPointsVisible = false;
-			const bearingSidesVisible = false;
-			const treesVisible = true;
-			const showHeadlandPolygonPoints = false;
-			const treeRowsVisible = true;
-
-			const treeRowLines = featureCollection(
-				systemLayout()?.treeRowLines?.map((tree) => tree.line),
-			);
-			const groundCoverAreas = systemLayout()?.groundCoverAreas;
-			const headlandSides = systemLayout()?.headlandSides;
-			const headlandPolygon = systemLayout()?.headlandPolygon;
-			const marginPolygon = systemLayout()?.marginPolygon;
-			const sidesCloseToBearing = systemLayout()?.sidesCloseToBearing;
-			const intersectionPoints = systemLayout()?.intersectionPoints;
-
-			const treeMarkerArray = systemLayout()?.treeMarkerArray;
-
-			const treeCircles = featureCollection(
-				treeMarkerArray?.map((tree) => tree.circle),
-			);
-
-			console.log("speciesCountArray", systemLayout()?.speciesCountArray);
-
-			// console.log("treeMarkerArray", treeMarkerArray);
-
-			// var treeRowArray = layoutData()?.treeRowArray
-
-			// if (map.getSource('alleys')) {
-			//   map.removeLayer('alleys')
-			//   map.removeSource('alleys')
-			// }
-
-			// map.addLayer({
-			//   id: 'alleys',
-			//   type: 'fill',
-			//   //@ts-ignore
-			//   source: {
-			//     type: 'geojson',
-			//     data: alleys,
-			//   },
-			//   layout: {},
-			//   paint: {
-			//     'fill-color': '#1EBEC8',
-			//     'fill-opacity': 0.6,
-			//     'fill-outline-color': '#F0F8FF',
-			//   },
-			// })
-
-			if (stripsVisible) {
-				if (map.getSource("strips")) {
-					map.removeLayer("strips");
-					map.removeSource("strips");
-				}
-
-				map.addLayer({
-					id: "strips",
-					type: "fill",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: groundCoverAreas,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#002eff",
-						"fill-opacity": 0.5,
-					},
-				});
-
-				if (map.getSource("strips-border")) {
-					map.removeLayer("strips-border");
-					map.removeSource("strips-border");
-				}
-
-				map.addLayer({
-					id: "strips-border",
-					type: "line",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: groundCoverAreas,
-					},
-					layout: {},
-					paint: {
-						"line-color": "rgba(255,255,255,1)",
-						"line-width": 1,
-					},
-				});
-
-				if (showHeadlandPolygonPoints) {
-					if (map.getSource("strips-points")) {
-						map.removeLayer("strips-points");
-						map.removeSource("strips-points");
-					}
-
-					map.addLayer({
-						id: "strips-points",
-						type: "circle",
-						//@ts-ignore
-						source: {
-							type: "geojson",
-							data: headlandPolygon,
-						},
-						layout: {},
-						paint: {
-							"circle-color": "rgba(255,255,255,1)",
-							"circle-stroke-width": 1,
-						},
-					});
-				}
-			}
-
-			if (headlandBuffersVisible) {
-				if (map.getSource("headland-sides")) {
-					map.removeLayer("headland-sides");
-					map.removeSource("headland-sides");
-				}
-				map.addLayer({
-					id: "headland-sides",
-					type: "line",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: headlandSides,
-					},
-					layout: {},
-					paint: {
-						"line-color": "rgba(255,0,0,1)",
-						"line-width": 2,
-					},
-				});
-			}
-
-			if (debug) {
-				if (map.getSource("margin-polygon")) {
-					map.removeLayer("margin-polygon");
-					map.removeSource("margin-polygon");
-				}
-				map.addLayer({
-					id: "margin-polygon",
-					type: "line",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: marginPolygon,
-					},
-					layout: {},
-					paint: {
-						"line-color": "rgba(255,255,255,1)",
-						"line-width": 2,
-					},
-				});
-			}
-
-			if (map.getSource("headland-polygon")) {
-				map.removeLayer("headland-polygon");
-				map.removeSource("headland-polygon");
-			}
-			map.addLayer({
-				id: "headland-polygon",
-				type: "line",
-				//@ts-ignore
-				source: {
-					type: "geojson",
-					data: headlandPolygon,
-				},
-				layout: {},
-				paint: {
-					"line-color": "rgba(255,255,0,1)",
-					"line-width": 2,
-				},
-			});
-
-			if (bearingSidesVisible) {
-				if (map.getSource("bearing-sides")) {
-					map.removeLayer("bearing-sides");
-					map.removeSource("bearing-sides");
-				}
-				map.addLayer({
-					id: "bearing-sides",
-					type: "line",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: sidesCloseToBearing,
-					},
-					layout: {},
-					paint: {
-						"line-color": "rgba(255,0,255,1)",
-						"line-width": 2,
-					},
-				});
-			}
-
-			if (headlandIntersectionPointsVisible) {
-				if (map.getSource("headland-intersection-points")) {
-					map.removeLayer("headland-intersection-points");
-					map.removeSource("headland-intersection-points");
-				}
-
-				console.log(intersectionPoints);
-				map.addLayer({
-					id: "headland-intersection-points",
-					type: "circle",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: intersectionPoints,
-					},
-					layout: {},
-					paint: {
-						"circle-color": "rgba(255,255,255,1)",
-						"circle-radius": 3,
-						"circle-stroke-width": 1,
-						"circle-stroke-color": "rgba(0,0,0,1)",
-					},
-				});
-			}
-
-			if (treeRowsVisible) {
-				if (map.getSource("treeRowLines")) {
-					map.removeLayer("treeRowLines");
-					map.removeSource("treeRowLines");
-				}
-
-				map.addLayer({
-					id: "treeRowLines",
-					type: "line",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: treeRowLines,
-					},
-					layout: {},
-					paint: {
-						"line-color": "rgba(255,255,255,0.6)",
-						"line-dasharray": [2, 4],
-						"line-width": 1,
-					},
-				});
-			}
-			if (treesVisible) {
-				if (map.getSource("trees")) {
-					map.removeLayer("trees");
-					map.removeSource("trees");
-				}
-
-				map.addLayer({
-					id: "trees",
-					type: "fill",
-					//@ts-ignore
-					source: {
-						type: "geojson",
-						data: treeCircles,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#7eff36",
-						"fill-opacity": 0.8,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
-			}
-		}
-	}
 
 	createEffect(() => {
-		if (mapLoaded() && scenarioData() && species()) {
-			drawLayers();
+		if (mapLoaded() && systemLayout()) {
+			drawSystemDesign(map, systemLayout());
 		}
 	});
 
@@ -647,7 +360,7 @@ export default function view() {
 
 		setSaving(false);
 
-		scenarioDataRefresh();
+		// scenarioDataRefresh();
 	}
 
 	return (
@@ -1162,7 +875,7 @@ export default function view() {
 												end={true}
 												href={`/parcels/${params.parcelId}/layers/${
 													params.layerId
-												}/projects/${scenarioData()?.project._id}`}
+												}/projects/${params.projectId}`}
 												class="btn btn-dark"
 											>
 												<i class="fas fa-arrow-left" /> Back to scenario
@@ -1213,7 +926,7 @@ export default function view() {
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
-						<Show when={scenarioData()}>
+						<Show when={system}>
 							<div
 								style={{
 									background: "#151515dd",
@@ -1263,13 +976,13 @@ export default function view() {
 									<label>Bearing</label>
 									<input
 										type="number"
-										min={0}
+										min={-180}
 										class="form-control"
 										onchange={(e) => {
 											setSystem("bearing", Number.parseFloat(e.target.value));
 											logSystem();
 										}}
-										value={scenarioData()?.project.systemdesign?.bearing ?? 0}
+										value={system.bearing ?? 0}
 									/>
 								</div>
 
@@ -1283,7 +996,7 @@ export default function view() {
 											setSystem("margin", Number.parseFloat(e.target.value));
 											logSystem();
 										}}
-										value={scenarioData()?.project.systemdesign?.margin ?? 0}
+										value={system.margin ?? 0}
 									/>
 								</div>
 
@@ -1297,12 +1010,12 @@ export default function view() {
 											setSystem("headland", Number.parseFloat(e.target.value));
 											logSystem();
 										}}
-										value={scenarioData()?.project?.systemdesign?.headland ?? 0}
+										value={system.headland ?? 0}
 									/>
 								</div>
 							</div>
 
-							{systemLayout() ? (
+							<Show when={systemLayout() && species()}>
 								<div
 									style={{
 										color: "white",
@@ -1406,13 +1119,16 @@ export default function view() {
 										.toFixed(2)
 										.replace(".", ",")} ha`}
 								</div>
-							) : (
-								<></>
-							)}
+							</Show>
 						</Show>
 					</div>
 				</div>
 			</Resizable.Panel>
 		</Resizable>
 	);
+}
+
+
+export {
+	drawSystemDesign
 }
