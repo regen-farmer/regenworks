@@ -24,6 +24,41 @@ body {
   
 }
 
+
+
+/* Resizable Handle  */
+button[data-corvu-resizable-handle] {
+
+  /* Remove button style */
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+
+    
+    /* Apply new handle style */
+    width: 5px;
+    background: #ccc;
+    cursor: col-resize;
+    transition: all 0.05s ease-in-out;
+    &:hover {
+      background: #aaa;
+  }
+}
+
+.theme-dark button[data-corvu-resizable-handle] {
+  background: #555;
+}
+
+.theme-dark button[data-corvu-resizable-handle][data-active], button[data-corvu-resizable-handle][data-dragging] {
+  background: #333;
+}
+
+
+
 .theme-dark .form-control:disabled {
   background-color: rgb(51,48,66) !important;
 }
