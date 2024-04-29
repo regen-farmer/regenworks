@@ -1,6 +1,5 @@
 import {
 	createEffect,
-	createResource,
 	createSignal,
 	For,
 	Show,
@@ -15,12 +14,11 @@ import {
 } from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
-import type { ISpeciesSchema, SpeciesDocument } from "@rw/db/schemas/species";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { useHCControl } from "~/util/map_controls/useHCControl";
 import { useBSControl } from "~/util/map_controls/useBSControl";
 import maplibregl from "maplibre-gl";
-import type { ProjectDocument } from "@rw/db/schemas/project";
 
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -31,6 +29,8 @@ import { use3DControl } from "~/util/map_controls/use3DControl";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
+import { getSpecies } from "~/util/getSpecies";
+import { getScenario } from "~/util/getScenario";
 
 export default function view() {
 	const params = useParams<{
@@ -124,53 +124,15 @@ export default function view() {
 		console.log(`Rendering in: ${timeTaken} milliseconds`);
 	}
 
-	const [scenarioData, { refetch: scenarioDataRefresh }] = createResource(
-		async () => {
-			console.log("Request to layoutData");
-			const response = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/projects/${
-					params.projectId
-				}/layout`,
-				apiFetchOptions(),
-			);
-
-			console.log("Response from layoutData");
-
-			const result: {
-				project: ProjectDocument;
-			} = await response.json();
-
-			if (result) {
-				if (result?.project.systemdesign) {
-					console.log("Update SYSTEM STORE", result?.project.systemdesign.rows);
-					setSystem(result?.project.systemdesign!);
-					// if (unwrap(result?.project.systemdesign) !== unwrap(system)) {
-					// 	getSystemDesign();
-					// }
-				}
+	const scenarioData = getScenario(params.projectId, (result)=>{
+		if (result) {
+			if (result?.project.systemdesign) {
+				setSystem(result?.project.systemdesign!);
 			}
+		}
+	})
 
-			return result;
-		},
-	);
-
-	const [species, { refetch: speciesRefresh }] = createResource<{
-		species: SpeciesDocument[];
-		speciesById: Map<string, SpeciesDocument>;
-	}>(async () => {
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/species`,
-			apiFetchOptions(),
-		);
-
-		const result = await response.json();
-
-		result.speciesById = new Map<string, any>(
-			result.species.map((species) => [species._id, species]),
-		);
-
-		return result;
-	});
+	const species = getSpecies()
 
 	// createMemo(() => {
 	// 	scenarioDataRefresh();
