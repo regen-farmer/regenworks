@@ -27,7 +27,7 @@ import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
 import { featureCollection } from "@turf/turf";
-import SplitView from "~/util/splitview/SplitView";
+import { Resizable } from "corvu/resizable";
 import { use3DControl } from "~/util/map_controls/use3DControl";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
@@ -626,7 +626,9 @@ export default function view() {
 		return (
 			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
 			100
-		).toFixed(2).replace(".", ",");
+		)
+			.toFixed(2)
+			.replace(".", ",");
 	}
 
 	async function saveSystem() {
@@ -649,158 +651,159 @@ export default function view() {
 	}
 
 	return (
-		<SplitView startPercent={50}>
-			<div
-				style={{
-					display: "flex",
-
-					"justify-content": "space-between",
-					height: "calc(100vh - 57px)",
-					flex: "1 0 auto",
-				}}
-			>
+		<Resizable>
+			<Resizable.Panel style={{ overflow: "hidden" }}>
 				<div
 					style={{
 						display: "flex",
-						flex: "1 1 0%",
-						"overflow-x": "hidden",
-						"min-width": "500px",
-						"flex-direction": "column",
+
+						"justify-content": "space-between",
+						height: "calc(100vh - 57px)",
+						flex: "1 0 auto",
 					}}
 				>
-					<Show when={species() && scenarioData()}>
-						{/* <form method="post" action={Form}> */}
+					<div
+						style={{
+							display: "flex",
+							flex: "1 1 0%",
+							"overflow-x": "hidden",
+							"min-width": "500px",
+							"flex-direction": "column",
+						}}
+					>
+						<Show when={species() && scenarioData()}>
+							{/* <form method="post" action={Form}> */}
 
-						<>
-							<div
-								style={{
-									display: "flex",
-									"flex-direction": "column",
-									"justify-content": "space-between",
-									height: "100%",
-								}}
-							>
-								<div style={{ overflow: "overlay", flex: "1 1 auto" }}>
-									<div
-										style={{
-											display: "flex",
-											"flex-direction": "row",
-											"min-height": "100%",
+							<>
+								<div
+									style={{
+										display: "flex",
+										"flex-direction": "column",
+										"justify-content": "space-between",
+										height: "100%",
+									}}
+								>
+									<div style={{ overflow: "overlay", flex: "1 1 auto" }}>
+										<div
+											style={{
+												display: "flex",
+												"flex-direction": "row",
+												"min-height": "100%",
 
-											"padding-bottom": "20px",
+												"padding-bottom": "20px",
 
-											flex: 1,
-										}}
-									>
-										<For each={system.rows}>
-											{(row, rowIdx) => (
-												<>
-													<AddRow
-														index={rowIdx()}
-														setSystem={setSystem}
-														logSystem={logSystem}
-													/>
+												flex: 1,
+											}}
+										>
+											<For each={system.rows}>
+												{(row, rowIdx) => (
+													<>
+														<AddRow
+															index={rowIdx()}
+															setSystem={setSystem}
+															logSystem={logSystem}
+														/>
 
-													<div
-														style={{
-															"min-width": "180px",
-															flex: "0 0 0",
-															display: "flex",
-															"flex-direction": "column",
-															"justify-content": "flex-end",
-														}}
-													>
-														{row.sequence.length ? (
-															<>
-																<div
-																	style={{
-																		display: "flex",
-																		"flex-direction": "column-reverse",
-																	}}
-																>
+														<div
+															style={{
+																"min-width": "180px",
+																flex: "0 0 0",
+																display: "flex",
+																"flex-direction": "column",
+																"justify-content": "flex-end",
+															}}
+														>
+															{row.sequence.length ? (
+																<>
 																	<div
-																		class="form-group"
 																		style={{
 																			display: "flex",
-																			"align-items": "center",
-																			"justify-content": "space-between",
+																			"flex-direction": "column-reverse",
 																		}}
 																	>
-																		<label>Offset</label>
 																		<div
+																			class="form-group"
 																			style={{
 																				display: "flex",
 																				"align-items": "center",
+																				"justify-content": "space-between",
 																			}}
 																		>
-																			<input
-																				style={{ width: "75px" }}
-																				type="number"
-																				min={0}
-																				class="form-control"
-																				value={row.offset?.before}
-																				onChange={(e) => {
-																					setSystem(
-																						"rows",
-																						rowIdx(),
-																						"offset",
-																						(o) => {
-																							o = { ...o };
-																							o.before = Number.parseFloat(
-																								e.target.value,
-																							);
-																							return o;
-																						},
-																					);
-
-																					logSystem();
-																				}}
-																				required
-																			/>
-																			<span>m</span>
-																		</div>
-																	</div>
-
-																	<button
-																		class="btn btn-dark"
-																		onclick={() => {
-																			// console.log('test')
-																			setSystem(
-																				"rows",
-																				rowIdx(),
-																				"sequence",
-																				(sequence) => {
-																					const newSequence = [
-																						{
-																							species: undefined,
-																							spacingAfter: 5,
-																						},
-																						...sequence,
-																					];
-
-																					// console.log(newRows)
-																					return newSequence;
-																				},
-																			);
-																			logSystem();
-																		}}
-																	>
-																		<i class="fa-solid fa-plus" /> Add tree
-																	</button>
-
-																	<For each={row.sequence}>
-																		{(sequence, sequenceIdx) => (
-																			// <div class='card'>
-																			//   <div class='card-body'>
-
+																			<label>Offset</label>
 																			<div
 																				style={{
 																					display: "flex",
 																					"align-items": "center",
-																					"margin-top": "10px",
 																				}}
 																			>
-																				{/* <button
+																				<input
+																					style={{ width: "75px" }}
+																					type="number"
+																					min={0}
+																					class="form-control"
+																					value={row.offset?.before}
+																					onChange={(e) => {
+																						setSystem(
+																							"rows",
+																							rowIdx(),
+																							"offset",
+																							(o) => {
+																								o = { ...o };
+																								o.before = Number.parseFloat(
+																									e.target.value,
+																								);
+																								return o;
+																							},
+																						);
+
+																						logSystem();
+																					}}
+																					required
+																				/>
+																				<span>m</span>
+																			</div>
+																		</div>
+
+																		<button
+																			class="btn btn-dark"
+																			onclick={() => {
+																				// console.log('test')
+																				setSystem(
+																					"rows",
+																					rowIdx(),
+																					"sequence",
+																					(sequence) => {
+																						const newSequence = [
+																							{
+																								species: undefined,
+																								spacingAfter: 5,
+																							},
+																							...sequence,
+																						];
+
+																						// console.log(newRows)
+																						return newSequence;
+																					},
+																				);
+																				logSystem();
+																			}}
+																		>
+																			<i class="fa-solid fa-plus" /> Add tree
+																		</button>
+
+																		<For each={row.sequence}>
+																			{(sequence, sequenceIdx) => (
+																				// <div class='card'>
+																				//   <div class='card-body'>
+
+																				<div
+																					style={{
+																						display: "flex",
+																						"align-items": "center",
+																						"margin-top": "10px",
+																					}}
+																				>
+																					{/* <button
                                     class='btn btn-dark'
                                     onClick={() => {
                                       // setSystem('rows', (prev) => {
@@ -810,380 +813,384 @@ export default function view() {
                                       // })
                                     }}
                                   > */}
-																				<i
-																					onClick={() => {
-																						setSystem(
-																							"rows",
-																							rowIdx(),
-																							"sequence",
-																							(sequence) => {
-																								const newSequence = [
-																									...sequence,
-																								];
-																								newSequence.splice(
-																									sequenceIdx(),
-																									1,
-																								);
-																								return newSequence;
-																							},
-																						);
-																						logSystem();
-																					}}
-																					class="fa-solid fa-trash"
-																				/>
-																				{/* </button> */}
-
-																				<div>
-																					<div
-																						style={{
-																							display: "flex",
-																							"align-items": "center",
+																					<i
+																						onClick={() => {
+																							setSystem(
+																								"rows",
+																								rowIdx(),
+																								"sequence",
+																								(sequence) => {
+																									const newSequence = [
+																										...sequence,
+																									];
+																									newSequence.splice(
+																										sequenceIdx(),
+																										1,
+																									);
+																									return newSequence;
+																								},
+																							);
+																							logSystem();
 																						}}
-																					>
-																						<i
-																							class="fa-solid fa-arrows-up-down"
-																							style={{
-																								width: "20px",
-																								"text-align": "center",
-																							}}
-																						/>
-																						<input
-																							style={{ width: "100%" }}
-																							type="number"
-																							min={0}
-																							placeholder="Spacing (m)"
-																							value={sequence.spacingAfter}
-																							onChange={(e) => {
-																								setSystem(
-																									"rows",
-																									rowIdx(),
-																									"sequence",
-																									sequenceIdx(),
-																									(sequence) => {
-																										sequence = { ...sequence };
-																										sequence.spacingAfter =
-																											Number.parseFloat(
-																												e.target.value,
-																											);
-																										return sequence;
-																									},
-																								);
-																								logSystem();
-																							}}
-																						/>
-																					</div>
-																					<div
-																						style={{
-																							display: "flex",
-																							"margin-top": "10px",
-																							"align-items": "center",
-																						}}
-																					>
-																						<i
-																							class="fa-solid fa-tree"
-																							style={{
-																								width: "20px",
-																								"text-align": "center",
-																							}}
-																						/>
-																						<select
-																							style="width:100%;max-width:100%;"
-																							value={sequence.species ?? ""}
-																							onchange={(e) => {
-																								setSystem(
-																									"rows",
-																									rowIdx(),
-																									"sequence",
-																									sequenceIdx(),
-																									"species",
-																									(species) => {
-																										species = e.target.value;
-																										return species;
-																									},
-																								);
+																						class="fa-solid fa-trash"
+																					/>
+																					{/* </button> */}
 
-																								logSystem();
+																					<div>
+																						<div
+																							style={{
+																								display: "flex",
+																								"align-items": "center",
 																							}}
 																						>
-																							<option value="">none</option>
-																							<For
-																								each={species()?.species.filter(
-																									(species: ISpeciesSchema) =>
-																										!["herb", "grass"].includes(
-																											species.form,
-																										),
-																								)}
+																							<i
+																								class="fa-solid fa-arrows-up-down"
+																								style={{
+																									width: "20px",
+																									"text-align": "center",
+																								}}
+																							/>
+																							<input
+																								style={{ width: "100%" }}
+																								type="number"
+																								min={0}
+																								placeholder="Spacing (m)"
+																								value={sequence.spacingAfter}
+																								onChange={(e) => {
+																									setSystem(
+																										"rows",
+																										rowIdx(),
+																										"sequence",
+																										sequenceIdx(),
+																										(sequence) => {
+																											sequence = {
+																												...sequence,
+																											};
+																											sequence.spacingAfter =
+																												Number.parseFloat(
+																													e.target.value,
+																												);
+																											return sequence;
+																										},
+																									);
+																									logSystem();
+																								}}
+																							/>
+																						</div>
+																						<div
+																							style={{
+																								display: "flex",
+																								"margin-top": "10px",
+																								"align-items": "center",
+																							}}
+																						>
+																							<i
+																								class="fa-solid fa-tree"
+																								style={{
+																									width: "20px",
+																									"text-align": "center",
+																								}}
+																							/>
+																							<select
+																								style="width:100%;max-width:100%;"
+																								value={sequence.species ?? ""}
+																								onchange={(e) => {
+																									setSystem(
+																										"rows",
+																										rowIdx(),
+																										"sequence",
+																										sequenceIdx(),
+																										"species",
+																										(species) => {
+																											species = e.target.value;
+																											return species;
+																										},
+																									);
+
+																									logSystem();
+																								}}
 																							>
-																								{(species) => (
-																									<option value={species._id}>
-																										{species.nameCommon}
-																									</option>
-																								)}
-																							</For>
-																						</select>
+																								<option value="">none</option>
+																								<For
+																									each={species()?.species.filter(
+																										(species: ISpeciesSchema) =>
+																											![
+																												"herb",
+																												"grass",
+																											].includes(species.form),
+																									)}
+																								>
+																									{(species) => (
+																										<option value={species._id}>
+																											{species.nameCommon}
+																										</option>
+																									)}
+																								</For>
+																							</select>
+																						</div>
 																					</div>
 																				</div>
-																			</div>
-																		)}
-																	</For>
+																			)}
+																		</For>
 
-																	<button
-																		class="btn btn-dark"
-																		onclick={() => {
-																			// console.log('test')
-																			setSystem(
-																				"rows",
-																				rowIdx(),
-																				"sequence",
-																				(sequence) => {
-																					const newSequence = [
-																						...sequence,
-																						{
-																							species: undefined,
-																							spacingAfter: 5,
-																						},
-																					];
+																		<button
+																			class="btn btn-dark"
+																			onclick={() => {
+																				// console.log('test')
+																				setSystem(
+																					"rows",
+																					rowIdx(),
+																					"sequence",
+																					(sequence) => {
+																						const newSequence = [
+																							...sequence,
+																							{
+																								species: undefined,
+																								spacingAfter: 5,
+																							},
+																						];
 
-																					// console.log(newRows)
-																					return newSequence;
-																				},
-																			);
-																			logSystem();
-																		}}
-																	>
-																		<i class="fa-solid fa-plus" /> Add tree
-																	</button>
+																						// console.log(newRows)
+																						return newSequence;
+																					},
+																				);
+																				logSystem();
+																			}}
+																		>
+																			<i class="fa-solid fa-plus" /> Add tree
+																		</button>
 
-																	<div
-																		class="form-group"
-																		style={{
-																			display: "flex",
-																			"align-items": "center",
-																			"justify-content": "space-between",
-																		}}
-																	>
-																		<label>Offset</label>
 																		<div
+																			class="form-group"
 																			style={{
 																				display: "flex",
 																				"align-items": "center",
+																				"justify-content": "space-between",
 																			}}
 																		>
-																			<input
-																				style={{ width: "75px" }}
-																				type="number"
-																				min={0}
-																				class="form-control"
-																				value={row.offset?.after}
-																				onChange={(e) => {
-																					setSystem(
-																						"rows",
-																						rowIdx(),
-																						"offset",
-																						(o) => {
-																							o = { ...o };
-																							o.after = Number.parseFloat(
-																								e.target.value,
-																							);
-																							return o;
-																						},
-																					);
-
-																					logSystem();
+																			<label>Offset</label>
+																			<div
+																				style={{
+																					display: "flex",
+																					"align-items": "center",
 																				}}
-																				required
-																			/>
-																			<span>m</span>
+																			>
+																				<input
+																					style={{ width: "75px" }}
+																					type="number"
+																					min={0}
+																					class="form-control"
+																					value={row.offset?.after}
+																					onChange={(e) => {
+																						setSystem(
+																							"rows",
+																							rowIdx(),
+																							"offset",
+																							(o) => {
+																								o = { ...o };
+																								o.after = Number.parseFloat(
+																									e.target.value,
+																								);
+																								return o;
+																							},
+																						);
+
+																						logSystem();
+																					}}
+																					required
+																				/>
+																				<span>m</span>
+																			</div>
 																		</div>
 																	</div>
-																</div>
-															</>
-														) : (
-															<button
-																class="btn btn-dark"
-																onclick={() => {
-																	// console.log('test')
-																	setSystem(
-																		"rows",
-																		rowIdx(),
-																		"sequence",
-																		(sequence) => {
-																			const newSequence = [
-																				...sequence,
-																				{
-																					species: undefined,
-																					spacingAfter: 5,
-																				},
-																			];
-																			return newSequence;
-																		},
-																	);
-																	logSystem();
-																}}
-															>
-																Define tree sequence
-															</button>
-														)}
-
-														<hr />
-
-														<span>Ground cover</span>
-
-														<select
-															style="width:100%;max-width:100%;"
-															value={row.groundcover ?? ""}
-															onchange={(e) => {
-																setSystem(
-																	"rows",
-																	rowIdx(),
-																	"groundcover",
-																	(gc) => {
-																		gc = e.target.value;
-																		return gc;
-																	},
-																);
-
-																logSystem();
-															}}
-														>
-															<option value="">none</option>
-															<For
-																each={species()?.species.filter(
-																	(species: ISpeciesSchema) =>
-																		["herb", "grass"].includes(species.form),
-																)}
-															>
-																{(species) => (
-																	<option value={species._id}>
-																		{species.nameCommon}
-																	</option>
-																)}
-															</For>
-														</select>
-
-														<br />
-
-														<div
-															class="form-group"
-															style={{
-																display: "flex",
-																"align-items": "center",
-																"justify-content": "space-between",
-															}}
-														>
-															<label>Row width</label>
-															<div
-																style={{
-																	display: "flex",
-																	"align-items": "center",
-																}}
-															>
-																<input
-																	style={{ width: "75px" }}
-																	type="number"
-																	min={0}
-																	class="form-control"
-																	placeholder="Width"
-																	value={row.width}
-																	onChange={(e) => {
+																</>
+															) : (
+																<button
+																	class="btn btn-dark"
+																	onclick={() => {
+																		// console.log('test')
 																		setSystem(
 																			"rows",
 																			rowIdx(),
-																			"width",
-																			(width) => {
-																				width = Number.parseFloat(
-																					e.target.value,
-																				);
-																				return width;
+																			"sequence",
+																			(sequence) => {
+																				const newSequence = [
+																					...sequence,
+																					{
+																						species: undefined,
+																						spacingAfter: 5,
+																					},
+																				];
+																				return newSequence;
 																			},
 																		);
-
 																		logSystem();
 																	}}
-																	required
-																/>
-																<span>m</span>
-															</div>
-														</div>
+																>
+																	Define tree sequence
+																</button>
+															)}
 
-														<br />
+															<hr />
 
-														<div
-															style={{
-																display: "flex",
-																"flex-direction": "column",
-																"align-items": "center",
-															}}
-														>
-															<p>{rowIdx() + 1}. Row</p>
+															<span>Ground cover</span>
 
-															<button
-																class="btn btn-dark"
-																onClick={() => {
-																	setSystem("rows", (prev) => {
-																		const newRows = [...prev];
-																		newRows.splice(rowIdx(), 1);
-																		return newRows;
-																	});
+															<select
+																style="width:100%;max-width:100%;"
+																value={row.groundcover ?? ""}
+																onchange={(e) => {
+																	setSystem(
+																		"rows",
+																		rowIdx(),
+																		"groundcover",
+																		(gc) => {
+																			gc = e.target.value;
+																			return gc;
+																		},
+																	);
+
 																	logSystem();
 																}}
 															>
-																<i class="fa-solid fa-trash" />
-															</button>
+																<option value="">none</option>
+																<For
+																	each={species()?.species.filter(
+																		(species: ISpeciesSchema) =>
+																			["herb", "grass"].includes(species.form),
+																	)}
+																>
+																	{(species) => (
+																		<option value={species._id}>
+																			{species.nameCommon}
+																		</option>
+																	)}
+																</For>
+															</select>
+
+															<br />
+
+															<div
+																class="form-group"
+																style={{
+																	display: "flex",
+																	"align-items": "center",
+																	"justify-content": "space-between",
+																}}
+															>
+																<label>Row width</label>
+																<div
+																	style={{
+																		display: "flex",
+																		"align-items": "center",
+																	}}
+																>
+																	<input
+																		style={{ width: "75px" }}
+																		type="number"
+																		min={0}
+																		class="form-control"
+																		placeholder="Width"
+																		value={row.width}
+																		onChange={(e) => {
+																			setSystem(
+																				"rows",
+																				rowIdx(),
+																				"width",
+																				(width) => {
+																					width = Number.parseFloat(
+																						e.target.value,
+																					);
+																					return width;
+																				},
+																			);
+
+																			logSystem();
+																		}}
+																		required
+																	/>
+																	<span>m</span>
+																</div>
+															</div>
+
+															<br />
+
+															<div
+																style={{
+																	display: "flex",
+																	"flex-direction": "column",
+																	"align-items": "center",
+																}}
+															>
+																<p>{rowIdx() + 1}. Row</p>
+
+																<button
+																	class="btn btn-dark"
+																	onClick={() => {
+																		setSystem("rows", (prev) => {
+																			const newRows = [...prev];
+																			newRows.splice(rowIdx(), 1);
+																			return newRows;
+																		});
+																		logSystem();
+																	}}
+																>
+																	<i class="fa-solid fa-trash" />
+																</button>
+															</div>
 														</div>
-													</div>
-												</>
-											)}
-										</For>
-										<AddRow
-											index={system.rows.length}
-											setSystem={setSystem}
-											logSystem={logSystem}
-										/>
-									</div>
-								</div>
-
-								<div>
-									<div
-										style={{
-											display: "flex",
-											"justify-content": "space-between",
-											padding: "0 0 0 10px",
-											"border-top": "1px solid #555",
-										}}
-									>
-										<A
-											end={true}
-											href={`/parcels/${params.parcelId}/layers/${
-												params.layerId
-											}/projects/${scenarioData()?.project._id}`}
-											class="btn btn-dark"
-										>
-											<i class="fas fa-arrow-left" /> Back to scenario dashboard
-										</A>
-
-										<div class="form-group">
-											<button
-												// disabled={submitDisabled()}
-												type="submit"
-												class="btn btn-dark"
-												onclick={saveSystem}
-												disabled={saving()}
-											>
-												Save system design
-											</button>
-											<button
-												// disabled={submitDisabled()}
-												type="submit"
-												class="btn btn-dark"
-												onclick={getSystemDesign}
-												disabled={previewing()}
-											>
-												Generate preview
-											</button>
+													</>
+												)}
+											</For>
+											<AddRow
+												index={system.rows.length}
+												setSystem={setSystem}
+												logSystem={logSystem}
+											/>
 										</div>
+									</div>
 
-										{/* <div class='form-group'>
+									<div>
+										<div
+											style={{
+												display: "flex",
+												"justify-content": "space-between",
+												padding: "0 0 0 10px",
+												"border-top": "1px solid #555",
+											}}
+										>
+											<A
+												end={true}
+												href={`/parcels/${params.parcelId}/layers/${
+													params.layerId
+												}/projects/${scenarioData()?.project._id}`}
+												class="btn btn-dark"
+											>
+												<i class="fas fa-arrow-left" /> Back to scenario
+												dashboard
+											</A>
+
+											<div class="form-group">
+												<button
+													// disabled={submitDisabled()}
+													type="submit"
+													class="btn btn-dark"
+													onclick={saveSystem}
+													disabled={saving()}
+												>
+													Save system design
+												</button>
+												<button
+													// disabled={submitDisabled()}
+													type="submit"
+													class="btn btn-dark"
+													onclick={getSystemDesign}
+													disabled={previewing()}
+												>
+													Generate preview
+												</button>
+											</div>
+
+											{/* <div class='form-group'>
                     <button
                       // disabled={submitDisabled()}
                       type='submit'
@@ -1192,35 +1199,37 @@ export default function view() {
                       Preview
                     </button>
                   </div> */}
+										</div>
 									</div>
 								</div>
-							</div>
-						</>
-						{/* </form> */}
-					</Show>
+							</>
+							{/* </form> */}
+						</Show>
+					</div>
 				</div>
-			</div>
-			<Show when={scenarioData()}>
+			</Resizable.Panel>
+			<Resizable.Handle />
+			<Resizable.Panel>
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
-
-						<div
-							style={{
-								background: "#151515dd",
-								"border-radius": "10px",
-								position: "absolute",
-								"z-index": 10,
-								color: "white",
-								right: "10px",
-								bottom: "10px",
-								padding: "10px",
-							}}
-						>
-							<strong>
-								<span>Change parameters:</span>
-							</strong>
-							{/* 
+						<Show when={scenarioData()}>
+							<div
+								style={{
+									background: "#151515dd",
+									"border-radius": "10px",
+									position: "absolute",
+									"z-index": 10,
+									color: "white",
+									right: "10px",
+									bottom: "10px",
+									padding: "10px",
+								}}
+							>
+								<strong>
+									<span>Change parameters:</span>
+								</strong>
+								{/* 
               <div class='form-group'>
                 <label>Layout type</label>
                 <select
@@ -1250,142 +1259,160 @@ export default function view() {
                 </select>
               </div> */}
 
-							<div class="form-group">
-								<label>Bearing</label>
-								<input
-									type="number"
-									min={0}
-									class="form-control"
-									onchange={(e) => {
-										setSystem("bearing", Number.parseFloat(e.target.value));
-										logSystem();
-									}}
-									value={scenarioData()?.project.systemdesign?.bearing ?? 0}
-								/>
+								<div class="form-group">
+									<label>Bearing</label>
+									<input
+										type="number"
+										min={0}
+										class="form-control"
+										onchange={(e) => {
+											setSystem("bearing", Number.parseFloat(e.target.value));
+											logSystem();
+										}}
+										value={scenarioData()?.project.systemdesign?.bearing ?? 0}
+									/>
+								</div>
+
+								<div class="form-group">
+									<label>Margin</label>
+									<input
+										type="number"
+										min={0}
+										class="form-control"
+										onchange={(e) => {
+											setSystem("margin", Number.parseFloat(e.target.value));
+											logSystem();
+										}}
+										value={scenarioData()?.project.systemdesign?.margin ?? 0}
+									/>
+								</div>
+
+								<div class="form-group">
+									<label>Headland</label>
+									<input
+										type="number"
+										min={0}
+										class="form-control"
+										onchange={(e) => {
+											setSystem("headland", Number.parseFloat(e.target.value));
+											logSystem();
+										}}
+										value={scenarioData()?.project?.systemdesign?.headland ?? 0}
+									/>
+								</div>
 							</div>
 
-							<div class="form-group">
-								<label>Margin</label>
-								<input
-									type="number"
-									min={0}
-									class="form-control"
-									onchange={(e) => {
-										setSystem("margin", Number.parseFloat(e.target.value));
-										logSystem();
+							{systemLayout() ? (
+								<div
+									style={{
+										color: "white",
+										position: "absolute",
+										padding: "10px",
+										background: "#151515dd",
+										"border-radius": "10px",
+										"z-index": 10,
+										left: "10px",
+										bottom: "10px",
 									}}
-									value={scenarioData()?.project.systemdesign?.margin ?? 0}
-								/>
-							</div>
-
-							<div class="form-group">
-								<label>Headland</label>
-								<input
-									type="number"
-									min={0}
-									class="form-control"
-									onchange={(e) => {
-										setSystem("headland", Number.parseFloat(e.target.value));
-										logSystem();
-									}}
-									value={scenarioData()?.project?.systemdesign?.headland ?? 0}
-								/>
-							</div>
-						</div>
-
-						{systemLayout() ? (
-							<div
-								style={{
-									color: "white",
-									position: "absolute",
-									padding: "10px",
-									background: "#151515dd",
-									"border-radius": "10px",
-									"z-index": 10,
-									left: "10px",
-									bottom: "10px",
-								}}
-							>
-								<strong>
-									<span>Tree and shrub counts:</span>
-								</strong>
-								<br />
-								<For each={systemLayout()?.speciesCountArray}>
-									{(speciesEl) => {
-										// console.log("species", systemDesignData()?.species);
-										return (
-											<>
-												<span>
-													{
-														species()?.speciesById.get(speciesEl.species)
-															.nameCommon
-													}
-													: {speciesEl.count}
-												</span>
-												<br />
-											</>
-										);
-									}}
-								</For>
-								{Object.keys(systemLayout()?.groundCoverAreasM2).length > 0 ? (
-									<>
-										<strong>
-											<span>Ground cover:</span>
-										</strong>
-										<br />
-										<For each={Object.keys(systemLayout()?.groundCoverAreasM2)}>
-											{(speciesEl) => {
-												console.log("groundcover", speciesEl);
-												return (
-													<>
-														<span>
-															{species()?.speciesById.get(speciesEl).nameCommon}
-															:{" "}
-															{`${(
-																Number.parseFloat(
+								>
+									<strong>
+										<span>Tree and shrub counts:</span>
+									</strong>
+									<br />
+									<For each={systemLayout()?.speciesCountArray}>
+										{(speciesEl) => {
+											// console.log("species", systemDesignData()?.species);
+											return (
+												<>
+													<span>
+														{
+															species()?.speciesById.get(speciesEl.species)
+																.nameCommon
+														}
+														: {speciesEl.count}
+													</span>
+													<br />
+												</>
+											);
+										}}
+									</For>
+									{Object.keys(systemLayout()?.groundCoverAreasM2).length >
+									0 ? (
+										<>
+											<strong>
+												<span>Ground cover:</span>
+											</strong>
+											<br />
+											<For
+												each={Object.keys(systemLayout()?.groundCoverAreasM2)}
+											>
+												{(speciesEl) => {
+													console.log("groundcover", speciesEl);
+													return (
+														<>
+															<span>
+																{
+																	species()?.speciesById.get(speciesEl)
+																		.nameCommon
+																}
+																:{" "}
+																{`${(
+																	Number.parseFloat(
+																		systemLayout()?.groundCoverAreasM2[
+																			speciesEl
+																		],
+																	) / 10000
+																)
+																	.toFixed(2)
+																	.replace(
+																		".",
+																		",",
+																	)} ha (${groundCoverPercentage(
 																	systemLayout()?.groundCoverAreasM2[speciesEl],
-																) / 10000
-															).toFixed(2).replace(".", ",")} ha (${groundCoverPercentage(
-																systemLayout()?.groundCoverAreasM2[speciesEl],
-																scenarioData()?.project.layer.geometry,
-															)}%)`}
-														</span>
-														<br />
-													</>
-												);
-											}}
-										</For>
-									</>
-								) : (
-									<></>
-								)}
-								{(system.headland > 0 || system.margin > 0) &&
-								calculateMarginHeadlandArea() > 10 ? (
-									<>
-										<strong>
-											<span>Margin & headland:</span>
-										</strong>
-										<br />
-										{`${(calculateMarginHeadlandArea() / 10000).toFixed(2).replace(".", ",")} ha`}
-										<br />
-									</>
-								) : (
-									<></>
-								)}
-								<strong>
-									<span>Field area:</span>
-								</strong>
-								<br />
-								{`${(
-									fieldArea(scenarioData()?.project.layer.geometry) / 10000
-								).toFixed(2).replace(".", ",")} ha`}
-							</div>
-						) : (
-							<></>
-						)}
+																	scenarioData()?.project.layer.geometry,
+																)}%)`}
+															</span>
+															<br />
+														</>
+													);
+												}}
+											</For>
+										</>
+									) : (
+										<></>
+									)}
+									{(system.headland > 0 || system.margin > 0) &&
+									calculateMarginHeadlandArea() > 10 ? (
+										<>
+											<strong>
+												<span>Margin & headland:</span>
+											</strong>
+											<br />
+											{`${(calculateMarginHeadlandArea() / 10000)
+												.toFixed(2)
+												.replace(".", ",")} ha`}
+											<br />
+										</>
+									) : (
+										<></>
+									)}
+									<strong>
+										<span>Field area:</span>
+									</strong>
+									<br />
+									{`${(
+										fieldArea(scenarioData()?.project.layer.geometry) / 10000
+									)
+										.toFixed(2)
+										.replace(".", ",")} ha`}
+								</div>
+							) : (
+								<></>
+							)}
+						</Show>
 					</div>
 				</div>
-			</Show>
-		</SplitView>
+			</Resizable.Panel>
+		</Resizable>
 	);
 }
