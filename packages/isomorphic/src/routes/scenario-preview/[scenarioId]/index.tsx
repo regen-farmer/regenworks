@@ -13,57 +13,24 @@ import {
 	Show,
 	createEffect,
 	createSignal,
-	createResource,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { use3DControl } from "~/util/map_controls/use3DControl";
 import { useBSControl } from "~/util/map_controls/useBSControl";
 import { useHCControl } from "~/util/map_controls/useHCControl";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
-import type { ProjectDocument } from "@rw/db/schemas/project";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
+import { getSpecies } from "~/util/getSpecies";
+import { getScenario } from "~/util/getScenario";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
 
-	const [species, { refetch: speciesRefresh }] = createResource<{
-		species: SpeciesDocument[];
-		speciesById: Map<string, SpeciesDocument>;
-	}>(async () => {
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/species`,
-			apiFetchOptions(),
-		);
+	const species = getSpecies()
 
-		const result = await response.json();
-
-		result.speciesById = new Map<string, any>(
-			result.species.map((species) => [species._id, species]),
-		);
-
-		return result;
-	});
-
-	const [scenarioData, { refetch: scenarioDataRefresh }] = createResource(
-		async () => {
-			console.log("Request to layoutData");
-			const response = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/projects/${
-					params.scenarioId
-				}/layout`,
-				apiFetchOptions(),
-			);
-
-			const result: {
-				project: ProjectDocument;
-			} = await response.json();
-			return result;
-		},
-	);
+	const scenarioData = getScenario(params.scenarioId);
 
 	const [systemLayout, setSystemLayout] = createSignal<{
 		treeRowLines: any;
