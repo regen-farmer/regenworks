@@ -1,26 +1,26 @@
-import { StyleSpecification } from "maplibre-gl";
+import type { StyleSpecification } from "maplibre-gl";
 
 export const GoogleSatStyle: StyleSpecification = {
-  version: 8,
-  sources: {
-    "raster-tiles": {
-      type: "raster",
-      tiles: [
-        "https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-        "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-        "https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-        "https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-      ],
-      tileSize: 256,
-    },
-  },
-  layers: [
-    {
-      id: "simple-tiles",
-      type: "raster",
-      source: "raster-tiles",
-      minzoom: 0,
-      maxzoom: 21,
-    },
-  ],
-}
+	version: 8,
+	sources: {
+		"raster-tiles": {
+			type: "raster",
+			tiles: [
+				"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+				"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+				"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+				"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+			],
+			tileSize: 256,
+		},
+	},
+	layers: [
+		{
+			id: "simple-tiles",
+			type: "raster",
+			source: "raster-tiles",
+			minzoom: 0,
+			maxzoom: 21,
+		},
+	],
+};

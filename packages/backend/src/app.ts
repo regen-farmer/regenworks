@@ -7,7 +7,7 @@ import express from "express";
 import mongoose from "mongoose";
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 import cors from "cors";
-import User, { IUserSchema, UserDocument } from "@rw/db/schemas/user";
+import User, { type IUserSchema, type UserDocument } from "@rw/db/schemas/user";
 import bodyParser from "body-parser";
 
 // REQUIRE ROUTES
@@ -245,13 +245,11 @@ app.get(
 );
 app.set("trust proxy", true);
 
-const PORT = process.env.BACKEND_PORT ? parseInt(process.env.BACKEND_PORT) : 3001
-const IP = process.env.BACKEND_IP ?? "127.0.0.1"
+const PORT = process.env.BACKEND_PORT
+	? Number.parseInt(process.env.BACKEND_PORT)
+	: 3001;
+const IP = process.env.BACKEND_IP ?? "127.0.0.1";
 
-app.listen(
-	PORT,
-	IP,
-	() => {
-		console.log(`RegenWorks backend server has started on ${IP}:${PORT}`);
-	},
-);
+app.listen(PORT, IP, () => {
+	console.log(`RegenWorks backend server has started on ${IP}:${PORT}`);
+});

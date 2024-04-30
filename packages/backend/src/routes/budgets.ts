@@ -4,13 +4,13 @@ import { area } from "@turf/turf";
 import Budget from "@rw/db/schemas/budget";
 import Project from "@rw/db/schemas/project";
 import System from "@rw/db/schemas/system";
-import Posting, { IPostingSchema } from "@rw/db/schemas/posting";
+import Posting, { type IPostingSchema } from "@rw/db/schemas/posting";
 import Parcel from "@rw/db/schemas/parcel";
 import middleware from "../middleware/index";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
-import { UserDocument } from "@rw/db/schemas/user";
-import { ISpeciesSchema } from "@rw/db/schemas/species";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { Auth0IDToken } from "../app";
 import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
 
 const router = express.Router();
@@ -187,9 +187,9 @@ router.get(
 					if (foundSystem) {
 						// FIND ALL SPECIES IN SYSTEM
 						const allSpecies: ISpeciesSchema[] = [];
-						foundSystem.model.forEach((species) => {
+						for (const species of foundSystem.model) {
 							allSpecies.push(species.species);
-						});
+						}
 						// FIND UNIQUE SPECIES / REMOVE DUPLICATES
 						const uniqueSpecies = unique(allSpecies);
 						res.send({
@@ -363,14 +363,17 @@ router.post(
 						//   .populate('model.species')
 						//   .exec();
 						// SET VARIABLES HERE
-						let layout;
+						let layout: any;
 						// IF ROWS, DO XXX
 						if (foundProject.rows && foundProject.rows.length > 0) {
 							// DO ROW LAYOUT
 							layout = rowBasedLayout(foundProject);
 						} else {
 							// DO PARAMETRIC LAYOUT
-							layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+							layout = systemBasedLayout(
+								foundProject.systemdesign,
+								foundProject.layer.geometry,
+							);
 						}
 
 						let uniqueSpeciesCount: {
@@ -395,28 +398,28 @@ router.post(
 									const posting: any = {
 										name: `${uniqueSpecies[j].nameCommon} ${
 											uniqueSpecies[j].activities[
-												parseInt(speciesPostingsArray[i][1], 10)
+												Number.parseInt(speciesPostingsArray[i][1], 10)
 											].subtype
 										}: ${
 											uniqueSpecies[j].activities[
-												parseInt(speciesPostingsArray[i][1], 10)
+												Number.parseInt(speciesPostingsArray[i][1], 10)
 											].name
 										}`,
 										postType: "material",
 										amount: 1,
 										value:
 											uniqueSpecies[j].activities[
-												parseInt(speciesPostingsArray[i][1], 10)
+												Number.parseInt(speciesPostingsArray[i][1], 10)
 											].price,
 										year: 1,
 									};
 									// SET POSTTYPE DEPENDING ON POSTINGS TYPE
 									if (
 										uniqueSpecies[j].activities[
-											parseInt(speciesPostingsArray[i][1], 10)
+											Number.parseInt(speciesPostingsArray[i][1], 10)
 										].subtype === "bed" ||
 										uniqueSpecies[j].activities[
-											parseInt(speciesPostingsArray[i][1], 10)
+											Number.parseInt(speciesPostingsArray[i][1], 10)
 										].subtype === "method"
 									) {
 										posting.postType = "labor";
@@ -695,14 +698,17 @@ router.post(
 						//     populate: { path: 'flows' },
 						//   })
 						//   .exec();
-						let layout;
+						let layout: any;
 						// IF ROWS, DO XXX
 						if (foundProject.rows && foundProject.rows.length > 0) {
 							// DO ROW LAYOUT
 							layout = rowBasedLayout(foundProject);
 						} else {
 							// DO PARAMETRIC LAYOUT
-							layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+							layout = systemBasedLayout(
+								foundProject.systemdesign,
+								foundProject.layer.geometry,
+							);
 						}
 						let uniqueSpeciesCount: {
 							id: string;
@@ -969,28 +975,28 @@ router.post(
 										const posting: any = {
 											name: `${uniqueSpecies[j].nameCommon} ${
 												uniqueSpecies[j].activities[
-													parseInt(speciesPostingsArray[i][1], 10)
+													Number.parseInt(speciesPostingsArray[i][1], 10)
 												].subtype
 											}: ${
 												uniqueSpecies[j].activities[
-													parseInt(speciesPostingsArray[i][1], 10)
+													Number.parseInt(speciesPostingsArray[i][1], 10)
 												].name
 											}`,
 											postType: "material",
 											amount: 1,
 											value:
 												uniqueSpecies[j].activities[
-													parseInt(speciesPostingsArray[i][1], 10)
+													Number.parseInt(speciesPostingsArray[i][1], 10)
 												].price,
 											year: k + 1,
 										};
 										// SET POSTTYPE DEPENDING ON POSTINGS TYPE
 										if (
 											uniqueSpecies[j].activities[
-												parseInt(speciesPostingsArray[i][1], 10)
+												Number.parseInt(speciesPostingsArray[i][1], 10)
 											].subtype === "pruning" ||
 											uniqueSpecies[j].activities[
-												parseInt(speciesPostingsArray[i][1], 10)
+												Number.parseInt(speciesPostingsArray[i][1], 10)
 											].subtype === "harvest"
 										) {
 											posting.postType = "labor";

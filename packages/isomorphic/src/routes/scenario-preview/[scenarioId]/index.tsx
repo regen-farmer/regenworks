@@ -20,7 +20,7 @@ import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
 import { getSpecies } from "~/util/getSpecies";
 import { getScenario } from "~/util/getScenario";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
-import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 const RouteDesignPreview: Component = () => {

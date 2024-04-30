@@ -182,7 +182,7 @@ export default function view() {
 											<>
 												<A
 													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
-													class={`list-group-item list-group-item-action`}
+													class={"list-group-item list-group-item-action"}
 												>
 													{/* <div
 																	style={{
@@ -225,7 +225,9 @@ export default function view() {
 						<p class="card-text">
 							Area size:{" "}
 							{data()?.layer.size! > 5000
-								? `${(data()?.layer.size! * 0.0001).toFixed(2).replace(".", ",")} ha`
+								? `${(data()?.layer.size! * 0.0001)
+										.toFixed(2)
+										.replace(".", ",")} ha`
 								: `${data()?.layer.size.toFixed(0).replace(".", ",")} m2`}
 						</p>
 

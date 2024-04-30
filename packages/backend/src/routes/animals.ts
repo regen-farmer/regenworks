@@ -1,8 +1,8 @@
 import express from "express";
 import Animal from "@rw/db/schemas/animal";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 

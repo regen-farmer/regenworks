@@ -3,8 +3,8 @@ import NurseryProduct from "@rw/db/schemas/nurseryproduct";
 import Nursery from "@rw/db/schemas/nursery";
 import Species from "@rw/db/schemas/species";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -78,13 +78,13 @@ router.post(
 		// CLEAN NONE OPTIONS
 		const product = req.body.product;
 		if (req.body.product.species === "") {
-			delete product.species;
+			product.species = undefined;
 		}
 		if (req.body.product.hybrid === "") {
-			delete product.hybrid;
+			product.hybrid = undefined;
 		}
 		if (req.body.product.rootstock === "") {
-			delete product.rootstock;
+			product.rootstock = undefined;
 		}
 		if (req.body.product.availability) {
 			product.availability = true;
@@ -205,13 +205,13 @@ router.put(
 		// CLEAN NONE OPTIONS
 		const product = req.body.product;
 		if (req.body.product.species === "") {
-			delete product.species;
+			product.species = undefined;
 		}
 		if (req.body.product.hybrid === "") {
-			delete product.hybrid;
+			product.hybrid = undefined;
 		}
 		if (req.body.product.rootstock === "") {
-			delete product.rootstock;
+			product.rootstock = undefined;
 		}
 		if (req.body.product.availability) {
 			product.availability = true;

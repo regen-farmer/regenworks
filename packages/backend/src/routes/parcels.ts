@@ -10,13 +10,13 @@ import {
 	along,
 } from "@turf/turf";
 import NodeGeocoder from "node-geocoder";
-import User, { UserDocument } from "@rw/db/schemas/user";
+import User, { type UserDocument } from "@rw/db/schemas/user";
 import Parcel from "@rw/db/schemas/parcel";
 import Practice from "@rw/db/schemas/practice";
 import Layer from "@rw/db/schemas/layer";
 import middleware from "../middleware/index"; // Will automatically require the middleware "index" file as the standard
-import { ISpeciesSchema } from "@rw/db/schemas/species";
-import { Auth0IDToken } from "../app";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { Auth0IDToken } from "../app";
 
 // NODE GEOCODER CODE
 
@@ -102,8 +102,8 @@ router.post(
 					.send({ error: `Error while geocoding: ${err.toString()}` });
 			}
 
-			let lat;
-			let lng;
+			let lat: any;
+			let lng: any;
 
 			if (req.body.parcel.lat && req.body.parcel.lng) {
 				lat = req.body.parcel.lat;

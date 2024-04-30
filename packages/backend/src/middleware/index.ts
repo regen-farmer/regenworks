@@ -1,7 +1,7 @@
-import express from "express";
-import { Auth0IDToken } from "../app";
+import type express from "express";
+import type { Auth0IDToken } from "../app";
 import Parcel from "@rw/db/schemas/parcel";
-import User, { UserDocument } from "@rw/db/schemas/user";
+import User, { type UserDocument } from "@rw/db/schemas/user";
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
 export async function checkParcelOwnership(
@@ -40,7 +40,7 @@ export async function checkUserOwnership(
 	next: express.NextFunction,
 ) {
 	// console.log("IM HERE 1 ", req.idToken)
-	if (req.idToken && req.idToken.email_verified) {
+	if (req.idToken?.email_verified) {
 		try {
 			const foundUser = await User.findById(req.params.id);
 
@@ -67,7 +67,7 @@ export async function isLoggedIn(
 	res: express.Response,
 	next: express.NextFunction,
 ) {
-	if (req.idToken && req.idToken.email_verified) {
+	if (req.idToken?.email_verified) {
 		return next();
 	}
 	// req.flash("error", "You need to be logged in to do that!");

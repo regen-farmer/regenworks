@@ -2,15 +2,15 @@ import express from "express";
 // import NodeGeocoder from 'node-geocoder';
 import unique from "array-unique";
 import Parcel from "@rw/db/schemas/parcel";
-import Activity, { ActivityDocument } from "@rw/db/schemas/activity";
+import Activity, { type ActivityDocument } from "@rw/db/schemas/activity";
 import Layer from "@rw/db/schemas/layer";
 import Project from "@rw/db/schemas/project";
 import Row from "@rw/db/schemas/row";
 import Area from "@rw/db/schemas/area";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { ISpeciesSchema } from "@rw/db/schemas/species";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { Auth0IDToken } from "../app";
 
 // NODE GEOCODER CODE
 
@@ -123,9 +123,9 @@ router.get(
 					"November",
 					"December",
 				];
-				const monthNumber = parseInt(dateParts[1], 10) - 1;
+				const monthNumber = Number.parseInt(dateParts[1], 10) - 1;
 				const month = monthNames[monthNumber];
-				const day = parseInt(dateParts[2], 10);
+				const day = Number.parseInt(dateParts[2], 10);
 				res.send({ activity: foundActivity, month, day });
 			} else {
 				console.log("No activity found");
@@ -152,9 +152,9 @@ router.get(
 			try {
 				const foundLayers = await Layer.find({ "owner.id": req.user?._id });
 				console.log("Reached this far");
-				foundLayers.forEach((layer) => {
+				for (const layer of foundLayers) {
 					console.log(layer.id);
-				});
+				}
 				res.send({ activity: foundActivity, layers: foundLayers });
 			} catch (err) {
 				console.log(err);
@@ -245,9 +245,9 @@ router.get(
 			try {
 				const foundLayers = await Layer.find({ type: "patch" });
 				console.log("Reached this far");
-				foundLayers.forEach((layer) => {
+				for (const layer of foundLayers) {
 					console.log(layer.id);
-				});
+				}
 				res.send({ parcel: foundparcel, layers: foundLayers });
 			} catch (err) {
 				console.log(err);
@@ -455,11 +455,11 @@ router.delete(
 				const updatedProject = await Project.findById(req.params.id);
 				if (updatedProject) {
 					// REMOVE ACTIVITY FROM PROJECT
-					updatedProject.activities.forEach(async (activity) => {
+					for (const activity of updatedProject.activities) {
 						if (activity._id === foundActivity?._id) {
 							await activity.deleteOne();
 						}
-					});
+					}
 					await updatedProject.save();
 					// DELETE ACTIVITY
 					try {
@@ -493,12 +493,12 @@ router.get(
 				.populate({ path: "sequence", populate: { path: "model.species" } })
 				.exec();
 			// FIND ALL SPECIES
-			if (foundRow && foundRow.sequence) {
+			if (foundRow?.sequence) {
 				console.log("species there");
 				const allSpecies: ISpeciesSchema[] = [];
-				foundRow.sequence.model.forEach((species) => {
+				for (const species of foundRow.sequence.model) {
 					allSpecies.push(species.species);
-				});
+				}
 				// FIND UNIQUE SPECIES / REMOVE DUPLICATES
 				const uniqueSpecies = unique(allSpecies);
 				console.log(uniqueSpecies);
@@ -575,12 +575,12 @@ router.get(
 				})
 				.exec();
 			// FIND ALL SPECIES
-			if (foundArea && foundArea.rotation) {
+			if (foundArea?.rotation) {
 				console.log("species there");
 				const allSpecies: ISpeciesSchema[] = [];
-				foundArea.rotation.model.forEach((speciesmix) => {
+				for (const speciesmix of foundArea.rotation.model) {
 					allSpecies.push(speciesmix.speciesmix[0].species);
-				});
+				}
 				// FIND UNIQUE SPECIES / REMOVE DUPLICATES
 				const uniqueSpecies = unique(allSpecies);
 				console.log(uniqueSpecies);

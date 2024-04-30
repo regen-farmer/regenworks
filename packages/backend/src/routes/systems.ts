@@ -1,14 +1,14 @@
 import express from "express";
 import unique from "array-unique";
-import System, { ISystemSchema } from "@rw/db/schemas/system";
+import System, { type ISystemSchema } from "@rw/db/schemas/system";
 import Layer from "@rw/db/schemas/layer";
-import Species, { ISpeciesSchema } from "@rw/db/schemas/species";
+import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
 import Parcel from "@rw/db/schemas/parcel";
 import Animal from "@rw/db/schemas/animal";
 import Project from "@rw/db/schemas/project";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -149,7 +149,7 @@ router.post(
 				for (let i = 0; i < system.model.length; i++) {
 					// FIX IF ONLY ONE ITEM IN ROW
 
-					if (system.model[i].species instanceof Array) {
+					if (Array.isArray(system.model[i].species)) {
 						for (let j = 0; j < system.model[i].species.length; j++) {
 							// IF SPECIES ID IS NULL
 							if (!(system.model[i].species[j].id === "")) {
@@ -536,13 +536,13 @@ router.get(
 					console.log(distance);
 					if (req.query.distance && typeof req.query.distance === "string") {
 						console.log("Distance query");
-						distance /= parseInt(req.query.distance, 10);
+						distance /= Number.parseInt(req.query.distance, 10);
 					}
 					// JUST SET NEW VARIABLE TO CONTROL NEW ROW
 					let newRow = -1;
 					if (req.query.row && typeof req.query.row === "string") {
 						console.log(`Row query ${req.query.row}`);
-						newRow = parseInt(req.query.row, 10);
+						newRow = Number.parseInt(req.query.row, 10);
 						console.log(typeof newRow);
 					}
 					// CHECK IF DISTANCE IS DIVISIBLE BY LENGTH?! THROW ERROR IF IT'S FOR SOME REASON NOT?
@@ -720,7 +720,7 @@ router.get(
 				let newRow = -1;
 				if (req.query.row && typeof req.query.row === "string") {
 					console.log(`Row query ${req.query.row}`);
-					newRow = parseInt(req.query.row, 10);
+					newRow = Number.parseInt(req.query.row, 10);
 					console.log(typeof newRow);
 				}
 				res.send({
@@ -769,7 +769,7 @@ router.put(
 				// ADD SPECIES TO MODEL
 				for (let i = 0; i < system.model.length; i++) {
 					// FIX IF ONLY ONE ITEM IN ROW
-					if (system.model[i].species.id instanceof Array) {
+					if (Array.isArray(system.model[i].species.id)) {
 						for (let j = 0; j < system.model[i].species.length; j++) {
 							// IF SPECIES ID IS NULL
 							if (!(system.model[i].species[j].id === "")) {

@@ -29,8 +29,8 @@ import { createFarmMarkerIcon } from "~/components/Map";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export enum modes {
-	default,
-	addField,
+	default=0,
+	addField=1,
 }
 
 export default function view() {

@@ -3,8 +3,8 @@ import Systemflow from "@rw/db/schemas/systemflow";
 import System from "@rw/db/schemas/system";
 import Species from "@rw/db/schemas/species";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 

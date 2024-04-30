@@ -2,7 +2,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import area from "@turf/area";
 import _ from "lodash";
-import { IProjectSchema } from "@rw/db/schemas/project";
+import type { IProjectSchema } from "@rw/db/schemas/project";
 import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 
@@ -22,17 +22,16 @@ export function establishment(project: IProjectSchema) {
 
 			// console.log(`row ${rowIdx} has:`, trees)
 
-			trees.forEach((tree) => {
+			for (const tree of trees) {
 				const speciesWithActivities = row.sequence.uniqueSpecies.find(
 					(uniqueSpecies) => uniqueSpecies.id.toString() === tree.species,
 				);
 
 				if (
-					speciesWithActivities &&
-					speciesWithActivities.activities &&
+					speciesWithActivities?.activities &&
 					speciesWithActivities.activities.length > 0
 				) {
-					speciesWithActivities.activities.forEach((activity) => {
+					for (const activity of speciesWithActivities.activities) {
 						// console.log("hello");
 						// console.log(project.system.model[j].activities[k].activityType);
 						if (activity.activityType === "establish") {
@@ -60,9 +59,9 @@ export function establishment(project: IProjectSchema) {
 
 							postings.push(postingint);
 						}
-					});
+					}
 				}
-			});
+			}
 
 			// row.sequence.uniqueSpecies
 		});
@@ -168,11 +167,10 @@ export function management(project: IProjectSchema) {
 					);
 
 					if (
-						speciesWithActivities &&
-						speciesWithActivities.activities &&
+						speciesWithActivities?.activities &&
 						speciesWithActivities.activities.length > 0
 					) {
-						speciesWithActivities.activities.forEach((activity) => {
+						for (const activity of speciesWithActivities.activities) {
 							// console.log("hello");
 							// console.log(project.system.model[j].activities[k].activityType);
 							if (activity.activityType === "manage") {
@@ -198,7 +196,7 @@ export function management(project: IProjectSchema) {
 
 								postings.push(postingint);
 							}
-						});
+						}
 					}
 				});
 

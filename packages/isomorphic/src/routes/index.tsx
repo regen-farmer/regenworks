@@ -55,9 +55,9 @@ async function getGeoCodeFromLocation(
 }
 
 export enum modes {
-	default,
-	dragMode,
-	addFarm,
+	default=0,
+	dragMode=1,
+	addFarm=2,
 }
 
 export type parcelPayload = {

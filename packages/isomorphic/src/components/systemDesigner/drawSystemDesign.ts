@@ -1,10 +1,8 @@
-import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
-import { featureCollection } from "@turf/turf";
-import {Map as MLMap} from 'maplibre-gl';
-import { helpers as turf } from "@turf/turf";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import { featureCollection, helpers as turf } from "@turf/turf";
+import type { Map as MLMap } from "maplibre-gl";
 
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
-		
 	console.log("Draw layers!");
 
 	// const layerNames = ['correctgeometry', 'alleys', 'strips', 'col', 'trees']
@@ -33,12 +31,18 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 	const treeRowLines = featureCollection(
 		systemLayout.treeRowLines?.map((tree) => tree.line),
 	);
-	const groundCoverAreas = turf.featureCollection(systemLayout.groundCoverAreas);
+	const groundCoverAreas = turf.featureCollection(
+		systemLayout.groundCoverAreas,
+	);
 	const headlandSides = turf.featureCollection(systemLayout.headlandSides);
 	const headlandPolygon = systemLayout.headlandPolygon;
 	const marginPolygon = systemLayout.marginPolygon;
-	const sidesCloseToBearing = turf.featureCollection(systemLayout.sidesCloseToBearing);
-	const intersectionPoints = turf.featureCollection(systemLayout.intersectionPoints);
+	const sidesCloseToBearing = turf.featureCollection(
+		systemLayout.sidesCloseToBearing,
+	);
+	const intersectionPoints = turf.featureCollection(
+		systemLayout.intersectionPoints,
+	);
 
 	const treeMarkerArray = systemLayout.treeMarkerArray;
 
@@ -288,7 +292,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 			},
 		});
 	}
-	
 }
 
-export {drawSystemDesign}
+export { drawSystemDesign };

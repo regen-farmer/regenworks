@@ -974,8 +974,7 @@ export default function view() {
 										<Tab eventKey="generateassets" title="Export KML">
 											<div class="card">
 												<div class="card-body">
-													<h2 />
-
+													
 													{data()?.project.assets &&
 													data()?.project.assets.length! > 0 ? (
 														<p>

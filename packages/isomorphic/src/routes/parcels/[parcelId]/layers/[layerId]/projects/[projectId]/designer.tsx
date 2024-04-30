@@ -1,9 +1,6 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { A, useParams } from "@solidjs/router";
-
-import { helpers as turf } from "@turf/turf";
-
 import { AddRow } from "~/components/systems/add-row";
 import type { ISpeciesSchema } from "@rw/db/schemas/species";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
@@ -23,7 +20,7 @@ import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
 import { getSpecies } from "~/util/getSpecies";
 import { getScenario } from "~/util/getScenario";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
-import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export default function view() {
@@ -310,11 +307,11 @@ export default function view() {
 																							rowIdx(),
 																							"offset",
 																							(o) => {
-																								o = { ...o };
-																								o.before = Number.parseFloat(
+																								const newOffset = { ...o };
+																								newOffset.before = Number.parseFloat(
 																									e.target.value,
 																								);
-																								return o;
+																								return newOffset;
 																							},
 																						);
 
@@ -425,14 +422,14 @@ export default function view() {
 																										"sequence",
 																										sequenceIdx(),
 																										(sequence) => {
-																											sequence = {
+																											const newSpecies = {
 																												...sequence,
 																											};
-																											sequence.spacingAfter =
+																											newSpecies.spacingAfter =
 																												Number.parseFloat(
 																													e.target.value,
 																												);
-																											return sequence;
+																											return newSpecies;
 																										},
 																									);
 																									logSystem();
@@ -464,8 +461,8 @@ export default function view() {
 																										sequenceIdx(),
 																										"species",
 																										(species) => {
-																											species = e.target.value;
-																											return species;
+																											const newSpecies = e.target.value;
+																											return newSpecies;
 																										},
 																									);
 
@@ -549,11 +546,11 @@ export default function view() {
 																							rowIdx(),
 																							"offset",
 																							(o) => {
-																								o = { ...o };
-																								o.after = Number.parseFloat(
+																								const offset = { ...o };
+																								offset.after = Number.parseFloat(
 																									e.target.value,
 																								);
-																								return o;
+																								return offset;
 																							},
 																						);
 
@@ -606,8 +603,8 @@ export default function view() {
 																		rowIdx(),
 																		"groundcover",
 																		(gc) => {
-																			gc = e.target.value;
-																			return gc;
+																			const newGroundCover = e.target.value;
+																			return newGroundCover;
 																		},
 																	);
 
@@ -659,10 +656,10 @@ export default function view() {
 																				rowIdx(),
 																				"width",
 																				(width) => {
-																					width = Number.parseFloat(
+																					const newWidth = Number.parseFloat(
 																						e.target.value,
 																					);
-																					return width;
+																					return newWidth;
 																				},
 																			);
 

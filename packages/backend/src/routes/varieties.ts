@@ -2,8 +2,8 @@ import express from "express";
 import Variety from "@rw/db/schemas/variety";
 import Species from "@rw/db/schemas/species";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -66,13 +66,13 @@ router.post(
 		// CLEAN NONE OPTIONS
 		const variety = req.body.variety;
 		if (req.body.variety.species === "") {
-			delete variety.species;
+			variety.species = undefined;
 		}
 		if (req.body.variety.hybrid === "") {
-			delete variety.hybrid;
+			variety.hybrid = undefined;
 		}
 		if (req.body.variety.rootstock.species === "") {
-			delete variety.rootstock.species;
+			variety.rootstock.species = undefined;
 		}
 		// CREATE VARIETY
 		const createdVariety = await Variety.create(variety);

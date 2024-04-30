@@ -4,8 +4,8 @@ import Note from "@rw/db/schemas/note";
 import Row from "@rw/db/schemas/row";
 import Area from "@rw/db/schemas/area";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 

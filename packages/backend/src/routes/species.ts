@@ -1,8 +1,8 @@
 import express from "express";
 import Species from "@rw/db/schemas/species";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -188,7 +188,7 @@ router.get(
 			if (foundSpecies) {
 				if (req.query.index && typeof req.query.index === "string") {
 					const activity =
-						foundSpecies.activities[parseInt(req.query.index, 10)];
+						foundSpecies.activities[Number.parseInt(req.query.index, 10)];
 					res.send({
 						species: foundSpecies,
 						activity,
@@ -230,7 +230,7 @@ router.put(
 			if (updatedSpecies) {
 				// CHANGE ACTIVITY DETAILS
 				if (req.query.index && typeof req.query.index === "string") {
-					updatedSpecies.activities[parseInt(req.query.index, 10)] = activity;
+					updatedSpecies.activities[Number.parseInt(req.query.index, 10)] = activity;
 					await updatedSpecies.save();
 					res.send(`/species/${updatedSpecies._id}`);
 				}

@@ -7,11 +7,11 @@ import mongoose from "mongoose";
 import _ from "lodash";
 import Project from "@rw/db/schemas/project";
 import Layer from "@rw/db/schemas/layer";
-import System, { ISystemSchema } from "@rw/db/schemas/system";
+import System, { type ISystemSchema } from "@rw/db/schemas/system";
 import Budget from "@rw/db/schemas/budget";
 import Activity from "@rw/db/schemas/activity";
 import Asset from "@rw/db/schemas/asset";
-import Posting, { IPostingSchema } from "@rw/db/schemas/posting";
+import Posting, { type IPostingSchema } from "@rw/db/schemas/posting";
 import Sequence from "@rw/db/schemas/sequence";
 import Rotation from "@rw/db/schemas/rotation";
 import Row from "@rw/db/schemas/row";
@@ -19,9 +19,9 @@ import Area from "@rw/db/schemas/area";
 import middleware from "../middleware/index";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import dyFiMo from "../middleware/financials";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
-import Species, { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
+import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
 import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
 // import SystemDesign from 'collections/systemdesign.js';
 
@@ -279,7 +279,7 @@ router.get(
 				.exec();
 			console.timeEnd("getProject");
 
-			if (foundProject && foundProject.isPublic) {
+			if (foundProject?.isPublic) {
 				console.time("systemBasedLayout");
 				const layout = systemBasedLayout(
 					foundProject.systemdesign,
@@ -544,7 +544,7 @@ router.put(
 				// FIND SYSTEM
 				try {
 					// SET VARIABLES HERE
-					let layout;
+					let layout: any;
 					// IF ROWS, DO XXX
 					if (foundProject.rows && foundProject.rows.length > 0) {
 						// DO ROW LAYOUT
@@ -859,13 +859,13 @@ router.delete(
 							await Budget.findByIdAndDelete(foundProject.budgets.management);
 							console.log("management budget deleted from project");
 							// DELETE ACTIVITIES
-							foundProject.activities.forEach(async (activity) => {
+							for (const activity of foundProject.activities) {
 								try {
 									await Activity.findByIdAndDelete(activity);
 								} catch (err) {
 									console.log(err);
 								}
-							});
+							}
 
 							// DELETE PROJECT
 							try {
@@ -1290,11 +1290,11 @@ router.delete(
 			// REMOVE ROW
 			if (updatedProject) {
 				console.log(`Length before ${updatedProject.rows.length}`);
-				updatedProject.rows.forEach(async (row) => {
+				for (const row of updatedProject.rows) {
 					if (row._id.toString() === req.params.pid) {
 						await row.deleteOne();
 					}
-				});
+				}
 				// DELETE ROW
 				try {
 					await Row.findByIdAndDelete(req.params.pid);

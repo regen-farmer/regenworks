@@ -4,101 +4,23 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": false,
-			"complexity": {
-				"noExtraBooleanCast": "error",
-				"noMultipleSpacesInRegularExpressionLiterals": "error",
-				"noUselessCatch": "error",
-				"noUselessConstructor": "error",
-				"noUselessLabel": "error",
-				"noUselessLoneBlockStatements": "error",
-				"noUselessRename": "error",
-				"noUselessTernary": "error",
-				"noVoid": "error",
-				"noWith": "error",
-				"useArrowFunction": "error",
-				"useLiteralKeys": "error",
-				"useRegexLiterals": "error"
+			"style":{
+				"noNonNullAssertion": "off"
 			},
-			"correctness": {
-				"noConstAssign": "error",
-				"noConstantCondition": "off",
-				"noConstructorReturn": "error",
-				"noEmptyCharacterClassInRegex": "error",
-				"noEmptyPattern": "error",
-				"noGlobalObjectCalls": "error",
-				"noInnerDeclarations": "off",
-				"noInvalidConstructorSuper": "error",
-				"noInvalidUseBeforeDeclaration": "error",
-				"noNewSymbol": "error",
-				"noNonoctalDecimalEscape": "error",
-				"noPrecisionLoss": "error",
-				"noSelfAssign": "error",
-				"noSetterReturn": "error",
-				"noSwitchDeclarations": "error",
-				"noUndeclaredVariables": "off",
-				"noUnreachable": "error",
-				"noUnreachableSuper": "error",
-				"noUnsafeFinally": "error",
-				"noUnsafeOptionalChaining": "error",
-				"noUnusedLabels": "error",
-				"noUnusedPrivateClassMembers": "off",
-				"noUnusedVariables": "off",
-				"useIsNan": "error",
-				"useValidForDirection": "error",
-				"useYield": "error"
+			"complexity":{
+				"noForEach": "off"
 			},
-			"security": { "noGlobalEval": "error" },
-			"style": {
-				"noArguments": "error",
-				"noCommaOperator": "error",
-				"noDefaultExport": "off",
-				"noNegationElse": "off",
-				"noParameterAssign": "off",
-				"noRestrictedGlobals": "off",
-				"noUselessElse": "error",
-				"noVar": "error",
-				"useBlockStatements": "off",
-				"useCollapsedElseIf": "error",
-				"useConst": "error",
-				"useDefaultParameterLast": "error",
-				"useExponentiationOperator": "error",
-				"useNumericLiterals": "error",
-				"useShorthandAssign": "error",
-				"useSingleVarDeclarator": "error",
-				"useTemplate": "error"
+			"correctness":{
+				"noConstantCondition": "off"
 			},
 			"suspicious": {
-				"noAssignInExpressions": "error",
-				"noAsyncPromiseExecutor": "error",
-				"noCatchAssign": "error",
-				"noClassAssign": "error",
-				"noCompareNegZero": "error",
-				"noConfusingLabels": "error",
-				"noConsoleLog": "off",
-				"noControlCharactersInRegex": "error",
-				"noDebugger": "error",
-				"noDoubleEquals": "error",
-				"noDuplicateCase": "error",
-				"noDuplicateClassMembers": "error",
-				"noDuplicateObjectKeys": "error",
-				"noDuplicateParameters": "error",
-				"noEmptyBlockStatements": "error",
-				"noFallthroughSwitchClause": "error",
-				"noFunctionAssign": "error",
-				"noGlobalAssign": "error",
-				"noImportAssign": "error",
-				"noLabelVar": "error",
-				"noMisleadingCharacterClass": "error",
-				"noPrototypeBuiltins": "error",
-				"noRedeclare": "error",
-				"noSelfCompare": "error",
-				"noShadowRestrictedNames": "error",
-				"noUnsafeNegation": "error",
-				"useAwait": "off",
-				"useDefaultSwitchClauseLast": "error",
-				"useGetterReturn": "error",
-				"useValidTypeof": "error"
+				"noExplicitAny": "off"
+			},
+			"a11y": {
+				"useAltText": "off",
+				"noSvgWithoutTitle": "off",
+				"useButtonType": "off",
+				"useKeyWithClickEvents": "off"
 			}
 		}
 	}

@@ -1,38 +1,38 @@
-import { Component, For } from "solid-js";
-import {
-	
-	difference as turfDifference,
-	area as turfArea,
-} from "@turf/turf";
-import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import { type Component, For } from "solid-js";
+import { difference as turfDifference, area as turfArea } from "@turf/turf";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 
-const SystemInfoBox: Component<{systemLayout: ISystemBasedLayout, species: any, scenarioData: any}> = (props) => {
+const SystemInfoBox: Component<{
+	systemLayout: ISystemBasedLayout;
+	species: any;
+	scenarioData: any;
+}> = (props) => {
+	function calculateMarginHeadlandArea(): number {
+		const geometry = turfDifference(
+			JSON.parse(props.scenarioData.project.layer.geometry),
+			props.systemLayout.headlandPolygon,
+		);
 
-  function calculateMarginHeadlandArea(): number {
-    const geometry = turfDifference(
-      JSON.parse(props.scenarioData.project.layer.geometry),
-      props.systemLayout.headlandPolygon,
-    );
-  
-    const area = parseFloat(turfArea(geometry));
-  
-    return area;
-  }
-  
-  function fieldArea(geometry: string): number {
-    return turfArea(JSON.parse(geometry));
-  }
-  
-  function groundCoverPercentage(
-    groundCoverArea: string,
-    fieldGeometry: string,
-  ): string {
-    return (
-      (Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
-      100
-    ).toFixed(2).replace(".", ",");
-  }
+		const area = Number.parseFloat(turfArea(geometry));
 
+		return area;
+	}
+
+	function fieldArea(geometry: string): number {
+		return turfArea(JSON.parse(geometry));
+	}
+
+	function groundCoverPercentage(
+		groundCoverArea: string,
+		fieldGeometry: string,
+	): string {
+		return (
+			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
+			100
+		)
+			.toFixed(2)
+			.replace(".", ",");
+	}
 
 	return (
 		<div

@@ -3,8 +3,8 @@ import Stripe from "stripe";
 import express from "express";
 import { format, getUnixTime, parse } from "date-fns";
 import dotenv from "dotenv";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 /* eslint-disable import/first */
 
 dotenv.config();
@@ -94,7 +94,7 @@ router.post(
 			email: email.valueOf().toString(),
 			callbackUrl: callbackUrl.valueOf().toString(),
 			customer: customer?.valueOf().toString(),
-			// quantity: parseInt(quantity.valueOf().toString(), 10),
+			// quantity: Number.parseInt(quantity.valueOf().toString(), 10),
 		};
 		console.log(logdata);
 

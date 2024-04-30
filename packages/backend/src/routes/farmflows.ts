@@ -6,10 +6,10 @@ import Parcel from "@rw/db/schemas/parcel";
 import Layer from "@rw/db/schemas/layer";
 import Row from "@rw/db/schemas/row";
 import Area from "@rw/db/schemas/area";
-import Species, { ISpeciesSchema } from "@rw/db/schemas/species";
+import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -129,12 +129,12 @@ router.get(
 			.exec();
 
 		// FIND ALL SPECIES
-		if (foundArea && foundArea.rotation) {
+		if (foundArea?.rotation) {
 			console.log("species there");
 			const allSpecies: ISpeciesSchema[] = [];
-			foundArea.rotation.model.forEach((speciesmix) => {
+			for (const speciesmix of foundArea.rotation.model) {
 				allSpecies.push(speciesmix.speciesmix[0].species);
-			});
+			}
 			// FIND UNIQUE SPECIES / REMOVE DUPLICATES
 			const uniqueSpecies = unique(allSpecies);
 			console.log(uniqueSpecies);

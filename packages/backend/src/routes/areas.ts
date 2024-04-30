@@ -2,8 +2,8 @@ import express from "express";
 import Project from "@rw/db/schemas/project";
 import Area from "@rw/db/schemas/area";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -79,11 +79,11 @@ router.delete(
 			if (updatedProject) {
 				// REMOVE ROW
 				console.log(`Length before ${updatedProject.areas.length}`);
-				updatedProject.areas.forEach(async (area) => {
+				for (const area of updatedProject.areas) {
 					if (area._id.toString() === req.params.pid) {
 						await area.deleteOne();
 					}
-				});
+				}
 				await updatedProject.save();
 				// DELETE ROW
 				try {

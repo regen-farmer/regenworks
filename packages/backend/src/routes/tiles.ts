@@ -6,8 +6,8 @@ import { PNG } from "pngjs";
 // @ts-ignore
 import PNGCrop from "png-crop";
 import express from "express";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 
@@ -24,12 +24,12 @@ router.get(
 		// Coordinates in EPSG 3857 - Pseudo-Mercator
 		/// ///////////////////////////////////////////////////
 
-		// const tile_bbox_wgs84: number[] = url_params.get('bbox')?.split(',').map((value) => parseFloat(value))!;
+		// const tile_bbox_wgs84: number[] = url_params.get('bbox')?.split(',').map((value) => Number.parseFloat(value))!;
 
 		const tile_bbox_wgs84: number[] = request.url
 			.split("bbox=")[1]
 			.split(",")
-			.map((value) => parseFloat(value));
+			.map((value) => Number.parseFloat(value));
 		console.log("bbox", tile_bbox_wgs84);
 
 		// let tile_bbox_wgs84: number[] = [1196086.618606437,7633918.888897125,1197309.6110590026,7635141.8813496865]
@@ -208,10 +208,9 @@ router.get(
 				}),
 			);
 
-			let rowImage;
 
 			if (rowArrayBuffer.length > 1) {
-				rowImage = await joinImages(rowArrayBuffer, {
+				const rowImage = await joinImages(rowArrayBuffer, {
 					direction: "horizontal",
 					color: {
 						alpha: 0,
@@ -220,12 +219,14 @@ router.get(
 						r: 0,
 					},
 				});
+				rows.push(rowImage);
 			} else if (rowArrayBuffer.length === 1) {
-				rowImage = sharp(rowArrayBuffer[0]);
+				const rowImage = sharp(rowArrayBuffer[0]);
+				rows.push(rowImage);
 			} else {
 				// console.log('rowArrayBuffer.length', rowArrayBuffer.length);
 			}
-			rows.push(rowImage);
+			
 		}
 
 		const row_buffers: Buffer[] = await Promise.all(
@@ -304,7 +305,7 @@ router.get(
 			top: Math.round(stitched_edge_to_tile_pixels.top),
 			left: Math.round(stitched_edge_to_tile_pixels.left),
 		};
-		let response_buffer;
+		let response_buffer: any;
 
 		// biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
 		const crop_promise = new Promise<boolean>(async (resolve, reject) => {

@@ -3,8 +3,8 @@ import Parcel from "@rw/db/schemas/parcel";
 import Layer from "@rw/db/schemas/layer";
 import Saptest from "@rw/db/schemas/saptest";
 import middleware from "../middleware/index";
-import { UserDocument } from "@rw/db/schemas/user";
-import { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app";
 
 const router = express.Router();
 

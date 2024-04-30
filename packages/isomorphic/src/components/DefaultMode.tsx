@@ -3,7 +3,7 @@ import { A } from "@solidjs/router";
 // import { useDrawControl } from "~/util/map_controls/useDrawControl";
 // import { LayerDocument } from "@rw/db/schemas/layer";
 import type { Map as MLMap } from "maplibre-gl";
-import type { Resource } from "solid-js";
+import { For, type Resource } from "solid-js";
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel";
 
@@ -63,7 +63,8 @@ function DefaultMode({
 					"overflow-y": "auto",
 				}}
 			>
-				{data()?.parcel.layers.map((layer) => (
+				<For each={data()?.parcel.layers}>
+				{(layer) => (
 					<div class="list-group-item list-group-item-action list-group-item-primary parcel-div">
 						<A
 							class="parcel-link"
@@ -107,7 +108,8 @@ function DefaultMode({
 							</button>
 						</div>
 					</div>
-				))}
+				)}
+				</For>
 			</div>
 
 			<button
