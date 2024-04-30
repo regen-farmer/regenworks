@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Resource } from "solid-js";
 import maplibregl, { type LngLatLike } from "maplibre-gl";
 import { modes } from "~/routes/index";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export function createFarmMarkerIcon() {
 	const el = document.createElement("div");
@@ -48,31 +49,7 @@ function MapInstance({
 		map = new maplibregl.Map({
 			container: mapref() as HTMLElement,
 			attributionControl: false,
-			style: {
-				glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-				version: 8,
-				sources: {
-					"raster-tiles": {
-						type: "raster",
-						tiles: [
-							"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-						],
-						tileSize: 256,
-					},
-				},
-				layers: [
-					{
-						id: "simple-tiles",
-						type: "raster",
-						source: "raster-tiles",
-						minzoom: 0,
-						maxzoom: 21,
-					},
-				],
-			},
+			style: GoogleSatStyle,
 			center: [10.5, 56],
 			zoom: 2,
 			maxZoom: 20,

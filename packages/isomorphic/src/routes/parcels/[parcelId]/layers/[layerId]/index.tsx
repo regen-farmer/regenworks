@@ -18,6 +18,7 @@ import { useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { Button } from "solid-bootstrap";
 import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -77,30 +78,7 @@ export default function view() {
 				//@ts-ignore
 				container: "layerMapShow",
 				attributionControl: false,
-				style: {
-					version: 8,
-					sources: {
-						"raster-tiles": {
-							type: "raster",
-							tiles: [
-								"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							],
-							tileSize: 256,
-						},
-					},
-					layers: [
-						{
-							id: "simple-tiles",
-							type: "raster",
-							source: "raster-tiles",
-							minzoom: 0,
-							maxzoom: 21,
-						},
-					],
-				},
+				style: GoogleSatStyle,
 				center: [areaLng!, areaLat!],
 				zoom: 15,
 				maxZoom: 20,

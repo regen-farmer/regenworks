@@ -1,8 +1,6 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { helpers as turf } from "@turf/turf";
-
 import {
 	type Component,
 	For,
@@ -23,6 +21,7 @@ import { getSpecies } from "~/util/getSpecies";
 import { getScenario } from "~/util/getScenario";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
 import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
@@ -55,30 +54,7 @@ const RouteDesignPreview: Component = () => {
 			map = new maplibregl.Map({
 				container: mapRef()!,
 				attributionControl: false,
-				style: {
-					version: 8,
-					sources: {
-						"raster-tiles": {
-							type: "raster",
-							tiles: [
-								"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							],
-							tileSize: 256,
-						},
-					},
-					layers: [
-						{
-							id: "simple-tiles",
-							type: "raster",
-							source: "raster-tiles",
-							minzoom: 0,
-							maxzoom: 21,
-						},
-					],
-				},
+				style: GoogleSatStyle,
 				center: [areaLng!, areaLat!],
 				zoom: 16,
 				maxZoom: 20,
