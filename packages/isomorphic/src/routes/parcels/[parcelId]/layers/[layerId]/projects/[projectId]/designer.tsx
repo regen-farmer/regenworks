@@ -2,9 +2,7 @@ import { createEffect, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { A, useParams } from "@solidjs/router";
 
-import {
-	helpers as turf,
-} from "@turf/turf";
+import { helpers as turf } from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
 import type { ISpeciesSchema } from "@rw/db/schemas/species";
@@ -27,14 +25,12 @@ import { getScenario } from "~/util/getScenario";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
 import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 
-
 export default function view() {
 	const params = useParams<{
 		projectId: string;
 		parcelId: string;
 		layerId: string;
 	}>();
-
 
 	const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
 
@@ -55,57 +51,13 @@ export default function view() {
 			system,
 			scenarioData()?.project.layer.geometry,
 		);
-
-		setSystemLayout({
-			treeRowLines: layout.treeRowLines,
-			groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
-			headlandPolygon: layout.headlandPolygon,
-			marginPolygon: layout.marginPolygon,
-			speciesCountArray: layout.speciesCountArray,
-
-			sidesCloseToBearing: turf.featureCollection(layout.sidesCloseToBearing),
-			intersectionPoints: turf.featureCollection(layout.intersectionPoints),
-			headlandSides: turf.featureCollection(layout.headlandSides),
-			treeMarkerArray: layout.treeMarkerArray,
-			groundCoverAreasM2: layout.groundCoverAreasM2,
-		});
-
-		// On server
-		// const response = await fetch(
-		// 	`${import.meta.env.VITE_BACKEND_URL}/projects/${
-		// 		params.projectId
-		// 	}/preview`,
-		// 	{
-		// 		...apiFetchOptions(),
-		// 		method: "POST",
-		// 		body: JSON.stringify({
-		// 			systemdesign: system,
-		// 			geometry: scenarioData()?.project.layer.geometry,
-		// 		}),
-		// 	},
-		// );
-
-		// const result: {
-		// 	// This is normally used
-		// 	treeRowLines: any;
-		// 	groundCoverAreas: any;
-		// 	headlandSides: any;
-		// 	marginPolygon: any;
-		// 	headlandPolygon: any;
-		// 	sidesCloseToBearing: any;
-		// 	intersectionPoints: any;
-		// 	treeMarkerArray: any;
-		// 	speciesCountArray: any;
-		// } = await response.json();
-
-		// setSystemLayout(result);
+		setSystemLayout(layout);
 
 		// Don't touch
 
 		window.dispatchEvent(new Event("resize"));
 
 		setPreviewing(false);
-
 		const timeTaken = Date.now() - start;
 		console.log(`Rendering in: ${timeTaken} milliseconds`);
 	}
@@ -145,7 +97,6 @@ export default function view() {
 				map = new maplibregl.Map({
 					container: "layerMapShow",
 					attributionControl: false,
-					antialias: true,
 					style: {
 						version: 8,
 						sources: {

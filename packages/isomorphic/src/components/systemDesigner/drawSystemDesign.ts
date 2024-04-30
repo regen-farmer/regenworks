@@ -1,6 +1,7 @@
 import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { featureCollection } from "@turf/turf";
 import {Map as MLMap} from 'maplibre-gl';
+import { helpers as turf } from "@turf/turf";
 
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 		
@@ -32,12 +33,12 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 	const treeRowLines = featureCollection(
 		systemLayout.treeRowLines?.map((tree) => tree.line),
 	);
-	const groundCoverAreas = systemLayout.groundCoverAreas;
-	const headlandSides = systemLayout.headlandSides;
+	const groundCoverAreas = turf.featureCollection(systemLayout.groundCoverAreas);
+	const headlandSides = turf.featureCollection(systemLayout.headlandSides);
 	const headlandPolygon = systemLayout.headlandPolygon;
 	const marginPolygon = systemLayout.marginPolygon;
-	const sidesCloseToBearing = systemLayout.sidesCloseToBearing;
-	const intersectionPoints = systemLayout.intersectionPoints;
+	const sidesCloseToBearing = turf.featureCollection(systemLayout.sidesCloseToBearing);
+	const intersectionPoints = turf.featureCollection(systemLayout.intersectionPoints);
 
 	const treeMarkerArray = systemLayout.treeMarkerArray;
 
