@@ -1,16 +1,9 @@
-import {
-	createEffect,
-	createSignal,
-	For,
-	Show,
-} from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { A, useParams } from "@solidjs/router";
 
 import {
 	helpers as turf,
-	difference as turfDifference,
-	area as turfArea,
 } from "@turf/turf";
 
 import { AddRow } from "~/components/systems/add-row";
@@ -31,6 +24,9 @@ import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
 import { getSpecies } from "~/util/getSpecies";
 import { getScenario } from "~/util/getScenario";
+import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
+import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+
 
 export default function view() {
 	const params = useParams<{
@@ -39,18 +35,8 @@ export default function view() {
 		layerId: string;
 	}>();
 
-	const [systemLayout, setSystemLayout] = createSignal<{
-		treeRowLines: any;
-		groundCoverAreas: any;
-		headlandSides: any;
-		marginPolygon: any;
-		headlandPolygon: any;
-		sidesCloseToBearing: any;
-		intersectionPoints: any;
-		treeMarkerArray: any;
-		speciesCountArray: any;
-		groundCoverAreasM2: any;
-	}>();
+
+	const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
 
 	const [system, setSystem] = createStore<ISystemDesignSchema>({
 		rows: [],
@@ -124,15 +110,15 @@ export default function view() {
 		console.log(`Rendering in: ${timeTaken} milliseconds`);
 	}
 
-	const scenarioData = getScenario(params.projectId, (result)=>{
+	const scenarioData = getScenario(params.projectId, (result) => {
 		if (result) {
 			if (result?.project.systemdesign) {
 				setSystem(result?.project.systemdesign!);
 			}
 		}
-	})
+	});
 
-	const species = getSpecies()
+	const species = getSpecies();
 
 	// createMemo(() => {
 	// 	scenarioDataRefresh();
@@ -265,7 +251,6 @@ export default function view() {
 		}
 	});
 
-
 	createEffect(() => {
 		if (mapLoaded() && systemLayout()) {
 			drawSystemDesign(map, systemLayout());
@@ -278,33 +263,6 @@ export default function view() {
 
 	const [saving, setSaving] = createSignal(false);
 	const [previewing, setPreviewing] = createSignal(false);
-
-	function calculateMarginHeadlandArea(): number {
-		const geometry = turfDifference(
-			JSON.parse(scenarioData()?.project.layer.geometry),
-			systemLayout()?.headlandPolygon,
-		);
-
-		const area = parseFloat(turfArea(geometry));
-
-		return area;
-	}
-
-	function fieldArea(geometry: string): number {
-		return turfArea(JSON.parse(geometry));
-	}
-
-	function groundCoverPercentage(
-		groundCoverArea: string,
-		fieldGeometry: string,
-	): string {
-		return (
-			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
-			100
-		)
-			.toFixed(2)
-			.replace(".", ",");
-	}
 
 	async function saveSystem() {
 		setSaving(true);
@@ -835,9 +793,7 @@ export default function view() {
 										>
 											<A
 												end={true}
-												href={`/parcels/${params.parcelId}/layers/${
-													params.layerId
-												}/projects/${params.projectId}`}
+												href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`}
 												class="btn btn-dark"
 											>
 												<i class="fas fa-arrow-left" /> Back to scenario
@@ -978,109 +934,11 @@ export default function view() {
 							</div>
 
 							<Show when={systemLayout() && species()}>
-								<div
-									style={{
-										color: "white",
-										position: "absolute",
-										padding: "10px",
-										background: "#151515dd",
-										"border-radius": "10px",
-										"z-index": 10,
-										left: "10px",
-										bottom: "10px",
-									}}
-								>
-									<strong>
-										<span>Tree and shrub counts:</span>
-									</strong>
-									<br />
-									<For each={systemLayout()?.speciesCountArray}>
-										{(speciesEl) => {
-											// console.log("species", systemDesignData()?.species);
-											return (
-												<>
-													<span>
-														{
-															species()?.speciesById.get(speciesEl.species)
-																.nameCommon
-														}
-														: {speciesEl.count}
-													</span>
-													<br />
-												</>
-											);
-										}}
-									</For>
-									{Object.keys(systemLayout()?.groundCoverAreasM2).length >
-									0 ? (
-										<>
-											<strong>
-												<span>Ground cover:</span>
-											</strong>
-											<br />
-											<For
-												each={Object.keys(systemLayout()?.groundCoverAreasM2)}
-											>
-												{(speciesEl) => {
-													console.log("groundcover", speciesEl);
-													return (
-														<>
-															<span>
-																{
-																	species()?.speciesById.get(speciesEl)
-																		.nameCommon
-																}
-																:{" "}
-																{`${(
-																	Number.parseFloat(
-																		systemLayout()?.groundCoverAreasM2[
-																			speciesEl
-																		],
-																	) / 10000
-																)
-																	.toFixed(2)
-																	.replace(
-																		".",
-																		",",
-																	)} ha (${groundCoverPercentage(
-																	systemLayout()?.groundCoverAreasM2[speciesEl],
-																	scenarioData()?.project.layer.geometry,
-																)}%)`}
-															</span>
-															<br />
-														</>
-													);
-												}}
-											</For>
-										</>
-									) : (
-										<></>
-									)}
-									{(system.headland > 0 || system.margin > 0) &&
-									calculateMarginHeadlandArea() > 10 ? (
-										<>
-											<strong>
-												<span>Margin & headland:</span>
-											</strong>
-											<br />
-											{`${(calculateMarginHeadlandArea() / 10000)
-												.toFixed(2)
-												.replace(".", ",")} ha`}
-											<br />
-										</>
-									) : (
-										<></>
-									)}
-									<strong>
-										<span>Field area:</span>
-									</strong>
-									<br />
-									{`${(
-										fieldArea(scenarioData()?.project.layer.geometry) / 10000
-									)
-										.toFixed(2)
-										.replace(".", ",")} ha`}
-								</div>
+								<SystemInfoBox
+									systemLayout={systemLayout()}
+									species={species()}
+									scenarioData={scenarioData()}
+								/>
 							</Show>
 						</Show>
 					</div>
@@ -1090,7 +948,4 @@ export default function view() {
 	);
 }
 
-
-export {
-	drawSystemDesign
-}
+export { drawSystemDesign };
