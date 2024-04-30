@@ -1,18 +1,8 @@
+import { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { featureCollection } from "@turf/turf";
 import {Map as MLMap} from 'maplibre-gl';
 
-function drawSystemDesign(map: MLMap, systemLayout: {
-  treeRowLines: any;
-  groundCoverAreas: any;
-  headlandSides: any;
-  marginPolygon: any;
-  headlandPolygon: any;
-  sidesCloseToBearing: any;
-  intersectionPoints: any;
-  treeMarkerArray: any;
-  speciesCountArray: any;
-  groundCoverAreasM2: any;
-}) {
+function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 		
 	console.log("Draw layers!");
 
