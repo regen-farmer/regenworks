@@ -26,6 +26,7 @@ import AddFieldModal from "~/components/AddFieldModal";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import type { Feature, Polygon, Properties } from "@turf/turf";
 import { createFarmMarkerIcon } from "~/components/Map";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export enum modes {
 	default,
@@ -196,31 +197,7 @@ export default function view() {
 			map = new maplibregl.Map({
 				container: mapref()!,
 				attributionControl: false,
-				style: {
-					glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-					version: 8,
-					sources: {
-						"raster-tiles": {
-							type: "raster",
-							tiles: [
-								"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							],
-							tileSize: 256,
-						},
-					},
-					layers: [
-						{
-							id: "simple-tiles",
-							type: "raster",
-							source: "raster-tiles",
-							minzoom: 0,
-							maxzoom: 21,
-						},
-					],
-				},
+				style: GoogleSatStyle,
 				center: [data()?.parcel.lng as number, data()?.parcel.lat as number],
 				zoom: 12,
 				maxZoom: 20,

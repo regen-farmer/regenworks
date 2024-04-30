@@ -19,6 +19,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 // @ts-ignore
 import geojsonArea from "@mapbox/geojson-area";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 
 export default function view() {
 	const params = useParams<{
@@ -74,30 +75,7 @@ export default function view() {
 			map = new maplibregl.Map({
 				attributionControl: false,
 				container: mapref()!,
-				style: {
-					version: 8,
-					sources: {
-						"raster-tiles": {
-							type: "raster",
-							tiles: [
-								"https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-								"https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-							],
-							tileSize: 256,
-						},
-					},
-					layers: [
-						{
-							id: "simple-tiles",
-							type: "raster",
-							source: "raster-tiles",
-							minzoom: 0,
-							maxzoom: 21,
-						},
-					],
-				},
+				style: GoogleSatStyle,
 				center: [
 					data()?.project.layer.lng as number,
 					data()?.project.layer.lat as number,
