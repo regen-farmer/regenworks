@@ -1,6 +1,7 @@
 import type { StyleSpecification } from "maplibre-gl";
 
 export const GoogleSatStyle: StyleSpecification = {
+	glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
 	version: 8,
 	sources: {
 		"raster-tiles": {
