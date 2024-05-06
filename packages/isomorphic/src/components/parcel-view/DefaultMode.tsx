@@ -4,6 +4,8 @@ import { A } from "@solidjs/router";
 // import { LayerDocument } from "@rw/db/schemas/layer";
 import type { Map as MLMap } from "maplibre-gl";
 import { For, type Resource } from "solid-js";
+
+// @ts-ignore
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel";
 
