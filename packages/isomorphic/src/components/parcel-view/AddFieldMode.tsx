@@ -21,33 +21,20 @@ export const AddFieldMode: Component<{
 	setMode: any;
 	getMap: () => maplibregl.Map;
 	data: any;
-}> = ({ getMap, setMode, data }) => {
+	refetch: any;
+}> = ({ getMap, setMode, data, refetch }) => {
 	let draw: MapboxDraw;
 
 	const [modalOpen, setModalOpen] = createSignal<boolean>(true);
 	const [fieldName, setFieldName] = createSignal<string>("");
-	const [kmlPolygon, setKMLPolygon] = createSignal<Feature<
-		Polygon,
-		Properties
-	> | null>(null);
+	
 
 	const [error, setError] = createSignal<string>("");
 	// setInput and closeModal
 	function continueFromModal() {
-		const input = document.getElementById("input") as HTMLInputElement;
-		if (input?.value) {
-			setFieldName(input.value);
-
-			setKMLPolygon(polygon());
-			setInternalKMLFile(null);
-
-			setModalOpen(false);
-
-			console.log("Add draw control");
-			addDrawControl();
-		} else {
-			setError("Please enter a name");
-		}
+		setModalOpen(false);
+		addDrawControl();
+	
 	}
 
 	const [kmlFile, setInternalKMLFile] = createSignal<File | null>(null);
@@ -58,6 +45,21 @@ export const AddFieldMode: Component<{
 
 	function addDrawControl() {
 		draw = useDrawControl(getMap());
+	}
+
+	function removeFields() {
+		function removeLayers(layerNames: string[]) {
+			for (const layerName of layerNames) {
+				if (getMap().getSource(layerName)) {
+
+					console.log("HERE", layerName)
+					getMap().removeLayer(layerName);
+					getMap().removeSource(layerName);
+				}
+			}
+		}
+
+		removeLayers(["field-fills", "field-outlines", "field-labels"]);
 	}
 
 	function removeDrawControl() {
@@ -75,7 +77,7 @@ export const AddFieldMode: Component<{
 		setSubmitDisabled(true);
 		const payload = {
 			layer: {
-				name: formData.get("layer[name]")?.toString(),
+				name: fieldName(),
 			},
 			geometry: formData.get("geometry")?.toString(),
 			layersize: formData.get("layersize")?.toString(),
@@ -90,13 +92,13 @@ export const AddFieldMode: Component<{
 			},
 		);
 
-		// enterDefaultMode(false);
-		// await refetch();
+		refetch();
+		setMode(modes.default);
 	});
 
 	function drawFields() {
 		getMap().addLayer({
-			id: "fields",
+			id: "field-fills",
 			type: "fill",
 			//@ts-ignore
 			source: {
@@ -110,7 +112,7 @@ export const AddFieldMode: Component<{
 		});
 
 		getMap().addLayer({
-			id: "fields-outline",
+			id: "field-outlines",
 			type: "line",
 			//@ts-ignore
 			source: {
@@ -145,10 +147,6 @@ export const AddFieldMode: Component<{
 			},
 		});
 
-		onMount(() => {
-			drawFields();
-		});
-
 		getMap().on("click", "field-labels", (e: any) => {
 			// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
 			e.clickOnLabel = true;
@@ -166,22 +164,27 @@ export const AddFieldMode: Component<{
 		});
 	}
 
+	onMount(() => {
+		drawFields();
+	});
+
 	function cancel() {
 		removeDrawControl();
+		removeFields();
 		setMode(modes.default);
 	}
 
 	createEffect(async () => {
-		console.log("Add KML effect");
 		if (draw && fieldName() !== "") {
-			console.log("Add KML");
-			const geometry = kmlPolygon()!.geometry;
+
+			const geometry = polygon()!.geometry;
 
 			const featureIds: string[] = draw.add(geometry);
 
 			console.log(featureIds);
 			if (featureIds.length === 0) return;
 
+			console.log("Add KML");
 			if (geometry.type === "Polygon") {
 				getMap().jumpTo({
 					center: geometry.coordinates[0][0] as [number, number],
@@ -279,6 +282,9 @@ export const AddFieldMode: Component<{
 											class="addFieldInput"
 											name="layer[name]"
 											placeholder="Name"
+											onkeyup={(e)=>{
+												setFieldName(e.target.value)
+											}}
 											required
 											id="input"
 										/>
@@ -305,6 +311,7 @@ export const AddFieldMode: Component<{
 											// disabled={submitDisabled()}
 											class="btn btn-dark center-block"
 											onClick={continueFromModal}
+											disabled={fieldName().length < 1}
 										>
 											Continue
 										</button>

@@ -19,15 +19,13 @@ import { useBSControl } from "~/util/map_controls/useBSControl";
 import { Switch, Match } from "solid-js";
 import DefaultMode from "~/components/parcel-view/DefaultMode";
 
-//import from public
-import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { createFarmMarkerIcon } from "~/components/Map";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 import { AddFieldMode } from "~/components/parcel-view/AddFieldMode";
 
 export enum modes {
-	default=0,
-	addField=1,
+	default = 0,
+	addField = 1,
 }
 
 export default function view() {
@@ -56,32 +54,9 @@ export default function view() {
 
 	const [mapref, setMapref] = createSignal<HTMLElement>();
 
-	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
-
 	const [mode, setMode] = createSignal<modes>(modes.default);
 
-	
 	let map: maplibregl.Map;
-	let draw: MapboxDraw;
-
-	
-	
-
-	function enterAddFieldMode(e: any) {
-		setMode(modes.addField);
-	}
-
-	function enterDefaultMode(cancelled: boolean) {
-		setMode(modes.default);
-
-		
-		
-
-		console.log("Set mode Default");
-		setMode(modes.default);
-	}
-
-
 
 	createEffect(() => {
 		if (mapref()) {
@@ -99,12 +74,6 @@ export default function view() {
 			});
 
 			map.on("load", () => {
-				setStyleLoaded(true);
-				
-
-				// map.addControl(new maplibregl.FullscreenControl({}))
-				// map.addControl(new AddFieldControl())
-
 				if (
 					withinDKBBox(
 						data()?.parcel.lng as number,
@@ -141,53 +110,20 @@ export default function view() {
 		}
 	});
 
-	
-	
-
 	function getMap() {
 		return map;
 	}
-	
 
 	return (
 		<>
-			
-
 			<Show when={data()?.parcel}>
-				{/* <h1>{data()?.parcel.name}</h1> */}
-				{/* <p>{data()?.parcel.description}</p> */}
-
-				{/* <p>
-          <i class='fas fa-map-marker' /> {data()?.parcel.location}
-        </p> */}
-				{/* <p>
-							<strong>Farm size:</strong> {data()?.parcel.size} hectare(s)
-						</p>
-						<p>
-							<strong>Soil type:</strong> {data()?.parcel.soilType}
-						</p> */}
-
-				{/* {mongoDBDBUser() && data()?.parcel.owner.id === mongoDBDBUser()._id ? (
-          <A
-            class='btn btn-dark'
-            href={`/parcels/${data()?.parcel._id}/edit`}
-          >
-            Edit farm details
-          </A>
-        ) : (
-          
-        )} */}
-
-				{/* <br />
-        <br /> */}
-				{/* <div class='embed-responsive'> */}
 				<Switch>
 					<Match when={mode() === modes.default}>
 						<DefaultMode
 							getMap={getMap}
 							data={data}
 							params={params}
-							enterAddFieldMode={enterAddFieldMode}
+							setMode={setMode}
 						/>
 					</Match>
 					<Match when={mode() === modes.addField}>
@@ -195,10 +131,10 @@ export default function view() {
 							data={data}
 							setMode={setMode}
 							getMap={getMap}
+							refetch={refetch}
 						/>
 					</Match>
 				</Switch>
-				
 
 				<div
 					id="map"
@@ -207,7 +143,6 @@ export default function view() {
 					}}
 					style="border:none; border-radius: unset; width: 100%; height: calc(100vh - 57px);"
 				/>
-				{/* </div> */}
 			</Show>
 		</>
 	);

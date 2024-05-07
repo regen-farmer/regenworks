@@ -8,6 +8,7 @@ import { For, type Resource } from "solid-js";
 // @ts-ignore
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel";
+import { modes } from "~/routes/parcels/[parcelId]";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -24,14 +25,14 @@ type DefaultModeProps = {
 		| undefined
 	>;
 	params: any;
-	enterAddFieldMode: (e: any) => void;
+	setMode: any;
 	getMap: () => MLMap;
 };
 
 function DefaultMode({
 	data,
 	params,
-	enterAddFieldMode,
+	setMode,
 	getMap,
 }: DefaultModeProps) {
 	//   function enterAddFieldMode(e: any) {
@@ -42,6 +43,11 @@ function DefaultMode({
 	//     // map.removeControl(draw);
 	//   }
 
+
+	function enterAddFieldMode(){
+		setMode(modes.addField)
+
+	}
 	return (
 		<div
 			style={{
