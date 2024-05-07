@@ -181,6 +181,42 @@ router.post(
 	},
 );
 
+router.put(
+	"/layers/:id",
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		// Lookup place using id
+		try {
+			const layer = await Layer.findById(req.params.id);
+			if (layer) {
+				try {
+					
+					// Save JSON file to geometry
+					layer.geometry = req.body.geometry;
+					layer.size = req.body.layersize;
+					layer.name = req.body.layer.name;
+
+					const geometrycentroid = centroid(JSON.parse(req.body.geometry));
+
+					layer.lat = geometrycentroid.geometry.coordinates[1];
+					layer.lng = geometrycentroid.geometry.coordinates[0];
+					// Save the layer
+					await layer.save();
+
+					res.send(layer);
+				} catch (err) {
+					console.log(err);
+				}
+			}
+		} catch (err) {
+			console.log(err);
+			res.send();
+		}
+	},
+);
+
 // NESTED PARCEL LAYER CREATE WITH UPLOAD ROUTE
 router.post(
 	"/parcels/:id/layersuploadkml",

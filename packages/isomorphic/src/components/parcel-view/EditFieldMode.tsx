@@ -17,13 +17,15 @@ import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl";
 import type { IControl } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]";
 import { removeLayers } from "~/util/removeLayers";
+import type { ILayerSchema } from "@rw/db/schemas/layer";
 
-export const AddFieldMode: Component<{
+export const EditFieldMode: Component<{
 	setMode: any;
 	getMap: () => maplibregl.Map;
 	data: any;
 	refetch: any;
-}> = ({ getMap, setMode, data, refetch }) => {
+	field: ILayerSchema;
+}> = ({ getMap, setMode, data, refetch, field }) => {
 	let draw: MapboxDraw;
 
 	const [modalOpen, setModalOpen] = createSignal<boolean>(true);
@@ -35,6 +37,9 @@ export const AddFieldMode: Component<{
 	function continueFromModal() {
 		setModalOpen(false);
 		addDrawControl();
+
+		loadDrawCoordinates()
+
 	
 	}
 
@@ -75,10 +80,10 @@ export const AddFieldMode: Component<{
 		};
 
 		await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers`,
+			`${import.meta.env.VITE_BACKEND_URL}/layers/${field._id}`,
 			{
 				body: JSON.stringify(payload),
-				method: "post",
+				method: "put",
 				...apiFetchOptions(),
 			},
 		);
@@ -90,6 +95,24 @@ export const AddFieldMode: Component<{
 	});
 
 	function drawFields() {
+
+		const collectionClone = {
+			features: data()?.collection.features.filter((feature)=>{
+				
+				return feature.properties.id != field._id;
+			}),
+			type: "FeatureCollection"
+		};
+
+		const placesClone = {
+			features: data()?.places.features.filter((feature)=>{
+				
+				return feature.properties.id != field._id;
+			}),
+			type: "FeatureCollection"
+		};
+
+
 		cleanupLayers()
 		getMap().addLayer({
 			id: "field-fills",
@@ -97,7 +120,7 @@ export const AddFieldMode: Component<{
 			//@ts-ignore
 			source: {
 				type: "geojson",
-				data: data()?.collection,
+				data: collectionClone,
 			},
 			layout: {},
 			paint: {
@@ -111,7 +134,7 @@ export const AddFieldMode: Component<{
 			//@ts-ignore
 			source: {
 				type: "geojson",
-				data: data()?.collection,
+				data: collectionClone,
 			},
 			layout: {},
 			paint: {
@@ -126,7 +149,7 @@ export const AddFieldMode: Component<{
 			//@ts-ignore
 			source: {
 				type: "geojson",
-				data: data()?.places,
+				data: placesClone,
 			},
 			layout: {
 				"text-field": ["get", "description"],
@@ -155,6 +178,7 @@ export const AddFieldMode: Component<{
 	}
 	onMount(() => {
 		drawFields();
+		setFieldName(field.name)
 	});
 
 	function cancel() {
@@ -167,10 +191,23 @@ export const AddFieldMode: Component<{
 		removeFields();
 	}
 
-	createEffect(async () => {
+
+	
+
+	function loadDrawCoordinates() {
 		if (draw && fieldName() !== "") {
 
-			const geometry = polygon()!.geometry;
+		
+		
+			let geometry = JSON.parse(field.geometry);
+			console.log("Geometry: ", geometry)
+
+			if (polygon()?.geometry){
+				geometry = polygon()!.geometry;
+			}
+
+
+			console.log("Geometry: ", geometry)
 
 			const featureIds: string[] = draw.add(geometry);
 
@@ -189,7 +226,7 @@ export const AddFieldMode: Component<{
 
 			updateArea(draw.get(featureIds[0]));
 		}
-	});
+	}
 
 	async function parseKMLFile(e: Event) {
 		function invalidFile() {
@@ -273,6 +310,7 @@ export const AddFieldMode: Component<{
 										<input
 											type="text"
 											class="addFieldInput"
+											value={field.name}
 											name="layer[name]"
 											placeholder="Name"
 											onkeyup={(e)=>{
@@ -376,7 +414,7 @@ export const AddFieldMode: Component<{
 						padding: "10px",
 					}}
 				>
-					Click on the map to start drawing <br /> Click a point to select it,
+					Click a point to select it,
 					and press backspace to delete
 				</h1>
 			</Show>

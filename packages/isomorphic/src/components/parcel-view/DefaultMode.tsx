@@ -27,10 +27,11 @@ type DefaultModeProps = {
 	>;
 	params: any;
 	setMode: any;
+	editField: any;
 	getMap: () => MLMap;
 };
 
-function DefaultMode({ data, params, setMode, getMap }: DefaultModeProps) {
+function DefaultMode({ editField, data, params, setMode, getMap }: DefaultModeProps) {
 	//   function enterAddFieldMode(e: any) {
 	//     e.preventDefault();
 	//     setMode(modes.addField);
@@ -39,18 +40,19 @@ function DefaultMode({ data, params, setMode, getMap }: DefaultModeProps) {
 	//     // map.removeControl(draw);
 	//   }
 
-	function enterAddFieldMode() {
+	function cleanupLayers() {
 		removeLayers(["field-fills", "field-outlines", "field-labels"], getMap());
-
 		getMap().off("click", "field-labels", moveMapToField);
-
 		getMap().off("click", "field-fills", navigateToField);
+	}
 
+	function enterAddFieldMode() {
 		setMode(modes.addField);
 	}
 	const navigate = useNavigate();
 
 	function drawFields() {
+		cleanupLayers();
 		getMap().addLayer({
 			id: "field-fills",
 			type: "fill",
@@ -157,16 +159,17 @@ function DefaultMode({ data, params, setMode, getMap }: DefaultModeProps) {
 								{layer.name}
 							</A>
 							<div>
-								{/* <button
-  class={
-    "btn btn-dark menu-btn list-group-button"
-  }
-  onClick={() => {
-    // enterEditMode(parcel)}
-  }}
->
-  <i class="fa-solid fa-pen" />
-</button> */}
+								<button
+									class={"btn btn-dark menu-btn list-group-button"}
+									onClick={() => {
+
+										cleanupLayers()
+										editField(layer)
+									}
+									}
+								>
+									<i class="fa-solid fa-pen" />
+								</button>
 
 								<button
 									type="button"

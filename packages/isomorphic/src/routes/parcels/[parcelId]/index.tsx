@@ -22,10 +22,13 @@ import DefaultMode from "~/components/parcel-view/DefaultMode";
 import { createFarmMarkerIcon } from "~/components/Map";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 import { AddFieldMode } from "~/components/parcel-view/AddFieldMode";
+import type { ILayerSchema } from "@rw/db/schemas/layer";
+import { EditFieldMode } from "~/components/parcel-view/EditFieldMode";
 
 export enum modes {
 	default = 0,
 	addField = 1,
+	editField = 2,
 }
 
 export default function view() {
@@ -117,6 +120,14 @@ export default function view() {
 		return map;
 	}
 
+	const [editedField, setEditedField] = createSignal<ILayerSchema|null>(null);
+
+	function editField(field: ILayerSchema){
+		setEditedField(field);
+		setMode(modes.editField)
+	}
+
+
 	return (
 		<>
 			<div
@@ -130,6 +141,7 @@ export default function view() {
 				<Switch>
 					<Match when={mode() === modes.default}>
 						<DefaultMode
+							editField={editField}
 							getMap={getMap}
 							data={data}
 							params={params}
@@ -142,6 +154,15 @@ export default function view() {
 							setMode={setMode}
 							getMap={getMap}
 							refetch={refetch}
+						/>
+					</Match>
+					<Match when={mode() === modes.editField}>
+						<EditFieldMode
+							data={data}
+							setMode={setMode}
+							getMap={getMap}
+							refetch={refetch}
+							field={editedField()!}
 						/>
 					</Match>
 				</Switch>
