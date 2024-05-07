@@ -55,15 +55,13 @@ export default function view() {
 	const [mapref, setMapref] = createSignal<HTMLElement>();
 
 	const [mode, setMode] = createSignal<modes>(modes.default);
+	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
 
 	createEffect(() => {
-		if (mapref()) {
-			console.log("mapref() && data()");
-			if (map) {
-				map.remove();
-			}
+		if (mapref() && !map) {
+			
 			map = new maplibregl.Map({
 				container: mapref()!,
 				attributionControl: false,
@@ -73,7 +71,12 @@ export default function view() {
 				maxZoom: 20,
 			});
 
+			console.log("vreofe");
 			map.on("load", () => {
+				console.log("Loaded!");
+
+				setStyleLoaded(true);
+
 				if (
 					withinDKBBox(
 						data()?.parcel.lng as number,
@@ -116,7 +119,14 @@ export default function view() {
 
 	return (
 		<>
-			<Show when={data()?.parcel}>
+			<div
+				id="map"
+				ref={(r) => {
+					setMapref(r);
+				}}
+				style="border:none; border-radius: unset; width: 100%; height: calc(100vh - 57px);"
+			/>
+			<Show when={data()?.parcel && styleLoaded()}>
 				<Switch>
 					<Match when={mode() === modes.default}>
 						<DefaultMode
@@ -135,14 +145,6 @@ export default function view() {
 						/>
 					</Match>
 				</Switch>
-
-				<div
-					id="map"
-					ref={(r) => {
-						setMapref(r);
-					}}
-					style="border:none; border-radius: unset; width: 100%; height: calc(100vh - 57px);"
-				/>
 			</Show>
 		</>
 	);

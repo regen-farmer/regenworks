@@ -16,6 +16,7 @@ import "~/styling/modal.css";
 import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl";
 import type { IControl } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]";
+import { removeLayers } from "~/util/removeLayers";
 
 export const AddFieldMode: Component<{
 	setMode: any;
@@ -48,18 +49,8 @@ export const AddFieldMode: Component<{
 	}
 
 	function removeFields() {
-		function removeLayers(layerNames: string[]) {
-			for (const layerName of layerNames) {
-				if (getMap().getSource(layerName)) {
-
-					console.log("HERE", layerName)
-					getMap().removeLayer(layerName);
-					getMap().removeSource(layerName);
-				}
-			}
-		}
-
-		removeLayers(["field-fills", "field-outlines", "field-labels"]);
+		removeLayers(["field-fills", "field-outlines", "field-labels"], getMap());
+		getMap().off("click", "field-labels", moveMapToField);
 	}
 
 	function removeDrawControl() {
@@ -93,6 +84,8 @@ export const AddFieldMode: Component<{
 		);
 
 		refetch();
+		removeFields();
+		removeDrawControl();
 		setMode(modes.default);
 	});
 
@@ -147,23 +140,18 @@ export const AddFieldMode: Component<{
 			},
 		});
 
-		getMap().on("click", "field-labels", (e: any) => {
-			// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
-			e.clickOnLabel = true;
-			getMap().flyTo({
-				speed: 2,
-				center: e.features[0].geometry.coordinates,
-				zoom: 15,
-			});
-		});
-
-		getMap().on("click", "fields", (e: any) => {
-			if (e.clickOnLabel) {
-				return;
-			}
+		getMap().on("click", "field-labels", moveMapToField);
+	}
+	
+	function moveMapToField(e: any) {
+		// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
+		e.clickOnLabel = true;
+		getMap().flyTo({
+			speed: 2,
+			center: e.features[0].geometry.coordinates,
+			zoom: 15,
 		});
 	}
-
 	onMount(() => {
 		drawFields();
 	});
