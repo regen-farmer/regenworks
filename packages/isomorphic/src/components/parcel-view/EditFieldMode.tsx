@@ -303,7 +303,7 @@ export const EditFieldMode: Component<{
 								onPointerDownOutside={cancel}
 							>
 								<div class="dialog__header">
-									<Dialog.Title class="dialog__title">Add field</Dialog.Title>
+									<Dialog.Title class="dialog__title">Edit field</Dialog.Title>
 								</div>
 								<Dialog.Description class="dialog__description">
 									<div class="dialog__description__body">

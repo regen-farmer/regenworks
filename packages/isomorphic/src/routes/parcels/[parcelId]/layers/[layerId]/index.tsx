@@ -143,6 +143,41 @@ export default function view() {
 
 	return (
 		<>
+			<div
+				class="modal fade"
+				id="deleteFieldModal"
+				tabindex="-1"
+				aria-labelledby="deleteFieldModalLabel"
+				aria-hidden="true"
+			>
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h1 class="modal-title" id="deleteFieldModalLabel">
+								Confirm deletion of field
+							</h1>
+						</div>
+						<div class="modal-body">
+							<p>
+								When you delete your field, all information connected to it like
+								saved systems, projects and budgets will be permanently deleted
+								and it will not be able to be restored.
+							</p>
+						</div>
+						<div class="modal-footer">
+							<form action={deleteForm} method="post" class="delete-form">
+								<button class="btn btn-danger" data-bs-dismiss="modal">
+									Delete field
+								</button>
+							</form>
+							<Button variant="default" data-bs-dismiss="modal">
+								Cancel
+							</Button>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<CreateNewScenarioModal
 				modalOpen={modalOpen}
 				setModalOpen={setModalOpen}
@@ -257,48 +292,6 @@ export default function view() {
 									Delete Field
 								</Button>
 								{/* // <!-- Modal --> */}
-								<div
-									class="modal fade"
-									id="deleteFieldModal"
-									tabindex="-1"
-									aria-labelledby="deleteFieldModalLabel"
-									aria-hidden="true"
-								>
-									<div class="modal-dialog">
-										<div class="modal-content">
-											<div class="modal-header">
-												<h1 class="modal-title" id="deleteFieldModalLabel">
-													Confirm deletion of field
-												</h1>
-											</div>
-											<div class="modal-body">
-												<p>
-													When you delete your field, all information connected
-													to it like saved systems, projects and budgets will be
-													permanently deleted and it will not be able to be
-													restored.
-												</p>
-											</div>
-											<div class="modal-footer">
-												<form
-													action={deleteForm}
-													method="post"
-													class="delete-form"
-												>
-													<button
-														class="btn btn-danger"
-														data-bs-dismiss="modal"
-													>
-														Delete field
-													</button>
-												</form>
-												<Button variant="default" data-bs-dismiss="modal">
-													Cancel
-												</Button>
-											</div>
-										</div>
-									</div>
-								</div>
 							</>
 						</Show>
 					</div>

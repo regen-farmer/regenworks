@@ -1,15 +1,16 @@
-import { A, useNavigate } from "@solidjs/router";
+import { A, action, useNavigate, useParams } from "@solidjs/router";
 // import { modes } from "~/routes/parcels/[parcelId]";
 // import { useDrawControl } from "~/util/map_controls/useDrawControl";
 // import { LayerDocument } from "@rw/db/schemas/layer";
 import type { Map as MLMap } from "maplibre-gl";
-import { For, onMount, type Resource } from "solid-js";
+import { createSignal, For, onMount, type Resource } from "solid-js";
 
 // @ts-ignore
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel";
 import { modes } from "~/routes/parcels/[parcelId]";
 import { removeLayers } from "~/util/removeLayers";
+import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -29,9 +30,17 @@ type DefaultModeProps = {
 	setMode: any;
 	editField: any;
 	getMap: () => MLMap;
+	refetch: any;
 };
 
-function DefaultMode({ editField, data, params, setMode, getMap }: DefaultModeProps) {
+function DefaultMode({
+	editField,
+	data,
+	params,
+	setMode,
+	getMap,
+	refetch
+}: DefaultModeProps) {
 	//   function enterAddFieldMode(e: any) {
 	//     e.preventDefault();
 	//     setMode(modes.addField);
@@ -45,6 +54,8 @@ function DefaultMode({ editField, data, params, setMode, getMap }: DefaultModePr
 		getMap().off("click", "field-labels", moveMapToField);
 		getMap().off("click", "field-fills", navigateToField);
 	}
+
+	const [activeField, setActiveField] = createSignal<string | undefined>(undefined)
 
 	function enterAddFieldMode() {
 		setMode(modes.addField);
@@ -126,87 +137,159 @@ function DefaultMode({ editField, data, params, setMode, getMap }: DefaultModePr
 		drawFields();
 	});
 
+
+	const deleteForm = action(async (formData: FormData) => {
+
+		await fetch(
+			`${import.meta.env.VITE_BACKEND_URL}/layers/${activeField()}`,
+			{
+				body: "",
+				method: "delete",
+				...apiFetchOptions(),
+			},
+		);
+
+		setActiveField(undefined)
+		await refetch()
+		drawFields()
+	});
+
 	return (
-		<div
-			style={{
-				background: "rgba(0,0,0,0.4)",
-				"border-radius": "10px",
-				position: "fixed",
-				"z-index": 10,
-				color: "white",
-				right: "10px",
-				bottom: "10px",
-				padding: "10px",
-			}}
-		>
-			<strong>
-				<span>Fields</span>
-			</strong>
+		<>
 			<div
-				class="list-group"
-				style={{
-					"max-height": "500px",
-					"overflow-y": "auto",
-				}}
+				class="modal fade"
+				id="deleteFieldModal"
+				tabindex="-1"
+				aria-labelledby="deleteFieldModalLabel"
+				aria-hidden="true"
 			>
-				<For each={data()?.parcel.layers}>
-					{(layer) => (
-						<div class="list-group-item list-group-item-action list-group-item-primary parcel-div">
-							<A
-								class="parcel-link"
-								href={`/parcels/${params.parcelId}/layers/${layer._id}`}
-							>
-								{layer.name}
-							</A>
-							<div>
-								<button
-									class={"btn btn-dark menu-btn list-group-button"}
-									onClick={() => {
-
-										cleanupLayers()
-										editField(layer)
-									}
-									}
-								>
-									<i class="fa-solid fa-pen" />
-								</button>
-
-								<button
-									type="button"
-									class={"btn btn-dark menu-btn list-group-button"}
-									onClick={() => {
-										console.log(
-											"JSON.parse(layer.geometry)",
-											JSON.parse(layer.geometry),
-										);
-
-										// Go to location of layer
-										getMap().flyTo({
-											speed: 2,
-											center: JSON.parse(layer.geometry).geometry
-												.coordinates[0][0],
-											zoom: 15,
-										});
-
-										// setCoordinates([Number(parcel.lng), Number(parcel.lat)]);
-									}}
-								>
-									<i class="fa-solid fa-crosshairs" />
-								</button>
-							</div>
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h1 class="modal-title" id="deleteFieldModalLabel">
+								Confirm deletion of field
+							</h1>
 						</div>
-					)}
-				</For>
+						<div class="modal-body">
+							<p>
+								When you delete your field, all information connected to it like
+								saved systems, projects and budgets will be permanently deleted
+								and it will not be able to be restored.
+							</p>
+						</div>
+						<div class="modal-footer">
+							<form action={deleteForm} method="post" class="delete-form">
+								<button class="btn btn-danger" data-bs-dismiss="modal">
+									Delete field
+								</button>
+							</form>
+							<button class="btn btn-dark" data-bs-dismiss="modal">
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<button
-				type="button"
-				class="btn btn-dark"
-				onClick={(e) => enterAddFieldMode(e)}
+			<div
+				style={{
+					background: "rgba(0,0,0,0.4)",
+					"border-radius": "10px",
+					position: "fixed",
+					"z-index": 10,
+					color: "white",
+					right: "10px",
+					bottom: "10px",
+					padding: "10px",
+				}}
 			>
-				Add new field to this farm
-			</button>
-		</div>
+				<strong>
+					<span>Fields</span>
+				</strong>
+				<div
+					class="list-group"
+					style={{
+						"max-height": "500px",
+						"overflow-y": "auto",
+					}}
+				>
+					<For each={data()?.parcel.layers}>
+						{(layer) => (
+							<div class="list-group-item list-group-item-action list-group-item-primary parcel-div">
+								<A
+									class="parcel-link"
+									href={`/parcels/${params.parcelId}/layers/${layer._id}`}
+								>
+									{layer.name}
+								</A>
+								<div>
+									<button
+										class={"btn btn-dark menu-btn list-group-button"}
+										onClick={() => {
+											cleanupLayers();
+
+											getMap().flyTo({
+												speed: 2,
+												center: JSON.parse(layer.geometry).geometry
+													.coordinates[0][0],
+												zoom: 15,
+											});
+
+											editField(layer);
+										}}
+									>
+										<i class="fa-solid fa-pen" />
+									</button>
+
+									<button
+										type="button"
+										class={"btn btn-dark menu-btn list-group-button"}
+										onClick={() => {
+											console.log(
+												"JSON.parse(layer.geometry)",
+												JSON.parse(layer.geometry),
+											);
+
+											// Go to location of layer
+											getMap().flyTo({
+												speed: 2,
+												center: JSON.parse(layer.geometry).geometry
+													.coordinates[0][0],
+												zoom: 15,
+											});
+
+											// setCoordinates([Number(parcel.lng), Number(parcel.lat)]);
+										}}
+									>
+										<i class="fa-solid fa-crosshairs" />
+									</button>
+									<button
+										type="button"
+										class={"btn btn-danger menu-btn list-group-button"}
+										data-bs-toggle="modal"
+										data-bs-target="#deleteFieldModal"
+										onclick={()=>{
+											setActiveField(layer._id.toString())
+										}}
+
+									>
+										<i class="fa-solid fa-trash" />
+									</button>
+								</div>
+							</div>
+						)}
+					</For>
+				</div>
+
+				<button
+					type="button"
+					class="btn btn-dark"
+					onClick={(e) => enterAddFieldMode(e)}
+				>
+					Add new field to this farm
+				</button>
+			</div>
+		</>
 	);
 }
 

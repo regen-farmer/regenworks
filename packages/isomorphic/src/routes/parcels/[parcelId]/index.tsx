@@ -74,10 +74,8 @@ export default function view() {
 				maxZoom: 20,
 			});
 
-			console.log("vreofe");
 			map.on("load", () => {
-				console.log("Loaded!");
-
+			
 				setStyleLoaded(true);
 
 				if (
@@ -146,6 +144,7 @@ export default function view() {
 							data={data}
 							params={params}
 							setMode={setMode}
+							refetch={refetch}
 						/>
 					</Match>
 					<Match when={mode() === modes.addField}>

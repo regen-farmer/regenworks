@@ -194,14 +194,19 @@ router.put(
 				try {
 					
 					// Save JSON file to geometry
-					layer.geometry = req.body.geometry;
-					layer.size = req.body.layersize;
 					layer.name = req.body.layer.name;
+					
+					if (req.body.size) {
+						layer.size = req.body.layersize;
+					}
+						
+					if (req.body.geometry) {
+						layer.geometry = req.body.geometry;
+						const geometrycentroid = centroid(JSON.parse(req.body.geometry));
 
-					const geometrycentroid = centroid(JSON.parse(req.body.geometry));
-
-					layer.lat = geometrycentroid.geometry.coordinates[1];
-					layer.lng = geometrycentroid.geometry.coordinates[0];
+						layer.lat = geometrycentroid.geometry.coordinates[1];
+						layer.lng = geometrycentroid.geometry.coordinates[0];
+					}
 					// Save the layer
 					await layer.save();
 
