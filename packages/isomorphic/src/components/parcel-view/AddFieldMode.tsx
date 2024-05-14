@@ -28,14 +28,42 @@ export const AddFieldMode: Component<{
 
 	const [modalOpen, setModalOpen] = createSignal<boolean>(true);
 	const [fieldName, setFieldName] = createSignal<string>("");
-	
+
+	function loadDrawCoordinates() {
+		if (draw && fieldName() !== "") {
+			// Load kml
+			if (polygon()?.geometry) {
+				const geometry = polygon()!.geometry;
+
+				console.log("Geometry: ", geometry);
+
+				const featureIds: string[] = draw.add(geometry);
+
+				console.log(featureIds);
+				if (featureIds.length === 0) return;
+
+				console.log("Add KML");
+				if (geometry.type === "Polygon") {
+					getMap().jumpTo({
+						center: geometry.coordinates[0][0] as [number, number],
+						zoom: 15,
+					});
+				}
+
+				draw.changeMode("simple_select", { featureIds: featureIds });
+
+				updateArea(draw.get(featureIds[0]));
+			}
+		}
+	}
 
 	const [error, setError] = createSignal<string>("");
 	// setInput and closeModal
 	function continueFromModal() {
 		setModalOpen(false);
 		addDrawControl();
-	
+
+		loadDrawCoordinates();
 	}
 
 	const [kmlFile, setInternalKMLFile] = createSignal<File | null>(null);
@@ -90,7 +118,7 @@ export const AddFieldMode: Component<{
 	});
 
 	function drawFields() {
-		cleanupLayers()
+		cleanupLayers();
 		getMap().addLayer({
 			id: "field-fills",
 			type: "fill",
@@ -143,7 +171,7 @@ export const AddFieldMode: Component<{
 
 		getMap().on("click", "field-labels", moveMapToField);
 	}
-	
+
 	function moveMapToField(e: any) {
 		// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
 		e.clickOnLabel = true;
@@ -162,14 +190,13 @@ export const AddFieldMode: Component<{
 		setMode(modes.default);
 	}
 
-	function cleanupLayers(){
+	function cleanupLayers() {
 		removeDrawControl();
 		removeFields();
 	}
 
 	createEffect(async () => {
 		if (draw && fieldName() !== "") {
-
 			const geometry = polygon()!.geometry;
 
 			const featureIds: string[] = draw.add(geometry);
@@ -244,6 +271,8 @@ export const AddFieldMode: Component<{
 				);
 
 				setPolygon((prev) => turfPolygon);
+
+				console.log(file);
 				setInternalKMLFile((prev) => file);
 			} else {
 				invalidFile();
@@ -275,8 +304,8 @@ export const AddFieldMode: Component<{
 											class="addFieldInput"
 											name="layer[name]"
 											placeholder="Name"
-											onkeyup={(e)=>{
-												setFieldName(e.target.value)
+											onkeyup={(e) => {
+												setFieldName(e.target.value);
 											}}
 											required
 											id="input"
