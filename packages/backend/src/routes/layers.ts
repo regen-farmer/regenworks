@@ -11,7 +11,7 @@ import {
 } from "@turf/turf";
 import multer from "multer";
 import xml2js from "xml2js";
-import Layer from "@rw/db/schemas/layer";
+import Layer, { LayerDocument } from "@rw/db/schemas/layer";
 import Parcel from "@rw/db/schemas/parcel";
 import System, { type ISystemSchema } from "@rw/db/schemas/system";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
@@ -148,102 +148,69 @@ router.post(
 	) => {
 		// Lookup place using id
 		try {
-			console.log("im here 1");
 			const foundParcel = await Parcel.findById(req.params.id);
 			if (foundParcel) {
 				try {
-					console.log("im here 2");
-					const layer = await Layer.create(req.body.layer);
+					const layer: LayerDocument = await Layer.create(req.body.layer);
 					// Add user ID to Layer.
-					console.log("im here 2.1");
 					layer.owner.id = req.user?._id.toString()!;
 
-					console.log("im here 2.2");
 					// Save JSON file to geometry
 					layer.geometry = req.body.geometry;
 					layer.size = req.body.layersize;
-					console.log("im here 2.3");
+
 					const geometrycentroid = centroid(JSON.parse(req.body.geometry));
 
-					console.log("im here 3");
-
-					console.log(geometrycentroid.geometry.coordinates[0]);
 					layer.lat = geometrycentroid.geometry.coordinates[1];
 					layer.lng = geometrycentroid.geometry.coordinates[0];
 					// Save the layer
 					await layer.save();
-					console.log("im here 4");
 					// Connect new layer to parcel
 					foundParcel.layers.push(layer); // MOVE THIS UP TO AVOID ERRORS IF LAYER FAILS?!!!
-					console.log("im here 5");
 					await foundParcel.save();
 
-					console.log("im here 6");
-					console.log(layer);
+					res.send(layer);
+				} catch (err) {
+					console.log(err);
+				}
+			}
+		} catch (err) {
+			console.log(err);
+			res.send();
+		}
+	},
+);
+
+router.put(
+	"/layers/:id",
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		// Lookup place using id
+		try {
+			const layer = await Layer.findById(req.params.id);
+			if (layer) {
+				try {
+					
+					// Save JSON file to geometry
+					layer.name = req.body.layer.name;
+					
+					if (req.body.size) {
+						layer.size = req.body.layersize;
+					}
+						
+					if (req.body.geometry) {
+						layer.geometry = req.body.geometry;
+						const geometrycentroid = centroid(JSON.parse(req.body.geometry));
+
+						layer.lat = geometrycentroid.geometry.coordinates[1];
+						layer.lng = geometrycentroid.geometry.coordinates[0];
+					}
+					// Save the layer
+					await layer.save();
 
 					res.send(layer);
-
-					// Redirect to parcels SHOW page
-					// req.flash("success", "Successfully added comment");
-					/* if(layer.type == "agroforestry"){
-                       res.send("/layers/" + layer._id + '/systems/newgrid');
-                   } else { */
-					// let tempspecies = req.body.maincrop;
-					// if (req.body.maincrop === '') {
-					//   tempspecies = '5e665452cccc150b186d4cd1';
-					// }
-					// try {
-					//   const foundSpecies = await Species.findById(tempspecies);
-					//   if (foundSpecies) {
-					//     // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
-					//     const presentsystem: any = {
-					//       name: `${foundSpecies.nameCommon} monoculture`,
-					//       description: '',
-					//       model: [
-					//         {
-					//           species: foundSpecies._id,
-					//           width: 2,
-					//           position: [1, 1],
-					//         },
-					//       ],
-					//       shared: false,
-					//       owner: {
-					//         id: req.user?._id,
-					//       },
-					//       animals: [],
-					//     };
-					//     // FIND ANIMAL AND PUSH TO SYSTEM
-					//     if (!(req.body.animal === '')) {
-					//       try {
-					//         const foundAnimal = await Animal.findById(req.body.animal);
-					//         presentsystem.animals.push(foundAnimal);
-					//         // CREATE SYSTEM
-					//         const createdSystem = await System.create(
-					//           presentsystem as ISystemSchema,
-					//         );
-
-					//         // ASS SYSTEM TO PRESENT SYSTEM
-					//         layer.systems.present = createdSystem;
-					//         await layer.save();
-					//         // IF FOREST OR ORCHARD GO TO LAYOUT
-					//         res.send(layer);
-					//       } catch (err) {
-					//         console.log(err);
-					//       }
-					//     } else {
-					//       // CREATE SYSTEM
-					//       const createdSystem = await System.create(presentsystem);
-
-					//       // ASS SYSTEM TO PRESENT SYSTEM
-					//       layer.systems.present = createdSystem;
-					//       await layer.save();
-
-					//       res.send(layer);
-					//     }
-					//   }
-					// } catch (err) {
-					//   console.log(err);
-					// }
 				} catch (err) {
 					console.log(err);
 				}
