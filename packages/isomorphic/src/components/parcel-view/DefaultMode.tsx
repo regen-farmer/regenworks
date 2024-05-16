@@ -215,9 +215,9 @@ function DefaultMode({
 				>
 					<For each={data()?.parcel.layers}>
 						{(layer) => (
-							<div class="list-group-item list-group-item-action list-group-item-primary parcel-div">
+							<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
 								<A
-									class="parcel-link"
+									class="overlay-list-link"
 									href={`/parcels/${params.parcelId}/layers/${layer._id}`}
 								>
 									{layer.name}

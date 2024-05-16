@@ -215,11 +215,12 @@ export default function view() {
 
 										return (
 											<>
-												<A
-													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
-													class={"list-group-item list-group-item-action"}
-												>
-													{/* <div
+												<div class="list-group-item list-group-item-action list-group-item-primary  overlay-list-div">
+													<A
+														href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
+														class={"overlay-list-link"}
+													>
+														{/* <div
 																	style={{
 																		display: "inline-block",
 																		"min-width": "120px",
@@ -232,8 +233,20 @@ export default function view() {
 																	</span>
 																</div> */}
 
-													<span>{project.name}</span>
-												</A>
+														<span>{project.name}</span>
+													</A>
+
+													<button
+														class={"btn btn-dark menu-btn list-group-button"}
+														onClick={() => {
+															
+															
+
+														}}
+													>
+														<i class="fa-regular fa-copy" />
+													</button>
+												</div>
 											</>
 										);
 									}}
