@@ -100,8 +100,8 @@ const SystemInfoBox: Component<{
 			) : (
 				<></>
 			)}
-			{(props.scenarioData.project.systemdesign.headland > 0 ||
-				props.scenarioData.project.systemdesign.margin > 0) &&
+			{(props.scenarioData.project.systemdesign?.headland > 0 ||
+				props.scenarioData.project.systemdesign?.margin > 0) &&
 			calculateMarginHeadlandArea() > 10 ? (
 				<>
 					<strong>
