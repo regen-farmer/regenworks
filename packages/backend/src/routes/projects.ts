@@ -967,7 +967,7 @@ router.post(
 			const createdProject = await Project.create(source);
 			createdProject.name = req.body.project.name;
 
-			console.log(createdProject)
+			console.log("Project2", createdProject)
 			
 
 
