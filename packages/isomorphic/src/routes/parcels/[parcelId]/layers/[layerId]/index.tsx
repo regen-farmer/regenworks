@@ -19,6 +19,7 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { Button } from "solid-bootstrap";
 import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import DuplicateScenarioModal from "~/components/DuplicateScenarioModal";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -50,6 +51,8 @@ export default function view() {
 	});
 
 	const [modalOpen, setModalOpen] = createSignal(false);
+	const [modal2Open, setModal2Open] = createSignal(false);
+	const [activeScenario, setActiveScenario] = createSignal(undefined);
 
 	const deleteForm = action(async (formData: FormData) => {
 		await fetch(
@@ -184,6 +187,13 @@ export default function view() {
 				refetchScenarios={refetch}
 			/>
 
+			<DuplicateScenarioModal
+				activeScenario={activeScenario}
+				modalOpen={modal2Open}
+				setModalOpen={setModal2Open}
+				refetchScenarios={refetch}
+			/>
+
 			<div>
 				<Show when={data()}>
 					<div id="layerMapShow" ref={setMapContainer} />
@@ -239,9 +249,8 @@ export default function view() {
 													<button
 														class={"btn btn-dark menu-btn list-group-button"}
 														onClick={() => {
-															
-															
-
+															setActiveScenario(project)
+															setModal2Open(true)
 														}}
 													>
 														<i class="fa-regular fa-copy" />

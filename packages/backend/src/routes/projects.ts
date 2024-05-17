@@ -948,6 +948,41 @@ router.get(
 
 // LAYER PROJECT CREATE ROUTE
 router.post(
+	"/layers/:id/projects/duplicate",
+	middleware.isLoggedIn,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		// Lookup place using id
+
+		try {
+			// const foundLayer = await Layer.findById(req.params.id)
+			// 	.exec();
+
+			const source = req.body.project.source;
+			source.id = undefined;
+			source._id = undefined;
+
+			const createdProject = await Project.create(source);
+			createdProject.name = req.body.project.name;
+
+			console.log(createdProject)
+			
+
+
+
+			res.send(createdProject);
+			
+
+		} catch (err) {
+			console.log(err);
+			res.send(`/layers/${req.params.id}`);
+		}
+	},
+);
+
+router.post(
 	"/layers/:id/projects",
 	middleware.isLoggedIn,
 	async (
