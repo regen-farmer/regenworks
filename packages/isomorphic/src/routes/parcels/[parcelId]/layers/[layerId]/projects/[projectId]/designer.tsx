@@ -12,7 +12,7 @@ import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
 
-import { Resizable } from "corvu/resizable";
+import Resizable from "@corvu/resizable";
 import { use3DControl } from "~/util/map_controls/use3DControl";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
