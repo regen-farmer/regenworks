@@ -1,4 +1,4 @@
-import { Select } from "@kobalte/core";
+import { Select } from "@kobalte/core/select";
 import {
 	Show,
 	createEffect,

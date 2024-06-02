@@ -1,4 +1,4 @@
-import { Dialog } from "@kobalte/core";
+import { Dialog } from "@kobalte/core/dialog";
 import { Show, createResource, createSignal } from "solid-js";
 import "~/styling/modal.css";
 import { action } from "@solidjs/router";

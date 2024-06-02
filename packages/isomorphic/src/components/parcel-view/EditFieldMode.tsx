@@ -2,7 +2,7 @@ import type { Component } from "solid-js";
 import { action, useNavigate } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
-import { Dialog } from "@kobalte/core";
+import { Dialog } from "@kobalte/core/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, onMount } from "solid-js";
 import "~/styling/modal.css";

@@ -11,7 +11,7 @@ import _ from "lodash";
 import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan";
-import { Select } from "@kobalte/core";
+import { Select } from "@kobalte/core/select";
 import { countries } from "../util/countries";
 import { signOut } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider";
