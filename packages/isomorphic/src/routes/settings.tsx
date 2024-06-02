@@ -284,7 +284,7 @@ const RouteViewAccount: Component = () => {
 									<hr />
 									<div>Which country is this account associated with?</div>
 									<br />
-									<Select.Root
+									<Select
 										options={countries.map((cc) => cc[1])}
 										placeholder="Select country"
 										value={countryCode()}
@@ -323,7 +323,7 @@ const RouteViewAccount: Component = () => {
 												<Select.Listbox class="select__listbox" />
 											</Select.Content>
 										</Select.Portal>
-									</Select.Root>
+									</Select>
 									<Button onClick={saveCountryCode}>Save</Button>
 								</>
 							}

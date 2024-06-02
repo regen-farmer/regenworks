@@ -61,7 +61,7 @@ export function FieldSelect() {
 
 	return (
 		<Show when={fields()}>
-			<Select.Root
+			<Select
 				options={fields()}
 				placeholder="Select field"
 				value={getLayerId()}
@@ -102,7 +102,7 @@ export function FieldSelect() {
 						<Select.Listbox class="select__listbox" />
 					</Select.Content>
 				</Select.Portal>
-			</Select.Root>
+			</Select>
 		</Show>
 	);
 }

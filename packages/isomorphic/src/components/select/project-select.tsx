@@ -103,7 +103,7 @@ export function ProjectSelect() {
 
 	return (
 		<Show when={projects()}>
-			<Select.Root
+			<Select
 				options={projects()}
 				placeholder="Select scenario"
 				value={getProjectId()}
@@ -146,7 +146,7 @@ export function ProjectSelect() {
 						<Select.Listbox class="select__listbox" />
 					</Select.Content>
 				</Select.Portal>
-			</Select.Root>
+			</Select>
 		</Show>
 	);
 }

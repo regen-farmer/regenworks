@@ -79,7 +79,7 @@ export function FarmSelect() {
 					: true)
 			}
 		>
-			<Select.Root
+			<Select
 				options={farms()}
 				placeholder="Select farm"
 				value={getParcelId()}
@@ -120,7 +120,7 @@ export function FarmSelect() {
 						<Select.Listbox class="select__listbox" />
 					</Select.Content>
 				</Select.Portal>
-			</Select.Root>
+			</Select>
 		</Show>
 	);
 }

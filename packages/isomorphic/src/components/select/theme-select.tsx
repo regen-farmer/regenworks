@@ -37,7 +37,7 @@ function ThemeDisplaySimple(props: { themeString: string }) {
 
 export function ThemeSelect() {
 	return (
-		<Select.Root
+		<Select
 			options={["dark", "light", "system"]}
 			placeholder="Select theme"
 			value={theme()}
@@ -69,6 +69,6 @@ export function ThemeSelect() {
 					<Select.Listbox class="select__listbox" />
 				</Select.Content>
 			</Select.Portal>
-		</Select.Root>
+		</Select>
 	);
 }
