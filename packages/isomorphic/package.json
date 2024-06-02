@@ -14,7 +14,7 @@
     "@types/mapbox__mapbox-gl-draw": "^1.4.6"
   },
   "dependencies": {
-    "@auth/core": "0.29.0",
+    "@auth/core": "0.32.0",
     "@corvu/resizable": "^0.2.1",
     "@deck.gl/core": "^9.0.17",
     "@deck.gl/geo-layers": "^9.0.17",
