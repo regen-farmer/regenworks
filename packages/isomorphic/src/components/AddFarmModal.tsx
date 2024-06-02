@@ -103,7 +103,7 @@ export function AddFarmModal({
 	return (
 		<div>
 			<Show when={mode() === modes.addFarm}>
-				<Dialog.Root open={mode() === modes.addFarm} onOpenChange={cancel}>
+				<Dialog open={mode() === modes.addFarm} onOpenChange={cancel}>
 					<Dialog.Portal>
 						<Dialog.Overlay class="dialog__overlay" />
 						<div class="dialog__positioner">
@@ -220,7 +220,7 @@ export function AddFarmModal({
 							</Dialog.Content>
 						</div>
 					</Dialog.Portal>
-				</Dialog.Root>
+				</Dialog>
 			</Show>
 		</div>
 	);

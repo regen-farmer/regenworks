@@ -72,7 +72,7 @@ export function CreateNewScenarioModal({
 	return (
 		<div>
 			<Show when={modalOpen()}>
-				<Dialog.Root open={modalOpen()}>
+				<Dialog open={modalOpen()}>
 					<Dialog.Portal>
 						<Dialog.Overlay class="dialog__overlay" />
 						<div class="dialog__positioner">
@@ -151,7 +151,7 @@ export function CreateNewScenarioModal({
 							</Dialog.Content>
 						</div>
 					</Dialog.Portal>
-				</Dialog.Root>
+				</Dialog>
 			</Show>
 		</div>
 	);

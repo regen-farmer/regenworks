@@ -294,7 +294,7 @@ export const EditFieldMode: Component<{
 	return (
 		<>
 			<div>
-				<Dialog.Root open={modalOpen()}>
+				<Dialog open={modalOpen()}>
 					<Dialog.Portal>
 						<Dialog.Overlay class="dialog__overlay" />
 						<div class="dialog__positioner">
@@ -354,7 +354,7 @@ export const EditFieldMode: Component<{
 							</Dialog.Content>
 						</div>
 					</Dialog.Portal>
-				</Dialog.Root>
+				</Dialog>
 			</div>
 
 			<div>
