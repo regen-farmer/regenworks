@@ -19,6 +19,7 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { Button } from "solid-bootstrap";
 import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import DuplicateScenarioModal from "~/components/DuplicateScenarioModal";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -50,6 +51,8 @@ export default function view() {
 	});
 
 	const [modalOpen, setModalOpen] = createSignal(false);
+	const [modal2Open, setModal2Open] = createSignal(false);
+	const [activeScenario, setActiveScenario] = createSignal(undefined);
 
 	const deleteForm = action(async (formData: FormData) => {
 		await fetch(
@@ -184,6 +187,13 @@ export default function view() {
 				refetchScenarios={refetch}
 			/>
 
+			<DuplicateScenarioModal
+				activeScenario={activeScenario}
+				modalOpen={modal2Open}
+				setModalOpen={setModal2Open}
+				refetchScenarios={refetch}
+			/>
+
 			<div>
 				<Show when={data()}>
 					<div id="layerMapShow" ref={setMapContainer} />
@@ -215,11 +225,12 @@ export default function view() {
 
 										return (
 											<>
-												<A
-													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
-													class={"list-group-item list-group-item-action"}
-												>
-													{/* <div
+												<div class="list-group-item list-group-item-action list-group-item-primary  overlay-list-div">
+													<A
+														href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`}
+														class={"overlay-list-link"}
+													>
+														{/* <div
 																	style={{
 																		display: "inline-block",
 																		"min-width": "120px",
@@ -232,8 +243,19 @@ export default function view() {
 																	</span>
 																</div> */}
 
-													<span>{project.name}</span>
-												</A>
+														<span>{project.name}</span>
+													</A>
+
+													<button
+														class={"btn btn-dark menu-btn list-group-button"}
+														onClick={() => {
+															setActiveScenario(project)
+															setModal2Open(true)
+														}}
+													>
+														<i class="fa-regular fa-copy" />
+													</button>
+												</div>
 											</>
 										);
 									}}

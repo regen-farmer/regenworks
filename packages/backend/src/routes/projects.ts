@@ -23,6 +23,7 @@ import type { UserDocument } from "@rw/db/schemas/user";
 import type { Auth0IDToken } from "../app";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
 import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout";
+import SystemDesign from "@rw/db/schemas/systemdesign";
 // import SystemDesign from 'collections/systemdesign.js';
 
 // =======
@@ -947,6 +948,81 @@ router.get(
 );
 
 // LAYER PROJECT CREATE ROUTE
+router.post(
+	"/layers/:id/projects/duplicate",
+	middleware.isLoggedIn,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		// Lookup place using id
+
+		try {
+			// const foundLayer = await Layer.findById(req.params.id)
+			// 	.exec();
+
+			const source = req.body.project.source;
+			source.id = undefined;
+			source._id = undefined;
+
+
+			// create new project
+			
+			const createdProject = await Project.create(source);
+			createdProject.name = req.body.project.name;
+
+			// create new systemdesign
+
+			if (createdProject.systemdesign?._id || createdProject.systemdesign){
+				
+
+				const systemDesignId = createdProject.systemdesign?._id ?? createdProject.systemdesign;
+			
+				const existingSystemDesign = await SystemDesign.findById(systemDesignId);
+			
+				if (!existingSystemDesign) {
+					console.log("System Design not found", existingSystemDesign)
+				}
+
+				existingSystemDesign.id = undefined;
+				existingSystemDesign._id = undefined;
+				const newSystemDesign = await SystemDesign.create(JSON.parse(JSON.stringify(existingSystemDesign)));
+				await newSystemDesign.save()
+				
+
+				createdProject.systemdesign = newSystemDesign;
+				
+			}
+
+			
+			await createdProject.save();
+
+			// get layer, append project, save layer
+
+
+			const foundLayer = await Layer.findById(req.params.id);
+			if (!foundLayer) {
+				throw new Error('Layer not found');
+			}
+			foundLayer.projects.push(createdProject.id);
+			await foundLayer.save();
+
+
+			console.log("Project2", createdProject)
+			
+
+
+
+			res.send(createdProject);
+			
+
+		} catch (err) {
+			console.log(err);
+			res.send(`/layers/${req.params.id}`);
+		}
+	},
+);
+
 router.post(
 	"/layers/:id/projects",
 	middleware.isLoggedIn,

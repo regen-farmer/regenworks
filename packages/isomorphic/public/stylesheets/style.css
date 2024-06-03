@@ -463,15 +463,15 @@ html {
   align-items: center;
 } */
 
-.parcel-link {
+.overlay-list-link {
   color: black;
 }
 
-.theme-dark .parcel-link {
+.theme-dark .overlay-list-link {
   color: var(--font-color-dark);
 }
 
-.parcel-div {
+.overlay-list-div {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -481,13 +481,14 @@ html {
   width: fit-content;
 }
 
-.parcel-div .list-group-button {
+.overlay-list-div .list-group-button {
   visibility: hidden;
 }
 
-.parcel-div:hover .list-group-button {
+.overlay-list-div:hover .list-group-button {
   visibility: visible;
 }
+
 
 .list-group-button {
   margin: 0;

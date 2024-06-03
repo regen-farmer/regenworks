@@ -216,10 +216,10 @@ const RouteViewHome: Component = () => {
 									<div class="list-group">
 										<For each={data()?.parcels}>
 											{(parcel) => (
-												<div class="list-group-item list-group-item-action list-group-item-primary parcel-div">
+												<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
 													<A
 														href={`/parcels/${parcel._id}`}
-														class="parcel-link"
+														class="overlay-list-link"
 													>
 														{parcel.name}
 													</A>
