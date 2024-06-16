@@ -741,7 +741,7 @@ export default function view() {
 													type="submit"
 													class="btn btn-dark"
 													onclick={getSystemDesign}
-													disabled={previewing()}
+													disabled={previewing() || system.rows.length === 0}
 												>
 													Generate preview
 												</button>
