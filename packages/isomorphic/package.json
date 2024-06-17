@@ -38,11 +38,11 @@
     "date-fns": "^3.6.0",
     "jose": "^5.4.0",
     "lodash": "^4.17.21",
-    "maplibre-gl": "^4.4.0",
+    "maplibre-gl": "^4.4.1",
     "multipart-object": "^1.2.0",
     "proj4": "^2.11.0",
     "solid-bootstrap": "^1.0.20",
     "solid-js": "^1.8.17",
-    "vinxi": "^0.3.11"
+    "vinxi": "^0.3.12"
   }
 }
