@@ -15,6 +15,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import { useHCControl } from "~/util/map_controls/useHCControl";
+import MeasuresControl from '~/components/Measure';
+
 import { useBSControl } from "~/util/map_controls/useBSControl";
 import { Switch, Match } from "solid-js";
 import DefaultMode from "~/components/parcel-view/DefaultMode";
@@ -86,6 +88,40 @@ export default function view() {
 				) {
 					useHCControl(map);
 					useBSControl(map);
+
+					map.addControl(new MeasuresControl({
+            lang: {
+                areaMeasurementButtonTitle: 'Measure area',
+                lengthMeasurementButtonTitle: 'Measure length',
+                clearMeasurementsButtonTitle:  'Clear measurements',
+            },
+            style: {
+                text: {
+                    radialOffset:  0.9,
+                    letterSpacing: 0.05,
+                    color: '#D20C0C',
+                    haloColor: '#fff',
+                    haloWidth: 0,
+                    font: 'Noto Sans Bold',
+                },
+                common: {
+                    midPointRadius: 3,
+                    midPointColor: '#D20C0C',
+                    midPointHaloRadius: 5,
+                    midPointHaloColor: '#FFF',
+                },
+                areaMeasurement: {
+                    fillColor: '#D20C0C',
+                    fillOutlineColor: '#D20C0C',
+                    fillOpacity: 0.01,
+                    lineWidth: 2,
+                },
+                lengthMeasurement: {
+                    lineWidth: 2,
+                    lineColor: "#D20C0C",
+                },
+            }
+        }), "top-left");
 				}
 
 				const farmMarker = createFarmMarkerIcon();

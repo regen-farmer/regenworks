@@ -55,6 +55,7 @@ function MapInstance({
 			maxZoom: 20,
 		});
 
+		
 		map.on("load", () => {
 			setStyleLoaded(true);
 			addMarkers();
