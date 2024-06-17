@@ -247,6 +247,7 @@ export default function view() {
 													</A>
 
 													<button
+														title="Duplicate scenario"
 														class={"btn btn-dark menu-btn list-group-button"}
 														onClick={() => {
 															setActiveScenario(project)

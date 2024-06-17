@@ -324,6 +324,7 @@ export default function view() {
 																		</div>
 
 																		<button
+																			title="Add tree"
 																			class="btn btn-dark"
 																			onclick={() => {
 																				// console.log('test')

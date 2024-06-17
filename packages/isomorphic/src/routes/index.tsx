@@ -6,7 +6,6 @@ import {
 	Switch,
 	createResource,
 } from "solid-js";
-
 import { A, useNavigate } from "@solidjs/router";
 import { allowFarmCreation } from "~/auth/useAuth";
 import type { ParcelDocument } from "@rw/db/schemas/parcel";
@@ -224,14 +223,19 @@ const RouteViewHome: Component = () => {
 														{parcel.name}
 													</A>
 													<div>
+		
 														<button
+															title="Edit farm"
 															type="button"
 															class={"btn btn-dark menu-btn list-group-button"}
 															onClick={() => enterEditMode(parcel)}
 														>
 															<i class="fa-solid fa-pen" />
 														</button>
+
+														
 														<button
+															title="Show farm on map"
 															type="button"
 															class={"btn btn-dark menu-btn list-group-button"}
 															onClick={() => {
