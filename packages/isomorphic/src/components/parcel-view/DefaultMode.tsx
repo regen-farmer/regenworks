@@ -224,6 +224,7 @@ function DefaultMode({
 								</A>
 								<div>
 									<button
+										title="Edit field"
 										class={"btn btn-dark menu-btn list-group-button"}
 										onClick={() => {
 											cleanupLayers();
@@ -242,6 +243,7 @@ function DefaultMode({
 									</button>
 
 									<button
+										title="Show field on map"
 										type="button"
 										class={"btn btn-dark menu-btn list-group-button"}
 										onClick={() => {
@@ -264,6 +266,7 @@ function DefaultMode({
 										<i class="fa-solid fa-crosshairs" />
 									</button>
 									<button
+										title="Delete field"
 										type="button"
 										class={"btn btn-danger menu-btn list-group-button"}
 										data-bs-toggle="modal"

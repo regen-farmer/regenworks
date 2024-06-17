@@ -275,6 +275,7 @@ export default function view() {
 								<i class="fas fa-arrow-left" /> Field
 							</A>
 							<A
+								title="Draw row/line on map"
 								href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/new`}
 								class="btn mt-2 btn-dark"
 							>

@@ -66,6 +66,7 @@ export function NavBar() {
 						>
 							<FarmSelect />
 							<A
+								title="Go to farm"
 								style={{ "margin-left": "5px" }}
 								href={getParcelId() ? `/parcels/${getParcelId()}` : ""}
 								end={true}
@@ -86,6 +87,7 @@ export function NavBar() {
 
 								<FieldSelect />
 								<A
+									title="Go to field"
 									style={{ "margin-left": "5px" }}
 									href={
 										getLayerId()
@@ -110,6 +112,7 @@ export function NavBar() {
 
 									<ProjectSelect />
 									<A
+										title="Go to scenario"
 										style={{ "margin-left": "5px" }}
 										href={
 											getProjectId()
@@ -138,6 +141,7 @@ export function NavBar() {
 
 						<li class="nav-item">
 							<A
+								title="Support"
 								class="nav-link"
 								target="_blank"
 								href={"https://discord.gg/DqUZU7QNF5"}
