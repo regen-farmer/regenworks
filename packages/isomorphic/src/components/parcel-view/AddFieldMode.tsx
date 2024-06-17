@@ -316,7 +316,7 @@ export const AddFieldMode: Component<{
 												? `${kmlFile()?.name} (${
 														polygon()?.geometry?.coordinates[0].length
 													} coordinates)`
-												: "Use geometry from KML file (Optional)"}
+												: "Add geometry from KML file (optional)"}
 										</label>
 										<input
 											style="visibility:hidden;"
@@ -335,7 +335,7 @@ export const AddFieldMode: Component<{
 											onClick={continueFromModal}
 											disabled={fieldName().length < 1}
 										>
-											Continue
+											Go to map to Draw new polygon or Edit KML geometry
 										</button>
 									</div>
 									<Show when={error()}>
