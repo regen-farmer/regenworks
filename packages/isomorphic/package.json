@@ -6,7 +6,7 @@
     "format": "biome format --write ./src",
     "build": "vinxi build",
     "start": "node .output/server/index.mjs",
-    "start-local": "node --env-file=.env .output/server/index.mjs"
+    "start-local": "PORT=10000 node --env-file=.env .output/server/index.mjs"
   },
   "type": "module",
   "devDependencies": {
