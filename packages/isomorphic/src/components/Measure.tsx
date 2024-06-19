@@ -18,6 +18,7 @@ export default class MeasuresControl implements IControl {
       useGrouping: "always",
     };
     this._drawCtrl = new MapboxDraw({
+      
       displayControlsDefault: false,
       styles: [
         // ACTIVE (being drawn)
