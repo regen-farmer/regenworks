@@ -175,7 +175,7 @@ export default class MeasuresControl implements IControl {
   }
 
   onAdd(map) {
-    console.log("onAdd")
+    
     this._map = map;
     this._map.addControl(this._drawCtrl, "top-left");
     this._initControl();
@@ -185,7 +185,7 @@ export default class MeasuresControl implements IControl {
 
   _initControl() {
 
-    console.log("_initControl")
+    
 
     this._container = document.createElement("div");
     this._container.className =
@@ -198,7 +198,7 @@ export default class MeasuresControl implements IControl {
 
   _formatMeasure(dist, isAreaMeasurement = false) {
 
-    console.log("_formatMeasure")
+    
 
 
     if (this.options?.units == "imperial") {
@@ -216,12 +216,12 @@ export default class MeasuresControl implements IControl {
   _formatAreaToMetricSystem(dist) {
 
     return `${(dist * 0.0001).toFixed(2)} ha`
-    // console.log("_formatAreaToMetricSystem dist", dist)
+    
     // const converte = new Converter(dist)
-    // console.log("_formatAreaToMetricSystem converte", converte)
+    
 
     // let measure = converte.from("m2").toBest({ system: "metric" });
-    // console.log("Mesure", measure)
+    
     // let unit = measure.unit.replaceAll("2", "²");
     // let val = this._getLocaleNumber(measure.val);
     // return `${val} ${unit}`;
@@ -229,7 +229,7 @@ export default class MeasuresControl implements IControl {
 
   // area in sqm
   _formatAreaToImperialSystem(dist) {
-    console.log("_formatAreaToImperialSystem")
+    
     let measure = new Converter(dist).from("m2").to("mi2");
     measure = new Converter(measure).from("mi2").toBest({ system: "imperial" });
     let unit = measure.unit.replaceAll("2", "²");
@@ -238,22 +238,22 @@ export default class MeasuresControl implements IControl {
   }
 
   _formatToMetricSystem(dist) {
-    // console.log("_formatToMetricSystem dist", dist)
+    
     // const converter = new Converter(dist);
-    // console.log("converter", converter)
+    
 
     // let measure = converter.from("m").toBest({ system: "metric" });
 
-    // console.log("_formatToMetricSystem measure", measure)
+    
     
     // let val = this._getLocaleNumber(measure.val);
-    // console.log("_formatToMetricSystem val", val)
+    
     // return `${val} ${measure.unit}`;
     return `${dist.toFixed(2)} m`
   }
 
   _formatToImperialSystem(dist) {
-    console.log("_formatToImperialSystem")
+    
 
     let measure = new Converter(dist).from("m").to("mi");
     measure = new Converter(measure).from("mi").toBest({ system: "imperial" });
@@ -263,7 +263,7 @@ export default class MeasuresControl implements IControl {
 
   _getLocaleNumber(val) {
 
-    console.log("_getLocaleNumber")
+    
     // Format without grouping separator
     let formattedNumber = val.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -285,7 +285,7 @@ export default class MeasuresControl implements IControl {
 
   initDrawBtn(mode) {
 
-    console.log("initDrawBtn")
+    
 
     let btn = document.createElement("button");
     btn.type = "button";
@@ -330,7 +330,7 @@ export default class MeasuresControl implements IControl {
   }
 
   initClearBtn() {
-    console.log("initClearBtn")
+    
     let btn = document.createElement("button");
     btn.type = "button";
     btn.title = this.options?.lang?.clearMeasurementsButtonTitle ?? "";
@@ -363,7 +363,7 @@ export default class MeasuresControl implements IControl {
 
   _registerEvents() {
 
-    console.log("_registerEvents")
+    
 
     if (this._map) {
       this._map.on("load", () => {
@@ -378,7 +378,7 @@ export default class MeasuresControl implements IControl {
 
   _recreateSourceAndLayers() {
 
-    console.log("_recreateSourceAndLayers")
+    
 
     if (!this._map.getSource(DRAW_LABELS_SOURCE_ID))
       this._map.addSource(DRAW_LABELS_SOURCE_ID, {
@@ -425,7 +425,7 @@ export default class MeasuresControl implements IControl {
   }
 
   _reorderLayers() {
-    // console.log("_reorderLayers")
+    
     if (this._map) {
       let mapboxGlSources = Object.values(MapboxDraw.constants.sources);
       this._map
@@ -442,7 +442,7 @@ export default class MeasuresControl implements IControl {
 
   _updateLabels() {
 
-    // console.log("_updateLabels")
+    
     let source = this._map.getSource(DRAW_LABELS_SOURCE_ID);
     if (!source && this._map) {
       // in case of the source is somehow missing, recreate and empty one
