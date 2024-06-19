@@ -22,6 +22,7 @@ import { getScenario } from "~/util/getScenario";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
 
 export default function view() {
 	const params = useParams<{
@@ -113,7 +114,8 @@ export default function view() {
 					const areaLng = scenarioData()?.project.layer.lng;
 
 					use3DControl(map, systemLayout, species);
-
+					useMeasureControl(map)
+					
 					if (withinDKBBox(areaLng!, areaLat!)) {
 						useHCControl(map);
 						useBSControl(map);

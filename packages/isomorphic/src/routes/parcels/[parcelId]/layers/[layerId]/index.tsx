@@ -20,6 +20,7 @@ import { Button } from "solid-bootstrap";
 import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 import DuplicateScenarioModal from "~/components/DuplicateScenarioModal";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -88,6 +89,9 @@ export default function view() {
 			});
 
 			map.on("load", () => {
+
+				useMeasureControl(map)
+				
 				// map.addControl(new maplibregl.FullscreenControl({}));
 
 				map.addLayer({

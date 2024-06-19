@@ -15,7 +15,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import { useHCControl } from "~/util/map_controls/useHCControl";
+
+
 import { useBSControl } from "~/util/map_controls/useBSControl";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
 import { Switch, Match } from "solid-js";
 import DefaultMode from "~/components/parcel-view/DefaultMode";
 
@@ -61,6 +64,7 @@ export default function view() {
 	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
+	
 
 	createEffect(() => {
 		if (mapref() && !map) {
@@ -86,6 +90,8 @@ export default function view() {
 				) {
 					useHCControl(map);
 					useBSControl(map);
+					
+					
 				}
 
 				const farmMarker = createFarmMarkerIcon();
