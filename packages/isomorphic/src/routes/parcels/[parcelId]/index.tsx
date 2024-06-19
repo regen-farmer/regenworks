@@ -15,9 +15,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import { useHCControl } from "~/util/map_controls/useHCControl";
-import MeasuresControl from '~/components/Measure';
+
 
 import { useBSControl } from "~/util/map_controls/useBSControl";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
 import { Switch, Match } from "solid-js";
 import DefaultMode from "~/components/parcel-view/DefaultMode";
 
@@ -63,6 +64,7 @@ export default function view() {
 	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
+	
 
 	createEffect(() => {
 		if (mapref() && !map) {
@@ -88,40 +90,8 @@ export default function view() {
 				) {
 					useHCControl(map);
 					useBSControl(map);
-
-					map.addControl(new MeasuresControl({
-            lang: {
-                areaMeasurementButtonTitle: 'Measure area',
-                lengthMeasurementButtonTitle: 'Measure length',
-                clearMeasurementsButtonTitle:  'Clear measurements',
-            },
-            style: {
-                text: {
-                    radialOffset:  0.9,
-                    letterSpacing: 0.05,
-                    color: '#fff',
-                    haloColor: '#fff',
-                    haloWidth: 0,
-                    font: 'Noto Sans Bold',
-                },
-                common: {
-                    midPointRadius: 3,
-                    midPointColor: 'black',
-                    midPointHaloRadius: 5,
-                    midPointHaloColor: '#FFF',
-                },
-                areaMeasurement: {
-                    fillColor: 'yellow',
-                    fillOutlineColor: 'yellow',
-                    fillOpacity: 0.10,
-                    lineWidth: 2,
-                },
-                lengthMeasurement: {
-                    lineWidth: 2,
-                    lineColor: "yellow",
-                },
-            }
-        }), "top-left");
+					
+					
 				}
 
 				const farmMarker = createFarmMarkerIcon();
