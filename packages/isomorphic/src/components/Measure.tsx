@@ -468,16 +468,38 @@ export default class MeasuresControl implements IControl {
           features.push(centroid);
         } else if (feature.geometry.type == "LineString") {
           let segments = turf.lineSegment(feature);
+          
+          let totalDistance = 0;
+
           segments.features.forEach((segment) => {
             let centroid = turf.centroid(segment);
             let lineLength = this._formatMeasure(turf.length(segment) * 1000); //km to m
             let measurement = `${lineLength}`;
+            totalDistance += turf.length(segment) * 1000;
+
             centroid.properties = {
               measurement,
             };
             features.push(centroid);
           });
+
+          console.log(segments.features)
+          // let centroid = turf.centroid(segments.features[segments.features.length-1]);
+          // console.log("Edn point", segments.features[segments.features.length-1])
+          // console.log("Centroid", centroid)
+          let centroid = {
+            properties: {
+              measurement: this._formatMeasure(totalDistance),
+            },
+            geometry: {
+              coordinates: segments.features[segments.features.length-1].geometry.coordinates[1],
+              type: "Point"
+            },
+            type: "Feature"
+          };
+          features.push(centroid);
         }
+        
       } catch (e) {
         //Silently ignored
       }
