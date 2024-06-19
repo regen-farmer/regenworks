@@ -483,10 +483,6 @@ export default class MeasuresControl implements IControl {
             features.push(centroid);
           });
 
-          console.log(segments.features)
-          // let centroid = turf.centroid(segments.features[segments.features.length-1]);
-          // console.log("Edn point", segments.features[segments.features.length-1])
-          // console.log("Centroid", centroid)
           let centroid = {
             properties: {
               measurement: this._formatMeasure(totalDistance),
