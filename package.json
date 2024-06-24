@@ -13,7 +13,7 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^1.8.2",
-    "@types/node": "^20.14.6",
+    "@types/node": "^20.14.8",
     "typescript": "^5.5.2"
   },
   "dependencies": {
