@@ -65,6 +65,11 @@ function systemDesignsAreEqual(sd1: string, sd2: string) {
 		for (const row of sd.rows) {
 			row._id = undefined;
 			row.headland = undefined;
+			
+			for (const sequence of row.sequence) {
+				sequence._id = undefined
+			}
+
 		}
 
 		return sd;
@@ -72,6 +77,9 @@ function systemDesignsAreEqual(sd1: string, sd2: string) {
 
 	const sd1JSON = deleteKeys(JSON.parse(sd1));
 	const sd2JSON = deleteKeys(JSON.parse(sd2));
+
+	console.log(sd1JSON)
+	console.log(sd2JSON)
 
 	const equal = _.isEqual(sd1JSON, sd2JSON);
 	return equal;
