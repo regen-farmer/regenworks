@@ -846,20 +846,19 @@ export default function view() {
 							{/* </form> */}
 						</Show>
 					</div>
-				<ToastContainer class="p-3" position="bottom-end">
+					<ToastContainer class="p-3" position="bottom-end">
 						<Toast
 							onClose={() => setShow3(false)}
 							bg="success"
-
 							show={show3()}
 							delay={3000}
 							autohide
 						>
 							<Toast.Header>
-							<strong class="me-auto">System design saved</strong>
-						</Toast.Header>
+								<strong class="me-auto">System design saved</strong>
+							</Toast.Header>
 						</Toast>
-						</ToastContainer>
+					</ToastContainer>
 				</div>
 			</Resizable.Panel>
 			<Resizable.Handle />
@@ -964,7 +963,6 @@ export default function view() {
 								/>
 							</Show>
 						</Show>
-						
 					</div>
 				</div>
 			</Resizable.Panel>
