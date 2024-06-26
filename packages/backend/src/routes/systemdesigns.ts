@@ -63,6 +63,11 @@ router.put(
 				console.log("##### found system design #####");
 
 				await foundProject.systemdesign.replaceOne(req.body);
+				
+				const foundSystemDesign = await SystemDesign.findById(foundProject.systemdesign._id);
+
+				res.send(foundSystemDesign).status(200);
+
 			} else {
 				console.log("##### didnt find system design #####");
 
@@ -70,9 +75,11 @@ router.put(
 				await newSystemDesign.save();
 				foundProject.systemdesign = newSystemDesign;
 				await foundProject.save();
+
+				res.send(newSystemDesign).status(200);
 			}
 
-			res.sendStatus(200);
+			
 		} else {
 			res.status(400).send({ error: "Project not found" });
 		}
