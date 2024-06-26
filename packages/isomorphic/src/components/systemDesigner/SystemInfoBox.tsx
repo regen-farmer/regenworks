@@ -8,10 +8,13 @@ const SystemInfoBox: Component<{
 	scenarioData: any;
 }> = (props) => {
 	function calculateMarginHeadlandArea(): number {
-		const geometry = turfDifference(
-			JSON.parse(props.scenarioData.project.layer.geometry),
-			props.systemLayout.headlandPolygon,
-		);
+		const geometry = turfDifference({
+			type: "FeatureCollection",
+			features: [
+				JSON.parse(props.scenarioData.project.layer.geometry),
+				props.systemLayout.headlandPolygon,
+			],
+		});
 
 		const area = Number.parseFloat(turfArea(geometry));
 
