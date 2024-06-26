@@ -1,4 +1,5 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
+import { Toast, ToastContainer } from "solid-bootstrap";
 import { createStore } from "solid-js/store";
 import { A, useParams } from "@solidjs/router";
 import { AddRow } from "~/components/systems/add-row";
@@ -28,39 +29,35 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
 import _ from "lodash";
 
-
-
-function isEqual(var1, var2) { // Break the comparison out into a neat little function
-  if (typeof var1 !== "object" && !Array.isArray(var1)) {
-
-		
-		const equal =  var1===var2
-		console.log(var1, var2, equal)
-    return equal;
-  } else {
-		
-    return deepEqual(var1, var2);
-  }
+function isEqual(var1, var2) {
+	// Break the comparison out into a neat little function
+	if (typeof var1 !== "object" && !Array.isArray(var1)) {
+		const equal = var1 === var2;
+		console.log(var1, var2, equal);
+		return equal;
+	} else {
+		return deepEqual(var1, var2);
+	}
 }
 
 function deepEqual(var1, var2) {
-   for (const i in var1) { 
-      if(typeof var2[i] === "undefined") { // Quick check, does the property even exist?
-         return false;
-      }
-      if (!isEqual(var1[i], var2[i])) {
-         return false;
-      }
-   }
-   return true;
+	for (const i in var1) {
+		if (typeof var2[i] === "undefined") {
+			// Quick check, does the property even exist?
+			return false;
+		}
+		if (!isEqual(var1[i], var2[i])) {
+			return false;
+		}
+	}
+	return true;
 }
 
 function areObjectsEqual(obj1, obj2) {
-   return deepEqual(obj1, obj2) && deepEqual(obj2, obj1); // Two-way checking
+	return deepEqual(obj1, obj2) && deepEqual(obj2, obj1); // Two-way checking
 }
 
 function systemDesignsAreEqual(sd1: string, sd2: string) {
-
 	function deleteKeys(sd: SystemDesignDocument) {
 		sd._id = undefined;
 		sd.__v = undefined;
@@ -75,7 +72,7 @@ function systemDesignsAreEqual(sd1: string, sd2: string) {
 
 	const sd1JSON = deleteKeys(JSON.parse(sd1));
 	const sd2JSON = deleteKeys(JSON.parse(sd2));
-	
+
 	const equal = _.isEqual(sd1JSON, sd2JSON);
 	return equal;
 }
@@ -120,7 +117,9 @@ export default function view() {
 	const scenarioData = getScenario(params.projectId, (result) => {
 		if (result) {
 			if (result?.project.systemdesign) {
-				setSavedSystem(JSON.parse(JSON.stringify(result?.project.systemdesign!)));
+				setSavedSystem(
+					JSON.parse(JSON.stringify(result?.project.systemdesign!)),
+				);
 				setSystem(result?.project.systemdesign!);
 			}
 		}
@@ -139,6 +138,8 @@ export default function view() {
 	const mapCameraState = {};
 
 	let map: maplibregl.Map;
+
+	const [show3, setShow3] = createSignal(false);
 
 	createEffect(() => {
 		// console.log('Updateing map', rebuildMap())
@@ -269,6 +270,10 @@ export default function view() {
 		const systemData = await newsystem.json();
 
 		setSavedSystem(systemData as ISystemDesignSchema);
+
+		if (systemData) {
+			setShow3(true);
+		}
 
 		setSaving(false);
 
@@ -841,6 +846,20 @@ export default function view() {
 							{/* </form> */}
 						</Show>
 					</div>
+				<ToastContainer class="p-3" position="bottom-end">
+						<Toast
+							onClose={() => setShow3(false)}
+							bg="success"
+
+							show={show3()}
+							delay={3000}
+							autohide
+						>
+							<Toast.Header>
+							<strong class="me-auto">System design saved</strong>
+						</Toast.Header>
+						</Toast>
+						</ToastContainer>
 				</div>
 			</Resizable.Panel>
 			<Resizable.Handle />
@@ -945,6 +964,7 @@ export default function view() {
 								/>
 							</Show>
 						</Show>
+						
 					</div>
 				</div>
 			</Resizable.Panel>
