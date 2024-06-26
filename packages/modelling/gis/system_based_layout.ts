@@ -128,7 +128,9 @@ export function systemBasedLayout(
 	// treeCanopyArray.concat(edgeTreeCanopyArray);
 
 
-	// const marginGeometry = difference(polygon, headlandPolygon)
+	// const marginGeometry = difference({
+	// type: "FeatureCollection",
+	// features: [polygon, headlandPolygon]})
 	// const marginArea = area(marginGeometry);
 	
 	// console.log("Margin area", marginArea, area(marginArea))
