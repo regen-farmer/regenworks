@@ -1,12 +1,12 @@
 {
   "name": "isomorphic",
   "scripts": {
-    "dev": "vinxi dev --port 10000",
+    "dev": "bunx --bun vinxi dev --port 10000",
     "lint": "biome lint ./src",
     "format": "biome format --write ./src",
-    "build": "vinxi build",
-    "start": "node .output/server/index.mjs",
-    "start-local": "PORT=10000 node --env-file=.env .output/server/index.mjs"
+    "build": "bunx --bun vinxi build",
+    "start": "bun --bun .output/server/index.mjs",
+    "start-local": "PORT=10000 bun --bun --env-file=.env .output/server/index.mjs"
   },
   "type": "module",
   "devDependencies": {
