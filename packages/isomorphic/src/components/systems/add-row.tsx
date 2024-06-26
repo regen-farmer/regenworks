@@ -16,7 +16,6 @@ export function AddRow(props: {
 						{
 							width: 5,
 							sequence: [],
-							headland: { before: 0, after: 0 },
 							offset: { before: 0, after: 0 },
 						},
 						...prev.slice(props.index, prev.length),

@@ -10,7 +10,10 @@ import maplibregl from "maplibre-gl";
 
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { ISystemDesignSchema } from "@rw/db/schemas/systemdesign";
+import type {
+	ISystemDesignSchema,
+	SystemDesignDocument,
+} from "@rw/db/schemas/systemdesign";
 
 import Resizable from "@corvu/resizable";
 import { use3DControl } from "~/util/map_controls/use3DControl";
@@ -23,6 +26,59 @@ import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
+import _ from "lodash";
+
+
+
+function isEqual(var1, var2) { // Break the comparison out into a neat little function
+  if (typeof var1 !== "object" && !Array.isArray(var1)) {
+
+		
+		const equal =  var1===var2
+		console.log(var1, var2, equal)
+    return equal;
+  } else {
+		
+    return deepEqual(var1, var2);
+  }
+}
+
+function deepEqual(var1, var2) {
+   for (const i in var1) { 
+      if(typeof var2[i] === "undefined") { // Quick check, does the property even exist?
+         return false;
+      }
+      if (!isEqual(var1[i], var2[i])) {
+         return false;
+      }
+   }
+   return true;
+}
+
+function areObjectsEqual(obj1, obj2) {
+   return deepEqual(obj1, obj2) && deepEqual(obj2, obj1); // Two-way checking
+}
+
+function systemDesignsAreEqual(sd1: string, sd2: string) {
+
+	function deleteKeys(sd: SystemDesignDocument) {
+		sd._id = undefined;
+		sd.__v = undefined;
+
+		for (const row of sd.rows) {
+			row._id = undefined;
+			row.headland = undefined;
+		}
+
+		return sd;
+	}
+
+	const sd1JSON = deleteKeys(JSON.parse(sd1));
+	const sd2JSON = deleteKeys(JSON.parse(sd2));
+	
+	const equal = _.isEqual(sd1JSON, sd2JSON);
+	return equal;
+}
 
 export default function view() {
 	const params = useParams<{
@@ -64,6 +120,7 @@ export default function view() {
 	const scenarioData = getScenario(params.projectId, (result) => {
 		if (result) {
 			if (result?.project.systemdesign) {
+				setSavedSystem(JSON.parse(JSON.stringify(result?.project.systemdesign!)));
 				setSystem(result?.project.systemdesign!);
 			}
 		}
@@ -114,8 +171,8 @@ export default function view() {
 					const areaLng = scenarioData()?.project.layer.lng;
 
 					use3DControl(map, systemLayout, species);
-					useMeasureControl(map)
-					
+					useMeasureControl(map);
+
 					if (withinDKBBox(areaLng!, areaLat!)) {
 						useHCControl(map);
 						useBSControl(map);
@@ -190,12 +247,15 @@ export default function view() {
 	}
 
 	const [saving, setSaving] = createSignal(false);
+	const [savedSystem, setSavedSystem] = createSignal<
+		ISystemDesignSchema | undefined
+	>(undefined);
 	const [previewing, setPreviewing] = createSignal(false);
 
 	async function saveSystem() {
 		setSaving(true);
 
-		await fetch(
+		const newsystem = await fetch(
 			`${import.meta.env.VITE_BACKEND_URL}/projects/${
 				params.projectId
 			}/set-systemdesign`,
@@ -205,6 +265,10 @@ export default function view() {
 				...apiFetchOptions(),
 			},
 		);
+
+		const systemData = await newsystem.json();
+
+		setSavedSystem(systemData as ISystemDesignSchema);
 
 		setSaving(false);
 
@@ -310,9 +374,10 @@ export default function view() {
 																							"offset",
 																							(o) => {
 																								const newOffset = { ...o };
-																								newOffset.before = Number.parseFloat(
-																									e.target.value,
-																								);
+																								newOffset.before =
+																									Number.parseFloat(
+																										e.target.value,
+																									);
 																								return newOffset;
 																							},
 																						);
@@ -464,7 +529,8 @@ export default function view() {
 																										sequenceIdx(),
 																										"species",
 																										(species) => {
-																											const newSpecies = e.target.value;
+																											const newSpecies =
+																												e.target.value;
 																											return newSpecies;
 																										},
 																									);
@@ -550,9 +616,10 @@ export default function view() {
 																							"offset",
 																							(o) => {
 																								const offset = { ...o };
-																								offset.after = Number.parseFloat(
-																									e.target.value,
-																								);
+																								offset.after =
+																									Number.parseFloat(
+																										e.target.value,
+																									);
 																								return offset;
 																							},
 																						);
@@ -735,7 +802,15 @@ export default function view() {
 													type="submit"
 													class="btn btn-dark"
 													onclick={saveSystem}
-													disabled={saving()}
+													disabled={
+														saving() ||
+														(!savedSystem() || !system
+															? false
+															: systemDesignsAreEqual(
+																	JSON.stringify(savedSystem()),
+																	JSON.stringify(system),
+																))
+													}
 												>
 													Save system design
 												</button>
