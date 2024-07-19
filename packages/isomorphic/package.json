@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.34.1",
-    "@corvu/resizable": "^0.2.2",
+    "@corvu/resizable": "^0.2.3",
     "@deck.gl/core": "^9.0.23",
     "@deck.gl/geo-layers": "^9.0.23",
     "@deck.gl/mapbox": "^9.0.23",
@@ -45,6 +45,6 @@
     "proj4": "^2.11.0",
     "solid-bootstrap": "^1.0.20",
     "solid-js": "^1.8.18",
-    "vinxi": "^0.4.0"
+    "vinxi": "^0.4.1"
   }
 }
