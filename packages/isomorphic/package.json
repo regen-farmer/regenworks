@@ -30,7 +30,7 @@
     "@solid-mediakit/auth": "^2.0.12",
     "@solid-primitives/media": "^2.2.9",
     "@solidjs/router": "^0.14.1",
-    "@solidjs/start": "^1.0.5",
+    "@solidjs/start": "^1.0.6",
     "@tmcw/togeojson": "^5.8.1",
     "@turf/turf": "^7.0.0",
     "bootstrap": "^5.3.3",
