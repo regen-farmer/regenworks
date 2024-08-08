@@ -27,11 +27,13 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { AddFieldMode } from "~/components/parcel-view/AddFieldMode.tsx";
 import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
 import { EditFieldMode } from "~/components/parcel-view/EditFieldMode.tsx";
+import { AddLPISFieldMode } from "~/components/parcel-view/AddLPISFieldMode.tsx";
 
 export enum modes {
 	default = 0,
 	addField = 1,
 	editField = 2,
+	addLPISField = 3,
 }
 
 export default function view() {
@@ -152,6 +154,14 @@ export default function view() {
 							data={data}
 							params={params}
 							setMode={setMode}
+							refetch={refetch}
+						/>
+					</Match>
+					<Match when={mode() === modes.addLPISField}>
+						<AddLPISFieldMode
+							data={data}
+							setMode={setMode}
+							getMap={getMap}
 							refetch={refetch}
 						/>
 					</Match>

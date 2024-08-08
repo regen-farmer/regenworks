@@ -62,6 +62,11 @@ function DefaultMode({
 	function enterAddFieldMode() {
 		setMode(modes.addField);
 	}
+
+	function enterAddLPISFieldMode() {
+		setMode(modes.addLPISField);
+	}
+
 	const navigate = useNavigate();
 
 	function drawFields() {
@@ -298,7 +303,15 @@ function DefaultMode({
 					class="rounded-sm p-1 mt-2 btn-default w-full"
 					onClick={(e) => enterAddFieldMode(e)}
 				>
-					Add new field to this farm
+					Add new field to this farm by drawing
+				</button>
+				<br />
+				<button
+					type="button"
+					class="btn btn-dark"
+					onClick={(e) => enterAddLPISFieldMode(e)}
+				>
+					Add new field to this farm by selection
 				</button>
 			</div>
 		</>
