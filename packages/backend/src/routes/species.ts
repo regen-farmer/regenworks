@@ -14,17 +14,25 @@ router.get(
 		res: express.Response,
 	) => {
 		try {
-			const foundSpecies = await Species.find();
-
-			foundSpecies.sort((a, b) => {
-				if (a.nameCommon < b.nameCommon) {
-					return -1;
-				}
-				if (a.nameCommon > b.nameCommon) {
-					return 1;
-				}
-				return 0;
-			});
+			const foundSpecies = await Species.aggregate([
+				{
+					$project: {
+						id: 1,
+						// _id: 1,
+						nameCommon: 1,
+						// genus: 1,
+						// species: 1,
+						// family: 1,
+						// origin: 1,
+						form: 1,
+					},
+				},
+				{
+					$sort: {
+						nameCommon: 1,
+					},
+				},
+			]);
 
 			res.send({ species: foundSpecies });
 		} catch (err) {
