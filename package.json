@@ -16,11 +16,11 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
-    "@types/node": "^22.1.0",
+    "@types/node": "^22.2.0",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "mongoose": "^8.5.2",
-    "stripe": "^16.6.0"
+    "stripe": "^16.7.0"
   }
 }
