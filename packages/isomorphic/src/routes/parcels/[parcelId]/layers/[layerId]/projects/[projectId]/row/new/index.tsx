@@ -7,9 +7,9 @@ import {
 } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, A, useNavigate } from "@solidjs/router";
-import type { ProjectDocument } from "@rw/db/schemas/project";
-import type { SequenceDocument } from "@rw/db/schemas/sequence";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import type { SequenceDocument } from "@rw/db/schemas/sequence.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 import maplibregl, { type IControl, type Map as MLMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -19,7 +19,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 // @ts-ignore
 import geojsonArea from "@mapbox/geojson-area";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
 export default function view() {
 	const params = useParams<{

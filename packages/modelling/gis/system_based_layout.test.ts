@@ -1,6 +1,6 @@
-import { systemBasedLayout } from "./system_based_layout";
-import Layer from "@rw/db/schemas/layer";
-import type { ProjectDocument } from "@rw/db/schemas/project";
+import { systemBasedLayout } from "./system_based_layout.ts";
+import Layer from "@rw/db/schemas/layer.ts";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 console.log(typeof Layer);
 describe("systemBasedLayout - headlandPolygon", () => {

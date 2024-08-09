@@ -1,11 +1,11 @@
 import express from "express";
-import Sequence from "@rw/db/schemas/sequence";
-import Layer from "@rw/db/schemas/layer";
-import Project from "@rw/db/schemas/project";
-import Species from "@rw/db/schemas/species";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Sequence from "@rw/db/schemas/sequence.ts";
+import Layer from "@rw/db/schemas/layer.ts";
+import Project from "@rw/db/schemas/project.ts";
+import Species from "@rw/db/schemas/species.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

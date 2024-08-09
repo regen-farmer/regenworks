@@ -1,4 +1,4 @@
-import { getStripeCustomer } from "~/auth/useAuth";
+import { getStripeCustomer } from "~/auth/useAuth.tsx";
 
 export function getDevProdStatus(): "DEV" | "PROD" {
 	const status = import.meta.env.VITE_STRIPE_MODE as "DEV" | "PROD";

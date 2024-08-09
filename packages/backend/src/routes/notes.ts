@@ -1,11 +1,11 @@
 import express from "express";
-import Parcel from "@rw/db/schemas/parcel";
-import Note from "@rw/db/schemas/note";
-import Row from "@rw/db/schemas/row";
-import Area from "@rw/db/schemas/area";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import Note from "@rw/db/schemas/note.ts";
+import Row from "@rw/db/schemas/row.ts";
+import Area from "@rw/db/schemas/area.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

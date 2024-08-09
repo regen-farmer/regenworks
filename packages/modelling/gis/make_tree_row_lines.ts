@@ -8,7 +8,7 @@ import {
 	transformRotate,
 } from "@turf/turf";
 import _ from "lodash";
-import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 
 function calculateHeadlandOffset(
 	offset?:

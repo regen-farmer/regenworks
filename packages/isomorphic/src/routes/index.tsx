@@ -7,14 +7,14 @@ import {
 	createResource,
 } from "solid-js";
 import { A, useNavigate } from "@solidjs/router";
-import { allowFarmCreation } from "~/auth/useAuth";
-import type { ParcelDocument } from "@rw/db/schemas/parcel";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { allowFarmCreation } from "~/auth/useAuth.tsx";
+import type { ParcelDocument } from "@rw/db/schemas/parcel.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { createSignal } from "solid-js";
-import { AddFarmModal } from "~/components/AddFarmModal";
-import MLMap from "~/components/Map";
+import { AddFarmModal } from "~/components/AddFarmModal.tsx";
+import MLMap from "~/components/Map.tsx";
 import { createStore } from "solid-js/store";
-import { SessionProvider } from "~/auth/SessionProvider";
+import { SessionProvider } from "~/auth/SessionProvider.tsx";
 
 async function postParcel(payload: parcelPayload) {
 	const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels`, {

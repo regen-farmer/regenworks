@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import type { ILayerSchema } from "./layer";
-import type { ISpeciesSchema } from "./species";
-import type { IUserSchema } from "./user";
+import type { ILayerSchema } from "./layer.ts";
+import type { ISpeciesSchema } from "./species.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface IActivitySchema {
 	_id: string;

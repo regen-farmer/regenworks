@@ -10,17 +10,17 @@ import maplibregl from "maplibre-gl";
 import type { LayerDocument } from "@rw/db/schemas/layer";
 import { action, useLocation } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import { getMongoDBUser } from "~/auth/useAuth";
-import type { SystemDocument } from "@rw/db/schemas/system";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
+import { getMongoDBUser } from "~/auth/useAuth.tsx";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Button } from "solid-bootstrap";
-import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
-import DuplicateScenarioModal from "~/components/DuplicateScenarioModal";
-import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
+import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal.tsx";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import DuplicateScenarioModal from "~/components/DuplicateScenarioModal.tsx";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();

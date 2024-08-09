@@ -11,16 +11,16 @@ import {
 } from "@turf/turf";
 import multer from "multer";
 import xml2js from "xml2js";
-import Layer, { LayerDocument } from "@rw/db/schemas/layer";
-import Parcel from "@rw/db/schemas/parcel";
-import System, { type ISystemSchema } from "@rw/db/schemas/system";
-import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
-import Animal from "@rw/db/schemas/animal";
-import Sequence from "@rw/db/schemas/sequence";
-import Row from "@rw/db/schemas/row";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Layer, { LayerDocument } from "@rw/db/schemas/layer.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
+import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
+import Animal from "@rw/db/schemas/animal.ts";
+import Sequence from "@rw/db/schemas/sequence.ts";
+import Row from "@rw/db/schemas/row.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 // SETUP MULTER
 // XML2JS

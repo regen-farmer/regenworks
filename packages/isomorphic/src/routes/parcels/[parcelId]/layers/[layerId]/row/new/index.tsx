@@ -2,9 +2,9 @@ import { For, createEffect, createResource, createSignal } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate, A } from "@solidjs/router";
 // import { SideBar } from "~/components/SideBar";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import type { SequenceDocument } from "@rw/db/schemas/sequence";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { SequenceDocument } from "@rw/db/schemas/sequence.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -14,7 +14,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
 // @ts-ignore
 import geojsonArea from "@mapbox/geojson-area";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
 export default function view() {
 	const params = useParams<{ parcelId: string; layerId: string }>();

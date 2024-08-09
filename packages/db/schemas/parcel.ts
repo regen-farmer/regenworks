@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import type { ILayerSchema } from "./layer";
-import type { IPracticesSchema } from "./practice";
-import type { IProjectSchema } from "./project";
-import type { IUserSchema } from "./user";
+import type { ILayerSchema } from "./layer.ts";
+import type { IPracticesSchema } from "./practice.ts";
+import type { IProjectSchema } from "./project.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface IParcelSchema {
 	name: string;

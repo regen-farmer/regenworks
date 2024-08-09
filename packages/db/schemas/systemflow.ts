@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import type { ISpeciesSchema } from "./species";
-import type { ISystemSchema } from "./system";
+import type { ISpeciesSchema } from "./species.ts";
+import type { ISystemSchema } from "./system.ts";
 
 export interface ISystemflowSchema {
 	name: string;

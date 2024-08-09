@@ -1,4 +1,4 @@
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { featureCollection, helpers as turf } from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 

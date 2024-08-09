@@ -1,4 +1,6 @@
 import { Row } from "solid-bootstrap";
+
+// @ts-ignore
 import { useAuth0 } from "~/auth";
 
 export function simplenavbar(props: any) {

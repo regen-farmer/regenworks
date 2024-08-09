@@ -6,36 +6,36 @@ import "./app.css";
 import { SessionProvider } from "@solid-mediakit/auth/client";
 
 // Import mongoose models
-import "@rw/db/schemas/activity";
-import "@rw/db/schemas/animal";
-import "@rw/db/schemas/area";
-import "@rw/db/schemas/asset";
-import "@rw/db/schemas/budget";
-import "@rw/db/schemas/farmflow";
-import "@rw/db/schemas/flow";
-import "@rw/db/schemas/layer";
-import "@rw/db/schemas/log";
-import "@rw/db/schemas/note";
-import "@rw/db/schemas/nursery";
-import "@rw/db/schemas/nurseryproduct";
-import "@rw/db/schemas/parcel";
-import "@rw/db/schemas/posting";
-import "@rw/db/schemas/practice";
-import "@rw/db/schemas/project";
-import "@rw/db/schemas/rateLimiterIP";
-import "@rw/db/schemas/rotation";
-import "@rw/db/schemas/row";
-import "@rw/db/schemas/saptest";
-import "@rw/db/schemas/sequence";
-import "@rw/db/schemas/soiltest";
-import "@rw/db/schemas/species";
-import "@rw/db/schemas/system";
-import "@rw/db/schemas/systemflow";
-import "@rw/db/schemas/user";
-import "@rw/db/schemas/variety";
-import "@rw/db/schemas/well";
+import "@rw/db/schemas/activity.ts";
+import "@rw/db/schemas/animal.ts";
+import "@rw/db/schemas/area.ts";
+import "@rw/db/schemas/asset.ts";
+import "@rw/db/schemas/budget.ts";
+import "@rw/db/schemas/farmflow.ts";
+import "@rw/db/schemas/flow.ts";
+import "@rw/db/schemas/layer.ts";
+import "@rw/db/schemas/log.ts";
+import "@rw/db/schemas/note.ts";
+import "@rw/db/schemas/nursery.ts";
+import "@rw/db/schemas/nurseryproduct.ts";
+import "@rw/db/schemas/parcel.ts";
+import "@rw/db/schemas/posting.ts";
+import "@rw/db/schemas/practice.ts";
+import "@rw/db/schemas/project.ts";
+import "@rw/db/schemas/rateLimiterIP.ts";
+import "@rw/db/schemas/rotation.ts";
+import "@rw/db/schemas/row.ts";
+import "@rw/db/schemas/saptest.ts";
+import "@rw/db/schemas/sequence.ts";
+import "@rw/db/schemas/soiltest.ts";
+import "@rw/db/schemas/species.ts";
+import "@rw/db/schemas/system.ts";
+import "@rw/db/schemas/systemflow.ts";
+import "@rw/db/schemas/user.ts";
+import "@rw/db/schemas/variety.ts";
+import "@rw/db/schemas/well.ts";
 
-import { ThemeToggler } from "./theme";
+import { ThemeToggler } from "./theme.tsx";
 
 export default function App() {
 	return (

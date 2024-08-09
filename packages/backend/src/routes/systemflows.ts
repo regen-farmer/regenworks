@@ -1,10 +1,10 @@
 import express from "express";
-import Systemflow from "@rw/db/schemas/systemflow";
-import System from "@rw/db/schemas/system";
-import Species from "@rw/db/schemas/species";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Systemflow from "@rw/db/schemas/systemflow.ts";
+import System from "@rw/db/schemas/system.ts";
+import Species from "@rw/db/schemas/species.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

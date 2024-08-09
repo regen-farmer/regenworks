@@ -1,11 +1,11 @@
 import express from "express";
-import Posting from "@rw/db/schemas/posting";
-import Budget from "@rw/db/schemas/budget";
-import Parcel from "@rw/db/schemas/parcel";
-import Layer from "@rw/db/schemas/layer";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Posting from "@rw/db/schemas/posting.ts";
+import Budget from "@rw/db/schemas/budget.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import Layer from "@rw/db/schemas/layer.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

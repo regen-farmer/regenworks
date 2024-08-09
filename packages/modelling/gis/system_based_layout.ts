@@ -8,14 +8,14 @@ import {
 	area
 } from "@turf/turf";
 
-import type { ISpeciesSchema } from "@rw/db/schemas/species";
-import { makeInitialLine } from "./make_line";
-import { makeTreeRowLines } from "./make_tree_row_lines";
-import { makeGroundCoverAreas } from "./make_ground_cover_areas";
-import { applyHeadland } from "./headland";
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
+import { makeInitialLine } from "./make_line.ts";
+import { makeTreeRowLines } from "./make_tree_row_lines.ts";
+import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
+import { applyHeadland } from "./headland.ts";
 import SystemDesign, {
 	type ISystemDesignSchema,
-} from "@rw/db/schemas/systemdesign";
+} from "@rw/db/schemas/systemdesign.ts";
 
 export function systemBasedLayout(
 	systemdesign: ISystemDesignSchema,

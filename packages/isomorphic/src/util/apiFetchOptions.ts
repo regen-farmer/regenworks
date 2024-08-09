@@ -1,4 +1,4 @@
-import { getAuth0User } from "~/auth/useAuth";
+import { getAuth0User } from "~/auth/useAuth.tsx";
 
 export const apiFetchOptions: () => RequestInit = () => {
 	return {

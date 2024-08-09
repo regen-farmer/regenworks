@@ -7,11 +7,11 @@ import {
 } from "solid-js";
 // import { isServer } from "solid-js/web";
 import { useLocation, useNavigate } from "@solidjs/router";
-import NewUser from "~/auth/signup";
+import NewUser from "~/auth/signup.tsx";
 // import { useAuth0 } from ".";
-import { NavBar } from "~/components/NavBar";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
-import { paymentPlan } from "~/util/paymentPlan";
+import { NavBar } from "~/components/NavBar.tsx";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { paymentPlan } from "~/util/paymentPlan.ts";
 import { signOut } from "@solid-mediakit/auth/client";
 
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();

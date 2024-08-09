@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import type { IActivitySchema } from "./activity";
-import type { IFarmFlowSchema } from "./farmflow";
-import type { INoteSchema } from "./note";
-import type { IRotationSchema } from "./rotation";
-import type { IUserSchema } from "./user";
+import type { IActivitySchema } from "./activity.ts";
+import type { IFarmFlowSchema } from "./farmflow.ts";
+import type { INoteSchema } from "./note.ts";
+import type { IRotationSchema } from "./rotation.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface IAreaSchema {
 	name: string;

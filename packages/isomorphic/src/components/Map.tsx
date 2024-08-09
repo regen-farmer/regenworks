@@ -2,8 +2,8 @@ import { createEffect, createSignal } from "solid-js";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Resource } from "solid-js";
 import maplibregl, { type LngLatLike } from "maplibre-gl";
-import { modes } from "~/routes/index";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { modes } from "~/routes/index.tsx";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
 export function createFarmMarkerIcon() {
 	const el = document.createElement("div");

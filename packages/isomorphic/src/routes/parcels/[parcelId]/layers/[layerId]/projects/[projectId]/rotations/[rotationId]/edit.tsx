@@ -2,9 +2,9 @@ import { createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate } from "@solidjs/router";
 
-import type { ProjectDocument } from "@rw/db/schemas/project";
-import type { RotationDocument } from "@rw/db/schemas/rotation";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import type { RotationDocument } from "@rw/db/schemas/rotation.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams<{

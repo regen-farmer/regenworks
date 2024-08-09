@@ -3,18 +3,18 @@ import {
 	getMongoDBUser,
 	setMongoDBDBUser,
 	subscriptions,
-} from "~/auth/useAuth";
+} from "~/auth/useAuth.tsx";
 import { Button, Card } from "solid-bootstrap";
 import { type Component, createEffect, createSignal, Show } from "solid-js";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import _ from "lodash";
 import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
-import { getDevProdStatus, StripeIds } from "~/util/paymentPlan";
+import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { Select } from "@kobalte/core/select";
-import { countries } from "../util/countries";
+import { countries } from "../util/countries.ts";
 import { signOut } from "@solid-mediakit/auth/client";
-import { SessionProvider } from "~/auth/SessionProvider";
+import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import "~/styling/paper.css";
 
 interface StripePrice {

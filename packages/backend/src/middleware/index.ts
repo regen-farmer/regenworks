@@ -1,7 +1,7 @@
 import type express from "express";
-import type { Auth0IDToken } from "../app";
-import Parcel from "@rw/db/schemas/parcel";
-import User, { type UserDocument } from "@rw/db/schemas/user";
+import type { Auth0IDToken } from "../app.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 
 // CHECK PARCEL OWNERSHIP MIDDLEWARE
 export async function checkParcelOwnership(

@@ -6,14 +6,14 @@ import {
 	Show,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { GiantHerbTop } from "~/components/graphics/giantherbtop";
-import { PalmTop } from "~/components/graphics/palmtop";
-import { ShrubTop } from "~/components/graphics/shrubtop";
-import { SocculentTop } from "~/components/graphics/succulenttop";
-import { TreeTop } from "~/components/graphics/treetop";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
-import type { SystemDocument } from "@rw/db/schemas/system";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { GiantHerbTop } from "~/components/graphics/giantherbtop.tsx";
+import { PalmTop } from "~/components/graphics/palmtop.tsx";
+import { ShrubTop } from "~/components/graphics/shrubtop.tsx";
+import { SocculentTop } from "~/components/graphics/succulenttop.tsx";
+import { TreeTop } from "~/components/graphics/treetop.tsx";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import "./index.css";
 
 export default function view() {

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import type { AnimalDocument } from "./animal";
-import type { ISequenceSchema } from "./sequence";
-import type { ISpeciesSchema } from "./species";
-import type { ISystemflowSchema } from "./systemflow";
-import type { IUserSchema } from "./user";
+import type { AnimalDocument } from "./animal.ts";
+import type { ISequenceSchema } from "./sequence.ts";
+import type { ISpeciesSchema } from "./species.ts";
+import type { ISystemflowSchema } from "./systemflow.ts";
+import type { IUserSchema } from "./user.ts";
 
 // SYSTEM SCHEMA SETUP
 

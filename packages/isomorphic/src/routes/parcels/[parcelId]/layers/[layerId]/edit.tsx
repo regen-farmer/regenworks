@@ -3,8 +3,8 @@ import { Row } from "solid-bootstrap";
 import { Show, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();

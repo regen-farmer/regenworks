@@ -7,8 +7,8 @@ import {
 	createSignal,
 } from "solid-js";
 import { useLocation, useNavigate } from "@solidjs/router";
-import type { ParcelDocument } from "@rw/db/schemas/parcel";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { ParcelDocument } from "@rw/db/schemas/parcel.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 // import { breadcrumb } from '~/breadcrumb'
 

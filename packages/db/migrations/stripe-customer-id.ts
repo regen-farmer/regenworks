@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import User from "../schemas/user";
+import User from "../schemas/user.ts";
 
 import { connect } from "mongoose";
 function delay(time) {
@@ -10,7 +10,7 @@ try {
 	await connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-		apiVersion: "2024-04-10",
+		apiVersion: "2024-06-20",
 		maxNetworkRetries: 2,
 	});
 

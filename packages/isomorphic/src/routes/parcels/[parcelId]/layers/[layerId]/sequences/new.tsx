@@ -3,9 +3,9 @@ import { Row } from "solid-bootstrap";
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, A } from "@solidjs/router";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams<{ parcelId: string; layerId: string }>();

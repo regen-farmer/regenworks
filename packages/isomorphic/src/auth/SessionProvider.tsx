@@ -1,7 +1,7 @@
 import { createSession } from "@solid-mediakit/auth/client";
 import { Show } from "solid-js";
-import NewUser from "~/auth/signup";
-import { ShowAfterAuth } from "./useAuth";
+import NewUser from "~/auth/signup.tsx";
+import { ShowAfterAuth } from "./useAuth.tsx";
 
 const SessionProvider = (props: any) => {
 	const session = createSession();

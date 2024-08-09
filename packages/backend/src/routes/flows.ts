@@ -1,10 +1,10 @@
 import express from "express";
-import Flow from "@rw/db/schemas/flow";
-import Species from "@rw/db/schemas/species";
-import Parcel from "@rw/db/schemas/parcel";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Flow from "@rw/db/schemas/flow.ts";
+import Species from "@rw/db/schemas/species.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

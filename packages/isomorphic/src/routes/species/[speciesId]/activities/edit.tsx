@@ -2,8 +2,8 @@ import { useLocation } from "@solidjs/router";
 import { Show, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate } from "@solidjs/router";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams<{

@@ -1,7 +1,7 @@
 import { Select } from "@kobalte/core/select";
 import { Match, Switch } from "solid-js";
 import "./style.css";
-import { setTheme, theme } from "~/theme";
+import { setTheme, theme } from "~/theme.tsx";
 
 function ThemeDisplay(props: { themeString: string }) {
 	return (

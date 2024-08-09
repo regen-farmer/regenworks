@@ -1,9 +1,9 @@
 import express from "express";
-import Project from "@rw/db/schemas/project";
-import Area from "@rw/db/schemas/area";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import Project from "@rw/db/schemas/project.ts";
+import Area from "@rw/db/schemas/area.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

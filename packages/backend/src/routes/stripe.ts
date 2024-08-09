@@ -3,8 +3,8 @@ import Stripe from "stripe";
 import express from "express";
 import { format, getUnixTime, parse } from "date-fns";
 import dotenv from "dotenv";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 /* eslint-disable import/first */
 
 dotenv.config();

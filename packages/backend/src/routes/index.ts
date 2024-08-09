@@ -1,9 +1,9 @@
 import express from "express";
-import User, { type UserDocument } from "@rw/db/schemas/user";
-import Parcel from "@rw/db/schemas/parcel";
-import Activity from "@rw/db/schemas/activity";
-import middleware from "../middleware/index"; // Will automatically require the middleware "index" file as the standard
-import type { Auth0IDToken } from "../app";
+import User, { type UserDocument } from "@rw/db/schemas/user.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import Activity from "@rw/db/schemas/activity.ts";
+import middleware from "../middleware/index.ts"; // Will automatically require the middleware "index" file as the standard
+import type { Auth0IDToken } from "../app.ts";
 
 // import logger from '../middleware/logger';
 

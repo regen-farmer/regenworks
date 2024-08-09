@@ -1,6 +1,6 @@
 import { signIn } from "@solid-mediakit/auth/client";
 import { A } from "@solidjs/router";
-import { NavBar } from "~/components/NavBar";
+import { NavBar } from "~/components/NavBar.tsx";
 // import { useAuth0 } from "~/auth";
 
 export default function NewUser() {

@@ -1,4 +1,4 @@
-import type { IRow } from "~/routes/parcels/[parcelId]/layers/[layerId]/projects/[projectId]/designer";
+import type { IRow } from "~/routes/parcels/[parcelId]/layers/[layerId]/projects/[projectId]/designer.tsx";
 import "./add-row.css";
 
 export function AddRow(props: {

@@ -10,18 +10,18 @@ import {
 	createMemo,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { use3DControl } from "~/util/map_controls/use3DControl";
-import { useBSControl } from "~/util/map_controls/useBSControl";
-import { useHCControl } from "~/util/map_controls/useHCControl";
-import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout";
+import { use3DControl } from "~/util/map_controls/use3DControl.ts";
+import { useBSControl } from "~/util/map_controls/useBSControl.ts";
+import { useHCControl } from "~/util/map_controls/useHCControl.ts";
+import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
+import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
-import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign";
-import { getSpecies } from "~/util/getSpecies";
-import { getScenario } from "~/util/getScenario";
-import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox";
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
+import { getSpecies } from "~/util/getSpecies.ts";
+import { getScenario } from "~/util/getScenario.ts";
+import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();

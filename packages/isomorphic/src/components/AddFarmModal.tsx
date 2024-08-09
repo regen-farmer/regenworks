@@ -2,11 +2,11 @@ import { Dialog } from "@kobalte/core/dialog";
 import { Show, createSignal } from "solid-js";
 import { createEffect } from "solid-js";
 import "~/styling/modal.css";
-import { modes } from "~/routes/index";
+import { modes } from "~/routes/index.tsx";
 
 import { useNavigate } from "@solidjs/router";
-import { allowFarmCreation } from "~/auth/useAuth";
-import type { parcelPayload } from "~/routes/index";
+import { allowFarmCreation } from "~/auth/useAuth.tsx";
+import type { parcelPayload } from "~/routes/index.tsx";
 
 type AddFarmModalProps = {
 	mode: () => modes;

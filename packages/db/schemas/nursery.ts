@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import type { INurseryProductSchema } from "./nurseryproduct";
-import type { IUserSchema } from "./user";
+import type { INurseryProductSchema } from "./nurseryproduct.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface INurserySchema {
 	name: string;
