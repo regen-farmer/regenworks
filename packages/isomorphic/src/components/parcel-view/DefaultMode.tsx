@@ -7,10 +7,10 @@ import { createSignal, For, onMount, type Resource } from "solid-js";
 
 // @ts-ignore
 import type * as turf from "@turf/turf";
-import type { IParcelSchema } from "@rw/db/schemas/parcel";
-import { modes } from "~/routes/parcels/[parcelId]";
-import { removeLayers } from "~/util/removeLayers";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
+import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
+import { removeLayers } from "~/util/removeLayers.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 type DefaultModeProps = {
 	data: Resource<

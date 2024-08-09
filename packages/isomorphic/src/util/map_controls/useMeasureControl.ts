@@ -1,4 +1,4 @@
-import MeasuresControl from "~/components/Measure";
+import MeasuresControl from "~/components/Measure.tsx";
 
 export function useMeasureControl(map: maplibregl.Map) {
 

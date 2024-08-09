@@ -3,7 +3,7 @@ import MPObj from "multipart-object";
 import { Show, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const location = useLocation();

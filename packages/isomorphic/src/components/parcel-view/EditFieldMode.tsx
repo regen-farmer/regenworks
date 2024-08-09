@@ -1,7 +1,7 @@
 import type { Component } from "solid-js";
 import { action, useNavigate } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Dialog } from "@kobalte/core/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, onMount } from "solid-js";
@@ -13,11 +13,11 @@ import * as turf from "@turf/turf";
 // @ts-ignore
 import type { Feature, Polygon, Properties } from "@turf/turf";
 import "~/styling/modal.css";
-import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl";
+import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl.ts";
 import type { IControl } from "maplibre-gl";
-import { modes } from "~/routes/parcels/[parcelId]";
-import { removeLayers } from "~/util/removeLayers";
-import type { ILayerSchema } from "@rw/db/schemas/layer";
+import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
+import { removeLayers } from "~/util/removeLayers.ts";
+import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
 
 export const EditFieldMode: Component<{
 	setMode: any;

@@ -3,9 +3,9 @@ import { Row } from "solid-bootstrap";
 import { For, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import type { SystemDocument } from "@rw/db/schemas/system";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams<{

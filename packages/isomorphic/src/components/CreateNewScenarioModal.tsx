@@ -2,12 +2,12 @@ import { Dialog } from "@kobalte/core/dialog";
 import { Show, createResource, createSignal } from "solid-js";
 import "~/styling/modal.css";
 import { action } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Row } from "solid-bootstrap";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import type { SystemDocument } from "@rw/db/schemas/system";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { useParams } from "@solidjs/router";
-import type { ProjectDocument } from "@rw/db/schemas/project";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 type CreateNewScenarioModalProps = {
 	modalOpen: () => boolean;

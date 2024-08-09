@@ -1,6 +1,6 @@
 import { For, createResource } from "solid-js";
-import type { SystemDocument } from "@rw/db/schemas/system";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const [data, { refetch }] = createResource<{

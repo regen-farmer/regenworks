@@ -8,25 +8,25 @@ import {
 	Show,
 } from "solid-js";
 import maplibregl from "maplibre-gl";
-import type { IParcelSchema } from "@rw/db/schemas/parcel";
+import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
 
 import type * as turf from "@turf/turf";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
-import { withinDKBBox } from "~/util/map_controls/within-dk-bbox";
-import { useHCControl } from "~/util/map_controls/useHCControl";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
+import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 
 
-import { useBSControl } from "~/util/map_controls/useBSControl";
-import { useMeasureControl } from "~/util/map_controls/useMeasureControl";
+import { useBSControl } from "~/util/map_controls/useBSControl.ts";
+import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import { Switch, Match } from "solid-js";
-import DefaultMode from "~/components/parcel-view/DefaultMode";
+import DefaultMode from "~/components/parcel-view/DefaultMode.tsx";
 
-import { createFarmMarkerIcon } from "~/components/Map";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
-import { AddFieldMode } from "~/components/parcel-view/AddFieldMode";
-import type { ILayerSchema } from "@rw/db/schemas/layer";
-import { EditFieldMode } from "~/components/parcel-view/EditFieldMode";
+import { createFarmMarkerIcon } from "~/components/Map.tsx";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import { AddFieldMode } from "~/components/parcel-view/AddFieldMode.tsx";
+import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
+import { EditFieldMode } from "~/components/parcel-view/EditFieldMode.tsx";
 
 export enum modes {
 	default = 0,

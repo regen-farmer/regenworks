@@ -1,10 +1,10 @@
 import { A, useParams } from "@solidjs/router";
-import type { ProjectDocument } from "@rw/db/schemas/project";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import type turf from "@turf/turf";
 import { For, createEffect, createResource } from "solid-js";
 import maplibregl from "maplibre-gl";
-import { GoogleSatStyle } from "~/util/map_styles/google-sat-style";
+import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
 export default function view() {
 	const params = useParams<{

@@ -12,11 +12,11 @@ import {
 //@ts-ignore
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import { getMongoDBUser } from "~/auth/useAuth";
-import type { LayerDocument } from "@rw/db/schemas/layer";
-import type { ProjectDocument } from "@rw/db/schemas/project";
-import type { SystemDocument } from "@rw/db/schemas/system";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { getMongoDBUser } from "~/auth/useAuth.tsx";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
 	const params = useParams();

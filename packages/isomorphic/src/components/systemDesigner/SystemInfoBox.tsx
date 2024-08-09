@@ -1,6 +1,6 @@
 import { type Component, For } from "solid-js";
 import { difference as turfDifference, area as turfArea } from "@turf/turf";
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout";
+import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 
 const SystemInfoBox: Component<{
 	systemLayout: ISystemBasedLayout;

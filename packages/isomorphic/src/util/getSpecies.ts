@@ -1,6 +1,6 @@
-import type { SpeciesDocument } from "@rw/db/schemas/species";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import { createAsync } from "@solidjs/router";
-import { apiFetchOptions } from "./apiFetchOptions";
+import { apiFetchOptions } from "./apiFetchOptions.ts";
 
 export function getSpecies() {
 	return createAsync<{

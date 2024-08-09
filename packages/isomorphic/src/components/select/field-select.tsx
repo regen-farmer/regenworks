@@ -1,9 +1,9 @@
 import { Select } from "@kobalte/core/select";
 import { Show, createMemo, createResource, createSignal } from "solid-js";
 import { useLocation, useNavigate, useParams } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
-import type { LayerDocument } from "@rw/db/schemas/layer";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 // import { breadcrumb } from '~/breadcrumb'
 
 export const [reloadSignal, setReloadSignal] = createSignal(1);

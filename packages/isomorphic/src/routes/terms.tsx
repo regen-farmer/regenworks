@@ -1,6 +1,6 @@
 import type { Component } from "solid-js";
 import "~/styling/paper.css";
-import { NavBar } from "~/components/NavBar";
+import { NavBar } from "~/components/NavBar.tsx";
 
 const RouteViewTerms: Component = () => {
 	return (

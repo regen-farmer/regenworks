@@ -1,11 +1,11 @@
 import { createMemo, createResource, For, Show } from "solid-js";
 import { action } from "@solidjs/router";
-import type { AnimalDocument } from "@rw/db/schemas/animal";
-import type { SpeciesDocument } from "@rw/db/schemas/species";
-import type { SystemDocument } from "@rw/db/schemas/system";
+import type { AnimalDocument } from "@rw/db/schemas/animal.ts";
+import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import MPObj from "multipart-object";
 import { A, useLocation, useNavigate, useParams } from "@solidjs/router";
-import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Row } from "solid-bootstrap";
 
 export default function view() {

@@ -1,9 +1,9 @@
 import { Show, createMemo } from "solid-js";
-import { getMongoDBUser, subscriptions } from "~/auth/useAuth";
-import { ThemeSelect } from "./select/theme-select";
-import { FarmSelect } from "./select/farm-select";
-import { FieldSelect } from "./select/field-select";
-import { ProjectSelect } from "./select/project-select";
+import { getMongoDBUser, subscriptions } from "~/auth/useAuth.tsx";
+import { ThemeSelect } from "./select/theme-select.tsx";
+import { FarmSelect } from "./select/farm-select.tsx";
+import { FieldSelect } from "./select/field-select.tsx";
+import { ProjectSelect } from "./select/project-select.tsx";
 import { A, useNavigate, useLocation } from "@solidjs/router";
 
 export function NavBar() {
