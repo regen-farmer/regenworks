@@ -5,7 +5,7 @@ import {
 	intersect,
 	area as turfArea,
 } from "@turf/turf";
-import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 
 export function makeGroundCoverAreas(
 	offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>,

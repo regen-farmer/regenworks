@@ -6,8 +6,8 @@ import {
 	circle,
 	along,
 } from "@turf/turf";
-import type { IProjectSchema } from "@rw/db/schemas/project";
-import type { ISpeciesSchema } from "@rw/db/schemas/species";
+import type { IProjectSchema } from "@rw/db/schemas/project.ts";
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 
 export function createEdge(
 	project: IProjectSchema,
