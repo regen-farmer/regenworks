@@ -209,49 +209,40 @@ router.get(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
-		console.time("layoutRoute");
 		try {
-			console.time("getProject");
-			const foundProject = await Project.findById(req.params.id)
-
-				.populate("layer")
-				.populate("systemdesign")
-				// .populate({
-				// 	path: "systemdesign",
-				// 	populate: { path: "rows.sequence", populate: { path: "species" } },
-				// })
-				// .populate({
-				// 	path: "systemdesign",
-				// 	populate: { path: "rows", populate: { path: "groundcover" } },
-				// })
-				.exec();
-			console.timeEnd("getProject");
+			const [foundProject] = await Project.aggregate([
+				{ $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+				{
+					$lookup: {
+						from: "layers",
+						localField: "layer",
+						foreignField: "_id",
+						as: "layer"
+					}
+				},
+				{
+					$lookup: {
+						from: "systemdesigns",
+						localField: "systemdesign",
+						foreignField: "_id",
+						as: "systemdesign"
+					}
+				},
+				{ $unwind: "$layer" },
+				{ $unwind: "$systemdesign" }
+			]).exec();
+			
+			
+			
 
 			if (foundProject) {
-				console.time("systemBasedLayout");
-				// const layout = systemBasedLayout(foundProject);
-				console.timeEnd("systemBasedLayout");
-				res.send({
-					project: foundProject,
-					// treeRowLines: layout.treeRowLines,
-					// groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
-					// headlandPolygon: layout.headlandPolygon,
-					// marginPolygon: layout.marginPolygon,
-					// speciesCountArray: layout.speciesCountArray,
-
-					// sidesCloseToBearing: turf.featureCollection(
-					// 	layout.sidesCloseToBearing,
-					// ),
-					// intersectionPoints: turf.featureCollection(layout.intersectionPoints),
-					// headlandSides: turf.featureCollection(layout.headlandSides),
-					// treeMarkerArray: layout.treeMarkerArray,
-				});
-				console.timeEnd("layoutRoute");
+				res.send({ project: foundProject });
 			} else {
 				res.send({ error: "no project found" });
 			}
 		} catch (err) {
 			console.log(err);
+			res.status(500).send({ error: "Internal server error" });
 		}
 	},
 );
