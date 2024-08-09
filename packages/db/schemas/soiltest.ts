@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { IUserSchema } from "./user";
+import type { IUserSchema } from "./user.ts";
 
 export interface ISoiltestSchema {
 	name: string;

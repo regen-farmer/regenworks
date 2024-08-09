@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import type { IActivitySchema } from "./activity";
-import type { IAssetSchema } from "./asset";
-import type { IFarmFlowSchema } from "./farmflow";
-import type { INoteSchema } from "./note";
-import type { ISequenceSchema } from "./sequence";
+import type { IActivitySchema } from "./activity.ts";
+import type { IAssetSchema } from "./asset.ts";
+import type { IFarmFlowSchema } from "./farmflow.ts";
+import type { INoteSchema } from "./note.ts";
+import type { ISequenceSchema } from "./sequence.ts";
 
 export interface IRowSchema {
 	geometry: string;

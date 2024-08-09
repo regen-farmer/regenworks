@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { IFlowSchema } from "./flow";
+import type { IFlowSchema } from "./flow.ts";
 
 export interface ISpeciesSchema {
 	id: string;

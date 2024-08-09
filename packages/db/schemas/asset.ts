@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import type { ISpeciesSchema } from "./species";
-import type { IUserSchema } from "./user";
+import type { ISpeciesSchema } from "./species.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface IAssetSchema {
 	name: string;

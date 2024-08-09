@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
-import type { IActivitySchema } from "./activity";
-import type { IAreaSchema } from "./area";
-import type { IAssetSchema } from "./asset";
-import type { IBudgetSchema } from "./budget";
-import type { ILayerSchema } from "./layer";
-import type { IRowSchema } from "./row";
-import type { ISystemSchema } from "./system";
-import type { IUserSchema } from "./user";
-import type { ISystemDesignSchema } from "./systemdesign";
+import type { IActivitySchema } from "./activity.ts";
+import type { IAreaSchema } from "./area.ts";
+import type { IAssetSchema } from "./asset.ts";
+import type { IBudgetSchema } from "./budget.ts";
+import type { ILayerSchema } from "./layer.ts";
+import type { IRowSchema } from "./row.ts";
+import type { ISystemSchema } from "./system.ts";
+import type { IUserSchema } from "./user.ts";
+import type { ISystemDesignSchema } from "./systemdesign.ts";
 
 export interface IProjectSchema {
 	name: string;

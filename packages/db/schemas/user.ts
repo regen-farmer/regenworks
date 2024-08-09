@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 // import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
-import type { INurserySchema } from "./nursery";
-import type { IParcelSchema } from "./parcel";
+import type { INurserySchema } from "./nursery.ts";
+import type { IParcelSchema } from "./parcel.ts";
 
 export interface IUserSchema {
 	externalId: string;

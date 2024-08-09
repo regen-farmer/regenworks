@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ISpeciesSchema } from "./species";
+import type { ISpeciesSchema } from "./species.ts";
 
 export interface ISystemDesignSchema {
 	rows: {

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import type { IPostingSchema } from "./posting";
-import type { IUserSchema } from "./user";
+import type { IPostingSchema } from "./posting.ts";
+import type { IUserSchema } from "./user.ts";
 
 export interface IBudgetSchema {
 	postings: mongoose.HydratedDocument<IPostingSchema>[];

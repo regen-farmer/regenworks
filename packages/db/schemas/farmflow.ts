@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { ISpeciesSchema } from "./species";
+import type { ISpeciesSchema } from "./species.ts";
 
 export interface IFarmFlowSchema {
 	name: string;
