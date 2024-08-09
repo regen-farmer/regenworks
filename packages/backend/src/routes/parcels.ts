@@ -10,13 +10,13 @@ import {
 	along,
 } from "@turf/turf";
 import NodeGeocoder from "node-geocoder";
-import User, { type UserDocument } from "@rw/db/schemas/user";
-import Parcel from "@rw/db/schemas/parcel";
-import Practice from "@rw/db/schemas/practice";
-import Layer from "@rw/db/schemas/layer";
-import middleware from "../middleware/index"; // Will automatically require the middleware "index" file as the standard
-import type { ISpeciesSchema } from "@rw/db/schemas/species";
-import type { Auth0IDToken } from "../app";
+import User, { type UserDocument } from "@rw/db/schemas/user.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import Practice from "@rw/db/schemas/practice.ts";
+import Layer from "@rw/db/schemas/layer.ts";
+import middleware from "../middleware/index.ts"; // Will automatically require the middleware "index" file as the standard
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 // NODE GEOCODER CODE
 

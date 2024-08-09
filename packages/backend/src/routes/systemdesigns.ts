@@ -1,10 +1,10 @@
 import express from "express";
 
-import Project from "@rw/db/schemas/project";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
-import SystemDesign from "@rw/db/schemas/systemdesign";
+import Project from "@rw/db/schemas/project.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
+import SystemDesign from "@rw/db/schemas/systemdesign.ts";
 
 const router = express.Router();
 

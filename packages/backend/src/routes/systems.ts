@@ -1,14 +1,14 @@
 import express from "express";
 import unique from "array-unique";
-import System, { type ISystemSchema } from "@rw/db/schemas/system";
-import Layer from "@rw/db/schemas/layer";
-import Species, { type ISpeciesSchema } from "@rw/db/schemas/species";
-import Parcel from "@rw/db/schemas/parcel";
-import Animal from "@rw/db/schemas/animal";
-import Project from "@rw/db/schemas/project";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
+import Layer from "@rw/db/schemas/layer.ts";
+import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
+import Parcel from "@rw/db/schemas/parcel.ts";
+import Animal from "@rw/db/schemas/animal.ts";
+import Project from "@rw/db/schemas/project.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

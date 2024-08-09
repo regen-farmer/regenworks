@@ -1,10 +1,10 @@
 import express from "express";
-import NurseryProduct from "@rw/db/schemas/nurseryproduct";
-import Nursery from "@rw/db/schemas/nursery";
-import Species from "@rw/db/schemas/species";
-import middleware from "../middleware/index";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import NurseryProduct from "@rw/db/schemas/nurseryproduct.ts";
+import Nursery from "@rw/db/schemas/nursery.ts";
+import Species from "@rw/db/schemas/species.ts";
+import middleware from "../middleware/index.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

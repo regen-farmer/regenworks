@@ -6,8 +6,8 @@ import { PNG } from "pngjs";
 // @ts-ignore
 import PNGCrop from "png-crop";
 import express from "express";
-import type { UserDocument } from "@rw/db/schemas/user";
-import type { Auth0IDToken } from "../app";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
 

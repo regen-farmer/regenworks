@@ -1,9 +1,9 @@
 import express from "express";
 import NodeGeocoder from "node-geocoder";
-import Nursery from "@rw/db/schemas/nursery";
-import User, { type UserDocument } from "@rw/db/schemas/user";
-import middleware from "../middleware/index";
-import type { Auth0IDToken } from "../app";
+import Nursery from "@rw/db/schemas/nursery.ts";
+import User, { type UserDocument } from "@rw/db/schemas/user.ts";
+import middleware from "../middleware/index.ts";
+import type { Auth0IDToken } from "../app.ts";
 
 // NODE GEOCODER CODE
 const router = express.Router();
