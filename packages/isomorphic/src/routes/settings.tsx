@@ -1,6 +1,6 @@
 import {
 	currentSubscription,
-	mongoDBDBUser,
+	getMongoDBUser,
 	setMongoDBDBUser,
 	subscriptions,
 } from "~/auth/useAuth";
@@ -56,10 +56,10 @@ const RouteViewAccount: Component = () => {
 		// const ipdata = await ipdataResult.json();
 		// const countryCode = ipdata.location.country;
 
-		if (mongoDBDBUser().countryCode) {
+		if (getMongoDBUser().countryCode) {
 			let currency: string;
 
-			switch (mongoDBDBUser().countryCode) {
+			switch (getMongoDBUser().countryCode) {
 				case "DK":
 					currency = "DKK";
 					break;
@@ -113,7 +113,7 @@ const RouteViewAccount: Component = () => {
 					break;
 			}
 
-			console.log("CC: ", mongoDBDBUser(), currency);
+			console.log("CC: ", getMongoDBUser(), currency);
 
 			const prices = await (
 				await fetch(
@@ -201,7 +201,7 @@ const RouteViewAccount: Component = () => {
 			email: formData.get("email")?.toString()!,
 			currency: formData.get("currency")?.toString()!,
 			callbackUrl: `${import.meta.env.VITE_BASE_URL}/settings`,
-			customer: mongoDBDBUser().stripeCustomerId,
+			customer: getMongoDBUser().stripeCustomerId,
 		};
 
 		const checkoutUrlRes = await fetch(
@@ -223,7 +223,7 @@ const RouteViewAccount: Component = () => {
 	async function saveCountryCode() {
 		const response = await fetch(
 			`${import.meta.env.VITE_BACKEND_URL}/users/${
-				mongoDBDBUser()?._id
+				getMongoDBUser()?._id
 			}/countrycode`,
 			{
 				method: "PUT",
@@ -250,13 +250,13 @@ const RouteViewAccount: Component = () => {
 					<div class="container">
 						<h3>Profile</h3>
 
-						<p>Email: {mongoDBDBUser()?.email}</p>
-						<Show when={mongoDBDBUser()?.countryCode}>
+						<p>Email: {getMongoDBUser()?.email}</p>
+						<Show when={getMongoDBUser()?.countryCode}>
 							<p>
 								Country:{" "}
 								{
 									countries.find(
-										(cc) => cc[1] === mongoDBDBUser().countryCode,
+										(cc) => cc[1] === getMongoDBUser().countryCode,
 									)![0]
 								}
 							</p>
@@ -278,7 +278,7 @@ const RouteViewAccount: Component = () => {
           </ButtonGroup> */}
 
 						<Show
-							when={mongoDBDBUser().countryCode}
+							when={getMongoDBUser().countryCode}
 							fallback={
 								<>
 									<hr />
@@ -450,7 +450,7 @@ const RouteViewAccount: Component = () => {
 														<input
 															type="hidden"
 															name="email"
-															value={mongoDBDBUser()?.email}
+															value={getMongoDBUser()?.email}
 														/>
 														<Button type="submit" variant="primary">
 															1 Month - {formatPrice(prices().farmMonth!)}{" "}
@@ -471,7 +471,7 @@ const RouteViewAccount: Component = () => {
 														<input
 															type="hidden"
 															name="email"
-															value={mongoDBDBUser()?.email}
+															value={getMongoDBUser()?.email}
 														/>
 														<input
 															type="hidden"
@@ -515,7 +515,7 @@ const RouteViewAccount: Component = () => {
 														<input
 															type="hidden"
 															name="email"
-															value={mongoDBDBUser()?.email}
+															value={getMongoDBUser()?.email}
 														/>
 														<Button type="submit" variant="primary">
 															1 Month - {formatPrice(prices().advisorMonth!)}{" "}
@@ -541,7 +541,7 @@ const RouteViewAccount: Component = () => {
 														<input
 															type="hidden"
 															name="email"
-															value={mongoDBDBUser()?.email}
+															value={getMongoDBUser()?.email}
 														/>
 														<Button type="submit" variant="primary">
 															6 Months - {formatPrice(prices().advisor6Months!)}{" "}

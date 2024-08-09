@@ -12,7 +12,7 @@ import {
 //@ts-ignore
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import { mongoDBDBUser } from "~/auth/useAuth";
+import { getMongoDBUser } from "~/auth/useAuth";
 import type { LayerDocument } from "@rw/db/schemas/layer";
 import type { ProjectDocument } from "@rw/db/schemas/project";
 import type { SystemDocument } from "@rw/db/schemas/system";
@@ -470,8 +470,8 @@ export default function view() {
 											<br />
 											<br />
 
-											{mongoDBDBUser() &&
-											data()?.project.owner.id === mongoDBDBUser()._id ? (
+											{getMongoDBUser() &&
+											data()?.project.owner.id === getMongoDBUser()._id ? (
 												<>
 													<button
 														type="button"

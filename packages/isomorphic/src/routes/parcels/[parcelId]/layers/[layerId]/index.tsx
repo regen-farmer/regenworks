@@ -10,7 +10,7 @@ import maplibregl from "maplibre-gl";
 import type { LayerDocument } from "@rw/db/schemas/layer";
 import { action, useLocation } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
-import { mongoDBDBUser } from "~/auth/useAuth";
+import { getMongoDBUser } from "~/auth/useAuth";
 import type { SystemDocument } from "@rw/db/schemas/system";
 import type { SpeciesDocument } from "@rw/db/schemas/species";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -297,8 +297,8 @@ export default function view() {
 						<hr />
 						<Show
 							when={
-								mongoDBDBUser() &&
-								data()?.layer.owner.id === mongoDBDBUser()._id
+								getMongoDBUser() &&
+								data()?.layer.owner.id === getMongoDBUser()._id
 							}
 						>
 							<>

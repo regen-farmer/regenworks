@@ -1,4 +1,4 @@
-import { auth0User } from "~/auth/useAuth";
+import { getAuth0User } from "~/auth/useAuth";
 
 export const apiFetchOptions: () => RequestInit = () => {
 	return {
@@ -7,7 +7,7 @@ export const apiFetchOptions: () => RequestInit = () => {
 		credentials: "same-origin", // include, *same-origin, omit
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `${JSON.stringify(auth0User())}`,
+			Authorization: `${JSON.stringify(getAuth0User())}`,
 		},
 		redirect: "follow", // manual, *follow, error
 		referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url}

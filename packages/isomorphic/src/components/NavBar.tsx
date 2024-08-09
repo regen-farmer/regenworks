@@ -1,5 +1,5 @@
 import { Show, createMemo } from "solid-js";
-import { mongoDBDBUser, subscriptions } from "~/auth/useAuth";
+import { getMongoDBUser, subscriptions } from "~/auth/useAuth";
 import { ThemeSelect } from "./select/theme-select";
 import { FarmSelect } from "./select/farm-select";
 import { FieldSelect } from "./select/field-select";
@@ -56,7 +56,7 @@ export function NavBar() {
 
 			<div class="collapse navbar-collapse" id="navbarText">
 				<ul class="navbar-nav me-auto">
-					<Show when={mongoDBDBUser() && subscriptions() && getParcelId()}>
+					<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
 						<li
 							style={{
 								display: "flex",
@@ -132,7 +132,7 @@ export function NavBar() {
 					class="navbar-nav navbar-right mx-3"
 					style={{ display: "flex", "align-items": "center" }}
 				>
-					<Show when={mongoDBDBUser()}>
+					<Show when={getMongoDBUser()}>
 						<li class="nav-item">
 							<A class="nav-link" href={"/settings"}>
 								<i class="fas fa-gear" /> Settings

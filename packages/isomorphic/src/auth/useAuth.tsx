@@ -14,17 +14,17 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { paymentPlan } from "~/util/paymentPlan";
 import { signOut } from "@solid-mediakit/auth/client";
 
-export const [auth0User, setAuth0User]: [any, any] = createSignal();
-export const [auth0Token, setAuth0Token]: [any, any] = createSignal();
-export const [mongoDBDBUser, setMongoDBDBUser]: [any, any] = createSignal();
-export const [stripeCustomer, setStripeCustomer]: [any, any] = createSignal();
+export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
+export const [getAuth0Token, setAuth0Token]: [any, any] = createSignal();
+export const [getMongoDBUser, setMongoDBDBUser]: [any, any] = createSignal();
+export const [getStripeCustomer, setStripeCustomer]: [any, any] = createSignal();
 
 export const subscriptions = createMemo(() => {
-	if (stripeCustomer) {
+	if (getStripeCustomer) {
 		if (
-			stripeCustomer()?.subscriptions.find((s: any) => s.status === "active")
+			getStripeCustomer()?.subscriptions.find((s: any) => s.status === "active")
 		) {
-			return stripeCustomer()?.subscriptions[0];
+			return getStripeCustomer()?.subscriptions[0];
 		}
 	} else {
 		return [];
@@ -32,15 +32,15 @@ export const subscriptions = createMemo(() => {
 });
 
 export const allowFarmCreation = createMemo<boolean>(() => {
-	if (mongoDBDBUser) {
+	if (getMongoDBUser) {
 		return (
-			mongoDBDBUser()?.isAdmin ||
+			getMongoDBUser()?.isAdmin ||
 			(paymentPlan() === "farm" &&
-				mongoDBDBUser() &&
-				mongoDBDBUser().parcels?.length < 1) ||
+				getMongoDBUser() &&
+				getMongoDBUser().parcels?.length < 1) ||
 			(paymentPlan() === "advisor" &&
-				mongoDBDBUser() &&
-				mongoDBDBUser().parcels?.length < 50)
+				getMongoDBUser() &&
+				getMongoDBUser().parcels?.length < 50)
 		);
 	}
 
@@ -48,8 +48,8 @@ export const allowFarmCreation = createMemo<boolean>(() => {
 });
 
 export const currentSubscription = createMemo(() => {
-	if (stripeCustomer) {
-		return stripeCustomer()?.subscriptions.filter((s: any) => {
+	if (getStripeCustomer) {
+		return getStripeCustomer()?.subscriptions.filter((s: any) => {
 			return true;
 		});
 	}
@@ -112,8 +112,8 @@ export const ShowAfterAuth = (props: any) => {
 
 	createEffect(() => {
 		if (
-			stripeCustomer() &&
-			stripeCustomer().subscriptions.length === 0 &&
+			getStripeCustomer() &&
+			getStripeCustomer().subscriptions.length === 0 &&
 			pathname() !== "/settings"
 		) {
 			navigate("/settings");
@@ -126,7 +126,7 @@ export const ShowAfterAuth = (props: any) => {
 
 	return (
 		<Show
-			when={auth0User()}
+			when={getAuth0User()}
 			fallback={
 				<>
 					{/* <NavBar />*/}
@@ -135,7 +135,7 @@ export const ShowAfterAuth = (props: any) => {
 			}
 		>
 			<Show
-				when={auth0User()?.email_verified}
+				when={getAuth0User()?.email_verified}
 				fallback={
 					<>
 						{/* <NavBar /> */}
@@ -156,7 +156,7 @@ export const ShowAfterAuth = (props: any) => {
 				}
 			>
 				<Show
-					when={mongoDBDBUser() && stripeCustomer()}
+					when={getMongoDBUser() && getStripeCustomer()}
 					fallback={<p>Connecting...</p>}
 				>
 					<NavBar />

@@ -1,4 +1,4 @@
-import { stripeCustomer } from "~/auth/useAuth";
+import { getStripeCustomer } from "~/auth/useAuth";
 
 export function getDevProdStatus(): "DEV" | "PROD" {
 	const status = import.meta.env.VITE_STRIPE_MODE as "DEV" | "PROD";
@@ -43,9 +43,9 @@ export const StripeIds = {
 export function paymentPlan(): "farm" | "advisor" | undefined {
 	let plan: "farm" | "advisor" | undefined;
 
-	if (stripeCustomer()?.subscriptions.length > 0) {
+	if (getStripeCustomer()?.subscriptions.length > 0) {
 		const product =
-			stripeCustomer()?.subscriptions[0].items.data[0].plan.product;
+			getStripeCustomer()?.subscriptions[0].items.data[0].plan.product;
 
 		switch (product) {
 			case StripeIds.farm.product[getDevProdStatus()]:
