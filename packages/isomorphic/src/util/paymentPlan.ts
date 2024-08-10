@@ -43,7 +43,7 @@ export const StripeIds = {
 export function paymentPlan(): "farm" | "advisor" | undefined {
 	let plan: "farm" | "advisor" | undefined;
 
-	if (getStripeCustomer()?.subscriptions.length > 0) {
+	if (getStripeCustomer()?.subscriptions?.length > 0) {
 		const product =
 			getStripeCustomer()?.subscriptions[0].items.data[0].plan.product;
 

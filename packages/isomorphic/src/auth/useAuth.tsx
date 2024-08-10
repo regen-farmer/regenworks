@@ -17,10 +17,11 @@ import { signOut } from "@solid-mediakit/auth/client";
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
 export const [getAuth0Token, setAuth0Token]: [any, any] = createSignal();
 export const [getMongoDBUser, setMongoDBDBUser]: [any, any] = createSignal();
-export const [getStripeCustomer, setStripeCustomer]: [any, any] = createSignal();
+export const [getStripeCustomer, setStripeCustomer]: [any, any] =
+	createSignal();
 
 export const subscriptions = createMemo(() => {
-	if (getStripeCustomer) {
+	if (getStripeCustomer()?.subscriptions) {
 		if (
 			getStripeCustomer()?.subscriptions.find((s: any) => s.status === "active")
 		) {
@@ -48,7 +49,7 @@ export const allowFarmCreation = createMemo<boolean>(() => {
 });
 
 export const currentSubscription = createMemo(() => {
-	if (getStripeCustomer) {
+	if (getStripeCustomer()?.subscriptions) {
 		return getStripeCustomer()?.subscriptions.filter((s: any) => {
 			return true;
 		});
@@ -85,40 +86,62 @@ export const ShowAfterAuth = (props: any) => {
 			auth0User = decodeURIComponent(decodeURIComponent(auth0User ?? ""));
 
 			auth0User = JSON.parse(auth0User ?? "{}");
+
 			setAuth0User(auth0User);
 
-			const mongodbuserResponse = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/myuser`,
-				{ method: "get", ...apiFetchOptions() },
-			);
-			const responsejson = await mongodbuserResponse.json();
+			// Get MongoDB user from localStorage
+			let mongodbUser = localStorage.getItem("mongodbUser");
+			if (!mongodbUser) {
+				const mongodbuserResponse = await fetch(
+					`${import.meta.env.VITE_BACKEND_URL}/myuser`,
+					{ method: "get", ...apiFetchOptions() },
+				);
+				const responsejson = await mongodbuserResponse.json();
+				mongodbUser = JSON.stringify(responsejson.user);
+				localStorage.setItem("mongodbUser", mongodbUser);
+			}
 
-			setMongoDBDBUser(responsejson.user);
+			setMongoDBDBUser(JSON.parse(mongodbUser));
 
-			const customerResponse = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/stripe/get_subscriptions`,
-				{
-					method: "POST",
-					body: JSON.stringify({ user: responsejson.user }),
-					...apiFetchOptions(),
-				},
-			);
+			// Get Stripe customer from localStorage
+			let stripeCustomer = localStorage.getItem("stripeCustomer");
+			if (!stripeCustomer) {
+				const customerResponse = await fetch(
+					`${import.meta.env.VITE_BACKEND_URL}/stripe/get_subscriptions`,
+					{
+						method: "POST",
+						body: JSON.stringify({ user: mongodbUser }),
+						...apiFetchOptions(),
+					},
+				);
+				const customerData = await customerResponse.json();
+				stripeCustomer = JSON.stringify(customerData);
+				localStorage.setItem("stripeCustomer", stripeCustomer);
+			}
 
-			const customerData = await customerResponse.json();
+			setStripeCustomer(JSON.parse(stripeCustomer));
 
-			setStripeCustomer(customerData);
+			if (pathname() !== "/settings") {
+				if (getStripeCustomer()) {
+					if (getStripeCustomer()?.subscriptions?.length === 0) {
+						navigate("/settings");
+					}
+				}
+			}
 		}
 	});
 
-	createEffect(() => {
-		if (
-			getStripeCustomer() &&
-			getStripeCustomer().subscriptions.length === 0 &&
-			pathname() !== "/settings"
-		) {
-			navigate("/settings");
-		}
-	});
+	// createEffect(() => {
+
+	// 	console.log("Im here checking", getStripeCustomer()?.subscriptions)
+	// 	if (
+	// 		getStripeCustomer() &&
+	// 		getStripeCustomer()?.subscriptions?.length === 0 &&
+	// 		pathname() !== "/settings"
+	// 	) {
+	// 		navigate("/settings");
+	// 	}
+	// });
 
 	// if (!(auth0.isAuthenticated() || isServer)) {
 	// 	auth0.login();
@@ -147,6 +170,8 @@ export const ShowAfterAuth = (props: any) => {
 						<button
 							class="btn btn-sm btn-dark"
 							onClick={() => {
+								localStorage.removeItem("mongodbUser");
+								localStorage.removeItem("stripeCustomer");
 								signOut({ redirectTo: "/" });
 							}}
 						>
@@ -155,10 +180,7 @@ export const ShowAfterAuth = (props: any) => {
 					</>
 				}
 			>
-				<Show
-					when={getMongoDBUser() && getStripeCustomer()}
-					fallback={<p>Connecting...</p>}
-				>
+				<Show when={getMongoDBUser()} fallback={<p>Connecting...</p>}>
 					<NavBar />
 					{props.children}
 				</Show>
