@@ -78,16 +78,12 @@ app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQU
 // app.use(auth(config));
 
 const getDurationInMilliseconds = (start) => {
-	const NS_PER_SEC = 1e9;
-	const NS_TO_MS = 1e6;
-	const diff = process.hrtime(start);
-
-	return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
+	return performance.now() - start;
 };
 
 app.use((req, res, next) => {
 	console.log(`${req.method} ${req.originalUrl} [STARTED]`);
-	const start = process.hrtime();
+	const start = performance.now();
 
 	res.on("finish", () => {
 		const durationInMilliseconds = getDurationInMilliseconds(start);
