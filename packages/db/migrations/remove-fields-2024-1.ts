@@ -3,7 +3,7 @@ import User from "../schemas/user.ts";
 import { connect } from "mongoose";
 
 try {
-	await connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+	await connect(import.meta.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 	const users = await User.find({});
 	for (const user of users) {

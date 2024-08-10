@@ -7,9 +7,9 @@ function delay(time) {
 }
 
 try {
-	await connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+	await connect(import.meta.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
-	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+	const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!, {
 		apiVersion: "2024-06-20",
 		maxNetworkRetries: 2,
 	});
