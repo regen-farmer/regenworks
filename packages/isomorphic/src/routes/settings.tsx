@@ -1,7 +1,9 @@
 import {
 	currentSubscription,
 	getMongoDBUser,
+	getStripeCustomer,
 	setMongoDBDBUser,
+	setStripeCustomer,
 	subscriptions,
 } from "~/auth/useAuth.tsx";
 import { Button, Card } from "solid-bootstrap";
@@ -16,6 +18,21 @@ import { countries } from "../util/countries.ts";
 import { signOut } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import "~/styling/paper.css";
+
+async function updateStripeData() {
+	const customerResponse = await fetch(
+		`${import.meta.env.VITE_BACKEND_URL}/stripe/get_subscriptions`,
+		{
+			method: "POST",
+			body: JSON.stringify({ user: getMongoDBUser() }),
+			...apiFetchOptions(),
+		},
+	);
+	const customerData = await customerResponse.json();
+	const stripeCustomer = JSON.stringify(customerData);
+	localStorage.setItem("stripeCustomer", stripeCustomer);
+	setStripeCustomer(JSON.parse(stripeCustomer))
+}
 
 interface StripePrice {
 	currency_options: {
@@ -39,6 +56,9 @@ interface StripePrice {
 }
 
 const RouteViewAccount: Component = () => {
+
+	updateStripeData()
+
 	const [currency, setCurrency] = createSignal<string>();
 	const [prices, setPrices] = createSignal<{
 		farmMonth: StripePrice;
@@ -48,7 +68,7 @@ const RouteViewAccount: Component = () => {
 	}>();
 
 	createEffect(async () => {
-		currentSubscription();
+		// currentSubscription();
 
 		// const ipdataResult = await fetch(
 		// 	"https://geo.ipify.org/api/v2/country?apiKey=at_NNVBzRJyrUs0ZbdpNDDNPEJoFmnwq",
@@ -264,6 +284,8 @@ const RouteViewAccount: Component = () => {
 						<button
 							class="btn btn-sm btn-dark"
 							onClick={() => {
+								localStorage.removeItem("mongodbUser");
+								localStorage.removeItem("stripeCustomer");
 								signOut({ redirectTo: "/" });
 							}}
 						>
@@ -330,64 +352,27 @@ const RouteViewAccount: Component = () => {
 						>
 							<hr />
 							<>
-								<Show
-									when={subscriptions() || (currency() && prices())}
-									fallback={<div>Loading subscriptions and prices...</div>}
-								>
-									<Show when={subscriptions()}>
-										<h3>Plan</h3>
+								<Show when={getStripeCustomer()}>
+									<Show
+										when={subscriptions() || (currency() && prices())}
+										fallback={<div>Loading subscriptions and prices...</div>}
+									>
+										<Show when={subscriptions()}>
+											<h3>Plan</h3>
 
-										{subscriptions()?.legacy ? (
-											<>
-												{subscriptions().plan} - Expires{" "}
-												{subscriptions().expirationDate}
-											</>
-										) : (
-											<div>
-												{formatProductId(subscriptions().plan.product)} -{" "}
-												{formatInterval(subscriptions().plan.interval_count)}.{" "}
-												<br />
-												{!subscriptions().cancel_at_period_end ? (
-													<span>
-														Renewing{" "}
-														{format(
-															fromUnixTime(
-																Number.parseInt(
-																	subscriptions().current_period_end,
-																	10,
-																),
-															),
-															"PPP",
-														)}
-														{" - "}
-														<span
-															style={{
-																"text-decoration": "underline",
-																cursor: "pointer",
-															}}
-															onClick={() => {
-																deleteSubscription(subscriptions().id);
-															}}
-														>
-															Disable renewal
-														</span>
-														{" - "}
-														<span
-															style={{
-																"text-decoration": "underline",
-																cursor: "pointer",
-															}}
-															onClick={() => {
-																deleteSubscription(subscriptions().id, false);
-															}}
-														>
-															Cancel subscription immediately
-														</span>
-													</span>
-												) : (
-													<>
+											{subscriptions()?.legacy ? (
+												<>
+													{subscriptions().plan} - Expires{" "}
+													{subscriptions().expirationDate}
+												</>
+											) : (
+												<div>
+													{formatProductId(subscriptions().plan.product)} -{" "}
+													{formatInterval(subscriptions().plan.interval_count)}.{" "}
+													<br />
+													{!subscriptions().cancel_at_period_end ? (
 														<span>
-															Expires{" "}
+															Renewing{" "}
 															{format(
 																fromUnixTime(
 																	Number.parseInt(
@@ -396,161 +381,205 @@ const RouteViewAccount: Component = () => {
 																	),
 																),
 																"PPP",
-															)}{" "}
-															-{" "}
+															)}
+															{" - "}
 															<span
 																style={{
 																	"text-decoration": "underline",
 																	cursor: "pointer",
 																}}
-																onClick={() => {
-																	resumeSubscription(subscriptions().id);
+																onClick={async () => {
+																	await deleteSubscription(subscriptions().id);
+																	await updateStripeData()
 																}}
 															>
-																Resume subscription
+																Disable renewal
+															</span>
+															{" - "}
+															<span
+																style={{
+																	"text-decoration": "underline",
+																	cursor: "pointer",
+																}}
+																onClick={async () => {
+																	await deleteSubscription(subscriptions().id, false);
+																	await updateStripeData()
+																}}
+															>
+																Cancel subscription immediately
 															</span>
 														</span>
-													</>
-												)}
+													) : (
+														<>
+															<span>
+																Expires{" "}
+																{format(
+																	fromUnixTime(
+																		Number.parseInt(
+																			subscriptions().current_period_end,
+																			10,
+																		),
+																	),
+																	"PPP",
+																)}{" "}
+																-{" "}
+																<span
+																	style={{
+																		"text-decoration": "underline",
+																		cursor: "pointer",
+																	}}
+																	onClick={() => {
+																		resumeSubscription(subscriptions().id);
+																	}}
+																>
+																	Resume subscription
+																</span>
+															</span>
+														</>
+													)}
+												</div>
+											)}
+										</Show>
+
+										<Show when={!subscriptions() && currency() && prices()}>
+											<h3>Plans</h3>
+											<div
+												style={{
+													display: "flex",
+												}}
+											>
+												<Card
+													style={{
+														width: "18rem",
+														border: "1px solid rgb(57 58 75)",
+														"margin-right": "10px",
+													}}
+												>
+													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
+													<Card.Body>
+														<Card.Title>Farm</Card.Title>
+														<Card.Text>Manage a single farm</Card.Text>
+														<form method="post" action={CreateSubscriptionForm}>
+															<input
+																type="hidden"
+																name="priceId"
+																value={
+																	StripeIds.farm.prices.month[
+																		getDevProdStatus()
+																	]
+																}
+															/>
+															<input
+																type="hidden"
+																name="currency"
+																value={currency()}
+															/>
+															<input
+																type="hidden"
+																name="email"
+																value={getMongoDBUser()?.email}
+															/>
+															<Button type="submit" variant="primary">
+																1 Month - {formatPrice(prices().farmMonth!)}{" "}
+																{currency()}
+															</Button>
+														</form>
+
+														<form method="post" action={CreateSubscriptionForm}>
+															<input
+																type="hidden"
+																name="priceId"
+																value={
+																	StripeIds.farm.prices.sixmonths[
+																		getDevProdStatus()
+																	]
+																}
+															/>
+															<input
+																type="hidden"
+																name="email"
+																value={getMongoDBUser()?.email}
+															/>
+															<input
+																type="hidden"
+																name="currency"
+																value={currency()}
+															/>
+															<Button type="submit" variant="primary">
+																6 Months - {formatPrice(prices().farm6Months!)}{" "}
+																{currency()}
+															</Button>
+														</form>
+													</Card.Body>
+												</Card>
+
+												<Card
+													style={{
+														width: "18rem",
+														border: "1px solid rgb(57 58 75)",
+													}}
+												>
+													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
+													<Card.Body>
+														<Card.Title>Advisor</Card.Title>
+														<Card.Text>Manage up to 10 farms</Card.Text>
+														<form method="post" action={CreateSubscriptionForm}>
+															<input
+																type="hidden"
+																name="priceId"
+																value={
+																	StripeIds.advisor.prices.month[
+																		getDevProdStatus()
+																	]
+																}
+															/>
+															{/* price_1MhZWjKY1xVwmVYOokR9zJKn */}
+															<input
+																type="hidden"
+																name="currency"
+																value={currency()}
+															/>
+															<input
+																type="hidden"
+																name="email"
+																value={getMongoDBUser()?.email}
+															/>
+															<Button type="submit" variant="primary">
+																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
+																{currency()}
+															</Button>
+														</form>
+
+														<form method="post" action={CreateSubscriptionForm}>
+															<input
+																type="hidden"
+																name="priceId"
+																value={
+																	StripeIds.advisor.prices.sixmonths[
+																		getDevProdStatus()
+																	]
+																}
+															/>
+															<input
+																type="hidden"
+																name="currency"
+																value={currency()}
+															/>
+															<input
+																type="hidden"
+																name="email"
+																value={getMongoDBUser()?.email}
+															/>
+															<Button type="submit" variant="primary">
+																6 Months -{" "}
+																{formatPrice(prices().advisor6Months!)}{" "}
+																{currency()}
+															</Button>
+														</form>
+													</Card.Body>
+												</Card>
 											</div>
-										)}
-									</Show>
-
-									<Show when={!subscriptions() && currency() && prices()}>
-										<h3>Plans</h3>
-										<div
-											style={{
-												display: "flex",
-											}}
-										>
-											<Card
-												style={{
-													width: "18rem",
-													border: "1px solid rgb(57 58 75)",
-													"margin-right": "10px",
-												}}
-											>
-												{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-												<Card.Body>
-													<Card.Title>Farm</Card.Title>
-													<Card.Text>Manage a single farm</Card.Text>
-													<form method="post" action={CreateSubscriptionForm}>
-														<input
-															type="hidden"
-															name="priceId"
-															value={
-																StripeIds.farm.prices.month[getDevProdStatus()]
-															}
-														/>
-														<input
-															type="hidden"
-															name="currency"
-															value={currency()}
-														/>
-														<input
-															type="hidden"
-															name="email"
-															value={getMongoDBUser()?.email}
-														/>
-														<Button type="submit" variant="primary">
-															1 Month - {formatPrice(prices().farmMonth!)}{" "}
-															{currency()}
-														</Button>
-													</form>
-
-													<form method="post" action={CreateSubscriptionForm}>
-														<input
-															type="hidden"
-															name="priceId"
-															value={
-																StripeIds.farm.prices.sixmonths[
-																	getDevProdStatus()
-																]
-															}
-														/>
-														<input
-															type="hidden"
-															name="email"
-															value={getMongoDBUser()?.email}
-														/>
-														<input
-															type="hidden"
-															name="currency"
-															value={currency()}
-														/>
-														<Button type="submit" variant="primary">
-															6 Months - {formatPrice(prices().farm6Months!)}{" "}
-															{currency()}
-														</Button>
-													</form>
-												</Card.Body>
-											</Card>
-
-											<Card
-												style={{
-													width: "18rem",
-													border: "1px solid rgb(57 58 75)",
-												}}
-											>
-												{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-												<Card.Body>
-													<Card.Title>Advisor</Card.Title>
-													<Card.Text>Manage up to 10 farms</Card.Text>
-													<form method="post" action={CreateSubscriptionForm}>
-														<input
-															type="hidden"
-															name="priceId"
-															value={
-																StripeIds.advisor.prices.month[
-																	getDevProdStatus()
-																]
-															}
-														/>
-														{/* price_1MhZWjKY1xVwmVYOokR9zJKn */}
-														<input
-															type="hidden"
-															name="currency"
-															value={currency()}
-														/>
-														<input
-															type="hidden"
-															name="email"
-															value={getMongoDBUser()?.email}
-														/>
-														<Button type="submit" variant="primary">
-															1 Month - {formatPrice(prices().advisorMonth!)}{" "}
-															{currency()}
-														</Button>
-													</form>
-
-													<form method="post" action={CreateSubscriptionForm}>
-														<input
-															type="hidden"
-															name="priceId"
-															value={
-																StripeIds.advisor.prices.sixmonths[
-																	getDevProdStatus()
-																]
-															}
-														/>
-														<input
-															type="hidden"
-															name="currency"
-															value={currency()}
-														/>
-														<input
-															type="hidden"
-															name="email"
-															value={getMongoDBUser()?.email}
-														/>
-														<Button type="submit" variant="primary">
-															6 Months - {formatPrice(prices().advisor6Months!)}{" "}
-															{currency()}
-														</Button>
-													</form>
-												</Card.Body>
-											</Card>
-										</div>
+										</Show>
 									</Show>
 								</Show>
 							</>

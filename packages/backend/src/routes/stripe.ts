@@ -184,10 +184,10 @@ router.post(
 		res: express.Response,
 	) => {
 		const payload = req.body;
-		if (req.user.stripeCustomerId) {
+		if (req.user.get("stripeCustomerId")) {
 			const subscriptions = await stripe.subscriptions.list({
 				limit: 10,
-				customer: payload.user.stripeCustomerId,
+				customer: req.user.get("stripeCustomerId"),
 			});
 
 			res.send(JSON.stringify({ subscriptions: subscriptions.data }));
@@ -200,7 +200,7 @@ router.post(
 			const customer = customers.data[0];
 
 			if (customer?.id) {
-				req.user.stripeCustomerId = customer.id;
+				req.user.set("stripeCustomerId", customer.id);
 				await req.user.save();
 
 				const subscriptions = await stripe.subscriptions.list({
@@ -210,6 +210,7 @@ router.post(
 
 				res.send(JSON.stringify({ subscriptions: subscriptions.data }));
 			} else {
+				
 				res.send(JSON.stringify({ subscriptions: [] }));
 			}
 		}
