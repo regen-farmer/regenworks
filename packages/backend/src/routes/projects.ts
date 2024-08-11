@@ -977,7 +977,7 @@ router.post(
 
 				existingSystemDesign.id = undefined;
 				existingSystemDesign._id = undefined;
-				const newSystemDesign = await SystemDesign.create(JSON.parse(JSON.stringify(existingSystemDesign)));
+				const newSystemDesign = await SystemDesign.create(structuredClone(existingSystemDesign));
 				await newSystemDesign.save()
 				
 

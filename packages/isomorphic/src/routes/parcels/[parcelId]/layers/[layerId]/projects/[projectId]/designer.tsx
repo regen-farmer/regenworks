@@ -123,7 +123,7 @@ export default function view() {
 		if (result) {
 			if (result?.project.systemdesign) {
 				setSavedSystem(
-					JSON.parse(JSON.stringify(result?.project.systemdesign!)),
+					structuredClone(result?.project.systemdesign!),
 				);
 				setSystem(result?.project.systemdesign!);
 			}
