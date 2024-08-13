@@ -23,13 +23,13 @@
     "@kobalte/core": "^0.13.4",
     "@mapbox/geojson-area": "^0.2.2",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
-    "@maptiler/sdk": "^2.2.1",
+    "@maptiler/sdk": "^2.2.2",
     "@popperjs/core": "^2.11.8",
     "@rw/db": "workspace:*",
     "@rw/modelling": "workspace:*",
     "@solid-mediakit/auth": "^2.1.2",
     "@solid-primitives/media": "^2.2.9",
-    "@solidjs/router": "^0.14.1",
+    "@solidjs/router": "^0.14.2",
     "@solidjs/start": "^1.0.6",
     "@tmcw/togeojson": "^5.8.1",
     "@turf/turf": "^7.1.0",
@@ -42,9 +42,9 @@
     "maplibre-gl": "^4.5.2",
     "maplibre-gl-measures": "^0.0.15",
     "multipart-object": "^1.2.0",
-    "proj4": "^2.11.0",
+    "proj4": "^2.12.0",
     "solid-bootstrap": "^1.0.20",
-    "solid-js": "^1.8.20",
+    "solid-js": "^1.8.21",
     "vinxi": "^0.4.1"
   }
 }
