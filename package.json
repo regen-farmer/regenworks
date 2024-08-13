@@ -20,7 +20,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "mongoose": "^8.5.2",
+    "mongoose": "^8.5.3",
     "proj4": "^2.12.0",
     "stripe": "^16.7.0"
   }
