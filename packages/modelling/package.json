@@ -9,8 +9,7 @@
   "dependencies": {
     "@rw/db": "workspace:*",
     "@turf/turf": "^7.1.0",
-    "lodash": "^4.17.21",
-    "proj4": "^2.11.0"
+    "lodash": "^4.17.21"
   },
   "keywords": [],
   "author": "",
