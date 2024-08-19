@@ -6,6 +6,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "update-deps": "bunx --bun taze --interactive --recursive --install --update false --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --bun --filter '*' dev",
     "build": "bun --bun --filter '*' build",
@@ -16,7 +17,7 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
-    "@types/node": "^22.3.0",
+    "@types/node": "^22.4.1",
     "typescript": "^5.5.4"
   },
   "dependencies": {
