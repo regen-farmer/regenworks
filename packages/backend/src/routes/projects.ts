@@ -210,6 +210,8 @@ router.get(
 		res: express.Response,
 	) => {
 		try {
+
+			console.log(`Project: ${req.params.id}`);
 			const [foundProject] = await Project.aggregate([
 				{ $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
 				{
@@ -229,8 +231,9 @@ router.get(
 					}
 				},
 				{ $unwind: "$layer" },
-				{ $unwind: "$systemdesign" }
+				{ $unwind: { path: "$systemdesign", preserveNullAndEmptyArrays: true } }
 			]).exec();
+			
 			
 			
 			
