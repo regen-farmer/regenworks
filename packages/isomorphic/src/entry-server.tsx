@@ -66,12 +66,7 @@ export default createHandler(() => {
   rel="stylesheet"
 /> */}
 
-						{/* <!-- Custom Stylesheet --> */}
-						<link
-							rel="stylesheet"
-							type="text/css"
-							href="/stylesheets/style.css"
-						/>
+
 
 						<link
 							rel="shortcut icon"

@@ -12,9 +12,10 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import maplibregl from "maplibre-gl";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Button, Row } from "solid-bootstrap";
+import { Button } from "solid-bootstrap";
 import type turf from "@turf/turf";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const params = useParams();

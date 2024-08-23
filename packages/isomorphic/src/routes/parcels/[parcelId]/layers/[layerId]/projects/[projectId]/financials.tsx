@@ -1,4 +1,4 @@
-import { Row, Spinner } from "solid-bootstrap";
+import { Spinner } from "solid-bootstrap";
 import {
 	createEffect,
 	createResource,
@@ -13,6 +13,7 @@ import Chart from "chart.js/auto";
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SequenceDocument } from "@rw/db/schemas/sequence.ts";
 import { A, useParams } from "@solidjs/router";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const params = useParams<{

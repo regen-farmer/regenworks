@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "@solidjs/router";
-import { Button, Row, Tab, Tabs } from "solid-bootstrap";
+import { Button, Tab, Tabs } from "solid-bootstrap";
 import {
 	createEffect,
 	createMemo,
@@ -17,6 +17,7 @@ import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const params = useParams();
@@ -276,8 +277,8 @@ export default function view() {
 			<div style={{ padding: "20px" }}>
 				<Show when={data()}>
 					{/* <h1 class="h1">Scenario dashboard </h1> */}
-					<Row>
-						<div>
+					<Row>	
+						<div class="w-full">
 							<Tabs defaultActiveKey={"info"}>
 								<Tab eventKey="info" title="Info">
 									<div class="card">
