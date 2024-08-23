@@ -16,7 +16,6 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Button } from "solid-bootstrap";
 import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal.tsx";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import DuplicateScenarioModal from "~/components/DuplicateScenarioModal.tsx";
@@ -177,9 +176,9 @@ export default function view() {
 									Delete field
 								</button>
 							</form>
-							<Button variant="default" data-bs-dismiss="modal">
+							<button class="btn btn-dark" data-bs-dismiss="modal">
 								Cancel
-							</Button>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -310,14 +309,13 @@ export default function view() {
 								>
 									Edit field details
 								</A>
-								<Button
-									variant="danger"
+								<button class="btn btn-danger"
 									// onClick={() => setShowDeleteFieldModal(true)}
 									data-bs-toggle="modal"
 									data-bs-target="#deleteFieldModal"
 								>
 									Delete Field
-								</Button>
+								</button>
 								{/* // <!-- Modal --> */}
 							</>
 						</Show>

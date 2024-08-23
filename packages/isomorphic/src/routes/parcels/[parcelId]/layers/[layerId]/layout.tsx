@@ -12,7 +12,6 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import maplibregl from "maplibre-gl";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Button } from "solid-bootstrap";
 import type turf from "@turf/turf";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { Row } from "~/components/row/Row";
@@ -337,8 +336,7 @@ export default function view() {
 																	>
 																		<i class="far fa-edit" />
 																	</A>
-																	<Button
-																		variant="danger"
+																	<button class="btn btn-danger"
 																		data-bs-toggle="modal"
 																		data-bs-target={`#deleteRowModal_${row._id}`}
 																		onClick={() =>
@@ -346,7 +344,7 @@ export default function view() {
 																		}
 																	>
 																		<i class="far fa-trash-alt" />
-																	</Button>
+																	</button>
 																</td>
 															</tr>
 															{/* // <!-- Modal --> */}
@@ -392,15 +390,14 @@ export default function view() {
 																					<i class="far fa-trash-alt" />
 																				</button>
 																			</form>
-																			<Button
-																				variant="default"
+																			<button class="btn btn-dark"
 																				data-bs-dismiss="modal"
 																				onClick={() =>
 																					setShowDeleteRowModal("")
 																				}
 																			>
 																				Cancel
-																			</Button>
+																			</button>
 																		</div>
 																	</div>
 																</div>

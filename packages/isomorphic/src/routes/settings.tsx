@@ -6,7 +6,6 @@ import {
 	setStripeCustomer,
 	subscriptions,
 } from "~/auth/useAuth.tsx";
-import { Button } from "solid-bootstrap";
 
 import {
 	Card,
@@ -303,10 +302,6 @@ const RouteViewAccount: Component = () => {
 
 						<br />
 
-						{/* <ButtonGroup aria-label='Basic example'>
-            <Button variant='secondary'>1 Month</Button>
-            <Button variant='secondary'>6 Months</Button>
-          </ButtonGroup> */}
 
 						<Show
 							when={getMongoDBUser().countryCode}
@@ -355,7 +350,7 @@ const RouteViewAccount: Component = () => {
 											</Select.Content>
 										</Select.Portal>
 									</Select>
-									<Button onClick={saveCountryCode}>Save</Button>
+									<button class="btn btn-dark" onClick={saveCountryCode}>Save</button>
 								</>
 							}
 						>
@@ -492,10 +487,10 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																1 Month - {formatPrice(prices().farmMonth!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 
 														<form method="post" action={CreateSubscriptionForm}>
@@ -518,10 +513,10 @@ const RouteViewAccount: Component = () => {
 																name="currency"
 																value={currency()}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																6 Months - {formatPrice(prices().farm6Months!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 													</CardContent>
 												</Card>
@@ -558,10 +553,10 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 
 														<form method="post" action={CreateSubscriptionForm}>
@@ -584,11 +579,11 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																6 Months -{" "}
 																{formatPrice(prices().advisor6Months!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 													</CardContent>
 												</Card>
