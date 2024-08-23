@@ -3,7 +3,7 @@ import { Show, createResource, createSignal } from "solid-js";
 import "~/styling/modal.css";
 import { action } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { useParams } from "@solidjs/router";

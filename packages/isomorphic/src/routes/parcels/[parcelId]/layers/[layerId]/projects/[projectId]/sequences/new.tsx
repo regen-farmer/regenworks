@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";

@@ -1,4 +1,4 @@
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 import {
 	For,
 	createEffect,

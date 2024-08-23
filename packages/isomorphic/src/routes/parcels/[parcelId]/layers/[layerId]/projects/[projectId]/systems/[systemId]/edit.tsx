@@ -7,7 +7,7 @@ import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import MPObj from "multipart-object";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const location = useLocation();
