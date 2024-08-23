@@ -54,7 +54,7 @@ export function NavBar() {
 				<div class="logo-icon" />
 			</div>
 
-			<div class="collapse navbar-collapse" id="navbarText">
+			<div class="navbar-collapse" id="navbarText">
 				<ul class="navbar-nav me-auto">
 					<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
 						<li
