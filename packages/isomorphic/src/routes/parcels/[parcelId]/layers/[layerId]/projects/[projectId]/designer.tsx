@@ -16,7 +16,9 @@ import type {
 	SystemDesignDocument,
 } from "@rw/db/schemas/systemdesign.ts";
 
-import Resizable from "@corvu/resizable";
+import { Resizable, ResizableHandle, ResizablePanel } from "~/components/ui/resizable"
+
+
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
@@ -287,7 +289,7 @@ export default function view() {
 
 	return (
 		<Resizable>
-			<Resizable.Panel style={{ overflow: "hidden" }}>
+			<ResizablePanel style={{ overflow: "hidden" }}>
 				<div
 					style={{
 						display: "flex",
@@ -865,9 +867,9 @@ export default function view() {
 						</Toast>
 					</ToastContainer>
 				</div>
-			</Resizable.Panel>
-			<Resizable.Handle />
-			<Resizable.Panel>
+			</ResizablePanel>
+			<ResizableHandle withHandle />
+			<ResizablePanel>
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
@@ -970,7 +972,7 @@ export default function view() {
 						</Show>
 					</div>
 				</div>
-			</Resizable.Panel>
+			</ResizablePanel>
 		</Resizable>
 	);
 }
