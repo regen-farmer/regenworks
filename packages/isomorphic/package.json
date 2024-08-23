@@ -36,6 +36,8 @@
     "autoprefixer": "^10.4.20",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "convert-units": "3.0.0-beta.6",
     "date-fns": "^3.6.0",
     "jose": "^5.7.0",
@@ -46,7 +48,9 @@
     "postcss": "^8.4.41",
     "solid-bootstrap": "^1.0.20",
     "solid-js": "^1.8.21",
+    "tailwind-merge": "^2.5.2",
     "tailwindcss": "^3.4.10",
+    "tailwindcss-animate": "^1.0.7",
     "vinxi": "^0.4.1"
   }
 }
