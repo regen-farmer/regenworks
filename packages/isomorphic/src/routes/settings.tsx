@@ -461,11 +461,7 @@ const RouteViewAccount: Component = () => {
 												}}
 											>
 												<Card
-													style={{
-														width: "18rem",
-														border: "1px solid rgb(57 58 75)",
-														"margin-right": "10px",
-													}}
+													class="dark:bg-zinc-900 bg-zinc-100 mr-4 dark:border-zinc-700 border-zinc-300 border-2"
 												>
 													
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
@@ -531,10 +527,7 @@ const RouteViewAccount: Component = () => {
 												</Card>
 
 												<Card
-													style={{
-														width: "18rem",
-														border: "1px solid rgb(57 58 75)",
-													}}
+													class="dark:bg-zinc-900 bg-zinc-100 mr-4 dark:border-zinc-700 border-zinc-300 border-2"
 												>
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
 													<CardHeader>
