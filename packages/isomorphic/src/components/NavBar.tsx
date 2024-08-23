@@ -5,6 +5,7 @@ import { FarmSelect } from "./select/farm-select.tsx";
 import { FieldSelect } from "./select/field-select.tsx";
 import { ProjectSelect } from "./select/project-select.tsx";
 import { A, useNavigate, useLocation } from "@solidjs/router";
+import { ModeToggle } from "./ui/mode-toggle.tsx";
 
 export function NavBar() {
 	const navigate = useNavigate();
@@ -152,7 +153,8 @@ export function NavBar() {
 					</Show>
 					<li>
 						<span style={{ color: "white !important" }}>
-							<ThemeSelect />
+							<ModeToggle />
+							{/* <ThemeSelect /> */}
 						</span>
 					</li>
 				</ul>

@@ -6,7 +6,17 @@ import {
 	setStripeCustomer,
 	subscriptions,
 } from "~/auth/useAuth.tsx";
-import { Button, Card } from "solid-bootstrap";
+import { Button } from "solid-bootstrap";
+
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "~/components/ui/card";
+
 import { type Component, createEffect, createSignal, Show } from "solid-js";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import _ from "lodash";
@@ -31,7 +41,7 @@ async function updateStripeData() {
 	const customerData = await customerResponse.json();
 	const stripeCustomer = JSON.stringify(customerData);
 	localStorage.setItem("stripeCustomer", stripeCustomer);
-	setStripeCustomer(JSON.parse(stripeCustomer))
+	setStripeCustomer(JSON.parse(stripeCustomer));
 }
 
 interface StripePrice {
@@ -56,8 +66,7 @@ interface StripePrice {
 }
 
 const RouteViewAccount: Component = () => {
-
-	updateStripeData()
+	updateStripeData();
 
 	const [currency, setCurrency] = createSignal<string>();
 	const [prices, setPrices] = createSignal<{
@@ -390,7 +399,7 @@ const RouteViewAccount: Component = () => {
 																}}
 																onClick={async () => {
 																	await deleteSubscription(subscriptions().id);
-																	await updateStripeData()
+																	await updateStripeData();
 																}}
 															>
 																Disable renewal
@@ -402,8 +411,11 @@ const RouteViewAccount: Component = () => {
 																	cursor: "pointer",
 																}}
 																onClick={async () => {
-																	await deleteSubscription(subscriptions().id, false);
-																	await updateStripeData()
+																	await deleteSubscription(
+																		subscriptions().id,
+																		false,
+																	);
+																	await updateStripeData();
 																}}
 															>
 																Cancel subscription immediately
@@ -455,10 +467,15 @@ const RouteViewAccount: Component = () => {
 														"margin-right": "10px",
 													}}
 												>
+													
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-													<Card.Body>
-														<Card.Title>Farm</Card.Title>
-														<Card.Text>Manage a single farm</Card.Text>
+													<CardHeader>
+														<CardTitle>Farm</CardTitle>
+														<CardDescription>
+															Manage a single farm
+														</CardDescription>
+													</CardHeader>
+													<CardContent>
 														<form method="post" action={CreateSubscriptionForm}>
 															<input
 																type="hidden"
@@ -510,7 +527,7 @@ const RouteViewAccount: Component = () => {
 																{currency()}
 															</Button>
 														</form>
-													</Card.Body>
+													</CardContent>
 												</Card>
 
 												<Card
@@ -520,9 +537,13 @@ const RouteViewAccount: Component = () => {
 													}}
 												>
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-													<Card.Body>
-														<Card.Title>Advisor</Card.Title>
-														<Card.Text>Manage up to 10 farms</Card.Text>
+													<CardHeader>
+														<CardTitle>Advisor</CardTitle>
+														<CardDescription>
+															Manage up to 10 farms
+														</CardDescription>
+													</CardHeader>
+													<CardContent>
 														<form method="post" action={CreateSubscriptionForm}>
 															<input
 																type="hidden"
@@ -576,7 +597,7 @@ const RouteViewAccount: Component = () => {
 																{currency()}
 															</Button>
 														</form>
-													</Card.Body>
+													</CardContent>
 												</Card>
 											</div>
 										</Show>
