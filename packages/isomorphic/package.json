@@ -46,7 +46,6 @@
     "maplibre-gl-measures": "^0.0.15",
     "multipart-object": "^1.2.0",
     "postcss": "^8.4.41",
-    "solid-bootstrap": "^1.0.20",
     "solid-js": "^1.8.21",
     "solid-sonner": "^0.2.8",
     "tailwind-merge": "^2.5.2",
