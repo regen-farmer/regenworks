@@ -9,12 +9,12 @@ const RouteViewPrivacy: Component = () => {
 			<main class="paper">
 				<div>
 					<div class="container">
-						<h1>Regen Farmer Privacy Policy</h1>
+						<h1 class="h1">Regen Farmer Privacy Policy</h1>
 						<p>
 							<em>Last revised: October 30, 2020</em>
 						</p>
 
-						<h2>1. PERSONAL DATA POLICY</h2>
+						<h2 class="h2">1. PERSONAL DATA POLICY</h2>
 						<p>
 							In accordance with the EU General Data Protection Regulation
 							(GDPR), Regen Farver ApS strives to clarify the activities
@@ -34,7 +34,7 @@ const RouteViewPrivacy: Component = () => {
 							numbers to employees are not considered personal data.
 						</p>
 
-						<h2>2. COLLECTION OF DATA</h2>
+						<h2 class="h2">2. COLLECTION OF DATA</h2>
 						<p>
 							Regen Farmer ApS only collects information about the Customer
 							when:
@@ -109,7 +109,7 @@ const RouteViewPrivacy: Component = () => {
 							<li>Naming and values on assets, yields and expenses.</li>
 						</ul>
 
-						<h2>3. STORAGE AND PROTECTION OF DATA</h2>
+						<h2 class="h2">3. STORAGE AND PROTECTION OF DATA</h2>
 						<p>
 							All collected information that relates in one way or another to
 							the Customer is protected by encryption and passwords in Regen
@@ -138,7 +138,7 @@ const RouteViewPrivacy: Component = () => {
 							specific to the Application.
 						</p>
 
-						<h2>4. USE OF DATA</h2>
+						<h2 class="h2">4. USE OF DATA</h2>
 						<p>
 							As a general rule, Regen Farmer does not apply and disseminate the
 							Customer’s personal data.

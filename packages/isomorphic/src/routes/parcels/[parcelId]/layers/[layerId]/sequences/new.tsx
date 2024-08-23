@@ -92,7 +92,7 @@ export default function view() {
 
 						<Row>
 							<div class="col-lg-12">
-								<h1>Create a new sequence</h1>
+								<h1 class="h1">Create a new sequence</h1>
 
 								<div class="form-group">
 									<label for="sequence[name]">Sequence name</label>
@@ -112,7 +112,7 @@ export default function view() {
 									/>
 								</div>
 
-								<h4>Define grid</h4>
+								<h4 class="h4">Define grid</h4>
 
 								<div class="form-group">
 									<label for="sequence[length]">
@@ -162,7 +162,7 @@ export default function view() {
 						<Show when={data()?.layer && arrayLength() > 0}>
 							<Row>
 								<div class="col-lg-12">
-									<h3>Sequence pattern ({arrayLength()} species)</h3>
+									<h3 class="h3">Sequence pattern ({arrayLength()} species)</h3>
 									<p>
 										The species positions are absolute. Please note that the
 										first plants in the rows are located at the bottom.

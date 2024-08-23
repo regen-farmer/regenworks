@@ -59,7 +59,7 @@ export default function view() {
 				<div class="row">
 					<div class="col-lg-3" />
 					<div class="col-lg-6">
-						<h1>Update species {data()?.species.nameCommon}</h1>
+						<h1 class="h1">Update species {data()?.species.nameCommon}</h1>
 						<form method="post" action={Form}>
 							<div class="form-group">
 								<label for="species[nameCommon]">Species common name</label>

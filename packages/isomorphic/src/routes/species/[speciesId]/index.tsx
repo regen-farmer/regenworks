@@ -21,7 +21,7 @@ export default function view() {
 	return (
 		<Show when={data()}>
 			<div class="container">
-				<h1>{data()?.species.nameCommon}</h1>
+				<h1 class="h1">{data()?.species.nameCommon}</h1>
 				<A class="btn btn-dark" href="/species/">
 					Species index
 				</A>
@@ -70,11 +70,11 @@ export default function view() {
 						</Show>
 					</div>
 					{/* <div class="col-sm-2">
-            <h2>Yield</h2>
+            <h2 class="h2">Yield</h2>
             <p>Yield type: Nuts</p>
         </div> */}
 					<div class="col-sm-8 card">
-						<h2>Activities</h2>
+						<h2 class="h2">Activities</h2>
 						<Show when={data()?.species.activities}>
 							<>
 								<p>
@@ -114,12 +114,12 @@ export default function view() {
         <div class="col-sm-2">
         </div>
         <div class="col-sm-2">
-            <h2>Carbon</h2>
+            <h2 class="h2">Carbon</h2>
             <p>Metric: co2</p>
         </div>
         <div class="col-sm-6"><canvas id="lineChartCarbon"></canvas></div>
     </div>
-    <h2>Annual yield profile for species</h2>
+    <h2 class="h2">Annual yield profile for species</h2>
     <p>The annual yield profile makes it possible to assess labor peaks and plan systems where labor is spread out accross the year. Furthermore, it can help to assess and optimize early cash flows. More diverse and spread out yields can help to mitigate market votality etc. </p> */}
 				</div>
 			</div>

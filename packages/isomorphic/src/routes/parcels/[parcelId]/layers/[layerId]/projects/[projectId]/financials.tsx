@@ -294,7 +294,7 @@ export default function view() {
 							</div>
 							<div class="col-sm-4">
 								<form method="post" action={KeyParameterForm}>
-									<h2>Financial Analysis</h2>
+									<h2 class="h2">Financial Analysis</h2>
 									<p>
 										<strong>Parameters</strong>
 									</p>

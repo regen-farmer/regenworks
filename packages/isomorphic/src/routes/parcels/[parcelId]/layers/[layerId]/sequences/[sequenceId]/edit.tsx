@@ -110,7 +110,7 @@ export default function view() {
 			<div style={{ padding: "20px" }}>
 				<Row>
 					<div class="col-lg-12">
-						<h1>Update row sequence pattern</h1>
+						<h1 class="h1">Update row sequence pattern</h1>
 						<p>This page lets you update an existing row sequence pattern. </p>
 
 						<form method="post" action={Form}>
@@ -134,7 +134,7 @@ export default function view() {
 								/>
 							</div>
 
-							<h4>Define grid</h4>
+							<h4 class="h4">Define grid</h4>
 
 							<div class="form-group">
 								<label for="sequence[length]">Length of row sequence [m]</label>
@@ -176,7 +176,7 @@ export default function view() {
 								in sequence.
 							</p>
 
-							<h3>Sequence pattern</h3>
+							<h3 class="h3">Sequence pattern</h3>
 							<p>The species positions are absolute. </p>
 
 							<For each={[...Array(arrayLength()).keys()]}>

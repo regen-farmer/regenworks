@@ -52,7 +52,7 @@ export default function view() {
 			<div class="row">
 				<div class="col-sm-3" />
 				<div class="col-sm-6">
-					<h1>Add new activity to species</h1>
+					<h1 class="h1">Add new activity to species</h1>
 					<p>
 						Use this page to create activity templates for species that are used
 						to auto-generate activities for projects.

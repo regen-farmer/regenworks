@@ -51,7 +51,7 @@ export default function view() {
 	return (
 		<>
 			<div style={{ padding: "20px" }}>
-				<h1>My systems</h1>
+				<h1 class="h1">My systems</h1>
 				<p>
 					Add one of your own systems as a future draft on area: "
 					{data()?.layer.name}"

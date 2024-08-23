@@ -4,7 +4,7 @@ export default function NotFound() {
 	return (
 		<main>
 			<HttpStatusCode code={404} />
-			<h1>Page Not Found</h1>
+			<h1 class="h1">Page Not Found</h1>
 		</main>
 	);
 }

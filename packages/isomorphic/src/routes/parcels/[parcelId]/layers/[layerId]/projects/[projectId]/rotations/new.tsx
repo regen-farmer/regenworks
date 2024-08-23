@@ -105,7 +105,7 @@ export default function view() {
 			<div class="row">
 				<div class="col-lg-2" />
 				<div class="col-lg-8">
-					<h1>New crop rotation</h1>
+					<h1 class="h1">New crop rotation</h1>
 
 					<div class="form-group">
 						<label for="steps">Choose number of steps in rotation</label>
@@ -130,7 +130,7 @@ export default function view() {
 
 			<div class="row">
 				<div class="col-lg-12">
-					<h1>Create new crop rotation plan</h1>
+					<h1 class="h1">Create new crop rotation plan</h1>
 					<p>This page lets you create a new crop rotation. </p>
 					<form method="post" action={Form}>
 						<div class="form-group">
@@ -150,7 +150,7 @@ export default function view() {
 								name={"rotation[description]"}
 							/>
 						</div>
-						<h3>Crop rotation pattern</h3>
+						<h3 class="h3">Crop rotation pattern</h3>
 						<p>
 							Select individual crop and specify planting time and harvest
 							relative in the rotation cycle.

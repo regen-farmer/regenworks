@@ -268,7 +268,7 @@ const RouteViewAccount: Component = () => {
 			<main class="paper">
 				<div>
 					<div class="container">
-						<h3>Profile</h3>
+						<h3 class="h3">Profile</h3>
 
 						<p>Email: {getMongoDBUser()?.email}</p>
 						<Show when={getMongoDBUser()?.countryCode}>
@@ -330,7 +330,7 @@ const RouteViewAccount: Component = () => {
 										)}
 									>
 										<Select.Trigger class="select__trigger" aria-label="Fruit">
-											<Select.Value<string> class="select__value">
+											<Select.Value<string> class="select__value px-2">
 												{(state) => {
 													return dispayCountry(
 														countries.find(
@@ -358,7 +358,7 @@ const RouteViewAccount: Component = () => {
 										fallback={<div>Loading subscriptions and prices...</div>}
 									>
 										<Show when={subscriptions()}>
-											<h3>Plan</h3>
+											<h3 class="h3">Plan</h3>
 
 											{subscriptions()?.legacy ? (
 												<>
@@ -442,7 +442,7 @@ const RouteViewAccount: Component = () => {
 										</Show>
 
 										<Show when={!subscriptions() && currency() && prices()}>
-											<h3>Plans</h3>
+											<h3 class="h3">Plans</h3>
 											<div
 												style={{
 													display: "flex",

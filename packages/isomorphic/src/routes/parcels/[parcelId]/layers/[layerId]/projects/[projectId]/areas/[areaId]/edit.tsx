@@ -59,7 +59,7 @@ export default function view() {
 			<Row>
 				<Show when={data()}>
 					<div class="col-lg-6">
-						<h2>Edit sub-area</h2>
+						<h2 class="h2">Edit sub-area</h2>
 						<div>
 							<form method="post" action={Form}>
 								<div class="form-group">

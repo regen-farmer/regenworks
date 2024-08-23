@@ -58,7 +58,7 @@ export default function view() {
 		<>
 			<Row>
 				<div class="col-lg-6">
-					<h2>Edit row</h2>
+					<h2 class="h2">Edit row</h2>
 					<div>
 						<form method="post" action={Form}>
 							<div class="form-group">

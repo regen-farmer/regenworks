@@ -275,7 +275,7 @@ export default function view() {
 			{/* <ScenarioSideBar> */}
 			<div style={{ padding: "20px" }}>
 				<Show when={data()}>
-					{/* <h1>Scenario dashboard </h1> */}
+					{/* <h1 class="h1">Scenario dashboard </h1> */}
 					<Row>
 						<div>
 							<Tabs defaultActiveKey={"info"}>
@@ -419,7 +419,7 @@ export default function view() {
 												</div>
 											</div>
 
-											{/* <h2>System design</h2> */}
+											{/* <h2 class="h2">System design</h2> */}
 											<A
 												href={`/parcels/${params.parcelId}/layers/${
 													params.layerId
@@ -784,7 +784,7 @@ export default function view() {
 									<Tab eventKey="layout" title="Layout">
 										<div class="card">
 											<div class="card-body">
-												<h2>Layout</h2>
+												<h2 class="h2">Layout</h2>
 												{data()?.project.status === "planning" ? (
 													<A
 														href={`/parcels/${params.parcelId}/layers/${
@@ -1055,7 +1055,7 @@ export default function view() {
 										<Tab eventKey="assets" title="Assets">
 											<div class="card">
 												<div class="card-body">
-													<h2 class="card-title">Assets</h2>
+													<h2 class="h2 card-title">Assets</h2>
 													<p>
 														{" "}
 														Tree asset count: {
@@ -1106,12 +1106,12 @@ export default function view() {
 										<Tab eventKey="implementation" title="Implementation">
 											<div class="card">
 												<div class="card-body">
-													<h2 class="card-title">Implementation</h2>
+													<h2 class="h2 card-title">Implementation</h2>
 													{data()?.project.activities &&
 													data()?.project.activities.length! > 0 ? (
 														<div class="card">
 															<div class="card-body">
-																<h2>Activity plan</h2>
+																<h2 class="h2">Activity plan</h2>
 																<table class="table small">
 																	<tbody>
 																		<tr class="table-secondary">
@@ -1333,7 +1333,7 @@ export default function view() {
 							<div>
 								{/*                 <!--<div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Project planning and activities</h2>
+                        <h2 class="h2 card-title">Project planning and activities</h2>
                         <% if(data()?.project.activities.length > 0){ }
                         <table class="table table-striped small">
                             <tr>

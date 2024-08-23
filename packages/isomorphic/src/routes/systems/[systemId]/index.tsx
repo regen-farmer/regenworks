@@ -147,10 +147,10 @@ export default function view() {
 		<>
 			<div style={{ padding: "20px" }}>
 				<Show when={data() && widths().length > 0}>
-					<h1>System: {data()?.system.name}</h1>
+					<h1 class="h1">System: {data()?.system.name}</h1>
 					<div class="row">
 						<div class="col-sm-6">
-							<h2>System layout</h2>
+							<h2 class="h2">System layout</h2>
 							<div class="row">
 								<Show when={data()?.rows}>
 									<For each={data()?.rows}>
@@ -306,7 +306,7 @@ export default function view() {
 								</style>
 							</svg>
 
-							{/* <!--<h2>System layout</h2>
+							{/* <!--<h2 class="h2">System layout</h2>
             <div class="row">
                 <% if(system.rows){ %>
                     <% system.rows.forEach(function(row, i){ %>
@@ -348,7 +348,7 @@ export default function view() {
             </div>--> */}
 						</div>
 						<div class="col-sm-4">
-							<h2>System specifications</h2>
+							<h2 class="h2">System specifications</h2>
 							<p>{data()?.system.description}</p>
 							<div class="thumbnail">
 								<div class="caption">
@@ -454,7 +454,7 @@ export default function view() {
 							<p>System dimensions: N/A</p>
 						</div>
 					</div>
-					<h2>System lifetime productivity</h2>
+					<h2 class="h2">System lifetime productivity</h2>
 					<p>Assess projected lifetime productivity of system.</p>
 					<table class="table table-striped small">
 						<tbody>
@@ -523,7 +523,7 @@ export default function view() {
 							</For>
 						</tbody>
 					</table>
-					<h2>Seasonal activities</h2>
+					<h2 class="h2">Seasonal activities</h2>
 					<p>
 						Assess system labor loads and complementarity of species management
 						activities in system.
@@ -612,13 +612,13 @@ export default function view() {
             <p></p>
         </div>
         <div class="col-sm-2">
-            <h2>Yields</h2>
+            <h2 class="h2">Yields</h2>
             <p>Yield type 1: Fruit</p>
             <p>Yield type 2: Cereal</p>
         </div>
         <div class="col-sm-6"><canvas id="lineChartAnnual"></canvas></div>
     </div>
-    <h2>System lifetime productivity profile</h2>
+    <h2 class="h2">System lifetime productivity profile</h2>
     <div class="row">
         <div class="col-sm-2">
             <img class="img-responsive" src="/images/shrub.svg">
@@ -627,7 +627,7 @@ export default function view() {
             <p></p>
         </div>
         <div class="col-sm-2">
-            <h2>Yields</h2>
+            <h2 class="h2">Yields</h2>
             <p>Yield type 1: Fruit</p>
             <p>Yield type 2: Cereal</p>
         </div>
@@ -639,7 +639,7 @@ export default function view() {
         <div class="col-sm-2">
         </div>
         <div class="col-sm-2">
-            <h2>Carbon</h2>
+            <h2 class="h2">Carbon</h2>
             <p>LER over time (Land equavelant ratio)</p>
         </div>
         <div class="col-sm-6"><canvas id="lineChartCarbon"></canvas></div>

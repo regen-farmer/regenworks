@@ -16,7 +16,7 @@ export default function view() {
 
 	return (
 		<div class="container">
-			<h1>Species</h1>
+			<h1 class="h1">Species</h1>
 			<A href="/species/new" class="btn btn-dark">
 				Add new species
 			</A>
