@@ -64,7 +64,7 @@ export function NavBar() {
 			</div>
 
 			<div class="navbar-collapse" id="navbarText">
-				<Breadcrumb>
+				<Breadcrumb class="me-auto">
 					<BreadcrumbList>
 						<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
 							<BreadcrumbItem
@@ -93,9 +93,7 @@ export function NavBar() {
 										"align-items": "center",
 									}}
 								>
-									<BreadcrumbSeparator>
-										<BreadcrumbSlash />
-									</BreadcrumbSeparator>
+									<BreadcrumbSlash />
 
 									<FieldSelect />
 									<A
@@ -120,9 +118,7 @@ export function NavBar() {
 											"align-items": "center",
 										}}
 									>
-										<BreadcrumbSeparator>
-											<BreadcrumbSlash />
-										</BreadcrumbSeparator>
+										<BreadcrumbSlash />
 
 										<ProjectSelect />
 										<A
