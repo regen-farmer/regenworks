@@ -1,5 +1,4 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
-import { Toast, ToastContainer } from "solid-bootstrap";
 import { createStore } from "solid-js/store";
 import { A, useParams } from "@solidjs/router";
 import { AddRow } from "~/components/systems/add-row.tsx";
@@ -30,6 +29,10 @@ import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-la
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import _ from "lodash";
+// import { toast } from "solid-sonner";
+// import { Toaster } from "~/components/ui/sonner";
+
+import { showToast, Toaster } from "~/components/ui/toast";
 
 function isEqual(var1, var2) {
 	// Break the comparison out into a neat little function
@@ -146,7 +149,7 @@ export default function view() {
 
 	let map: maplibregl.Map;
 
-	const [show3, setShow3] = createSignal(false);
+
 
 	createEffect(() => {
 		// console.log('Updateing map', rebuildMap())
@@ -279,7 +282,7 @@ export default function view() {
 		setSavedSystem(systemData as ISystemDesignSchema);
 
 		if (systemData) {
-			setShow3(true);
+			showToast({ title:"System design saved."})
 		}
 
 		setSaving(false);
@@ -853,23 +856,11 @@ export default function view() {
 							{/* </form> */}
 						</Show>
 					</div>
-					<ToastContainer class="p-3" position="bottom-end">
-						<Toast
-							onClose={() => setShow3(false)}
-							bg="success"
-							show={show3()}
-							delay={3000}
-							autohide
-						>
-							<Toast.Header>
-								<strong class="me-auto">System design saved</strong>
-							</Toast.Header>
-						</Toast>
-					</ToastContainer>
 				</div>
 			</ResizablePanel>
 			<ResizableHandle withHandle />
 			<ResizablePanel>
+					<Toaster  />
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
