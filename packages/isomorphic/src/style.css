@@ -388,18 +388,6 @@ html {
   /* border: 1px solid #8b8b8b; */
 }
 
-.breadcrumb-divider {
-  width: 1px;
-  height: 30px;
-  margin: 0 10px;
-  background-color: black;
-  transform: rotate(15deg);
-}
-
-.theme-dark .breadcrumb-divider {
-  background-color: var(--font-color-dark);
-}
-
 .maplibregl-map {
   max-width: 100%;
   /* border-radius: 5px; */

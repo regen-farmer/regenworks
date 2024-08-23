@@ -6,6 +6,14 @@ import { FieldSelect } from "./select/field-select.tsx";
 import { ProjectSelect } from "./select/project-select.tsx";
 import { A, useNavigate, useLocation } from "@solidjs/router";
 // import { ModeToggle } from "./ui/mode-toggle.tsx";
+import {
+	Breadcrumb,
+	BreadcrumbSlash,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
 
 export function NavBar() {
 	const navigate = useNavigate();
@@ -56,79 +64,86 @@ export function NavBar() {
 			</div>
 
 			<div class="navbar-collapse" id="navbarText">
-				<ul class="navbar-nav me-auto">
-					<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
-						<li
-							style={{
-								display: "flex",
-								"justify-content": "center",
-								"align-items": "center",
-							}}
-						>
-							<FarmSelect />
-							<A
-								title="Go to farm"
-								style={{ "margin-left": "5px" }}
-								href={getParcelId() ? `/parcels/${getParcelId()}` : ""}
-								end={true}
-							>
-								<i class="fa-solid fa-house" />
-							</A>
-						</li>
-
-						<Show when={getLayerId()}>
-							<li
+				<Breadcrumb>
+					<BreadcrumbList>
+						<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
+							<BreadcrumbItem
 								style={{
 									display: "flex",
 									"justify-content": "center",
 									"align-items": "center",
 								}}
 							>
-								<div class="breadcrumb-divider" />
-
-								<FieldSelect />
+								<FarmSelect />
 								<A
-									title="Go to field"
+									title="Go to farm"
 									style={{ "margin-left": "5px" }}
-									href={
-										getLayerId()
-											? `/parcels/${getParcelId()}/layers/${getLayerId()}`
-											: `/parcels/${getParcelId()}`
-									}
+									href={getParcelId() ? `/parcels/${getParcelId()}` : ""}
 									end={true}
 								>
-									<i class="fa-solid fa-layer-group" />
+									<i class="fa-solid fa-house" />
 								</A>
-							</li>
+							</BreadcrumbItem>
 
-							<Show when={getProjectId()}>
-								<li
+							<Show when={getLayerId()}>
+								<BreadcrumbItem
 									style={{
 										display: "flex",
 										"justify-content": "center",
 										"align-items": "center",
 									}}
 								>
-									<div class="breadcrumb-divider" />
+									<BreadcrumbSeparator>
+										<BreadcrumbSlash />
+									</BreadcrumbSeparator>
 
-									<ProjectSelect />
+									<FieldSelect />
 									<A
-										title="Go to scenario"
+										title="Go to field"
 										style={{ "margin-left": "5px" }}
 										href={
-											getProjectId()
-												? `/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${getProjectId()}`
-												: `/parcels/${getParcelId()}/layers/${getLayerId()}`
+											getLayerId()
+												? `/parcels/${getParcelId()}/layers/${getLayerId()}`
+												: `/parcels/${getParcelId()}`
 										}
 										end={true}
 									>
-										<i class="fa-solid fa-lightbulb" />
+										<i class="fa-solid fa-layer-group" />
 									</A>
-								</li>
+								</BreadcrumbItem>
+
+								<Show when={getProjectId()}>
+									<BreadcrumbItem
+										style={{
+											display: "flex",
+											"justify-content": "center",
+											"align-items": "center",
+										}}
+									>
+										<BreadcrumbSeparator>
+											<BreadcrumbSlash />
+										</BreadcrumbSeparator>
+
+										<ProjectSelect />
+										<A
+											title="Go to scenario"
+											style={{ "margin-left": "5px" }}
+											href={
+												getProjectId()
+													? `/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${getProjectId()}`
+													: `/parcels/${getParcelId()}/layers/${getLayerId()}`
+											}
+											end={true}
+										>
+											<i class="fa-solid fa-lightbulb" />
+										</A>
+									</BreadcrumbItem>
+								</Show>
 							</Show>
 						</Show>
-					</Show>
-				</ul>
+					</BreadcrumbList>
+				</Breadcrumb>
+
 				<ul
 					class="navbar-nav navbar-right mx-3"
 					style={{ display: "flex", "align-items": "center" }}
