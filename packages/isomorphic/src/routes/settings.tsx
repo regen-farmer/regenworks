@@ -1,4 +1,11 @@
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "~/components/ui/select"
+import {
 	currentSubscription,
 	getMongoDBUser,
 	getStripeCustomer,
@@ -22,7 +29,6 @@ import _ from "lodash";
 import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
-import { Select } from "@kobalte/core/select";
 import { countries } from "../util/countries.ts";
 import { signOut } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
@@ -311,44 +317,30 @@ const RouteViewAccount: Component = () => {
 									<div>Which country is this account associated with?</div>
 									<br />
 									<Select
-										options={countries.map((cc) => cc[1])}
-										placeholder="Select country"
 										value={countryCode()}
 										onChange={(val) => {
-											setCountryCode(val);
+											if (val) {
+												setCountryCode(val);
+											}
 										}}
-										itemComponent={(props: any) => (
-											<Select.Item item={props.item} class="select__item">
-												<Select.ItemLabel>
-													{dispayCountry(
-														countries.find(
-															(cc) => cc[1] === props.item.rawValue,
-														),
-													)}
-												</Select.ItemLabel>
-
-												<Select.ItemIndicator class="select__item-indicator">
-													<i class="fas fa-check" />
-												</Select.ItemIndicator>
-											</Select.Item>
+										options={countries.map((cc) => cc[1])}
+										placeholder="Select country"
+										itemComponent={(props) => (
+											<SelectItem item={props.item}>
+												{props.item ? dispayCountry(countries.find((cc) => cc[1] === props.item.rawValue)) : ""}
+											</SelectItem>
 										)}
 									>
-										<Select.Trigger class="select__trigger" aria-label="Fruit">
-											<Select.Value<string> class="select__value px-2">
-												{(state) => {
-													return dispayCountry(
-														countries.find(
-															(cc) => cc[1] === state.selectedOption(),
-														)!,
-													);
-												}}
-											</Select.Value>
-										</Select.Trigger>
-										<Select.Portal>
-											<Select.Content class="select__content">
-												<Select.Listbox class="select__listbox" />
-											</Select.Content>
-										</Select.Portal>
+										<SelectTrigger aria-label="Country" class="select__trigger">
+											<SelectValue<string>>
+												{(state) => (
+													state.selectedOption()
+														? dispayCountry(countries.find((cc) => cc[1] === state.selectedOption()))
+														: ""
+												)}
+											</SelectValue>
+										</SelectTrigger>
+										<SelectContent class="select__content" />
 									</Select>
 									<button class="rounded-sm p-1 m-1 btn-default" onClick={saveCountryCode}>Save</button>
 								</>
