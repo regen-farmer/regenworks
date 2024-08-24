@@ -166,7 +166,7 @@ function DefaultMode({
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h1 class="modal-title" id="deleteFieldModalLabel">
+							<h1 class="h1 modal-title" id="deleteFieldModalLabel">
 								Confirm deletion of field
 							</h1>
 						</div>

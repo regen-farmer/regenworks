@@ -12,9 +12,9 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import maplibregl from "maplibre-gl";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Button, Row } from "solid-bootstrap";
 import type turf from "@turf/turf";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const params = useParams();
@@ -291,14 +291,14 @@ export default function view() {
 						{/* <!--<div class="col-md-3">
             <div class="card">
                 <div class="card-body">
-                    <h2>Existing assets</h2>
+                    <h2 class="h2">Existing assets</h2>
                 </div>
             </div>
         </div>--> */}
 						<div class="col-md-6">
 							<div class="card">
 								<div class="card-body">
-									<h2>Existing rows {showDeleteRowModal()}</h2>
+									<h2 class="h2">Existing rows {showDeleteRowModal()}</h2>
 									<table class="table small">
 										<tbody>
 											<tr class="table-secondary">
@@ -336,8 +336,7 @@ export default function view() {
 																	>
 																		<i class="far fa-edit" />
 																	</A>
-																	<Button
-																		variant="danger"
+																	<button class="btn btn-danger"
 																		data-bs-toggle="modal"
 																		data-bs-target={`#deleteRowModal_${row._id}`}
 																		onClick={() =>
@@ -345,7 +344,7 @@ export default function view() {
 																		}
 																	>
 																		<i class="far fa-trash-alt" />
-																	</Button>
+																	</button>
 																</td>
 															</tr>
 															{/* // <!-- Modal --> */}
@@ -391,15 +390,14 @@ export default function view() {
 																					<i class="far fa-trash-alt" />
 																				</button>
 																			</form>
-																			<Button
-																				variant="default"
+																			<button class="btn btn-dark"
 																				data-bs-dismiss="modal"
 																				onClick={() =>
 																					setShowDeleteRowModal("")
 																				}
 																			>
 																				Cancel
-																			</Button>
+																			</button>
 																		</div>
 																	</div>
 																</div>
@@ -417,7 +415,7 @@ export default function view() {
 							>
 								<div class="card">
 									<div class="card-body">
-										<h2>Sub-areas</h2>
+										<h2 class="h2">Sub-areas</h2>
 										<table class="table small">
 											<tbody>
 												<tr class="table-secondary">
@@ -474,7 +472,7 @@ export default function view() {
                                       >
                                         &times;
                                       </button>
-                                      <h4 class='modal-title'>
+                                      <h4 class='h4 modal-title'>
                                         Confirm deletion of area
                                       </h4>
                                     </div>
@@ -530,7 +528,7 @@ export default function view() {
                           >
                             &times;
                           </button>
-                          <h4 class='modal-title'>Confirm delete all areas</h4>
+                          <h4 class='h4 modal-title'>Confirm delete all areas</h4>
                         </div>
                         <div class='modal-body'>
                           <p>

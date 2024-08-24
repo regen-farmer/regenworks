@@ -20,7 +20,7 @@ export function ScenarioSideBar(props: any) {
 					}}
 				>
 					<br />
-					<h4>Scenario</h4>
+					<h4 class="h4">Scenario</h4>
 					<ul class="navbar-nav sidebar">
 						<li class="nav-item">
 							{/* <A class='nav-link' href={`/users/${ currentUser._id }`}> */}

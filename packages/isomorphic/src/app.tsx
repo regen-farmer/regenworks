@@ -3,6 +3,7 @@ import { Suspense } from "solid-js";
 import { FileRoutes } from "@solidjs/start/router";
 import { Router } from "@solidjs/router";
 import "./app.css";
+import "./style.css";
 import { SessionProvider } from "@solid-mediakit/auth/client";
 
 // Import mongoose models

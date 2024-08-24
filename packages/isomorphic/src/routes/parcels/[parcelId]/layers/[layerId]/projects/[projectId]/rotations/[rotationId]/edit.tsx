@@ -54,7 +54,7 @@ export default function view() {
 		<>
 			<div class="row">
 				<div class="col-lg-12">
-					<h1>Update crop rotation</h1>
+					<h1 class="h1">Update crop rotation</h1>
 					<p>This page lets you update an existing crop rotation. </p>
 					<form method="post" action={Form}>
 						<div class="form-group">

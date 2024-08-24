@@ -398,7 +398,7 @@ export const EditFieldMode: Component<{
 			</div>
 
 			<Show when={fieldName() !== ""}>
-				{/* <h1 class="addFieldModeDescription"> */}
+				{/* <h1 class="h1 addFieldModeDescription"> */}
 				<h1
 					style={{
 						background: "rgba(0,0,0,0.4)",

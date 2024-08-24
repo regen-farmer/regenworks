@@ -55,7 +55,7 @@ export function ThemeSelect() {
 			)}
 		>
 			<Select.Trigger class="select__trigger" aria-label="Fruit">
-				<Select.Value<string> class="select__value">
+				<Select.Value<string> class="select__value px-2">
 					{(state) => (
 						<ThemeDisplaySimple themeString={state.selectedOption()} />
 					)}

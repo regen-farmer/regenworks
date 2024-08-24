@@ -1,4 +1,4 @@
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 import { For, Show, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, useNavigate } from "@solidjs/router";
@@ -56,11 +56,11 @@ export default function view() {
 				<Row>
 					<div class="col-lg-2" />
 					<div class="col-lg-8">
-						<h2>
+						<h2 class="h2">
 							Create establishment budget for project "{data()?.project.name}"
 						</h2>
 						<form method="post" action={routeAction}>
-							<h2>Budget specifications</h2>
+							<h2 class="h2">Budget specifications</h2>
 							<div class="card">
 								<div class="card-body">
 									<label for="budget[currency]">Currency</label>
@@ -72,7 +72,7 @@ export default function view() {
 									</div>
 								</div>
 							</div>
-							<h2>Area specific activities</h2>
+							<h2 class="h2">Area specific activities</h2>
 							<div class="card">
 								<div class="card-body">
 									<Row>
@@ -99,7 +99,7 @@ export default function view() {
 									</Row>
 								</div>
 							</div>
-							<h2>Species specific activities</h2>
+							<h2 class="h2">Species specific activities</h2>
 							<For each={data()?.species}>
 								{(species) => (
 									<div class="card">

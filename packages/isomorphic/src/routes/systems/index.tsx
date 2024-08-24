@@ -15,7 +15,7 @@ export default function view() {
 
 	return (
 		<div class="container">
-			<h1>Systems</h1>
+			<h1 class="h1">Systems</h1>
 			<p>Count: {data()?.systems.length}</p>
 			<table class="table table-striped">
 				<tbody>

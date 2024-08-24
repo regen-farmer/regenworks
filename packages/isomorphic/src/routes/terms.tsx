@@ -9,7 +9,7 @@ const RouteViewTerms: Component = () => {
 			<main class="paper">
 				<div>
 					<div class="container">
-						<h1>Terms of Service</h1>
+						<h1 class="h1">Terms of Service</h1>
 						<p>
 							<em>Effective as of October 9, 2020</em>
 						</p>
@@ -45,7 +45,7 @@ const RouteViewTerms: Component = () => {
 							Waiver; Choice of Law) OF THESE TERMS OF USE FOR DETAILS.
 						</p>
 
-						<h2>1.CERTAIN DEFINITIONS</h2>
+						<h2 class="h2">1.CERTAIN DEFINITIONS</h2>
 						<p>As used in these Terms of Use:</p>
 						<ul>
 							<li>
@@ -116,7 +116,7 @@ const RouteViewTerms: Component = () => {
 								the RegenWorks Platform.
 							</li>
 						</ul>
-						<h2>2. GENERAL PROVISIONS.</h2>
+						<h2 class="h2">2. GENERAL PROVISIONS.</h2>
 						<p>
 							2.1 Eligibility. You represent and warrant that you have reached
 							the age of majority in your country of resident and have full
@@ -229,7 +229,7 @@ const RouteViewTerms: Component = () => {
 							such data, in violation of the Danish export laws or regulations.
 						</p>
 
-						<h2>3. ACCOUNT REGISTRATION; SUBSCRIPTION.</h2>
+						<h2 class="h2">3. ACCOUNT REGISTRATION; SUBSCRIPTION.</h2>
 						<p>
 							3.1 Account Registration. To use the RegenWorks Platform, you must
 							register an account.
@@ -366,7 +366,7 @@ const RouteViewTerms: Component = () => {
 							version of any Beta Offering.
 						</p>
 
-						<h2>4. USE OF THE RegenWorks PLATFORM.</h2>
+						<h2 class="h2">4. USE OF THE RegenWorks PLATFORM.</h2>
 						<p>
 							4.1 Our Limited License to You. Subject to your compliance with
 							these Terms of Use and all applicable laws, RegenWorks hereby
@@ -801,7 +801,7 @@ const RouteViewTerms: Component = () => {
 							indemnity obligations hereunder.
 						</p>
 
-						<h2>5. DISCLAIMER OF WARRANTIES; LIMITATIONS OF LIABILITY.</h2>
+						<h2 class="h2">5. DISCLAIMER OF WARRANTIES; LIMITATIONS OF LIABILITY.</h2>
 						<p>
 							By using the RegenWorks Platform, you acknowledge and agree as
 							follows:
@@ -856,7 +856,7 @@ const RouteViewTerms: Component = () => {
 							THE EVENT FOR WHICH DAMAGES ARE CLAIMED.
 						</p>
 
-						<h2>
+						<h2 class="h2">
 							6. DISPUTE RESOLUTION BY BINDING ARBITRATION AND CLASS ACTION
 							WAIVER; CHOICE OF LAW.
 						</h2>
@@ -968,7 +968,7 @@ const RouteViewTerms: Component = () => {
 							otherwise involving the RegenWorks Platform.
 						</p>
 
-						<h2>7. CHANGES TO TERMS.</h2>
+						<h2 class="h2">7. CHANGES TO TERMS.</h2>
 						<p>
 							From time to time, we may also modify these Terms of Use to
 							accommodate new technology, industry practices, regulatory
@@ -986,7 +986,7 @@ const RouteViewTerms: Component = () => {
 							any) and discontinue use of the RegenWorks Platform.
 						</p>
 
-						<h2>8. FORCE MAJEURE.</h2>
+						<h2 class="h2">8. FORCE MAJEURE.</h2>
 						<p>
 							Any failure or delay by RegenWorks in the performance of its
 							obligations pursuant to these Terms of Use will not be deemed a
@@ -1001,7 +1001,7 @@ const RouteViewTerms: Component = () => {
 							cause beyond the reasonable control of RegenWorks.
 						</p>
 
-						<h2>9. MISCELLANEOUS.</h2>
+						<h2 class="h2">9. MISCELLANEOUS.</h2>
 						<p>
 							If any provision of these Terms of Use is deemed invalid, illegal
 							or unenforceable by a court of competent jurisdiction, the
@@ -1023,7 +1023,7 @@ const RouteViewTerms: Component = () => {
 							understandings, or agreements regarding the subject matter hereof.
 						</p>
 
-						<h2>10. CONTACT US.</h2>
+						<h2 class="h2">10. CONTACT US.</h2>
 
 						<p>
 							Regen Farmer ApS

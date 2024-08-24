@@ -7,7 +7,7 @@ import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import MPObj from "multipart-object";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const location = useLocation();
@@ -115,7 +115,7 @@ export default function view() {
 			<Show when={data()}>
 				<Row>
 					<div class="col-lg-12">
-						<h1>Update agroforestry system model "{data()?.system.name}"</h1>
+						<h1 class="h1">Update agroforestry system model "{data()?.system.name}"</h1>
 						<p>This page lets you update your agroforestry system model.</p>
 						<form method="post" action={Form}>
 							<div class="form-group">
@@ -176,7 +176,7 @@ export default function view() {
 									Share this system with other farmers
 								</label>
 							</div>
-							<h3>System model</h3>
+							<h3 class="h3">System model</h3>
 							<Row>
 								<Show when={data()?.newrow === 0}>
 									<div

@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "@solidjs/router";
-import { Button, Row, Tab, Tabs } from "solid-bootstrap";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import {
 	createEffect,
 	createMemo,
@@ -17,6 +17,7 @@ import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { Row } from "~/components/row/Row";
 
 export default function view() {
 	const params = useParams();
@@ -275,11 +276,22 @@ export default function view() {
 			{/* <ScenarioSideBar> */}
 			<div style={{ padding: "20px" }}>
 				<Show when={data()}>
-					{/* <h1>Scenario dashboard </h1> */}
-					<Row>
-						<div>
-							<Tabs defaultActiveKey={"info"}>
-								<Tab eventKey="info" title="Info">
+					{/* <h1 class="h1">Scenario dashboard </h1> */}
+					<Row>	
+						<div class="w-full">
+							<Tabs defaultValue="info">
+
+								<TabsList class="grid w-fit grid-cols-2">
+									<TabsTrigger class="border" value="info">Info</TabsTrigger>
+									<TabsTrigger class="border" value="generateassets">KML</TabsTrigger>
+									{/* <TabsTrigger value="systems">System</TabsTrigger>
+									<TabsTrigger value="layout">Layout</TabsTrigger>
+									<TabsTrigger value="financials">Financials</TabsTrigger>
+									<TabsTrigger value="assets">Assets</TabsTrigger>
+									<TabsTrigger value="implementation">Implementation</TabsTrigger> */}
+								</TabsList>
+								
+								<TabsContent value="info" title="Info">
 									<div class="card">
 										<div class="card-body">
 											<p>
@@ -419,7 +431,7 @@ export default function view() {
 												</div>
 											</div>
 
-											{/* <h2>System design</h2> */}
+											{/* <h2 class="h2">System design</h2> */}
 											<A
 												href={`/parcels/${params.parcelId}/layers/${
 													params.layerId
@@ -537,10 +549,10 @@ export default function view() {
 											)}
 										</div>
 									</div>
-								</Tab>
+								</TabsContent>
 
 								{false ? (
-									<Tab eventKey="systems" title="System">
+									<TabsContent value="systems" title="System">
 										<div class="card">
 											<div class="card-body">
 												<Row>
@@ -624,6 +636,7 @@ export default function view() {
 													)}
 												</Row>
 												<hr />
+
 												<Show when={data()?.layer.systems.future}>
 													<For each={data()?.layer.systems.future}>
 														{(system, i) => (
@@ -640,7 +653,7 @@ export default function view() {
 																		View more details
 																	</A>
 
-																	<Button
+																	<button
 																		disabled={settingSystem()}
 																		class="btn btn-dark"
 																		onclick={async () => {
@@ -667,7 +680,7 @@ export default function view() {
 																		}}
 																	>
 																		Use this system in scenario
-																	</Button>
+																	</button>
 
 																	{/* <Show
                               when={
@@ -675,16 +688,17 @@ export default function view() {
                                 system.owner.id === mongoDBDBUser()._id
                               }
                             >
-                              <Button
-                                variant='danger'
+                              <button class="btn btn-danger"
+                                
                                 data-bs-toggle='modal'
                                 data-bs-target='#deleteSystemModal'
                               >
                                 Delete <i class='far fa-trash-alt' />
-                              </Button>
+                              </button>
                             </Show> */}
 
 																	{/* <!-- Delete system Modal -->  */}
+																	
 																	<div
 																		class="modal fade"
 																		id="deleteSystemModal"
@@ -714,20 +728,20 @@ export default function view() {
 																					</p>
 																				</div>
 																				<div class="modal-footer">
-																					<Button
+																					<button class="btn btn-danger"
 																						data-bs-dismiss="modal"
-																						variant="danger"
+																						
 																						onClick={deleteSystem(system)}
 																					>
 																						Delete system{" "}
 																						<i class="far fa-trash-alt" />
-																					</Button>
-																					<Button
+																					</button>
+																					<button class="btn btn-dark"
 																						data-bs-dismiss="modal"
-																						variant="default"
+																						
 																					>
 																						Cancel
-																					</Button>
+																					</button>
 																				</div>
 																			</div>
 																		</div>
@@ -775,16 +789,16 @@ export default function view() {
                         </A> */}
 											</div>
 										</div>
-									</Tab>
+									</TabsContent>
 								) : (
 									<></>
 								)}
 
 								{false ? (
-									<Tab eventKey="layout" title="Layout">
+									<TabsContent value="layout" title="Layout">
 										<div class="card">
 											<div class="card-body">
-												<h2>Layout</h2>
+												<h2 class="h2">Layout</h2>
 												{data()?.project.status === "planning" ? (
 													<A
 														href={`/parcels/${params.parcelId}/layers/${
@@ -859,13 +873,13 @@ export default function view() {
 												</div>
 											</div>
 										</div>
-									</Tab>
+									</TabsContent>
 								) : (
 									<></>
 								)}
 
 								{/* {data()?.project.systemdesign?(
-<Tab eventKey='financials' title='Financials'> */}
+<TabsContent value="financials" title='Financials'> */}
 								{/* <div class='card'>
 									<div class='card-body'>
 										<h2 class='card-title'>Project budgets</h2>
@@ -965,13 +979,13 @@ export default function view() {
 										)} */}
 								{/* </div>
                       </div>
-                    </Tab>
+                    </TabsContent>
 
                     ):<></>} */}
 
 								{data()?.project.systemdesign ? (
 									<>
-										<Tab eventKey="generateassets" title="Export KML">
+										<TabsContent value="generateassets" title="Export KML">
 											<div class="card">
 												<div class="card-body">
 													
@@ -1044,7 +1058,7 @@ export default function view() {
 													</div>
 												</div>
 											</div>
-										</Tab>
+										</TabsContent>
 									</>
 								) : (
 									<></>
@@ -1052,10 +1066,10 @@ export default function view() {
 
 								{data()?.project.status === "Implementation" ? (
 									<>
-										<Tab eventKey="assets" title="Assets">
+										<TabsContent value="assets" title="Assets">
 											<div class="card">
 												<div class="card-body">
-													<h2 class="card-title">Assets</h2>
+													<h2 class="h2 card-title">Assets</h2>
 													<p>
 														{" "}
 														Tree asset count: {
@@ -1102,16 +1116,16 @@ export default function view() {
 													</form>
 												</div>
 											</div>
-										</Tab>
-										<Tab eventKey="implementation" title="Implementation">
+										</TabsContent>
+										<TabsContent value="implementation" title="Implementation">
 											<div class="card">
 												<div class="card-body">
-													<h2 class="card-title">Implementation</h2>
+													<h2 class="h2 card-title">Implementation</h2>
 													{data()?.project.activities &&
 													data()?.project.activities.length! > 0 ? (
 														<div class="card">
 															<div class="card-body">
-																<h2>Activity plan</h2>
+																<h2 class="h2">Activity plan</h2>
 																<table class="table small">
 																	<tbody>
 																		<tr class="table-secondary">
@@ -1297,7 +1311,7 @@ export default function view() {
 													</div>
 												</div>
 											</div>
-										</Tab>
+										</TabsContent>
 									</>
 								) : (
 									<></>
@@ -1333,7 +1347,7 @@ export default function view() {
 							<div>
 								{/*                 <!--<div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Project planning and activities</h2>
+                        <h2 class="h2 card-title">Project planning and activities</h2>
                         <% if(data()?.project.activities.length > 0){ }
                         <table class="table table-striped small">
                             <tr>

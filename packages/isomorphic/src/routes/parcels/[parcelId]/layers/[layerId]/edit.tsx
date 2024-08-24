@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 import { Show, createResource } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
@@ -48,7 +48,7 @@ export default function view() {
 					<Row>
 						<div class="col-lg-3" />
 						<div class="col-lg-6">
-							<h2>Edit field "{data()?.layer.name}"</h2>
+							<h2 class="h2">Edit field "{data()?.layer.name}"</h2>
 							<div>
 								<form method="post" action={routeAction}>
 									<div class="form-group">

@@ -127,7 +127,7 @@ export default function view() {
 		<>
 			<div class="row">
 				<div class="col-lg-6">
-					<h2>Add new row</h2>
+					<h2 class="h2">Add new row</h2>
 					<A
 						href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/layout`}
 						class="btn mt-2 mb-2 btn-dark"

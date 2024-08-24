@@ -6,7 +6,16 @@ import {
 	setStripeCustomer,
 	subscriptions,
 } from "~/auth/useAuth.tsx";
-import { Button, Card } from "solid-bootstrap";
+
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "~/components/ui/card";
+
 import { type Component, createEffect, createSignal, Show } from "solid-js";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import _ from "lodash";
@@ -31,7 +40,7 @@ async function updateStripeData() {
 	const customerData = await customerResponse.json();
 	const stripeCustomer = JSON.stringify(customerData);
 	localStorage.setItem("stripeCustomer", stripeCustomer);
-	setStripeCustomer(JSON.parse(stripeCustomer))
+	setStripeCustomer(JSON.parse(stripeCustomer));
 }
 
 interface StripePrice {
@@ -56,8 +65,7 @@ interface StripePrice {
 }
 
 const RouteViewAccount: Component = () => {
-
-	updateStripeData()
+	updateStripeData();
 
 	const [currency, setCurrency] = createSignal<string>();
 	const [prices, setPrices] = createSignal<{
@@ -268,7 +276,7 @@ const RouteViewAccount: Component = () => {
 			<main class="paper">
 				<div>
 					<div class="container">
-						<h3>Profile</h3>
+						<h3 class="h3">Profile</h3>
 
 						<p>Email: {getMongoDBUser()?.email}</p>
 						<Show when={getMongoDBUser()?.countryCode}>
@@ -294,10 +302,6 @@ const RouteViewAccount: Component = () => {
 
 						<br />
 
-						{/* <ButtonGroup aria-label='Basic example'>
-            <Button variant='secondary'>1 Month</Button>
-            <Button variant='secondary'>6 Months</Button>
-          </ButtonGroup> */}
 
 						<Show
 							when={getMongoDBUser().countryCode}
@@ -330,7 +334,7 @@ const RouteViewAccount: Component = () => {
 										)}
 									>
 										<Select.Trigger class="select__trigger" aria-label="Fruit">
-											<Select.Value<string> class="select__value">
+											<Select.Value<string> class="select__value px-2">
 												{(state) => {
 													return dispayCountry(
 														countries.find(
@@ -346,7 +350,7 @@ const RouteViewAccount: Component = () => {
 											</Select.Content>
 										</Select.Portal>
 									</Select>
-									<Button onClick={saveCountryCode}>Save</Button>
+									<button class="btn btn-dark" onClick={saveCountryCode}>Save</button>
 								</>
 							}
 						>
@@ -358,7 +362,7 @@ const RouteViewAccount: Component = () => {
 										fallback={<div>Loading subscriptions and prices...</div>}
 									>
 										<Show when={subscriptions()}>
-											<h3>Plan</h3>
+											<h3 class="h3">Plan</h3>
 
 											{subscriptions()?.legacy ? (
 												<>
@@ -390,7 +394,7 @@ const RouteViewAccount: Component = () => {
 																}}
 																onClick={async () => {
 																	await deleteSubscription(subscriptions().id);
-																	await updateStripeData()
+																	await updateStripeData();
 																}}
 															>
 																Disable renewal
@@ -402,8 +406,11 @@ const RouteViewAccount: Component = () => {
 																	cursor: "pointer",
 																}}
 																onClick={async () => {
-																	await deleteSubscription(subscriptions().id, false);
-																	await updateStripeData()
+																	await deleteSubscription(
+																		subscriptions().id,
+																		false,
+																	);
+																	await updateStripeData();
 																}}
 															>
 																Cancel subscription immediately
@@ -442,23 +449,24 @@ const RouteViewAccount: Component = () => {
 										</Show>
 
 										<Show when={!subscriptions() && currency() && prices()}>
-											<h3>Plans</h3>
+											<h3 class="h3">Plans</h3>
 											<div
 												style={{
 													display: "flex",
 												}}
 											>
 												<Card
-													style={{
-														width: "18rem",
-														border: "1px solid rgb(57 58 75)",
-														"margin-right": "10px",
-													}}
+													class="dark:bg-zinc-900 bg-zinc-100 mr-4 dark:border-zinc-700 border-zinc-300 border-2"
 												>
+													
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-													<Card.Body>
-														<Card.Title>Farm</Card.Title>
-														<Card.Text>Manage a single farm</Card.Text>
+													<CardHeader>
+														<CardTitle>Farm</CardTitle>
+														<CardDescription>
+															Manage a single farm
+														</CardDescription>
+													</CardHeader>
+													<CardContent>
 														<form method="post" action={CreateSubscriptionForm}>
 															<input
 																type="hidden"
@@ -479,10 +487,10 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																1 Month - {formatPrice(prices().farmMonth!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 
 														<form method="post" action={CreateSubscriptionForm}>
@@ -505,24 +513,25 @@ const RouteViewAccount: Component = () => {
 																name="currency"
 																value={currency()}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																6 Months - {formatPrice(prices().farm6Months!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
-													</Card.Body>
+													</CardContent>
 												</Card>
 
 												<Card
-													style={{
-														width: "18rem",
-														border: "1px solid rgb(57 58 75)",
-													}}
+													class="dark:bg-zinc-900 bg-zinc-100 mr-4 dark:border-zinc-700 border-zinc-300 border-2"
 												>
 													{/* <Card.Img variant='top' src='/images/banner-regular.png' /> */}
-													<Card.Body>
-														<Card.Title>Advisor</Card.Title>
-														<Card.Text>Manage up to 10 farms</Card.Text>
+													<CardHeader>
+														<CardTitle>Advisor</CardTitle>
+														<CardDescription>
+															Manage up to 10 farms
+														</CardDescription>
+													</CardHeader>
+													<CardContent>
 														<form method="post" action={CreateSubscriptionForm}>
 															<input
 																type="hidden"
@@ -544,10 +553,10 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
 
 														<form method="post" action={CreateSubscriptionForm}>
@@ -570,13 +579,13 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<Button type="submit" variant="primary">
+															<button class="btn btn-primary" type="submit">
 																6 Months -{" "}
 																{formatPrice(prices().advisor6Months!)}{" "}
 																{currency()}
-															</Button>
+															</button>
 														</form>
-													</Card.Body>
+													</CardContent>
 												</Card>
 											</div>
 										</Show>

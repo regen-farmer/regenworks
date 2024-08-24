@@ -1,4 +1,4 @@
-import { Row } from "solid-bootstrap";
+import { Row } from "~/components/row/Row";
 
 // @ts-ignore
 import { useAuth0 } from "~/auth";

@@ -109,7 +109,7 @@ export default function view() {
 	return (
 		<>
 			<div style={{ padding: "20px" }}>
-				<h2>Add new row</h2>
+				<h2 class="h2">Add new row</h2>
 				<A
 					href={`/parcels/${params.parcelId}/layers/${params.layerId}/layout`}
 					class="btn mt-2 mb-2 btn-dark"

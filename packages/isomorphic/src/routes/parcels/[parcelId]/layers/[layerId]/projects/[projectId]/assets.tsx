@@ -105,7 +105,7 @@ export default function view() {
 				<div class="col-md-5">
 					<div class="card">
 						<div class="card-body">
-							<h2 class="card-title">Digital Tree Asset Count</h2>
+							<h2 class="h2 card-title">Digital Tree Asset Count</h2>
 							<For each={data()?.treecounts}>
 								{(count) => (
 									<p class="card-text">
