@@ -469,7 +469,7 @@ export default function view() {
 														target="_blank"
 														href={`/scenario-preview/${params.projectId}`}
 													>
-														<div class="rounded-sm p-1 m-1 btn-default">
+														<div class="rounded-sm p-1 m-1 w-fit btn-default">
 															See preview
 														</div>
 													</A>
