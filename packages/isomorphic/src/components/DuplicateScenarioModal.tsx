@@ -1,4 +1,12 @@
-import { Dialog } from "@kobalte/core";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "~/components/ui/dialog";
 import { Show, createResource, createSignal } from "solid-js";
 import "~/styling/modal.css";
 import { action } from "@solidjs/router";
@@ -73,60 +81,51 @@ export function DuplicateScenarioModal({
 	return (
 		<div>
 			<Show when={modalOpen()}>
-				<Dialog.Root open={modalOpen()}>
-					<Dialog.Portal>
-						<Dialog.Overlay class="dialog__overlay" />
-						<div class="dialog__positioner">
-							<Dialog.Content
-								class="dialog__content"
-								onPointerDownOutside={cancel}
-							>
-								<div class="dialog__header">
-									<Dialog.Title class="dialog__title">
-										Duplicate "{activeScenario().name}"
-									</Dialog.Title>
-								</div>
-								<Dialog.Description class="dialog__description">
-									<Show when={data()}>
-										<Row>
-											<div>
-												<form method="post" action={routeAction}>
-													<div class="form-group">
-														<label for="project[name]">Scenario title</label>
-														{/* disable input when submiting disabled */}
-														<input
-															type="text"
-															class="form-control"
-															name="project[name]"
-															placeholder=""
-															required
-															disabled={submitDisabled()}
-														/>
-													</div>
-													
-													<br />
-													<div class="btn-group">
-														<button
-															disabled={submitDisabled()}
-															type="submit"
-															class="rounded-sm p-1 m-1 btn-default"
-														>
-															Duplicate scenario
-														</button>
-													</div>
-												</form>
+				<Dialog open={modalOpen()} onOpenChange={cancel}>
+					<DialogContent onPointerDownOutside={cancel}>
+						<DialogHeader>
+							<DialogTitle>
+								Duplicate "{activeScenario().name}"
+							</DialogTitle>
+						</DialogHeader>
+						<DialogDescription>
+							<Show when={data()}>
+								<Row>
+									<div>
+										<form method="post" action={routeAction}>
+											<div class="form-group">
+												<label for="project[name]">Scenario title</label>
+												<input
+													type="text"
+													class="form-control"
+													name="project[name]"
+													placeholder=""
+													required
+													disabled={submitDisabled()}
+												/>
 											</div>
-										</Row>
-									</Show>
+											
+											<br />
+											<div class="btn-group">
+												<button
+													disabled={submitDisabled()}
+													type="submit"
+													class="rounded-sm p-1 m-1 btn-default"
+												>
+													Duplicate scenario
+												</button>
+											</div>
+										</form>
+									</div>
+								</Row>
+							</Show>
 
-									<Show when={error()}>
-										<p>{error()}</p>
-									</Show>
-								</Dialog.Description>
-							</Dialog.Content>
-						</div>
-					</Dialog.Portal>
-				</Dialog.Root>
+							<Show when={error()}>
+								<p>{error()}</p>
+							</Show>
+						</DialogDescription>
+					</DialogContent>
+				</Dialog>
 			</Show>
 		</div>
 	);
