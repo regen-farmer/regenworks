@@ -1,5 +1,20 @@
-import type { IRow } from "~/routes/parcels/[parcelId]/layers/[layerId]/projects/[projectId]/designer.tsx";
 import "./add-row.css";
+import type { ISpeciesSchema } from "@rw/db/schemas/species";
+
+
+export interface IRow {
+	sequence: {
+		species: ISpeciesSchema | string;
+		spacingAfter: number;
+	}[];
+	offset?: {
+		before?: number;
+		after?: number;
+	};
+	groundcover?: ISpeciesSchema;
+	width: number;
+}
+
 
 export function AddRow(props: {
 	index: number;
