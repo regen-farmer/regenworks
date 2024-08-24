@@ -5,10 +5,7 @@
 @layer base {
   :root {
 
-    /* UNSET */
-    --bs-border-width: unset;
-    --bs-border-style: unset;
-    --bs-border-color: unset;
+    --font-color-dark: #e5e5e5;
 
     --background: 0 0% 90%;
     --foreground: 240 10% 3.9%;
@@ -119,3 +116,4 @@
     @apply px-4;
   }
 }
+

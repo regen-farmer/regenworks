@@ -1,6 +1,3 @@
-:root {
-  --font-color-dark: #e5e5e5;
-}
 
 body {
   font-family: "Open Sans", sans-serif;
@@ -47,14 +44,6 @@ button[data-corvu-resizable-handle] {
     &:hover {
       background: #aaa;
   }
-}
-
-.theme-dark button[data-corvu-resizable-handle] {
-  background: #555;
-}
-
-.theme-dark button[data-corvu-resizable-handle][data-active], button[data-corvu-resizable-handle][data-dragging] {
-  background: #333;
 }
 
 
@@ -124,43 +113,6 @@ button[data-corvu-resizable-handle] {
   background-position: center;
 }
 
-.navbar-brand {
-  color: black;
-  cursor: pointer;
-}
-
-.navbar-nav a.inactive {
-  color: rgb(125, 125, 125);
-}
-
-.navbar-nav a.inactive:hover {
-  color: black;
-}
-
-.theme-dark .navbar-nav a.inactive {
-  color: rgb(125, 125, 125);
-}
-
-.theme-dark .navbar-nav a.inactive:hover {
-  color: var(--font-color-dark);
-}
-
-.theme-dark .navbar-brand {
-  color: var(--font-color-dark);
-}
-.navbar {
-  color: rgb(125, 125, 125);
-  background-color: white;
-  border-bottom: 1px solid rgb(220, 220, 220);
-  --bs-navbar-color: unset !important;
-}
-
-.theme-dark .navbar {
-  --bs-navbar-brand-color: unset;
-  background-color: rgb(35, 35, 45);
-  border-bottom: 1px solid rgb(69, 74, 96);
-  --bs-navbar-hover-color: white;
-}
 
 select:focus {
   outline: none;
@@ -225,9 +177,6 @@ a {
   border-color: #424652;
 }
 
-.tab-content {
-  border: none;
-}
 
 .theme-dark .table.table-striped td {
   color: var(--font-color-dark);
@@ -259,16 +208,7 @@ a {
   border: 1px solid white;
 }
 
-.tab-content {
-  padding: 0;
-}
 
-.theme-dark .tab-content {
-  background-color: rgb(35, 35, 45);
-  border-color: rgb(35, 35, 45);
-  border-width: 2px;
-  border-style: solid;
-}
 
 .list-group-item {
   background-color: white;
