@@ -354,6 +354,7 @@ export const AddLPISFieldMode: Component<{
 									required
 									id="input"
 								/>
+								<br />
 
 								<button
 									type="button"
