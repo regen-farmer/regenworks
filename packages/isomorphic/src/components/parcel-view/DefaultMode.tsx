@@ -11,8 +11,14 @@ import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { map } from "lodash";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "../ui/dialog";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -41,7 +47,7 @@ function DefaultMode({
 	params,
 	setMode,
 	getMap,
-	refetch
+	refetch,
 }: DefaultModeProps) {
 	//   function enterAddFieldMode(e: any) {
 	//     e.preventDefault();
@@ -57,15 +63,17 @@ function DefaultMode({
 		getMap().off("click", "field-fills", navigateToField);
 	}
 
-	const [activeField, setActiveField] = createSignal<string | undefined>(undefined)
+	const [activeField, setActiveField] = createSignal<string | undefined>(
+		undefined,
+	);
 
 	function enterAddFieldMode() {
-		cleanupLayers()
+		cleanupLayers();
 		setMode(modes.addField);
 	}
 
 	function enterAddLPISFieldMode() {
-		cleanupLayers()
+		cleanupLayers();
 		setMode(modes.addLPISField);
 	}
 
@@ -151,35 +159,35 @@ function DefaultMode({
 	}
 
 	onMount(() => {
-		getMap().on('load', ()=>{
+		if (getMap().isStyleLoaded()) {
 			drawFields();
-		})
-		
+		} else {
+			getMap().on("load", () => {
+				drawFields();
+			});
+		}
 	});
 
-
 	const deleteForm = action(async (formData: FormData) => {
+		await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${activeField()}`, {
+			body: "",
+			method: "delete",
+			...apiFetchOptions(),
+		});
 
-		await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${activeField()}`,
-			{
-				body: "",
-				method: "delete",
-				...apiFetchOptions(),
-			},
-		);
-
-		setActiveField(undefined)
-		await refetch()
-		drawFields()
+		setActiveField(undefined);
+		await refetch();
+		drawFields();
 	});
 
 	const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
 
-
 	return (
 		<>
-			<Dialog open={deleteFieldModalOpen()} onOpenChange={setDeleteFieldModalOpen}>
+			<Dialog
+				open={deleteFieldModalOpen()}
+				onOpenChange={setDeleteFieldModalOpen}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle id="deleteFieldModalLabel">
@@ -290,7 +298,6 @@ function DefaultMode({
 											setDeleteFieldModalOpen(true)
 											setActiveField(layer._id.toString())
 										}}
-
 									>
 										<i class="fa-solid fa-trash" />
 									</button>
