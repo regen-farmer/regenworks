@@ -195,6 +195,8 @@ router.put(
 					
 					// Save JSON file to geometry
 					layer.name = req.body.layer.name;
+
+					layer.description = req.body.layer.description;
 					
 					if (req.body.size) {
 						layer.size = req.body.layersize;

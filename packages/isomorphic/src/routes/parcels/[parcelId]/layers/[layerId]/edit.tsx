@@ -5,6 +5,7 @@ import { action } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { TextField, TextFieldInput, TextFieldLabel } from "~/components/ui/text-field";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -51,25 +52,25 @@ export default function view() {
 							<h2 class="h2">Edit field "{data()?.layer.name}"</h2>
 							<div>
 								<form method="post" action={routeAction}>
-									<div class="form-group">
-										<label for="layer[name]">Field name</label>
-										<input
-											type="text"
-											class="form-control"
-											name="layer[name]"
-											value={data()?.layer.name}
-											required
-										/>
-									</div>
-									<div class="form-group">
-										<label for="layer[description]">Description</label>
-										<input
-											type="text"
-											class="form-control"
-											name="layer[description]"
-											value={data()?.layer.description}
-										/>
-									</div>
+									
+									<TextField>
+										<TextFieldLabel for="layer[name]">Field name</TextFieldLabel>
+										<TextFieldInput type="text"
+										class="form-control"
+										name="layer[name]"
+										value={data()?.layer.name}
+										required
+										placeholder="Field name" />
+									</TextField>
+
+									<TextField>
+										<TextFieldLabel for="layer[description]">Description</TextFieldLabel>
+										<TextFieldInput type="text"
+										class="form-control"
+										name="layer[description]"
+										value={data()?.layer.description}
+										placeholder="Description" />
+									</TextField>
 									<div class="btn-group">
 										<button type="submit" class="btn btn-dark center-block">
 											Update field
