@@ -174,7 +174,7 @@ export function AddFarmModal({
 										{/* <Show when={isEditing() === false}> */}
 
 										{/* <button
-                        class="btn btn-dark btn-dimmed"
+                        class="rounded-sm p-1 m-1 btn-default btn-dimmed"
                         disabled={submitDisabled()}
                         onClick={()=>{
                           cancel()
@@ -185,7 +185,7 @@ export function AddFarmModal({
                         Cancel
                       </button>
                       <button
-                        class="btn btn-dark"
+                        class="rounded-sm p-1 m-1 btn-default"
                         disabled={submitDisabled()}
                         onClick={() => submit()}
                       >
@@ -196,7 +196,7 @@ export function AddFarmModal({
                     <Show when={isEditing()}> */}
 										<button
 											type="button"
-											class="btn btn-dark btn-dimmed"
+											class="rounded-sm p-1 m-1 btn-default btn-dimmed"
 											disabled={submitDisabled()}
 											onClick={() => {
 												cancel();
@@ -208,7 +208,7 @@ export function AddFarmModal({
 										</button>
 										<button
 											type="button"
-											class="btn btn-dark"
+											class="rounded-sm p-1 m-1 btn-default"
 											disabled={submitDisabled()}
 											onClick={() => submit()}
 										>

@@ -216,7 +216,7 @@ export default function view() {
 						</For>
 
 						<div class="form-group">
-							<button type="submit" class="btn btn-dark mt-3">
+							<button type="submit" class="rounded-sm p-1 m-1 btn-default mt-3">
 								Update row sequence
 							</button>
 						</div>

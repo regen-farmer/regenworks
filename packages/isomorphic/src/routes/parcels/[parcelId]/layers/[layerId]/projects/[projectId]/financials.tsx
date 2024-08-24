@@ -331,7 +331,7 @@ export default function view() {
 									</span>
 									<br />
 									<br />
-									<button type="submit" class="btn btn-dark">
+									<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 										Refresh
 									</button>
 								</form>
@@ -554,11 +554,11 @@ export default function view() {
 										href={`/parcels/${params.parcelId}/layers/${
 											params.layerId
 										}/projects/${data()?.project._id}`}
-										class="btn btn-dark"
+										class="rounded-sm p-1 m-1 btn-default"
 									>
 										<i class="fas fa-arrow-left" /> Back to scenario dashboard
 									</A>
-									<button type="submit" class="btn btn-dark">
+									<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 										Save changes
 									</button>
 								</form>
@@ -848,7 +848,7 @@ export default function view() {
 											</div>
 
 											<br />
-											<button type="submit" class="btn btn-dark">
+											<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 												Save changes
 											</button>
 											<br />

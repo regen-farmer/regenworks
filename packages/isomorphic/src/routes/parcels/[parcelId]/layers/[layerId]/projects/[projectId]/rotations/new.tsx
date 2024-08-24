@@ -243,7 +243,7 @@ export default function view() {
 						<div class="form-group">
 							<input
 								type="submit"
-								class="btn btn-dark mt-3"
+								class="rounded-sm p-1 m-1 btn-default mt-3"
 								value={"Create the new crop rotation"}
 							/>
 						</div>

@@ -5,6 +5,7 @@ import { action } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { TextField, TextFieldInput, TextFieldLabel } from "~/components/ui/text-field";
 
 export default function view() {
 	const params = useParams<{ layerId: string; parcelId: string }>();
@@ -48,30 +49,30 @@ export default function view() {
 					<Row>
 						<div class="col-lg-3" />
 						<div class="col-lg-6">
-							<h2 class="h2">Edit field "{data()?.layer.name}"</h2>
+							<h2 class="h2">Edit field</h2>
 							<div>
 								<form method="post" action={routeAction}>
-									<div class="form-group">
-										<label for="layer[name]">Field name</label>
-										<input
-											type="text"
-											class="form-control"
-											name="layer[name]"
-											value={data()?.layer.name}
-											required
-										/>
-									</div>
-									<div class="form-group">
-										<label for="layer[description]">Description</label>
-										<input
-											type="text"
-											class="form-control"
-											name="layer[description]"
-											value={data()?.layer.description}
-										/>
-									</div>
+									
+									<TextField>
+										<TextFieldLabel for="layer[name]">Field name</TextFieldLabel>
+										<TextFieldInput type="text"
+										class="form-control"
+										name="layer[name]"
+										value={data()?.layer.name}
+										required
+										placeholder="Field name" />
+									</TextField>
+
+									<TextField>
+										<TextFieldLabel for="layer[description]">Description</TextFieldLabel>
+										<TextFieldInput type="text"
+										class="form-control"
+										name="layer[description]"
+										value={data()?.layer.description}
+										placeholder="Description" />
+									</TextField>
 									<div class="btn-group">
-										<button type="submit" class="btn btn-dark center-block">
+										<button type="submit" class="rounded-sm p-1 m-1 btn-default center-block">
 											Update field
 										</button>
 									</div>

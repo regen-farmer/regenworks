@@ -212,7 +212,7 @@ const RouteViewHome: Component = () => {
 							</strong>
 							<div>
 								<Show when={data()?.parcels}>
-									<div class="list-group">
+									<div class="list-group rounded-sm">
 										<For each={data()?.parcels}>
 											{(parcel) => (
 												<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
@@ -227,7 +227,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Edit farm"
 															type="button"
-															class={"btn btn-dark menu-btn list-group-button"}
+															class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 															onClick={() => enterEditMode(parcel)}
 														>
 															<i class="fa-solid fa-pen" />
@@ -237,7 +237,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Show farm on map"
 															type="button"
-															class={"btn btn-dark menu-btn list-group-button"}
+															class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 															onClick={() => {
 																// Go to location of parcel
 																setCoordinates([
@@ -258,9 +258,9 @@ const RouteViewHome: Component = () => {
 							{allowFarmCreation() ? (
 								<button
 									type="button"
-									class={"btn btn-dark"}
+									class={"rounded-sm p-1 m-1 btn-default w-fit"}
 									onClick={() => enterAddFarmMode()}
-									style={{ width: "100%" }}
+									
 								>
 									Add new farm
 								</button>
@@ -307,7 +307,7 @@ const RouteViewHome: Component = () => {
 							<div />
 							<button
 								type="button"
-								class={"btn btn-dark"}
+								class={"rounded-sm p-1 m-1 btn-default"}
 								onClick={() => submitAndGoToDefaultMode()}
 								style={{ width: "100%" }}
 							>
@@ -315,7 +315,7 @@ const RouteViewHome: Component = () => {
 							</button>
 							<button
 								type="button"
-								class={"btn btn-danger"}
+								class={"rounded-sm p-1 m-1 btn-danger"}
 								onClick={() => {
 									cancel();
 								}}

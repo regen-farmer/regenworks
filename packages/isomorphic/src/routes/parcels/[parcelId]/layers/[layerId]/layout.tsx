@@ -270,20 +270,20 @@ export default function view() {
 							<div id="layerMapShow" />
 							<A
 								href={`/parcels/${params.parcelId}/layers/${params.layerId}`}
-								class="btn mt-2 btn-dark"
+								class="rounded-sm p-1 m-1 mt-2 btn-default"
 							>
 								<i class="fas fa-arrow-left" /> Field
 							</A>
 							<A
 								title="Draw row/line on map"
 								href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/new`}
-								class="btn mt-2 btn-dark"
+								class="rounded-sm p-1 m-1 mt-2 btn-default"
 							>
 								Draw row/line on map <i class="fas fa-plus" />
 							</A>
 							<A
 								href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/new`}
-								class="btn mt-2 btn-dark"
+								class="rounded-sm p-1 m-1 mt-2 btn-default"
 							>
 								Create new row sequence
 							</A>
@@ -321,7 +321,7 @@ export default function view() {
 																		{row.sequence.name}
 																		<A
 																			href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/${row.sequence._id}/edit`}
-																			class="btn btn-sm btn-dark"
+																			class="rounded-sm p-1 m-1 btn-sm btn-default"
 																		>
 																			<i class="far fa-edit" />
 																		</A>
@@ -332,11 +332,11 @@ export default function view() {
 																<td>
 																	<A
 																		href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/${row._id}/edit`}
-																		class="btn btn-sm btn-dark"
+																		class="rounded-sm p-1 m-1 btn-sm btn-default"
 																	>
 																		<i class="far fa-edit" />
 																	</A>
-																	<button class="btn btn-danger"
+																	<button class="rounded-sm p-1 m-1 btn-danger"
 																		data-bs-toggle="modal"
 																		data-bs-target={`#deleteRowModal_${row._id}`}
 																		onClick={() =>
@@ -383,14 +383,14 @@ export default function view() {
 																					value={row._id.toString()}
 																				/>
 																				<button
-																					class="btn btn-sm btn-danger"
+																					class="rounded-sm p-1 m-1 btn-sm btn-danger"
 																					data-bs-dismiss="modal"
 																				>
 																					Delete row{" "}
 																					<i class="far fa-trash-alt" />
 																				</button>
 																			</form>
-																			<button class="btn btn-dark"
+																			<button class="rounded-sm p-1 m-1 btn-default"
 																				data-bs-dismiss="modal"
 																				onClick={() =>
 																					setShowDeleteRowModal("")
@@ -439,7 +439,7 @@ export default function view() {
 																		<td>
 																			{area.rotation.name}
 																			{/* //                                 <!--
-//                                     <A href="/projects/${params.layerId}/rotations/<%= layer.areas[i].rotation._id %>/edit" class="btn btn-sm btn-dark"><i class="far fa-edit" /></A>
+//                                     <A href="/projects/${params.layerId}/rotations/<%= layer.areas[i].rotation._id %>/edit" class="rounded-sm p-1 m-1 btn-sm btn-default"><i class="far fa-edit" /></A>
 // --> */}
 																		</td>
 																	) : (
@@ -451,8 +451,8 @@ export default function view() {
 																		<td>---</td>
 																	)}
 																	<td>
-																		{/* //   <!--  <A href="/layers/${params.layerId}/areas/${ area._id }/edit" class="btn btn-sm btn-dark"><i class="far fa-edit" /></A>
-                            //     <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt" /></button>
+																		{/* //   <!--  <A href="/layers/${params.layerId}/areas/${ area._id }/edit" class="rounded-sm p-1 m-1 btn-sm btn-default"><i class="far fa-edit" /></A>
+                            //     <button type="button" class="rounded-sm p-1 m-1 btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt" /></button>
                             // --> */}
 																	</td>
 																</tr>
@@ -510,7 +510,7 @@ export default function view() {
 											</tbody>
 										</table>
 										{/* <!--
-                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteAllAreas">Delete all sub-areas <i class="far fa-trash-alt" /></button>
+                    <button type="button" class="rounded-sm p-1 m-1 btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteAllAreas">Delete all sub-areas <i class="far fa-trash-alt" /></button>
 --> */}
 										{/* <!-- Modal --> */}
 										{/* <div

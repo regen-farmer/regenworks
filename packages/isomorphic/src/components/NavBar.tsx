@@ -52,10 +52,10 @@ export function NavBar() {
 	});
 
 	return (
-		<nav class="navbar navbar-expand">
+		<nav class="flex items-center h-14 border-b border-slate-600 bg-white dark:bg-customdark1">
 			<div
 				id="logotype"
-				class="navbar-brand mx-3"
+				class="mx-3 cursor-pointer"
 				onclick={() => {
 					navigate("/");
 				}}
@@ -63,8 +63,8 @@ export function NavBar() {
 				<div class="logo-icon" />
 			</div>
 
-			<div class="navbar-collapse" id="navbarText">
-				<Breadcrumb class="me-auto">
+			<div class="flex-grow flex" id="navbarText">
+				<Breadcrumb class="mr-auto">
 					<BreadcrumbList>
 						<Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
 							<BreadcrumbItem
@@ -140,10 +140,7 @@ export function NavBar() {
 					</BreadcrumbList>
 				</Breadcrumb>
 
-				<ul
-					class="navbar-nav navbar-right mx-3"
-					style={{ display: "flex", "align-items": "center" }}
-				>
+				<ul class="flex items-center mx-3 gap-4">
 					<Show when={getMongoDBUser()}>
 						<li class="nav-item">
 							<A class="nav-link" href={"/settings"}>
@@ -163,7 +160,7 @@ export function NavBar() {
 						</li>
 					</Show>
 					<li>
-						<span style={{ color: "white !important" }}>
+						<span class="text-white">
 							<ThemeSelect />
 						</span>
 					</li>

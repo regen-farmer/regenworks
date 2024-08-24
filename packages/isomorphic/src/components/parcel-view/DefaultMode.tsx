@@ -11,6 +11,7 @@ import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -154,42 +155,37 @@ function DefaultMode({
 		drawFields()
 	});
 
+	const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
+
+
 	return (
 		<>
-			<div
-				class="modal fade"
-				id="deleteFieldModal"
-				tabindex="-1"
-				aria-labelledby="deleteFieldModalLabel"
-				aria-hidden="true"
-			>
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h1 class="h1 modal-title" id="deleteFieldModalLabel">
-								Confirm deletion of field
-							</h1>
-						</div>
-						<div class="modal-body">
-							<p>
-								When you delete your field, all information connected to it like
-								saved systems, projects and budgets will be permanently deleted
-								and it will not be able to be restored.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<form action={deleteForm} method="post" class="delete-form">
-								<button class="btn btn-danger" data-bs-dismiss="modal">
-									Delete field
-								</button>
-							</form>
-							<button class="btn btn-dark" data-bs-dismiss="modal">
-								Cancel
+			<Dialog open={deleteFieldModalOpen()} onOpenChange={setDeleteFieldModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle id="deleteFieldModalLabel">
+							Confirm deletion of field
+						</DialogTitle>
+					</DialogHeader>
+					<DialogDescription>
+						<p>
+							When you delete your field, all information connected to it like
+							saved systems, projects and budgets will be permanently deleted
+							and it will not be able to be restored.
+						</p>
+					</DialogDescription>
+					<DialogFooter>
+						<form action={deleteForm} method="post" class="delete-form">
+							<button class="rounded-sm p-1 m-1 btn-danger" onClick={() => setDeleteFieldModalOpen(false)}>
+								Delete field
 							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+						</form>
+						<button class="rounded-sm p-1 m-1 btn-default" onClick={() => setDeleteFieldModalOpen(false)}>
+							Cancel
+						</button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<div
 				style={{
@@ -207,7 +203,7 @@ function DefaultMode({
 					<span>Fields</span>
 				</strong>
 				<div
-					class="list-group"
+					class="list-group rounded-sm"
 					style={{
 						"max-height": "500px",
 						"overflow-y": "auto",
@@ -225,7 +221,7 @@ function DefaultMode({
 								<div>
 									<button
 										title="Edit field"
-										class={"btn btn-dark menu-btn list-group-button"}
+										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											cleanupLayers();
 
@@ -245,7 +241,7 @@ function DefaultMode({
 									<button
 										title="Show field on map"
 										type="button"
-										class={"btn btn-dark menu-btn list-group-button"}
+										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											console.log(
 												"JSON.parse(layer.geometry)",
@@ -268,10 +264,11 @@ function DefaultMode({
 									<button
 										title="Delete field"
 										type="button"
-										class={"btn btn-danger menu-btn list-group-button"}
-										data-bs-toggle="modal"
-										data-bs-target="#deleteFieldModal"
+										class={"rounded-sm p-1 m-1 btn-danger menu-btn list-group-button rounded-sm"}
+										
+
 										onclick={()=>{
+											setDeleteFieldModalOpen(true)
 											setActiveField(layer._id.toString())
 										}}
 
@@ -286,7 +283,7 @@ function DefaultMode({
 
 				<button
 					type="button"
-					class="btn btn-dark"
+					class="rounded-sm p-1 m-1 btn-default"
 					onClick={(e) => enterAddFieldMode(e)}
 				>
 					Add new field to this farm
