@@ -69,6 +69,12 @@ button[data-corvu-resizable-handle] {
   color: black;
 }
 
+.btn-danger:disabled, .btn-default:disabled {
+  background-color: gray;
+  color: black;
+  border: none;
+}
+
 .btn-danger {
   background-color: rgb(255 185 185);
   color: black;
@@ -81,6 +87,8 @@ button[data-corvu-resizable-handle] {
   border: 1px solid rgb(33, 37, 41);
 }
 
+
+
 .theme-dark .btn-default {
   background-color: #51538d;
   color: var(--font-color-dark);
@@ -92,6 +100,7 @@ button[data-corvu-resizable-handle] {
   /* border: 1px solid #51538d */
 }
 
+
 .theme-dark .btn-danger {
   background-color: rgb(154, 61, 61);
   color: var(--font-color-dark);
@@ -101,6 +110,12 @@ button[data-corvu-resizable-handle] {
 .theme-dark .btn-danger:hover {
   background-color: rgb(212, 92, 92);
   /* border: 1px solid rgb(33,37,41); */
+}
+
+.theme-dark .btn-danger:disabled, .theme-dark .btn-default:disabled {
+  background-color: gray;
+  color: var(--font-color-dark);
+  border: 0px solid #51538d;
 }
 
 .logo-icon {

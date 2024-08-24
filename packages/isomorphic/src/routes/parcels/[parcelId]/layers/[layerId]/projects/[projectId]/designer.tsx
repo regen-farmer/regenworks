@@ -816,7 +816,7 @@ export default function view() {
 												<button
 													// disabled={submitDisabled()}
 													type="submit"
-													class="rounded-sm p-1 m-1 btn-default"
+													class="rounded-sm p-1 m-1 btn-danger"
 													onclick={saveSystem}
 													disabled={
 														saving() ||
