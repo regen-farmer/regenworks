@@ -244,7 +244,7 @@ export default function view() {
 
 													<button
 														title="Duplicate scenario"
-														class={"btn btn-dark menu-btn list-group-button"}
+														class={"btn btn-dark menu-btn list-group-button rounded-sm"}
 														onClick={() => {
 															setActiveScenario(project);
 															setModal2Open(true);

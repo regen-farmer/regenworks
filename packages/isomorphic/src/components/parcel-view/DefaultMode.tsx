@@ -225,7 +225,7 @@ function DefaultMode({
 								<div>
 									<button
 										title="Edit field"
-										class={"btn btn-dark menu-btn list-group-button"}
+										class={"btn btn-dark menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											cleanupLayers();
 
@@ -245,7 +245,7 @@ function DefaultMode({
 									<button
 										title="Show field on map"
 										type="button"
-										class={"btn btn-dark menu-btn list-group-button"}
+										class={"btn btn-dark menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											console.log(
 												"JSON.parse(layer.geometry)",
@@ -268,7 +268,7 @@ function DefaultMode({
 									<button
 										title="Delete field"
 										type="button"
-										class={"btn btn-danger menu-btn list-group-button"}
+										class={"btn btn-danger menu-btn list-group-button rounded-sm"}
 										data-bs-toggle="modal"
 										data-bs-target="#deleteFieldModal"
 										onclick={()=>{

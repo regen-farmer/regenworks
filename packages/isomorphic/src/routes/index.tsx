@@ -227,7 +227,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Edit farm"
 															type="button"
-															class={"btn btn-dark menu-btn list-group-button"}
+															class={"btn btn-dark menu-btn list-group-button rounded-sm"}
 															onClick={() => enterEditMode(parcel)}
 														>
 															<i class="fa-solid fa-pen" />
@@ -237,7 +237,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Show farm on map"
 															type="button"
-															class={"btn btn-dark menu-btn list-group-button"}
+															class={"btn btn-dark menu-btn list-group-button rounded-sm"}
 															onClick={() => {
 																// Go to location of parcel
 																setCoordinates([
