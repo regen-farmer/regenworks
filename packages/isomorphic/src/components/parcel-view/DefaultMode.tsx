@@ -203,7 +203,7 @@ function DefaultMode({
 					<span>Fields</span>
 				</strong>
 				<div
-					class="list-group"
+					class="list-group rounded-sm"
 					style={{
 						"max-height": "500px",
 						"overflow-y": "auto",

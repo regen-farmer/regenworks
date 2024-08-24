@@ -212,7 +212,7 @@ const RouteViewHome: Component = () => {
 							</strong>
 							<div>
 								<Show when={data()?.parcels}>
-									<div class="list-group">
+									<div class="list-group rounded-sm">
 										<For each={data()?.parcels}>
 											{(parcel) => (
 												<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
@@ -258,9 +258,9 @@ const RouteViewHome: Component = () => {
 							{allowFarmCreation() ? (
 								<button
 									type="button"
-									class={"rounded-sm p-1 m-1 btn-default"}
+									class={"rounded-sm p-1 m-1 btn-default w-fit"}
 									onClick={() => enterAddFarmMode()}
-									style={{ width: "100%" }}
+									
 								>
 									Add new farm
 								</button>

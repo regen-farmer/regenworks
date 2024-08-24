@@ -203,7 +203,7 @@ export default function view() {
 					>
 						<Show when={data()?.layer.projects}>
 							<strong>Scenarios</strong>
-							<div class="list-group">
+							<div class="list-group rounded-sm">
 								<For each={data()?.layer.projects.slice().reverse()}>
 									{(project, i) => {
 										// let status = projectStatusList.find(
