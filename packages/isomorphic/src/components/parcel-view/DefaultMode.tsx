@@ -308,7 +308,7 @@ function DefaultMode({
 				<br />
 				<button
 					type="button"
-					class="btn btn-dark"
+					class="rounded-sm p-1 m-1 btn btn-default"
 					onClick={(e) => enterAddLPISFieldMode(e)}
 				>
 					Add new field to this farm by selection
