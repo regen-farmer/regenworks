@@ -9,7 +9,7 @@ export function AddRow(props: {
 	return (
 		<div class="trigger">
 			<div
-				class="rounded-sm p-1 m-1 btn-dark"
+				class="rounded-sm p-1 m-1 btn-default"
 				onClick={() => {
 					props.setSystem("rows", (prev: IRow[]) => [
 						...prev.slice(0, props.index),
@@ -28,7 +28,7 @@ export function AddRow(props: {
 			</div>
 			{/* <div class="buttons">
       <button
-        class='btn btn-dark'
+        class='btn btn-default'
         onClick={() => {
           props.setSystem('rows', (prev:any) => [
             ...prev.slice(0, props.index),

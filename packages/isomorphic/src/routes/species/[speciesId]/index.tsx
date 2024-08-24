@@ -22,7 +22,7 @@ export default function view() {
 		<Show when={data()}>
 			<div class="container">
 				<h1 class="h1">{data()?.species.nameCommon}</h1>
-				<A class="rounded-sm p-1 m-1 btn-dark" href="/species/">
+				<A class="rounded-sm p-1 m-1 btn-default" href="/species/">
 					Species index
 				</A>
 				<div class="row">
@@ -32,7 +32,7 @@ export default function view() {
 							src={`/images/${data()?.species.form}.svg`}
 						/>
 						<A
-							class="rounded-sm p-1 m-1 btn-dark"
+							class="rounded-sm p-1 m-1 btn-default"
 							href={`/species/${data()?.species._id}/edit`}
 						>
 							Edit species details
@@ -47,13 +47,13 @@ export default function view() {
 							</button>
 						</form>
 						<A
-							class="rounded-sm p-1 m-1 btn-dark"
+							class="rounded-sm p-1 m-1 btn-default"
 							href={`/species/${data()?.species._id}/activities/new`}
 						>
 							Add new activity to species
 						</A>
 						<A
-							class="rounded-sm p-1 m-1 btn-dark"
+							class="rounded-sm p-1 m-1 btn-default"
 							href={`/species/${data()?.species._id}/nutrients/new`}
 						>
 							Update nutrients profile
@@ -91,7 +91,7 @@ export default function view() {
 												{data()?.species.activities[i()].subtype}
 											</p>
 											<A
-												class="rounded-sm p-1 m-1 btn-sm btn-dark"
+												class="rounded-sm p-1 m-1 btn-sm btn-default"
 												href={`/species/${
 													data()?.species._id
 												}/activities/edit?index=${i}`}

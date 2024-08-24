@@ -175,7 +175,7 @@ export default function view() {
 									Delete field
 								</button>
 							</form>
-							<button class="rounded-sm p-1 m-1 btn-dark" data-bs-dismiss="modal">
+							<button class="rounded-sm p-1 m-1 btn-default" data-bs-dismiss="modal">
 								Cancel
 							</button>
 						</div>
@@ -244,7 +244,7 @@ export default function view() {
 
 													<button
 														title="Duplicate scenario"
-														class={"rounded-sm p-1 m-1 btn-dark menu-btn list-group-button rounded-sm"}
+														class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 														onClick={() => {
 															setActiveScenario(project);
 															setModal2Open(true);
@@ -263,7 +263,7 @@ export default function view() {
 								setModalOpen={setModalOpen}
 								refetchScenarios={refetch}
 							>
-								<button class="rounded-sm p-1 m-1 btn-dark">Create new scenario</button>
+								<button class="rounded-sm p-1 m-1 btn-default">Create new scenario</button>
 							</CreateNewScenarioModal>
 						</Show>
 					</div>
@@ -299,7 +299,7 @@ export default function view() {
 						>
 							<>
 								<A
-									class="rounded-sm p-1 m-1 btn-dark"
+									class="rounded-sm p-1 m-1 btn-default"
 									href={`/parcels/${params.parcelId}/layers/${
 										data()?.layer._id
 									}/edit`}

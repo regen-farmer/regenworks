@@ -379,7 +379,7 @@ export default function view() {
 								<div class="card">
 									<div class="card-body">
 										{data()?.species.utilities.indexOf("fodder")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -390,7 +390,7 @@ export default function view() {
 												Fodder
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -401,7 +401,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("timber")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -412,7 +412,7 @@ export default function view() {
 												Timber
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -423,7 +423,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("food")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -434,7 +434,7 @@ export default function view() {
 												Food
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -445,7 +445,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("biomass")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -456,7 +456,7 @@ export default function view() {
 												Biomass
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -467,7 +467,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("nitrogen")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -478,7 +478,7 @@ export default function view() {
 												Nitrogen
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -489,7 +489,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("shade")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -500,7 +500,7 @@ export default function view() {
 												Shade
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -511,7 +511,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("fiber")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -522,7 +522,7 @@ export default function view() {
 												Fiber
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -533,7 +533,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("spice")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -544,7 +544,7 @@ export default function view() {
 												Spice/Scent
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -555,7 +555,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("medicinal")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -566,7 +566,7 @@ export default function view() {
 												Medicinal
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -577,7 +577,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("oil")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -588,7 +588,7 @@ export default function view() {
 												Oil
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -599,7 +599,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("wax")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -610,7 +610,7 @@ export default function view() {
 												Wax
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -621,7 +621,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("gum")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -632,7 +632,7 @@ export default function view() {
 												Gum
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -643,7 +643,7 @@ export default function view() {
 											</label>
 										)}
 										{data()?.species.utilities.indexOf("pesticide")! > -1 ? (
-											<label class="rounded-sm p-1 m-1 btn-dark active">
+											<label class="rounded-sm p-1 m-1 btn-default active">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -654,7 +654,7 @@ export default function view() {
 												Pesticide
 											</label>
 										) : (
-											<label class="rounded-sm p-1 m-1 btn-dark">
+											<label class="rounded-sm p-1 m-1 btn-default">
 												<input
 													type="checkbox"
 													name="species[utilities]"
@@ -677,7 +677,7 @@ export default function view() {
 								/>
 							</div>
 							<div class="form-group">
-								<button type="submit" class="rounded-sm p-1 m-1 btn-dark">
+								<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 									Update species
 								</button>
 							</div>

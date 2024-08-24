@@ -183,7 +183,7 @@ function DefaultMode({
 									Delete field
 								</button>
 							</form>
-							<button class="rounded-sm p-1 m-1 btn-dark" data-bs-dismiss="modal">
+							<button class="rounded-sm p-1 m-1 btn-default" data-bs-dismiss="modal">
 								Cancel
 							</button>
 						</div>
@@ -225,7 +225,7 @@ function DefaultMode({
 								<div>
 									<button
 										title="Edit field"
-										class={"rounded-sm p-1 m-1 btn-dark menu-btn list-group-button rounded-sm"}
+										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											cleanupLayers();
 
@@ -245,7 +245,7 @@ function DefaultMode({
 									<button
 										title="Show field on map"
 										type="button"
-										class={"rounded-sm p-1 m-1 btn-dark menu-btn list-group-button rounded-sm"}
+										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											console.log(
 												"JSON.parse(layer.geometry)",
@@ -286,7 +286,7 @@ function DefaultMode({
 
 				<button
 					type="button"
-					class="rounded-sm p-1 m-1 btn-dark"
+					class="rounded-sm p-1 m-1 btn-default"
 					onClick={(e) => enterAddFieldMode(e)}
 				>
 					Add new field to this farm

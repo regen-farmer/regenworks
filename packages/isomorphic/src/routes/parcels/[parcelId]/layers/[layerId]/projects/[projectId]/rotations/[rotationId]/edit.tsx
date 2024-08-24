@@ -68,7 +68,7 @@ export default function view() {
 							/>
 						</div>
 						<div class="form-group">
-							<button type="submit" class="rounded-sm p-1 m-1 btn-dark mt-3">
+							<button type="submit" class="rounded-sm p-1 m-1 btn-default mt-3">
 								Update Crop Rotation
 							</button>
 						</div>

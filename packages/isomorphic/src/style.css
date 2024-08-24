@@ -59,12 +59,12 @@ button[data-corvu-resizable-handle] {
   --bs-body-color: var(--font-color-dark);
 }
 
-.btn-dark {
+.btn-default {
   background-color: rgb(207 224 255);
   color: black;
 }
 
-.btn-dark:hover {
+.btn-default:hover {
   background-color: rgb(164, 189, 235);
   color: black;
 }
@@ -81,13 +81,13 @@ button[data-corvu-resizable-handle] {
   border: 1px solid rgb(33, 37, 41);
 }
 
-.theme-dark .btn-dark {
+.theme-dark .btn-default {
   background-color: #51538d;
   color: var(--font-color-dark);
   border: 0px solid #51538d;
 }
 
-.theme-dark .btn-dark:hover {
+.theme-dark .btn-default:hover {
   background-color: #6c6eb4;
   /* border: 1px solid #51538d */
 }

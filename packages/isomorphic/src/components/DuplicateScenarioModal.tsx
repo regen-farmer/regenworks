@@ -109,7 +109,7 @@ export function DuplicateScenarioModal({
 														<button
 															disabled={submitDisabled()}
 															type="submit"
-															class="rounded-sm p-1 m-1 btn-dark"
+															class="rounded-sm p-1 m-1 btn-default"
 														>
 															Duplicate scenario
 														</button>

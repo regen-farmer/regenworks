@@ -290,7 +290,7 @@ const RouteViewAccount: Component = () => {
 							</p>
 						</Show>
 						<button
-							class="rounded-sm p-1 m-1 btn-sm btn-dark"
+							class="rounded-sm p-1 m-1 btn-sm btn-default"
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");
@@ -350,7 +350,7 @@ const RouteViewAccount: Component = () => {
 											</Select.Content>
 										</Select.Portal>
 									</Select>
-									<button class="rounded-sm p-1 m-1 btn-dark" onClick={saveCountryCode}>Save</button>
+									<button class="rounded-sm p-1 m-1 btn-default" onClick={saveCountryCode}>Save</button>
 								</>
 							}
 						>

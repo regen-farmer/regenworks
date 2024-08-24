@@ -17,7 +17,7 @@ export default function view() {
 	return (
 		<div class="container">
 			<h1 class="h1">Species</h1>
-			<A href="/species/new" class="rounded-sm p-1 m-1 btn-dark">
+			<A href="/species/new" class="rounded-sm p-1 m-1 btn-default">
 				Add new species
 			</A>
 			<p>Count: {data()?.species.length}</p>
@@ -70,7 +70,7 @@ export default function view() {
 									<td>no age data</td>
 								)}
 								<td>
-									<A href={`/species/${species._id}`} class="rounded-sm p-1 m-1 btn-dark">
+									<A href={`/species/${species._id}`} class="rounded-sm p-1 m-1 btn-default">
 										Show more
 									</A>
 								</td>

@@ -228,7 +228,7 @@ export default function view() {
 								/>
 							</div>
 							<div class="form-group">
-								<button type="submit" class="rounded-sm p-1 m-1 btn-dark">
+								<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 									Update species activity
 								</button>
 							</div>

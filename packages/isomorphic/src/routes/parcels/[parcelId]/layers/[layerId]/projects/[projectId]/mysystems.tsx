@@ -95,7 +95,7 @@ export default function view() {
             </div>--> */}
 									<div class="card-body">
 										<h5 class="body-title">{system.name}</h5>
-										{/* <!--<button class="rounded-sm p-1 m-1 btn-dark" type="button" data-toggle="collapse" data-target="#collapseExample<%= systems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+										{/* <!--<button class="rounded-sm p-1 m-1 btn-default" type="button" data-toggle="collapse" data-target="#collapseExample<%= systems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
                     More details
                 </button>--> */}
 										<form method="post" action={Form}>
@@ -105,7 +105,7 @@ export default function view() {
 												name="systemid"
 												value={system._id.toString()}
 											/>
-											<button class="rounded-sm p-1 m-1 btn-dark" type="button">
+											<button class="rounded-sm p-1 m-1 btn-default" type="button">
 												Add system to future drafts
 											</button>
 										</form>
