@@ -88,9 +88,8 @@ export default function view() {
 			});
 
 			map.on("load", () => {
+				useMeasureControl(map);
 
-				useMeasureControl(map)
-				
 				// map.addControl(new maplibregl.FullscreenControl({}));
 
 				map.addLayer({
@@ -184,12 +183,6 @@ export default function view() {
 				</div>
 			</div>
 
-			<CreateNewScenarioModal
-				modalOpen={modalOpen}
-				setModalOpen={setModalOpen}
-				refetchScenarios={refetch}
-			/>
-
 			<DuplicateScenarioModal
 				activeScenario={activeScenario}
 				modalOpen={modal2Open}
@@ -253,8 +246,8 @@ export default function view() {
 														title="Duplicate scenario"
 														class={"btn btn-dark menu-btn list-group-button"}
 														onClick={() => {
-															setActiveScenario(project)
-															setModal2Open(true)
+															setActiveScenario(project);
+															setModal2Open(true);
 														}}
 													>
 														<i class="fa-regular fa-copy" />
@@ -265,9 +258,13 @@ export default function view() {
 									}}
 								</For>
 							</div>
-							<button class="btn btn-dark" onClick={() => setModalOpen(true)}>
-								Create new scenario
-							</button>
+							<CreateNewScenarioModal
+								modalOpen={modalOpen}
+								setModalOpen={setModalOpen}
+								refetchScenarios={refetch}
+							>
+								<button class="btn btn-dark">Create new scenario</button>
+							</CreateNewScenarioModal>
 						</Show>
 					</div>
 
@@ -309,7 +306,8 @@ export default function view() {
 								>
 									Edit field details
 								</A>
-								<button class="btn btn-danger"
+								<button
+									class="btn btn-danger"
 									// onClick={() => setShowDeleteFieldModal(true)}
 									data-bs-toggle="modal"
 									data-bs-target="#deleteFieldModal"
