@@ -14,14 +14,14 @@ import {
 
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, onMount } from "solid-js";
-import "~/styling/modal.css";
+
 import * as togeojson from "@tmcw/togeojson";
 
 // @ts-ignore
 import * as turf from "@turf/turf";
 // @ts-ignore
 import type { Feature, Polygon, Properties } from "@turf/turf";
-import "~/styling/modal.css";
+
 import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl.ts";
 import type { IControl } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
@@ -304,7 +304,7 @@ export const AddFieldMode: Component<{
 							<div class="dialog__description__body">
 								<input
 									type="text"
-									class="addFieldInput"
+									class="addFieldInput w-full mb-4"
 									name="layer[name]"
 									placeholder="Name"
 									onkeyup={(e) => {

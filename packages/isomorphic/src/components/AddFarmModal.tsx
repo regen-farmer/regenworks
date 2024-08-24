@@ -9,7 +9,7 @@ import {
 } from "~/components/ui/dialog";
 import { Show, createSignal } from "solid-js";
 import { createEffect } from "solid-js";
-import "~/styling/modal.css";
+
 import { modes } from "~/routes/index.tsx";
 
 import { useNavigate } from "@solidjs/router";

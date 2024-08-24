@@ -8,7 +8,7 @@ import {
 	DialogTrigger,
 } from "~/components/ui/dialog";
 import { Show, createResource, createSignal } from "solid-js";
-import "~/styling/modal.css";
+
 import { action } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Row } from "~/components/row/Row";
