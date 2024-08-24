@@ -18,6 +18,15 @@ import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Row } from "~/components/row/Row";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "~/components/ui/dialog";
 
 export default function view() {
 	const params = useParams();
@@ -181,6 +190,9 @@ export default function view() {
 		};
 	}
 
+	const [modalDeleteScenarioOpen, setModalDeleteScenarioOpen] =
+		createSignal(false);
+
 	const [settingSystem, setSettingSystem] = createSignal(false);
 
 	const [exportingKML, setExportingKML] = createSignal(false);
@@ -277,20 +289,27 @@ export default function view() {
 			<div style={{ padding: "20px" }}>
 				<Show when={data()}>
 					{/* <h1 class="h1">Scenario dashboard </h1> */}
-					<Row>	
+					<Row>
 						<div class="w-full">
 							<Tabs defaultValue="info">
-
 								<TabsList class="grid w-fit grid-cols-2">
-									<TabsTrigger class="border" value="info">Info</TabsTrigger>
-									{data()?.project.systemdesign ?<TabsTrigger class="border" value="generateassets">KML</TabsTrigger>:<></>}
+									<TabsTrigger class="border" value="info">
+										Info
+									</TabsTrigger>
+									{data()?.project.systemdesign ? (
+										<TabsTrigger class="border" value="generateassets">
+											KML
+										</TabsTrigger>
+									) : (
+										<></>
+									)}
 									{/* <TabsTrigger value="systems">System</TabsTrigger>
 									<TabsTrigger value="layout">Layout</TabsTrigger>
 									<TabsTrigger value="financials">Financials</TabsTrigger>
 									<TabsTrigger value="assets">Assets</TabsTrigger>
 									<TabsTrigger value="implementation">Implementation</TabsTrigger> */}
 								</TabsList>
-								
+
 								<TabsContent value="info" title="Info">
 									<div class="card">
 										<div class="card-body">
@@ -473,7 +492,9 @@ export default function view() {
 														target="_blank"
 														href={`/scenario-preview/${params.projectId}`}
 													>
-														<div class="rounded-sm p-1 m-1 btn-default">See preview</div>
+														<div class="rounded-sm p-1 m-1 btn-default">
+															See preview
+														</div>
 													</A>
 												</>
 											) : (
@@ -485,64 +506,59 @@ export default function view() {
 											{getMongoDBUser() &&
 											data()?.project.owner.id === getMongoDBUser()._id ? (
 												<>
-													<button
-														type="button"
-														class="rounded-sm p-1 m-1 btn-danger"
-														data-bs-toggle="modal"
-														data-bs-target="#deleteProjectModal"
+													<Dialog
+														open={modalDeleteScenarioOpen()}
+														onOpenChange={setModalDeleteScenarioOpen}
 													>
-														Delete scenario
-													</button>
-
-													<div
-														class="modal fade"
-														id="deleteProjectModal"
-														tabindex="-1"
-														aria-labelledby="deleteProjectModalLabel"
-														aria-hidden="true"
-													>
-														<div class="modal-dialog">
-															<div class="modal-content">
-																<div class="modal-header">
-																	<h1
-																		class="modal-title"
-																		id="deleteProjectModalLabel"
-																	>
-																		Confirm deletion of scenario
-																	</h1>
-																</div>
-																<div class="modal-body">
-																	<p>
-																		When you delete your scenario, all
-																		information connected to it like budgets and
-																		activities will be permanently deleted and
-																		we will not be able to recreate it.
-																	</p>
-																</div>
-																<div class="modal-footer">
-																	<form
-																		method="post"
-																		action={DeleteForm}
-																		class="delete-form"
-																	>
-																		<button
-																			class="rounded-sm p-1 m-1 btn-danger"
-																			data-bs-dismiss="modal"
-																		>
-																			Delete scenario
-																		</button>
-																	</form>
-																	<button
-																		type="button"
-																		class="rounded-sm p-1 m-1 btn-default"
-																		data-bs-dismiss="modal"
-																	>
-																		Cancel
-																	</button>
-																</div>
+														<DialogTrigger>
+															<button
+																type="button"
+																class="rounded-sm p-1 m-1 btn-danger"
+															>
+																Delete scenario
+															</button>
+														</DialogTrigger>
+														<DialogContent class="dialog__content">
+															<div class="dialog__header">
+																<DialogTitle class="dialog__title">
+																	Confirm deletion of scenario
+																</DialogTitle>
 															</div>
-														</div>
-													</div>
+															<DialogDescription class="dialog__description">
+																<p>
+																	When you delete your scenario, all information
+																	connected to it like budgets and activities
+																	will be permanently deleted and we will not be
+																	able to recreate it.
+																</p>
+															</DialogDescription>
+															<div class="dialog__footer">
+																<form
+																	method="post"
+																	action={DeleteForm}
+																	class="delete-form"
+																>
+																	<button
+																		class="rounded-sm p-1 m-1 btn-danger"
+																		onClick={() =>
+																			setModalDeleteScenarioOpen(false)
+																		}
+																	>
+																		Delete scenario
+																	</button>
+																</form>
+																<button
+																	type="button"
+																	class="rounded-sm p-1 m-1 btn-default"
+																	onClick={() =>
+																		setModalDeleteScenarioOpen(false)
+																	}
+																>
+																	Cancel
+																</button>
+															</div>
+														</DialogContent>
+													</Dialog>
 												</>
 											) : (
 												<></>
@@ -698,7 +714,7 @@ export default function view() {
                             </Show> */}
 
 																	{/* <!-- Delete system Modal -->  */}
-																	
+
 																	<div
 																		class="modal fade"
 																		id="deleteSystemModal"
@@ -728,17 +744,17 @@ export default function view() {
 																					</p>
 																				</div>
 																				<div class="modal-footer">
-																					<button class="rounded-sm p-1 m-1 btn-danger"
+																					<button
+																						class="rounded-sm p-1 m-1 btn-danger"
 																						data-bs-dismiss="modal"
-																						
 																						onClick={deleteSystem(system)}
 																					>
 																						Delete system{" "}
 																						<i class="far fa-trash-alt" />
 																					</button>
-																					<button class="rounded-sm p-1 m-1 btn-default"
+																					<button
+																						class="rounded-sm p-1 m-1 btn-default"
 																						data-bs-dismiss="modal"
-																						
 																					>
 																						Cancel
 																					</button>
@@ -988,7 +1004,6 @@ export default function view() {
 										<TabsContent value="generateassets" title="Export KML">
 											<div class="card">
 												<div class="card-body">
-													
 													{data()?.project.assets &&
 													data()?.project.assets.length! > 0 ? (
 														<p>
