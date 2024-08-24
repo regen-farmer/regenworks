@@ -1,4 +1,10 @@
-import { Select } from "@kobalte/core/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "~/components/ui/select";
 import { Show, createMemo, createResource, createSignal } from "solid-js";
 import { useLocation, useNavigate, useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
@@ -62,46 +68,30 @@ export function FieldSelect() {
 	return (
 		<Show when={fields()}>
 			<Select
-				options={fields()}
-				placeholder="Select field"
 				value={getLayerId()}
 				onChange={(val) => {
 					if (val && val !== params.layerId) {
 						navigate(`/parcels/${getParcelId()}/layers/${val}`);
 					}
 				}}
-				// valueComponent={(props: any) => {
-				//   return props.item ? fieldDisplay(props.item.rawValue) : ''
-				// }}
-				itemComponent={(props: any) => (
-					<Select.Item item={props.item} class="select__item">
-						<Select.ItemLabel>
-							{props.item ? fieldDisplay(props.item.rawValue) : ""}
-						</Select.ItemLabel>
-
-						<Select.ItemIndicator class="select__item-indicator">
-							<i class="fas fa-check" />
-						</Select.ItemIndicator>
-					</Select.Item>
+				options={fields()}
+				placeholder="Select field"
+				itemComponent={(props) => (
+					<SelectItem item={props.item}>
+						{props.item ? fieldDisplay(props.item.rawValue) : ""}
+					</SelectItem>
 				)}
 			>
-				<Select.Trigger class="select__trigger" aria-label="Fruit">
-					<Select.Value<string> class="select__value px-2">
-						{(state) => {
-							return state.selectedOption()
+				<SelectTrigger aria-label="Field" class="select__trigger">
+					<SelectValue<string>>
+						{(state) => (
+							state.selectedOption()
 								? fieldDisplay(state.selectedOption())
-								: "";
-						}}
-					</Select.Value>
-					{/* <Select.Icon class='select__icon'>
-            <i class='fas fa-sort' />
-          </Select.Icon> */}
-				</Select.Trigger>
-				<Select.Portal>
-					<Select.Content class="select__content">
-						<Select.Listbox class="select__listbox" />
-					</Select.Content>
-				</Select.Portal>
+								: ""
+						)}
+					</SelectValue>
+				</SelectTrigger>
+				<SelectContent class="select__content" />
 			</Select>
 		</Show>
 	);
