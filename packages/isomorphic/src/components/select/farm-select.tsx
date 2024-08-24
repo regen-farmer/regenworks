@@ -1,4 +1,10 @@
-import { Select } from "@kobalte/core/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "~/components/ui/select"
 import {
 	Show,
 	createEffect,
@@ -80,46 +86,31 @@ export function FarmSelect() {
 			}
 		>
 			<Select
-				options={farms()}
-				placeholder="Select farm"
 				value={getParcelId()}
 				onChange={(val) => {
 					if (val) {
 						navigate(`/parcels/${val}`);
+						
 					}
 				}}
-				// valueComponent={(props: any) => {
-				//   return props.item ? farmDisplay(props.item.rawValue) : ''
-				// }}
-				itemComponent={(props: any) => (
-					<Select.Item item={props.item} class="select__item">
-						<Select.ItemLabel>
-							{props.item ? farmDisplay(props.item.rawValue) : ""}
-						</Select.ItemLabel>
-
-						<Select.ItemIndicator class="select__item-indicator">
-							<i class="fas fa-check" />
-						</Select.ItemIndicator>
-					</Select.Item>
+				options={farms()}
+				placeholder="Select farm"
+				itemComponent={(props) => (
+					<SelectItem item={props.item}>
+						{props.item ? farmDisplay(props.item.rawValue) : ""}
+					</SelectItem>
 				)}
 			>
-				<Select.Trigger class="select__trigger" aria-label="Fruit">
-					<Select.Value<string> class="select__value px-2">
-						{(state) => {
-							return state.selectedOption()
+				<SelectTrigger aria-label="Farm" class="select__trigger">
+					<SelectValue<string>>
+						{(state) => (
+							state.selectedOption()
 								? farmDisplay(state.selectedOption())
-								: "";
-						}}
-					</Select.Value>
-					{/* <Select.Icon class='select__icon'>
-            <i class='fas fa-sort' />
-          </Select.Icon> */}
-				</Select.Trigger>
-				<Select.Portal>
-					<Select.Content class="select__content">
-						<Select.Listbox class="select__listbox" />
-					</Select.Content>
-				</Select.Portal>
+								: ""
+						)}
+					</SelectValue>
+				</SelectTrigger>
+				<SelectContent class="select__content" />
 			</Select>
 		</Show>
 	);

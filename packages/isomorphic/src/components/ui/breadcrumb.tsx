@@ -13,7 +13,7 @@ const BreadcrumbList: Component<ComponentProps<"ol">> = (props) => {
   return (
     <ol
       class={cn(
-        "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
+        "flex flex-wrap items-center break-words text-sm text-muted-foreground ",
         local.class
       )}
       {...others}
@@ -23,7 +23,7 @@ const BreadcrumbList: Component<ComponentProps<"ol">> = (props) => {
 
 const BreadcrumbItem: Component<ComponentProps<"li">> = (props) => {
   const [local, others] = splitProps(props, ["class"])
-  return <li class={cn("inline-flex items-center gap-1.5", local.class)} {...others} />
+  return <li class={cn("inline-flex items-center ", local.class)} {...others} />
 }
 
 type BreadcrumbLinkProps<T extends ValidComponent = "a"> =

@@ -1,7 +1,14 @@
-import { Select } from "@kobalte/core/select";
 import { Match, Switch } from "solid-js";
 import "./style.css";
 import { setTheme, theme } from "~/theme.tsx";
+import { createSignal } from "solid-js";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select";
 
 function ThemeDisplay(props: { themeString: string }) {
 	return (
@@ -36,39 +43,32 @@ function ThemeDisplaySimple(props: { themeString: string }) {
 }
 
 export function ThemeSelect() {
+	const [value, setValue] = createSignal(theme());
 	return (
 		<Select
+			value={value()}
+			onChange={(val) => {
+				if (val) {
+					setValue(val);
+					setTheme(val);
+				}
+			}}
 			options={["dark", "light", "system"]}
 			placeholder="Select theme"
-			value={theme()}
-			onChange={setTheme}
 			itemComponent={(props) => (
-				<Select.Item item={props.item} class="select__item">
-					<Select.ItemLabel>
-						<ThemeDisplay themeString={props.item.rawValue} />
-					</Select.ItemLabel>
-
-					<Select.ItemIndicator class="select__item-indicator">
-						<i class="fas fa-check" />
-					</Select.ItemIndicator>
-				</Select.Item>
+				<SelectItem item={props.item}>
+					<ThemeDisplay themeString={props.item.rawValue} />
+				</SelectItem>
 			)}
 		>
-			<Select.Trigger class="select__trigger" aria-label="Fruit">
-				<Select.Value<string> class="select__value px-2">
+			<SelectTrigger aria-label="Theme" class="select__trigger">
+				<SelectValue<string>>
 					{(state) => (
 						<ThemeDisplaySimple themeString={state.selectedOption()} />
 					)}
-				</Select.Value>
-				{/* <Select.Icon class='select__icon'>
-          <i class='fas fa-sort' />
-        </Select.Icon> */}
-			</Select.Trigger>
-			<Select.Portal>
-				<Select.Content class="select__content">
-					<Select.Listbox class="select__listbox" />
-				</Select.Content>
-			</Select.Portal>
+				</SelectValue>
+			</SelectTrigger>
+			<SelectContent class="select__content" />
 		</Select>
 	);
 }

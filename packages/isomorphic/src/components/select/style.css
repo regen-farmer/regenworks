@@ -12,6 +12,10 @@ button {
   align-items: center;
   justify-content: space-between;
   max-width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
+  
+  text-overflow: ellipsis;
   border-radius: 6px;
   /* padding: 0 10px 0 16px; */
   /* font-size: 16px; */
@@ -71,6 +75,8 @@ button {
   border: 1px solid hsl(240 6% 65%);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   transform-origin: var(--kb-select-content-transform-origin);
+  max-height: 400px;
+  overflow-y: scroll;
   /* animation: contentHide 250ms ease-in forwards; */
 }
 

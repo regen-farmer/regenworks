@@ -328,7 +328,9 @@ export default function view() {
 											{/* <p>
 												<strong>Field: </strong> {data()?.project.layer.name}
 											</p> */}
-											<p>{data()?.project.description}</p>
+											<p class="my-4">
+											<strong>Description: </strong>
+											{data()?.project.description}</p>
 
 											{/* <!--
             <a class="rounded-sm p-1 m-1 btn-default" href="#">Duplicate this project (Coming soon)</a>

@@ -65,9 +65,11 @@ export default function view() {
 
 	let map: maplibregl.Map;
 	
+	
 
 	createEffect(() => {
-		if (mapref() && !map) {
+		
+		if (mapref()) {
 			
 			map = new maplibregl.Map({
 				container: mapref()!,
