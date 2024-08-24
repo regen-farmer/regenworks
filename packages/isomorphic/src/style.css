@@ -7,7 +7,7 @@ body {
   font-size: 13px;
   height: 100%;
   /* overflow: hidden; */
-  background-color: rgb(241, 241, 241);
+  /* background-color: rgb(241, 241, 241); */
   color: rgb(41, 44, 48);
   --bs-heading-color: rgb(41, 44, 48);
   --bs-body-color: rgb(41, 44, 48);
@@ -64,7 +64,7 @@ button[data-corvu-resizable-handle] {
 }
 
 .theme-dark body {
-  background-color: rgb(15, 15, 16);
+  /* background-color: rgb(15, 15, 16); */
   color: var(--font-color-dark);
   --bs-heading-color: var(--font-color-dark);
   --bs-body-color: var(--font-color-dark);

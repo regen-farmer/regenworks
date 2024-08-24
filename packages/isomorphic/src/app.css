@@ -4,7 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+
+    /* UNSET */
+    --bs-border-width: unset;
+    --bs-border-style: unset;
+    --bs-border-color: unset;
+
+    --background: 0 0% 90%;
     --foreground: 240 10% 3.9%;
 
     --muted: 240 4.8% 95.9%;
@@ -49,8 +55,9 @@
   }
 
   .dark,
+  .theme-dark, 
   [data-kb-theme="dark"] {
-    --background: 240 10% 3.9%;
+    --background: 240 10% 10%;
     --foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;

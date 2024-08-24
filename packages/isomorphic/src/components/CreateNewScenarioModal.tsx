@@ -1,4 +1,14 @@
-import { Dialog } from "@kobalte/core/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "~/components/ui/dialog"
+
+
 import { Show, createResource, createSignal } from "solid-js";
 import "~/styling/modal.css";
 import { action } from "@solidjs/router";
@@ -13,20 +23,23 @@ type CreateNewScenarioModalProps = {
 	modalOpen: () => boolean;
 	setModalOpen: (modalOpen: boolean) => void;
 	refetchScenarios: any;
+	children: any;
 };
 
 export function CreateNewScenarioModal({
 	modalOpen,
 	setModalOpen,
 	refetchScenarios,
+	children
 }: CreateNewScenarioModalProps) {
 	const [error, setError] = createSignal<string>("");
 	const [submitDisabled, setSubmitDisabled] = createSignal(false);
 	const params = useParams();
 
-	function cancel() {
-		setModalOpen(false);
-	}
+	// function cancel() {
+	// 	console.log("CCALLED")
+	// 	setModalOpen(false);
+	// }
 
 	const [data, { refetch }] = createResource<{
 		layer: LayerDocument;
@@ -65,27 +78,29 @@ export function CreateNewScenarioModal({
 		);
 
 		const project: ProjectDocument = await response.json();
-		refetchScenarios();
 		setModalOpen(false);
+		refetchScenarios();
+		setSubmitDisabled(false);
 	});
 
 	return (
 		<div>
-			<Show when={modalOpen()}>
-				<Dialog open={modalOpen()}>
-					<Dialog.Portal>
-						<Dialog.Overlay class="dialog__overlay" />
-						<div class="dialog__positioner">
-							<Dialog.Content
-								class="dialog__content"
-								onPointerDownOutside={cancel}
+			{/* <Show when={modalOpen()}> */}
+				<Dialog open={modalOpen()} onOpenChange={e=>setModalOpen(e.valueOf())} >
+					<DialogTrigger>{children}</DialogTrigger>
+
+							<DialogContent 
+								// close={cancel}
+								// onPointerDownOutside={cancel}
+								
+								
 							>
-								<div class="dialog__header">
-									<Dialog.Title class="dialog__title">
+								<DialogHeader>
+									<DialogTitle>
 										Create New Scenario
-									</Dialog.Title>
-								</div>
-								<Dialog.Description class="dialog__description">
+									</DialogTitle>
+								</DialogHeader>
+								<DialogDescription class="dialog__description">
 									<Show when={data()}>
 										<Row>
 											<div>
@@ -147,12 +162,11 @@ export function CreateNewScenarioModal({
 									<Show when={error()}>
 										<p>{error()}</p>
 									</Show>
-								</Dialog.Description>
-							</Dialog.Content>
-						</div>
-					</Dialog.Portal>
+								</DialogDescription>
+							</DialogContent>
+					
 				</Dialog>
-			</Show>
+			{/* </Show> */}
 		</div>
 	);
 }
