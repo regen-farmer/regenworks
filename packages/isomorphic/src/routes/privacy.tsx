@@ -1,14 +1,13 @@
 import type { Component } from "solid-js";
 import "~/styling/paper.css";
 import { NavBar } from "~/components/NavBar.tsx";
+import Paper from "~/components/ui/paper";
 
 const RouteViewPrivacy: Component = () => {
 	return (
 		<>
 			<NavBar />
-			<main class="paper">
-				<div>
-					<div class="container">
+			<Paper>
 						<h1 class="h1">Regen Farmer Privacy Policy</h1>
 						<p>
 							<em>Last revised: October 30, 2020</em>
@@ -170,9 +169,7 @@ const RouteViewPrivacy: Component = () => {
 								The Privacy Policy is version 1.1 and is valid from 30-10-2020.
 							</em>
 						</p>
-					</div>
-				</div>
-			</main>
+				</Paper>
 		</>
 	);
 };

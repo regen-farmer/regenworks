@@ -33,6 +33,7 @@ import { countries } from "../util/countries.ts";
 import { signOut } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import "~/styling/paper.css";
+import Paper from "~/components/ui/paper.tsx";
 
 async function updateStripeData() {
 	const customerResponse = await fetch(
@@ -279,9 +280,8 @@ const RouteViewAccount: Component = () => {
 
 	return (
 		<>
-			<main class="paper">
-				<div>
-					<div class="container">
+			<Paper>
+					
 						<h3 class="h3">Profile</h3>
 
 						<p>Email: {getMongoDBUser()?.email}</p>
@@ -479,7 +479,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
 																1 Month - {formatPrice(prices().farmMonth!)}{" "}
 																{currency()}
 															</button>
@@ -505,7 +505,7 @@ const RouteViewAccount: Component = () => {
 																name="currency"
 																value={currency()}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
 																6 Months - {formatPrice(prices().farm6Months!)}{" "}
 																{currency()}
 															</button>
@@ -545,7 +545,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
 																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
 																{currency()}
 															</button>
@@ -571,7 +571,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
 																6 Months -{" "}
 																{formatPrice(prices().advisor6Months!)}{" "}
 																{currency()}
@@ -585,9 +585,7 @@ const RouteViewAccount: Component = () => {
 								</Show>
 							</>
 						</Show>
-					</div>
-				</div>
-			</main>
+					</Paper>
 		</>
 	);
 };

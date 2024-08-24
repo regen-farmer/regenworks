@@ -1,14 +1,14 @@
 import type { Component } from "solid-js";
-import "~/styling/paper.css";
+
 import { NavBar } from "~/components/NavBar.tsx";
+import Paper from "~/components/ui/paper";
 
 const RouteViewTerms: Component = () => {
 	return (
 		<>
 			<NavBar />
-			<main class="paper">
-				<div>
-					<div class="container">
+			<Paper>
+				
 						<h1 class="h1">Terms of Service</h1>
 						<p>
 							<em>Effective as of October 9, 2020</em>
@@ -1040,9 +1040,8 @@ const RouteViewTerms: Component = () => {
 						</p>
 
 						<p>Copyright © 2020 Regen Farmer ApS. All rights reserved.</p>
-					</div>
-				</div>
-			</main>
+				
+			</Paper>
 		</>
 	);
 };

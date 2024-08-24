@@ -76,7 +76,7 @@ export default createHandler(() => {
 
 						{assets}
 					</head>
-					<body>
+					<body class="overflow-hidden">
 						<div id="app">{children}</div>
 						{scripts}
 					</body>
