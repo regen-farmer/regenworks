@@ -374,7 +374,7 @@ export default function view() {
 															</form>
 															<button
 																type="button"
-																class="rounded-sm p-1 m-1 btn-default"
+																class="rounded-sm p-1 m-1 btn-dark"
 																data-bs-dismiss="modal"
 															>
 																Cancel
@@ -421,7 +421,7 @@ export default function view() {
 															</form>
 															<button
 																type="button"
-																class="rounded-sm p-1 m-1 btn-default"
+																class="rounded-sm p-1 m-1 btn-dark"
 																data-bs-dismiss="modal"
 															>
 																Cancel
@@ -534,7 +534,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -862,7 +862,7 @@ export default function view() {
 																</form>
 																<button
 																	type="button"
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 m-1 btn-dark"
 																	data-bs-dismiss="modal"
 																>
 																	Cancel
@@ -1047,7 +1047,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -1228,7 +1228,7 @@ export default function view() {
 																									</form>
 																									<button
 																										type="button"
-																										class="rounded-sm p-1 m-1 btn-default"
+																										class="rounded-sm p-1 m-1 btn-dark"
 																										data-bs-dismiss="modal"
 																									>
 																										Cancel
@@ -1300,7 +1300,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel

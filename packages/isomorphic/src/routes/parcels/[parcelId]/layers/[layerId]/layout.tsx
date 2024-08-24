@@ -494,7 +494,7 @@ export default function view() {
                                       </form>
                                       <button
                                         type='button'
-                                        class='btn btn-default'
+                                        class='btn btn-dark'
                                         data-dismiss='modal'
                                       >
                                         Cancel
@@ -549,7 +549,7 @@ export default function view() {
                           </A>
                           <button
                             type='button'
-                            class='btn btn-default'
+                            class='btn btn-dark'
                             data-dismiss='modal'
                           >
                             Cancel
