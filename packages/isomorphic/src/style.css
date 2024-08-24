@@ -6,19 +6,12 @@ body {
   /* overflow: hidden; */
   /* background-color: rgb(241, 241, 241); */
   color: rgb(41, 44, 48);
-  --bs-heading-color: rgb(41, 44, 48);
-  --bs-body-color: rgb(41, 44, 48);
-  --bs-btn-font-size: 13px;
 
   .btn,
   .form-control {
-    --bs-btn-font-size: 13px;
     font-size: 13px;
   }
 
-  
-  
-  
 }
 
 
@@ -55,8 +48,6 @@ button[data-corvu-resizable-handle] {
 .theme-dark body {
   /* background-color: rgb(15, 15, 16); */
   color: var(--font-color-dark);
-  --bs-heading-color: var(--font-color-dark);
-  --bs-body-color: var(--font-color-dark);
 }
 
 .btn-default {
@@ -198,7 +189,6 @@ a {
 }
 
 .theme-dark .table-striped > tbody > tr:nth-of-type(odd) > * {
-  /* --bs-table-accent-bg: var(--bs-table-striped-bg); */
   background-color: #343043;
 }
 
