@@ -354,7 +354,7 @@ const RouteViewAccount: Component = () => {
 								</>
 							}
 						>
-							<hr />
+							<hr class="my-4" />
 							<>
 								<Show when={getStripeCustomer()}>
 									<Show
