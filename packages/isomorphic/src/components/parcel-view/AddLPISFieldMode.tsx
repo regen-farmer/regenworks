@@ -2,6 +2,7 @@ import type { Component } from "solid-js";
 import { action, useNavigate } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
+import geojsonArea from "@mapbox/geojson-area";
 import {
 	Dialog,
 	DialogContent,
@@ -22,7 +23,7 @@ import * as turf from "@turf/turf";
 import type { Feature, Polygon, Properties } from "@turf/turf";
 
 import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl";
-import type { IControl } from "maplibre-gl";
+import type { IControl, MapGeoJSONFeature } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]";
 import { removeLayers } from "~/util/removeLayers";
 
@@ -43,6 +44,7 @@ export const AddLPISFieldMode: Component<{
 		setModalOpen(false);
 	}
 
+	const [clickedFeature, setClickedFeature] = createSignal<string>("")
 	const [polygon, setPolygon] = createSignal<Feature<
 		Polygon,
 		Properties
@@ -58,13 +60,18 @@ export const AddLPISFieldMode: Component<{
 
 	const addFieldFormAction = action(async (formData: FormData) => {
 		setSubmitDisabled(true);
+
+
+		
 		const payload = {
 			layer: {
 				name: fieldName(),
 			},
-			geometry: formData.get("geometry")?.toString(),
-			layersize: formData.get("layersize")?.toString(),
+			geometry: JSON.stringify(polygon()),
+			layersize: geojsonArea.geometry(polygon().geometry).toString(),
+
 		};
+		
 
 		await fetch(
 			`${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers`,
@@ -77,6 +84,7 @@ export const AddLPISFieldMode: Component<{
 
 		refetch();
 		removeFields();
+		
 		setMode(modes.default);
 	});
 
@@ -258,6 +266,8 @@ export const AddLPISFieldMode: Component<{
 				},
 			});
 
+
+
 			function clear(){
 
 				for (const id of hoveredStateIds) {
@@ -307,6 +317,36 @@ export const AddLPISFieldMode: Component<{
 			getMap().on("mousemove", `${tileset}_fieldfill`, LPISFIeldMouseMove);
 
 			getMap().on("mouseleave", `${tileset}_fieldfill`, LPISFieldMouseLeave);
+
+			getMap().on("click", `${tileset}_fieldfill`, (e) => {
+				if (e.features && e.features.length > 0) {
+
+
+					setClickedFeature(e.features[0].properties.AutoID);
+					console.log(clickedFeature())
+
+					setPolygon(e.features[0]);
+
+
+					if (getMap().getLayer(`${tileset}_clicked-fieldline`)){
+						getMap().removeLayer(`${tileset}_clicked-fieldline`);
+					}
+					getMap().addLayer({
+						id: `${tileset}_clicked-fieldline`,
+						type: "line",
+						source: `${tileset}_source`,
+						"source-layer": "fields",
+						paint: {
+							"line-color": "white",
+							"line-width": 2,
+						},
+						filter: ["==", "AutoID", clickedFeature()],
+					});
+
+					// Add a white border to the clicked polygon
+					
+				}
+			});
 		}
 	}
 
@@ -398,7 +438,7 @@ export const AddLPISFieldMode: Component<{
 
 							<button
 								type="submit"
-								disabled={submitDisabled()}
+								disabled={submitDisabled() || !polygon()}
 								class="rounded-sm p-1 my-2 ml-2 btn-default center-block"
 							>
 								Save

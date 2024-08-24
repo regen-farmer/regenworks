@@ -60,10 +60,12 @@ function DefaultMode({
 	const [activeField, setActiveField] = createSignal<string | undefined>(undefined)
 
 	function enterAddFieldMode() {
+		cleanupLayers()
 		setMode(modes.addField);
 	}
 
 	function enterAddLPISFieldMode() {
+		cleanupLayers()
 		setMode(modes.addLPISField);
 	}
 
