@@ -130,7 +130,7 @@ export function AddFarmModal({
 								<label for="formGroupExampleInput">Name</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control w-full"
 									name="parcel[name]"
 									placeholder="What is the farm called?"
 									disabled={submitDisabled()}
@@ -150,7 +150,7 @@ export function AddFarmModal({
 								<label for="formGroupExampleInput">Address</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control w-full"
 									name="parcel[location]"
 									id="search_input"
 									placeholder="Where is the farm located?"
