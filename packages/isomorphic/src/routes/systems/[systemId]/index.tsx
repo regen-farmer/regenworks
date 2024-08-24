@@ -145,6 +145,12 @@ export default function view() {
 
 	return (
 		<>
+		<Show when={data()}>
+		<code>
+				{JSON.stringify(data())}
+			</code>
+		</Show>
+			
 			<div style={{ padding: "20px" }}>
 				<Show when={data() && widths().length > 0}>
 					<h1 class="h1">System: {data()?.system.name}</h1>
