@@ -1,4 +1,12 @@
-import { Dialog } from "@kobalte/core/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "~/components/ui/dialog";
 import { Show, createSignal } from "solid-js";
 import { createEffect } from "solid-js";
 import "~/styling/modal.css";
@@ -104,122 +112,92 @@ export function AddFarmModal({
 		<div>
 			<Show when={mode() === modes.addFarm}>
 				<Dialog open={mode() === modes.addFarm} onOpenChange={cancel}>
-					<Dialog.Portal>
-						<Dialog.Overlay class="dialog__overlay" />
-						<div class="dialog__positioner">
-							<Dialog.Content
-								class="dialog__content"
-								onPointerDownOutside={() => {
-									cancel();
-									enderDefaultMode();
+					<DialogContent
+						onPointerDownOutside={() => {
+							cancel();
+							enderDefaultMode();
+						}}
+					>
+						<DialogHeader>
+							<DialogTitle>
+								<Show when={isEditing() === true} fallback={"Create farm"}>
+									{"Edit farm"}
+								</Show>
+							</DialogTitle>
+						</DialogHeader>
+						<DialogDescription>
+							<div class="form-group">
+								<label for="formGroupExampleInput">Name</label>
+								<input
+									type="text"
+									class="form-control"
+									name="parcel[name]"
+									placeholder="What is the farm called?"
+									disabled={submitDisabled()}
+									value={parcelPayload.name}
+									onInput={(e: any) => {
+										setParcelPayload("name", e.target.value);
+									}}
+									onFocusOut={(e: any) => {
+										setParcelPayload("name", e.target.value);
+									}}
+								/>
+								<Show when={nameError()}>
+									<p class="error">{nameError()}</p>
+								</Show>
+							</div>
+							<div class="form-group">
+								<label for="formGroupExampleInput">Address</label>
+								<input
+									type="text"
+									class="form-control"
+									name="parcel[location]"
+									id="search_input"
+									placeholder="Where is the farm located?"
+									disabled={submitDisabled()}
+									value={parcelPayload.location}
+									onInput={(e: any) => {
+										setParcelPayload("location", e.target.value);
+									}}
+									onFocusOut={(e: any) => {
+										setParcelPayload("location", e.target.value);
+									}}
+								/>
+							</div>
+							<Show when={locationError()}>
+								<p class="error">{locationError()}</p>
+							</Show>
+							<br />
+							<div
+								class="form-group"
+								style={{
+									display: "flex",
+									"justify-content": "space-between",
 								}}
 							>
-								<div class="dialog__header">
-									<Dialog.Title class="dialog__title">
-										<Show when={isEditing() === true} fallback={"Create farm"}>
-											{"Edit farm"}
-										</Show>
-									</Dialog.Title>
-								</div>
-								<Dialog.Description class="dialog__description">
-									<div class="form-group">
-										<label for="formGroupExampleInput">Name</label>
-										<input
-											type="text"
-											class="form-control"
-											name="parcel[name]"
-											placeholder="What is the farm called?"
-											disabled={submitDisabled()}
-											value={parcelPayload.name}
-											onInput={(e: any) => {
-												setParcelPayload("name", e.target.value);
-											}}
-											onFocusOut={(e: any) => {
-												setParcelPayload("name", e.target.value);
-											}}
-										/>
-										<Show when={nameError()}>
-											<p class="error">{nameError()}</p>
-										</Show>
-									</div>
-									<div class="form-group">
-										<label for="formGroupExampleInput">Address</label>
-										<input
-											type="text"
-											class="form-control"
-											name="parcel[location]"
-											id="search_input"
-											placeholder="Where is the farm located?"
-											disabled={submitDisabled()}
-											value={parcelPayload.location}
-											onInput={(e: any) => {
-												setParcelPayload("location", e.target.value);
-											}}
-											onFocusOut={(e: any) => {
-												setParcelPayload("location", e.target.value);
-											}}
-										/>
-									</div>
-									<Show when={locationError()}>
-										<p class="error">{locationError()}</p>
-									</Show>
-									<br />
-									<div
-										class="form-group"
-										style={{
-											display: "flex",
-											"justify-content": "space-between",
-										}}
-									>
-										{/* <Show when={isEditing() === false}> */}
-
-										{/* <button
-                        class="rounded-sm p-1 m-1 btn-default btn-dimmed"
-                        disabled={submitDisabled()}
-                        onClick={()=>{
-                          cancel()
-                          setIsEditing(false);
-                          enderDefaultMode()
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        class="rounded-sm p-1 m-1 btn-default"
-                        disabled={submitDisabled()}
-                        onClick={() => submit()}
-                      >
-                        Adjust position on map
-                      </button> */}
-
-										{/* </Show>
-                    <Show when={isEditing()}> */}
-										<button
-											type="button"
-											class="rounded-sm p-1 m-1 btn-default btn-dimmed"
-											disabled={submitDisabled()}
-											onClick={() => {
-												cancel();
-												setIsEditing(false);
-												enderDefaultMode();
-											}}
-										>
-											Cancel
-										</button>
-										<button
-											type="button"
-											class="rounded-sm p-1 m-1 btn-default"
-											disabled={submitDisabled()}
-											onClick={() => submit()}
-										>
-											Adjust position on map
-										</button>
-										{/* </Show> */}
-									</div>
-								</Dialog.Description>
-							</Dialog.Content>
-						</div>
-					</Dialog.Portal>
+								<button
+									type="button"
+									class="rounded-sm p-1 m-1 btn-default btn-dimmed"
+									disabled={submitDisabled()}
+									onClick={() => {
+										cancel();
+										setIsEditing(false);
+										enderDefaultMode();
+									}}
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									class="rounded-sm p-1 m-1 btn-default"
+									disabled={submitDisabled()}
+									onClick={() => submit()}
+								>
+									Adjust position on map
+								</button>
+							</div>
+						</DialogDescription>
+					</DialogContent>
 				</Dialog>
 			</Show>
 		</div>

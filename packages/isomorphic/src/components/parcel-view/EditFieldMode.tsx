@@ -2,7 +2,15 @@ import type { Component } from "solid-js";
 import { action, useNavigate } from "@solidjs/router";
 import { useParams } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { Dialog } from "@kobalte/core/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "~/components/ui/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, onMount } from "solid-js";
 import "~/styling/modal.css";
@@ -294,66 +302,56 @@ export const EditFieldMode: Component<{
 	return (
 		<>
 			<div>
-				<Dialog open={modalOpen()}>
-					<Dialog.Portal>
-						<Dialog.Overlay class="dialog__overlay" />
-						<div class="dialog__positioner">
-							<Dialog.Content
-								class="dialog__content"
-								onPointerDownOutside={cancel}
-							>
-								<div class="dialog__header">
-									<Dialog.Title class="dialog__title">Edit field</Dialog.Title>
-								</div>
-								<Dialog.Description class="dialog__description">
-									<div class="dialog__description__body">
-										<input
-											type="text"
-											class="addFieldInput"
-											value={field.name}
-											name="layer[name]"
-											placeholder="Name"
-											onkeyup={(e)=>{
-												setFieldName(e.target.value)
-											}}
-											required
-											id="input"
-										/>
+				<Dialog open={modalOpen()} onOpenChange={setModalOpen}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Edit field</DialogTitle>
+						</DialogHeader>
+						<DialogDescription>
+							<div class="dialog__description__body">
+								<input
+									type="text"
+									class="addFieldInput"
+									value={field.name}
+									name="layer[name]"
+									placeholder="Name"
+									onkeyup={(e)=>{
+										setFieldName(e.target.value)
+									}}
+									required
+									id="input"
+								/>
 
-										<label for="kmlfile" class="rounded-sm p-1 m-1 btn-default">
-											{kmlFile()?.name
-												? `${kmlFile()?.name} (${
-														polygon()?.geometry?.coordinates[0].length
-													} coordinates)`
-												: "Add geometry from KML file (optional)"}
-										</label>
-										<input
-											style="visibility:hidden;"
-											type="file"
-											onChange={parseKMLFile}
-											name="kmlfile"
-											id="kmlfile"
-											title="KML File"
-										/>
+								<label for="kmlfile" class="rounded-sm p-1 m-1 btn-default">
+									{kmlFile()?.name
+										? `${kmlFile()?.name} (${
+												polygon()?.geometry?.coordinates[0].length
+											} coordinates)`
+										: "Add geometry from KML file (optional)"}
+								</label>
+								<input
+									style="visibility:hidden;"
+									type="file"
+									onChange={parseKMLFile}
+									name="kmlfile"
+									id="kmlfile"
+									title="KML File"
+								/>
 
-										<button
-											type="button"
-											// type="submit"
-											// disabled={submitDisabled()}
-											class="rounded-sm p-1 m-1 btn-default center-block"
-											onClick={continueFromModal}
-											disabled={fieldName().length < 1}
-										>
-											Go to map to Draw new polygon or Edit KML geometry
-										</button>
-									</div>
-									<Show when={error()}>
-										<p>{error()}</p>
-									</Show>
-								</Dialog.Description>
-							</Dialog.Content>
-						</div>
-					</Dialog.Portal>
+								<button
+									type="button"
+									class="rounded-sm p-1 m-1 btn-default center-block"
+									onClick={continueFromModal}
+									disabled={fieldName().length < 1}
+								>
+									Go to map to Draw new polygon or Edit KML geometry
+								</button>
+							</div>
+							<Show when={error()}>
+								<p>{error()}</p>
+							</Show>
+						</DialogDescription>
+					</DialogContent>
 				</Dialog>
 			</div>
 
