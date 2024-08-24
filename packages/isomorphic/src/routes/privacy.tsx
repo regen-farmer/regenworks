@@ -1,5 +1,4 @@
 import type { Component } from "solid-js";
-import "~/styling/paper.css";
 import { NavBar } from "~/components/NavBar.tsx";
 import Paper from "~/components/ui/paper";
 

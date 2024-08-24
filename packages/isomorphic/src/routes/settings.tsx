@@ -32,7 +32,6 @@ import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { countries } from "../util/countries.ts";
 import { signOut } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
-import "~/styling/paper.css";
 import Paper from "~/components/ui/paper.tsx";
 
 async function updateStripeData() {

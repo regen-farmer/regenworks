@@ -1,4 +1,3 @@
-
 import {
 	createEffect,
 	createResource,
@@ -14,15 +13,18 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SequenceDocument } from "@rw/db/schemas/sequence.ts";
 import { A, useParams } from "@solidjs/router";
 import { Row } from "~/components/row/Row";
+import Paper from "~/components/ui/paper";
 
-const Spinner = () => <div
-class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
-role="status">
-<span
-	class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
-	>Loading...</span
->
-</div>
+const Spinner = () => (
+	<div
+		class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
+		role="status"
+	>
+		<span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+			Loading...
+		</span>
+	</div>
+);
 
 export default function view() {
 	const params = useParams<{
@@ -279,588 +281,547 @@ export default function view() {
 			{/* <ScenarioSideBar> */}
 			{/* <div class='card'>
         <div class='card-body'> */}
-			<div class="paper" style={{ padding: "20px" }}>
-				<div class="container" style={{ "max-width": "unset" }}>
-					<div style={{ padding: "20px" }}>
-						<div class="row">
-							<div class="col-sm-8">
-								<Show
-									when={showChart()}
-									fallback={
-										<div
-											style={{
-												display: "flex",
-												"justify-content": "center",
-												"align-items": "center",
-												height: "400px",
-											}}
-										>
-											<Spinner animation="grow" />
-										</div>
-									}
-								>
-									<canvas class="financials-graph" ref={setLineChart} />
-								</Show>
-							</div>
-							<div class="col-sm-4">
-								<form method="post" action={KeyParameterForm}>
-									<h2 class="h2">Financial Analysis</h2>
-									<p>
-										<strong>Parameters</strong>
-									</p>
-									<br />
-									<span>
-										Discount rate:{" "}
-										<input
-											type="number"
-											name="discountrate"
-											value={data()?.project.financial.discountRate! * 100}
-										/>{" "}
-										%
-									</span>
-									<br />
-									<br />
-									<span>
-										Time period:{" "}
-										<input
-											type="number"
-											name="timeperiod"
-											value={data()?.project.financial.period}
-										/>{" "}
-										years
-									</span>
-									<br />
-									<br />
-									<button type="submit" class="rounded-sm p-1 m-1 btn-default">
-										Refresh
-									</button>
-								</form>
-								<br />
-								<br />
-
-								<p>
-									<strong>Financial Indicators</strong>
-								</p>
-								<p>IRR: </p>
-								<p>NPV: {Math.round(data()?.npv!)}</p>
-								<p>MIRR?: </p>
-							</div>
-						</div>
+			<Paper>
+				<div class="row">
+					<div class="col-sm-8">
 						<Show
-							when={data()?.project.rows.length! > 0}
+							when={showChart()}
 							fallback={
-								<form method="post" action={SystemActivitiesForm}>
-									<div>
-										<For each={data()?.species}>
-											{(uniquespecies: SpeciesDocument, speciesIndex) => (
-												<>
-													{uniquespecies.nameCommon}
-													{/* {[correctspecies().filter((species:SpeciesDocument)=>species.id === uniquespecies.id)].map((species2) => ( */}
-													<div class="card">
-														<div class="card-body">
-															<p>
-																{/* <strong>{species.nameCommon}</strong> */}
-															</p>
-															<Row>
-																<div class="col-lg-3">
-																	<label
-																		for={`speciespostings_planting_material[${speciesIndex}]`}
-																	>
-																		Planting material type
-																	</label>
-																	<div class="form-group">
-																		<select
-																			value={getInitialValue(
-																				data()?.project.system.uniqueSpecies!,
-																				uniquespecies,
-																				"plant",
-																			)}
-																			name={`speciespostings_planting_material[${speciesIndex}]`}
-																			id={`speciespostings_planting_material[${speciesIndex}]`}
-																		>
-																			<option value="none">none</option>
-																			<For each={uniquespecies.activities}>
-																				{(acticity, i) => (
-																					<Show
-																						when={
-																							uniquespecies.activities[i()]
-																								.subtype === "plant"
-																						}
-																					>
-																						<option
-																							value={JSON.stringify(
-																								acticity,
-																								Object.keys(acticity).sort(),
-																							)}
-																						>
-																							{
-																								uniquespecies.activities[i()]
-																									.name
-																							}
-																						</option>
-																					</Show>
-																				)}
-																			</For>
-																		</select>
-																	</div>
-																</div>
-																<div class="col-lg-3">
-																	<label
-																		for={`speciespostings_planting_method[${speciesIndex}]`}
-																	>
-																		Planting method type
-																	</label>
-																	<div class="form-group">
-																		<select
-																			value={getInitialValue(
-																				data()?.project.system.uniqueSpecies!,
-																				uniquespecies,
-																				"method",
-																			)}
-																			name={`speciespostings_planting_method[${speciesIndex}]`}
-																			id={`speciespostings_planting_method[${speciesIndex}]`}
-																		>
-																			<option value="none">none</option>
-																			<For each={uniquespecies.activities}>
-																				{(acticity, i) => (
-																					<Show
-																						when={
-																							uniquespecies.activities[i()]
-																								.subtype === "method"
-																						}
-																					>
-																						<option
-																							value={JSON.stringify(
-																								acticity,
-																								Object.keys(acticity).sort(),
-																							)}
-																						>
-																							{
-																								uniquespecies.activities[i()]
-																									.name
-																							}
-																						</option>
-																					</Show>
-																				)}
-																			</For>
-																		</select>
-																	</div>
-																</div>
+								<div
+									style={{
+										display: "flex",
+										"justify-content": "center",
+										"align-items": "center",
+										height: "400px",
+									}}
+								>
+									<Spinner animation="grow" />
+								</div>
+							}
+						>
+							<canvas class="financials-graph" ref={setLineChart} />
+						</Show>
+					</div>
+					<div class="col-sm-4">
+						<form method="post" action={KeyParameterForm}>
+							<h2 class="h2">Financial Analysis</h2>
+							<p>
+								<strong>Parameters</strong>
+							</p>
+							<br />
+							<span>
+								Discount rate:{" "}
+								<input
+									type="number"
+									name="discountrate"
+									value={data()?.project.financial.discountRate! * 100}
+								/>{" "}
+								%
+							</span>
+							<br />
+							<br />
+							<span>
+								Time period:{" "}
+								<input
+									type="number"
+									name="timeperiod"
+									value={data()?.project.financial.period}
+								/>{" "}
+								years
+							</span>
+							<br />
+							<br />
+							<button type="submit" class="rounded-sm p-1 m-1 btn-default">
+								Refresh
+							</button>
+						</form>
+						<br />
+						<br />
 
-																<div class="col-lg-3">
-																	<label
-																		for={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																	>
-																		Pruning/cutting
-																	</label>
-																	<div class="form-group">
-																		<select
-																			value={getInitialValue(
-																				data()?.project.system.uniqueSpecies!,
-																				uniquespecies,
-																				"pruning",
-																			)}
-																			name={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																			id={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																		>
-																			<option value="none">none</option>
+						<p>
+							<strong>Financial Indicators</strong>
+						</p>
+						<p>IRR: </p>
+						<p>NPV: {Math.round(data()?.npv!)}</p>
+						<p>MIRR?: </p>
+					</div>
+				</div>
+				<Show
+					when={data()?.project.rows.length! > 0}
+					fallback={
+						<form method="post" action={SystemActivitiesForm}>
+							<div>
+								<For each={data()?.species}>
+									{(uniquespecies: SpeciesDocument, speciesIndex) => (
+										<>
+											{uniquespecies.nameCommon}
+											{/* {[correctspecies().filter((species:SpeciesDocument)=>species.id === uniquespecies.id)].map((species2) => ( */}
+											<div class="card">
+												<div class="card-body">
+													<p>{/* <strong>{species.nameCommon}</strong> */}</p>
+													<Row>
+														<div class="col-lg-3">
+															<label
+																for={`speciespostings_planting_material[${speciesIndex}]`}
+															>
+																Planting material type
+															</label>
+															<div class="form-group">
+																<select
+																	value={getInitialValue(
+																		data()?.project.system.uniqueSpecies!,
+																		uniquespecies,
+																		"plant",
+																	)}
+																	name={`speciespostings_planting_material[${speciesIndex}]`}
+																	id={`speciespostings_planting_material[${speciesIndex}]`}
+																>
+																	<option value="none">none</option>
+																	<For each={uniquespecies.activities}>
+																		{(acticity, i) => (
+																			<Show
+																				when={
+																					uniquespecies.activities[i()]
+																						.subtype === "plant"
+																				}
+																			>
+																				<option
+																					value={JSON.stringify(
+																						acticity,
+																						Object.keys(acticity).sort(),
+																					)}
+																				>
+																					{uniquespecies.activities[i()].name}
+																				</option>
+																			</Show>
+																		)}
+																	</For>
+																</select>
+															</div>
+														</div>
+														<div class="col-lg-3">
+															<label
+																for={`speciespostings_planting_method[${speciesIndex}]`}
+															>
+																Planting method type
+															</label>
+															<div class="form-group">
+																<select
+																	value={getInitialValue(
+																		data()?.project.system.uniqueSpecies!,
+																		uniquespecies,
+																		"method",
+																	)}
+																	name={`speciespostings_planting_method[${speciesIndex}]`}
+																	id={`speciespostings_planting_method[${speciesIndex}]`}
+																>
+																	<option value="none">none</option>
+																	<For each={uniquespecies.activities}>
+																		{(acticity, i) => (
+																			<Show
+																				when={
+																					uniquespecies.activities[i()]
+																						.subtype === "method"
+																				}
+																			>
+																				<option
+																					value={JSON.stringify(
+																						acticity,
+																						Object.keys(acticity).sort(),
+																					)}
+																				>
+																					{uniquespecies.activities[i()].name}
+																				</option>
+																			</Show>
+																		)}
+																	</For>
+																</select>
+															</div>
+														</div>
 
-																			<For each={uniquespecies.activities}>
-																				{(acticity, i) => (
-																					<Show
-																						when={
-																							uniquespecies.activities[i()]
-																								.subtype === "pruning"
-																						}
-																					>
-																						<>
-																							{/*
+														<div class="col-lg-3">
+															<label
+																for={`speciespostings_pruning_cutting[${speciesIndex}]`}
+															>
+																Pruning/cutting
+															</label>
+															<div class="form-group">
+																<select
+																	value={getInitialValue(
+																		data()?.project.system.uniqueSpecies!,
+																		uniquespecies,
+																		"pruning",
+																	)}
+																	name={`speciespostings_pruning_cutting[${speciesIndex}]`}
+																	id={`speciespostings_pruning_cutting[${speciesIndex}]`}
+																>
+																	<option value="none">none</option>
+
+																	<For each={uniquespecies.activities}>
+																		{(acticity, i) => (
+																			<Show
+																				when={
+																					uniquespecies.activities[i()]
+																						.subtype === "pruning"
+																				}
+																			>
+																				<>
+																					{/*
 																{console.log('Planting mat', JSON.stringify(acticity, Object.keys(acticity).sort()))}
 																{console.log('Intiitial', getInitialValue(uniquespecies, 'pruning'))}
 															*/}
-																							<option
-																								value={JSON.stringify(
-																									acticity,
-																									Object.keys(acticity).sort(),
-																								)}
-																							>
-																								{
-																									uniquespecies.activities[i()]
-																										.name
-																								}
-																							</option>
-																						</>
-																					</Show>
-																				)}
-																			</For>
-																		</select>
-																	</div>
-																</div>
-																<div class="col-lg-3">
-																	<label
-																		for={`speciespostings_harvest_method[${speciesIndex}]`}
-																	>
-																		Harvest method type
-																	</label>
-																	<div class="form-group">
-																		<select
-																			value={getInitialValue(
-																				data()?.project.system.uniqueSpecies!,
-																				uniquespecies,
-																				"harvest",
-																			)}
-																			name={`speciespostings_harvest_method[${speciesIndex}]`}
-																			id={`speciespostings_harvest_method[${speciesIndex}]`}
-																		>
-																			<option value="none">none</option>
-
-																			<For each={uniquespecies.activities}>
-																				{(acticity, i) => (
-																					<Show
-																						when={
-																							uniquespecies.activities[i()]
-																								.subtype === "harvest"
-																						}
+																					<option
+																						value={JSON.stringify(
+																							acticity,
+																							Object.keys(acticity).sort(),
+																						)}
 																					>
-																						<option
-																							value={JSON.stringify(
-																								acticity,
-																								Object.keys(acticity).sort(),
-																							)}
-																						>
-																							{
-																								uniquespecies.activities[i()]
-																									.name
-																							}
-																						</option>
-																					</Show>
-																				)}
-																			</For>
-																		</select>
-																	</div>
-																</div>
-															</Row>
+																						{uniquespecies.activities[i()].name}
+																					</option>
+																				</>
+																			</Show>
+																		)}
+																	</For>
+																</select>
+															</div>
 														</div>
-													</div>
-													{/* ))} */}
+														<div class="col-lg-3">
+															<label
+																for={`speciespostings_harvest_method[${speciesIndex}]`}
+															>
+																Harvest method type
+															</label>
+															<div class="form-group">
+																<select
+																	value={getInitialValue(
+																		data()?.project.system.uniqueSpecies!,
+																		uniquespecies,
+																		"harvest",
+																	)}
+																	name={`speciespostings_harvest_method[${speciesIndex}]`}
+																	id={`speciespostings_harvest_method[${speciesIndex}]`}
+																>
+																	<option value="none">none</option>
+
+																	<For each={uniquespecies.activities}>
+																		{(acticity, i) => (
+																			<Show
+																				when={
+																					uniquespecies.activities[i()]
+																						.subtype === "harvest"
+																				}
+																			>
+																				<option
+																					value={JSON.stringify(
+																						acticity,
+																						Object.keys(acticity).sort(),
+																					)}
+																				>
+																					{uniquespecies.activities[i()].name}
+																				</option>
+																			</Show>
+																		)}
+																	</For>
+																</select>
+															</div>
+														</div>
+													</Row>
+												</div>
+											</div>
+											{/* ))} */}
+										</>
+									)}
+								</For>
+							</div>
+
+							<br />
+							<A
+								end={true}
+								href={`/parcels/${params.parcelId}/layers/${
+									params.layerId
+								}/projects/${data()?.project._id}`}
+								class="rounded-sm p-1 m-1 btn-default"
+							>
+								<i class="fas fa-arrow-left" /> Back to scenario dashboard
+							</A>
+							<button type="submit" class="rounded-sm p-1 m-1 btn-default">
+								Save changes
+							</button>
+						</form>
+					}
+				>
+					<For each={data()?.project.rows.filter((row) => row.sequence)}>
+						{(row, rowIdx) => (
+							<form method="post" action={SequenceActivitiesForm}>
+								<input
+									type="hidden"
+									name="sequence"
+									value={JSON.stringify(row.sequence)}
+								/>
+								<div>
+									<p>
+										<strong>{`${row.name} - ${row.sequence.name}`}</strong>
+									</p>
+
+									<div>
+										<For each={row.sequence.uniqueSpecies}>
+											{(uniqueSpeciesSequence) => (
+												<>
+													{/* {console.log('uniqueSpeciesSequence',uniqueSpeciesSequence)} */}
+													{/* {[correctspecies().filter((species:SpeciesDocument)=>species.id === uniquespecies.id)].map((species2) => ( */}
+													{/* {()=>{
+											
+											
+										}()} */}
+													<For
+														each={[
+															data()?.species.find((species) => {
+																// console.log('test', species._id, uniqueSpeciesSequence.id)
+																species._id =
+																	uniqueSpeciesSequence.id.toString();
+
+																return species;
+															}),
+														]}
+													>
+														{(
+															uniquespecies: undefined | SpeciesDocument,
+															speciesIndex,
+														) => (
+															<Show when={uniquespecies}>
+																<>
+																	{uniquespecies.nameCommon}
+
+																	<div class="card">
+																		<div class="card-body">
+																			<p>
+																				{/* <strong>{species.nameCommon}</strong> */}
+																			</p>
+																			<Row>
+																				<div class="col-lg-3">
+																					<label
+																						for={`speciespostings_planting_material[${speciesIndex}]`}
+																					>
+																						Planting material type
+																					</label>
+																					<div class="form-group">
+																						<select
+																							value={getInitialValue(
+																								row.sequence.uniqueSpecies,
+																								uniquespecies,
+																								"plant",
+																							)}
+																							name={`speciespostings_planting_material[${speciesIndex}]`}
+																							id={`speciespostings_planting_material[${speciesIndex}]`}
+																						>
+																							<option value="none">none</option>
+																							<For
+																								each={uniquespecies.activities}
+																							>
+																								{(acticity, i) => (
+																									<>
+																										<Show
+																											when={
+																												uniquespecies
+																													.activities[i()]
+																													.subtype === "plant"
+																											}
+																										>
+																											<option
+																												value={JSON.stringify(
+																													acticity,
+																													Object.keys(
+																														acticity,
+																													).sort(),
+																												)}
+																											>
+																												{
+																													uniquespecies
+																														.activities[i()]
+																														.name
+																												}
+																											</option>
+																										</Show>
+																									</>
+																								)}
+																							</For>
+																						</select>
+																					</div>
+																				</div>
+																				<div class="col-lg-3">
+																					<label
+																						for={`speciespostings_planting_method[${speciesIndex}]`}
+																					>
+																						Planting method type
+																					</label>
+																					<div class="form-group">
+																						<select
+																							value={getInitialValue(
+																								row.sequence.uniqueSpecies,
+																								uniquespecies,
+																								"method",
+																							)}
+																							name={`speciespostings_planting_method[${speciesIndex}]`}
+																							id={`speciespostings_planting_method[${speciesIndex}]`}
+																						>
+																							<option value="none">none</option>
+																							<For
+																								each={uniquespecies.activities}
+																							>
+																								{(acticity, i) => (
+																									<Show
+																										when={
+																											uniquespecies.activities[
+																												i()
+																											].subtype === "method"
+																										}
+																									>
+																										<option
+																											value={JSON.stringify(
+																												acticity,
+																												Object.keys(
+																													acticity,
+																												).sort(),
+																											)}
+																										>
+																											{
+																												uniquespecies
+																													.activities[i()].name
+																											}
+																										</option>
+																									</Show>
+																								)}
+																							</For>
+																						</select>
+																					</div>
+																				</div>
+
+																				<div class="col-lg-3">
+																					<label
+																						for={`speciespostings_pruning_cutting[${speciesIndex}]`}
+																					>
+																						Pruning/cutting
+																					</label>
+																					<div class="form-group">
+																						<select
+																							value={getInitialValue(
+																								row.sequence.uniqueSpecies,
+																								uniquespecies,
+																								"pruning",
+																							)}
+																							name={`speciespostings_pruning_cutting[${speciesIndex}]`}
+																							id={`speciespostings_pruning_cutting[${speciesIndex}]`}
+																						>
+																							<option value="none">none</option>
+
+																							<For
+																								each={uniquespecies.activities}
+																							>
+																								{(acticity, i) => (
+																									<Show
+																										when={
+																											uniquespecies.activities[
+																												i()
+																											].subtype === "pruning"
+																										}
+																									>
+																										{" "}
+																										? (
+																										{/*
+							{console.log('Planting mat', JSON.stringify(acticity, Object.keys(acticity).sort()))}
+							{console.log('Intiitial', getInitialValue(uniquespecies, 'pruning'))}
+						*/}
+																										<option
+																											value={JSON.stringify(
+																												acticity,
+																												Object.keys(
+																													acticity,
+																												).sort(),
+																											)}
+																										>
+																											{
+																												uniquespecies
+																													.activities[i()].name
+																											}
+																										</option>
+																									</Show>
+																								)}
+																							</For>
+																						</select>
+																					</div>
+																				</div>
+																				<div class="col-lg-3">
+																					<label
+																						for={`speciespostings_harvest_method[${speciesIndex}]`}
+																					>
+																						Harvest method type
+																					</label>
+																					<div class="form-group">
+																						<select
+																							value={getInitialValue(
+																								row.sequence.uniqueSpecies,
+																								uniquespecies,
+																								"harvest",
+																							)}
+																							name={`speciespostings_harvest_method[${speciesIndex}]`}
+																							id={`speciespostings_harvest_method[${speciesIndex}]`}
+																						>
+																							<option value="none">none</option>
+
+																							<For
+																								each={uniquespecies.activities}
+																							>
+																								{(acticity, i) => (
+																									<Show
+																										when={
+																											uniquespecies.activities[
+																												i()
+																											].subtype === "harvest"
+																										}
+																									>
+																										<option
+																											value={JSON.stringify(
+																												acticity,
+																												Object.keys(
+																													acticity,
+																												).sort(),
+																											)}
+																										>
+																											{
+																												uniquespecies
+																													.activities[i()].name
+																											}
+																										</option>
+																									</Show>
+																								)}
+																							</For>
+																						</select>
+																					</div>
+																				</div>
+																			</Row>
+																		</div>
+																	</div>
+																</>
+															</Show>
+														)}
+													</For>
 												</>
 											)}
 										</For>
 									</div>
 
 									<br />
-									<A
-										end={true}
-										href={`/parcels/${params.parcelId}/layers/${
-											params.layerId
-										}/projects/${data()?.project._id}`}
-										class="rounded-sm p-1 m-1 btn-default"
-									>
-										<i class="fas fa-arrow-left" /> Back to scenario dashboard
-									</A>
 									<button type="submit" class="rounded-sm p-1 m-1 btn-default">
 										Save changes
 									</button>
-								</form>
-							}
-						>
-							<For each={data()?.project.rows.filter((row) => row.sequence)}>
-								{(row, rowIdx) => (
-									<form method="post" action={SequenceActivitiesForm}>
-										<input
-											type="hidden"
-											name="sequence"
-											value={JSON.stringify(row.sequence)}
-										/>
-										<div>
-											<p>
-												<strong>{`${row.name} - ${row.sequence.name}`}</strong>
-											</p>
-
-											<div>
-												<For each={row.sequence.uniqueSpecies}>
-													{(uniqueSpeciesSequence) => (
-														<>
-															{/* {console.log('uniqueSpeciesSequence',uniqueSpeciesSequence)} */}
-															{/* {[correctspecies().filter((species:SpeciesDocument)=>species.id === uniquespecies.id)].map((species2) => ( */}
-															{/* {()=>{
-											
-											
-										}()} */}
-															<For
-																each={[
-																	data()?.species.find((species) => {
-																		// console.log('test', species._id, uniqueSpeciesSequence.id)
-																		species._id =
-																			uniqueSpeciesSequence.id.toString();
-
-																		return species;
-																	}),
-																]}
-															>
-																{(
-																	uniquespecies: undefined | SpeciesDocument,
-																	speciesIndex,
-																) => (
-																	<Show when={uniquespecies}>
-																		<>
-																			{uniquespecies.nameCommon}
-
-																			<div class="card">
-																				<div class="card-body">
-																					<p>
-																						{/* <strong>{species.nameCommon}</strong> */}
-																					</p>
-																					<Row>
-																						<div class="col-lg-3">
-																							<label
-																								for={`speciespostings_planting_material[${speciesIndex}]`}
-																							>
-																								Planting material type
-																							</label>
-																							<div class="form-group">
-																								<select
-																									value={getInitialValue(
-																										row.sequence.uniqueSpecies,
-																										uniquespecies,
-																										"plant",
-																									)}
-																									name={`speciespostings_planting_material[${speciesIndex}]`}
-																									id={`speciespostings_planting_material[${speciesIndex}]`}
-																								>
-																									<option value="none">
-																										none
-																									</option>
-																									<For
-																										each={
-																											uniquespecies.activities
-																										}
-																									>
-																										{(acticity, i) => (
-																											<>
-																												<Show
-																													when={
-																														uniquespecies
-																															.activities[i()]
-																															.subtype ===
-																														"plant"
-																													}
-																												>
-																													<option
-																														value={JSON.stringify(
-																															acticity,
-																															Object.keys(
-																																acticity,
-																															).sort(),
-																														)}
-																													>
-																														{
-																															uniquespecies
-																																.activities[i()]
-																																.name
-																														}
-																													</option>
-																												</Show>
-																											</>
-																										)}
-																									</For>
-																								</select>
-																							</div>
-																						</div>
-																						<div class="col-lg-3">
-																							<label
-																								for={`speciespostings_planting_method[${speciesIndex}]`}
-																							>
-																								Planting method type
-																							</label>
-																							<div class="form-group">
-																								<select
-																									value={getInitialValue(
-																										row.sequence.uniqueSpecies,
-																										uniquespecies,
-																										"method",
-																									)}
-																									name={`speciespostings_planting_method[${speciesIndex}]`}
-																									id={`speciespostings_planting_method[${speciesIndex}]`}
-																								>
-																									<option value="none">
-																										none
-																									</option>
-																									<For
-																										each={
-																											uniquespecies.activities
-																										}
-																									>
-																										{(acticity, i) => (
-																											<Show
-																												when={
-																													uniquespecies
-																														.activities[i()]
-																														.subtype ===
-																													"method"
-																												}
-																											>
-																												<option
-																													value={JSON.stringify(
-																														acticity,
-																														Object.keys(
-																															acticity,
-																														).sort(),
-																													)}
-																												>
-																													{
-																														uniquespecies
-																															.activities[i()]
-																															.name
-																													}
-																												</option>
-																											</Show>
-																										)}
-																									</For>
-																								</select>
-																							</div>
-																						</div>
-
-																						<div class="col-lg-3">
-																							<label
-																								for={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																							>
-																								Pruning/cutting
-																							</label>
-																							<div class="form-group">
-																								<select
-																									value={getInitialValue(
-																										row.sequence.uniqueSpecies,
-																										uniquespecies,
-																										"pruning",
-																									)}
-																									name={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																									id={`speciespostings_pruning_cutting[${speciesIndex}]`}
-																								>
-																									<option value="none">
-																										none
-																									</option>
-
-																									<For
-																										each={
-																											uniquespecies.activities
-																										}
-																									>
-																										{(acticity, i) => (
-																											<Show
-																												when={
-																													uniquespecies
-																														.activities[i()]
-																														.subtype ===
-																													"pruning"
-																												}
-																											>
-																												{" "}
-																												? (
-																												{/*
-							{console.log('Planting mat', JSON.stringify(acticity, Object.keys(acticity).sort()))}
-							{console.log('Intiitial', getInitialValue(uniquespecies, 'pruning'))}
-						*/}
-																												<option
-																													value={JSON.stringify(
-																														acticity,
-																														Object.keys(
-																															acticity,
-																														).sort(),
-																													)}
-																												>
-																													{
-																														uniquespecies
-																															.activities[i()]
-																															.name
-																													}
-																												</option>
-																											</Show>
-																										)}
-																									</For>
-																								</select>
-																							</div>
-																						</div>
-																						<div class="col-lg-3">
-																							<label
-																								for={`speciespostings_harvest_method[${speciesIndex}]`}
-																							>
-																								Harvest method type
-																							</label>
-																							<div class="form-group">
-																								<select
-																									value={getInitialValue(
-																										row.sequence.uniqueSpecies,
-																										uniquespecies,
-																										"harvest",
-																									)}
-																									name={`speciespostings_harvest_method[${speciesIndex}]`}
-																									id={`speciespostings_harvest_method[${speciesIndex}]`}
-																								>
-																									<option value="none">
-																										none
-																									</option>
-
-																									<For
-																										each={
-																											uniquespecies.activities
-																										}
-																									>
-																										{(acticity, i) => (
-																											<Show
-																												when={
-																													uniquespecies
-																														.activities[i()]
-																														.subtype ===
-																													"harvest"
-																												}
-																											>
-																												<option
-																													value={JSON.stringify(
-																														acticity,
-																														Object.keys(
-																															acticity,
-																														).sort(),
-																													)}
-																												>
-																													{
-																														uniquespecies
-																															.activities[i()]
-																															.name
-																													}
-																												</option>
-																											</Show>
-																										)}
-																									</For>
-																								</select>
-																							</div>
-																						</div>
-																					</Row>
-																				</div>
-																			</div>
-																		</>
-																	</Show>
-																)}
-															</For>
-														</>
-													)}
-												</For>
-											</div>
-
-											<br />
-											<button type="submit" class="rounded-sm p-1 m-1 btn-default">
-												Save changes
-											</button>
-											<br />
-											<br />
-										</div>
-									</form>
-								)}
-							</For>
-						</Show>
-					</div>
-				</div>
-			</div>
+									<br />
+									<br />
+								</div>
+							</form>
+						)}
+					</For>
+				</Show>
+			</Paper>
 			{/* </div>
         </div> */}
 			{/* </ScenarioSideBar> */}
