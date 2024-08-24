@@ -12,6 +12,7 @@ import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
+import { map } from "lodash";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -64,60 +65,68 @@ function DefaultMode({
 	const navigate = useNavigate();
 
 	function drawFields() {
-		cleanupLayers();
-		getMap().addLayer({
-			id: "field-fills",
-			type: "fill",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: data()?.collection,
-			},
-			layout: {},
-			paint: {
-				"fill-color": "rgba(127,34,192,0.6)",
-			},
-		});
+		
 
-		getMap().addLayer({
-			id: "field-outlines",
-			type: "line",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: data()?.collection,
-			},
-			layout: {},
-			paint: {
-				"line-color": "rgba(255,255,255,0.5)",
-				"line-width": 1,
-			},
-		});
+		
 
-		getMap().addLayer({
-			id: "field-labels",
-			type: "symbol",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: data()?.places,
-			},
-			layout: {
-				"text-field": ["get", "description"],
-				"text-justify": "center",
-				"icon-image": ["concat", ["get", "icon"], "-15"],
-				"text-size": 12,
-			},
-			paint: {
-				"text-color": "white",
-				"text-halo-color": "black",
-				"text-halo-width": 1,
-			},
-		});
+		
+			cleanupLayers();
+			
+			
+			getMap().addLayer({
+				id: "field-fills",
+				type: "fill",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: data()?.collection,
+				},
+				layout: {},
+				paint: {
+					"fill-color": "rgba(127,34,192,0.6)",
+				},
+			});
 
-		getMap().on("click", "field-labels", moveMapToField);
+			getMap().addLayer({
+				id: "field-outlines",
+				type: "line",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: data()?.collection,
+				},
+				layout: {},
+				paint: {
+					"line-color": "rgba(255,255,255,0.5)",
+					"line-width": 1,
+				},
+			});
 
-		getMap().on("click", "field-fills", navigateToField);
+			getMap().addLayer({
+				id: "field-labels",
+				type: "symbol",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: data()?.places,
+				},
+				layout: {
+					"text-field": ["get", "description"],
+					"text-justify": "center",
+					"icon-image": ["concat", ["get", "icon"], "-15"],
+					"text-size": 12,
+				},
+				paint: {
+					"text-color": "white",
+					"text-halo-color": "black",
+					"text-halo-width": 1,
+				},
+			});
+
+			getMap().on("click", "field-labels", moveMapToField);
+
+			getMap().on("click", "field-fills", navigateToField);
+		
 	}
 	function navigateToField(e: any) {
 		navigate(
@@ -135,7 +144,10 @@ function DefaultMode({
 	}
 
 	onMount(() => {
-		drawFields();
+		getMap().on('load', ()=>{
+			drawFields();
+		})
+		
 	});
 
 
