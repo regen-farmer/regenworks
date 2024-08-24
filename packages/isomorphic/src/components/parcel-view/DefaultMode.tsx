@@ -19,6 +19,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
+import { getMongoDBUser } from "~/auth/useAuth";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -315,13 +316,14 @@ function DefaultMode({
 					Add new field to this farm by drawing
 				</button>
 				<br />
+				{getMongoDBUser().countryCode === 'DK' ?
 				<button
 					type="button"
 					class="rounded-sm p-1 m-1 btn btn-default"
 					onClick={(e) => enterAddLPISFieldMode(e)}
 				>
 					Add new field to this farm by selection
-				</button>
+				</button>:<></>}
 			</div>
 		</>
 	);
