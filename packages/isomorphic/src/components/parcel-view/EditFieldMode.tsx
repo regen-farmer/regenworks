@@ -303,7 +303,7 @@ export const EditFieldMode: Component<{
 		<>
 			<div>
 				<Dialog open={modalOpen()} onOpenChange={setModalOpen}>
-					<DialogContent>
+					<DialogContent onClose={cancel} onPointerDownOutside={cancel} >
 						<DialogHeader>
 							<DialogTitle>Edit field</DialogTitle>
 						</DialogHeader>
