@@ -19,7 +19,7 @@ const TabsList = <T extends ValidComponent = "div">(
   return (
     <TabsPrimitive.List
       class={cn(
-        "inline-flex h-10 items-center justify-center rounded-md p-1  dark:text-gray-300 text-gray-800",
+        "inline-flex h-10 gap-2 items-center justify-center rounded-md p-1  dark:text-gray-300 text-gray-800",
         local.class
       )}
       {...others}
@@ -38,7 +38,7 @@ const TabsTrigger = <T extends ValidComponent = "button">(
   return (
     <TabsPrimitive.Trigger
       class={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-gray-900 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[selected]:bg-gray-700 data-[selected]:text-white dark:data-[selected]:bg-zinc-800 dark:data-[selected]:text-white",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-gray-900 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-zinc-400 data-[selected]:border-zinc-800 text-zinc-400 data-[selected]:bg-zinc-200 data-[selected]:text-black dark:data-[selected]:bg-zinc-800 dark:data-[selected]:text-white dark:border dark:border-zinc-800 dark:text-zinc-400 dark:data-[selected]:border-zinc-500",
         local.class
       )}
       {...others}
@@ -57,7 +57,7 @@ const TabsContent = <T extends ValidComponent = "div">(
   return (
     <TabsPrimitive.Content
       class={cn(
-        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-customdark1 dark:border-zinc-700 dark:border-2 dark:rounded-md",
+        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:bg-customdark1 dark:border-zinc-700 dark:border-1 border border-zinc-500 rounded-md p-3 dark:rounded-md",
         local.class
       )}
       {...others}
