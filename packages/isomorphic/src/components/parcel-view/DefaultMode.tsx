@@ -11,6 +11,7 @@ import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -154,42 +155,37 @@ function DefaultMode({
 		drawFields()
 	});
 
+	const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
+
+
 	return (
 		<>
-			<div
-				class="modal fade"
-				id="deleteFieldModal"
-				tabindex="-1"
-				aria-labelledby="deleteFieldModalLabel"
-				aria-hidden="true"
-			>
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h1 class="h1 modal-title" id="deleteFieldModalLabel">
-								Confirm deletion of field
-							</h1>
-						</div>
-						<div class="modal-body">
-							<p>
-								When you delete your field, all information connected to it like
-								saved systems, projects and budgets will be permanently deleted
-								and it will not be able to be restored.
-							</p>
-						</div>
-						<div class="modal-footer">
-							<form action={deleteForm} method="post" class="delete-form">
-								<button class="rounded-sm p-1 m-1 btn-danger" data-bs-dismiss="modal">
-									Delete field
-								</button>
-							</form>
-							<button class="rounded-sm p-1 m-1 btn-default" data-bs-dismiss="modal">
-								Cancel
+			<Dialog open={deleteFieldModalOpen()} onOpenChange={setDeleteFieldModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle id="deleteFieldModalLabel">
+							Confirm deletion of field
+						</DialogTitle>
+					</DialogHeader>
+					<DialogDescription>
+						<p>
+							When you delete your field, all information connected to it like
+							saved systems, projects and budgets will be permanently deleted
+							and it will not be able to be restored.
+						</p>
+					</DialogDescription>
+					<DialogFooter>
+						<form action={deleteForm} method="post" class="delete-form">
+							<button class="rounded-sm p-1 m-1 btn-danger" onClick={() => setDeleteFieldModalOpen(false)}>
+								Delete field
 							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+						</form>
+						<button class="rounded-sm p-1 m-1 btn-default" onClick={() => setDeleteFieldModalOpen(false)}>
+							Cancel
+						</button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<div
 				style={{
@@ -269,9 +265,10 @@ function DefaultMode({
 										title="Delete field"
 										type="button"
 										class={"rounded-sm p-1 m-1 btn-danger menu-btn list-group-button rounded-sm"}
-										data-bs-toggle="modal"
-										data-bs-target="#deleteFieldModal"
+										
+
 										onclick={()=>{
+											setDeleteFieldModalOpen(true)
 											setActiveField(layer._id.toString())
 										}}
 
