@@ -101,7 +101,7 @@ export default function view() {
 								/>
 							</div>
 							<div class="form-group">
-								<button type="submit" class="btn btn-dark">
+								<button type="submit" class="rounded-sm p-1 m-1 btn-dark">
 									Add nutrient profile
 								</button>
 							</div>

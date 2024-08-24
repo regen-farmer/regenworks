@@ -49,7 +49,7 @@ export default function view() {
 					<Row>
 						<div class="col-lg-3" />
 						<div class="col-lg-6">
-							<h2 class="h2">Edit field "{data()?.layer.name}"</h2>
+							<h2 class="h2">Edit field</h2>
 							<div>
 								<form method="post" action={routeAction}>
 									
@@ -72,7 +72,7 @@ export default function view() {
 										placeholder="Description" />
 									</TextField>
 									<div class="btn-group">
-										<button type="submit" class="btn btn-dark center-block">
+										<button type="submit" class="rounded-sm p-1 m-1 btn-dark center-block">
 											Update field
 										</button>
 									</div>

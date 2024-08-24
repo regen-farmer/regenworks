@@ -290,7 +290,7 @@ const RouteViewAccount: Component = () => {
 							</p>
 						</Show>
 						<button
-							class="btn btn-sm btn-dark"
+							class="rounded-sm p-1 m-1 btn-sm btn-dark"
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");
@@ -350,7 +350,7 @@ const RouteViewAccount: Component = () => {
 											</Select.Content>
 										</Select.Portal>
 									</Select>
-									<button class="btn btn-dark" onClick={saveCountryCode}>Save</button>
+									<button class="rounded-sm p-1 m-1 btn-dark" onClick={saveCountryCode}>Save</button>
 								</>
 							}
 						>
@@ -487,7 +487,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="btn btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
 																1 Month - {formatPrice(prices().farmMonth!)}{" "}
 																{currency()}
 															</button>
@@ -513,7 +513,7 @@ const RouteViewAccount: Component = () => {
 																name="currency"
 																value={currency()}
 															/>
-															<button class="btn btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
 																6 Months - {formatPrice(prices().farm6Months!)}{" "}
 																{currency()}
 															</button>
@@ -553,7 +553,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="btn btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
 																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
 																{currency()}
 															</button>
@@ -579,7 +579,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="btn btn-primary" type="submit">
+															<button class="rounded-sm p-1 m-1 btn-primary" type="submit">
 																6 Months -{" "}
 																{formatPrice(prices().advisor6Months!)}{" "}
 																{currency()}

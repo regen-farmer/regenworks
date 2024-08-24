@@ -12,7 +12,7 @@ export default function NewUser() {
 			<div class="container" style="text-align: center; margin-top: 80px;">
 				<button
 					type="submit"
-					class="btn btn-dark"
+					class="rounded-sm p-1 m-1 btn-dark"
 					onClick={() => signIn("auth0", { redirectTo: "/" })}
 				>
 					Log in or create new user

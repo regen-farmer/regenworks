@@ -164,7 +164,7 @@ export default function view() {
 								)}
 							</For>
 							<div class="form-group">
-								<button type="submit" class="btn btn-dark">
+								<button type="submit" class="rounded-sm p-1 m-1 btn-dark">
 									Create establishment budget
 								</button>
 							</div>

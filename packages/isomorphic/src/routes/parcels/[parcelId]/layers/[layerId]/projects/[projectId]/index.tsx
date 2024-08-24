@@ -308,13 +308,13 @@ export default function view() {
 											<p>{data()?.project.description}</p>
 
 											{/* <!--
-            <a class="btn btn-dark" href="#">Duplicate this project (Coming soon)</a>
+            <a class="rounded-sm p-1 m-1 btn-dark" href="#">Duplicate this project (Coming soon)</a>
 --> */}
 											{data()?.project.status === "planning" ? (
 												<>
 													{/* <button
 														type="button"
-														class="btn btn-dark"
+														class="rounded-sm p-1 m-1 btn-dark"
 														data-bs-toggle="modal"
 														data-bs-target="#implementProjectModal"
 													>
@@ -322,7 +322,7 @@ export default function view() {
 													</button>
 													<button
 														type="button"
-														class="btn btn-dark"
+														class="rounded-sm p-1 m-1 btn-dark"
 														data-bs-toggle="modal"
 														data-bs-target="#retireProjectModal"
 													>
@@ -366,7 +366,7 @@ export default function view() {
 															>
 																<button
 																	type="submit"
-																	class="btn btn-dark"
+																	class="rounded-sm p-1 m-1 btn-dark"
 																	data-bs-dismiss="modal"
 																>
 																	Confirm implementation start
@@ -374,7 +374,7 @@ export default function view() {
 															</form>
 															<button
 																type="button"
-																class="btn btn-default"
+																class="rounded-sm p-1 m-1 btn-default"
 																data-bs-dismiss="modal"
 															>
 																Cancel
@@ -413,7 +413,7 @@ export default function view() {
 														<div class="modal-footer">
 															<form method="post" action={RetireProjectForm}>
 																<button
-																	class="btn btn-dark"
+																	class="rounded-sm p-1 m-1 btn-dark"
 																	data-bs-dismiss="modal"
 																>
 																	Confirm retirement
@@ -421,7 +421,7 @@ export default function view() {
 															</form>
 															<button
 																type="button"
-																class="btn btn-default"
+																class="rounded-sm p-1 m-1 btn-default"
 																data-bs-dismiss="modal"
 															>
 																Cancel
@@ -436,7 +436,7 @@ export default function view() {
 												href={`/parcels/${params.parcelId}/layers/${
 													params.layerId
 												}/projects/${data()?.project._id}/designer`}
-												class="btn btn-dark"
+												class="rounded-sm p-1 m-1 btn-dark"
 											>
 												Edit system design
 											</A>
@@ -473,7 +473,7 @@ export default function view() {
 														target="_blank"
 														href={`/scenario-preview/${params.projectId}`}
 													>
-														<div class="btn btn-dark">See preview</div>
+														<div class="rounded-sm p-1 m-1 btn-dark">See preview</div>
 													</A>
 												</>
 											) : (
@@ -487,7 +487,7 @@ export default function view() {
 												<>
 													<button
 														type="button"
-														class="btn btn-danger"
+														class="rounded-sm p-1 m-1 btn-danger"
 														data-bs-toggle="modal"
 														data-bs-target="#deleteProjectModal"
 													>
@@ -526,7 +526,7 @@ export default function view() {
 																		class="delete-form"
 																	>
 																		<button
-																			class="btn btn-danger"
+																			class="rounded-sm p-1 m-1 btn-danger"
 																			data-bs-dismiss="modal"
 																		>
 																			Delete scenario
@@ -534,7 +534,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="btn btn-default"
+																		class="rounded-sm p-1 m-1 btn-default"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -572,7 +572,7 @@ export default function view() {
 																		<strong>Active system:</strong>{" "}
 																		{data()?.project.system.name}
 																		<A
-																			class="btn btn-dark"
+																			class="rounded-sm p-1 m-1 btn-dark"
 																			href={`/parcels/${
 																				params.parcelId
 																			}/layers/${params.layerId}/projects/${
@@ -609,7 +609,7 @@ export default function view() {
 																	</p>
 																	{data()?.project.status === "planning" ? (
 																		<A
-																			class="btn btn-dark"
+																			class="rounded-sm p-1 m-1 btn-dark"
 																			href={`/systems/${
 																				data()?.project.edgesystem._id
 																			}/edit`}
@@ -627,7 +627,7 @@ export default function view() {
 																				<div class="col-md-6">
 																						<div class="card">
 																								<div class="card-body">
-																										<a class="btn btn-dark" href="/projects/${ data()?.project._id }/addedgesystem">Add edge system</a>
+																										<a class="rounded-sm p-1 m-1 btn-dark" href="/projects/${ data()?.project._id }/addedgesystem">Add edge system</a>
 																								</div>
 																						</div>
 																				</div>
@@ -647,7 +647,7 @@ export default function view() {
 																		{system.name}
 																	</p>
 																	<A
-																		class="btn btn-dark"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/systems/${system._id}`}
 																	>
 																		View more details
@@ -655,7 +655,7 @@ export default function view() {
 
 																	<button
 																		disabled={settingSystem()}
-																		class="btn btn-dark"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		onclick={async () => {
 																			setSettingSystem(true);
 
@@ -688,7 +688,7 @@ export default function view() {
                                 system.owner.id === mongoDBDBUser()._id
                               }
                             >
-                              <button class="btn btn-danger"
+                              <button class="rounded-sm p-1 m-1 btn-danger"
                                 
                                 data-bs-toggle='modal'
                                 data-bs-target='#deleteSystemModal'
@@ -728,7 +728,7 @@ export default function view() {
 																					</p>
 																				</div>
 																				<div class="modal-footer">
-																					<button class="btn btn-danger"
+																					<button class="rounded-sm p-1 m-1 btn-danger"
 																						data-bs-dismiss="modal"
 																						
 																						onClick={deleteSystem(system)}
@@ -736,7 +736,7 @@ export default function view() {
 																						Delete system{" "}
 																						<i class="far fa-trash-alt" />
 																					</button>
-																					<button class="btn btn-dark"
+																					<button class="rounded-sm p-1 m-1 btn-dark"
 																						data-bs-dismiss="modal"
 																						
 																					>
@@ -768,7 +768,7 @@ export default function view() {
 												</Show>
 
 												<A
-													class="btn btn-dark mt-2"
+													class="rounded-sm p-1 m-1 btn-dark mt-2"
 													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/designer`}
 												>
 													Define new agroforestry system
@@ -804,7 +804,7 @@ export default function view() {
 														href={`/parcels/${params.parcelId}/layers/${
 															params.layerId
 														}/projects/${data()?.project._id}/layout`}
-														class="btn btn-dark"
+														class="rounded-sm p-1 m-1 btn-dark"
 													>
 														View layout map <i class="far fa-map" />
 													</A>
@@ -818,7 +818,7 @@ export default function view() {
 												) : (
 													<button
 														type="button"
-														class="btn btn-dark"
+														class="rounded-sm p-1 m-1 btn-dark"
 
 														// data-bs-toggle="modal"
 														// data-bs-target="#generateAssetsModal"
@@ -854,7 +854,7 @@ export default function view() {
 															<div class="modal-footer">
 																<form method="post" action={GenerateAssetsForm}>
 																	<button
-																		class="btn btn-dark"
+																		class="rounded-sm p-1 m-1 btn-dark"
 																		data-bs-dismiss="modal"
 																	>
 																		Generate tree assets
@@ -862,7 +862,7 @@ export default function view() {
 																</form>
 																<button
 																	type="button"
-																	class="btn btn-default"
+																	class="rounded-sm p-1 m-1 btn-default"
 																	data-bs-dismiss="modal"
 																>
 																	Cancel
@@ -999,7 +999,7 @@ export default function view() {
 													) : (
 														<button
 															type="button"
-															class="btn btn-dark"
+															class="rounded-sm p-1 m-1 btn-dark"
 															// data-bs-toggle="modal"
 															// data-bs-target="#generateAssetsModal"
 															onClick={exportKML}
@@ -1039,7 +1039,7 @@ export default function view() {
 																		action={GenerateAssetsForm}
 																	>
 																		<button
-																			class="btn btn-dark"
+																			class="rounded-sm p-1 m-1 btn-dark"
 																			data-bs-dismiss="modal"
 																		>
 																			Generate trees assets
@@ -1047,7 +1047,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="btn btn-default"
+																		class="rounded-sm p-1 m-1 btn-default"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -1077,7 +1077,7 @@ export default function view() {
 														}{" "}
 													</p>
 													<A
-														class="btn btn-dark"
+														class="rounded-sm p-1 m-1 btn-dark"
 														href={`/parcels/${params.parcelId}/layers/${
 															params.layerId
 														}/projects/${data()?.project._id}/assets`}
@@ -1093,9 +1093,9 @@ export default function view() {
 																<strong>Georef:</strong> {asset.lat},{" "}
 																{asset.lng}, <strong>id:</strong> {asset.id}
 															</p> */}
-													{/* <!--<a class="btn btn-dark" href="/assets/${ asset._id }/edit">Edit asset <i class="far fa-edit" /></a>
+													{/* <!--<a class="rounded-sm p-1 m-1 btn-dark" href="/assets/${ asset._id }/edit">Edit asset <i class="far fa-edit" /></a>
                                     <form class="delete-asset-form" action="/assets/${ asset._id }?_method=DELETE" method="POST">
-                                        <button class="btn btn-danger">Delete asset <i class="far fa-trash-alt" /></button>
+                                        <button class="rounded-sm p-1 m-1 btn-danger">Delete asset <i class="far fa-trash-alt" /></button>
                                     </form>--> */}
 													{/* </div>
 													</div>
@@ -1110,7 +1110,7 @@ export default function view() {
 														}/allassets?_method=DELETE`}
 														method="post"
 													>
-														<button class="btn btn-danger">
+														<button class="rounded-sm p-1 m-1 btn-danger">
 															Delete all digital assets
 														</button>
 													</form>
@@ -1160,13 +1160,13 @@ export default function view() {
 																										i()
 																									]._id
 																								}/edit`}
-																								class="btn btn-sm btn-dark"
+																								class="rounded-sm p-1 m-1 btn-sm btn-dark"
 																							>
 																								<i class="far fa-edit" />
 																							</A>
 																							<button
 																								type="button"
-																								class="btn btn-sm btn-danger"
+																								class="rounded-sm p-1 m-1 btn-sm btn-danger"
 																								data-bs-toggle="modal"
 																								data-bs-target={`#deleteActivityModal_${activity._id}`}
 																							>
@@ -1219,7 +1219,7 @@ export default function view() {
 																										method="post"
 																									>
 																										<button
-																											class="btn btn-sm btn-danger"
+																											class="rounded-sm p-1 m-1 btn-sm btn-danger"
 																											data-bs-dismiss="modal"
 																										>
 																											Delete activity{" "}
@@ -1228,7 +1228,7 @@ export default function view() {
 																									</form>
 																									<button
 																										type="button"
-																										class="btn btn-default"
+																										class="rounded-sm p-1 m-1 btn-default"
 																										data-bs-dismiss="modal"
 																									>
 																										Cancel
@@ -1250,7 +1250,7 @@ export default function view() {
 													{data()?.project.status === "Implementation" ? (
 														<button
 															type="button"
-															class="btn btn-dark"
+															class="rounded-sm p-1 m-1 btn-dark"
 															data-bs-toggle="modal"
 															data-bs-target="#completeProjectModal"
 														>
@@ -1292,7 +1292,7 @@ export default function view() {
 																		action={CompleteProjectForm}
 																	>
 																		<button
-																			class="btn btn-dark"
+																			class="rounded-sm p-1 m-1 btn-dark"
 																			data-bs-dismiss="modal"
 																		>
 																			Confirm scenario completion
@@ -1300,7 +1300,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="btn btn-default"
+																		class="rounded-sm p-1 m-1 btn-default"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -1362,7 +1362,7 @@ export default function view() {
                             <% }); }
                         </table>
                         <% } }
-                        <a href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${ data()?.project._id }/activities/new`} class="btn btn-dark">Add new activity</a>
+                        <a href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${ data()?.project._id }/activities/new`} class="rounded-sm p-1 m-1 btn-dark">Add new activity</a>
                         <p class="card-text"></p>
                     </div>
                 </div>--> */}

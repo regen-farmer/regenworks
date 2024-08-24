@@ -112,7 +112,7 @@ export default function view() {
 				<h2 class="h2">Add new row</h2>
 				<A
 					href={`/parcels/${params.parcelId}/layers/${params.layerId}/layout`}
-					class="btn mt-2 mb-2 btn-dark"
+					class="rounded-sm p-1 m-1 mt-2 mb-2 btn-dark"
 				>
 					<i class="fas fa-arrow-left" /> Back to map
 				</A>
@@ -148,7 +148,7 @@ export default function view() {
 							No row sequences defined. Define one here:{" "}
 							<A
 								href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/new`}
-								class="btn mt-2 btn-sm btn-dark"
+								class="rounded-sm p-1 m-1 mt-2 btn-sm btn-dark"
 							>
 								Define new row sequence
 							</A>
@@ -170,7 +170,7 @@ export default function view() {
 					<div id="coordinates" />
 					<hr />
 					<div class="form-group">
-						<button type="submit" class="btn btn-dark center-block">
+						<button type="submit" class="rounded-sm p-1 m-1 btn-dark center-block">
 							Create new row
 						</button>
 					</div>
