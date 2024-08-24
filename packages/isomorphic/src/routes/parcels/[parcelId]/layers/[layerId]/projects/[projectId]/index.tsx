@@ -283,6 +283,10 @@ export default function view() {
 		setExportingKML(false);
 	}
 
+	const [implementProjectModalOpen, setImplementProjectModalOpen] = createSignal(false);
+	const [retireProjectModalOpen, setRetireProjectModalOpen] = createSignal(false);
+	const [generateAssetsModalOpen, setGenerateAssetsModalOpen] = createSignal(false);
+
 	return (
 		<>
 			{/* <ScenarioSideBar> */}
@@ -313,7 +317,7 @@ export default function view() {
 								<TabsContent value="info" title="Info">
 									<div class="card">
 										<div class="card-body">
-											<p>
+											<p class="my-4">
 												<strong>Title: </strong>
 												{data()?.project.name}
 											</p>
@@ -331,19 +335,17 @@ export default function view() {
 --> */}
 											{data()?.project.status === "planning" ? (
 												<>
-													{/* <button
+													{/*<button
 														type="button"
 														class="rounded-sm p-1 m-1 btn-default"
-														data-bs-toggle="modal"
-														data-bs-target="#implementProjectModal"
+														onClick={() => setImplementProjectModalOpen(true)}
 													>
 														Start implementation
 													</button>
 													<button
 														type="button"
 														class="rounded-sm p-1 m-1 btn-default"
-														data-bs-toggle="modal"
-														data-bs-target="#retireProjectModal"
+														onClick={() => setRetireProjectModalOpen(true)}
 													>
 														Retire scenario
 													</button> */}
@@ -352,103 +354,78 @@ export default function view() {
 												<></>
 											)}
 
-											<div
-												class="modal fade"
-												id="implementProjectModal"
-												tabindex="-1"
-												aria-labelledby="implementProjectModalLabel"
-												aria-hidden="true"
-											>
-												<div class="modal-dialog">
-													<div class="modal-content">
-														<div class="modal-header">
-															<h1
-																class="modal-title"
-																id="implementProjectModalLabel"
-															>
-																Start implementation phase
-															</h1>
-														</div>
-														<div class="modal-body">
-															<p>
-																Once you change phase from planning to
-																implementation phase, the layout of your
-																scenario will be fixed and additional features
-																wil be unlocked such as asset generation and
-																implementation plans.
-															</p>
-														</div>
-														<div class="modal-footer">
-															<form
-																method="post"
-																action={StartImplementationForm}
-															>
-																<button
-																	type="submit"
-																	class="rounded-sm p-1 m-1 btn-default"
-																	data-bs-dismiss="modal"
-																>
-																	Confirm implementation start
-																</button>
-															</form>
+											<Dialog open={implementProjectModalOpen()} onOpenChange={setImplementProjectModalOpen}>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle id="implementProjectModalLabel">
+															Start implementation phase
+														</DialogTitle>
+													</DialogHeader>
+													<DialogDescription>
+														<p>
+															Once you change phase from planning to
+															implementation phase, the layout of your
+															scenario will be fixed and additional features
+															will be unlocked such as asset generation and
+															implementation plans.
+														</p>
+													</DialogDescription>
+													<DialogFooter>
+														<form method="post" action={StartImplementationForm}>
 															<button
-																type="button"
+																type="submit"
 																class="rounded-sm p-1 m-1 btn-default"
-																data-bs-dismiss="modal"
+																onClick={() => setImplementProjectModalOpen(false)}
 															>
-																Cancel
+																Confirm implementation start
 															</button>
-														</div>
-													</div>
-												</div>
-											</div>
+														</form>
+														<button
+															type="button"
+															class="rounded-sm p-1 m-1 btn-default"
+															onClick={() => setImplementProjectModalOpen(false)}
+														>
+															Cancel
+														</button>
+													</DialogFooter>
+												</DialogContent>
+											</Dialog>
 
-											<div
-												class="modal fade"
-												id="retireProjectModal"
-												tabindex="-1"
-												aria-labelledby="retireProjectModalLabel"
-												aria-hidden="true"
-											>
-												<div class="modal-dialog">
-													<div class="modal-content">
-														<div class="modal-header">
-															<h1
-																class="modal-title"
-																id="retireProjectModalLabel"
-															>
-																Retire scenario
-															</h1>
-														</div>
-														<div class="modal-body">
-															<p>
-																Retire your scenario if you want to stop
-																planning of the scenario. This can be relevant
-																if you want to try a different agroforestry
-																system instead. Retired scenarios are still
-																available on the field page.
-															</p>
-														</div>
-														<div class="modal-footer">
-															<form method="post" action={RetireProjectForm}>
-																<button
-																	class="rounded-sm p-1 m-1 btn-default"
-																	data-bs-dismiss="modal"
-																>
-																	Confirm retirement
-																</button>
-															</form>
+											<Dialog open={retireProjectModalOpen()} onOpenChange={setRetireProjectModalOpen}>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle id="retireProjectModalLabel">
+															Retire scenario
+														</DialogTitle>
+													</DialogHeader>
+													<DialogDescription>
+														<p>
+															Retire your scenario if you want to stop
+															planning of the scenario. This can be relevant
+															if you want to try a different agroforestry
+															system instead. Retired scenarios are still
+															available on the field page.
+														</p>
+													</DialogDescription>
+													<DialogFooter>
+														<form method="post" action={RetireProjectForm}>
 															<button
-																type="button"
 																class="rounded-sm p-1 m-1 btn-default"
-																data-bs-dismiss="modal"
+																onClick={() => setRetireProjectModalOpen(false)}
 															>
-																Cancel
+																Confirm retirement
 															</button>
-														</div>
-													</div>
-												</div>
-											</div>
+														</form>
+														<button
+															type="button"
+															class="rounded-sm p-1 m-1 btn-default"
+															onClick={() => setRetireProjectModalOpen(false)}
+														>
+															Cancel
+														</button>
+													</DialogFooter>
+												</DialogContent>
+											</Dialog>
 
 											{/* <h2 class="h2">System design</h2> */}
 											<A
@@ -1024,53 +1001,39 @@ export default function view() {
 														</button>
 													)}
 
-													<div
-														class="modal fade"
-														id="generateAssetsModal"
-														tabindex="-1"
-														aria-labelledby="generateAssetsModalLabel"
-														aria-hidden="true"
-													>
-														<div class="modal-dialog">
-															<div class="modal-content">
-																<div class="modal-header">
-																	<h1
-																		class="modal-title"
-																		id="generateAssetsModalLabel"
-																	>
-																		Confirm generation of tree assets
-																	</h1>
-																</div>
-																<div class="modal-body">
-																	<p>
-																		Confirm creation of tree assets. This will
-																		automatically generate tree assets for the
-																		current scenario.{" "}
-																	</p>
-																</div>
-																<div class="modal-footer">
-																	<form
-																		method="post"
-																		action={GenerateAssetsForm}
-																	>
-																		<button
-																			class="rounded-sm p-1 m-1 btn-default"
-																			data-bs-dismiss="modal"
-																		>
-																			Generate trees assets
-																		</button>
-																	</form>
+													<Dialog open={generateAssetsModalOpen()} onOpenChange={setGenerateAssetsModalOpen}>
+														<DialogContent>
+															<DialogHeader>
+																<DialogTitle id="generateAssetsModalLabel">
+																	Confirm generation of tree assets
+																</DialogTitle>
+															</DialogHeader>
+															<DialogDescription>
+																<p>
+																	Confirm creation of tree assets. This will
+																	automatically generate tree assets for the
+																	current scenario.
+																</p>
+															</DialogDescription>
+															<DialogFooter>
+																<form method="post" action={GenerateAssetsForm}>
 																	<button
-																		type="button"
 																		class="rounded-sm p-1 m-1 btn-default"
-																		data-bs-dismiss="modal"
+																		onClick={() => setGenerateAssetsModalOpen(false)}
 																	>
-																		Cancel
+																		Generate tree assets
 																	</button>
-																</div>
-															</div>
-														</div>
-													</div>
+																</form>
+																<button
+																	type="button"
+																	class="rounded-sm p-1 m-1 btn-default"
+																	onClick={() => setGenerateAssetsModalOpen(false)}
+																>
+																	Cancel
+																</button>
+															</DialogFooter>
+														</DialogContent>
+													</Dialog>
 												</div>
 											</div>
 										</TabsContent>
