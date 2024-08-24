@@ -52,7 +52,7 @@ export function NavBar() {
 	});
 
 	return (
-		<nav class="flex items-center h-14 border-b border-slate-600 bg-white dark:bg-customdark1f">
+		<nav class="flex items-center h-14 border-b border-slate-600 bg-white dark:bg-customdark1">
 			<div
 				id="logotype"
 				class="mx-3 cursor-pointer"
