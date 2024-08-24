@@ -867,12 +867,13 @@ export default function view() {
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
 						<Show when={system}>
 							<div
+
+								class="dark:bg-black bg-white text-black dark:bg-opacity-70 bg-opacity-70 dark:text-white"
+							
 								style={{
-									background: "#151515dd",
 									"border-radius": "10px",
 									position: "absolute",
 									"z-index": 10,
-									color: "white",
 									right: "10px",
 									bottom: "10px",
 									padding: "10px",

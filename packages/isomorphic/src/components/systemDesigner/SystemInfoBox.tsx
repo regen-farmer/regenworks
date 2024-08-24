@@ -39,11 +39,10 @@ const SystemInfoBox: Component<{
 
 	return (
 		<div
+			class="dark:bg-black bg-white text-black dark:bg-opacity-70 bg-opacity-70 dark:text-white"
 			style={{
-				color: "white",
 				position: "absolute",
 				padding: "10px",
-				background: "rgba(0,0,0,0.4)",
 				"border-radius": "10px",
 				"z-index": 10,
 				left: "10px",
