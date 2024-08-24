@@ -283,7 +283,7 @@ export default function view() {
 
 								<TabsList class="grid w-fit grid-cols-2">
 									<TabsTrigger class="border" value="info">Info</TabsTrigger>
-									<TabsTrigger class="border" value="generateassets">KML</TabsTrigger>
+									{data()?.project.systemdesign ?<TabsTrigger class="border" value="generateassets">KML</TabsTrigger>:<></>}
 									{/* <TabsTrigger value="systems">System</TabsTrigger>
 									<TabsTrigger value="layout">Layout</TabsTrigger>
 									<TabsTrigger value="financials">Financials</TabsTrigger>
