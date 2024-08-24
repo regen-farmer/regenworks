@@ -14,7 +14,7 @@ import { TreeTop } from "~/components/graphics/treetop.tsx";
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import "./index.css";
+
 
 export default function view() {
 	const params = useParams<{
@@ -212,7 +212,7 @@ export default function view() {
 																widths()[i()] - calculateAlleyWidth(i()) / 2 + 1
 															}
 															y="0.5"
-															class="smallspeciesname"
+															class="text-[0.2px] font-sans text-center dark:text-white"
 														>
 															{`-- ${calculateAlleyWidth(i())} --`}
 														</text>
@@ -283,7 +283,7 @@ export default function view() {
 																				.position[1]! -
 																				1)
 																		}
-																		class="smallspeciesname"
+																		class="text-[0.2px] font-sans text-center dark:text-white"
 																	>
 																		{
 																			data()?.rows[i()].array[j()].species
@@ -299,12 +299,6 @@ export default function view() {
 										}}
 									</For>
 								</Show>
-								<style>
-									{/*
-                    circle { fill: #6EBC4A; }
-                                    */}
-									{/* .smallspeciesname { font: 0.2px sans-serif; font-family: 'Open Sans', sans-serif; text-anchor: middle; } */}
-								</style>
 							</svg>
 
 							{/* <!--<h2 class="h2">System layout</h2>
