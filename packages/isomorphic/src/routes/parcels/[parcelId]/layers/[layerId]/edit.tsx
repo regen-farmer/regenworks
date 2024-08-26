@@ -56,7 +56,7 @@ export default function view() {
 									<TextField>
 										<TextFieldLabel for="layer[name]">Field name</TextFieldLabel>
 										<TextFieldInput type="text"
-										class="form-control"
+										class="form-control p-1 rounded-sm"
 										name="layer[name]"
 										value={data()?.layer.name}
 										required
@@ -66,7 +66,7 @@ export default function view() {
 									<TextField>
 										<TextFieldLabel for="layer[description]">Description</TextFieldLabel>
 										<TextFieldInput type="text"
-										class="form-control"
+										class="form-control p-1 rounded-sm"
 										name="layer[description]"
 										value={data()?.layer.description}
 										placeholder="Description" />

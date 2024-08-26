@@ -381,7 +381,7 @@ export default function view() {
 																					style={{ width: "75px" }}
 																					type="number"
 																					min={0}
-																					class="form-control"
+																					class="form-control p-1 rounded-sm"
 																					value={row.offset?.before}
 																					onChange={(e) => {
 																						setSystem(
@@ -623,7 +623,7 @@ export default function view() {
 																					style={{ width: "75px" }}
 																					type="number"
 																					min={0}
-																					class="form-control"
+																					class="form-control p-1 rounded-sm"
 																					value={row.offset?.after}
 																					onChange={(e) => {
 																						setSystem(
@@ -733,7 +733,7 @@ export default function view() {
 																		style={{ width: "75px" }}
 																		type="number"
 																		min={0}
-																		class="form-control"
+																		class="form-control p-1 rounded-sm"
 																		placeholder="Width"
 																		value={row.width}
 																		onChange={(e) => {
@@ -917,7 +917,7 @@ export default function view() {
 									<input
 										type="number"
 										min={-180}
-										class="form-control"
+										class="form-control p-1 rounded-sm"
 										onchange={(e) => {
 											setSystem("bearing", Number.parseFloat(e.target.value));
 											logSystem();
@@ -931,7 +931,7 @@ export default function view() {
 									<input
 										type="number"
 										min={0}
-										class="form-control"
+										class="form-control p-1 rounded-sm"
 										onchange={(e) => {
 											setSystem("margin", Number.parseFloat(e.target.value));
 											logSystem();
@@ -945,7 +945,7 @@ export default function view() {
 									<input
 										type="number"
 										min={0}
-										class="form-control"
+										class="form-control p-1 rounded-sm"
 										onchange={(e) => {
 											setSystem("headland", Number.parseFloat(e.target.value));
 											logSystem();

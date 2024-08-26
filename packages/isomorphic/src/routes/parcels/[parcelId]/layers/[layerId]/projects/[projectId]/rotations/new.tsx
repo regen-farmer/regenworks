@@ -119,7 +119,7 @@ export default function view() {
 								console.log(typeof steps());
 							}}
 							max="20"
-							class="form-control"
+							class="form-control p-1 rounded-sm"
 							name={"steps"}
 							required
 						/>
@@ -137,7 +137,7 @@ export default function view() {
 							<label for="rotation[name]">Rotation name/reference</label>
 							<input
 								type="text"
-								class="form-control"
+								class="form-control p-1 rounded-sm"
 								name={"rotation[name]"}
 								required
 							/>
@@ -146,7 +146,7 @@ export default function view() {
 							<label for="rotation[description]">Description</label>
 							<input
 								type="text"
-								class="form-control"
+								class="form-control p-1 rounded-sm"
 								name={"rotation[description]"}
 							/>
 						</div>
@@ -184,7 +184,7 @@ export default function view() {
 														type="number"
 														min="1"
 														max="25"
-														class="form-control"
+														class="form-control p-1 rounded-sm"
 														name={`model[${i}][planting][year]`}
 														required
 													/>
@@ -199,7 +199,7 @@ export default function view() {
 														type="number"
 														min="1"
 														max="12"
-														class="form-control"
+														class="form-control p-1 rounded-sm"
 														name={`model[${i}][planting][month]`}
 														required
 													/>
@@ -214,7 +214,7 @@ export default function view() {
 														type="number"
 														min="1"
 														max="25"
-														class="form-control"
+														class="form-control p-1 rounded-sm"
 														name={`model[${i}][harvest][year]`}
 														required
 													/>
@@ -229,7 +229,7 @@ export default function view() {
 														type="number"
 														min="1"
 														max="12"
-														class="form-control"
+														class="form-control p-1 rounded-sm"
 														name={`model[${i}][harvest][month]`}
 														required
 													/>
