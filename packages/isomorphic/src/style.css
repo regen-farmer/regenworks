@@ -39,9 +39,10 @@ body {
 }
 
 .btn-danger:disabled, .btn-default:disabled {
-  background-color: gray;
-  color: black;
-  border: none;
+  background-color: rgb(200, 200, 200);
+  color: rgb(113, 113, 113);;
+  border-color: rgb(113, 113, 113);;
+  
 }
 
 .btn-danger {
