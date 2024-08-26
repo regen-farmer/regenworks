@@ -432,13 +432,13 @@ export default function view() {
 									</table>
 									{/* TODO: Add route - Jan 27 2023 
 									<A
-										class="rounded-sm p-1 m-1 btn-default"
+										class="rounded-sm p-1 my-2 btn-default"
 										href={`/systems/${params.systemId}/composition`}
 									>
 										Analyse system composition
 									</A> */}
 									{/* <A
-										class="rounded-sm p-1 m-1 btn-default"
+										class="rounded-sm p-1 my-2 btn-default"
 										href={`/systems/${params.systemId}/edit`}
 									>
 										Edit system

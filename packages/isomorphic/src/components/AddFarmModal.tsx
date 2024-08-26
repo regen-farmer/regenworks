@@ -177,7 +177,7 @@ export function AddFarmModal({
 							>
 								<button
 									type="button"
-									class="rounded-sm p-1 m-1 btn-default"
+									class="rounded-sm p-1 my-2 btn-default"
 									disabled={submitDisabled()}
 									onClick={() => {
 										cancel();
@@ -189,7 +189,7 @@ export function AddFarmModal({
 								</button>
 								<button
 									type="button"
-									class="rounded-sm p-1 m-1 btn-default"
+									class="rounded-sm p-1 my-2 ml-2 btn-default"
 									disabled={submitDisabled()}
 									onClick={() => submit()}
 								>

@@ -44,7 +44,7 @@ export default function view() {
 								)}
 								<td>{JSON.stringify(system.owner)}</td>
 								<td>
-									<a href={`/systems/${system._id}`} class="rounded-sm p-1 m-1 btn-default block">
+									<a href={`/systems/${system._id}`} class="rounded-sm p-1 my-2 btn-default block">
 										Show more
 									</a>
 								</td>

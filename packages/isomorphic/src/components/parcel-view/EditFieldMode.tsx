@@ -322,7 +322,7 @@ export const EditFieldMode: Component<{
 									id="input"
 								/>
 
-								<label for="kmlfile" class="rounded-sm p-1 m-1 btn-default">
+								<label for="kmlfile" class="rounded-sm p-1 my-2 btn-default">
 									{kmlFile()?.name
 										? `${kmlFile()?.name} (${
 												polygon()?.geometry?.coordinates[0].length
@@ -340,7 +340,7 @@ export const EditFieldMode: Component<{
 
 								<button
 									type="button"
-									class="rounded-sm p-1 m-1 btn-default center-block"
+									class="rounded-sm p-1 my-2 btn-default center-block"
 									onClick={continueFromModal}
 									disabled={fieldName().length < 1}
 								>
@@ -372,7 +372,7 @@ export const EditFieldMode: Component<{
 						<div>
 							<button
 								type="button"
-								class="rounded-sm p-1 m-1 btn-default center-block"
+								class="rounded-sm p-1 my-2 btn-default center-block"
 								onClick={cancel}
 							>
 								Cancel
@@ -381,7 +381,7 @@ export const EditFieldMode: Component<{
 							<button
 								type="submit"
 								disabled={submitDisabled()}
-								class="rounded-sm p-1 m-1 btn-default center-block"
+								class="rounded-sm p-1 my-2 ml-2 btn-default center-block"
 							>
 								Save
 							</button>

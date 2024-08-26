@@ -355,7 +355,7 @@ export default function view() {
 													<>
 														<Show when={j() === 0}>
 															<A
-																class="rounded-sm p-1 m-1 btn-default"
+																class="rounded-sm p-1 my-2 btn-default"
 																href={`/systems/${
 																	data()?.system._id
 																}/edit?row=0`}
@@ -364,7 +364,7 @@ export default function view() {
 															</A>
 														</Show>
 														<A
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 															href={`/systems/${data()?.system._id}/edit?row=${
 																j() + 1
 															}`}
@@ -469,7 +469,7 @@ export default function view() {
 								<div class="card">
 									<div class="card-body">
 										<A
-											class="rounded-sm p-1 m-1 btn-default"
+											class="rounded-sm p-1 my-2 btn-default"
 											href={`/systems/${data()?.system._id}/edit?distance=2`}
 										>
 											Change inter-row spacing to {data()?.distance! / 2}
@@ -478,7 +478,7 @@ export default function view() {
 								</div>
 							</Show>
 							<div class="form-group">
-								<button type="submit" class="rounded-sm p-1 m-1 btn-default mt-3">
+								<button type="submit" class="rounded-sm p-1 my-2 btn-default mt-3">
 									Update system
 								</button>
 							</div>

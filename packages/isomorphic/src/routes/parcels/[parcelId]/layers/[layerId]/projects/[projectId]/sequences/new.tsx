@@ -91,7 +91,7 @@ export default function view() {
 				<form method="post" action={Form}>
 					<A
 						href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}//layout`}
-						class="rounded-sm p-1 m-1 mt-2 mb-2 btn-default"
+						class="rounded-sm p-1 my-1 mt-2 mb-2 btn-default"
 					>
 						<i class="fas fa-arrow-left" /> Back to layout
 					</A>
@@ -201,7 +201,7 @@ export default function view() {
 									)}
 								</For>
 								<div class="form-group">
-									<button type="submit" class="rounded-sm p-1 m-1 btn-default mt-3">
+									<button type="submit" class="rounded-sm p-1 my-2 btn-default mt-3">
 										Create new row sequence
 									</button>
 								</div>

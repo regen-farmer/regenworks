@@ -12,21 +12,19 @@ export default function NewUser() {
 			<div class="container" style="text-align: center; margin-top: 80px;">
 				<button
 					type="submit"
-					class="rounded-sm p-1 m-1 btn-default"
+					class="rounded-sm p-4 m-1 btn-default text-base"
 					onClick={() => signIn("auth0", { redirectTo: "/" })}
 				>
 					Log in or create new user
 				</button>{" "}
-				<br />
-				<br />
-				<p>
-					<em>
-						<small>
+				<p class="mt-4 text-zinc-200 text-xs leading-4">
+					
+						
 							By creating a user you agree to our <br />
-							<A href="/terms">Terms of Service</A> and{" "}
-							<A href="/privacy">Privacy Policy</A>.
-						</small>
-					</em>
+							<A class="underline-offset-2 underline" href="/terms">Terms of Service</A> and{" "}
+							<A class="underline-offset-2 underline" href="/privacy">Privacy Policy</A>.
+						
+					
 				</p>
 			</div>
 		</>

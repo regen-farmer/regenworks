@@ -168,7 +168,7 @@ export const ShowAfterAuth = (props: any) => {
 							sign in again.
 						</p>
 						<button
-							class="rounded-sm p-1 m-1 btn-sm btn-default"
+							class="rounded-sm p-1 my-1 btn-sm btn-default"
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");

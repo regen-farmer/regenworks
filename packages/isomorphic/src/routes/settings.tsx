@@ -295,7 +295,7 @@ const RouteViewAccount: Component = () => {
 							</p>
 						</Show>
 						<button
-							class="rounded-sm p-1 m-1 btn-sm btn-default"
+							class="rounded-sm px-2 py-1 my-2 btn-md btn-default"
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");
@@ -341,7 +341,7 @@ const RouteViewAccount: Component = () => {
 										</SelectTrigger>
 										<SelectContent class="select__content" />
 									</Select>
-									<button class="rounded-sm p-1 m-1 btn-default" onClick={saveCountryCode}>Save</button>
+									<button class="rounded-sm p-1 my-2 btn-default" onClick={saveCountryCode}>Save</button>
 								</>
 							}
 						>
@@ -379,10 +379,7 @@ const RouteViewAccount: Component = () => {
 															)}
 															{" - "}
 															<span
-																style={{
-																	"text-decoration": "underline",
-																	cursor: "pointer",
-																}}
+																class="cursor-pointer underline-offset-2 underline"
 																onClick={async () => {
 																	await deleteSubscription(subscriptions().id);
 																	await updateStripeData();
@@ -392,10 +389,7 @@ const RouteViewAccount: Component = () => {
 															</span>
 															{" - "}
 															<span
-																style={{
-																	"text-decoration": "underline",
-																	cursor: "pointer",
-																}}
+																class="cursor-pointer underline-offset-2 underline "
 																onClick={async () => {
 																	await deleteSubscription(
 																		subscriptions().id,
@@ -478,7 +472,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
+															<button class="rounded-sm p-1 my-2 btn-default" type="submit">
 																1 Month - {formatPrice(prices().farmMonth!)}{" "}
 																{currency()}
 															</button>
@@ -504,7 +498,7 @@ const RouteViewAccount: Component = () => {
 																name="currency"
 																value={currency()}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
+															<button class="rounded-sm p-1 my-2 btn-default" type="submit">
 																6 Months - {formatPrice(prices().farm6Months!)}{" "}
 																{currency()}
 															</button>
@@ -544,7 +538,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
+															<button class="rounded-sm p-1 my-2 btn-default" type="submit">
 																1 Month - {formatPrice(prices().advisorMonth!)}{" "}
 																{currency()}
 															</button>
@@ -570,7 +564,7 @@ const RouteViewAccount: Component = () => {
 																name="email"
 																value={getMongoDBUser()?.email}
 															/>
-															<button class="rounded-sm p-1 m-1 btn-default" type="submit">
+															<button class="rounded-sm p-1 my-2 btn-default" type="submit">
 																6 Months -{" "}
 																{formatPrice(prices().advisor6Months!)}{" "}
 																{currency()}
