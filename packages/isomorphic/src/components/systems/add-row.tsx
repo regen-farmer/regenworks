@@ -17,6 +17,7 @@ export interface IRow {
 
 
 export function AddRow(props: {
+	ping: boolean;
 	index: number;
 	setSystem: any;
 	logSystem: any;
@@ -24,7 +25,7 @@ export function AddRow(props: {
 	return (
 		<div class="trigger">
 			<div
-				class="rounded-sm p-1 my-2 btn-default"
+				class={`rounded-sm p-1 my-2 btn-default ${props.ping?'animate-bounce':''}`}
 				onClick={() => {
 					props.setSystem("rows", (prev: IRow[]) => [
 						...prev.slice(0, props.index),

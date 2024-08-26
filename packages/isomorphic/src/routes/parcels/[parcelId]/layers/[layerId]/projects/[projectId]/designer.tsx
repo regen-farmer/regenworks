@@ -793,6 +793,7 @@ export default function view() {
 												)}
 											</For>
 											<AddRow
+												ping={system.rows.length === 0}
 												index={system.rows.length}
 												setSystem={setSystem}
 												logSystem={logSystem}
