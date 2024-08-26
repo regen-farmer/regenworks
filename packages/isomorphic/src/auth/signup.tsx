@@ -17,7 +17,7 @@ export default function NewUser() {
 				>
 					Log in or create new user
 				</button>{" "}
-				<p class="mt-4 text-zinc-200 text-xs leading-4">
+				<p class="mt-4 dark:text-zinc-200 text-xs leading-4">
 					
 						
 							By creating a user you agree to our <br />
