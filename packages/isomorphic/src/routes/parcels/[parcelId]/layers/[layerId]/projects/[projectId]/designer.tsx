@@ -413,7 +413,7 @@ export default function view() {
 
 																		<button
 																			title="Add tree"
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 mt-2 mb-2 btn-default"
 																			onclick={() => {
 																				// console.log('test')
 																				setSystem(
@@ -585,7 +585,7 @@ export default function view() {
 																		</For>
 
 																		<button
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 mt-2 btn-default"
 																			onclick={() => {
 																				// console.log('test')
 																				setSystem(
@@ -688,6 +688,8 @@ export default function view() {
 															<span >Ground cover</span>
 
 															<select
+																class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																								
 																style="width:100%;max-width:100%;"
 																value={row.groundcover ?? ""}
 																onchange={(e) => {
@@ -722,7 +724,7 @@ export default function view() {
 															<br />
 
 															<div
-																class="form-group"
+																class="form-group mt-2"
 																style={{
 																	display: "flex",
 																	"align-items": "center",
