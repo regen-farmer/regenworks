@@ -889,7 +889,7 @@ export { drawSystemDesign };
 const Parameterbox = ({ system, setSystem, logSystem }: any) => {
 	return (
 		<div
-			class="dark:bg-background bg-white text-black right-2 top-2 p-2 rounded-md border border-zinc-300  dark:text-white absolute"
+			class="dark:bg-background bg-white text-black right-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute"
 			
 		>
 			<Show when={system}>
