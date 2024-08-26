@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "update-deps": "bunx --bun taze --interactive --recursive --install --update false --write",
+    "update-deps": "bunx --bun taze major --interactive --recursive --install --update false --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --bun --filter '*' dev",
     "build": "bun --bun --filter '*' build",
@@ -21,7 +21,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "mongoose": "^8.5.3",
+    "mongoose": "^8.5.4",
     "proj4": "^2.12.0",
     "stripe": "^16.8.0"
   }
