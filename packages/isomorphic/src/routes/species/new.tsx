@@ -52,7 +52,7 @@ export default function view() {
 							<label for="species[nameCommon]">Species common name</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[nameCommon]"
 								placeholder="Common name is species"
 								required
@@ -62,7 +62,7 @@ export default function view() {
 							<label for="species[genus]">Genus</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[genus]"
 								required
 							/>
@@ -71,7 +71,7 @@ export default function view() {
 							<label for="species[species]">Species</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[species]"
 								required
 							/>
@@ -80,14 +80,14 @@ export default function view() {
 							<label for="species[family]">Family</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[family]"
 								required
 							/>
 						</div>
 						<div class="form-group">
 							<label for="species[climate]">Climate</label>
-							<select class="form-control p-1 rounded-sm" name="species[climate]">
+							<select class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600" name="species[climate]">
 								<option value="boreal">Boreal</option>
 								<option value="temperate">Temperate</option>
 								<option value="subtropic">Subtropic</option>
@@ -96,7 +96,7 @@ export default function view() {
 						</div>
 						<div class="form-group">
 							<label for="species[humidity]">Humidity</label>
-							<select class="form-control p-1 rounded-sm" name="species[humidity]">
+							<select class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600" name="species[humidity]">
 								<option value="arid">Arid</option>
 								<option value="semiarid">Semi-arid</option>
 								<option value="humid">Humid</option>
@@ -104,7 +104,7 @@ export default function view() {
 						</div>
 						<div class="form-group">
 							<label for="species[form]">Form</label>
-							<select class="form-control p-1 rounded-sm" name="species[form]">
+							<select class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600" name="species[form]">
 								<option value="bamboo">Bamboo</option>
 								<option value="cactus">Cactus</option>
 								<option value="cycad">Cycad</option>
@@ -122,7 +122,7 @@ export default function view() {
 							<label for="species[precipitation][min]">Min precipitation</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[precipitation][min]"
 							/>
 						</div>
@@ -130,7 +130,7 @@ export default function view() {
 							<label for="species[precipitation][max]">Max precipitation</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[precipitation][max]"
 							/>
 						</div>
@@ -138,7 +138,7 @@ export default function view() {
 							<label for="species[temperature][min]">Min temp</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[temperature][min]"
 							/>
 						</div>
@@ -146,7 +146,7 @@ export default function view() {
 							<label for="species[temperature][max]">Max temp</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[temperature][max]"
 							/>
 						</div>
@@ -155,7 +155,7 @@ export default function view() {
 							<input
 								type="number"
 								step=".01"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[height]"
 							/>
 						</div>
@@ -164,7 +164,7 @@ export default function view() {
 								Syntropic strata
 							</label>
 							<select
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[classsyntropic][strata]"
 							>
 								<option value="emergent">Emergent</option>
@@ -178,7 +178,7 @@ export default function view() {
 								Syntropic lifecycle
 							</label>
 							<select
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[classsyntropic][lifecycle]"
 							>
 								<option value="placenta">Placenta</option>
@@ -190,7 +190,7 @@ export default function view() {
 							<label for="species[lifespan]">Species lifespan</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="species[lifespan]"
 							/>
 						</div>
@@ -324,7 +324,7 @@ export default function view() {
 						</div>
 						<div class="form-group">
 							<label for="species[price]">Price</label>
-							<input type="number" class="form-control p-1 rounded-sm" name="species[price]" />
+							<input type="number" class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600" name="species[price]" />
 						</div>
 						<div class="form-group">
 							<button type="submit" class="rounded-sm p-1 my-2 btn-default">

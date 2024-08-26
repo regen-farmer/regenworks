@@ -66,7 +66,7 @@ export default function view() {
 									<label for="area[name]">sub-area name/ref</label>
 									<input
 										type="text"
-										class="form-control p-1 rounded-sm"
+										class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 										name="area[name]"
 										value={data()?.area.name}
 										required

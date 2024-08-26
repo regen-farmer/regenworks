@@ -62,7 +62,7 @@ export default function view() {
 							<label for="activity[name]">Activity name</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="activity[name]"
 								placeholder="Give the activity a name"
 								required
@@ -99,7 +99,7 @@ export default function view() {
 							</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="activity[time][startMonth]"
 								min="1"
 								max="12"
@@ -112,7 +112,7 @@ export default function view() {
 							</label>
 							<input
 								type="number"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="activity[time][endMonth]"
 								min="1"
 								max="12"
@@ -124,7 +124,7 @@ export default function view() {
 							<input
 								type="number"
 								step=".01"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="activity[price]"
 							/>
 						</div>

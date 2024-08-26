@@ -122,7 +122,7 @@ export default function view() {
 								<label for="system[name]">System name</label>
 								<input
 									type="text"
-									class="form-control p-1 rounded-sm"
+									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 									name="system[name]"
 									value={data()?.system.name}
 									required
@@ -132,7 +132,7 @@ export default function view() {
 								<label for="system[description]">Description</label>
 								<input
 									type="text"
-									class="form-control p-1 rounded-sm"
+									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 									name="system[description]"
 									value={data()?.system.description}
 								/>
@@ -192,7 +192,7 @@ export default function view() {
 											<input
 												type="number"
 												step=".01"
-												class="form-control p-1 rounded-sm"
+												class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 												name={`system[model][${data()?.newrow}][width]`}
 												value={1}
 												required
@@ -205,7 +205,7 @@ export default function view() {
 											<input
 												type="number"
 												step=".01"
-												class="form-control p-1 rounded-sm"
+												class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 												name={`system[model][${data()?.newrow}][distance]`}
 												value={1}
 												required
@@ -271,7 +271,7 @@ export default function view() {
 													<input
 														type="number"
 														step=".01"
-														class="form-control p-1 rounded-sm"
+														class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 														name={`system[model][${
 															j() + rowAfter()[j()]
 														}][width]`}
@@ -290,7 +290,7 @@ export default function view() {
 													<input
 														type="number"
 														step=".01"
-														class="form-control p-1 rounded-sm"
+														class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 														name={`system[model][${
 															j() + rowAfter()[j()]
 														}][distance]`}
@@ -392,7 +392,7 @@ export default function view() {
 														<input
 															type="number"
 															step=".01"
-															class="form-control p-1 rounded-sm"
+															class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 															name={`system[model][${data()?.newrow}][width]`}
 															value={1}
 															required
@@ -407,7 +407,7 @@ export default function view() {
 														<input
 															type="number"
 															step=".01"
-															class="form-control p-1 rounded-sm"
+															class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 															name={`system[model][${
 																data()?.newrow
 															}][distance]`}
