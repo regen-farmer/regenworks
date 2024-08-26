@@ -297,7 +297,7 @@ export default function view() {
 				<div
 					style={{
 						display: "flex",
-						position:"relative",
+						position: "relative",
 
 						"justify-content": "space-between",
 						height: "calc(100vh - 57px)",
@@ -355,103 +355,100 @@ export default function view() {
 																"justify-content": "flex-end",
 															}}
 														>
-															<div
-															class="border border-zinc-300 bg-white dark:bg-customdark1 p-2 rounded-sm dark:border-slate-600">
-
-																
-															{row.sequence.length ? (
-																<>
-																	<div
-																		style={{
-																			display: "flex",
-																			"flex-direction": "column-reverse",
-																		}}
-																	>
+															<div class="border border-zinc-300 bg-white dark:bg-customdark1 p-2 rounded-sm dark:border-slate-600">
+																{row.sequence.length ? (
+																	<>
 																		<div
-																			class="form-group"
 																			style={{
 																				display: "flex",
-																				"align-items": "center",
-																				"justify-content": "space-between",
+																				"flex-direction": "column-reverse",
 																			}}
 																		>
-																			<label>Offset</label>
 																			<div
+																				class="form-group"
 																				style={{
 																					display: "flex",
 																					"align-items": "center",
+																					"justify-content": "space-between",
 																				}}
 																			>
-																				<input
-																					style={{ width: "75px" }}
-																					type="number"
-																					min={0}
-																					class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																					value={row.offset?.before}
-																					onChange={(e) => {
-																						setSystem(
-																							"rows",
-																							rowIdx(),
-																							"offset",
-																							(o) => {
-																								const newOffset = { ...o };
-																								newOffset.before =
-																									Number.parseFloat(
-																										e.target.value,
-																									);
-																								return newOffset;
-																							},
-																						);
-
-																						logSystem();
-																					}}
-																					required
-																				/>
-																				<span>m</span>
-																			</div>
-																		</div>
-
-																		<button
-																			title="Add tree"
-																			class="rounded-sm p-1 mt-2 mb-2 btn-default"
-																			onclick={() => {
-																				// console.log('test')
-																				setSystem(
-																					"rows",
-																					rowIdx(),
-																					"sequence",
-																					(sequence) => {
-																						const newSequence = [
-																							{
-																								species: undefined,
-																								spacingAfter: 5,
-																							},
-																							...sequence,
-																						];
-
-																						// console.log(newRows)
-																						return newSequence;
-																					},
-																				);
-																				logSystem();
-																			}}
-																		>
-																			<i class="fa-solid fa-plus" /> Add tree
-																		</button>
-
-																		<For each={row.sequence}>
-																			{(sequence, sequenceIdx) => (
-																				// <div class='card'>
-																				//   <div class='card-body'>
-
+																				<label>Offset</label>
 																				<div
 																					style={{
 																						display: "flex",
 																						"align-items": "center",
-																						"margin-top": "10px",
 																					}}
 																				>
-																					{/* <button
+																					<input
+																						style={{ width: "75px" }}
+																						type="number"
+																						min={0}
+																						class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																						value={row.offset?.before}
+																						onChange={(e) => {
+																							setSystem(
+																								"rows",
+																								rowIdx(),
+																								"offset",
+																								(o) => {
+																									const newOffset = { ...o };
+																									newOffset.before =
+																										Number.parseFloat(
+																											e.target.value,
+																										);
+																									return newOffset;
+																								},
+																							);
+
+																							logSystem();
+																						}}
+																						required
+																					/>
+																					<span>m</span>
+																				</div>
+																			</div>
+
+																			<button
+																				title="Add tree"
+																				class="rounded-sm p-1 mt-2 mb-2 btn-default"
+																				onclick={() => {
+																					// console.log('test')
+																					setSystem(
+																						"rows",
+																						rowIdx(),
+																						"sequence",
+																						(sequence) => {
+																							const newSequence = [
+																								{
+																									species: undefined,
+																									spacingAfter: 5,
+																								},
+																								...sequence,
+																							];
+
+																							// console.log(newRows)
+																							return newSequence;
+																						},
+																					);
+																					logSystem();
+																				}}
+																			>
+																				<i class="fa-solid fa-plus" /> Add tree
+																			</button>
+
+																			<For each={row.sequence}>
+																				{(sequence, sequenceIdx) => (
+																					// <div class='card'>
+																					//   <div class='card-body'>
+
+																					<div
+																						style={{
+																							display: "flex",
+																							"align-items": "center",
+																							"margin-top": "10px",
+																						}}
+																					>
+																						{/* <button
                                     class='btn btn-default'
                                     onClick={() => {
                                       // setSystem('rows', (prev) => {
@@ -461,333 +458,336 @@ export default function view() {
                                       // })
                                     }}
                                   > */}
-																					<i
-																						onClick={() => {
-																							setSystem(
-																								"rows",
-																								rowIdx(),
-																								"sequence",
-																								(sequence) => {
-																									const newSequence = [
-																										...sequence,
-																									];
-																									newSequence.splice(
-																										sequenceIdx(),
-																										1,
-																									);
-																									return newSequence;
-																								},
-																							);
-																							logSystem();
-																						}}
-																						class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
-																					/>
-																					{/* </button> */}
-
-																					<div>
-																						<div
-																							style={{
-																								display: "flex",
-																								"align-items": "center",
+																						<i
+																							onClick={() => {
+																								setSystem(
+																									"rows",
+																									rowIdx(),
+																									"sequence",
+																									(sequence) => {
+																										const newSequence = [
+																											...sequence,
+																										];
+																										newSequence.splice(
+																											sequenceIdx(),
+																											1,
+																										);
+																										return newSequence;
+																									},
+																								);
+																								logSystem();
 																							}}
-																						>
-																							<i
-																								class="fa-solid fa-arrows-up-down"
-																								style={{
-																									width: "20px",
-																									"text-align": "center",
-																								}}
-																							/>
-																							<input
-																								style={{ width: "100%" }}
-																								type="number"
-																								min={0}
-																								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																								placeholder="Spacing (m)"
-																								value={sequence.spacingAfter}
-																								onChange={(e) => {
-																									setSystem(
-																										"rows",
-																										rowIdx(),
-																										"sequence",
-																										sequenceIdx(),
-																										(sequence) => {
-																											const newSpecies = {
-																												...sequence,
-																											};
-																											newSpecies.spacingAfter =
-																												Number.parseFloat(
-																													e.target.value,
-																												);
-																											return newSpecies;
-																										},
-																									);
-																									logSystem();
-																								}}
-																							/>
-																						</div>
-																						<div
-																							style={{
-																								display: "flex",
-																								"margin-top": "10px",
-																								"align-items": "center",
-																							}}
-																						>
-																							<i
-																								class="fa-solid fa-tree"
-																								style={{
-																									width: "20px",
-																									"text-align": "center",
-																								}}
-																							/>
-																							<select
-																								style="width:100%;max-width:100%;"
-																								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																								value={sequence.species ?? ""}
-																								onchange={(e) => {
-																									setSystem(
-																										"rows",
-																										rowIdx(),
-																										"sequence",
-																										sequenceIdx(),
-																										"species",
-																										(species) => {
-																											const newSpecies =
-																												e.target.value;
-																											return newSpecies;
-																										},
-																									);
+																							class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
+																						/>
+																						{/* </button> */}
 
-																									logSystem();
+																						<div>
+																							<div
+																								style={{
+																									display: "flex",
+																									"align-items": "center",
 																								}}
 																							>
-																								<option value="">none</option>
-																								<For
-																									each={species()?.species.filter(
-																										(species: ISpeciesSchema) =>
-																											![
-																												"herb",
-																												"grass",
-																											].includes(species.form),
-																									)}
+																								<i
+																									class="fa-solid fa-arrows-up-down"
+																									style={{
+																										width: "20px",
+																										"text-align": "center",
+																									}}
+																								/>
+																								<input
+																									style={{ width: "100%" }}
+																									type="number"
+																									min={0}
+																									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																									placeholder="Spacing (m)"
+																									value={sequence.spacingAfter}
+																									onChange={(e) => {
+																										setSystem(
+																											"rows",
+																											rowIdx(),
+																											"sequence",
+																											sequenceIdx(),
+																											(sequence) => {
+																												const newSpecies = {
+																													...sequence,
+																												};
+																												newSpecies.spacingAfter =
+																													Number.parseFloat(
+																														e.target.value,
+																													);
+																												return newSpecies;
+																											},
+																										);
+																										logSystem();
+																									}}
+																								/>
+																							</div>
+																							<div
+																								style={{
+																									display: "flex",
+																									"margin-top": "10px",
+																									"align-items": "center",
+																								}}
+																							>
+																								<i
+																									class="fa-solid fa-tree"
+																									style={{
+																										width: "20px",
+																										"text-align": "center",
+																									}}
+																								/>
+																								<select
+																									style="width:100%;max-width:100%;"
+																									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																									value={sequence.species ?? ""}
+																									onchange={(e) => {
+																										setSystem(
+																											"rows",
+																											rowIdx(),
+																											"sequence",
+																											sequenceIdx(),
+																											"species",
+																											(species) => {
+																												const newSpecies =
+																													e.target.value;
+																												return newSpecies;
+																											},
+																										);
+
+																										logSystem();
+																									}}
 																								>
-																									{(species) => (
-																										<option value={species._id}>
-																											{species.nameCommon}
-																										</option>
-																									)}
-																								</For>
-																							</select>
+																									<option value="">none</option>
+																									<For
+																										each={species()?.species.filter(
+																											(
+																												species: ISpeciesSchema,
+																											) =>
+																												![
+																													"herb",
+																													"grass",
+																												].includes(
+																													species.form,
+																												),
+																										)}
+																									>
+																										{(species) => (
+																											<option
+																												value={species._id}
+																											>
+																												{species.nameCommon}
+																											</option>
+																										)}
+																									</For>
+																								</select>
+																							</div>
 																						</div>
 																					</div>
-																				</div>
-																			)}
-																		</For>
+																				)}
+																			</For>
 
-																		<button
-																			class="rounded-sm p-1 mt-2 btn-default"
-																			onclick={() => {
-																				// console.log('test')
-																				setSystem(
-																					"rows",
-																					rowIdx(),
-																					"sequence",
-																					(sequence) => {
-																						const newSequence = [
-																							...sequence,
-																							{
-																								species: undefined,
-																								spacingAfter: 5,
-																							},
-																						];
+																			<button
+																				class="rounded-sm p-1 mt-2 btn-default"
+																				onclick={() => {
+																					// console.log('test')
+																					setSystem(
+																						"rows",
+																						rowIdx(),
+																						"sequence",
+																						(sequence) => {
+																							const newSequence = [
+																								...sequence,
+																								{
+																									species: undefined,
+																									spacingAfter: 5,
+																								},
+																							];
 
-																						// console.log(newRows)
-																						return newSequence;
-																					},
-																				);
-																				logSystem();
-																			}}
-																		>
-																			<i class="fa-solid fa-plus" /> Add tree
-																		</button>
+																							// console.log(newRows)
+																							return newSequence;
+																						},
+																					);
+																					logSystem();
+																				}}
+																			>
+																				<i class="fa-solid fa-plus" /> Add tree
+																			</button>
 
-																		<div
-																			class="form-group"
-																			style={{
-																				display: "flex",
-																				"align-items": "center",
-																				"justify-content": "space-between",
-																			}}
-																		>
-																			<label>Offset</label>
 																			<div
+																				class="form-group"
 																				style={{
 																					display: "flex",
 																					"align-items": "center",
+																					"justify-content": "space-between",
 																				}}
 																			>
-																				<input
-																					style={{ width: "75px" }}
-																					type="number"
-																					min={0}
-																					class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																					value={row.offset?.after}
-																					onChange={(e) => {
-																						setSystem(
-																							"rows",
-																							rowIdx(),
-																							"offset",
-																							(o) => {
-																								const offset = { ...o };
-																								offset.after =
-																									Number.parseFloat(
-																										e.target.value,
-																									);
-																								return offset;
-																							},
-																						);
-
-																						logSystem();
+																				<label>Offset</label>
+																				<div
+																					style={{
+																						display: "flex",
+																						"align-items": "center",
 																					}}
-																					required
-																				/>
-																				<span>m</span>
+																				>
+																					<input
+																						style={{ width: "75px" }}
+																						type="number"
+																						min={0}
+																						class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																						value={row.offset?.after}
+																						onChange={(e) => {
+																							setSystem(
+																								"rows",
+																								rowIdx(),
+																								"offset",
+																								(o) => {
+																									const offset = { ...o };
+																									offset.after =
+																										Number.parseFloat(
+																											e.target.value,
+																										);
+																									return offset;
+																								},
+																							);
+
+																							logSystem();
+																						}}
+																						required
+																					/>
+																					<span>m</span>
+																				</div>
 																			</div>
 																		</div>
-																	</div>
-																</>
-															) : (
-																<button
-																	class="rounded-sm p-1 m-1 btn-default"
-																	onclick={() => {
-																		// console.log('test')
-																		setSystem(
-																			"rows",
-																			rowIdx(),
-																			"sequence",
-																			(sequence) => {
-																				const newSequence = [
-																					...sequence,
-																					{
-																						species: undefined,
-																						spacingAfter: 5,
-																					},
-																				];
-																				return newSequence;
-																			},
-																		);
-																		logSystem();
-																	}}
-																>
-																	Define tree sequence
-																</button>
-															)}
-
-															<hr class="my-4" />
-
-															<span >Ground cover</span>
-
-															<select
-																class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																								
-																style="width:100%;max-width:100%;"
-																value={row.groundcover ?? ""}
-																onchange={(e) => {
-																	setSystem(
-																		"rows",
-																		rowIdx(),
-																		"groundcover",
-																		(gc) => {
-																			const newGroundCover = e.target.value;
-																			return newGroundCover;
-																		},
-																	);
-
-																	logSystem();
-																}}
-															>
-																<option value="">none</option>
-																<For
-																	each={species()?.species.filter(
-																		(species: ISpeciesSchema) =>
-																			["herb", "grass"].includes(species.form),
-																	)}
-																>
-																	{(species) => (
-																		<option value={species._id}>
-																			{species.nameCommon}
-																		</option>
-																	)}
-																</For>
-															</select>
-
-															<br />
-
-															<div
-																class="form-group mt-2"
-																style={{
-																	display: "flex",
-																	"align-items": "center",
-																	"justify-content": "space-between",
-																}}
-															>
-																<label>Row width</label>
-																<div
-																	style={{
-																		display: "flex",
-																		"align-items": "center",
-																	}}
-																>
-																	<input
-																		style={{ width: "75px" }}
-																		type="number"
-																		min={0}
-																		class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-																		placeholder="Width"
-																		value={row.width}
-																		onChange={(e) => {
+																	</>
+																) : (
+																	<button
+																		class="rounded-sm p-1 m-1 btn-default"
+																		onclick={() => {
+																			// console.log('test')
 																			setSystem(
 																				"rows",
 																				rowIdx(),
-																				"width",
-																				(width) => {
-																					const newWidth = Number.parseFloat(
-																						e.target.value,
-																					);
-																					return newWidth;
+																				"sequence",
+																				(sequence) => {
+																					const newSequence = [
+																						...sequence,
+																						{
+																							species: undefined,
+																							spacingAfter: 5,
+																						},
+																					];
+																					return newSequence;
 																				},
 																			);
-
 																			logSystem();
 																		}}
-																		required
-																	/>
-																	<span>m</span>
+																	>
+																		Define tree sequence
+																	</button>
+																)}
+
+																<hr class="my-4 border-zinc-600 dark:border-white border-dashed" />
+
+																<span>Ground cover</span>
+
+																<select
+																	class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																	style="width:100%;max-width:100%;"
+																	value={row.groundcover ?? ""}
+																	onchange={(e) => {
+																		setSystem(
+																			"rows",
+																			rowIdx(),
+																			"groundcover",
+																			(gc) => {
+																				const newGroundCover = e.target.value;
+																				return newGroundCover;
+																			},
+																		);
+
+																		logSystem();
+																	}}
+																>
+																	<option value="">none</option>
+																	<For
+																		each={species()?.species.filter(
+																			(species: ISpeciesSchema) =>
+																				["herb", "grass"].includes(
+																					species.form,
+																				),
+																		)}
+																	>
+																		{(species) => (
+																			<option value={species._id}>
+																				{species.nameCommon}
+																			</option>
+																		)}
+																	</For>
+																</select>
+
+																<br />
+
+																<div
+																	class="form-group mt-2"
+																	style={{
+																		display: "flex",
+																		"align-items": "center",
+																		"justify-content": "space-between",
+																	}}
+																>
+																	<label>Row width</label>
+																	<div
+																		style={{
+																			display: "flex",
+																			"align-items": "center",
+																		}}
+																	>
+																		<input
+																			style={{ width: "75px" }}
+																			type="number"
+																			min={0}
+																			class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+																			placeholder="Width"
+																			value={row.width}
+																			onChange={(e) => {
+																				setSystem(
+																					"rows",
+																					rowIdx(),
+																					"width",
+																					(width) => {
+																						const newWidth = Number.parseFloat(
+																							e.target.value,
+																						);
+																						return newWidth;
+																					},
+																				);
+
+																				logSystem();
+																			}}
+																			required
+																		/>
+																		<span>m</span>
+																	</div>
 																</div>
 															</div>
-															
-															
-															</div>
 
-															<div
-																class="flex w-full justify-center align-middle"
-															>
-																<i onClick={() => {
+															<div class="flex w-full justify-center align-middle">
+																<i
+																	onClick={() => {
 																		setSystem("rows", (prev) => {
 																			const newRows = [...prev];
 																			newRows.splice(rowIdx(), 1);
 																			return newRows;
 																		});
 																		logSystem();
-																	}} class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg " />
-																	
-																	<p class="font-bold leading-9 text-base">Row {rowIdx() + 1}</p>
+																	}}
+																	class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
+																/>
 
-																
-																	
-																
+																<p class="font-bold leading-9 text-base">
+																	Row {rowIdx() + 1}
+																</p>
 															</div>
-															
 														</div>
 													</>
 												)}
@@ -801,10 +801,7 @@ export default function view() {
 									</div>
 
 									<div>
-										<div
-										class="flex justify-between px-2	 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1"
-											
-										>
+										<div class="flex justify-between px-2	 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1">
 											<A
 												end={true}
 												href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`}
@@ -860,9 +857,9 @@ export default function view() {
 						</Show>
 					</div>
 					<Parameterbox
-							system={system}
-							setSystem={setSystem}
-							logSystem={logSystem}
+						system={system}
+						setSystem={setSystem}
+						logSystem={logSystem}
 					/>
 				</div>
 			</ResizablePanel>
@@ -872,8 +869,6 @@ export default function view() {
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
-
-						
 
 						<Show when={systemLayout() && species()}>
 							<SystemInfoBox
@@ -893,10 +888,7 @@ export { drawSystemDesign };
 
 const Parameterbox = ({ system, setSystem, logSystem }: any) => {
 	return (
-		<div
-			class="dark:bg-background bg-white text-black right-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute"
-			
-		>
+		<div class="dark:bg-background bg-white text-black right-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
 			<Show when={system}>
 				{/* 
               <div class='form-group'>
