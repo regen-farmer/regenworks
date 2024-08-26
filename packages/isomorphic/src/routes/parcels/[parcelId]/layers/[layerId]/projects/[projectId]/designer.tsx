@@ -784,7 +784,7 @@ export default function view() {
 																	class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
 																/>
 
-																<p class="font-bold leading-9 text-base">
+																<p class="font-bold leading-9">
 																	Row {rowIdx() + 1}
 																</p>
 															</div>
