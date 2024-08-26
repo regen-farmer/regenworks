@@ -130,7 +130,7 @@ export function AddFarmModal({
 								<label for="formGroupExampleInput">Name</label>
 								<input
 									type="text"
-									class="form-control w-full"
+									class="form-control w-full  p-1 rounded-sm"
 									name="parcel[name]"
 									placeholder="What is the farm called?"
 									disabled={submitDisabled()}
@@ -150,7 +150,7 @@ export function AddFarmModal({
 								<label for="formGroupExampleInput">Address</label>
 								<input
 									type="text"
-									class="form-control w-full"
+									class="form-control w-full  p-1 rounded-sm"
 									name="parcel[location]"
 									id="search_input"
 									placeholder="Where is the farm located?"
@@ -177,7 +177,7 @@ export function AddFarmModal({
 							>
 								<button
 									type="button"
-									class="rounded-sm p-1 m-1 btn-default btn-dimmed"
+									class="rounded-sm p-1 m-1 btn-default"
 									disabled={submitDisabled()}
 									onClick={() => {
 										cancel();

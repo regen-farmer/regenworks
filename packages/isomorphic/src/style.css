@@ -30,6 +30,7 @@ body {
 .btn-default {
   background-color: rgb(207 224 255);
   color: black;
+  border: 1px solid #424652
 }
 
 .btn-default:hover {
