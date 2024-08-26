@@ -661,7 +661,7 @@ export default function view() {
 																	</>
 																) : (
 																	<button
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1  w-full btn-default"
 																		onclick={() => {
 																			// console.log('test')
 																			setSystem(
