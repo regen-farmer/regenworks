@@ -65,7 +65,7 @@ export default function view() {
 								<label for="species[nameCommon]">Species common name</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[nameCommon]"
 									value={data()?.species.nameCommon}
 									required
@@ -75,7 +75,7 @@ export default function view() {
 								<label for="species[genus]">Genus</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[genus]"
 									value={data()?.species.genus}
 									required
@@ -85,7 +85,7 @@ export default function view() {
 								<label for="species[species]">Species</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[species]"
 									value={data()?.species.species}
 									required
@@ -95,7 +95,7 @@ export default function view() {
 								<label for="species[family]">Family</label>
 								<input
 									type="text"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[family]"
 									value={data()?.species.family}
 									required
@@ -103,7 +103,7 @@ export default function view() {
 							</div>
 							<div class="form-group">
 								<label for="species[climate]">Climate</label>
-								<select class="form-control" name="species[climate]">
+								<select class="form-control p-1 rounded-sm" name="species[climate]">
 									{data()?.species.climate === "boreal" ? (
 										<option selected value="boreal">
 											Boreal
@@ -136,7 +136,7 @@ export default function view() {
 							</div>
 							<div class="form-group">
 								<label for="species[humidity]">Humidity</label>
-								<select class="form-control" name="species[humidity]">
+								<select class="form-control p-1 rounded-sm" name="species[humidity]">
 									{data()?.species.humidity === "arid" ? (
 										<option selected value="arid">
 											Arid
@@ -162,7 +162,7 @@ export default function view() {
 							</div>
 							<div class="form-group">
 								<label for="species[form]">Form</label>
-								<select class="form-control" name="species[form]">
+								<select class="form-control p-1 rounded-sm" name="species[form]">
 									{data()?.species.form === "bamboo" ? (
 										<option selected value="bamboo">
 											Bamboo
@@ -248,7 +248,7 @@ export default function view() {
 								</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[precipitation][min]"
 									value={data()?.species.precipitation.min}
 								/>
@@ -259,7 +259,7 @@ export default function view() {
 								</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[precipitation][max]"
 									value={data()?.species.precipitation.max}
 								/>
@@ -268,7 +268,7 @@ export default function view() {
 								<label for="species[temperature][min]">Min temp</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[temperature][min]"
 									value={data()?.species.temperature.min}
 								/>
@@ -277,7 +277,7 @@ export default function view() {
 								<label for="species[temperature][max]">Max temp</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[temperature][max]"
 									value={data()?.species.temperature.max}
 								/>
@@ -287,7 +287,7 @@ export default function view() {
 								<input
 									type="number"
 									step=".01"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[height]"
 									value={data()?.species.height}
 								/>
@@ -297,7 +297,7 @@ export default function view() {
 									Syntropic strata
 								</label>
 								<select
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[classsyntropic][strata]"
 								>
 									{data()?.species.classsyntropic.strata === "emergent" ? (
@@ -335,7 +335,7 @@ export default function view() {
 									Syntropic lifecycle
 								</label>
 								<select
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[classsyntropic][lifecycle]"
 								>
 									{data()?.species.classsyntropic.lifecycle === "placenta" ? (
@@ -365,7 +365,7 @@ export default function view() {
 								<label for="species[lifespan]">Species lifespan</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[lifespan]"
 									value={data()?.species.lifespan}
 								/>
@@ -671,7 +671,7 @@ export default function view() {
 								<label for="species[price]">Price</label>
 								<input
 									type="number"
-									class="form-control"
+									class="form-control p-1 rounded-sm"
 									name="species[price]"
 									value={data()?.species.price}
 								/>

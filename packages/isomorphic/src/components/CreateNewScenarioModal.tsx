@@ -110,7 +110,7 @@ export function CreateNewScenarioModal({
 														{/* disable input when submiting disabled */}
 														<input
 															type="text"
-															class="form-control"
+															class="form-control p-1 rounded-sm"
 															name="project[name]"
 															placeholder=""
 															required
