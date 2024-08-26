@@ -480,7 +480,7 @@ export default function view() {
 																							);
 																							logSystem();
 																						}}
-																						class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 hover:text-red-500 m-1 "
+																						class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
 																					/>
 																					{/* </button> */}
 
@@ -779,7 +779,7 @@ export default function view() {
 																			return newRows;
 																		});
 																		logSystem();
-																	}} class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 hover:text-red-500 m-1 text-lg " />
+																	}} class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg " />
 																	
 																	<p class="font-bold leading-9 text-base">Row {rowIdx() + 1}</p>
 
