@@ -15,8 +15,11 @@ import type {
 	SystemDesignDocument,
 } from "@rw/db/schemas/systemdesign.ts";
 
-import { Resizable, ResizableHandle, ResizablePanel } from "~/components/ui/resizable"
-
+import {
+	Resizable,
+	ResizableHandle,
+	ResizablePanel,
+} from "~/components/ui/resizable";
 
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
@@ -70,11 +73,10 @@ function systemDesignsAreEqual(sd1: string, sd2: string) {
 		for (const row of sd.rows) {
 			row._id = undefined;
 			row.headland = undefined;
-			
-			for (const sequence of row.sequence) {
-				sequence._id = undefined
-			}
 
+			for (const sequence of row.sequence) {
+				sequence._id = undefined;
+			}
 		}
 
 		return sd;
@@ -148,8 +150,6 @@ export default function view() {
 	const mapCameraState = {};
 
 	let map: maplibregl.Map;
-
-
 
 	createEffect(() => {
 		// console.log('Updateing map', rebuildMap())
@@ -283,7 +283,7 @@ export default function view() {
 
 		if (systemData) {
 			// toast('System design saved.');
-			showToast({ title:"System design saved."})
+			showToast({ title: "System design saved." });
 		}
 
 		setSaving(false);
@@ -297,6 +297,7 @@ export default function view() {
 				<div
 					style={{
 						display: "flex",
+						position:"relative",
 
 						"justify-content": "space-between",
 						height: "calc(100vh - 57px)",
@@ -796,12 +797,8 @@ export default function view() {
 
 									<div>
 										<div
-											style={{
-												display: "flex",
-												"justify-content": "space-between",
-												padding: "0 0 0 10px",
-												"border-top": "1px solid #555",
-											}}
+										class="flex justify-between px-2	 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1"
+											
 										>
 											<A
 												end={true}
@@ -833,7 +830,7 @@ export default function view() {
 												<button
 													// disabled={submitDisabled()}
 													type="submit"
-													class="rounded-sm p-1 mr-2 my-2 btn-default"
+													class="rounded-sm p-1 my-2 btn-default"
 													onclick={getSystemDesign}
 													disabled={previewing() || system.rows.length === 0}
 												>
@@ -857,32 +854,46 @@ export default function view() {
 							{/* </form> */}
 						</Show>
 					</div>
+					<Parameterbox
+							system={system}
+							setSystem={setSystem}
+							logSystem={logSystem}
+					/>
 				</div>
 			</ResizablePanel>
 			<ResizableHandle withHandle />
 			<ResizablePanel>
-					<Toaster  />
+				<Toaster />
 				<div style={{ height: "100%", position: "relative", flex: "1 1 100%" }}>
 					<div style={{ height: "100%" }}>
 						<div id="layerMapShow" style={{ height: "100%", width: "100%" }} />
-						<Show when={system}>
-							<div
 
-								class="dark:bg-black bg-white text-black dark:bg-opacity-70 bg-opacity-70 dark:text-white"
-							
-								style={{
-									"border-radius": "10px",
-									position: "absolute",
-									"z-index": 10,
-									right: "10px",
-									bottom: "10px",
-									padding: "10px",
-								}}
-							>
-								<strong>
-									<span>Change parameters:</span>
-								</strong>
-								{/* 
+						
+
+						<Show when={systemLayout() && species()}>
+							<SystemInfoBox
+								systemLayout={systemLayout()}
+								species={species()}
+								scenarioData={scenarioData()}
+							/>
+						</Show>
+					</div>
+				</div>
+			</ResizablePanel>
+		</Resizable>
+	);
+}
+
+export { drawSystemDesign };
+
+const Parameterbox = ({ system, setSystem, logSystem }: any) => {
+	return (
+		<div
+			class="dark:bg-background bg-white text-black right-2 top-2 p-2 rounded-md border border-zinc-300  dark:text-white absolute"
+			
+		>
+			<Show when={system}>
+				{/* 
               <div class='form-group'>
                 <label>Layout type</label>
                 <select
@@ -912,62 +923,48 @@ export default function view() {
                 </select>
               </div> */}
 
-								<div class="form-group">
-									<label>Bearing</label>
-									<input
-										type="number"
-										min={-180}
-										class="form-control p-1 rounded-sm"
-										onchange={(e) => {
-											setSystem("bearing", Number.parseFloat(e.target.value));
-											logSystem();
-										}}
-										value={system.bearing ?? 0}
-									/>
-								</div>
-
-								<div class="form-group">
-									<label>Margin</label>
-									<input
-										type="number"
-										min={0}
-										class="form-control p-1 rounded-sm"
-										onchange={(e) => {
-											setSystem("margin", Number.parseFloat(e.target.value));
-											logSystem();
-										}}
-										value={system.margin ?? 0}
-									/>
-								</div>
-
-								<div class="form-group">
-									<label>Headland</label>
-									<input
-										type="number"
-										min={0}
-										class="form-control p-1 rounded-sm"
-										onchange={(e) => {
-											setSystem("headland", Number.parseFloat(e.target.value));
-											logSystem();
-										}}
-										value={system.headland ?? 0}
-									/>
-								</div>
-							</div>
-
-							<Show when={systemLayout() && species()}>
-								<SystemInfoBox
-									systemLayout={systemLayout()}
-									species={species()}
-									scenarioData={scenarioData()}
-								/>
-							</Show>
-						</Show>
-					</div>
+				<div class="form-group justify-between	flex my-1 align-middle">
+					<label class="leading-7 mr-2 w-full text-right">Bearing</label>
+					<input
+						type="number"
+						min={-180}
+						class="form-control p-1 rounded-sm w-20  border border-zinc-300 dark:border-slate-600"
+						onchange={(e) => {
+							setSystem("bearing", Number.parseFloat(e.target.value));
+							logSystem();
+						}}
+						value={system.bearing ?? 0}
+					/>
 				</div>
-			</ResizablePanel>
-		</Resizable>
-	);
-}
 
-export { drawSystemDesign };
+				<div class="form-group justify-between	flex my-1 align-middle">
+					<label class="leading-7 mr-2 w-full text-right">Margin</label>
+					<input
+						type="number"
+						min={0}
+						class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
+						onchange={(e) => {
+							setSystem("margin", Number.parseFloat(e.target.value));
+							logSystem();
+						}}
+						value={system.margin ?? 0}
+					/>
+				</div>
+
+				<div class="form-group justify-between	flex my-1 align-middle">
+					<label class="leading-7 mr-2 w-full text-right">Headland</label>
+					<input
+						type="number"
+						min={0}
+						class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
+						onchange={(e) => {
+							setSystem("headland", Number.parseFloat(e.target.value));
+							logSystem();
+						}}
+						value={system.headland ?? 0}
+					/>
+				</div>
+			</Show>
+		</div>
+	);
+};
