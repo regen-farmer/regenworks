@@ -311,7 +311,7 @@ export const EditFieldMode: Component<{
 							<div class="dialog__description__body">
 								<input
 									type="text"
-									class="addFieldInput w-full mb-4 p-1 rounded-sm"
+									class="addFieldInput w-full mb-4 p-1 rounded-sm border-zinc-400 border"
 									value={field.name}
 									name="layer[name]"
 									placeholder="Name"
