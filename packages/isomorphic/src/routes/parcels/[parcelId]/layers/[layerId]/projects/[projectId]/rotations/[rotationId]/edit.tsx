@@ -61,7 +61,7 @@ export default function view() {
 							<label for="rotation[name]">Rotation name</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="rotation[name]"
 								value={data()?.rotation.name}
 								required

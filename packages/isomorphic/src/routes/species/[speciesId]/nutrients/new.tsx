@@ -69,7 +69,7 @@ export default function view() {
 								<input
 									type="number"
 									value={data()?.species.nutrients?.protein}
-									class="form-control p-1 rounded-sm"
+									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 									name="nutrients[protein]"
 									min="0"
 									max="100"
@@ -81,7 +81,7 @@ export default function view() {
 								<input
 									type="number"
 									value={data()?.species.nutrients?.fat}
-									class="form-control p-1 rounded-sm"
+									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 									name="nutrients[fat]"
 									min="0"
 									max="100"
@@ -93,7 +93,7 @@ export default function view() {
 								<input
 									type="number"
 									value={data()?.species.nutrients?.carb}
-									class="form-control p-1 rounded-sm"
+									class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 									name="nutrients[carb]"
 									min="0"
 									max="100"

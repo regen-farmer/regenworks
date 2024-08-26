@@ -97,7 +97,7 @@ export function DuplicateScenarioModal({
 												<label for="project[name]">Scenario title</label>
 												<input
 													type="text"
-													class="form-control p-1 rounded-sm"
+													class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 													name="project[name]"
 													placeholder=""
 													required

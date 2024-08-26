@@ -355,6 +355,10 @@ export default function view() {
 																"justify-content": "flex-end",
 															}}
 														>
+															<div
+															class="border border-zinc-300 bg-white dark:bg-customdark1 p-2 rounded-sm dark:border-slate-600">
+
+																
 															{row.sequence.length ? (
 																<>
 																	<div
@@ -382,7 +386,7 @@ export default function view() {
 																					style={{ width: "75px" }}
 																					type="number"
 																					min={0}
-																					class="form-control p-1 rounded-sm"
+																					class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 																					value={row.offset?.before}
 																					onChange={(e) => {
 																						setSystem(
@@ -476,7 +480,7 @@ export default function view() {
 																							);
 																							logSystem();
 																						}}
-																						class="fa-solid fa-trash"
+																						class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 hover:text-red-500 m-1 "
 																					/>
 																					{/* </button> */}
 
@@ -498,6 +502,7 @@ export default function view() {
 																								style={{ width: "100%" }}
 																								type="number"
 																								min={0}
+																								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 																								placeholder="Spacing (m)"
 																								value={sequence.spacingAfter}
 																								onChange={(e) => {
@@ -537,6 +542,7 @@ export default function view() {
 																							/>
 																							<select
 																								style="width:100%;max-width:100%;"
+																								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 																								value={sequence.species ?? ""}
 																								onchange={(e) => {
 																									setSystem(
@@ -624,7 +630,7 @@ export default function view() {
 																					style={{ width: "75px" }}
 																					type="number"
 																					min={0}
-																					class="form-control p-1 rounded-sm"
+																					class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 																					value={row.offset?.after}
 																					onChange={(e) => {
 																						setSystem(
@@ -677,9 +683,9 @@ export default function view() {
 																</button>
 															)}
 
-															<hr />
+															<hr class="my-4" />
 
-															<span>Ground cover</span>
+															<span >Ground cover</span>
 
 															<select
 																style="width:100%;max-width:100%;"
@@ -734,7 +740,7 @@ export default function view() {
 																		style={{ width: "75px" }}
 																		type="number"
 																		min={0}
-																		class="form-control p-1 rounded-sm"
+																		class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 																		placeholder="Width"
 																		value={row.width}
 																		onChange={(e) => {
@@ -757,32 +763,29 @@ export default function view() {
 																	<span>m</span>
 																</div>
 															</div>
-
-															<br />
+															
+															
+															</div>
 
 															<div
-																style={{
-																	display: "flex",
-																	"flex-direction": "column",
-																	"align-items": "center",
-																}}
+																class="flex w-full justify-center align-middle"
 															>
-																<p>{rowIdx() + 1}. Row</p>
-
-																<button
-																	class="rounded-sm p-1 m-1 btn-default"
-																	onClick={() => {
+																<i onClick={() => {
 																		setSystem("rows", (prev) => {
 																			const newRows = [...prev];
 																			newRows.splice(rowIdx(), 1);
 																			return newRows;
 																		});
 																		logSystem();
-																	}}
-																>
-																	<i class="fa-solid fa-trash" />
-																</button>
+																	}} class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 hover:text-red-500 m-1 text-lg " />
+																	
+																	<p class="font-bold leading-9 text-base">Row {rowIdx() + 1}</p>
+
+																
+																	
+																
 															</div>
+															
 														</div>
 													</>
 												)}

@@ -123,7 +123,7 @@ export default function view() {
 						<label for="row[name]">Row name/ref</label>
 						<input
 							type="text"
-							class="form-control p-1 rounded-sm"
+							class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 							name="row[name]"
 							placeholder="Give the row a name - Descriptive is often best"
 							required

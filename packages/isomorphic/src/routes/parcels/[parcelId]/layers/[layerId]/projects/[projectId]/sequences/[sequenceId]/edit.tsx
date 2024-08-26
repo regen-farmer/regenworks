@@ -119,7 +119,7 @@ export default function view() {
 							<label for="sequence[name]">Sequence name</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="sequence[name]"
 								value={data()?.sequence.name}
 								required
@@ -129,7 +129,7 @@ export default function view() {
 							<label for="sequence[description]">Description</label>
 							<input
 								type="text"
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="sequence[description]"
 								value={data()?.sequence.description}
 							/>
@@ -143,7 +143,7 @@ export default function view() {
 								type="number"
 								step=".1"
 								value={gridLength()}
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="sequence[length]"
 								placeholder="Length in m"
 								oninput={(e) => {
@@ -162,7 +162,7 @@ export default function view() {
 								type="number"
 								step=".1"
 								value={gridDistance()}
-								class="form-control p-1 rounded-sm"
+								class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
 								name="sequence[distance]"
 								placeholder="Distance in m"
 								oninput={(e) => {
