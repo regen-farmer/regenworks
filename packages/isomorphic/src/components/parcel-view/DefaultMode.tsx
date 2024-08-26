@@ -188,11 +188,11 @@ function DefaultMode({
 					</DialogDescription>
 					<DialogFooter>
 						<form action={deleteForm} method="post" class="delete-form">
-							<button class="rounded-sm p-1 m-1 btn-danger" onClick={() => setDeleteFieldModalOpen(false)}>
+							<button class="rounded-sm p-1 my-1 btn-danger" onClick={() => setDeleteFieldModalOpen(false)}>
 								Delete field
 							</button>
 						</form>
-						<button class="rounded-sm p-1 m-1 btn-default" onClick={() => setDeleteFieldModalOpen(false)}>
+						<button class="rounded-sm p-1 my-2 ml-2 btn-default" onClick={() => setDeleteFieldModalOpen(false)}>
 							Cancel
 						</button>
 					</DialogFooter>
@@ -201,7 +201,7 @@ function DefaultMode({
 
 			<div
 				style={{
-					background: "rgba(0,0,0,0.4)",
+					background: "rgba(0,0,0,0.5)",
 					"border-radius": "10px",
 					position: "fixed",
 					"z-index": 10,
@@ -215,7 +215,7 @@ function DefaultMode({
 					<span>Fields</span>
 				</strong>
 				<div
-					class="list-group rounded-sm"
+					class="list-group rounded-md"
 					style={{
 						"max-height": "500px",
 						"overflow-y": "auto",
@@ -233,7 +233,7 @@ function DefaultMode({
 								<div>
 									<button
 										title="Edit field"
-										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
+										class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											cleanupLayers();
 
@@ -253,7 +253,7 @@ function DefaultMode({
 									<button
 										title="Show field on map"
 										type="button"
-										class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
+										class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
 										onClick={() => {
 											console.log(
 												"JSON.parse(layer.geometry)",
@@ -276,7 +276,7 @@ function DefaultMode({
 									<button
 										title="Delete field"
 										type="button"
-										class={"rounded-sm p-1 m-1 btn-danger menu-btn list-group-button rounded-sm"}
+										class={"rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"}
 										
 
 										onclick={()=>{
@@ -295,7 +295,7 @@ function DefaultMode({
 
 				<button
 					type="button"
-					class="rounded-sm p-1 m-1 btn-default"
+					class="rounded-sm p-1 mt-2 btn-default w-full"
 					onClick={(e) => enterAddFieldMode(e)}
 				>
 					Add new field to this farm

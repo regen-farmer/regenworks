@@ -408,7 +408,7 @@ export default function view() {
 
 																		<button
 																			title="Add tree"
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 my-2 btn-default"
 																			onclick={() => {
 																				// console.log('test')
 																				setSystem(
@@ -578,7 +578,7 @@ export default function view() {
 																		</For>
 
 																		<button
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 my-2 btn-default"
 																			onclick={() => {
 																				// console.log('test')
 																				setSystem(
@@ -651,7 +651,7 @@ export default function view() {
 																</>
 															) : (
 																<button
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 my-2 btn-default"
 																	onclick={() => {
 																		// console.log('test')
 																		setSystem(
@@ -769,7 +769,7 @@ export default function view() {
 																<p>{rowIdx() + 1}. Row</p>
 
 																<button
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 my-2 btn-default"
 																	onClick={() => {
 																		setSystem("rows", (prev) => {
 																			const newRows = [...prev];
@@ -806,7 +806,7 @@ export default function view() {
 											<A
 												end={true}
 												href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`}
-												class="rounded-sm p-1 m-1 btn-default"
+												class="rounded-sm p-1 my-2 btn-default"
 											>
 												<i class="fas fa-arrow-left" /> Back to scenario
 												dashboard
@@ -816,7 +816,7 @@ export default function view() {
 												<button
 													// disabled={submitDisabled()}
 													type="submit"
-													class="rounded-sm p-1 m-1 btn-default"
+													class="rounded-sm p-1 my-2 btn-default"
 													onclick={saveSystem}
 													disabled={
 														saving() ||
@@ -833,7 +833,7 @@ export default function view() {
 												<button
 													// disabled={submitDisabled()}
 													type="submit"
-													class="rounded-sm p-1 m-1 btn-default"
+													class="rounded-sm p-1 my-2 btn-default"
 													onclick={getSystemDesign}
 													disabled={previewing() || system.rows.length === 0}
 												>

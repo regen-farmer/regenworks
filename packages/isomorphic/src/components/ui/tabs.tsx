@@ -20,7 +20,7 @@ const TabsList = <T extends ValidComponent = "div">(
 	return (
 		<TabsPrimitive.List
 			class={cn(
-				"inline-flex h-10 gap-2 items-center justify-center rounded-md p-1  dark:text-gray-300 text-gray-800",
+				"inline-flex h-10 gap-2 items-center justify-center rounded-md  dark:text-gray-300 text-gray-800",
 				local.class,
 			)}
 			{...others}

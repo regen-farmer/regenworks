@@ -149,7 +149,7 @@ export function CreateNewScenarioModal({
 														<button
 															disabled={submitDisabled()}
 															type="submit"
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 														>
 															Create scenario
 														</button>

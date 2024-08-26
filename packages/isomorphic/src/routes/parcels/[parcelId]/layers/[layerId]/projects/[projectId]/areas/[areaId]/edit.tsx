@@ -108,7 +108,7 @@ export default function view() {
                    <div id="coordinates"></div>
                    <hr>--> */}
 								<div class="form-group">
-									<button type="submit" class="rounded-sm p-1 m-1 btn-default center-block">
+									<button type="submit" class="rounded-sm p-1 my-2 btn-default center-block">
 										Update area
 									</button>
 								</div>

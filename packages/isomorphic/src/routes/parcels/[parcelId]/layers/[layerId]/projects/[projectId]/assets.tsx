@@ -97,7 +97,7 @@ export default function view() {
 						href={`/parcels/${params.parcelId}/layers/${
 							params.layerId
 						}/projects/${data()?.project._id}`}
-						class="rounded-sm p-1 m-1 mt-2 mb-2 btn-default"
+						class="rounded-sm p-1 my-1 mt-2 mb-2 btn-default"
 					>
 						<i class="fas fa-arrow-left" /> Back to scenario dashboard
 					</A>

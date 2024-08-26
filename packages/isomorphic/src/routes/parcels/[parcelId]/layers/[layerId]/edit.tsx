@@ -72,7 +72,7 @@ export default function view() {
 										placeholder="Description" />
 									</TextField>
 									<div class="btn-group">
-										<button type="submit" class="rounded-sm p-1 m-1 btn-default center-block">
+										<button type="submit" class="rounded-sm p-1 my-2 btn-default center-block">
 											Update field
 										</button>
 									</div>

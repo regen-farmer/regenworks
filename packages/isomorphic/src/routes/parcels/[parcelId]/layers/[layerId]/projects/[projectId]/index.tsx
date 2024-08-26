@@ -333,20 +333,20 @@ export default function view() {
 											{data()?.project.description}</p>
 
 											{/* <!--
-            <a class="rounded-sm p-1 m-1 btn-default" href="#">Duplicate this project (Coming soon)</a>
+            <a class="rounded-sm p-1 my-2 btn-default" href="#">Duplicate this project (Coming soon)</a>
 --> */}
 											{data()?.project.status === "planning" ? (
 												<>
 													{/*<button
 														type="button"
-														class="rounded-sm p-1 m-1 btn-default"
+														class="rounded-sm p-1 my-2 btn-default"
 														onClick={() => setImplementProjectModalOpen(true)}
 													>
 														Start implementation
 													</button>
 													<button
 														type="button"
-														class="rounded-sm p-1 m-1 btn-default"
+														class="rounded-sm p-1 my-2 btn-default"
 														onClick={() => setRetireProjectModalOpen(true)}
 													>
 														Retire scenario
@@ -376,7 +376,7 @@ export default function view() {
 														<form method="post" action={StartImplementationForm}>
 															<button
 																type="submit"
-																class="rounded-sm p-1 m-1 btn-default"
+																class="rounded-sm p-1 my-2 btn-default"
 																onClick={() => setImplementProjectModalOpen(false)}
 															>
 																Confirm implementation start
@@ -384,7 +384,7 @@ export default function view() {
 														</form>
 														<button
 															type="button"
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 															onClick={() => setImplementProjectModalOpen(false)}
 														>
 															Cancel
@@ -412,7 +412,7 @@ export default function view() {
 													<DialogFooter>
 														<form method="post" action={RetireProjectForm}>
 															<button
-																class="rounded-sm p-1 m-1 btn-default"
+																class="rounded-sm p-1 my-2 btn-default"
 																onClick={() => setRetireProjectModalOpen(false)}
 															>
 																Confirm retirement
@@ -420,7 +420,7 @@ export default function view() {
 														</form>
 														<button
 															type="button"
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 															onClick={() => setRetireProjectModalOpen(false)}
 														>
 															Cancel
@@ -434,7 +434,7 @@ export default function view() {
 												href={`/parcels/${params.parcelId}/layers/${
 													params.layerId
 												}/projects/${data()?.project._id}/designer`}
-												class="rounded-sm p-1 m-1 btn-default"
+												class="rounded-sm p-1 my-2 btn-default"
 											>
 												Edit system design
 											</A>
@@ -471,7 +471,7 @@ export default function view() {
 														target="_blank"
 														href={`/scenario-preview/${params.projectId}`}
 													>
-														<div class="rounded-sm p-1 m-1 w-fit btn-default">
+														<div class="rounded-sm p-1 my-1 w-fit btn-default">
 															See preview
 														</div>
 													</A>
@@ -492,7 +492,7 @@ export default function view() {
 														<DialogTrigger>
 															<button
 																type="button"
-																class="rounded-sm p-1 m-1 btn-danger"
+																class="rounded-sm p-1 my-1 btn-danger"
 															>
 																Delete scenario
 															</button>
@@ -518,7 +518,7 @@ export default function view() {
 																	class="delete-form"
 																>
 																	<button
-																		class="rounded-sm p-1 m-1 btn-danger"
+																		class="rounded-sm p-1 my-1 btn-danger"
 																		onClick={() =>
 																			setModalDeleteScenarioOpen(false)
 																		}
@@ -528,7 +528,7 @@ export default function view() {
 																</form>
 																<button
 																	type="button"
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 my-2 btn-default"
 																	onClick={() =>
 																		setModalDeleteScenarioOpen(false)
 																	}
@@ -567,7 +567,7 @@ export default function view() {
 																		<strong>Active system:</strong>{" "}
 																		{data()?.project.system.name}
 																		<A
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 my-2 btn-default"
 																			href={`/parcels/${
 																				params.parcelId
 																			}/layers/${params.layerId}/projects/${
@@ -604,7 +604,7 @@ export default function view() {
 																	</p>
 																	{data()?.project.status === "planning" ? (
 																		<A
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 my-2 btn-default"
 																			href={`/systems/${
 																				data()?.project.edgesystem._id
 																			}/edit`}
@@ -622,7 +622,7 @@ export default function view() {
 																				<div class="col-md-6">
 																						<div class="card">
 																								<div class="card-body">
-																										<a class="rounded-sm p-1 m-1 btn-default" href="/projects/${ data()?.project._id }/addedgesystem">Add edge system</a>
+																										<a class="rounded-sm p-1 my-2 btn-default" href="/projects/${ data()?.project._id }/addedgesystem">Add edge system</a>
 																								</div>
 																						</div>
 																				</div>
@@ -642,7 +642,7 @@ export default function view() {
 																		{system.name}
 																	</p>
 																	<A
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 my-2 btn-default"
 																		href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/systems/${system._id}`}
 																	>
 																		View more details
@@ -650,7 +650,7 @@ export default function view() {
 
 																	<button
 																		disabled={settingSystem()}
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 my-2 btn-default"
 																		onclick={async () => {
 																			setSettingSystem(true);
 
@@ -683,7 +683,7 @@ export default function view() {
                                 system.owner.id === mongoDBDBUser()._id
                               }
                             >
-                              <button class="rounded-sm p-1 m-1 btn-danger"
+                              <button class="rounded-sm p-1 my-1 btn-danger"
                                 
                                 data-bs-toggle='modal'
                                 data-bs-target='#deleteSystemModal'
@@ -724,7 +724,7 @@ export default function view() {
 																				</div>
 																				<div class="modal-footer">
 																					<button
-																						class="rounded-sm p-1 m-1 btn-danger"
+																						class="rounded-sm p-1 my-1 btn-danger"
 																						data-bs-dismiss="modal"
 																						onClick={deleteSystem(system)}
 																					>
@@ -732,7 +732,7 @@ export default function view() {
 																						<i class="far fa-trash-alt" />
 																					</button>
 																					<button
-																						class="rounded-sm p-1 m-1 btn-default"
+																						class="rounded-sm p-1 my-2 btn-default"
 																						data-bs-dismiss="modal"
 																					>
 																						Cancel
@@ -763,7 +763,7 @@ export default function view() {
 												</Show>
 
 												<A
-													class="rounded-sm p-1 m-1 btn-default mt-2"
+													class="rounded-sm p-1 my-2 btn-default mt-2"
 													href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/designer`}
 												>
 													Define new agroforestry system
@@ -799,7 +799,7 @@ export default function view() {
 														href={`/parcels/${params.parcelId}/layers/${
 															params.layerId
 														}/projects/${data()?.project._id}/layout`}
-														class="rounded-sm p-1 m-1 btn-default"
+														class="rounded-sm p-1 my-2 btn-default"
 													>
 														View layout map <i class="far fa-map" />
 													</A>
@@ -813,7 +813,7 @@ export default function view() {
 												) : (
 													<button
 														type="button"
-														class="rounded-sm p-1 m-1 btn-default"
+														class="rounded-sm p-1 my-2 btn-default"
 
 														// data-bs-toggle="modal"
 														// data-bs-target="#generateAssetsModal"
@@ -849,7 +849,7 @@ export default function view() {
 															<div class="modal-footer">
 																<form method="post" action={GenerateAssetsForm}>
 																	<button
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 my-2 btn-default"
 																		data-bs-dismiss="modal"
 																	>
 																		Generate tree assets
@@ -857,7 +857,7 @@ export default function view() {
 																</form>
 																<button
 																	type="button"
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 my-2 btn-default"
 																	data-bs-dismiss="modal"
 																>
 																	Cancel
@@ -993,7 +993,7 @@ export default function view() {
 													) : (
 														<button
 															type="button"
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 															// data-bs-toggle="modal"
 															// data-bs-target="#generateAssetsModal"
 															onClick={exportKML}
@@ -1020,7 +1020,7 @@ export default function view() {
 															<DialogFooter>
 																<form method="post" action={GenerateAssetsForm}>
 																	<button
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 my-2 btn-default"
 																		onClick={() => setGenerateAssetsModalOpen(false)}
 																	>
 																		Generate tree assets
@@ -1028,7 +1028,7 @@ export default function view() {
 																</form>
 																<button
 																	type="button"
-																	class="rounded-sm p-1 m-1 btn-default"
+																	class="rounded-sm p-1 my-2 btn-default"
 																	onClick={() => setGenerateAssetsModalOpen(false)}
 																>
 																	Cancel
@@ -1057,7 +1057,7 @@ export default function view() {
 														}{" "}
 													</p>
 													<A
-														class="rounded-sm p-1 m-1 btn-default"
+														class="rounded-sm p-1 my-2 btn-default"
 														href={`/parcels/${params.parcelId}/layers/${
 															params.layerId
 														}/projects/${data()?.project._id}/assets`}
@@ -1073,9 +1073,9 @@ export default function view() {
 																<strong>Georef:</strong> {asset.lat},{" "}
 																{asset.lng}, <strong>id:</strong> {asset.id}
 															</p> */}
-													{/* <!--<a class="rounded-sm p-1 m-1 btn-default" href="/assets/${ asset._id }/edit">Edit asset <i class="far fa-edit" /></a>
+													{/* <!--<a class="rounded-sm p-1 my-2 btn-default" href="/assets/${ asset._id }/edit">Edit asset <i class="far fa-edit" /></a>
                                     <form class="delete-asset-form" action="/assets/${ asset._id }?_method=DELETE" method="POST">
-                                        <button class="rounded-sm p-1 m-1 btn-danger">Delete asset <i class="far fa-trash-alt" /></button>
+                                        <button class="rounded-sm p-1 my-1 btn-danger">Delete asset <i class="far fa-trash-alt" /></button>
                                     </form>--> */}
 													{/* </div>
 													</div>
@@ -1090,7 +1090,7 @@ export default function view() {
 														}/allassets?_method=DELETE`}
 														method="post"
 													>
-														<button class="rounded-sm p-1 m-1 btn-danger">
+														<button class="rounded-sm p-1 my-1 btn-danger">
 															Delete all digital assets
 														</button>
 													</form>
@@ -1140,13 +1140,13 @@ export default function view() {
 																										i()
 																									]._id
 																								}/edit`}
-																								class="rounded-sm p-1 m-1 btn-sm btn-default"
+																								class="rounded-sm p-1 my-1 btn-sm btn-default"
 																							>
 																								<i class="far fa-edit" />
 																							</A>
 																							<button
 																								type="button"
-																								class="rounded-sm p-1 m-1 btn-sm btn-danger"
+																								class="rounded-sm p-1 my-1 btn-sm btn-danger"
 																								data-bs-toggle="modal"
 																								data-bs-target={`#deleteActivityModal_${activity._id}`}
 																							>
@@ -1199,7 +1199,7 @@ export default function view() {
 																										method="post"
 																									>
 																										<button
-																											class="rounded-sm p-1 m-1 btn-sm btn-danger"
+																											class="rounded-sm p-1 my-1 btn-sm btn-danger"
 																											data-bs-dismiss="modal"
 																										>
 																											Delete activity{" "}
@@ -1208,7 +1208,7 @@ export default function view() {
 																									</form>
 																									<button
 																										type="button"
-																										class="rounded-sm p-1 m-1 btn-default"
+																										class="rounded-sm p-1 my-2 btn-default"
 																										data-bs-dismiss="modal"
 																									>
 																										Cancel
@@ -1230,7 +1230,7 @@ export default function view() {
 													{data()?.project.status === "Implementation" ? (
 														<button
 															type="button"
-															class="rounded-sm p-1 m-1 btn-default"
+															class="rounded-sm p-1 my-2 btn-default"
 															data-bs-toggle="modal"
 															data-bs-target="#completeProjectModal"
 														>
@@ -1272,7 +1272,7 @@ export default function view() {
 																		action={CompleteProjectForm}
 																	>
 																		<button
-																			class="rounded-sm p-1 m-1 btn-default"
+																			class="rounded-sm p-1 my-2 btn-default"
 																			data-bs-dismiss="modal"
 																		>
 																			Confirm scenario completion
@@ -1280,7 +1280,7 @@ export default function view() {
 																	</form>
 																	<button
 																		type="button"
-																		class="rounded-sm p-1 m-1 btn-default"
+																		class="rounded-sm p-1 my-2 btn-default"
 																		data-bs-dismiss="modal"
 																	>
 																		Cancel
@@ -1342,7 +1342,7 @@ export default function view() {
                             <% }); }
                         </table>
                         <% } }
-                        <a href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${ data()?.project._id }/activities/new`} class="rounded-sm p-1 m-1 btn-default">Add new activity</a>
+                        <a href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${ data()?.project._id }/activities/new`} class="rounded-sm p-1 my-2 btn-default">Add new activity</a>
                         <p class="card-text"></p>
                     </div>
                 </div>--> */}

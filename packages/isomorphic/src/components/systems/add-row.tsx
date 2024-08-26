@@ -24,7 +24,7 @@ export function AddRow(props: {
 	return (
 		<div class="trigger">
 			<div
-				class="rounded-sm p-1 m-1 btn-default"
+				class="rounded-sm p-1 my-2 btn-default"
 				onClick={() => {
 					props.setSystem("rows", (prev: IRow[]) => [
 						...prev.slice(0, props.index),

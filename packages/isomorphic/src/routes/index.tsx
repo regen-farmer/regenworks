@@ -227,7 +227,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Edit farm"
 															type="button"
-															class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
+															class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
 															onClick={() => enterEditMode(parcel)}
 														>
 															<i class="fa-solid fa-pen" />
@@ -237,7 +237,7 @@ const RouteViewHome: Component = () => {
 														<button
 															title="Show farm on map"
 															type="button"
-															class={"rounded-sm p-1 m-1 btn-default menu-btn list-group-button rounded-sm"}
+															class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
 															onClick={() => {
 																// Go to location of parcel
 																setCoordinates([
@@ -258,7 +258,7 @@ const RouteViewHome: Component = () => {
 							{allowFarmCreation() ? (
 								<button
 									type="button"
-									class={"rounded-sm p-1 m-1 btn-default w-fit"}
+									class={"rounded-sm p-1 mt-3 btn-default w-full"}
 									onClick={() => enterAddFarmMode()}
 									
 								>
@@ -307,7 +307,7 @@ const RouteViewHome: Component = () => {
 							<div />
 							<button
 								type="button"
-								class={"rounded-sm p-1 m-1 btn-default"}
+								class={"rounded-sm p-1 my-2 btn-default"}
 								onClick={() => submitAndGoToDefaultMode()}
 								style={{ width: "100%" }}
 							>
@@ -315,7 +315,7 @@ const RouteViewHome: Component = () => {
 							</button>
 							<button
 								type="button"
-								class={"rounded-sm p-1 m-1 btn-danger"}
+								class={"rounded-sm p-1 my-1 btn-danger"}
 								onClick={() => {
 									cancel();
 								}}
