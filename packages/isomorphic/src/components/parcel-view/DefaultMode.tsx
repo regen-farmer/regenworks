@@ -319,7 +319,7 @@ function DefaultMode({
 				{getMongoDBUser().countryCode === 'DK' ?
 				<button
 					type="button"
-					class="rounded-sm p-1 m-1 btn btn-default"
+					class="rounded-sm p-1 mt-2 btn-default w-full"
 					onClick={(e) => enterAddLPISFieldMode(e)}
 				>
 					Add new field to this farm by selection
