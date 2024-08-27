@@ -383,11 +383,12 @@ export const AddLPISFieldMode: Component<{
 						</DialogHeader>
 						<DialogDescription class="dialog__description">
 							<div class="dialog__description__body">
+								<label for="input" class="field-name-label">Field Name:</label>
 								<input
 									type="text"
-									class="addFieldInput"
+									class="addFieldInput border border-zinc-300 dark:border-slate-600 rounded-sm ml-2"
 									name="layer[name]"
-									placeholder="Name"
+									placeholder=""
 									onkeyup={(e) => {
 										setFieldName(e.currentTarget.value);
 									}}
