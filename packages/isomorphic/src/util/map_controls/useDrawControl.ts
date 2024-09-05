@@ -18,14 +18,32 @@ export function useDrawControl(map: maplibregl.Map) {
 	});
 
 	document.addEventListener("keyup", (event) => {
+
+		const target = event.target as HTMLElement;
+		if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+			return; // Skip if the event target is an input or textarea
+		}
+		
 		if ((event.key === "Delete" || event.key === "Backspace") && Draw) {
-			//@ts-ignore
-			Draw.trash();
-			//@ts-ignore
-			if (Draw.getMode() === "simple_select") {
+			try {
 				//@ts-ignore
-				Draw.changeMode("draw_polygon");
+				const selectedFeatures = Draw.getSelectedIds();
+
+				console.log("HERE", selectedFeatures?.length, selectedFeatures)
+				if (selectedFeatures?.length > 0) {
+					//@ts-ignore
+					Draw.trash();
+					//@ts-ignore
+					if (Draw.getMode() === "simple_select") {
+						//@ts-ignore
+						Draw.changeMode("draw_polygon");
+					}
+				}
+			} catch (error) {
+				console.error("Error accessing selected features:", error);
 			}
+		} else {
+			"Oh..."
 		}
 	});
 
