@@ -21,7 +21,10 @@ import * as turf from "@turf/turf";
 // @ts-ignore
 import type { Feature, Polygon, Properties } from "@turf/turf";
 
-import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl.ts";
+import {
+	updateArea,
+	useDrawControl,
+} from "~/util/map_controls/useDrawControl.ts";
 import type { IControl } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
@@ -36,9 +39,8 @@ export const EditFieldMode: Component<{
 }> = ({ getMap, setMode, data, refetch, field }) => {
 	let draw: MapboxDraw;
 
-	const [modalOpen, setModalOpen] = createSignal<boolean>(true);
+	const [modalOpen, setModalOpen] = createSignal<boolean>(false);
 	const [fieldName, setFieldName] = createSignal<string>("");
-	
 
 	const [error, setError] = createSignal<string>("");
 	// setInput and closeModal
@@ -46,9 +48,7 @@ export const EditFieldMode: Component<{
 		setModalOpen(false);
 		addDrawControl();
 
-		loadDrawCoordinates()
-
-	
+		loadDrawCoordinates();
 	}
 
 	const [kmlFile, setInternalKMLFile] = createSignal<File | null>(null);
@@ -79,6 +79,7 @@ export const EditFieldMode: Component<{
 
 	const addFieldFormAction = action(async (formData: FormData) => {
 		setSubmitDisabled(true);
+
 		const payload = {
 			layer: {
 				name: fieldName(),
@@ -87,41 +88,49 @@ export const EditFieldMode: Component<{
 			layersize: formData.get("layersize")?.toString(),
 		};
 
-		await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${field._id}`,
-			{
-				body: JSON.stringify(payload),
-				method: "put",
-				...apiFetchOptions(),
-			},
-		);
+		if (payload.geometry && payload.layersize && payload.layer.name) {
+			if (field?._id) {
+				await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${field._id}`, {
+					body: JSON.stringify(payload),
+					method: "put",
+					...apiFetchOptions(),
+				});
+			} else {
+				await fetch(
+					`${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers`,
+					{
+						body: JSON.stringify(payload),
+						method: "post",
+						...apiFetchOptions(),
+					},
+				);
+			}
 
-		refetch();
-		removeFields();
-		removeDrawControl();
-		setMode(modes.default);
+			refetch();
+			removeFields();
+			removeDrawControl();
+			setMode(modes.default);
+		} else {
+			setSubmitDisabled(false)
+		}
 	});
 
 	function drawFields() {
-
 		const collectionClone = {
-			features: data()?.collection.features.filter((feature)=>{
-				
-				return feature.properties.id != field._id;
+			features: data()?.collection.features.filter((feature) => {
+				return feature.properties.id != field?._id;
 			}),
-			type: "FeatureCollection"
+			type: "FeatureCollection",
 		};
 
 		const placesClone = {
-			features: data()?.places.features.filter((feature)=>{
-				
-				return feature.properties.id != field._id;
+			features: data()?.places.features.filter((feature) => {
+				return feature.properties.id != field?._id;
 			}),
-			type: "FeatureCollection"
+			type: "FeatureCollection",
 		};
 
-
-		cleanupLayers()
+		cleanupLayers();
 		getMap().addLayer({
 			id: "field-fills",
 			type: "fill",
@@ -174,7 +183,7 @@ export const EditFieldMode: Component<{
 
 		getMap().on("click", "field-labels", moveMapToField);
 	}
-	
+
 	function moveMapToField(e: any) {
 		// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
 		e.clickOnLabel = true;
@@ -186,7 +195,9 @@ export const EditFieldMode: Component<{
 	}
 	onMount(() => {
 		drawFields();
-		setFieldName(field.name)
+		setFieldName(field?.name ? field.name : "");
+		addDrawControl();
+		loadDrawCoordinates();
 	});
 
 	function cancel() {
@@ -194,28 +205,22 @@ export const EditFieldMode: Component<{
 		setMode(modes.default);
 	}
 
-	function cleanupLayers(){
+	function cleanupLayers() {
 		removeDrawControl();
 		removeFields();
 	}
 
-
-	
-
 	function loadDrawCoordinates() {
-		if (draw && fieldName() !== "") {
-
-		
-		
+		if (draw && field?.geometry) {
+			console.log("fieldName:", fieldName());
 			let geometry = JSON.parse(field.geometry);
-			console.log("Geometry: ", geometry)
+			console.log("Geometry: ", geometry);
 
-			if (polygon()?.geometry){
+			if (polygon()?.geometry) {
 				geometry = polygon()!.geometry;
 			}
 
-
-			console.log("Geometry: ", geometry)
+			console.log("Geometry: ", geometry);
 
 			const featureIds: string[] = draw.add(geometry);
 
@@ -294,6 +299,8 @@ export const EditFieldMode: Component<{
 				invalidFile();
 				return;
 			}
+
+			loadDrawCoordinates();
 		} else {
 			invalidFile();
 		}
@@ -302,73 +309,57 @@ export const EditFieldMode: Component<{
 	return (
 		<>
 			<div>
-				<Dialog open={modalOpen()} onOpenChange={setModalOpen}>
-					<DialogContent onClose={cancel} onPointerDownOutside={cancel} >
-						<DialogHeader>
-							<DialogTitle>Edit field</DialogTitle>
-						</DialogHeader>
-						<DialogDescription>
-							<div class="dialog__description__body">
-								<input
-									type="text"
-									class="addFieldInput w-full mb-4 p-1 rounded-sm border-zinc-400 border"
-									value={field.name}
-									name="layer[name]"
-									placeholder="Name"
-									onkeyup={(e)=>{
-										setFieldName(e.target.value)
-									}}
-									required
-									id="input"
-								/>
-
-								<label for="kmlfile" class="rounded-sm p-1 my-2 btn-default">
-									{kmlFile()?.name
-										? `${kmlFile()?.name} (${
-												polygon()?.geometry?.coordinates[0].length
-											} coordinates)`
-										: "Add geometry from KML file (optional)"}
-								</label>
-								<input
-									style="visibility:hidden;"
-									type="file"
-									onChange={parseKMLFile}
-									name="kmlfile"
-									id="kmlfile"
-									title="KML File"
-								/>
-
-								<button
-									type="button"
-									class="rounded-sm p-1 my-2 btn-default center-block"
-									onClick={continueFromModal}
-									disabled={fieldName().length < 1}
-								>
-									Go to map to Draw new polygon or Edit KML geometry
-								</button>
-							</div>
-							<Show when={error()}>
-								<p>{error()}</p>
-							</Show>
-						</DialogDescription>
-					</DialogContent>
-				</Dialog>
-			</div>
-
-			<div>
 				<form method="post" action={addFieldFormAction}>
 					<div
+					class="bg-customdark1 "
 						style={{
-							background: "rgba(0,0,0,0.4)",
 							"border-radius": "10px",
 							position: "fixed",
 							"z-index": 10,
-							color: "white",
+							
 							right: "10px",
 							bottom: "10px",
 							padding: "10px",
 						}}
 					>
+						<div class="mb-2">
+							<span class="w-full block  text-white">Upload geometry</span>
+
+							<label for="kmlfile" class="rounded-sm p-1 my-2 btn-default  text-white">
+								{kmlFile()?.name
+									? `${kmlFile()?.name} (${
+											polygon()?.geometry?.coordinates[0].length
+										} coordinates)`
+									: "Use geometry from KML file"}
+							</label>
+							<input
+								style="visibility:hidden;"
+								type="file"
+								onChange={parseKMLFile}
+								name="kmlfile"
+								id="kmlfile"
+								title="KML File"
+							/>
+						</div>
+
+						<div class="mb-4">
+							<label
+								for="fieldName"
+								class="block  text-white "
+							>
+								Field Name
+							</label>
+							<input
+								type="text"
+								id="fieldName"
+								name="fieldName"
+								value={field?.name ? field.name : ""}
+								onChange={(e) => setFieldName(e.target.value)}
+								class="mt-1 block w-full rounded-md p-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+								placeholder="Enter field name"
+							/>
+						</div>
+
 						<div>
 							<button
 								type="button"
@@ -395,27 +386,26 @@ export const EditFieldMode: Component<{
 				</form>
 			</div>
 
-			<Show when={fieldName() !== ""}>
-				{/* <h1 class="h1 addFieldModeDescription"> */}
-				<h1
-					style={{
-						background: "rgba(0,0,0,0.4)",
-						"border-radius": "10px",
-						position: "fixed",
-						"z-index": 10,
-						color: "white",
-						top: "90px",
-						"font-size": "20px",
-						"text-align": "center",
-						left: "50%",
-						transform: "translateX(-50%)",
-						padding: "10px",
-					}}
-				>
-					Click a point to select it,
-					and press backspace to delete
-				</h1>
-			</Show>
+			{/* <Show when={fieldName() !== ""}> */}
+			{/* <h1 class="h1 addFieldModeDescription"> */}
+			<h1
+				style={{
+					background: "rgba(0,0,0,0.4)",
+					"border-radius": "10px",
+					position: "fixed",
+					"z-index": 10,
+					color: "white",
+					top: "90px",
+					"font-size": "20px",
+					"text-align": "center",
+					left: "50%",
+					transform: "translateX(-50%)",
+					padding: "10px",
+				}}
+			>
+				Click a point to select it, and press backspace to delete
+			</h1>
+			{/* </Show> */}
 		</>
 	);
 };

@@ -71,7 +71,7 @@ export default function view() {
 
 	createEffect(() => {
 		
-		if (mapref()) {
+		if (mapref() && !styleLoaded()) {
 			
 			map = new maplibregl.Map({
 				container: mapref()!,
@@ -135,6 +135,11 @@ export default function view() {
 		setMode(modes.editField)
 	}
 
+	function addField(){
+		setEditedField(null);
+		setMode(modes.editField)
+	}
+
 
 	return (
 		<>
@@ -149,6 +154,7 @@ export default function view() {
 				<Switch>
 					<Match when={mode() === modes.default}>
 						<DefaultMode
+							addField={addField}
 							editField={editField}
 							getMap={getMap}
 							data={data}

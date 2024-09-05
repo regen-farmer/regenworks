@@ -1,3 +1,9 @@
+import {
+	RadioGroup,
+	RadioGroupItem,
+	RadioGroupItemLabel,
+} from "~/components/ui/radio-group";
+
 import { A, action, useNavigate, useParams } from "@solidjs/router";
 // import { modes } from "~/routes/parcels/[parcelId]";
 // import { useDrawControl } from "~/util/map_controls/useDrawControl";
@@ -37,12 +43,14 @@ type DefaultModeProps = {
 	>;
 	params: any;
 	setMode: any;
+	addField: any;
 	editField: any;
 	getMap: () => MLMap;
 	refetch: any;
 };
 
 function DefaultMode({
+	addField,
 	editField,
 	data,
 	params,
@@ -81,68 +89,61 @@ function DefaultMode({
 	const navigate = useNavigate();
 
 	function drawFields() {
-		
+		cleanupLayers();
 
-		
+		getMap().addLayer({
+			id: "field-fills",
+			type: "fill",
+			//@ts-ignore
+			source: {
+				type: "geojson",
+				data: data()?.collection,
+			},
+			layout: {},
+			paint: {
+				"fill-color": "rgba(127,34,192,0.6)",
+			},
+		});
 
-		
-			cleanupLayers();
-			
-			
-			getMap().addLayer({
-				id: "field-fills",
-				type: "fill",
-				//@ts-ignore
-				source: {
-					type: "geojson",
-					data: data()?.collection,
-				},
-				layout: {},
-				paint: {
-					"fill-color": "rgba(127,34,192,0.6)",
-				},
-			});
+		getMap().addLayer({
+			id: "field-outlines",
+			type: "line",
+			//@ts-ignore
+			source: {
+				type: "geojson",
+				data: data()?.collection,
+			},
+			layout: {},
+			paint: {
+				"line-color": "rgba(255,255,255,0.5)",
+				"line-width": 1,
+			},
+		});
 
-			getMap().addLayer({
-				id: "field-outlines",
-				type: "line",
-				//@ts-ignore
-				source: {
-					type: "geojson",
-					data: data()?.collection,
-				},
-				layout: {},
-				paint: {
-					"line-color": "rgba(255,255,255,0.5)",
-					"line-width": 1,
-				},
-			});
+		getMap().addLayer({
+			id: "field-labels",
+			type: "symbol",
+			//@ts-ignore
+			source: {
+				type: "geojson",
+				data: data()?.places,
+			},
+			layout: {
+				"text-field": ["get", "description"],
+				"text-justify": "center",
+				"icon-image": ["concat", ["get", "icon"], "-15"],
+				"text-size": 12,
+			},
+			paint: {
+				"text-color": "white",
+				"text-halo-color": "black",
+				"text-halo-width": 1,
+			},
+		});
 
-			getMap().addLayer({
-				id: "field-labels",
-				type: "symbol",
-				//@ts-ignore
-				source: {
-					type: "geojson",
-					data: data()?.places,
-				},
-				layout: {
-					"text-field": ["get", "description"],
-					"text-justify": "center",
-					"icon-image": ["concat", ["get", "icon"], "-15"],
-					"text-size": 12,
-				},
-				paint: {
-					"text-color": "white",
-					"text-halo-color": "black",
-					"text-halo-width": 1,
-				},
-			});
+		getMap().on("click", "field-labels", moveMapToField);
 
-			getMap().on("click", "field-labels", moveMapToField);
-
-			getMap().on("click", "field-fills", navigateToField);
-		
+		getMap().on("click", "field-fills", navigateToField);
 	}
 	function navigateToField(e: any) {
 		navigate(
@@ -183,6 +184,8 @@ function DefaultMode({
 
 	const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
 
+	const [newFieldModalOpen, setNewFieldModalOpen] = createSignal(false);
+
 	return (
 		<>
 			<Dialog
@@ -204,11 +207,17 @@ function DefaultMode({
 					</DialogDescription>
 					<DialogFooter>
 						<form action={deleteForm} method="post" class="delete-form">
-							<button class="rounded-sm p-1 my-1 btn-danger" onClick={() => setDeleteFieldModalOpen(false)}>
+							<button
+								class="rounded-sm p-1 my-1 btn-danger"
+								onClick={() => setDeleteFieldModalOpen(false)}
+							>
 								Delete field
 							</button>
 						</form>
-						<button class="rounded-sm p-1 my-2 ml-2 btn-default" onClick={() => setDeleteFieldModalOpen(false)}>
+						<button
+							class="rounded-sm p-1 my-2 ml-2 btn-default"
+							onClick={() => setDeleteFieldModalOpen(false)}
+						>
 							Cancel
 						</button>
 					</DialogFooter>
@@ -216,18 +225,18 @@ function DefaultMode({
 			</Dialog>
 
 			<div
+			class="bg-customdark1"
 				style={{
-					background: "rgba(0,0,0,0.5)",
 					"border-radius": "10px",
 					position: "fixed",
 					"z-index": 10,
-					color: "white",
+					
 					right: "10px",
 					bottom: "10px",
 					padding: "10px",
 				}}
 			>
-				<strong>
+				<strong class="text-white">
 					<span>Fields</span>
 				</strong>
 				<div
@@ -249,7 +258,9 @@ function DefaultMode({
 								<div>
 									<button
 										title="Edit field"
-										class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
+										class={
+											"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
+										}
 										onClick={() => {
 											cleanupLayers();
 
@@ -269,7 +280,9 @@ function DefaultMode({
 									<button
 										title="Show field on map"
 										type="button"
-										class={"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"}
+										class={
+											"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
+										}
 										onClick={() => {
 											console.log(
 												"JSON.parse(layer.geometry)",
@@ -292,12 +305,12 @@ function DefaultMode({
 									<button
 										title="Delete field"
 										type="button"
-										class={"rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"}
-										
-
-										onclick={()=>{
-											setDeleteFieldModalOpen(true)
-											setActiveField(layer._id.toString())
+										class={
+											"rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"
+										}
+										onclick={() => {
+											setDeleteFieldModalOpen(true);
+											setActiveField(layer._id.toString());
 										}}
 									>
 										<i class="fa-solid fa-trash" />
@@ -311,19 +324,24 @@ function DefaultMode({
 				<button
 					type="button"
 					class="rounded-sm p-1 mt-2 btn-default w-full"
-					onClick={(e) => enterAddFieldMode(e)}
+					onClick={() => addField()}
 				>
-					Add new field to this farm by drawing
+					Add new field
 				</button>
+
+				
 				<br />
-				{getMongoDBUser().countryCode === 'DK' ?
-				<button
-					type="button"
-					class="rounded-sm p-1 mt-2 btn-default w-full"
-					onClick={(e) => enterAddLPISFieldMode(e)}
-				>
-					Add new field to this farm by selection
-				</button>:<></>}
+				{getMongoDBUser().countryCode === "DK" ? (
+					<button
+						type="button"
+						class="rounded-sm p-1 mt-2 btn-default w-full"
+						onClick={(e) => enterAddLPISFieldMode(e)}
+					>
+						Add new field to this farm by selection
+					</button>
+				) : (
+					<></>
+				)}
 			</div>
 		</>
 	);
