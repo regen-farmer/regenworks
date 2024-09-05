@@ -12,14 +12,20 @@ import {
 	DialogTrigger,
 } from "~/components/ui/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { Show, createEffect, createSignal, onMount } from "solid-js";
+import { Show, createEffect, createSignal, on, onMount } from "solid-js";
 
 import * as togeojson from "@tmcw/togeojson";
 
 // @ts-ignore
 import * as turf from "@turf/turf";
 // @ts-ignore
-import type { Feature, Polygon, Properties } from "@turf/turf";
+import type {
+	GeoJsonProperties,
+	FeatureCollection,
+	Polygon,
+	MultiPolygon,
+	Feature,
+} from "@turf/turf";
 
 import {
 	updateArea,
@@ -237,7 +243,9 @@ export const EditFieldMode: Component<{
 
 	function drawKML() {
 		if (draw && polygon()?.geometry) {
-			draw.deleteAll();
+			if (draw.getAll().features.length > 0) {
+				draw.deleteAll();
+			}
 
 			const geometry = polygon()!.geometry;
 
@@ -250,7 +258,7 @@ export const EditFieldMode: Component<{
 
 			console.log("Add KML");
 			if (geometry.type === "Polygon") {
-				getMap().jumpTo({
+				getMap().flyTo({
 					center: geometry.coordinates[0][0] as [number, number],
 					zoom: 15,
 				});
@@ -328,6 +336,246 @@ export const EditFieldMode: Component<{
 	}
 
 	const [showLPISFields, setShowLPISFields] = createSignal(false);
+	createEffect(
+		on([showLPISFields], () => {
+			console.log(showLPISFields());
+
+			if (showLPISFields()) {
+				addLPISFields(getMap());
+			} else {
+				removeLPISFields();
+			}
+		}),
+	);
+
+	// ---------- LPIS START
+
+	const [clickedFeature, setClickedFeature] = createSignal<string>("");
+
+	function removeLPISFields() {
+		let tilesets = [
+			"AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
+			"DK_Marker_2023",
+			"FI_AgriculturalParcel_2023",
+			"FR_PARCELLES_GRAPHIQUES_2022",
+			"NL_brpgewaspercelen_definitief_2022",
+		];
+
+		for (const tileset of tilesets) {
+			if (getMap().getLayer(`${tileset}_fieldfill`)) {
+				getMap().removeLayer(`${tileset}_fieldfill`);
+			}
+
+			if (getMap().getLayer(`${tileset}_fieldline`)) {
+				getMap().removeLayer(`${tileset}_fieldline`);
+			}
+
+			if (getMap().getSource(`${tileset}_source`)) {
+				getMap().removeSource(`${tileset}_source`);
+			}
+
+			getMap().off("mousemove", `${tileset}_fieldfill`, LPISFIeldMouseMove);
+			getMap().off("mouseleave", `${tileset}_fieldfill`, LPISFieldMouseLeave);
+		}
+	}
+
+	// Create a popup, but don't add it to the map yet.
+	// const popup = new maplibregl.Popup({
+	// 	closeButton: false,
+	// 	closeOnClick: false,
+	// });
+
+	function LPISFieldMouseLeave() {
+		getMap().getCanvas().style.cursor = "";
+		// popup.remove();
+	}
+
+	function LPISFIeldMouseMove(e) {
+		// if (e.features && e.features.length > 0 && e.features[0].id !== undefined) {
+		// 	console.log('id:', e.features[0].id);
+		// } else {
+		// 	console.log('Feature ID is undefined', e);
+		// }
+
+		// // Change the fill color of the polygon on hover
+		// const tileset = e.features[0].layer.id.split('_').slice(0, -1).join('_');
+		// getMap().setPaintProperty(`${tileset}_fieldfill`, 'fill-color', [
+		// 	'case',
+		// 	['==', ['id'], e.features[0].id],
+		// 	'rgba(0, 255, 0, 0.7)', // Change to green on hover
+		// 	'rgba(255, 248, 97, 0.7)' // Default color
+		// ]);
+
+		// Change the cursor style as a UI indicator.
+		getMap().getCanvas().style.cursor = "pointer";
+
+		var coordinates = e.lngLat;
+
+		let tooltipHTML = "";
+		for (const [key, value] of Object.entries(e.features[0].properties)) {
+			tooltipHTML += `${key}: ${value}<br/>`;
+		}
+
+		// Ensure that if the map is zoomed out such that multiple
+		// copies of the feature are visible, the popup appears
+		// over the copy being pointed to.
+		while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+			coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+		}
+
+		// Populate the popup and set its coordinates
+		// based on the feature found.
+		// popup.setLngLat(coordinates).setHTML(tooltipHTML).addTo(getMap());
+	}
+
+	function addLPISFields(map: maplibregl.Map) {
+		let tilesets = [
+			"AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
+			"DK_Marker_2023",
+			"FI_AgriculturalParcel_2023",
+			"FR_PARCELLES_GRAPHIQUES_2022",
+			"NL_brpgewaspercelen_definitief_2022",
+		];
+
+		let hoveredStateIds: string[] = [];
+
+		for (const tileset of tilesets) {
+			getMap().addSource(`${tileset}_source`, {
+				type: "vector",
+				url: `https://martin-lpis.onrender.com/${tileset}`,
+				// url: `http://localhost:3000/${tileset}`,
+				promoteId: { fields: "AutoID" },
+			});
+
+			getMap().addLayer({
+				id: `${tileset}_fieldfill`,
+				type: "fill",
+				source: `${tileset}_source`,
+				"source-layer": "fields",
+				paint: {
+					"fill-color": [
+						"case",
+						["boolean", ["feature-state", "hover"], false],
+						"rgba(0, 255, 0, 0.7)", // Change to green on hover
+						"rgba(255, 248, 97, 0.7)", // Default color
+					],
+				},
+			});
+
+			getMap().addLayer({
+				id: `${tileset}_fieldline`,
+				type: "line",
+				source: `${tileset}_source`,
+				"source-layer": "fields",
+				paint: {
+					"line-color": "black",
+					"line-width": 1,
+				},
+			});
+
+			function clear() {
+				if (showLPISFields()) {
+					for (const id of hoveredStateIds) {
+						getMap().setFeatureState(
+							{
+								source: `${tileset}_source`,
+								id: id,
+								sourceLayer: "fields",
+							},
+							{ hover: false },
+						);
+					}
+					hoveredStateIds = [];
+				}
+			}
+
+			getMap().on("mousemove", `${tileset}_fieldfill`, (e) => {
+				clear();
+
+				if (e.features && e.features.length > 0) {
+					const featureId = e.features[0].properties.AutoID; // Use a different property as ID
+					if (!hoveredStateIds.includes(featureId)) {
+						hoveredStateIds.push(featureId);
+					}
+
+					if (featureId) {
+						getMap().setFeatureState(
+							{
+								source: `${tileset}_source`,
+								id: featureId,
+								sourceLayer: "fields",
+							},
+							{ hover: true },
+						);
+					}
+				} else {
+					console.log("No features found");
+				}
+			});
+
+			// When the mouse leaves the fieldfill layer, update the feature state of the
+			// previously hovered features.
+			getMap().on("mouseleave", `${tileset}_fieldfill`, () => {
+				clear();
+			});
+
+			getMap().on("mousemove", `${tileset}_fieldfill`, LPISFIeldMouseMove);
+
+			getMap().on("mouseleave", `${tileset}_fieldfill`, LPISFieldMouseLeave);
+
+			getMap().on("click", `${tileset}_fieldfill`, (e) => {
+				if (e.features && e.features.length > 0) {
+					setClickedFeature(e.features[0].properties.AutoID);
+
+					// setPolygon(e.features[0]);
+					// drawKML();
+					// setShowLPISFields(false);
+					// return;
+
+					console.log("ID:", clickedFeature());
+
+					const features = getMap()
+						.querySourceFeatures(`${tileset}_source`, {
+							sourceLayer: "fields",
+						})
+						.filter((f) => f.properties.AutoID === clickedFeature());
+
+					console.log("FEATS", features);
+
+					if (features.length > 0) {
+						if (features.length > 1) {
+							const featureCollection: FeatureCollection = {
+								type: "FeatureCollection",
+								features: features.map((f) => ({
+									type: "Feature",
+									geometry: f.geometry,
+									properties: f.properties,
+								})),
+							};
+							const combinedGeometry = turf.union(featureCollection);
+							if (combinedGeometry) {
+								setPolygon({
+									type: "Feature",
+									geometry: combinedGeometry.geometry,
+									properties: {},
+								});
+								drawKML();
+								setShowLPISFields(false);
+							}
+						} else {
+							setPolygon(features[0]);
+							drawKML();
+							setShowLPISFields(false);
+						}
+					}
+				}
+
+				// Add a white border to the clicked polygon
+			});
+		}
+	}
+
+	// ---------- LPIS END
 
 	return (
 		<>
@@ -345,7 +593,7 @@ export const EditFieldMode: Component<{
 							padding: "10px",
 						}}
 					>
-						{/* <div class="mb-2">
+						<div class="mb-2">
 							<span class="w-full block  text-white">
 								Select field from gov. data
 							</span>
@@ -361,7 +609,7 @@ export const EditFieldMode: Component<{
 							) : (
 								<></>
 							)}
-						</div> */}
+						</div>
 						<div class="mb-2">
 							<span class="w-full block  text-white">Upload geometry</span>
 
