@@ -65,6 +65,7 @@ export const EditFieldMode: Component<{
 	> | null>(null);
 
 	function addDrawControl() {
+		console.log("ADD")
 		draw = useDrawControl(getMap());
 	}
 
@@ -78,6 +79,8 @@ export const EditFieldMode: Component<{
 			if (getMap().hasControl(draw as unknown as IControl)) {
 				getMap().removeControl(draw as unknown as IControl);
 			}
+
+			draw = undefined;
 		}
 	}
 
@@ -203,6 +206,8 @@ export const EditFieldMode: Component<{
 	onMount(() => {
 		drawFields();
 		setFieldName(field?.name ? field.name : "");
+
+		
 		addDrawControl();
 		loadDrawCoordinates();
 	});
@@ -241,8 +246,13 @@ export const EditFieldMode: Component<{
 		}
 	}
 
-	function drawKML() {
+	function drawKMLorLPIS() {
+		
 		if (draw && polygon()?.geometry) {
+
+			
+			
+			console.log("Draw", draw)
 			if (draw.getAll().features.length > 0) {
 				draw.deleteAll();
 			}
@@ -329,7 +339,7 @@ export const EditFieldMode: Component<{
 				return;
 			}
 
-			drawKML();
+			drawKMLorLPIS();
 		} else {
 			invalidFile();
 		}
@@ -559,12 +569,12 @@ export const EditFieldMode: Component<{
 									geometry: combinedGeometry.geometry,
 									properties: {},
 								});
-								drawKML();
+								drawKMLorLPIS();
 								setShowLPISFields(false);
 							}
 						} else {
 							setPolygon(features[0]);
-							drawKML();
+							drawKMLorLPIS();
 							setShowLPISFields(false);
 						}
 					}
