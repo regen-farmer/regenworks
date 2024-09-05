@@ -321,7 +321,7 @@ function DefaultMode({
 				</button>
 
 				
-				<br />
+				{/* <br />
 				{getMongoDBUser().countryCode === "DK" ? (
 					<button
 						type="button"
@@ -332,7 +332,7 @@ function DefaultMode({
 					</button>
 				) : (
 					<></>
-				)}
+				)} */}
 			</div>
 		</>
 	);

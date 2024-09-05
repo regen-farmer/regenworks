@@ -219,13 +219,13 @@ export const EditFieldMode: Component<{
 
 	function loadDrawCoordinates() {
 		if (draw && field?.geometry) {
-			console.log("fieldName:", fieldName());
+			//console.log("fieldName:", fieldName());
 			const geometry = JSON.parse(field.geometry);
-			console.log("Geometry: ", geometry);
+			//console.log("Geometry: ", geometry);
 
 			const featureIds: string[] = draw.add(geometry);
 
-			console.log(featureIds);
+			//console.log(featureIds);
 			if (featureIds.length === 0) return;
 
 			if (geometry.type === "Polygon") {
@@ -249,14 +249,14 @@ export const EditFieldMode: Component<{
 
 			const geometry = polygon()!.geometry;
 
-			console.log("Geometry: ", geometry);
+			//console.log("Geometry: ", geometry);
 
 			const featureIds: string[] = draw.add(geometry);
 
-			console.log(featureIds);
+			//console.log(featureIds);
 			if (featureIds.length === 0) return;
 
-			console.log("Add KML");
+			//console.log("Add KML");
 			if (geometry.type === "Polygon") {
 				getMap().flyTo({
 					center: geometry.coordinates[0][0] as [number, number],
@@ -338,7 +338,7 @@ export const EditFieldMode: Component<{
 	const [showLPISFields, setShowLPISFields] = createSignal(false);
 	createEffect(
 		on([showLPISFields], () => {
-			console.log(showLPISFields());
+			//console.log(showLPISFields());
 
 			if (showLPISFields()) {
 				addLPISFields(getMap());
@@ -509,7 +509,7 @@ export const EditFieldMode: Component<{
 						);
 					}
 				} else {
-					console.log("No features found");
+					//console.log("No features found");
 				}
 			});
 
@@ -532,7 +532,7 @@ export const EditFieldMode: Component<{
 					// setShowLPISFields(false);
 					// return;
 
-					console.log("ID:", clickedFeature());
+					//console.log("ID:", clickedFeature());
 
 					const features = getMap()
 						.querySourceFeatures(`${tileset}_source`, {
@@ -540,7 +540,7 @@ export const EditFieldMode: Component<{
 						})
 						.filter((f) => f.properties.AutoID === clickedFeature());
 
-					console.log("FEATS", features);
+					//console.log("FEATS", features);
 
 					if (features.length > 0) {
 						if (features.length > 1) {
