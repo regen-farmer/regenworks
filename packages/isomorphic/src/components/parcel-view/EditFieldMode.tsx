@@ -29,6 +29,7 @@ import type { IControl } from "maplibre-gl";
 import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
+import { getMongoDBUser } from "~/auth/useAuth";
 
 export const EditFieldMode: Component<{
 	setMode: any;
@@ -111,7 +112,7 @@ export const EditFieldMode: Component<{
 			removeDrawControl();
 			setMode(modes.default);
 		} else {
-			setSubmitDisabled(false)
+			setSubmitDisabled(false);
 		}
 	});
 
@@ -213,12 +214,32 @@ export const EditFieldMode: Component<{
 	function loadDrawCoordinates() {
 		if (draw && field?.geometry) {
 			console.log("fieldName:", fieldName());
-			let geometry = JSON.parse(field.geometry);
+			const geometry = JSON.parse(field.geometry);
 			console.log("Geometry: ", geometry);
 
-			if (polygon()?.geometry) {
-				geometry = polygon()!.geometry;
+			const featureIds: string[] = draw.add(geometry);
+
+			console.log(featureIds);
+			if (featureIds.length === 0) return;
+
+			if (geometry.type === "Polygon") {
+				getMap().jumpTo({
+					center: geometry.coordinates[0][0] as [number, number],
+					zoom: 15,
+				});
 			}
+
+			draw.changeMode("simple_select", { featureIds: featureIds });
+
+			updateArea(draw.get(featureIds[0]));
+		}
+	}
+
+	function drawKML() {
+		if (draw && polygon()?.geometry) {
+			draw.deleteAll();
+
+			const geometry = polygon()!.geometry;
 
 			console.log("Geometry: ", geometry);
 
@@ -300,32 +321,54 @@ export const EditFieldMode: Component<{
 				return;
 			}
 
-			loadDrawCoordinates();
+			drawKML();
 		} else {
 			invalidFile();
 		}
 	}
+
+	const [showLPISFields, setShowLPISFields] = createSignal(false);
 
 	return (
 		<>
 			<div>
 				<form method="post" action={addFieldFormAction}>
 					<div
-					class="bg-customdark1 "
+						class="bg-customdark1 "
 						style={{
 							"border-radius": "10px",
 							position: "fixed",
 							"z-index": 10,
-							
+
 							right: "10px",
 							bottom: "10px",
 							padding: "10px",
 						}}
 					>
+						{/* <div class="mb-2">
+							<span class="w-full block  text-white">
+								Select field from gov. data
+							</span>
+
+							{getMongoDBUser().countryCode === "DK" ? (
+								<button
+									type="button"
+									class="rounded-sm p-1 mt-2 btn-default w-full"
+									onClick={(e) => setShowLPISFields(!showLPISFields())}
+								>
+									{showLPISFields() ? "Hide LPIS fields" : "Show LPIS fields"}
+								</button>
+							) : (
+								<></>
+							)}
+						</div> */}
 						<div class="mb-2">
 							<span class="w-full block  text-white">Upload geometry</span>
 
-							<label for="kmlfile" class="rounded-sm p-1 my-2 btn-default  text-white">
+							<label
+								for="kmlfile"
+								class="rounded-sm p-1 my-2 btn-default  text-white"
+							>
 								{kmlFile()?.name
 									? `${kmlFile()?.name} (${
 											polygon()?.geometry?.coordinates[0].length
@@ -333,7 +376,7 @@ export const EditFieldMode: Component<{
 									: "Use geometry from KML file"}
 							</label>
 							<input
-								style="visibility:hidden;"
+								style="visibility:hidden;display:none;"
 								type="file"
 								onChange={parseKMLFile}
 								name="kmlfile"
@@ -343,10 +386,7 @@ export const EditFieldMode: Component<{
 						</div>
 
 						<div class="mb-4">
-							<label
-								for="fieldName"
-								class="block  text-white "
-							>
+							<label for="fieldName" class="block  text-white ">
 								Field Name
 							</label>
 							<input
@@ -388,23 +428,29 @@ export const EditFieldMode: Component<{
 
 			{/* <Show when={fieldName() !== ""}> */}
 			{/* <h1 class="h1 addFieldModeDescription"> */}
-			<h1
+			<span
+				class="bg-customdark1"
 				style={{
-					background: "rgba(0,0,0,0.4)",
 					"border-radius": "10px",
 					position: "fixed",
 					"z-index": 10,
 					color: "white",
 					top: "90px",
-					"font-size": "20px",
-					"text-align": "center",
+					"font-size": "13px",
+					// "text-align": "center",
 					left: "50%",
 					transform: "translateX(-50%)",
 					padding: "10px",
 				}}
 			>
-				Click a point to select it, and press backspace to delete
-			</h1>
+				Click on the map to start drawing a field
+				<br />
+				Click on a field once to select the whole unit
+				<br />
+				Click on the field/edges/corners again for detailed selection
+				<br />
+				Press backspace to delete the current selection
+			</span>
 			{/* </Show> */}
 		</>
 	);

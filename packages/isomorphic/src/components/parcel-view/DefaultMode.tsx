@@ -1,8 +1,3 @@
-import {
-	RadioGroup,
-	RadioGroupItem,
-	RadioGroupItemLabel,
-} from "~/components/ui/radio-group";
 
 import { A, action, useNavigate, useParams } from "@solidjs/router";
 // import { modes } from "~/routes/parcels/[parcelId]";
@@ -76,11 +71,7 @@ function DefaultMode({
 		undefined,
 	);
 
-	function enterAddFieldMode() {
-		cleanupLayers();
-		setMode(modes.addField);
-	}
-
+	
 	function enterAddLPISFieldMode() {
 		cleanupLayers();
 		setMode(modes.addLPISField);
