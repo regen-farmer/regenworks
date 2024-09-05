@@ -611,7 +611,7 @@ export const EditFieldMode: Component<{
 							)}
 						</div>
 						<div class="mb-2">
-							<span class="w-full block  text-white">Upload geometry</span>
+							<span class="w-full block  text-white mb-2">Upload geometry</span>
 
 							<label
 								for="kmlfile"
