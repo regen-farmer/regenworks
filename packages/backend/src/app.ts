@@ -58,7 +58,7 @@ const app = express();
 app.use(cors());
 
 // APP SETUP
-mongoose.connect(import.meta.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
 
@@ -69,10 +69,10 @@ app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQU
 // const config = {
 //   authRequired: false,
 //   auth0Logout: true,
-//   baseURL: import.meta.env.AUTH0_BASE_URL,
-//   clientID: import.meta.env.AUTH0_CLIENT_ID,
-//   issuerBaseURL: import.meta.env.AUTH0_ISSUER_BASE_URL,
-//   secret: import.meta.env.AUTH0_SECRET,
+//   baseURL: process.env.AUTH0_BASE_URL,
+//   clientID: process.env.AUTH0_CLIENT_ID,
+//   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+//   secret: process.env.AUTH0_SECRET,
 // };
 
 // app.use(auth(config));
@@ -241,10 +241,10 @@ app.get(
 );
 app.set("trust proxy", true);
 
-const PORT = import.meta.env.BACKEND_PORT
-	? Number.parseInt(import.meta.env.BACKEND_PORT)
+const PORT = process.env.BACKEND_PORT
+	? Number.parseInt(process.env.BACKEND_PORT)
 	: 3001;
-const IP = import.meta.env.BACKEND_IP ?? "127.0.0.1";
+const IP = process.env.BACKEND_IP ?? "127.0.0.1";
 
 app.listen(PORT, IP, () => {
 	console.log(`RegenWorks backend server has started on ${IP}:${PORT}`);

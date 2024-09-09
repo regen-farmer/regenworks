@@ -12,7 +12,7 @@ dotenv.config();
 const router = express.Router();
 
 export function getDevProdStatus(): "DEV" | "PROD" {
-	const status = import.meta.env.STRIPE_MODE as "DEV" | "PROD";
+	const status = process.env.STRIPE_MODE as "DEV" | "PROD";
 	return status;
 }
 
@@ -51,7 +51,7 @@ export const StripeIds = {
 	},
 };
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 	apiVersion: "2024-06-20",
 	maxNetworkRetries: 2,
 });

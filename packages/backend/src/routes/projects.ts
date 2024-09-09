@@ -72,7 +72,7 @@ const router = express.Router();
 
 const options: NodeGeocoder.Options = {
 	provider: "google",
-	apiKey: import.meta.env.GEOCODER_API_KEY,
+	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null,
 };
 
