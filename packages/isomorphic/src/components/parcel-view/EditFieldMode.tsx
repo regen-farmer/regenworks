@@ -71,7 +71,7 @@ export const EditFieldMode: Component<{
 
 	function removeFields() {
 		removeLayers(["field-fills", "field-outlines", "field-labels"], getMap());
-		getMap().off("click", "field-labels", moveMapToField);
+		// getMap().off("click", "field-labels", moveMapToField);
 	}
 
 	function removeDrawControl() {
@@ -191,7 +191,7 @@ export const EditFieldMode: Component<{
 			},
 		});
 
-		getMap().on("click", "field-labels", moveMapToField);
+		// getMap().on("click", "field-labels", moveMapToField);
 	}
 
 	function moveMapToField(e: any) {
