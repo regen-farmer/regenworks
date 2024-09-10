@@ -1,15 +1,10 @@
 
 import { A, action, useNavigate, useParams } from "@solidjs/router";
-// import { modes } from "~/routes/parcels/[parcelId]";
-// import { useDrawControl } from "~/util/map_controls/useDrawControl";
-// import { LayerDocument } from "@rw/db/schemas/layer";
 import type { Map as MLMap } from "maplibre-gl";
 import { createSignal, For, onMount, type Resource } from "solid-js";
 
-// @ts-ignore
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
-import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import {
@@ -20,7 +15,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
-import { getMongoDBUser } from "~/auth/useAuth";
 
 type DefaultModeProps = {
 	data: Resource<
@@ -53,13 +47,6 @@ function DefaultMode({
 	getMap,
 	refetch,
 }: DefaultModeProps) {
-	//   function enterAddFieldMode(e: any) {
-	//     e.preventDefault();
-	//     setMode(modes.addField);
-
-	//     draw = useDrawControl(map);
-	//     // map.removeControl(draw);
-	//   }
 
 	function cleanupLayers() {
 		removeLayers(["field-fills", "field-outlines", "field-labels"], getMap());
@@ -70,12 +57,6 @@ function DefaultMode({
 	const [activeField, setActiveField] = createSignal<string | undefined>(
 		undefined,
 	);
-
-	
-	function enterAddLPISFieldMode() {
-		cleanupLayers();
-		setMode(modes.addLPISField);
-	}
 
 	const navigate = useNavigate();
 
@@ -319,20 +300,6 @@ function DefaultMode({
 				>
 					Add new field
 				</button>
-
-				
-				{/* <br />
-				{getMongoDBUser().countryCode === "DK" ? (
-					<button
-						type="button"
-						class="rounded-sm p-1 mt-2 btn-default w-full"
-						onClick={(e) => enterAddLPISFieldMode(e)}
-					>
-						Add new field to this farm by selection
-					</button>
-				) : (
-					<></>
-				)} */}
 			</div>
 		</>
 	);
