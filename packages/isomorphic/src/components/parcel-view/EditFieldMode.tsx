@@ -220,6 +220,7 @@ export const EditFieldMode: Component<{
 	function cleanupLayers() {
 		removeDrawControl();
 		removeFields();
+		removeLPISFields();
 	}
 
 	function loadDrawCoordinates() {
