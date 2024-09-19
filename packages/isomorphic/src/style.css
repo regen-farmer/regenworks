@@ -352,6 +352,9 @@ html {
 
 .pac-container {
   z-index: 10000 !important;
+  /* display: block !important; */
+  left: 0px !important;
+  top: 50px !important;
 }
 
 .no-outline:focus {

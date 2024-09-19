@@ -357,7 +357,9 @@ router.post(
 	) => {
 		// CONVERT ADDRESS TO COORDINATES USING GEOCODER
 		const address: string = req.body.address;
-
+		
+		console.log("address: ", address)
+		
 		if (address) {
 			geocoder.geocode(req.body.address, async (err, data) => {
 				if (err || !data.length) {
@@ -365,7 +367,7 @@ router.post(
 					console.log(data);
 					return res
 						.status(500)
-						.send({ error: `Error while geocoding: ${err.toString()}` });
+						.send({ error: `Error while geocoding`});
 				}
 
 				const coordinates = {

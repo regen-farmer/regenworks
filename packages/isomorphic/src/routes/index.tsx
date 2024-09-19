@@ -50,6 +50,11 @@ async function getGeoCodeFromLocation(
 			...apiFetchOptions(),
 		},
 	);
+
+	if (response.status == 500) {
+		throw "Error while geocoding";
+	}
+
 	return await response.json();
 }
 
@@ -110,9 +115,13 @@ const RouteViewHome: Component = () => {
 
 	async function enterDragMode() {
 		if (parcelPayload.location && !isEditing()) {
-			const result = await getGeoCodeFromLocation(parcelPayload.location);
-			setCoordinates(result);
-			setMode(modes.dragMode);
+			try {
+				const result = await getGeoCodeFromLocation(parcelPayload.location);
+				setCoordinates(result);
+				setMode(modes.dragMode);
+			} catch (err) {
+				console.log("Couldn't geocode")
+			}	
 		} else {
 			setCoordinates([parcelPayload.lng!, parcelPayload.lat!]);
 			setMode(modes.dragMode);

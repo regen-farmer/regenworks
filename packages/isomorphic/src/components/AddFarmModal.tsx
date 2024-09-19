@@ -146,7 +146,7 @@ export function AddFarmModal({
 									<p class="error">{nameError()}</p>
 								</Show>
 							</div>
-							<div class="form-group">
+							<div class="form-group dialog__content relative ">
 								<label for="formGroupExampleInput">Address</label>
 								<input
 									type="text"
