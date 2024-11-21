@@ -26,6 +26,6 @@
   "dependencies": {
     "mongoose": "^8.8.2",
     "proj4": "^2.14.0",
-    "stripe": "^16.11.0"
+    "stripe": "^17.4.0"
   }
 }
