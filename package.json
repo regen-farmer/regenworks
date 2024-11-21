@@ -1,7 +1,10 @@
 {
   "name": "regenworks",
   "workspaces": [
-    "packages/*"
+    "./packages/isomorphic",
+    "./packages/db",
+    "./packages/modelling",
+    "./packages/backend"
   ],
   "version": "1.0.0",
   "description": "",
