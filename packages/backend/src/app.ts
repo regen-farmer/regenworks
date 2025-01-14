@@ -58,7 +58,7 @@ const app = express();
 app.use(cors());
 
 // APP SETUP
-mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
+await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
 

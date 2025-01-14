@@ -11,7 +11,7 @@ import {
 } from "@turf/turf";
 import multer from "multer";
 import xml2js from "xml2js";
-import Layer, { LayerDocument } from "@rw/db/schemas/layer.ts";
+import Layer, { type LayerDocument } from "@rw/db/schemas/layer.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
