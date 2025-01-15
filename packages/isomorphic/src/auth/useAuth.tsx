@@ -41,7 +41,7 @@ export const allowFarmCreation = createMemo<boolean>(() => {
 				getMongoDBUser().parcels?.length < 1) ||
 			(paymentPlan() === "advisor" &&
 				getMongoDBUser() &&
-				getMongoDBUser().parcels?.length < 50)
+				getMongoDBUser().parcels?.length < 100)
 		);
 	}
 
