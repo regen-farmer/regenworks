@@ -18,7 +18,7 @@ declare module "@auth/core/types" {
 }
 
 export const authOpts: SolidAuthConfig = {
-	basePath: "/api/auth",
+	basePath: import.meta.env.VITE_AUTH_PATH,
 	providers: [
 		Auth0({
 			clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,

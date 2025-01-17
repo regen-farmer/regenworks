@@ -12,7 +12,7 @@ import NewUser from "~/auth/signup.tsx";
 import { NavBar } from "~/components/NavBar.tsx";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { paymentPlan } from "~/util/paymentPlan.ts";
-import { signOut } from "@solid-mediakit/auth/client";
+import { useAuth } from "@solid-mediakit/auth/client";
 
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
 export const [getAuth0Token, setAuth0Token]: [any, any] = createSignal();
@@ -147,6 +147,10 @@ export const ShowAfterAuth = (props: any) => {
 	// 	auth0.login();
 	// }
 
+
+	const auth = useAuth()
+
+
 	return (
 		<Show
 			when={getAuth0User()}
@@ -172,7 +176,7 @@ export const ShowAfterAuth = (props: any) => {
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");
-								signOut({ redirectTo: "/" });
+								auth.signOut({ redirectTo: "/" });
 							}}
 						>
 							Log out

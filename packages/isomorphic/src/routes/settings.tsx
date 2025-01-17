@@ -30,7 +30,7 @@ import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { countries } from "../util/countries.ts";
-import { signOut } from "@solid-mediakit/auth/client";
+import { useAuth } from "@solid-mediakit/auth/client";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import Paper from "~/components/ui/paper.tsx";
 
@@ -277,6 +277,8 @@ const RouteViewAccount: Component = () => {
 		return `${country[0]} (${country[1]})`;
 	}
 
+	const auth = useAuth()
+
 	return (
 		<>
 			<Paper>
@@ -299,7 +301,7 @@ const RouteViewAccount: Component = () => {
 							onClick={() => {
 								localStorage.removeItem("mongodbUser");
 								localStorage.removeItem("stripeCustomer");
-								signOut({ redirectTo: "/" });
+								auth.signOut({ redirectTo: "/" });
 							}}
 						>
 							Log out
