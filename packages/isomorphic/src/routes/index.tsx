@@ -264,18 +264,26 @@ const RouteViewHome: Component = () => {
 									</div>
 								</Show>
 							</div>
-							{allowFarmCreation() ? (
+							<Show when={allowFarmCreation()}>
 								<button
+									title={"Add new farm"}
 									type="button"
 									class={"rounded-sm p-1 mt-3 btn-default w-full"}
 									onClick={() => enterAddFarmMode()}
-									
 								>
 									Add new farm
 								</button>
-							) : (
-								<></>
-							)}
+							</Show>
+							<Show when={!allowFarmCreation()}>
+								<button
+									title={"Upgrade plan to add more farms" }
+									type="button"
+									class={"rounded-sm p-1 mt-3 btn-default w-full"}
+									onClick={() => navigate("/settings")}
+								>
+									Upgrade plan to add more farms
+								</button>
+							</Show>
 						</div>
 					</Match>
 					<Match when={mode() === modes.dragMode}>
