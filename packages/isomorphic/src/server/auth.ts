@@ -31,9 +31,6 @@ export const authOpts: SolidAuthConfig = {
 				},
 			},
 			async profile(profile, tokens) {
-				// setAuth0User(profile ?? "");
-				// console.log("auth0User", auth0User());
-				// setAuth0Token(tokens.access_token ?? "");
 
 				await setCookie("auth0Token", encodeURIComponent(tokens.access_token ?? ""));
 				await setCookie("auth0User", encodeURIComponent(JSON.stringify(profile)));
