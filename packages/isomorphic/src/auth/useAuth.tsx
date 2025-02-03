@@ -121,13 +121,13 @@ export const ShowAfterAuth = (props: any) => {
 
 			setStripeCustomer(JSON.parse(stripeCustomer));
 
-			if (pathname() !== "/settings") {
-				if (getStripeCustomer()) {
-					if (getStripeCustomer()?.subscriptions?.length === 0) {
-						navigate("/settings");
-					}
-				}
-			}
+			// if (pathname() !== "/settings") {
+			// 	if (getStripeCustomer()) {
+			// 		if (getStripeCustomer()?.subscriptions?.length === 0) {
+			// 			navigate("/settings");
+			// 		}
+			// 	}
+			// }
 		}
 	});
 

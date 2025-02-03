@@ -16,7 +16,7 @@ const SystemInfoBox: Component<{
 			],
 		});
 
-		const area = Number.parseFloat(turfArea(geometry));
+		const area = Number.parseFloat(turfArea(geometry!).toString());
 
 		return area;
 	}
