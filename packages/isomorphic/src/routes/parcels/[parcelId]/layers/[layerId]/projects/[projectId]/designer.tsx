@@ -1,6 +1,6 @@
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { A, useParams } from "@solidjs/router";
+import { A, useNavigate, useParams } from "@solidjs/router";
 import { AddRow } from "~/components/systems/add-row.tsx";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
@@ -36,6 +36,7 @@ import _ from "lodash";
 // import { Toaster } from "~/components/ui/sonner";
 
 import { showToast, Toaster } from "~/components/ui/toast";
+import { currentSubscription, subscriptions } from "~/auth/useAuth";
 
 function isEqual(var1, var2) {
   // Break the comparison out into a neat little function
@@ -155,8 +156,6 @@ export default function view() {
     // console.log('Updateing map', rebuildMap())
 
     if (scenarioData()) {
-      console.log("New layout data");
-
       if (!map) {
         const areaLat = scenarioData()?.project.layer.lat;
         const areaLng = scenarioData()?.project.layer.lng;
@@ -254,7 +253,7 @@ export default function view() {
   });
 
   function logSystem() {
-    console.log(JSON.stringify(system))
+    console.log(JSON.stringify(system));
   }
 
   const [saving, setSaving] = createSignal(false);
@@ -291,6 +290,9 @@ export default function view() {
     // scenarioDataRefresh();
   }
 
+  const freemium = createMemo<boolean>(() => {
+    return !(currentSubscription()?.length > 0);
+  });
   return (
     <Resizable>
       <ResizablePanel style={{ overflow: "hidden" }}>
@@ -326,475 +328,490 @@ export default function view() {
                   }}
                 >
                   <div style={{ overflow: "overlay", flex: "1 1 auto" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        "flex-direction": "row",
-                        "min-height": "100%",
+                    <Show when={!freemium()}>
+                      <div
+                        style={{
+                          display: "flex",
+                          "flex-direction": "row",
+                          "min-height": "100%",
 
-                        "padding-bottom": "20px",
+                          "padding-bottom": "20px",
 
-                        flex: 1,
-                      }}
-                    >
-                      <For each={system.rows}>
-                        {(row, rowIdx) => (
-                          <>
-                            <AddRow
-                              index={rowIdx()}
-                              setSystem={setSystem}
-                              logSystem={logSystem}
-                            />
+                          flex: 1,
+                        }}
+                      >
+                        <For each={system.rows}>
+                          {(row, rowIdx) => (
+                            <>
+                              <AddRow
+                                index={rowIdx()}
+                                setSystem={setSystem}
+                                logSystem={logSystem}
+                              />
 
-                            <div
-                              style={{
-                                "min-width": "180px",
-                                flex: "0 0 0",
-                                display: "flex",
-                                "flex-direction": "column",
-                                "justify-content": "flex-end",
-                              }}
-                            >
-                              <div class="border border-zinc-300 bg-white dark:bg-customdark1 p-2 rounded-sm dark:border-slate-600">
-                                {row.sequence.length ? (
-                                  <>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        "flex-direction": "column-reverse",
-                                      }}
-                                    >
+                              <div
+                                style={{
+                                  "min-width": "180px",
+                                  flex: "0 0 0",
+                                  display: "flex",
+                                  "flex-direction": "column",
+                                  "justify-content": "flex-end",
+                                }}
+                              >
+                                <div class="border border-zinc-300 bg-white dark:bg-customdark1 p-2 rounded-sm dark:border-slate-600">
+                                  {row.sequence.length ? (
+                                    <>
                                       <div
-                                        class="form-group"
                                         style={{
                                           display: "flex",
-                                          "align-items": "center",
-                                          "justify-content": "space-between",
+                                          "flex-direction": "column-reverse",
                                         }}
                                       >
-                                        <label>Offset</label>
                                         <div
+                                          class="form-group"
                                           style={{
                                             display: "flex",
                                             "align-items": "center",
+                                            "justify-content": "space-between",
                                           }}
                                         >
-                                          <input
-                                            style={{ width: "75px" }}
-                                            type="number"
-                                            min={0}
-                                            class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                            value={row.offset?.before}
-                                            onChange={(e) => {
-                                              setSystem(
-                                                "rows",
-                                                rowIdx(),
-                                                "offset",
-                                                (o) => {
-                                                  const newOffset = { ...o };
-                                                  newOffset.before =
-                                                    Number.parseFloat(
-                                                      e.target.value
-                                                    );
-                                                  return newOffset;
-                                                }
-                                              );
-
-                                              logSystem();
-                                            }}
-                                            required
-                                          />
-                                          <span>m</span>
-                                        </div>
-                                      </div>
-
-                                      <button
-                                        title="Add tree"
-                                        class="rounded-sm p-1 mt-2 mb-2 btn-default"
-                                        onclick={() => {
-                                          // console.log('test')
-                                          setSystem(
-                                            "rows",
-                                            rowIdx(),
-                                            "sequence",
-                                            (sequence) => {
-                                              const newSequence = [
-                                                {
-                                                  species: undefined,
-                                                  spacingAfter: 5,
-                                                },
-                                                ...sequence,
-                                              ];
-
-                                              // console.log(newRows)
-                                              return newSequence;
-                                            }
-                                          );
-                                          logSystem();
-                                        }}
-                                      >
-                                        <i class="fa-solid fa-plus" /> Add tree
-                                      </button>
-
-                                      <For each={row.sequence}>
-                                        {(sequence, sequenceIdx) => (
-                                          // <div class='card'>
-                                          //   <div class='card-body'>
-
+                                          <label>Offset</label>
                                           <div
                                             style={{
                                               display: "flex",
                                               "align-items": "center",
-                                              "margin-top": "10px",
                                             }}
                                           >
-                                            {/* <button
-                                    class='btn btn-default'
-                                    onClick={() => {
-                                      // setSystem('rows', (prev) => {
-                                      //   const newRows = [...prev]
-                                      //   newRows.splice(j(), 1)
-                                      //   return newRows
-                                      // })
-                                    }}
-                                  > */}
-                                            <i
-                                              onClick={() => {
+                                            <input
+                                              style={{ width: "75px" }}
+                                              type="number"
+                                              min={0}
+                                              class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                              value={row.offset?.before}
+                                              onChange={(e) => {
                                                 setSystem(
                                                   "rows",
                                                   rowIdx(),
-                                                  "sequence",
-                                                  (sequence) => {
-                                                    const newSequence = [
-                                                      ...sequence,
-                                                    ];
-                                                    newSequence.splice(
-                                                      sequenceIdx(),
-                                                      1
-                                                    );
-                                                    return newSequence;
+                                                  "offset",
+                                                  (o) => {
+                                                    const newOffset = { ...o };
+                                                    newOffset.before =
+                                                      Number.parseFloat(
+                                                        e.target.value
+                                                      );
+                                                    return newOffset;
                                                   }
                                                 );
+
                                                 logSystem();
                                               }}
-                                              class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
+                                              required
                                             />
-                                            {/* </button> */}
+                                            <span>m</span>
+                                          </div>
+                                        </div>
 
-                                            <div>
-                                              <div
-                                                style={{
-                                                  display: "flex",
-                                                  "align-items": "center",
-                                                }}
-                                              >
-                                                <i
-                                                  class="fa-solid fa-arrows-up-down"
-                                                  style={{
-                                                    width: "20px",
-                                                    "text-align": "center",
-                                                  }}
-                                                />
-                                                <input
-                                                  style={{ width: "100%" }}
-                                                  type="number"
-                                                  min={0}
-                                                  class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                                  placeholder="Spacing (m)"
-                                                  value={sequence.spacingAfter}
-                                                  onChange={(e) => {
-                                                    setSystem(
-                                                      "rows",
-                                                      rowIdx(),
-                                                      "sequence",
-                                                      sequenceIdx(),
-                                                      (sequence) => {
-                                                        const newSpecies = {
-                                                          ...sequence,
-                                                        };
-                                                        newSpecies.spacingAfter =
-                                                          Number.parseFloat(
-                                                            e.target.value
-                                                          );
-                                                        return newSpecies;
-                                                      }
-                                                    );
-                                                    logSystem();
-                                                  }}
-                                                />
-                                              </div>
-                                              <div
-                                                style={{
-                                                  display: "flex",
-                                                  "margin-top": "10px",
-                                                  "align-items": "center",
-                                                }}
-                                              >
-                                                <i
-                                                  class="fa-solid fa-tree"
-                                                  style={{
-                                                    width: "20px",
-                                                    "text-align": "center",
-                                                  }}
-                                                />
-                                                <select
-                                                  style="width:100%;max-width:100%;"
-                                                  class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                                  value={sequence.species ?? ""}
-                                                  onchange={(e) => {
-                                                    setSystem(
-                                                      "rows",
-                                                      rowIdx(),
-                                                      "sequence",
-                                                      sequenceIdx(),
-                                                      "species",
-                                                      (species) => {
-                                                        const newSpecies =
-                                                          e.target.value;
-                                                        return newSpecies;
-                                                      }
-                                                    );
+                                        <button
+                                          title="Add tree"
+                                          class="rounded-sm p-1 mt-2 mb-2 btn-default"
+                                          onclick={() => {
+                                            // console.log('test')
+                                            setSystem(
+                                              "rows",
+                                              rowIdx(),
+                                              "sequence",
+                                              (sequence) => {
+                                                const newSequence = [
+                                                  {
+                                                    species: undefined,
+                                                    spacingAfter: 5,
+                                                  },
+                                                  ...sequence,
+                                                ];
 
-                                                    logSystem();
+                                                // console.log(newRows)
+                                                return newSequence;
+                                              }
+                                            );
+                                            logSystem();
+                                          }}
+                                        >
+                                          <i class="fa-solid fa-plus" /> Add
+                                          tree
+                                        </button>
+
+                                        <For each={row.sequence}>
+                                          {(sequence, sequenceIdx) => (
+                                            // <div class='card'>
+                                            //   <div class='card-body'>
+
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                "align-items": "center",
+                                                "margin-top": "10px",
+                                              }}
+                                            >
+                                              {/* <button
+                                        class='btn btn-default'
+                                        onClick={() => {
+                                          // setSystem('rows', (prev) => {
+                                          //   const newRows = [...prev]
+                                          //   newRows.splice(j(), 1)
+                                          //   return newRows
+                                          // })
+                                        }}
+                                      > */}
+                                              <i
+                                                onClick={() => {
+                                                  setSystem(
+                                                    "rows",
+                                                    rowIdx(),
+                                                    "sequence",
+                                                    (sequence) => {
+                                                      const newSequence = [
+                                                        ...sequence,
+                                                      ];
+                                                      newSequence.splice(
+                                                        sequenceIdx(),
+                                                        1
+                                                      );
+                                                      return newSequence;
+                                                    }
+                                                  );
+                                                  logSystem();
+                                                }}
+                                                class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
+                                              />
+                                              {/* </button> */}
+
+                                              <div>
+                                                <div
+                                                  style={{
+                                                    display: "flex",
+                                                    "align-items": "center",
                                                   }}
                                                 >
-                                                  <option value="">none</option>
-                                                  <For
-                                                    each={species()?.species.filter(
-                                                      (
-                                                        species: ISpeciesSchema
-                                                      ) =>
-                                                        ![
-                                                          "herb",
-                                                          "grass",
-                                                        ].includes(species.form)
-                                                    )}
+                                                  <i
+                                                    class="fa-solid fa-arrows-up-down"
+                                                    style={{
+                                                      width: "20px",
+                                                      "text-align": "center",
+                                                    }}
+                                                  />
+                                                  <input
+                                                    style={{ width: "100%" }}
+                                                    type="number"
+                                                    min={0}
+                                                    class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                                    placeholder="Spacing (m)"
+                                                    value={
+                                                      sequence.spacingAfter
+                                                    }
+                                                    onChange={(e) => {
+                                                      setSystem(
+                                                        "rows",
+                                                        rowIdx(),
+                                                        "sequence",
+                                                        sequenceIdx(),
+                                                        (sequence) => {
+                                                          const newSpecies = {
+                                                            ...sequence,
+                                                          };
+                                                          newSpecies.spacingAfter =
+                                                            Number.parseFloat(
+                                                              e.target.value
+                                                            );
+                                                          return newSpecies;
+                                                        }
+                                                      );
+                                                      logSystem();
+                                                    }}
+                                                  />
+                                                </div>
+                                                <div
+                                                  style={{
+                                                    display: "flex",
+                                                    "margin-top": "10px",
+                                                    "align-items": "center",
+                                                  }}
+                                                >
+                                                  <i
+                                                    class="fa-solid fa-tree"
+                                                    style={{
+                                                      width: "20px",
+                                                      "text-align": "center",
+                                                    }}
+                                                  />
+                                                  <select
+                                                    style="width:100%;max-width:100%;"
+                                                    class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                                    value={
+                                                      sequence.species ?? ""
+                                                    }
+                                                    onchange={(e) => {
+                                                      setSystem(
+                                                        "rows",
+                                                        rowIdx(),
+                                                        "sequence",
+                                                        sequenceIdx(),
+                                                        "species",
+                                                        (species) => {
+                                                          const newSpecies =
+                                                            e.target.value;
+                                                          return newSpecies;
+                                                        }
+                                                      );
+
+                                                      logSystem();
+                                                    }}
                                                   >
-                                                    {(species) => (
-                                                      <option
-                                                        value={species._id}
-                                                      >
-                                                        {species.nameCommon}
-                                                      </option>
-                                                    )}
-                                                  </For>
-                                                </select>
+                                                    <option value="">
+                                                      none
+                                                    </option>
+                                                    <For
+                                                      each={species()?.species.filter(
+                                                        (
+                                                          species: ISpeciesSchema
+                                                        ) =>
+                                                          ![
+                                                            "herb",
+                                                            "grass",
+                                                          ].includes(
+                                                            species.form
+                                                          )
+                                                      )}
+                                                    >
+                                                      {(species) => (
+                                                        <option
+                                                          value={species._id}
+                                                        >
+                                                          {species.nameCommon}
+                                                        </option>
+                                                      )}
+                                                    </For>
+                                                  </select>
+                                                </div>
                                               </div>
                                             </div>
-                                          </div>
-                                        )}
-                                      </For>
+                                          )}
+                                        </For>
 
-                                      <button
-                                        class="rounded-sm p-1 mt-2 btn-default"
-                                        onclick={() => {
-                                          // console.log('test')
-                                          setSystem(
-                                            "rows",
-                                            rowIdx(),
-                                            "sequence",
-                                            (sequence) => {
-                                              const newSequence = [
-                                                ...sequence,
-                                                {
-                                                  species: undefined,
-                                                  spacingAfter: 5,
-                                                },
-                                              ];
+                                        <button
+                                          class="rounded-sm p-1 mt-2 btn-default"
+                                          onclick={() => {
+                                            // console.log('test')
+                                            setSystem(
+                                              "rows",
+                                              rowIdx(),
+                                              "sequence",
+                                              (sequence) => {
+                                                const newSequence = [
+                                                  ...sequence,
+                                                  {
+                                                    species: undefined,
+                                                    spacingAfter: 5,
+                                                  },
+                                                ];
 
-                                              // console.log(newRows)
-                                              return newSequence;
-                                            }
-                                          );
-                                          logSystem();
-                                        }}
-                                      >
-                                        <i class="fa-solid fa-plus" /> Add tree
-                                      </button>
+                                                // console.log(newRows)
+                                                return newSequence;
+                                              }
+                                            );
+                                            logSystem();
+                                          }}
+                                        >
+                                          <i class="fa-solid fa-plus" /> Add
+                                          tree
+                                        </button>
 
-                                      <div
-                                        class="form-group"
-                                        style={{
-                                          display: "flex",
-                                          "align-items": "center",
-                                          "justify-content": "space-between",
-                                        }}
-                                      >
-                                        <label>Offset</label>
                                         <div
+                                          class="form-group"
                                           style={{
                                             display: "flex",
                                             "align-items": "center",
+                                            "justify-content": "space-between",
                                           }}
                                         >
-                                          <input
-                                            style={{ width: "75px" }}
-                                            type="number"
-                                            min={0}
-                                            class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                            value={row.offset?.after}
-                                            onChange={(e) => {
-                                              setSystem(
-                                                "rows",
-                                                rowIdx(),
-                                                "offset",
-                                                (o) => {
-                                                  const offset = { ...o };
-                                                  offset.after =
-                                                    Number.parseFloat(
-                                                      e.target.value
-                                                    );
-                                                  return offset;
-                                                }
-                                              );
-
-                                              logSystem();
+                                          <label>Offset</label>
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              "align-items": "center",
                                             }}
-                                            required
-                                          />
-                                          <span>m</span>
+                                          >
+                                            <input
+                                              style={{ width: "75px" }}
+                                              type="number"
+                                              min={0}
+                                              class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                              value={row.offset?.after}
+                                              onChange={(e) => {
+                                                setSystem(
+                                                  "rows",
+                                                  rowIdx(),
+                                                  "offset",
+                                                  (o) => {
+                                                    const offset = { ...o };
+                                                    offset.after =
+                                                      Number.parseFloat(
+                                                        e.target.value
+                                                      );
+                                                    return offset;
+                                                  }
+                                                );
+
+                                                logSystem();
+                                              }}
+                                              required
+                                            />
+                                            <span>m</span>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <button
-                                    class="rounded-sm p-1  w-full btn-default"
-                                    onclick={() => {
-                                      // console.log('test')
-                                      setSystem(
-                                        "rows",
-                                        rowIdx(),
-                                        "sequence",
-                                        (sequence) => {
-                                          const newSequence = [
-                                            ...sequence,
-                                            {
-                                              species: undefined,
-                                              spacingAfter: 5,
-                                            },
-                                          ];
-                                          return newSequence;
-                                        }
-                                      );
-                                      logSystem();
-                                    }}
-                                  >
-                                    Define tree sequence
-                                  </button>
-                                )}
-
-                                <hr class="my-4 border-zinc-600 dark:border-white border-dashed" />
-
-                                <span>Ground cover</span>
-
-                                <select
-                                  class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                  style="width:100%;max-width:100%;"
-                                  value={row.groundcover ?? ""}
-                                  onchange={(e) => {
-                                    setSystem(
-                                      "rows",
-                                      rowIdx(),
-                                      "groundcover",
-                                      (gc) => {
-                                        const newGroundCover = e.target.value;
-                                        return newGroundCover;
-                                      }
-                                    );
-
-                                    logSystem();
-                                  }}
-                                >
-                                  <option value="">none</option>
-                                  <For
-                                    each={species()?.species.filter(
-                                      (species: ISpeciesSchema) =>
-                                        ["herb", "grass"].includes(species.form)
-                                    )}
-                                  >
-                                    {(species) => (
-                                      <option value={species._id}>
-                                        {species.nameCommon}
-                                      </option>
-                                    )}
-                                  </For>
-                                </select>
-
-                                <br />
-
-                                <div
-                                  class="form-group mt-2"
-                                  style={{
-                                    display: "flex",
-                                    "align-items": "center",
-                                    "justify-content": "space-between",
-                                  }}
-                                >
-                                  <label>Row width</label>
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      "align-items": "center",
-                                    }}
-                                  >
-                                    <input
-                                      style={{ width: "75px" }}
-                                      type="number"
-                                      min={0}
-                                      class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                      placeholder="Width"
-                                      value={row.width}
-                                      onChange={(e) => {
+                                    </>
+                                  ) : (
+                                    <button
+                                      class="rounded-sm p-1  w-full btn-default"
+                                      onclick={() => {
+                                        // console.log('test')
                                         setSystem(
                                           "rows",
                                           rowIdx(),
-                                          "width",
-                                          (width) => {
-                                            const newWidth = Number.parseFloat(
-                                              e.target.value
-                                            );
-                                            return newWidth;
+                                          "sequence",
+                                          (sequence) => {
+                                            const newSequence = [
+                                              ...sequence,
+                                              {
+                                                species: undefined,
+                                                spacingAfter: 5,
+                                              },
+                                            ];
+                                            return newSequence;
                                           }
                                         );
-
                                         logSystem();
                                       }}
-                                      required
-                                    />
-                                    <span>m</span>
+                                    >
+                                      Define tree sequence
+                                    </button>
+                                  )}
+
+                                  <hr class="my-4 border-zinc-600 dark:border-white border-dashed" />
+
+                                  <span>Ground cover</span>
+
+                                  <select
+                                    class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                    style="width:100%;max-width:100%;"
+                                    value={row.groundcover ?? ""}
+                                    onchange={(e) => {
+                                      setSystem(
+                                        "rows",
+                                        rowIdx(),
+                                        "groundcover",
+                                        (gc) => {
+                                          const newGroundCover = e.target.value;
+                                          return newGroundCover;
+                                        }
+                                      );
+
+                                      logSystem();
+                                    }}
+                                  >
+                                    <option value="">none</option>
+                                    <For
+                                      each={species()?.species.filter(
+                                        (species: ISpeciesSchema) =>
+                                          ["herb", "grass"].includes(
+                                            species.form
+                                          )
+                                      )}
+                                    >
+                                      {(species) => (
+                                        <option value={species._id}>
+                                          {species.nameCommon}
+                                        </option>
+                                      )}
+                                    </For>
+                                  </select>
+
+                                  <br />
+
+                                  <div
+                                    class="form-group mt-2"
+                                    style={{
+                                      display: "flex",
+                                      "align-items": "center",
+                                      "justify-content": "space-between",
+                                    }}
+                                  >
+                                    <label>Row width</label>
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        "align-items": "center",
+                                      }}
+                                    >
+                                      <input
+                                        style={{ width: "75px" }}
+                                        type="number"
+                                        min={0}
+                                        class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                        placeholder="Width"
+                                        value={row.width}
+                                        onChange={(e) => {
+                                          setSystem(
+                                            "rows",
+                                            rowIdx(),
+                                            "width",
+                                            (width) => {
+                                              const newWidth =
+                                                Number.parseFloat(
+                                                  e.target.value
+                                                );
+                                              return newWidth;
+                                            }
+                                          );
+
+                                          logSystem();
+                                        }}
+                                        required
+                                      />
+                                      <span>m</span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
 
-                              <div class="flex w-full justify-center align-middle">
-                                <i
-                                  onClick={() => {
-                                    setSystem("rows", (prev) => {
-                                      const newRows = [...prev];
-                                      newRows.splice(rowIdx(), 1);
-                                      return newRows;
-                                    });
-                                    logSystem();
-                                  }}
-                                  class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
-                                />
+                                <div class="flex w-full justify-center align-middle">
+                                  <i
+                                    onClick={() => {
+                                      setSystem("rows", (prev) => {
+                                        const newRows = [...prev];
+                                        newRows.splice(rowIdx(), 1);
+                                        return newRows;
+                                      });
+                                      logSystem();
+                                    }}
+                                    class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
+                                  />
 
-                                <p class="font-bold leading-9">
-                                  Row {rowIdx() + 1}
-                                </p>
+                                  <p class="font-bold leading-9">
+                                    Row {rowIdx() + 1}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </>
-                        )}
-                      </For>
-                      <AddRow
-                        ping={system.rows.length === 0}
-                        index={system.rows.length}
-                        setSystem={setSystem}
-                        logSystem={logSystem}
-                      />
-                    </div>
+                            </>
+                          )}
+                        </For>
+                        <AddRow
+                          ping={system.rows.length === 0}
+                          index={system.rows.length}
+                          setSystem={setSystem}
+                          logSystem={logSystem}
+                        />
+                      </div>
+                    </Show>
                   </div>
 
                   <div>
@@ -838,14 +855,14 @@ export default function view() {
                       </div>
 
                       {/* <div class='form-group'>
-                    <button
-                      // disabled={submitDisabled()}
-                      type='submit'
-                      class='btn btn-default'
-                    >
-                      Preview
-                    </button>
-                  </div> */}
+                      <button
+                        // disabled={submitDisabled()}
+                        type='submit'
+                        class='btn btn-default'
+                      >
+                        Preview
+                      </button>
+                    </div> */}
                     </div>
                   </div>
                 </div>
@@ -853,17 +870,22 @@ export default function view() {
               {/* </form> */}
             </Show>
           </div>
-          <Parameterbox
-            system={system}
-            setSystem={setSystem}
-            logSystem={logSystem}
-          />
-          <DesignPresetBox
-            getSystemDesign={getSystemDesign}
-            system={system}
-            setSystem={setSystem}
-            logSystem={logSystem}
-          />
+
+          <Show when={!freemium()}>
+            <Parameterbox
+              system={system}
+              setSystem={setSystem}
+              logSystem={logSystem}
+            />
+          </Show>
+          <Show when={freemium()}>
+            <DesignPresetBox
+              getSystemDesign={getSystemDesign}
+              system={system}
+              setSystem={setSystem}
+              logSystem={logSystem}
+            />
+          </Show>
         </div>
       </ResizablePanel>
       <ResizableHandle withHandle />
@@ -889,58 +911,145 @@ export default function view() {
 
 export { drawSystemDesign };
 
-const DesignPresetBox = ({ system, setSystem, logSystem, getSystemDesign }: any) => {
-  const [isOpen, setIsOpen] = createSignal(!!system);
-
+const DesignPresetBox = ({
+  system,
+  setSystem,
+  logSystem,
+  getSystemDesign,
+}: any) => {
   const images = [
-    { src: "/freemium/presets/Silvoarable.jpg", alt: "Silvoarable preset", desc: `
+    {
+      src: "/freemium/presets/Silvoarable.jpg",
+      alt: "Silvoarable preset",
+      desc: `
 Silvoarable with apples 
 6 m tree rows, 24 m alleys (wheat)
 24 m margin 
-`, system: 
-{"rows":[{"width":6,"sequence":[{"spacingAfter":3,"species":"5e6639548add4f22f08201ff"}],"offset":{"before":0,"after":0}},{"width":24,"sequence":[],"offset":{"before":0,"after":0},"groundcover":"5e6619b4c0c63516dc441d2a"}],"bearing":0,"margin":0,"headland":0} },
-    { src: "/freemium/presets/Silvopasture.jpg", alt: "Silvopasture preset", desc: `
+`,
+      system: {
+        rows: [
+          {
+            width: 6,
+            sequence: [
+              { spacingAfter: 3, species: "5e6639548add4f22f08201ff" },
+            ],
+            offset: { before: 0, after: 0 },
+          },
+          {
+            width: 24,
+            sequence: [],
+            offset: { before: 0, after: 0 },
+            groundcover: "5e6619b4c0c63516dc441d2a",
+          },
+        ],
+        bearing: 0,
+        margin: 0,
+        headland: 0,
+      },
+    },
+    {
+      src: "/freemium/presets/Silvopasture.jpg",
+      alt: "Silvopasture preset",
+      desc: `
 Silvopasture with chestnuts 
 6 x 12 m grid. 
 6 m margin
-` , system: {"rows":[{"width":12,"sequence":[{"species":"5e6501a0e4a1961d40fc538e","spacingAfter":6}],"offset":{"before":0,"after":0}}],"bearing":0,"margin":0,"headland":0}},
+`,
+      system: {
+        rows: [
+          {
+            width: 12,
+            sequence: [
+              { species: "5e6501a0e4a1961d40fc538e", spacingAfter: 6 },
+            ],
+            offset: { before: 0, after: 0 },
+          },
+        ],
+        bearing: 0,
+        margin: 0,
+        headland: 0,
+      },
+    },
   ];
+
+  const [presetIndex, setPresetIndex] = createSignal(0);
 
   return (
     <>
       <div class="dark:bg-customdark1 bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
-        <p
-          onClick={() => {
-            setIsOpen(!isOpen());
-          }}
-        >
-          Presets (Click to open/close)
-        </p>
-        <Show when={isOpen()}>
-          <br />
+        <div>
+          <div class="flex justify-between">
+            <span>Presets</span>
 
-          <div class="flex flex-col gap-2 justify-start h-[500px] overflow-y-scroll">
-            <For each={images}>
-              {({ src, alt, desc, system }) => (
-                <div class="flex relative whitespace-nowrap h-min-[200px]" onClick={() => {
-                  setSystem(system);
-                  getSystemDesign()
-                }}>
-                  <img
-                    src={src}
-                    alt={alt}
-                    style={{ "min-height": "200px", "max-width": "500px" }}
-                  />
-                    <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
-                    <p class="text-center font-serif italic text-white p-4" style={{ "white-space": "pre-line" }}>{desc}</p>
-                    </div>
-                </div>
-              )}
-            </For>
+            <div class="flex gap-2">
+              <button
+                class="rounded-sm p-1 btn-default"
+                onClick={() =>
+                  setPresetIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
+                }
+              >
+                <i class="fas fa-arrow-left" />
+              </button>
+              <button
+                class="rounded-sm p-1 btn-default"
+                onClick={() =>
+                  setPresetIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
+                }
+              >
+                <i class="fas fa-arrow-right" />
+              </button>
+            </div>
           </div>
-        </Show>
+        </div>
+
+        <br />
+
+        <div class="flex flex-col gap-2 justify-start overflow-y-scroll">
+          {/* <For each={images}>
+              {({ src, alt, desc, system }) => ( */}
+          <div
+            class="flex relative whitespace-nowrap h-min-[200px]"
+            onClick={() => {
+              setSystem(images[presetIndex()].system);
+              getSystemDesign();
+            }}
+          >
+            <img
+              src={images[presetIndex()].src}
+              alt={images[presetIndex()].alt}
+              style={{ "min-height": "200px", "max-width": "500px" }}
+            />
+            <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
+              <p
+                class="text-center font-serif italic text-white p-4"
+                style={{ "white-space": "pre-line" }}
+              >
+                {images[presetIndex()].desc}
+              </p>
+            </div>
+          </div>
+          {/* )} */}
+          {/* </For> */}
+          <FreemiumBox />
+        </div>
       </div>
     </>
+  );
+};
+
+const FreemiumBox = ({}: any) => {
+  const navigate = useNavigate();
+  return (
+    <button
+      // @ts-ignore
+      type="submit"
+      class={`rounded-sm w-full p-1 mr-2 my-2 btn-default`}
+      onclick={async () => {
+        navigate("/settings");
+      }}
+    >
+      Get more design features by buying a subscription.
+    </button>
   );
 };
 
