@@ -43,7 +43,7 @@ export default function AdvisorRequests() {
         <h1 class="text-2xl font-bold mb-6">Advisor Requests</h1>
 
         <div class="rounded-md border">
-          <div class="bg-gray-50 px-4 py-3 grid grid-cols-4 font-medium">
+          <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-4 font-medium">
             <div>RegenWorks UserID</div>
             {/* <div>ExternalID</div> */}
             <div>Email</div>
