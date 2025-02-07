@@ -37,6 +37,7 @@ import _ from "lodash";
 
 import { showToast, Toaster } from "~/components/ui/toast";
 import { currentSubscription, subscriptions } from "~/auth/useAuth";
+import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
 
 function isEqual(var1, var2) {
   // Break the comparison out into a neat little function
@@ -293,9 +294,21 @@ export default function view() {
   const freemium = createMemo<boolean>(() => {
     return !(currentSubscription()?.length > 0);
   });
+
+  const [isOpen, setIsOpen] = createSignal(false);
+
   return (
     <Resizable>
       <ResizablePanel style={{ overflow: "hidden" }}>
+        <FarmerAdvisorSelector
+          isOpen={isOpen}
+          onClose={() => {
+            setIsOpen(false);
+          }}
+          onSelect={() => {
+            setIsOpen(false);
+          }}
+        />
         <div
           style={{
             display: "flex",
@@ -943,7 +956,7 @@ Silvoarable with apples
           },
         ],
         bearing: 0,
-        margin: 0,
+        margin: 24,
         headland: 0,
       },
     },
@@ -966,7 +979,7 @@ Silvopasture with chestnuts
           },
         ],
         bearing: 0,
-        margin: 0,
+        margin: 6,
         headland: 0,
       },
     },
