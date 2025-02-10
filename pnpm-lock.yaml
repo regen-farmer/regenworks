@@ -179,7 +179,7 @@ importers:
         version: link:../modelling
       '@solid-mediakit/auth':
         specifier: ^3.0.0
-        version: 3.1.2(@auth/core@0.37.4)(@solidjs/meta@0.29.4(solid-js@1.9.4))(@solidjs/router@0.15.2(solid-js@1.9.4))(@solidjs/start@https://pkg.pr.new/@solidjs/start@da48fa2(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0)))(rollup@4.30.1)(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))
+        version: 3.1.2(@auth/core@0.37.4)(@solidjs/meta@0.29.4(solid-js@1.9.4))(@solidjs/router@0.15.2(solid-js@1.9.4))(@solidjs/start@1.1.0(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0)))(rollup@4.30.1)(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))
       '@solid-primitives/media':
         specifier: ^2.2.9
         version: 2.2.10(solid-js@1.9.4)
@@ -187,8 +187,8 @@ importers:
         specifier: ^0.15.1
         version: 0.15.2(solid-js@1.9.4)
       '@solidjs/start':
-        specifier: https://pkg.pr.new/@solidjs/start@da48fa2
-        version: https://pkg.pr.new/@solidjs/start@da48fa2(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))
+        specifier: ^1.1.0
+        version: 1.1.0(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))
       '@tmcw/togeojson':
         specifier: ^5.8.1
         version: 5.8.1(@types/geojson@7946.0.15)
@@ -1564,7 +1564,6 @@ packages:
 
   '@solid-mediakit/auth@3.1.2':
     resolution: {integrity: sha512-lb3R+SYXZPq2v76Y/P0y23yXh5JhGcaZEQBRteZity2J7KzzuS89Zl5wsNsWRF3zElY9jFAJCM0sjILbtbLVZA==}
-    version: 3.1.2
     engines: {node: '>=16'}
     peerDependencies:
       '@auth/core': ^0.37.3
@@ -1642,9 +1641,8 @@ packages:
     peerDependencies:
       solid-js: ^1.8.6
 
-  '@solidjs/start@https://pkg.pr.new/@solidjs/start@da48fa2':
-    resolution: {tarball: https://pkg.pr.new/@solidjs/start@da48fa2}
-    version: 1.0.11
+  '@solidjs/start@1.1.0':
+    resolution: {integrity: sha512-7MNhNVt8uF7tdvLkvJhj4357vg3Ha+yqJP8XhQ6IbSZbsyk/xMkYmfc1h6w4GWiWZ5tn1DvS1uqGXjLFbKRy6g==}
     peerDependencies:
       vinxi: ^0.5.3
 
@@ -6963,13 +6961,13 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@solid-mediakit/auth@3.1.2(@auth/core@0.37.4)(@solidjs/meta@0.29.4(solid-js@1.9.4))(@solidjs/router@0.15.2(solid-js@1.9.4))(@solidjs/start@https://pkg.pr.new/@solidjs/start@da48fa2(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0)))(rollup@4.30.1)(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))':
+  '@solid-mediakit/auth@3.1.2(@auth/core@0.37.4)(@solidjs/meta@0.29.4(solid-js@1.9.4))(@solidjs/router@0.15.2(solid-js@1.9.4))(@solidjs/start@1.1.0(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0)))(rollup@4.30.1)(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))':
     dependencies:
       '@auth/core': 0.37.4
       '@solid-mediakit/shared': 0.0.6(rollup@4.30.1)
       '@solidjs/meta': 0.29.4(solid-js@1.9.4)
       '@solidjs/router': 0.15.2(solid-js@1.9.4)
-      '@solidjs/start': https://pkg.pr.new/@solidjs/start@da48fa2(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))
+      '@solidjs/start': 1.1.0(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))
       cookie: 0.6.0
       set-cookie-parser: 2.7.1
       solid-js: 1.9.4
@@ -7053,7 +7051,7 @@ snapshots:
     dependencies:
       solid-js: 1.9.4
 
-  '@solidjs/start@https://pkg.pr.new/@solidjs/start@da48fa2(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))':
+  '@solidjs/start@1.1.0(solid-js@1.9.4)(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.0.11(@types/node@22.10.6)(jiti@2.4.2)(terser@5.37.0)(yaml@2.7.0))':
     dependencies:
       '@tanstack/server-functions-plugin': 1.99.5
       '@vinxi/plugin-directives': 0.5.0(vinxi@0.5.3(@types/node@22.10.6)(db0@0.2.1)(ioredis@5.4.2)(jiti@2.4.2)(terser@5.37.0)(typescript@5.7.3)(xml2js@0.6.2)(yaml@2.7.0))
