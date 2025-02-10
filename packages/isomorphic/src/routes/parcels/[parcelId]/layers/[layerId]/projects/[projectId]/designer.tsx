@@ -36,7 +36,7 @@ import _ from "lodash";
 // import { Toaster } from "~/components/ui/sonner";
 
 import { showToast, Toaster } from "~/components/ui/toast";
-import { currentSubscription, subscriptions } from "~/auth/useAuth";
+import { currentSubscriptions, subscriptions } from "~/auth/useAuth";
 import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
 
 function isEqual(var1, var2) {
@@ -292,7 +292,7 @@ export default function view() {
   }
 
   const freemium = createMemo<boolean>(() => {
-    return !(currentSubscription()?.length > 0);
+    return !(currentSubscriptions()?.length > 0);
   });
 
   const [isOpen, setIsOpen] = createSignal(false);

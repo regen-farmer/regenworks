@@ -1,6 +1,6 @@
 import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import {
-  currentSubscription,
+  currentSubscriptions,
   getMongoDBUser,
   subscriptions,
 } from "~/auth/useAuth.tsx";
@@ -20,6 +20,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -76,7 +77,12 @@ export function NavBar() {
   });
 
   const freemium = createMemo<boolean>(() => {
-    return !(currentSubscription()?.length > 0);
+    return !(currentSubscriptions()?.length > 0);
+  });
+
+  const farmer = createMemo<boolean>(() => {
+    console.log(currentSubscriptions());
+    return currentSubscriptions();
   });
 
   return (
@@ -170,7 +176,16 @@ export function NavBar() {
 
         <ul class="flex items-center mx-3 gap-4">
           <Show when={getMongoDBUser()}>
-            <Show when={freemium()}>
+            <Show
+              when={
+                // freemium() ||
+                currentSubscriptions().filter(
+                  (sub) =>
+                    sub.plan.product ===
+                    StripeIds.farm.product[getDevProdStatus()].length > 0
+                )
+              }
+            >
               <Tooltip
                 placement="top"
                 openDelay={200}
