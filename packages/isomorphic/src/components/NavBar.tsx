@@ -179,7 +179,7 @@ export function NavBar() {
             <Show
               when={
                 // freemium() ||
-                currentSubscriptions().filter(
+                currentSubscriptions()?.filter(
                   (sub) =>
                     sub.plan.product ===
                     StripeIds.farm.product[getDevProdStatus()].length > 0
