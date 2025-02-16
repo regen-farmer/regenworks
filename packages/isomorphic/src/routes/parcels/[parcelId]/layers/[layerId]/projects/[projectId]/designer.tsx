@@ -1072,7 +1072,8 @@ const FreemiumBox = ({}: any) => {
         navigate("/settings");
       }}
     >
-      Get more design features by buying a subscription.
+      You are using the free version of RegenWorks - Choose a paid plan to
+      unlock full design functionality
     </button>
   );
 };
