@@ -1,4 +1,10 @@
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import {
+  Show,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+} from "solid-js";
 import {
   currentSubscriptions,
   getMongoDBUser,
@@ -48,9 +54,7 @@ export function NavBar() {
     return layerId;
   });
 
-  const [myRequests, setMyRequests] = createSignal([]);
-
-  createEffect(async () => {
+  const [myAdvisorRequests, { mutate, refetch }] = createResource(async () => {
     if (getMongoDBUser()) {
       const myRequests = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/my-advisor-requests`,
@@ -62,8 +66,18 @@ export function NavBar() {
 
       const response = await myRequests.json();
 
-      setMyRequests(response);
+      return response;
     }
+  });
+
+  createEffect(() => {
+    const handleRefetch = () => {
+      refetch();
+    };
+    window.addEventListener("refetchAdviseRequests", handleRefetch);
+
+    return () =>
+      window.removeEventListener("refetchAdviseRequests", handleRefetch);
   });
 
   const getProjectId = createMemo(() => {
@@ -76,15 +90,6 @@ export function NavBar() {
 
     // console.log('ProjectId', projcetId)
     return projcetId;
-  });
-
-  const freemium = createMemo<boolean>(() => {
-    return !(currentSubscriptions()?.length > 0);
-  });
-
-  const farmer = createMemo<boolean>(() => {
-    console.log(currentSubscriptions());
-    return currentSubscriptions();
   });
 
   return (
@@ -192,7 +197,7 @@ export function NavBar() {
                   <Tooltip.Trigger>
                     <button
                       // @ts-ignore
-                      disabled={myRequests().length > 0}
+                      disabled={myAdvisorRequests()?.length > 0}
                       type="submit"
                       class={`rounded-sm p-1 mr-2 my-2 btn-default`}
                       onclick={async (e) => {
@@ -206,9 +211,10 @@ export function NavBar() {
                         );
                         const response = await mongodbuserResponse.json();
                         console.log(response);
+                        refetch();
                       }}
                     >
-                      {myRequests().length > 0
+                      {myAdvisorRequests()?.length > 0
                         ? `You'll be contacted by email soon`
                         : "Contact an Advisor"}
                     </button>

@@ -49,10 +49,10 @@ export function FarmerAdvisorSelector({
     }
   });
 
-  function saveLog() {
+  async function saveLog() {
     console.log("save");
 
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/farmer-advisor-survey`, {
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/farmer-advisor-survey`, {
       method: "post",
       ...apiFetchOptions(),
       body: JSON.stringify({
@@ -60,6 +60,7 @@ export function FarmerAdvisorSelector({
         action: selectedAction(),
       }),
     });
+    console.log("done save");
   }
 
   const renderOptions = () => {
@@ -69,7 +70,7 @@ export function FarmerAdvisorSelector({
           <button
             onClick={async () => {
               setSelectedAction("farmer_contact-an-advisor");
-              saveLog();
+              await saveLog();
               if (myRequests().length > 0) {
                 // Handle existing requests if needed.
               } else {
@@ -80,6 +81,9 @@ export function FarmerAdvisorSelector({
                 const response = await mongodbuserResponse.json();
                 console.log(response);
               }
+
+              window.dispatchEvent(new Event("refetchAdviseRequests"));
+
               onClose();
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -90,9 +94,9 @@ export function FarmerAdvisorSelector({
             </p>
           </button>
           <button
-            onClick={() => {
+            onClick={async () => {
               setSelectedAction("farmer_buy-plan");
-              saveLog();
+              await saveLog();
               navigate("/settings");
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -110,7 +114,7 @@ export function FarmerAdvisorSelector({
       <button
         onClick={async () => {
           setSelectedAction("advisor_buy-plan");
-          saveLog();
+          await saveLog();
           navigate("/settings");
         }}
         class="p-4 border rounded-lg cursor-pointer hover:border-primary"
