@@ -11,6 +11,10 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { getMongoDBUser } from "~/auth/useAuth";
 
 type Role = "farmer" | "advisor";
+type Action =
+  | "farmer_buy-plan"
+  | "farmer_contact-an-advisor"
+  | "advisor_buy-plan";
 
 type FarmerAdvisorSelectorProps = {
   isOpen: () => boolean;
@@ -24,11 +28,8 @@ export function FarmerAdvisorSelector({
   onClose,
 }: FarmerAdvisorSelectorProps) {
   const [selectedRole, setSelectedRole] = createSignal<Role | null>(null);
+  const [selectedAction, setSelectedAction] = createSignal<Action | null>(null);
   const [showOptions, setShowOptions] = createSignal(false);
-
-  const handleSelect = () => {
-    setShowOptions(true);
-  };
 
   const navigate = useNavigate();
 
@@ -43,20 +44,34 @@ export function FarmerAdvisorSelector({
           ...apiFetchOptions(),
         }
       );
-
       const response = await myRequests.json();
-
       setMyRequests(response);
     }
   });
+
+  function saveLog() {
+    console.log("save");
+
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/farmer-advisor-survey`, {
+      method: "post",
+      ...apiFetchOptions(),
+      body: JSON.stringify({
+        role: selectedRole(),
+        action: selectedAction(),
+      }),
+    });
+  }
 
   const renderOptions = () => {
     if (selectedRole() === "farmer") {
       return (
         <div class="flex flex-col gap-4">
-          <div
-            onclick={async () => {
+          <button
+            onClick={async () => {
+              setSelectedAction("farmer_contact-an-advisor");
+              saveLog();
               if (myRequests().length > 0) {
+                // Handle existing requests if needed.
               } else {
                 const mongodbuserResponse = await fetch(
                   `${import.meta.env.VITE_BACKEND_URL}/advisor-requests`,
@@ -65,7 +80,6 @@ export function FarmerAdvisorSelector({
                 const response = await mongodbuserResponse.json();
                 console.log(response);
               }
-
               onClose();
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -74,9 +88,11 @@ export function FarmerAdvisorSelector({
             <p class="text-sm text-gray-600">
               Need help with your agroforestry system?
             </p>
-          </div>
-          <div
+          </button>
+          <button
             onClick={() => {
+              setSelectedAction("farmer_buy-plan");
+              saveLog();
               navigate("/settings");
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -85,14 +101,16 @@ export function FarmerAdvisorSelector({
             <p class="text-sm text-gray-600">
               Choose a plan and design your agroforestry system yourself
             </p>
-          </div>
+          </button>
         </div>
       );
     }
 
     return (
-      <div
-        onClick={() => {
+      <button
+        onClick={async () => {
+          setSelectedAction("advisor_buy-plan");
+          saveLog();
           navigate("/settings");
         }}
         class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -101,12 +119,17 @@ export function FarmerAdvisorSelector({
         <p class="text-sm text-gray-600">
           Grow and optimize your agroforestry advisory business
         </p>
-      </div>
+      </button>
     );
   };
 
   return (
-    <Dialog open={isOpen()} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen()}
+      onOpenChange={() => {
+        onClose();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -116,58 +139,44 @@ export function FarmerAdvisorSelector({
         <DialogDescription>
           {!showOptions() ? (
             <div class="flex flex-col gap-4 py-4">
-              <div
-                class={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              <button
+                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-none ${
                   selectedRole() === "farmer"
                     ? "border-primary bg-primary/10"
                     : "border-gray-200 hover:border-primary"
                 }`}
-                onClick={() => setSelectedRole("farmer")}
+                onClick={() => {
+                  setSelectedRole("farmer");
+                  setShowOptions(true);
+                }}
               >
                 <h3 class="text-lg font-semibold">Farmer</h3>
                 <p class="text-sm text-gray-600">
                   I own or manage a farm and want to get advice
                 </p>
-              </div>
+              </button>
 
-              <div
-                class={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              <button
+                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-none ${
                   selectedRole() === "advisor"
                     ? "border-primary bg-primary/10"
                     : "border-gray-200 hover:border-primary"
                 }`}
-                onClick={() => setSelectedRole("advisor")}
+                onClick={() => {
+                  setSelectedRole("advisor");
+                  setShowOptions(true);
+                }}
               >
                 <h3 class="text-lg font-semibold">Farm Advisor</h3>
                 <p class="text-sm text-gray-600">I work as a consultant</p>
-              </div>
+              </button>
             </div>
           ) : (
             <div class="py-4">{renderOptions()}</div>
           )}
 
           <div class="flex justify-end gap-2 mt-4">
-            {/* <button
-              class="px-4 py-2 border rounded-lg hover:bg-gray-100"
-              onClick={() => {
-                if (showOptions()) {
-                  setShowOptions(false);
-                } else {
-                  onClose();
-                }
-              }}
-            >
-              {showOptions() ? "Back" : "Cancel"}
-            </button> */}
-            {!showOptions() && (
-              <button
-                class="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
-                onClick={handleSelect}
-                disabled={!selectedRole()}
-              >
-                Continue
-              </button>
-            )}
+            {/* The Continue button has been removed as role selection now automatically moves to options */}
           </div>
         </DialogDescription>
       </DialogContent>
