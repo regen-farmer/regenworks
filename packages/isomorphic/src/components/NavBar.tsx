@@ -202,7 +202,9 @@ export function NavBar() {
                       disabled={myRequests().length > 0}
                       type="submit"
                       class={`rounded-sm p-1 mr-2 my-2 btn-default`}
-                      onclick={async () => {
+                      onclick={async (e) => {
+                        e.currentTarget.disabled = true;
+
                         const mongodbuserResponse = await fetch(
                           `${
                             import.meta.env.VITE_BACKEND_URL
