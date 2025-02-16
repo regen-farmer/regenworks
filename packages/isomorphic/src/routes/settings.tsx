@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import {
-  currentSubscription,
+  currentSubscriptions,
   getMongoDBUser,
   getStripeCustomer,
   setMongoDBDBUser,

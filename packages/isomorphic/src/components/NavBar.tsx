@@ -1,7 +1,9 @@
 import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import {
-  currentSubscription,
+  currentSubscriptions,
   getMongoDBUser,
+  isFarmer,
+  isFreemium,
   subscriptions,
 } from "~/auth/useAuth.tsx";
 import { ThemeSelect } from "./select/theme-select.tsx";
@@ -20,6 +22,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -76,7 +79,12 @@ export function NavBar() {
   });
 
   const freemium = createMemo<boolean>(() => {
-    return !(currentSubscription()?.length > 0);
+    return !(currentSubscriptions()?.length > 0);
+  });
+
+  const farmer = createMemo<boolean>(() => {
+    console.log(currentSubscriptions());
+    return currentSubscriptions();
   });
 
   return (
@@ -91,10 +99,10 @@ export function NavBar() {
         <div class="logo-icon" />
       </div>
 
-      <div class="flex-grow flex" id="navbarText">
+      <div class="flex-grow flex items-center" id="navbarText">
         <Breadcrumb class="mr-auto">
           <BreadcrumbList>
-            <Show when={getMongoDBUser() && subscriptions() && getParcelId()}>
+            <Show when={getMongoDBUser() && getParcelId()}>
               <BreadcrumbItem
                 style={{
                   display: "flex",
@@ -170,7 +178,7 @@ export function NavBar() {
 
         <ul class="flex items-center mx-3 gap-4">
           <Show when={getMongoDBUser()}>
-            <Show when={freemium()}>
+            <Show when={isFreemium() || isFarmer()}>
               <Tooltip
                 placement="top"
                 openDelay={200}
@@ -187,7 +195,9 @@ export function NavBar() {
                       disabled={myRequests().length > 0}
                       type="submit"
                       class={`rounded-sm p-1 mr-2 my-2 btn-default`}
-                      onclick={async () => {
+                      onclick={async (e) => {
+                        e.currentTarget.disabled = true;
+
                         const mongodbuserResponse = await fetch(
                           `${
                             import.meta.env.VITE_BACKEND_URL

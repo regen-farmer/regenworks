@@ -36,35 +36,8 @@ import _ from "lodash";
 // import { Toaster } from "~/components/ui/sonner";
 
 import { showToast, Toaster } from "~/components/ui/toast";
-import { currentSubscription, subscriptions } from "~/auth/useAuth";
-
-function isEqual(var1, var2) {
-  // Break the comparison out into a neat little function
-  if (typeof var1 !== "object" && !Array.isArray(var1)) {
-    const equal = var1 === var2;
-    console.log(var1, var2, equal);
-    return equal;
-  } else {
-    return deepEqual(var1, var2);
-  }
-}
-
-function deepEqual(var1, var2) {
-  for (const i in var1) {
-    if (typeof var2[i] === "undefined") {
-      // Quick check, does the property even exist?
-      return false;
-    }
-    if (!isEqual(var1[i], var2[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function areObjectsEqual(obj1, obj2) {
-  return deepEqual(obj1, obj2) && deepEqual(obj2, obj1); // Two-way checking
-}
+import { isFreemium } from "~/auth/useAuth";
+import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
 
 function systemDesignsAreEqual(sd1: string, sd2: string) {
   function deleteKeys(sd: SystemDesignDocument) {
@@ -290,12 +263,23 @@ export default function view() {
     // scenarioDataRefresh();
   }
 
-  const freemium = createMemo<boolean>(() => {
-    return !(currentSubscription()?.length > 0);
-  });
+  const [isFarmerAdvisorSelectorOpen, setIsFarmerAdvisorSelectorOpen] =
+    createSignal(false);
+
   return (
     <Resizable>
       <ResizablePanel style={{ overflow: "hidden" }}>
+        <Show when={isFreemium()}>
+          <FarmerAdvisorSelector
+            isOpen={isFarmerAdvisorSelectorOpen}
+            onClose={() => {
+              setIsFarmerAdvisorSelectorOpen(false);
+            }}
+            onSelect={() => {
+              setIsFarmerAdvisorSelectorOpen(false);
+            }}
+          />
+        </Show>
         <div
           style={{
             display: "flex",
@@ -328,7 +312,7 @@ export default function view() {
                   }}
                 >
                   <div style={{ overflow: "overlay", flex: "1 1 auto" }}>
-                    <Show when={!freemium()}>
+                    <Show when={!isFreemium()}>
                       <div
                         style={{
                           display: "flex",
@@ -871,21 +855,29 @@ export default function view() {
             </Show>
           </div>
 
-          <Show when={!freemium()}>
-            <Parameterbox
-              system={system}
-              setSystem={setSystem}
-              logSystem={logSystem}
-            />
-          </Show>
-          <Show when={freemium()}>
-            <DesignPresetBox
-              getSystemDesign={getSystemDesign}
-              system={system}
-              setSystem={setSystem}
-              logSystem={logSystem}
-            />
-          </Show>
+          {/* <Show when={!isFreemium()}> */}
+          <Parameterbox
+            system={system}
+            setSystem={setSystem}
+            logSystem={logSystem}
+          />
+          {/* </Show> */}
+
+          <DesignPresetBox
+            getSystemDesign={getSystemDesign}
+            system={system}
+            setSystem={setSystem}
+            logSystem={logSystem}
+            triggerFarmerAdvisorSelector={() => {
+              setTimeout(() => {
+                const key = "farmerAdvisorSelector";
+                if (!localStorage.getItem(key)) {
+                  setIsFarmerAdvisorSelectorOpen(true);
+                  localStorage.setItem(key, "true");
+                }
+              }, 10000);
+            }}
+          />
         </div>
       </ResizablePanel>
       <ResizableHandle withHandle />
@@ -916,6 +908,7 @@ const DesignPresetBox = ({
   setSystem,
   logSystem,
   getSystemDesign,
+  triggerFarmerAdvisorSelector,
 }: any) => {
   const images = [
     {
@@ -943,7 +936,7 @@ Silvoarable with apples
           },
         ],
         bearing: 0,
-        margin: 0,
+        margin: 24,
         headland: 0,
       },
     },
@@ -966,7 +959,7 @@ Silvopasture with chestnuts
           },
         ],
         bearing: 0,
-        margin: 0,
+        margin: 6,
         headland: 0,
       },
     },
@@ -974,64 +967,77 @@ Silvopasture with chestnuts
 
   const [presetIndex, setPresetIndex] = createSignal(0);
 
+  const [showPreset, setShowPreset] = createSignal<boolean>(isFreemium());
+
   return (
     <>
-      <div class="dark:bg-customdark1 bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
-        <div>
-          <div class="flex justify-between">
-            <span>Presets</span>
+      <div class="dark:bg-customdark1 overflow-hidden bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
+        <div class="overflow-hidden">
+          <div class="flex justify-between overflow-hidden">
+            <span
+              class="cursor-pointer"
+              onClick={() => setShowPreset((prev) => !prev)}
+            >
+              {showPreset() ? "Presets (click here to hide)" : "Show Presets"}
+            </span>
 
-            <div class="flex gap-2">
-              <button
-                class="rounded-sm p-1 btn-default"
-                onClick={() =>
-                  setPresetIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
-                }
-              >
-                <i class="fas fa-arrow-left" />
-              </button>
-              <button
-                class="rounded-sm p-1 btn-default"
-                onClick={() =>
-                  setPresetIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
-                }
-              >
-                <i class="fas fa-arrow-right" />
-              </button>
-            </div>
+            <Show when={showPreset()}>
+              <div class="flex gap-2">
+                <button
+                  class="rounded-sm p-1 btn-default"
+                  onClick={() =>
+                    setPresetIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
+                  }
+                >
+                  <i class="fas fa-arrow-left" />
+                </button>
+                <button
+                  class="rounded-sm p-1 btn-default"
+                  onClick={() =>
+                    setPresetIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
+                  }
+                >
+                  <i class="fas fa-arrow-right" />
+                </button>
+              </div>
+            </Show>
           </div>
         </div>
+        <Show when={showPreset()}>
+          <br />
 
-        <br />
-
-        <div class="flex flex-col gap-2 justify-start overflow-y-scroll">
-          {/* <For each={images}>
+          <div class="flex flex-col gap-2 justify-start ">
+            {/* <For each={images}>
               {({ src, alt, desc, system }) => ( */}
-          <div
-            class="flex relative whitespace-nowrap h-min-[200px]"
-            onClick={() => {
-              setSystem(images[presetIndex()].system);
-              getSystemDesign();
-            }}
-          >
-            <img
-              src={images[presetIndex()].src}
-              alt={images[presetIndex()].alt}
-              style={{ "min-height": "200px", "max-width": "500px" }}
-            />
-            <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
-              <p
-                class="text-center font-serif italic text-white p-4"
-                style={{ "white-space": "pre-line" }}
-              >
-                {images[presetIndex()].desc}
-              </p>
+            <div
+              class="flex relative whitespace-nowrap h-min-[200px]"
+              onClick={() => {
+                setSystem(images[presetIndex()].system);
+                getSystemDesign();
+                triggerFarmerAdvisorSelector();
+              }}
+            >
+              <img
+                src={images[presetIndex()].src}
+                alt={images[presetIndex()].alt}
+                style={{ "min-height": "200px", "max-width": "500px" }}
+              />
+              <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
+                <p
+                  class="text-center font-serif italic text-white p-4"
+                  style={{ "white-space": "pre-line" }}
+                >
+                  {images[presetIndex()].desc}
+                </p>
+              </div>
             </div>
+            {/* )} */}
+            {/* </For> */}
+            <Show when={isFreemium()}>
+              <FreemiumBox />
+            </Show>
           </div>
-          {/* )} */}
-          {/* </For> */}
-          <FreemiumBox />
-        </div>
+        </Show>
       </div>
     </>
   );
@@ -1048,7 +1054,9 @@ const FreemiumBox = ({}: any) => {
         navigate("/settings");
       }}
     >
-      Get more design features by buying a subscription.
+      You are using the free version of RegenWorks.
+      <br />
+      Choose a paid plan to unlock full design functionality
     </button>
   );
 };
@@ -1090,6 +1098,7 @@ const Parameterbox = ({ system, setSystem, logSystem }: any) => {
         <div class="form-group justify-between	flex my-1 align-middle">
           <label class="leading-7 mr-2 w-full text-right">Bearing</label>
           <input
+            disabled={isFreemium()}
             type="number"
             min={-180}
             class="form-control p-1 rounded-sm w-20  border border-zinc-300 dark:border-slate-600"
@@ -1104,6 +1113,7 @@ const Parameterbox = ({ system, setSystem, logSystem }: any) => {
         <div class="form-group justify-between	flex my-1 align-middle">
           <label class="leading-7 mr-2 w-full text-right">Margin</label>
           <input
+            disabled={isFreemium()}
             type="number"
             min={0}
             class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
@@ -1118,6 +1128,7 @@ const Parameterbox = ({ system, setSystem, logSystem }: any) => {
         <div class="form-group justify-between	flex my-1 align-middle">
           <label class="leading-7 mr-2 w-full text-right">Headland</label>
           <input
+            disabled={isFreemium()}
             type="number"
             min={0}
             class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
