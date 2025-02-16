@@ -57,6 +57,10 @@ export const currentSubscriptions = createMemo<any[]>(() => {
   // }
 });
 
+export const isFreemium = createMemo<boolean>(() => {
+  return !(currentSubscriptions()?.length > 0);
+});
+
 export const ShowAfterAuth = (props: any) => {
   // const auth0: any = useAuth0();
 
