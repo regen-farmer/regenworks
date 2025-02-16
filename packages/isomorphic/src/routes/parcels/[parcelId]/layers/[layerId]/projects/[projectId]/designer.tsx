@@ -263,20 +263,23 @@ export default function view() {
     // scenarioDataRefresh();
   }
 
-  const [isOpen, setIsOpen] = createSignal(false);
+  const [isFarmerAdvisorSelectorOpen, setIsFarmerAdvisorSelectorOpen] =
+    createSignal(false);
 
   return (
     <Resizable>
       <ResizablePanel style={{ overflow: "hidden" }}>
-        <FarmerAdvisorSelector
-          isOpen={isOpen}
-          onClose={() => {
-            setIsOpen(false);
-          }}
-          onSelect={() => {
-            setIsOpen(false);
-          }}
-        />
+        <Show when={isFreemium()}>
+          <FarmerAdvisorSelector
+            isOpen={isFarmerAdvisorSelectorOpen}
+            onClose={() => {
+              setIsFarmerAdvisorSelectorOpen(false);
+            }}
+            onSelect={() => {
+              setIsFarmerAdvisorSelectorOpen(false);
+            }}
+          />
+        </Show>
         <div
           style={{
             display: "flex",
@@ -865,6 +868,15 @@ export default function view() {
             system={system}
             setSystem={setSystem}
             logSystem={logSystem}
+            triggerFarmerAdvisorSelector={() => {
+              setTimeout(() => {
+                const key = "farmerAdvisorSelector";
+                if (!localStorage.getItem(key)) {
+                  setIsFarmerAdvisorSelectorOpen(true);
+                  localStorage.setItem(key, "true");
+                }
+              }, 10000);
+            }}
           />
         </div>
       </ResizablePanel>
@@ -896,6 +908,7 @@ const DesignPresetBox = ({
   setSystem,
   logSystem,
   getSystemDesign,
+  triggerFarmerAdvisorSelector,
 }: any) => {
   const images = [
     {
@@ -1001,6 +1014,7 @@ Silvopasture with chestnuts
               onClick={() => {
                 setSystem(images[presetIndex()].system);
                 getSystemDesign();
+                triggerFarmerAdvisorSelector();
               }}
             >
               <img

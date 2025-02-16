@@ -5,9 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
+import { getMongoDBUser } from "~/auth/useAuth";
 
 type Role = "farmer" | "advisor";
 
@@ -31,18 +32,40 @@ export function FarmerAdvisorSelector({
 
   const navigate = useNavigate();
 
+  const [myRequests, setMyRequests] = createSignal([]);
+
+  createEffect(async () => {
+    if (getMongoDBUser()) {
+      const myRequests = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/my-advisor-requests`,
+        {
+          method: "get",
+          ...apiFetchOptions(),
+        }
+      );
+
+      const response = await myRequests.json();
+
+      setMyRequests(response);
+    }
+  });
+
   const renderOptions = () => {
     if (selectedRole() === "farmer") {
       return (
         <div class="flex flex-col gap-4">
           <div
             onclick={async () => {
-              const mongodbuserResponse = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/advisor-requests`,
-                { method: "post", ...apiFetchOptions() }
-              );
-              const response = await mongodbuserResponse.json();
-              console.log(response);
+              if (myRequests().length > 0) {
+              } else {
+                const mongodbuserResponse = await fetch(
+                  `${import.meta.env.VITE_BACKEND_URL}/advisor-requests`,
+                  { method: "post", ...apiFetchOptions() }
+                );
+                const response = await mongodbuserResponse.json();
+                console.log(response);
+              }
+
               onClose();
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
@@ -124,7 +147,7 @@ export function FarmerAdvisorSelector({
           )}
 
           <div class="flex justify-end gap-2 mt-4">
-            <button
+            {/* <button
               class="px-4 py-2 border rounded-lg hover:bg-gray-100"
               onClick={() => {
                 if (showOptions()) {
@@ -135,7 +158,7 @@ export function FarmerAdvisorSelector({
               }}
             >
               {showOptions() ? "Back" : "Cancel"}
-            </button>
+            </button> */}
             {!showOptions() && (
               <button
                 class="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
