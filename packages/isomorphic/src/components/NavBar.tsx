@@ -2,6 +2,8 @@ import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import {
   currentSubscriptions,
   getMongoDBUser,
+  isFarmer,
+  isFreemium,
   subscriptions,
 } from "~/auth/useAuth.tsx";
 import { ThemeSelect } from "./select/theme-select.tsx";
@@ -176,16 +178,7 @@ export function NavBar() {
 
         <ul class="flex items-center mx-3 gap-4">
           <Show when={getMongoDBUser()}>
-            <Show
-              when={
-                // freemium() ||
-                currentSubscriptions()?.filter(
-                  (sub) =>
-                    sub.plan.product ===
-                    StripeIds.farm.product[getDevProdStatus()].length > 0
-                )
-              }
-            >
+            <Show when={isFreemium() || isFarmer()}>
               <Tooltip
                 placement="top"
                 openDelay={200}

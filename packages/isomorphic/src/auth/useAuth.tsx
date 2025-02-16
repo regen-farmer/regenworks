@@ -11,7 +11,11 @@ import NewUser from "~/auth/signup.tsx";
 // import { useAuth0 } from ".";
 import { NavBar } from "~/components/NavBar.tsx";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { paymentPlan } from "~/util/paymentPlan.ts";
+import {
+  getDevProdStatus,
+  paymentPlan,
+  StripeIds,
+} from "~/util/paymentPlan.ts";
 import { useAuth } from "@solid-mediakit/auth/client";
 
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
@@ -59,6 +63,16 @@ export const currentSubscriptions = createMemo<any[]>(() => {
 
 export const isFreemium = createMemo<boolean>(() => {
   return !(currentSubscriptions()?.length > 0);
+});
+
+export const isFarmer = createMemo<boolean>(() => {
+  return (
+    currentSubscriptions()?.filter(
+      (sub) =>
+        sub.plan.product ===
+        StripeIds.farm.product[getDevProdStatus()].length > 0
+    ).length > 0
+  );
 });
 
 export const ShowAfterAuth = (props: any) => {
