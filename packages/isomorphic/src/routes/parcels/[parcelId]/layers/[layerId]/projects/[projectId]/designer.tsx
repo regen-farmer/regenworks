@@ -36,40 +36,8 @@ import _ from "lodash";
 // import { Toaster } from "~/components/ui/sonner";
 
 import { showToast, Toaster } from "~/components/ui/toast";
-import {
-  currentSubscriptions,
-  isFreemium,
-  subscriptions,
-} from "~/auth/useAuth";
+import { isFreemium } from "~/auth/useAuth";
 import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
-
-function isEqual(var1, var2) {
-  // Break the comparison out into a neat little function
-  if (typeof var1 !== "object" && !Array.isArray(var1)) {
-    const equal = var1 === var2;
-    console.log(var1, var2, equal);
-    return equal;
-  } else {
-    return deepEqual(var1, var2);
-  }
-}
-
-function deepEqual(var1, var2) {
-  for (const i in var1) {
-    if (typeof var2[i] === "undefined") {
-      // Quick check, does the property even exist?
-      return false;
-    }
-    if (!isEqual(var1[i], var2[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function areObjectsEqual(obj1, obj2) {
-  return deepEqual(obj1, obj2) && deepEqual(obj2, obj1); // Two-way checking
-}
 
 function systemDesignsAreEqual(sd1: string, sd2: string) {
   function deleteKeys(sd: SystemDesignDocument) {
