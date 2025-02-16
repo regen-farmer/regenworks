@@ -990,9 +990,9 @@ Silvopasture with chestnuts
 
   return (
     <>
-      <div class="dark:bg-customdark1 bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
-        <div>
-          <div class="flex justify-between">
+      <div class="dark:bg-customdark1 overflow-hidden bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
+        <div class="overflow-hidden">
+          <div class="flex justify-between overflow-hidden">
             <span
               class="cursor-pointer"
               onClick={() => setShowPreset((prev) => !prev)}
@@ -1025,7 +1025,7 @@ Silvopasture with chestnuts
         <Show when={showPreset()}>
           <br />
 
-          <div class="flex flex-col gap-2 justify-start overflow-y-scroll">
+          <div class="flex flex-col gap-2 justify-start ">
             {/* <For each={images}>
               {({ src, alt, desc, system }) => ( */}
             <div
@@ -1072,8 +1072,9 @@ const FreemiumBox = ({}: any) => {
         navigate("/settings");
       }}
     >
-      You are using the free version of RegenWorks - Choose a paid plan to
-      unlock full design functionality
+      You are using the free version of RegenWorks.
+      <br />
+      Choose a paid plan to unlock full design functionality
     </button>
   );
 };
