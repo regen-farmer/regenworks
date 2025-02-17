@@ -66,13 +66,12 @@ export const isFreemium = createMemo<boolean>(() => {
 });
 
 export const isFarmer = createMemo<boolean>(() => {
-  return (
-    currentSubscriptions()?.filter(
-      (sub) =>
-        sub.plan.product ===
-        StripeIds.farm.product[getDevProdStatus()].length > 0
-    ).length > 0
-  );
+  const isFarmerRole =
+    currentSubscriptions()?.filter((sub) => {
+      return sub.plan.product === StripeIds.farm.product[getDevProdStatus()];
+    })?.length > 0;
+
+  return isFarmerRole;
 });
 
 export const ShowAfterAuth = (props: any) => {
