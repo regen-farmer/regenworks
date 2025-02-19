@@ -30,4 +30,18 @@ router.post(
   }
 );
 
+router.get(
+  "/farmer-advisor-survey",
+  middleware.adminIsLoggedIn,
+  async (req: express.Request, res: express.Response) => {
+    try {
+      const surveys = await FarmerAdvisorSurveyDocument.find().populate('user');;
+      res.status(200).json(surveys);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+
 export default router;
