@@ -130,7 +130,9 @@ export function FarmerAdvisorSelector({
   return (
     <Dialog
       open={isOpen()}
-      onOpenChange={() => {
+      onOpenChange={async () => {
+        await saveLog();
+
         onClose();
       }}
     >
