@@ -38,7 +38,7 @@ const BreadcrumbLink = <T extends ValidComponent = "a">(
   return (
     <BreadcrumbPrimitive.Link
       class={cn(
-        "transition-colors hover:text-foreground data-[current]:font-normal data-[current]:text-foreground",
+        "transition-colors hover:text-foreground data-current:font-normal data-current:text-foreground",
         local.class
       )}
       {...others}

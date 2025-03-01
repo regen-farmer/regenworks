@@ -104,7 +104,7 @@ export function NavBar() {
         <div class="logo-icon" />
       </div>
 
-      <div class="flex-grow flex items-center" id="navbarText">
+      <div class="grow flex items-center" id="navbarText">
         <Breadcrumb class="mr-auto">
           <BreadcrumbList>
             <Show when={getMongoDBUser() && getParcelId()}>

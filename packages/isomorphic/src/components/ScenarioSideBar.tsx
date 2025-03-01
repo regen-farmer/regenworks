@@ -9,7 +9,7 @@ export function ScenarioSideBar(props: any) {
 		<div
 			class="d-flex"
 			style={{
-				"flex-grow": 1,
+				"grow": 1,
 				overflow: "hidden",
 			}}
 		>

@@ -146,7 +146,7 @@ export function FarmerAdvisorSelector({
           {!showOptions() ? (
             <div class="flex flex-col gap-4 py-4">
               <button
-                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-none ${
+                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-hidden ${
                   selectedRole() === "farmer"
                     ? "border-primary bg-primary/10"
                     : "border-gray-200 hover:border-primary"
@@ -163,7 +163,7 @@ export function FarmerAdvisorSelector({
               </button>
 
               <button
-                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-none ${
+                class={`p-4 border rounded-lg cursor-pointer transition-colors focus:outline-hidden ${
                   selectedRole() === "advisor"
                     ? "border-primary bg-primary/10"
                     : "border-gray-200 hover:border-primary"
