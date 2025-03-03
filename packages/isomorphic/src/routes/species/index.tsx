@@ -15,70 +15,71 @@ export default function view() {
 	});
 
 	return (
-		<div class="container">
-			<h1 class="h1">Species</h1>
-			<A href="/species/new" class="rounded-sm p-1 my-2 btn-default">
+		<div class="container mx-auto p-4">
+			<h1 class="text-3xl font-bold mb-4">Species</h1>
+			<A
+				href="/species/new"
+				class="rounded-sm py-1 px-2 my-2 bg-blue-500 text-white hover:bg-blue-600"
+			>
 				Add new species
 			</A>
-			<p>Count: {data()?.species.length}</p>
-			<table class="table table-striped">
-				<tbody>
-					<tr>
-						<td>Common name</td>
-						<td>Latin</td>
-						<td>Precip</td>
-						<td>Temp</td>
-						<td>Lifespan</td>
-						<td>Activities</td>
-						<td>Price</td>
-						<td />
-					</tr>
-					<For each={data()?.species}>
-						{(species) => (
-							<tr>
-								<td>{species.nameCommon}</td>
-								<td>
-									{species.genus} {species.species}
-								</td>
-								{species.precipitation ? (
-									<td>
-										{species.precipitation.min} - {species.precipitation.max}
-									</td>
-								) : (
-									<td>no precipitation data</td>
-								)}
-								{species.temperature ? (
-									<td>
-										{species.temperature.min} - {species.temperature.max}
-									</td>
-								) : (
-									<td>no precipitation data</td>
-								)}
-								{species.lifespan ? (
-									<td>{species.lifespan}</td>
-								) : (
-									<td>no age data</td>
-								)}
-								{species.activities.length > 0 ? (
-									<td>{species.activities.length}</td>
-								) : (
-									<td>-</td>
-								)}
-								{species.price ? (
-									<td>{species.price} $</td>
-								) : (
-									<td>no age data</td>
-								)}
-								<td>
-									<A href={`/species/${species._id}`} class="rounded-sm p-1 my-2 btn-default">
-										Show more
-									</A>
-								</td>
-							</tr>
-						)}
-					</For>
-				</tbody>
-			</table>
+			
+			<p class="mb-4 mt-4">Count: {data()?.species?.length}</p>
+			{/* Header Row */}
+			<div class="flex font-bold bg-gray-100 border-b border-gray-300 py-2">
+				<div class="flex-1">Common name</div>
+				<div class="flex-1">Latin</div>
+				<div class="flex-1">Precip</div>
+				<div class="flex-1">Temp</div>
+				<div class="flex-1">Lifespan</div>
+				<div class="flex-1">Activities</div>
+				<div class="flex-1">Price</div>
+				<div class="flex-1">Actions</div>
+			</div>
+			{/* Data Rows */}
+			<For each={data()?.species}>
+				{(species) => (
+					<div class="flex items-center border-b border-gray-200 py-2">
+						<div class="flex-1">{species.nameCommon}</div>
+						<div class="flex-1">{species.genus} {species.species}</div>
+						<div class="flex-1">
+							{species.precipitation ? (
+								<span>
+									{species.precipitation.min} - {species.precipitation.max}
+								</span>
+							) : (
+								<span>no precipitation data</span>
+							)}
+						</div>
+						<div class="flex-1">
+							{species.temperature ? (
+								<span>
+									{species.temperature.min} - {species.temperature.max}
+								</span>
+							) : (
+								<span>no precipitation data</span>
+							)}
+						</div>
+						<div class="flex-1">
+							{species.lifespan ? species.lifespan : "no age data"}
+						</div>
+						<div class="flex-1">
+							{species.activities?.length > 0 ? species.activities.length : "-"}
+						</div>
+						<div class="flex-1">
+							{species.price ? `${species.price} $` : "no age data"}
+						</div>
+						<div class="flex-1">
+							<A
+								href={`/species/${species._id}`}
+								class="rounded-sm py-1 px-2 bg-gray-200 hover:bg-gray-300"
+							>
+								Show more
+							</A>
+						</div>
+					</div>
+				)}
+			</For>
 		</div>
 	);
 }
