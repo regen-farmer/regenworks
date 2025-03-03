@@ -74,7 +74,7 @@ export default function AdvisorRequests() {
                     {request.email}
                   </div>
 
-                  <div class=" flex flex-col justify-center ">
+                  <div class=" flex flex-col justify-center">
                       {new Date(request.creationDate).toLocaleDateString(undefined, {
                           day: "numeric",
                           month: "long",

@@ -4,6 +4,7 @@ import type { INurserySchema } from "./nursery.ts";
 import type { IParcelSchema } from "./parcel.ts";
 
 export interface IUserSchema {
+	_id?: string;
 	externalId: string;
 	email: string;
 	parcels: [mongoose.HydratedDocument<IParcelSchema>];
