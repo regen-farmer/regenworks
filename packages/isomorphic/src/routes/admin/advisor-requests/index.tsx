@@ -56,13 +56,13 @@ export default function AdvisorRequests() {
             fallback={<div class="p-4">Loading requests...</div>}
           >
             <For each={requests()}>
-              {(request) => (
+                {(request) => (
                 <div
                   class={`px-4 py-3 grid grid-cols-4 border-t ${
-                    request.status === "pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-green-100 text-green-800"
-                  } `}
+                  request.status === "pending"
+                    ? "bg-yellow-100 text-yellow-800 dark:bg-[#6b5d2b] dark:text-yellow-100"
+                    : "bg-green-100 text-green-800 dark:bg-[#375b32] dark:text-green-100"
+                  }`}
                 >
                   <div class=" flex flex-col justify-center ">
                     {request.user._id}
@@ -94,7 +94,7 @@ export default function AdvisorRequests() {
                       {request.status}
                     </span> */}
                     <select
-                      class="rounded-sm p-1 ml-2 border border-gray-300"
+                      class="rounded-sm p-1 ml-2 border border-gray-300 dark:border-gray-700"
                       value={request.status}
                       onChange={async (e) => {
                         const response = await fetch(
