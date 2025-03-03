@@ -47,8 +47,8 @@ export default function AdvisorRequests() {
             <div>RegenWorks UserID</div>
             {/* <div>ExternalID</div> */}
             <div>Email</div>
-            <div>Status</div>
             <div>Date</div>
+            <div>Status</div>
           </div>
 
           <Show
@@ -75,7 +75,11 @@ export default function AdvisorRequests() {
                   </div>
 
                   <div class=" flex flex-col justify-center ">
-                    {new Date(request.creationDate).toISOString()}
+                      {new Date(request.creationDate).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
                   </div>
 
                   <div class=" flex flex-col justify-center ">

@@ -66,9 +66,13 @@ export default function FarmerAdvisorSurvey() {
                         {entry.email}
                       </div>
     
-                      <div class=" flex flex-col justify-center ">
-                        {new Date(entry.creationDate).toISOString()}
-                      </div>
+                        <div class=" flex flex-col justify-center ">
+                        {new Date(entry.creationDate).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        </div>
 
                       <div class=" flex flex-col justify-center ">
                         {entry.role}
