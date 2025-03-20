@@ -366,7 +366,16 @@ export const EditFieldMode: Component<{
 	function removeLPISFields() {
 		let tilesets = [
 			// "AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
+			"AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
 			"DK_Marker_2023",
+			"FI_AgriculturalParcel_2023",
+			"FR_PARCELLES_GRAPHIQUES_2022",
+			"NL_brpgewaspercelen_definitief_2022",
+			"CZ_2024_DPB",
+			"DE_Brandenburg_2025",
+			"DE_Niedersachen_2024",
+			"IE_Parcels_2023",
+			"PT_Solo_2022"
 			// "FI_AgriculturalParcel_2023",
 			// "FR_PARCELLES_GRAPHIQUES_2022",
 			// "NL_brpgewaspercelen_definitief_2022",
@@ -442,7 +451,16 @@ export const EditFieldMode: Component<{
 	function addLPISFields(map: maplibregl.Map) {
 		let tilesets = [
 			// "AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
+			"AT_INSPIRE_FELDSTUECKE_2019_POLYGON",
 			"DK_Marker_2023",
+			"FI_AgriculturalParcel_2023",
+			"FR_PARCELLES_GRAPHIQUES_2022",
+			"NL_brpgewaspercelen_definitief_2022",
+			"CZ_2024_DPB",
+			"DE_Brandenburg_2025",
+			"DE_Niedersachen_2024",
+			"IE_Parcels_2023",
+			"PT_Solo_2022"
 			// "FI_AgriculturalParcel_2023",
 			// "FR_PARCELLES_GRAPHIQUES_2022",
 			// "NL_brpgewaspercelen_definitief_2022",
