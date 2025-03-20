@@ -3,6 +3,7 @@ import middleware from "../middleware/index.ts";
 import AdvisorRequestDocument from "@rw/db/schemas/advisorrequests.ts";
 import type { Auth0IDToken } from "../app.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
+import Layer from "@rw/db/schemas/layer.ts";
 
 const router = express.Router();
 
@@ -67,8 +68,25 @@ router.get(
 		
 		try {
 			const advisorRequests = await AdvisorRequestDocument.find().populate('user');
+			
+			// Add layer counts for each user
+			const requestsWithLayerCounts = await Promise.all(
+				advisorRequests.map(async (request) => {
+					const userId = request.user?._id;
+					const layerCount = userId 
+						? await Layer.countDocuments({ 'owner.id': userId })
+						: 0;
+						
+					// Convert to plain object to add the new property
+					const requestObj = request.toObject();
+					return {
+						...requestObj,
+						layerCount
+					};
+				})
+			);
 
-			await res.status(200).json(advisorRequests);
+			await res.status(200).json(requestsWithLayerCounts);
 		} catch (err) {
 			await res.status(500).json({ message: "Server error" });
 		}

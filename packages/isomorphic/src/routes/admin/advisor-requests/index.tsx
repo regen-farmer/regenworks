@@ -16,6 +16,7 @@ interface AdvisorRequest {
   email: string;
   status: "pending" | "resolved";
   creationDate: string;
+  layerCount: number;
 }
 
 export default function AdvisorRequests() {
@@ -43,8 +44,10 @@ export default function AdvisorRequests() {
         <h1 class="text-2xl font-bold mb-6">Advisor Requests</h1>
 
         <div class="rounded-md border overflow-scroll">
-          <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-4 font-medium">
+          <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-6 font-medium">
             <div>RegenWorks UserID</div>
+            <div>Country</div>
+            <div># Fields</div>
             {/* <div>ExternalID</div> */}
             <div>Email</div>
             <div>Date</div>
@@ -58,7 +61,7 @@ export default function AdvisorRequests() {
             <For each={requests()}>
                 {(request) => (
                 <div
-                  class={`px-4 py-3 grid grid-cols-4 border-t ${
+                  class={`px-4 py-3 grid grid-cols-6 border-t ${
                   request.status === "pending"
                     ? "bg-yellow-100 text-yellow-800 dark:bg-[#6b5d2b] dark:text-yellow-100"
                     : "bg-green-100 text-green-800 dark:bg-[#375b32] dark:text-green-100"
@@ -67,6 +70,14 @@ export default function AdvisorRequests() {
                   <div class=" flex flex-col justify-center ">
                     {request.user._id}
                   </div>
+                  <div class=" flex flex-col justify-center ">
+                    {request.user.countryCode}
+                  </div>
+
+                  <div class=" flex flex-col justify-center ">
+                    {request.layerCount}
+                  </div>
+                  
                   {/* <div class=" flex flex-col justify-center ">
                     {request.user.externalId}
                   </div> */}

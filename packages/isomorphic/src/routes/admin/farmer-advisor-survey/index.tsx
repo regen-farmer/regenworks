@@ -10,6 +10,7 @@ interface AdvisorRequest {
   role?: string;
   action?: string;
   creationDate: string;
+  layerCount: number;
 }
 
 export default function FarmerAdvisorSurvey() {
@@ -38,9 +39,11 @@ export default function FarmerAdvisorSurvey() {
     <h1 class="text-2xl font-bold mb-6">Farmer/Advisor Survey</h1>
 
     <div class="rounded-md border overflow-scroll">
-              <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-5 font-medium">
+              <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-7 font-medium">
                 <div>RegenWorks UserID</div>
                 {/* <div>ExternalID</div> */}
+                <div>Country</div>
+                <div># Fields</div>
                 <div>Email</div>
                 <div>Date</div>
                 <div>Role</div>
@@ -54,10 +57,17 @@ export default function FarmerAdvisorSurvey() {
                 <For each={entries()}>
                   {(entry) => (
                     <div
-                      class={`px-4 py-3 grid grid-cols-5 border-t  `}
+                      class={`px-4 py-3 grid grid-cols-7 border-t  `}
                     >
                       <div class=" flex flex-col justify-center ">
                         {entry.user._id}
+                      </div>
+                      <div class=" flex flex-col justify-center ">
+                        {entry.user.countryCode}
+                      </div>
+
+                      <div class=" flex flex-col justify-center ">
+                        {entry.layerCount}
                       </div>
                       {/* <div class=" flex flex-col justify-center ">
                         {request.user.externalId}
