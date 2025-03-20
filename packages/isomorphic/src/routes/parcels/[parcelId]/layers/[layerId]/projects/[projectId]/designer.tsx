@@ -8,6 +8,18 @@ import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import maplibregl from "maplibre-gl";
 
+import {
+  ComboboxContent,
+  ComboboxControl,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxItemLabel,
+  ComboboxRoot,
+  ComboboxSection,
+  ComboboxTrigger
+} from "~/components/ui/combobox";
+
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type {
@@ -335,7 +347,7 @@ export default function view() {
 
                               <div
                                 style={{
-                                  "min-width": "180px",
+                                  "min-width": "240px",
                                   flex: "0 0 0",
                                   display: "flex",
                                   "flex-direction": "column",
@@ -527,54 +539,52 @@ export default function view() {
                                                       "text-align": "center",
                                                     }}
                                                   />
-                                                  <select
-                                                    style="width:100%;max-width:100%;"
-                                                    class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                                    value={
-                                                      sequence.species ?? ""
-                                                    }
-                                                    onchange={(e) => {
+                                                  
+                                                  
+                                                  <ComboboxRoot<ISpeciesSchema>
+                                                    options={species()?.species.filter(
+                                                      (
+                                                        species: ISpeciesSchema
+                                                      ) =>
+                                                        ![
+                                                          "herb",
+                                                          "grass",
+                                                        ].includes(
+                                                          species.form
+                                                        )
+                                                    )??[]}
+                                                    onChange={(e)=>{
                                                       setSystem(
                                                         "rows",
                                                         rowIdx(),
                                                         "sequence",
                                                         sequenceIdx(),
                                                         "species",
-                                                        (species) => {
-                                                          const newSpecies =
-                                                            e.target.value;
-                                                          return newSpecies;
+                                                        () => {
+                                                          return e?._id!;
                                                         }
                                                       );
-
-                                                      logSystem();
                                                     }}
+                                                    defaultValue={ species()?.species.find(s => s._id === sequence.species)}
+                                                    optionValue="_id"
+                                                    optionTextValue="nameCommon"
+                                                    optionLabel="nameCommon"
+                                                    placeholder="Search a species…"
+                                                    
+                                                    itemComponent={(props) => (
+                                                      <ComboboxItem item={props.item}>
+                                                        <ComboboxItemLabel>{props.item.rawValue.nameCommon}</ComboboxItemLabel>
+                                                        <ComboboxItemIndicator />
+                                                      </ComboboxItem>
+                                                    )}
                                                   >
-                                                    <option value="">
-                                                      none
-                                                    </option>
-                                                    <For
-                                                      each={species()?.species.filter(
-                                                        (
-                                                          species: ISpeciesSchema
-                                                        ) =>
-                                                          ![
-                                                            "herb",
-                                                            "grass",
-                                                          ].includes(
-                                                            species.form
-                                                          )
-                                                      )}
-                                                    >
-                                                      {(species) => (
-                                                        <option
-                                                          value={species._id}
-                                                        >
-                                                          {species.nameCommon}
-                                                        </option>
-                                                      )}
-                                                    </For>
-                                                  </select>
+                                                    <ComboboxControl aria-label="Species">
+                                                      <ComboboxInput />
+                                                      <ComboboxTrigger />
+                                                    </ComboboxControl>
+                                                    <ComboboxContent />
+                                                  </ComboboxRoot>
+                                                 
                                                 </div>
                                               </div>
                                             </div>
@@ -685,40 +695,52 @@ export default function view() {
 
                                   <span>Ground cover</span>
 
-                                  <select
-                                    class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-                                    style="width:100%;max-width:100%;"
-                                    value={row.groundcover ?? ""}
-                                    onchange={(e) => {
-                                      setSystem(
-                                        "rows",
-                                        rowIdx(),
-                                        "groundcover",
-                                        (gc) => {
-                                          const newGroundCover = e.target.value;
-                                          return newGroundCover;
-                                        }
-                                      );
-
-                                      logSystem();
-                                    }}
-                                  >
-                                    <option value="">none</option>
-                                    <For
-                                      each={species()?.species.filter(
-                                        (species: ISpeciesSchema) =>
-                                          ["herb", "grass"].includes(
+                                  <ComboboxRoot<ISpeciesSchema>
+                                      options={species()?.species.filter(
+                                        (
+                                          species: ISpeciesSchema
+                                        ) =>
+                                          [
+                                            "herb",
+                                            "grass",
+                                          ].includes(
                                             species.form
                                           )
+                                      )??[]}
+                                      onChange={(e)=>{
+                                        setSystem(
+                                          "rows",
+                                          rowIdx(),
+                                          "groundcover",
+                                          (gc) => {
+                                            return e?._id!;
+                                          }
+                                        );
+
+
+                                        logSystem();
+                                      }}
+                                      defaultValue={ species()?.species.find(s => s._id === row.groundcover)}
+                                      optionValue="_id"
+                                      optionTextValue="nameCommon"
+                                      optionLabel="nameCommon"
+                                      placeholder="Search a species…"
+                                      
+                                      itemComponent={(props) => (
+                                        <ComboboxItem item={props.item}>
+                                          <ComboboxItemLabel>{props.item.rawValue.nameCommon}</ComboboxItemLabel>
+                                          <ComboboxItemIndicator />
+                                        </ComboboxItem>
                                       )}
                                     >
-                                      {(species) => (
-                                        <option value={species._id}>
-                                          {species.nameCommon}
-                                        </option>
-                                      )}
-                                    </For>
-                                  </select>
+                                      <ComboboxControl aria-label="Species">
+                                        <ComboboxInput />
+                                        <ComboboxTrigger />
+                                      </ComboboxControl>
+                                      <ComboboxContent />
+                                    </ComboboxRoot>
+
+
 
                                   <br />
 
