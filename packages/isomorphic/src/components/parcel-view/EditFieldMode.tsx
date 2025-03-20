@@ -627,7 +627,8 @@ export const EditFieldMode: Component<{
 								Select field from gov. data
 							</span>
 
-							{getMongoDBUser().countryCode === "DK" ? (
+						
+							{["AT", "DK", "FI", "FR", "NL", "CZ", "DE", "IE", "PT"].includes(getMongoDBUser().countryCode) ? (
 								<button
 									type="button"
 									class="rounded-sm p-1 mt-2 btn-default w-full"
