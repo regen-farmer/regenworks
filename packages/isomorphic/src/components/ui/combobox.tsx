@@ -173,7 +173,7 @@ const ComboboxContent = <T extends ValidComponent = "div">(
         )}
         {...others}
       >
-        <ComboboxPrimitive.Listbox class="m-0 p-1" />
+        <ComboboxPrimitive.Listbox class="m-0 p-1 max-h-[500px] overflow-y-scroll" />
       </ComboboxPrimitive.Content>
     </ComboboxPrimitive.Portal>
   )
