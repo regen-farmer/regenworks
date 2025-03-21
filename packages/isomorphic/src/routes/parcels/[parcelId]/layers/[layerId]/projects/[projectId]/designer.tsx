@@ -567,13 +567,13 @@ export default function view() {
                                                     }}
                                                     defaultValue={ species()?.species.find(s => s._id === sequence.species)}
                                                     optionValue="_id"
-                                                    optionTextValue="nameCommon"
+                                                    optionTextValue={(species)=> `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`}
                                                     optionLabel="nameCommon"
                                                     placeholder="Search a species…"
                                                     
                                                     itemComponent={(props) => (
                                                       <ComboboxItem item={props.item}>
-                                                        <ComboboxItemLabel>{props.item.rawValue.nameCommon}</ComboboxItemLabel>
+                                                        <ComboboxItemLabel>{props.item.rawValue.nameCommon} ({props.item.rawValue.family} {props.item.rawValue.genus} {props.item.rawValue.species})</ComboboxItemLabel>
                                                         <ComboboxItemIndicator />
                                                       </ComboboxItem>
                                                     )}
@@ -722,13 +722,13 @@ export default function view() {
                                       }}
                                       defaultValue={ species()?.species.find(s => s._id === row.groundcover)}
                                       optionValue="_id"
-                                      optionTextValue="nameCommon"
-                                      optionLabel="nameCommon"
+                                      optionTextValue={(species)=> `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`}
+                                      optionLabel={(species)=> species.nameCommon}
                                       placeholder="Search a species…"
                                       
                                       itemComponent={(props) => (
                                         <ComboboxItem item={props.item}>
-                                          <ComboboxItemLabel>{props.item.rawValue.nameCommon}</ComboboxItemLabel>
+                                          <ComboboxItemLabel>{props.item.rawValue.nameCommon} ({props.item.rawValue.family} {props.item.rawValue.genus} {props.item.rawValue.species})</ComboboxItemLabel>
                                           <ComboboxItemIndicator />
                                         </ComboboxItem>
                                       )}
