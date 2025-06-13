@@ -30,12 +30,17 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node ./src/app.ts",
-    "start": "bun --bun ./build/app.js",
-    "start-local": "pnpm run dev",
-    "build": "bun --bun build ./src/app.ts --target node --outdir ./build",
+    "dev": "vite-node --watch src/app.ts",
+    "dev:debug": "vite-node --watch --inspect src/app.ts",
+    "dev:hmr": "nodemon --exec vite-node src/app.ts",
+    "start": "node build/app.js",
+    "start-local": "node build/app.js",
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "preview": "node build/app.js",
     "lint": "biome lint ./src",
-    "format": "biome format --write ./src"
+    "format": "biome format --write ./src",
+    "clean": "rm -rf build"
   },
   "author": "Regen Farmer",
   "license": "ISC",
@@ -45,8 +50,12 @@
     "@types/jest": "^29.5.14",
     "@types/method-override": "^0.0.35",
     "@types/multer": "^1.4.12",
+    "@types/node": "^24.0.1",
     "@types/node-geocoder": "^4.2.6",
     "@types/pdfkit": "^0.13.5",
-    "@types/xml2js": "^0.4.14"
+    "@types/xml2js": "^0.4.14",
+    "nodemon": "^3.1.10",
+    "vite": "npm:rolldown-vite@latest",
+    "vite-node": "^3.2.3"
   }
 }

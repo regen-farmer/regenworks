@@ -1,0 +1,9 @@
+{
+  "watch": ["src"],
+  "ext": "ts,js,json",
+  "ignore": ["src/**/*.test.ts", "build", "node_modules"],
+  "exec": "vite-node src/app.ts",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

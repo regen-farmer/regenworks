@@ -19,6 +19,7 @@ declare module "@auth/core/types" {
 
 export const authOpts: SolidAuthConfig = {
 	basePath: import.meta.env.VITE_AUTH_PATH,
+	secret: process.env.AUTH_SECRET,
 	providers: [
 		Auth0({
 			clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,

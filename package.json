@@ -14,7 +14,7 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/node": "^22.9.1",
+    "@types/node": "^24.0.1",
     "typescript": "^5.8.2"
   },
   "dependencies": {
