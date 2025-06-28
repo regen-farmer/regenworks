@@ -14,12 +14,12 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@types/node": "^24.0.1",
-    "typescript": "^5.8.2"
+    "@types/node": "^24.0.6",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "mongoose": "^8.8.2",
-    "proj4": "^2.14.0",
-    "stripe": "^17.4.0"
+    "mongoose": "^8.16.1",
+    "proj4": "^2.19.4",
+    "stripe": "^17.7.0"
   }
 }
