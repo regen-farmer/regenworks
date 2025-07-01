@@ -260,9 +260,7 @@ router.get(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
-		console.time("layoutRoute");
 		try {
-			console.time("getProject");
 			const foundProject = await Project.findById(req.params.id)
 
 				.populate("layer")
@@ -276,9 +274,8 @@ router.get(
 					populate: { path: "rows", populate: { path: "groundcover" } },
 				})
 				.exec();
-			console.timeEnd("getProject");
-
-			if (foundProject?.isPublic) {
+			
+			if (foundProject?.isPublic || (req.user && foundProject?.owner?.id.equals(req.user._id))) {
 				console.time("systemBasedLayout");
 				const layout = systemBasedLayout(
 					foundProject.systemdesign,
@@ -300,7 +297,6 @@ router.get(
 					headlandSides: turf.featureCollection(layout.headlandSides),
 					treeMarkerArray: layout.treeMarkerArray,
 				});
-				console.timeEnd("layoutRoute");
 			} else {
 				res.send({ error: "no project found" });
 			}
