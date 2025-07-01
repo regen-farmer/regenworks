@@ -9,9 +9,13 @@ import type { Auth0IDToken } from "../app.ts";
 const router = express.Router();
 
 const options: NodeGeocoder.Options = {
-	provider: "google",
+	provider: "openstreetmap",
 	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null,
+	headers: {
+			'User-Agent': 'RegenWorks',
+			'Referer': 'https://regenfarmer.com'
+	}
 };
 
 const geocoder = NodeGeocoder(options);

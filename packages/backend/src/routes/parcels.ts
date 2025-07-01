@@ -23,9 +23,13 @@ import type { Auth0IDToken } from "../app.ts";
 const router = express.Router();
 
 const options: NodeGeocoder.Options = {
-	provider: "google",
+	provider: "openstreetmap",
 	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null,
+	headers: {
+			'User-Agent': 'RegenWorks',
+			'Referer': 'https://regenfarmer.com'
+	}
 };
 
 const geocoder = NodeGeocoder(options);
@@ -392,47 +396,35 @@ router.put(
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
-		// UPDATE PARCEL
-		const parcel = req.body.parcel;
+		// UPDATE PARCEL – ensure we only respond **once**
+		const parcelUpdates = { ...(req.body.parcel || {}) };
 
 		try {
+			// First, geocode (if we have a location string)
+			if (parcelUpdates.location) {
+				const results = await geocoder.geocode(parcelUpdates.location);
+				if (results.length) {
+					const geo = results[0];
+					if (!parcelUpdates.lat || !parcelUpdates.lng) {
+						parcelUpdates.lat = geo.latitude;
+						parcelUpdates.lng = geo.longitude;
+					}
+					parcelUpdates.location = geo.formattedAddress;
+				}
+			}
+
+			// Now persist changes and return the updated document
 			const updatedParcel = await Parcel.findByIdAndUpdate(
 				req.params.id,
-				parcel,
+				parcelUpdates,
+				{ new: true },
 			);
-			// console.log(updatedParcel);
+
 			res.send(updatedParcel);
 		} catch (err) {
-			console.log(err);
+			console.error(err);
+			res.status(500).send({ error: "Error while updating parcel" });
 		}
-
-		geocoder.geocode(req.body.parcel.location, async (err, data) => {
-			if (err || !data.length) {
-				console.log(err);
-				console.log(data);
-				return res
-					.status(500)
-					.send({ error: `Error while geocoding: ${err.toString()}` });
-			}
-
-			if (!parcel.lat || !parcel.lng) {
-				parcel.lat = data[0].latitude;
-				parcel.lng = data[0].longitude;
-			}
-
-			parcel.location = data[0].formattedAddress;
-			// UPDATE PARCEL
-			try {
-				const updatedParcel = await Parcel.findByIdAndUpdate(
-					req.params.id,
-					parcel,
-				);
-				// console.log(updatedParcel);
-				res.send(updatedParcel);
-			} catch (err) {
-				console.log(err);
-			}
-		});
 	},
 );
 
