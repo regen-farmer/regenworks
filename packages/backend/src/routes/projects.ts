@@ -71,7 +71,7 @@ import SystemDesign from "@rw/db/schemas/systemdesign.ts";
 const router = express.Router();
 
 const options: NodeGeocoder.Options = {
-	provider: "openstreetmap",
+	provider: "google",
 	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null,
 };
