@@ -471,7 +471,7 @@ export default function view() {
 
                               <div
                                 style={{
-                                  "min-width": "240px",
+                                  "min-width": "180px",
                                   flex: "0 0 0",
                                   display: "flex",
                                   "flex-direction": "column",
