@@ -66,6 +66,7 @@ app.use(cors());
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
