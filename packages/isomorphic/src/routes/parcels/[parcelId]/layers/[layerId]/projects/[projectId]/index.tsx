@@ -61,6 +61,11 @@ import _ from "lodash";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { isFreemium } from "~/auth/useAuth";
 import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
+import type { LayerDocument } from "@rw/db/schemas/layer.ts";
+import type { SystemDocument } from "@rw/db/schemas/system.ts";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import { Row } from "~/components/row/Row";
+import { setReloadSignal } from "~/components/select/project-select";
 
 function systemDesignsAreEqual(sd1: string, sd2: string) {
   function deleteKeys(sd: SystemDesignDocument) {
@@ -300,6 +305,7 @@ export default function view() {
   const [isFarmerAdvisorSelectorOpen, setIsFarmerAdvisorSelectorOpen] =
     createSignal(false);
   const [deleteModalOpen, setDeleteModalOpen] = createSignal(false);
+  const [duplicateModalOpen, setDuplicateModalOpen] = createSignal(false);
 
   const navigate = useNavigate();
   
@@ -330,6 +336,13 @@ export default function view() {
             }}
           />
         </Show>
+        
+        <DuplicateScenarioModalWithRedirect
+          activeScenario={() => scenarioData()?.project}
+          modalOpen={duplicateModalOpen}
+          setModalOpen={setDuplicateModalOpen}
+          refetchScenarios={refetch}
+        />
         <div
           style={{
             display: "flex",
@@ -1012,11 +1025,18 @@ export default function view() {
                         <button
                           // disabled={submitDisabled()}
                           type="submit"
-                          class="rounded-sm p-1 my-2 btn-default"
+                          class="rounded-sm p-1 mr-2 my-2 btn-default"
                           onclick={getSystemDesign}
                           disabled={previewing() || system.rows.length === 0}
                         >
                           Generate preview
+                        </button>
+                        <button
+                          class="rounded-sm p-1 my-2 btn-default"
+                          onClick={() => setDuplicateModalOpen(true)}
+                          title="Duplicate scenario"
+                        >
+                          <i class="fa-regular fa-copy" /> Duplicate
                         </button>
                       </div>
 
@@ -1542,6 +1562,119 @@ const InfoContent = ({ scenarioData, params, deleteModalOpen, setDeleteModalOpen
           </DialogContent>
         </Dialog>
       </div>
+    </div>
+  );
+};
+
+// Custom duplicate modal with redirect functionality
+const DuplicateScenarioModalWithRedirect = ({
+  modalOpen,
+  setModalOpen,
+  refetchScenarios,
+  activeScenario,
+}: any) => {
+  const [error, setError] = createSignal<string>("");
+  const [submitDisabled, setSubmitDisabled] = createSignal(false);
+  const params = useParams();
+  const navigate = useNavigate();
+
+  function cancel() {
+    setModalOpen(false);
+  }
+
+  const [data, { refetch }] = createResource<{
+    layer: LayerDocument;
+    system: SystemDocument;
+  }>(async () => {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${
+        params.layerId
+      }/new-project`,
+      apiFetchOptions(),
+    );
+    const result = await response.json();
+    return result;
+  });
+
+  const routeAction = action(async (formData: FormData) => {
+    setSubmitDisabled(true);
+
+    const payload = {
+      project: {
+        name: formData.get("project[name]")?.toString()!,
+        source: activeScenario()
+      },
+    };
+
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects/duplicate`,
+      {
+        body: JSON.stringify(payload),
+        method: "post",
+        ...apiFetchOptions(),
+      },
+    );
+
+    const project: ProjectDocument = await response.json();
+    refetchScenarios();
+    setModalOpen(false);
+    
+    // Trigger breadcrumb reload
+    setReloadSignal(prev => prev + 1);
+    
+    // Navigate to the new duplicated project
+    navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`);
+  });
+
+  return (
+    <div>
+      <Show when={modalOpen()}>
+        <Dialog open={modalOpen()} onOpenChange={cancel}>
+          <DialogContent onPointerDownOutside={cancel}>
+            <DialogHeader>
+              <DialogTitle>
+                Duplicate "{activeScenario()?.name}"
+              </DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <Show when={data()}>
+                <Row>
+                  <div>
+                    <form method="post" action={routeAction}>
+                      <div class="form-group">
+                        <label for="project[name]">Scenario title</label>
+                        <input
+                          type="text"
+                          class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                          name="project[name]"
+                          placeholder=""
+                          required
+                          disabled={submitDisabled()}
+                        />
+                      </div>
+                      
+                      <br />
+                      <div class="btn-group">
+                        <button
+                          disabled={submitDisabled()}
+                          type="submit"
+                          class="rounded-sm p-1 my-2 btn-default"
+                        >
+                          Duplicate scenario
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </Row>
+              </Show>
+
+              <Show when={error()}>
+                <p>{error()}</p>
+              </Show>
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
+      </Show>
     </div>
   );
 };
