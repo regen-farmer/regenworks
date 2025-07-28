@@ -18,14 +18,13 @@ import * as togeojson from "@tmcw/togeojson";
 
 // @ts-ignore
 import * as turf from "@turf/turf";
-// @ts-ignore
 import type {
 	GeoJsonProperties,
 	FeatureCollection,
 	Polygon,
 	MultiPolygon,
 	Feature,
-} from "@turf/turf";
+} from "geojson";
 
 import {
 	updateArea,

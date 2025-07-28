@@ -178,8 +178,8 @@ importers:
         specifier: ^1.4.3
         version: 1.5.0
       '@maptiler/sdk':
-        specifier: ^2.4.2
-        version: 2.5.1
+        specifier: ^3.6.1
+        version: 3.6.1
       '@popperjs/core':
         specifier: ^2.11.8
         version: 2.11.8
@@ -205,8 +205,8 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11
       '@tmcw/togeojson':
-        specifier: ^5.8.1
-        version: 5.8.1(@types/geojson@7946.0.16)
+        specifier: ^7.1.2
+        version: 7.1.2
       '@turf/turf':
         specifier: ^7.1.0
         version: 7.2.0
@@ -256,8 +256,8 @@ importers:
         specifier: ^0.2.8
         version: 0.2.8(solid-js@1.9.7)
       tailwind-merge:
-        specifier: ^2.5.4
-        version: 2.6.0
+        specifier: ^3.3.1
+        version: 3.3.1
       tailwindcss:
         specifier: ^4.1.11
         version: 4.1.11
@@ -268,6 +268,9 @@ importers:
         specifier: ^0.5.8
         version: 0.5.8(@netlify/blobs@9.1.2)(@types/node@24.1.0)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.29)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0)
     devDependencies:
+      '@types/geojson':
+        specifier: ^7946.0.14
+        version: 7946.0.16
       '@types/lodash':
         specifier: ^4.17.20
         version: 4.17.20
@@ -280,6 +283,9 @@ importers:
       '@types/mapbox__mapbox-gl-draw':
         specifier: ^1.4.9
         version: 1.4.9
+      '@xmldom/xmldom':
+        specifier: ^0.9.5
+        version: 0.9.8
       vite:
         specifier: ^7.0.6
         version: 7.0.6(@types/node@24.1.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.7.0)
@@ -1393,19 +1399,15 @@ packages:
     resolution: {integrity: sha512-Es6WcD0nO5l+2BOQS4uLfNPYQaNDfbot3X1XUoloz+x0mPDS3eeORZJl06HXjwBG1fOGwCRnzK88LMdxKRrd6Q==}
     engines: {node: '>=6.0.0'}
 
-  '@maplibre/maplibre-gl-style-spec@20.4.0':
-    resolution: {integrity: sha512-AzBy3095fTFPjDjmWpR2w6HVRAZJ6hQZUCwk5Plz6EyfnfuQW1odeW5i2Ai47Y6TBA2hQnC+azscjBSALpaWgw==}
-    hasBin: true
-
   '@maplibre/maplibre-gl-style-spec@23.3.0':
     resolution: {integrity: sha512-IGJtuBbaGzOUgODdBRg66p8stnwj9iDXkgbYKoYcNiiQmaez5WVRfXm4b03MCDwmZyX93csbfHFWEJJYHnn5oA==}
     hasBin: true
 
-  '@maptiler/client@2.2.0':
-    resolution: {integrity: sha512-kV4dSJK2PLfRLnl437CQgDJBboHcf+Z7FWkSoPW3ANca/csoYQQOwz42BPNkda/98OT+CviIueeQdNUyeEL1OQ==}
+  '@maptiler/client@2.4.0':
+    resolution: {integrity: sha512-94g2zmGBfgSIY0iJhrANDUfANTH7G/NNZ8mScLLEE+LZfAtaehQ4cvd/EwtuiW3x7ANy92Vzh9bVaKr6xQTSmA==}
 
-  '@maptiler/sdk@2.5.1':
-    resolution: {integrity: sha512-JKFzSjsDTkbJhqshtPwkl6P3Yf5XZzdbfUQZdSutQb6BatR9kuxhdX5in9A3vHTUjgjTwoQQ4pCvhvK7cnAuGA==}
+  '@maptiler/sdk@3.6.1':
+    resolution: {integrity: sha512-jUMl/3SzEXPTamrptsrGHAMYXqRSxUYqPgF/i8l9uCitUBzdIkGYVy2mTBcitJHKqwX/6iDdkU0TX4kDVtbU3A==}
 
   '@math.gl/core@4.1.0':
     resolution: {integrity: sha512-FrdHBCVG3QdrworwrUSzXIaK+/9OCRLscxI2OUy6sLOHyHgBMyfnEGs99/m3KNvs+95BsnQLWklVfpKfQzfwKA==}
@@ -2089,10 +2091,8 @@ packages:
     resolution: {integrity: sha512-a05fzK+jBGacsSAc1vE8an7lpBh4H0PyIEcivtEyHLomgSeElAJxm9E2It/0nYRZ5Lh23m0okbhzJNaYWZpAOg==}
     engines: {node: '>=12'}
 
-  '@tmcw/togeojson@5.8.1':
-    resolution: {integrity: sha512-2YNrbis3l5kS0XrYwiHEZcGwiRp0MJ5CvwGwtMWp2z2tsVlskeec2qgvKHnF0RCwI5GnjrrBOoKsWfndEnd3LA==}
-    peerDependencies:
-      '@types/geojson': '*'
+  '@tmcw/togeojson@7.1.2':
+    resolution: {integrity: sha512-QKnFs9DAuqqBVj4d6c69tV1Dj2TspSBTqffivoN0YoBCVdP/JY1+WaYCJbzU49RkoU5NOSOJ3jtFHCdEUVh21A==}
 
   '@turf/along@7.2.0':
     resolution: {integrity: sha512-Cf+d2LozABdb0TJoIcJwFKB+qisJY4nMUW9z6PAuZ9UCH7AR//hy2Z06vwYCKFZKP4a7DRPkOMBadQABCyoYuw==}
@@ -2721,6 +2721,10 @@ packages:
   '@whatwg-node/server@0.9.71':
     resolution: {integrity: sha512-ueFCcIPaMgtuYDS9u0qlUoEvj6GiSsKrwnOLPp9SshqjtcRaR1IEHRjoReq3sXNydsF5i0ZnmuYgXq9dV53t0g==}
     engines: {node: '>=18.0.0'}
+
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
+    engines: {node: '>=14.6'}
 
   abbrev@3.0.1:
     resolution: {integrity: sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg==}
@@ -4483,10 +4487,6 @@ packages:
     peerDependencies:
       maplibre-gl: '>=2.1.6'
 
-  maplibre-gl@4.7.1:
-    resolution: {integrity: sha512-lgL7XpIwsgICiL82ITplfS7IGwrB1OJIw/pCvprDp2dhmSSEBgmPzYRvwYYYvJGJD7fxUv1Tvpih4nZ6VrLuaA==}
-    engines: {node: '>=16.14.0', npm: '>=8.1.0'}
-
   maplibre-gl@5.6.1:
     resolution: {integrity: sha512-TTSfoTaF7RqKUR9wR5qDxCHH2J1XfZ1E85luiLOx0h8r50T/LnwAwwfV0WVNh9o8dA7rwt57Ucivf1emyeukXg==}
     engines: {node: '>=16.14.0', npm: '>=8.1.0'}
@@ -5068,8 +5068,8 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  quick-lru@7.0.0:
-    resolution: {integrity: sha512-MX8gB7cVYTrYcFfAnfLlhRd0+Toyl8yX8uBx1MrX7K0jegiz9TumwOK27ldXrgDlHRdVi+MqU9Ssw6dr4BNreg==}
+  quick-lru@7.0.1:
+    resolution: {integrity: sha512-kLjThirJMkWKutUKbZ8ViqFc09tDQhlbQo2MNuVeLWbRauqYP96Sm6nzlQ24F0HFjUNZ4i9+AgldJ9H6DZXi7g==}
     engines: {node: '>=18'}
 
   quickselect@1.1.1:
@@ -5610,8 +5610,8 @@ packages:
     resolution: {integrity: sha512-ulAk51I9UVUyJgxlv9M6lFot2WP3e7t8Kz9+IS6D4rVba1tR9kON+Ey69f+1R4Q8cd45Lod6a4IcJIxnzGc/zA==}
     engines: {node: '>=18'}
 
-  tailwind-merge@2.6.0:
-    resolution: {integrity: sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==}
+  tailwind-merge@3.3.1:
+    resolution: {integrity: sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g==}
 
   tailwindcss-animate@1.0.7:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
@@ -7366,16 +7366,6 @@ snapshots:
 
   '@mapbox/whoots-js@3.1.0': {}
 
-  '@maplibre/maplibre-gl-style-spec@20.4.0':
-    dependencies:
-      '@mapbox/jsonlint-lines-primitives': 2.0.2
-      '@mapbox/unitbezier': 0.0.1
-      json-stringify-pretty-compact: 4.0.0
-      minimist: 1.2.8
-      quickselect: 2.0.0
-      rw: 1.3.3
-      tinyqueue: 3.0.0
-
   '@maplibre/maplibre-gl-style-spec@23.3.0':
     dependencies:
       '@mapbox/jsonlint-lines-primitives': 2.0.2
@@ -7386,18 +7376,19 @@ snapshots:
       rw: 1.3.3
       tinyqueue: 3.0.0
 
-  '@maptiler/client@2.2.0':
+  '@maptiler/client@2.4.0':
     dependencies:
-      quick-lru: 7.0.0
+      quick-lru: 7.0.1
 
-  '@maptiler/sdk@2.5.1':
+  '@maptiler/sdk@3.6.1':
     dependencies:
-      '@maplibre/maplibre-gl-style-spec': 20.4.0
-      '@maptiler/client': 2.2.0
+      '@maplibre/maplibre-gl-style-spec': 23.3.0
+      '@maptiler/client': 2.4.0
       events: 3.3.0
+      gl-matrix: 3.4.3
       js-base64: 3.7.7
-      maplibre-gl: 4.7.1
-      uuid: 9.0.1
+      maplibre-gl: 5.6.1
+      uuid: 11.1.0
 
   '@math.gl/core@4.1.0':
     dependencies:
@@ -8086,9 +8077,7 @@ snapshots:
       - supports-color
       - vite
 
-  '@tmcw/togeojson@5.8.1(@types/geojson@7946.0.16)':
-    dependencies:
-      '@types/geojson': 7946.0.16
+  '@tmcw/togeojson@7.1.2': {}
 
   '@turf/along@7.2.0':
     dependencies:
@@ -8097,7 +8086,7 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/angle@7.2.0':
@@ -8106,7 +8095,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/rhumb-bearing': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/area@7.2.0':
@@ -8120,34 +8109,34 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/bbox-polygon@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/bbox@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/bearing@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/bezier-spline@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-clockwise@5.1.5':
@@ -8159,14 +8148,14 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-concave@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-contains@7.2.0':
@@ -8176,7 +8165,7 @@ snapshots:
       '@turf/boolean-point-on-line': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-crosses@7.2.0':
@@ -8186,7 +8175,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/line-intersect': 7.2.0
       '@turf/polygon-to-line': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-disjoint@7.2.0':
@@ -8196,7 +8185,7 @@ snapshots:
       '@turf/line-intersect': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/polygon-to-line': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-equal@7.2.0':
@@ -8204,7 +8193,7 @@ snapshots:
       '@turf/clean-coords': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       geojson-equality-ts: 1.0.2
       tslib: 2.8.1
 
@@ -8213,7 +8202,7 @@ snapshots:
       '@turf/boolean-disjoint': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-overlap@7.2.0':
@@ -8223,7 +8212,7 @@ snapshots:
       '@turf/line-intersect': 7.2.0
       '@turf/line-overlap': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       geojson-equality-ts: 1.0.2
       tslib: 2.8.1
 
@@ -8233,14 +8222,14 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/line-segment': 7.2.0
       '@turf/rhumb-bearing': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-point-in-polygon@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       point-in-polygon-hao: 1.2.4
       tslib: 2.8.1
 
@@ -8248,7 +8237,7 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-touches@7.2.0':
@@ -8257,7 +8246,7 @@ snapshots:
       '@turf/boolean-point-on-line': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/boolean-valid@7.2.0':
@@ -8271,7 +8260,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/line-intersect': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       geojson-polygon-self-intersections: 1.2.1
       tslib: 2.8.1
 
@@ -8282,7 +8271,7 @@ snapshots:
       '@turf/boolean-point-on-line': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/buffer@7.2.0':
@@ -8293,7 +8282,7 @@ snapshots:
       '@turf/jsts': 2.7.2
       '@turf/meta': 7.2.0
       '@turf/projection': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       d3-geo: 1.7.1
 
   '@turf/center-mean@7.2.0':
@@ -8301,7 +8290,7 @@ snapshots:
       '@turf/bbox': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/center-median@7.2.0':
@@ -8311,7 +8300,7 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/center-of-mass@7.2.0':
@@ -8321,35 +8310,35 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/center@7.2.0':
     dependencies:
       '@turf/bbox': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/centroid@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/circle@7.2.0':
     dependencies:
       '@turf/destination': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/clean-coords@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/clone@5.1.5':
@@ -8359,7 +8348,7 @@ snapshots:
   '@turf/clone@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/clusters-dbscan@7.2.0':
@@ -8368,7 +8357,7 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       rbush: 3.0.1
       tslib: 2.8.1
 
@@ -8378,7 +8367,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       skmeans: 0.9.7
       tslib: 2.8.1
 
@@ -8386,7 +8375,7 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/collect@7.2.0':
@@ -8394,7 +8383,7 @@ snapshots:
       '@turf/bbox': 7.2.0
       '@turf/boolean-point-in-polygon': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       rbush: 3.0.1
       tslib: 2.8.1
 
@@ -8402,7 +8391,7 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/concave@7.2.0':
@@ -8413,7 +8402,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/tin': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       topojson-client: 3.1.0
       topojson-server: 3.0.1
       tslib: 2.8.1
@@ -8422,7 +8411,7 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       concaveman: 1.2.1
       tslib: 2.8.1
 
@@ -8430,14 +8419,14 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/difference@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       polyclip-ts: 0.16.8
       tslib: 2.8.1
 
@@ -8447,7 +8436,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       polyclip-ts: 0.16.8
       tslib: 2.8.1
 
@@ -8457,14 +8446,14 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/distance@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/ellipse@7.2.0':
@@ -8473,7 +8462,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/rhumb-destination': 7.2.0
       '@turf/transform-rotate': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/envelope@7.2.0':
@@ -8481,21 +8470,21 @@ snapshots:
       '@turf/bbox': 7.2.0
       '@turf/bbox-polygon': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/explode@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/flatten@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/flip@7.2.0':
@@ -8503,7 +8492,7 @@ snapshots:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/geojson-rbush@7.2.0':
@@ -8511,20 +8500,20 @@ snapshots:
       '@turf/bbox': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       rbush: 3.0.1
 
   '@turf/great-circle@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/helpers@5.1.5': {}
 
   '@turf/helpers@7.2.0':
     dependencies:
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/hex-grid@7.2.0':
@@ -8533,7 +8522,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/intersect': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/interpolate@7.2.0':
@@ -8549,13 +8538,13 @@ snapshots:
       '@turf/point-grid': 7.2.0
       '@turf/square-grid': 7.2.0
       '@turf/triangle-grid': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/intersect@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       polyclip-ts: 0.16.8
       tslib: 2.8.1
 
@@ -8566,7 +8555,7 @@ snapshots:
   '@turf/invariant@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/isobands@7.2.0':
@@ -8578,7 +8567,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       marchingsquares: 1.3.3
       tslib: 2.8.1
 
@@ -8588,7 +8577,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       marchingsquares: 1.3.3
       tslib: 2.8.1
 
@@ -8599,7 +8588,7 @@ snapshots:
   '@turf/kinks@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/length@7.2.0':
@@ -8607,7 +8596,7 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/line-arc@7.2.0':
@@ -8615,7 +8604,7 @@ snapshots:
       '@turf/circle': 7.2.0
       '@turf/destination': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/line-chunk@7.2.0':
@@ -8624,12 +8613,12 @@ snapshots:
       '@turf/length': 7.2.0
       '@turf/line-slice-along': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/line-intersect@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       sweepline-intersections: 1.5.0
       tslib: 2.8.1
 
@@ -8638,7 +8627,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/line-overlap@7.2.0':
     dependencies:
@@ -8649,7 +8638,7 @@ snapshots:
       '@turf/line-segment': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/nearest-point-on-line': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       fast-deep-equal: 3.1.3
       tslib: 2.8.1
 
@@ -8658,7 +8647,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/line-slice-along@7.2.0':
@@ -8667,14 +8656,14 @@ snapshots:
       '@turf/destination': 7.2.0
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/line-slice@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/nearest-point-on-line': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/line-split@7.2.0':
     dependencies:
@@ -8688,7 +8677,7 @@ snapshots:
       '@turf/nearest-point-on-line': 7.2.0
       '@turf/square': 7.2.0
       '@turf/truncate': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/line-to-polygon@7.2.0':
     dependencies:
@@ -8696,14 +8685,14 @@ snapshots:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/mask@7.2.0':
     dependencies:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       polyclip-ts: 0.16.8
       tslib: 2.8.1
 
@@ -8714,7 +8703,7 @@ snapshots:
   '@turf/meta@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   '@turf/midpoint@7.2.0':
     dependencies:
@@ -8722,7 +8711,7 @@ snapshots:
       '@turf/destination': 7.2.0
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/moran-index@7.2.0':
@@ -8730,7 +8719,7 @@ snapshots:
       '@turf/distance-weight': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/nearest-neighbor-analysis@7.2.0':
@@ -8743,7 +8732,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/nearest-point': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/nearest-point-on-line@7.2.0':
@@ -8752,7 +8741,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/nearest-point-to-line@7.2.0':
@@ -8761,7 +8750,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/point-to-line-distance': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/nearest-point@7.2.0':
@@ -8770,14 +8759,14 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/planepoint@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/point-grid@7.2.0':
@@ -8786,7 +8775,7 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/point-on-feature@7.2.0':
@@ -8796,7 +8785,7 @@ snapshots:
       '@turf/explode': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/nearest-point': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/point-to-line-distance@7.2.0':
@@ -8810,7 +8799,7 @@ snapshots:
       '@turf/projection': 7.2.0
       '@turf/rhumb-bearing': 7.2.0
       '@turf/rhumb-distance': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/point-to-polygon-distance@7.2.0':
@@ -8821,7 +8810,7 @@ snapshots:
       '@turf/meta': 7.2.0
       '@turf/point-to-line-distance': 7.2.0
       '@turf/polygon-to-line': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/points-within-polygon@7.2.0':
@@ -8829,14 +8818,14 @@ snapshots:
       '@turf/boolean-point-in-polygon': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/polygon-smooth@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/polygon-tangents@7.2.0':
@@ -8847,14 +8836,14 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/nearest-point': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/polygon-to-line@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/polygonize@7.2.0':
@@ -8864,7 +8853,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/projection@7.2.0':
@@ -8872,7 +8861,7 @@ snapshots:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/quadrat-analysis@7.2.0':
@@ -8886,13 +8875,13 @@ snapshots:
       '@turf/point-grid': 7.2.0
       '@turf/random': 7.2.0
       '@turf/square-grid': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/random@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/rectangle-grid@7.2.0':
@@ -8900,7 +8889,7 @@ snapshots:
       '@turf/boolean-intersects': 7.2.0
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/rewind@5.1.5':
@@ -8918,34 +8907,34 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/rhumb-bearing@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/rhumb-destination@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/rhumb-distance@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/sample@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/sector@7.2.0':
@@ -8955,7 +8944,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/line-arc': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/shortest-path@7.2.0':
@@ -8969,7 +8958,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/transform-scale': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/simplify@7.2.0':
@@ -8978,21 +8967,21 @@ snapshots:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/square-grid@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/rectangle-grid': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/square@7.2.0':
     dependencies:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/standard-deviational-ellipse@7.2.0':
@@ -9003,7 +8992,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/points-within-polygon': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/tag@7.2.0':
@@ -9012,20 +9001,20 @@ snapshots:
       '@turf/clone': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/tesselate@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       earcut: 2.2.4
       tslib: 2.8.1
 
   '@turf/tin@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/transform-rotate@7.2.0':
@@ -9038,7 +9027,7 @@ snapshots:
       '@turf/rhumb-bearing': 7.2.0
       '@turf/rhumb-destination': 7.2.0
       '@turf/rhumb-distance': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/transform-scale@7.2.0':
@@ -9053,7 +9042,7 @@ snapshots:
       '@turf/rhumb-bearing': 7.2.0
       '@turf/rhumb-destination': 7.2.0
       '@turf/rhumb-distance': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/transform-translate@7.2.0':
@@ -9063,7 +9052,7 @@ snapshots:
       '@turf/invariant': 7.2.0
       '@turf/meta': 7.2.0
       '@turf/rhumb-destination': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/triangle-grid@7.2.0':
@@ -9071,14 +9060,14 @@ snapshots:
       '@turf/distance': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/intersect': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/truncate@7.2.0':
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
   '@turf/turf@7.2.0':
@@ -9203,7 +9192,7 @@ snapshots:
     dependencies:
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       polyclip-ts: 0.16.8
       tslib: 2.8.1
 
@@ -9213,7 +9202,7 @@ snapshots:
       '@turf/boolean-point-in-polygon': 7.2.0
       '@turf/helpers': 7.2.0
       '@turf/meta': 7.2.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       rbush: 3.0.1
       tslib: 2.8.1
 
@@ -9223,7 +9212,7 @@ snapshots:
       '@turf/helpers': 7.2.0
       '@turf/invariant': 7.2.0
       '@types/d3-voronoi': 1.1.12
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       d3-voronoi: 1.1.2
       tslib: 2.8.1
 
@@ -9336,7 +9325,7 @@ snapshots:
 
   '@types/mapbox__mapbox-gl-draw@1.4.9':
     dependencies:
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       mapbox-gl: 3.9.2
 
   '@types/mapbox__point-geometry@0.1.4': {}
@@ -9599,6 +9588,8 @@ snapshots:
       '@whatwg-node/fetch': 0.10.9
       '@whatwg-node/promise-helpers': 1.3.2
       tslib: 2.8.1
+
+  '@xmldom/xmldom@0.9.8': {}
 
   abbrev@3.0.1: {}
 
@@ -10682,7 +10673,7 @@ snapshots:
 
   geojson-equality-ts@1.0.2:
     dependencies:
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
 
   geojson-polygon-self-intersections@1.2.1:
     dependencies:
@@ -11428,7 +11419,7 @@ snapshots:
       '@mapbox/unitbezier': 0.0.1
       '@mapbox/vector-tile': 1.3.1
       '@mapbox/whoots-js': 3.1.0
-      '@types/geojson': 7946.0.15
+      '@types/geojson': 7946.0.16
       '@types/geojson-vt': 3.2.5
       '@types/mapbox__point-geometry': 0.1.4
       '@types/mapbox__vector-tile': 1.3.4
@@ -11456,35 +11447,6 @@ snapshots:
       '@turf/turf': 7.2.0
       convert-units: 2.3.4
       maplibre-gl: 5.6.1
-
-  maplibre-gl@4.7.1:
-    dependencies:
-      '@mapbox/geojson-rewind': 0.5.2
-      '@mapbox/jsonlint-lines-primitives': 2.0.2
-      '@mapbox/point-geometry': 0.1.0
-      '@mapbox/tiny-sdf': 2.0.6
-      '@mapbox/unitbezier': 0.0.1
-      '@mapbox/vector-tile': 1.3.1
-      '@mapbox/whoots-js': 3.1.0
-      '@maplibre/maplibre-gl-style-spec': 20.4.0
-      '@types/geojson': 7946.0.16
-      '@types/geojson-vt': 3.2.5
-      '@types/mapbox__point-geometry': 0.1.4
-      '@types/mapbox__vector-tile': 1.3.4
-      '@types/pbf': 3.0.5
-      '@types/supercluster': 7.1.3
-      earcut: 3.0.1
-      geojson-vt: 4.0.2
-      gl-matrix: 3.4.3
-      global-prefix: 4.0.0
-      kdbush: 4.0.2
-      murmurhash-js: 1.0.0
-      pbf: 3.3.0
-      potpack: 2.0.0
-      quickselect: 3.0.0
-      supercluster: 8.0.1
-      tinyqueue: 3.0.0
-      vt-pbf: 3.1.3
 
   maplibre-gl@5.6.1:
     dependencies:
@@ -12159,7 +12121,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  quick-lru@7.0.0: {}
+  quick-lru@7.0.1: {}
 
   quickselect@1.1.1: {}
 
@@ -12780,7 +12742,7 @@ snapshots:
 
   system-architecture@0.1.0: {}
 
-  tailwind-merge@2.6.0: {}
+  tailwind-merge@3.3.1: {}
 
   tailwindcss-animate@1.0.7(tailwindcss@4.1.11):
     dependencies:
