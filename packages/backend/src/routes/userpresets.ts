@@ -17,9 +17,8 @@ router.get(
 	) => {
 		try {
 			const presets = await UserPreset.find({ owner: req.user?._id })
-				.sort({ createdAt: -1 })
-				.populate("systemDesign.rows.sequence.species")
-				.populate("systemDesign.rows.groundcover");
+				.sort({ createdAt: -1 });
+			// Don't populate to keep only IDs
 			res.json({ presets });
 		} catch (err) {
 			console.error(err);
@@ -39,9 +38,8 @@ router.get(
 		try {
 			const presets = await UserPreset.find({ isPublic: true })
 				.sort({ createdAt: -1 })
-				.populate("systemDesign.rows.sequence.species")
-				.populate("systemDesign.rows.groundcover")
 				.populate("owner", "email");
+			// Don't populate species to keep only IDs
 			res.json({ presets });
 		} catch (err) {
 			console.error(err);
@@ -65,9 +63,8 @@ router.get(
 					{ owner: req.user?._id },
 					{ isPublic: true }
 				]
-			})
-				.populate("systemDesign.rows.sequence.species")
-				.populate("systemDesign.rows.groundcover");
+			});
+			// Don't populate to keep only IDs
 			
 			if (!preset) {
 				return res.status(404).json({ error: "Preset not found" });
@@ -102,11 +99,9 @@ router.post(
 			});
 			
 			const savedPreset = await newPreset.save();
-			const populatedPreset = await UserPreset.findById(savedPreset._id)
-				.populate("systemDesign.rows.sequence.species")
-				.populate("systemDesign.rows.groundcover");
+			// Don't populate the species to keep only IDs in frontend
 			
-			res.status(201).json({ preset: populatedPreset });
+			res.status(201).json({ preset: savedPreset });
 		} catch (err) {
 			console.error(err);
 			res.status(500).json({ error: "Failed to create preset" });
@@ -138,9 +133,8 @@ router.put(
 					isPublic,
 				},
 				{ new: true }
-			)
-				.populate("systemDesign.rows.sequence.species")
-				.populate("systemDesign.rows.groundcover");
+			);
+			// Don't populate to keep only IDs
 			
 			if (!preset) {
 				return res.status(404).json({ error: "Preset not found or unauthorized" });

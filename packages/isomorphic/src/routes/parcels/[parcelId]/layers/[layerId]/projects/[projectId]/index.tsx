@@ -161,7 +161,7 @@ export default function view() {
   // const [mapCameraState, setMapCameraState] = createSignal({})
   const mapCameraState = {};
 
-  let map: maplibregl.Map;
+  let map: maplibregl.Map | undefined;
 
   createEffect(() => {
     // console.log('Updateing map', rebuildMap())
@@ -258,8 +258,8 @@ export default function view() {
   });
 
   createEffect(() => {
-    if (mapLoaded() && systemLayout()) {
-      drawSystemDesign(map, systemLayout());
+    if (mapLoaded() && systemLayout() && map) {
+      drawSystemDesign(map, systemLayout()!);
     }
   });
 
@@ -704,7 +704,7 @@ export default function view() {
                                                         }
                                                       );
                                                     }}
-                                                    defaultValue={ species()?.species.find(s => s._id === sequence.species)}
+                                                    value={ species()?.species.find(s => s._id === sequence.species)}
                                                     optionValue="_id"
                                                     optionTextValue={(species)=> `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`}
                                                     optionLabel="nameCommon"
@@ -859,7 +859,7 @@ export default function view() {
 
                                         logSystem();
                                       }}
-                                      defaultValue={ species()?.species.find(s => s._id === row.groundcover)}
+                                      value={ species()?.species.find(s => s._id === row.groundcover)}
                                       optionValue="_id"
                                       optionTextValue={(species)=> `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`}
                                       optionLabel={(species)=> species.nameCommon}
@@ -966,7 +966,7 @@ export default function view() {
                       system={system}
                       setSystem={setSystem}
                       logSystem={logSystem}
-                      map={map}
+                      map={mapLoaded() ? map : undefined}
                       triggerFarmerAdvisorSelector={() => {
                         setTimeout(() => {
                           const key = "farmerAdvisorSelector";
@@ -1160,6 +1160,19 @@ const DesignPresetContent = ({
         }
       }
       
+      // Clean the system design to only include species IDs
+      const cleanSystemDesign = {
+        ...system,
+        rows: system.rows.map((row: any) => ({
+          ...row,
+          groundcover: typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover,
+          sequence: row.sequence ? row.sequence.map((seq: any) => ({
+            ...seq,
+            species: typeof seq.species === 'object' ? seq.species._id : seq.species
+          })) : []
+        }))
+      };
+      
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/userpresets`,
         {
@@ -1167,7 +1180,7 @@ const DesignPresetContent = ({
           body: JSON.stringify({
             name: presetName(),
             description: presetDescription(),
-            systemDesign: system,
+            systemDesign: cleanSystemDesign,
             thumbnail,
             isPublic: false,
           }),
@@ -1396,7 +1409,20 @@ N/S alignment
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setHoveredPreset(null)}
                 onClick={() => {
-                  setSystem(preset.system);
+                  console.log('Applying preset:', preset.system);
+                  // Clean the preset system to only use IDs
+                  const cleanSystem = {
+                    ...preset.system,
+                    rows: preset.system.rows.map((row: any) => ({
+                      ...row,
+                      groundcover: typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover,
+                      sequence: row.sequence ? row.sequence.map((seq: any) => ({
+                        ...seq,
+                        species: typeof seq.species === 'object' ? seq.species._id : seq.species
+                      })) : []
+                    }))
+                  };
+                  setSystem(cleanSystem);
                   getSystemDesign();
                   triggerFarmerAdvisorSelector();
                 }}

@@ -59,7 +59,7 @@ const SystemInfoBox: Component<{
 					// console.log("species", systemDesignData()?.species);
 					const species = props.species.speciesById.get(speciesEl.species);
 					if (!species) {
-						console.warn(`Species not found: ${speciesEl.species}`);
+						console.warn(`Species not found:`, speciesEl.species, typeof speciesEl.species);
 						return null;
 					}
 					return (
