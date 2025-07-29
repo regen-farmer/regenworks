@@ -277,6 +277,8 @@ export default function view() {
   async function saveSystem() {
     setSaving(true);
 
+    console.log(system)
+
     const newsystem = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/projects/${
         params.projectId
@@ -1084,145 +1086,7 @@ export default function view() {
 
 export { drawSystemDesign };
 
-const DesignPresetBox = ({
-  system,
-  setSystem,
-  logSystem,
-  getSystemDesign,
-  triggerFarmerAdvisorSelector,
-}: any) => {
-  const images = [
-    {
-      src: "/freemium/presets/Silvoarable.jpg",
-      alt: "Silvoarable preset",
-      desc: `
-Silvoarable with apples 
-6 m tree rows, 24 m alleys (wheat)
-24 m margin 
-`,
-      system: {
-        rows: [
-          {
-            width: 6,
-            sequence: [
-              { spacingAfter: 3, species: "5e6639548add4f22f08201ff" },
-            ],
-            offset: { before: 0, after: 0 },
-          },
-          {
-            width: 24,
-            sequence: [],
-            offset: { before: 0, after: 0 },
-            groundcover: "5e6619b4c0c63516dc441d2a",
-          },
-        ],
-        bearing: 0,
-        margin: 24,
-        headland: 0,
-      },
-    },
-    {
-      src: "/freemium/presets/Silvopasture.jpg",
-      alt: "Silvopasture preset",
-      desc: `
-Silvopasture with chestnuts 
-6 x 12 m grid. 
-6 m margin
-`,
-      system: {
-        rows: [
-          {
-            width: 12,
-            sequence: [
-              { species: "5e6501a0e4a1961d40fc538e", spacingAfter: 6 },
-            ],
-            offset: { before: 0, after: 0 },
-          },
-        ],
-        bearing: 0,
-        margin: 6,
-        headland: 0,
-      },
-    },
-  ];
 
-  const [presetIndex, setPresetIndex] = createSignal(0);
-
-  const [showPreset, setShowPreset] = createSignal<boolean>(isFreemium());
-
-  return (
-    <>
-      <div class="dark:bg-customdark1 overflow-hidden bg-white text-black left-2 top-2 p-2 rounded-md border border-zinc-300 dark:border-slate-600  dark:text-white absolute">
-        <div class="overflow-hidden">
-          <div class="flex justify-between overflow-hidden">
-            <span
-              class="cursor-pointer"
-              onClick={() => setShowPreset((prev) => !prev)}
-            >
-              {showPreset() ? "Presets (click here to hide)" : "Show Presets"}
-            </span>
-
-            <Show when={showPreset()}>
-              <div class="flex gap-2">
-                <button
-                  class="rounded-sm p-1 btn-default"
-                  onClick={() =>
-                    setPresetIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
-                  }
-                >
-                  <i class="fas fa-arrow-left" />
-                </button>
-                <button
-                  class="rounded-sm p-1 btn-default"
-                  onClick={() =>
-                    setPresetIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
-                  }
-                >
-                  <i class="fas fa-arrow-right" />
-                </button>
-              </div>
-            </Show>
-          </div>
-        </div>
-        <Show when={showPreset()}>
-          <br />
-
-          <div class="flex flex-col gap-2 justify-start ">
-            {/* <For each={images}>
-              {({ src, alt, desc, system }) => ( */}
-            <div
-              class="flex relative whitespace-nowrap h-min-[200px]"
-              onClick={() => {
-                setSystem(images[presetIndex()].system);
-                getSystemDesign();
-                triggerFarmerAdvisorSelector();
-              }}
-            >
-              <img
-                src={images[presetIndex()].src}
-                alt={images[presetIndex()].alt}
-                style={{ "min-height": "200px", "max-width": "500px" }}
-              />
-              <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
-                <p
-                  class="text-center font-serif italic text-white p-4"
-                  style={{ "white-space": "pre-line" }}
-                >
-                  {images[presetIndex()].desc}
-                </p>
-              </div>
-            </div>
-            {/* )} */}
-            {/* </For> */}
-            <Show when={isFreemium()}>
-              <FreemiumBox />
-            </Show>
-          </div>
-        </Show>
-      </div>
-    </>
-  );
-};
 
 const FreemiumBox = ({}: any) => {
   const navigate = useNavigate();
@@ -1301,6 +1165,73 @@ Silvopasture with chestnuts
         ],
         bearing: 0,
         margin: 6,
+        headland: 0,
+      },
+    },
+    {
+      src: "/freemium/presets/silvoarable-poplar-regenworks.jpg",
+      alt: "Silvoarable with poplar preset",
+      desc: `
+Silvoarable with poplar
+6 m tree rows, 60 m alleys (wheat) 
+20 m margin 
+N/S alignment 
+`,
+      system: {
+        rows: [
+          {
+            width: 6,
+            sequence: [
+              { spacingAfter: 3, species: "5e650061e4a1961d40fc538d" }, // Poplar
+            ],
+            offset: { before: 0, after: 0 },
+          },
+          {
+            width: 60,
+            sequence: [],
+            offset: { before: 0, after: 0 },
+            groundcover: "5e6619b4c0c63516dc441d2a", // Wheat
+          },
+        ],
+        bearing: 0, // N/S alignment
+        margin: 20,
+        headland: 0,
+      },
+    },
+    {
+      src: "/freemium/presets/Silvopoultry-poplar.jpg",
+      alt: "Silvopoultry with poplar preset",
+      desc: `
+Silvopoultry with poplar
+7 m double tree row + 3.5 m grass strip
+3 m margin
+N/S alignment
+`,
+      system: {
+        rows: [
+          {
+            width: 3.5,
+            sequence: [
+              { spacingAfter: 1.5, species: "5e650061e4a1961d40fc538d" }, // Poplar
+            ],
+            offset: { before: 0, after: 0 },
+          },
+          {
+            width: 3.5,
+            sequence: [
+              { spacingAfter: 1.5, species: "5e650061e4a1961d40fc538d" }, // Poplar (double row)
+            ],
+            offset: { before: 0, after: 0 },
+          },
+          {
+            width: 3.5,
+            sequence: [],
+            offset: { before: 0, after: 0 },
+            groundcover: "5e665452cccc150b186d4cd1", // Grass strip
+          },
+        ],
+        bearing: 0, // N/S alignment
+        margin: 3, // Changed from 20 to 3 as per description
         headland: 0,
       },
     },
