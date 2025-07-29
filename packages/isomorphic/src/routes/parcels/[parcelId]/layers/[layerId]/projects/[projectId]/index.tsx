@@ -1483,9 +1483,16 @@ N/S alignment
       system: {
         rows: [
           {
-            width: 6,
+            width: 3,
             sequence: [
-              { spacingAfter: 3, species: "5e650061e4a1961d40fc538d" }, // Poplar
+              { spacingAfter: 3, species: "5e747abba84eb20bccc77d79" }, // Poplar
+            ],
+            offset: { before: 0, after: 0 },
+          },
+          {
+            width: 3,
+            sequence: [
+              { spacingAfter: 3, species: "5e747abba84eb20bccc77d79" }, // Poplar
             ],
             offset: { before: 0, after: 0 },
           },
@@ -1515,14 +1522,14 @@ N/S alignment
           {
             width: 3.5,
             sequence: [
-              { spacingAfter: 1.5, species: "5e650061e4a1961d40fc538d" }, // Poplar
+              { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar
             ],
             offset: { before: 0, after: 0 },
           },
           {
             width: 3.5,
             sequence: [
-              { spacingAfter: 1.5, species: "5e650061e4a1961d40fc538d" }, // Poplar (double row)
+              { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar (double row)
             ],
             offset: { before: 0, after: 0 },
           },
