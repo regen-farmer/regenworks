@@ -1402,12 +1402,6 @@ N/S alignment
             {(preset, index) => (
               <div
                 class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
-                onMouseEnter={(e) => {
-                  setHoveredPreset(index());
-                  handleMouseMove(e);
-                }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setHoveredPreset(null)}
                 onClick={() => {
                   console.log('Applying preset:', preset.system);
                   // Clean the preset system to only use IDs
@@ -1431,7 +1425,19 @@ N/S alignment
                 <img
                   src={preset.src}
                   alt={preset.alt}
-                  class="w-20 h-20 object-contain bg-white  rounded-md flex-shrink-0"
+                  class="w-20 h-20 object-contain bg-white rounded-md flex-shrink-0"
+                  classList={{
+                    "cursor-zoom-in": preset.src !== '/placeholder-preset.svg'
+                  }}
+                  onMouseEnter={(e) => {
+                    // Only show hover if not placeholder image
+                    if (preset.src !== '/placeholder-preset.svg') {
+                      setHoveredPreset(index());
+                      handleMouseMove(e);
+                    }
+                  }}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={() => setHoveredPreset(null)}
                 />
                 
                 {/* Text content */}
@@ -1467,7 +1473,7 @@ N/S alignment
         </div>
         
         {/* Popup image on hover */}
-        <Show when={hoveredPreset() !== null}>
+        <Show when={hoveredPreset() !== null && allPresets()[hoveredPreset()!].src !== '/placeholder-preset.svg'}>
           <div
             class="fixed z-50 pointer-events-none"
             style={{
