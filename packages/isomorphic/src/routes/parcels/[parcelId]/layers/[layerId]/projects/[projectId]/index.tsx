@@ -1123,6 +1123,11 @@ const DesignPresetContent = ({
   const [presetDescription, setPresetDescription] = createSignal("");
   const [savingPreset, setSavingPreset] = createSignal(false);
   const [deletingPresetId, setDeletingPresetId] = createSignal<string | null>(null);
+  const [editingPreset, setEditingPreset] = createSignal<any | null>(null);
+  const [showEditModal, setShowEditModal] = createSignal(false);
+  const [editName, setEditName] = createSignal("");
+  const [editDescription, setEditDescription] = createSignal("");
+  const [updatingPreset, setUpdatingPreset] = createSignal(false);
   
   // Fetch user presets on mount
   createEffect(async () => {
@@ -1230,6 +1235,55 @@ const DesignPresetContent = ({
     } finally {
       setDeletingPresetId(null);
     }
+  };
+  
+  const updatePreset = async () => {
+    if (!editName().trim() || !editDescription().trim()) {
+      showToast({ title: "Please provide both name and description", variant: "destructive" });
+      return;
+    }
+    
+    setUpdatingPreset(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/userpresets/${editingPreset()._id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            name: editName(),
+            description: editDescription(),
+            systemDesign: editingPreset().systemDesign,
+            thumbnail: editingPreset().thumbnail,
+            isPublic: editingPreset().isPublic || false,
+          }),
+          ...apiFetchOptions(),
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserPresets(userPresets().map(p => 
+          p._id === editingPreset()._id ? { ...p, name: editName(), description: editDescription() } : p
+        ));
+        showToast({ title: "Preset updated successfully!" });
+        setShowEditModal(false);
+        setEditingPreset(null);
+      } else {
+        showToast({ title: "Failed to update preset", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to update preset:", err);
+      showToast({ title: "Failed to update preset", variant: "destructive" });
+    } finally {
+      setUpdatingPreset(false);
+    }
+  };
+  
+  const openEditModal = (preset: any) => {
+    setEditingPreset(preset);
+    setEditName(preset.name);
+    setEditDescription(preset.description);
+    setShowEditModal(true);
   };
   
   const images = [
@@ -1453,19 +1507,36 @@ N/S alignment
                   </p>
                 </div>
                 
-                {/* Delete button for user presets */}
+                {/* Edit and Delete buttons for user presets */}
                 <Show when={preset.canDelete}>
-                  <button
-                    class="rounded-sm p-2 btn-danger ml-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deletePreset(preset.id);
-                    }}
-                    disabled={deletingPresetId() === preset.id}
-                    title="Delete preset"
-                  >
-                    <i class="fas fa-trash" />
-                  </button>
+                  <div class="flex gap-2">
+                    <button
+                      class="rounded-sm p-2 btn-default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (preset.type === 'user') {
+                          const userPreset = userPresets().find(p => p._id === preset.id);
+                          if (userPreset) {
+                            openEditModal(userPreset);
+                          }
+                        }
+                      }}
+                      title="Edit preset"
+                    >
+                      <i class="fas fa-edit" />
+                    </button>
+                    <button
+                      class="rounded-sm p-2 btn-danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deletePreset(preset.id);
+                      }}
+                      disabled={deletingPresetId() === preset.id}
+                      title="Delete preset"
+                    >
+                      <i class="fas fa-trash" />
+                    </button>
+                  </div>
                 </Show>
               </div>
             )}
@@ -1547,6 +1618,57 @@ N/S alignment
                 disabled={savingPreset()}
               >
                 {savingPreset() ? "Saving..." : "Save Preset"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Preset Modal */}
+        <Dialog open={showEditModal()} onOpenChange={setShowEditModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Preset</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Preset Name</label>
+                  <input
+                    type="text"
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    value={editName()}
+                    onInput={(e) => setEditName(e.currentTarget.value)}
+                    placeholder="e.g., My Custom Agroforestry Design"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    rows={3}
+                    value={editDescription()}
+                    onInput={(e) => setEditDescription(e.currentTarget.value)}
+                    placeholder="Describe your design configuration..."
+                  />
+                </div>
+              </div>
+            </DialogDescription>
+            <DialogFooter>
+              <button
+                class="rounded-sm p-2 btn-default"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingPreset(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                class="rounded-sm p-2 btn-default"
+                onClick={updatePreset}
+                disabled={updatingPreset()}
+              >
+                {updatingPreset() ? "Updating..." : "Update Preset"}
               </button>
             </DialogFooter>
           </DialogContent>
