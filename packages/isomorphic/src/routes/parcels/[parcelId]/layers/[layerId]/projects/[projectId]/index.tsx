@@ -1237,58 +1237,85 @@ N/S alignment
     },
   ];
 
-  const [presetIndex, setPresetIndex] = createSignal(0);
+  const [hoveredPreset, setHoveredPreset] = createSignal<number | null>(null);
+  const [mousePosition, setMousePosition] = createSignal({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
+  };
 
   return (
     <>
-      <div class="dark:bg-customdark1 bg-white text-black dark:text-white">
+      <div class="dark:bg-customdark1 bg-white text-black dark:text-white relative">
         <h2 class="font-bold text-lg mb-4">Design Presets</h2>
-        <div class="flex gap-2 mb-4">
-          <button
-            class="rounded-sm p-1 btn-default"
-            onClick={() =>
-              setPresetIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
-            }
-          >
-            <i class="fas fa-arrow-left" />
-          </button>
-          <button
-            class="rounded-sm p-1 btn-default"
-            onClick={() =>
-              setPresetIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
-            }
-          >
-            <i class="fas fa-arrow-right" />
-          </button>
+        
+        <div class="space-y-3">
+          <For each={images}>
+            {(preset, index) => (
+              <div
+                class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
+                onMouseEnter={(e) => {
+                  setHoveredPreset(index());
+                  handleMouseMove(e);
+                }}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={() => setHoveredPreset(null)}
+                onClick={() => {
+                  setSystem(preset.system);
+                  getSystemDesign();
+                  triggerFarmerAdvisorSelector();
+                }}
+              >
+                {/* Thumbnail */}
+                <img
+                  src={preset.src}
+                  alt={preset.alt}
+                  class="w-20 h-20 object-contain bg-white  rounded-md flex-shrink-0"
+                />
+                
+                {/* Text content */}
+                <div class="flex-1">
+                  <h3 class="font-semibold">{preset.alt}</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                    {preset.desc.trim()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </For>
         </div>
-
-        <div class="flex flex-col gap-2 justify-start ">
+        
+        {/* Popup image on hover */}
+        <Show when={hoveredPreset() !== null}>
           <div
-            class="flex relative whitespace-nowrap h-min-[200px] cursor-pointer"
-            onClick={() => {
-              setSystem(images[presetIndex()].system);
-              getSystemDesign();
-              triggerFarmerAdvisorSelector();
+            class="fixed z-50 pointer-events-none"
+            style={{
+              left: `${Math.min(mousePosition().x + 20, window.innerWidth - 340)}px`,
+              top: `${Math.min(Math.max(mousePosition().y - 150, 10), window.innerHeight - 300)}px`,
             }}
           >
-            <img
-              src={images[presetIndex()].src}
-              alt={images[presetIndex()].alt}
-              style={{ "min-height": "200px", "max-width": "500px" }}
-            />
-            <div class="absolute bg-gray-700 bg-opacity-80 h-full w-full opacity-0 hover:opacity-100 flex items-center justify-center">
-              <p
-                class="text-center font-serif italic text-white p-4"
-                style={{ "white-space": "pre-line" }}
-              >
-                {images[presetIndex()].desc}
+            <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-2xl border border-zinc-300 dark:border-slate-600">
+              <img
+                src={images[hoveredPreset()!].src}
+                alt={images[hoveredPreset()!].alt}
+                class="rounded-md object-contain"
+                style={{ 
+                  width: "500px", 
+                  height: "350px"
+                }}
+              />
+              <p class="text-xs text-center text-gray-600 dark:text-gray-400 mt-1">
+                Click to apply
               </p>
             </div>
           </div>
-          <Show when={isFreemium()}>
+        </Show>
+        
+        <Show when={isFreemium()}>
+          <div class="mt-4">
             <FreemiumBox />
-          </Show>
-        </div>
+          </div>
+        </Show>
       </div>
     </>
   );
