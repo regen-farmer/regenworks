@@ -273,6 +273,12 @@ export default function view() {
   >(undefined);
   const [previewing, setPreviewing] = createSignal(false);
   const [showSettings, setShowSettings] = createSignal(false);
+  
+  // Save preset state
+  const [showSavePresetModal, setShowSavePresetModal] = createSignal(false);
+  const [presetName, setPresetName] = createSignal("");
+  const [presetDescription, setPresetDescription] = createSignal("");
+  const [savingPreset, setSavingPreset] = createSignal(false);
 
   async function saveSystem() {
     setSaving(true);
@@ -303,6 +309,70 @@ export default function view() {
 
     // scenarioDataRefresh();
   }
+  
+  const saveAsPreset = async () => {
+    if (!presetName().trim() || !presetDescription().trim()) {
+      showToast({ title: "Please provide both name and description", variant: "destructive" });
+      return;
+    }
+    
+    setSavingPreset(true);
+    try {
+      // Try to capture a thumbnail from the map if available
+      let thumbnail = null;
+      const mapElement = document.getElementById('layerMapShow');
+      if (mapElement && map) {
+        try {
+          const canvas = map.getCanvas();
+          thumbnail = canvas.toDataURL('image/png');
+        } catch (err) {
+          console.log('Could not capture map thumbnail:', err);
+        }
+      }
+      
+      // Clean the system design to only include species IDs
+      const cleanSystemDesign = {
+        ...system,
+        rows: system.rows.map((row: any) => ({
+          ...row,
+          groundcover: typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover,
+          sequence: row.sequence ? row.sequence.map((seq: any) => ({
+            ...seq,
+            species: typeof seq.species === 'object' ? seq.species._id : seq.species
+          })) : []
+        }))
+      };
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/userpresets`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: presetName(),
+            description: presetDescription(),
+            systemDesign: cleanSystemDesign,
+            thumbnail,
+            isPublic: false,
+          }),
+          ...apiFetchOptions(),
+        }
+      );
+      
+      if (response.ok) {
+        showToast({ title: "Preset saved successfully!" });
+        setShowSavePresetModal(false);
+        setPresetName("");
+        setPresetDescription("");
+      } else {
+        showToast({ title: "Failed to save preset", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to save preset:", err);
+      showToast({ title: "Failed to save preset", variant: "destructive" });
+    } finally {
+      setSavingPreset(false);
+    }
+  };
 
   const [isFarmerAdvisorSelectorOpen, setIsFarmerAdvisorSelectorOpen] =
     createSignal(false);
@@ -345,6 +415,58 @@ export default function view() {
           setModalOpen={setDuplicateModalOpen}
           refetchScenarios={refetch}
         />
+        
+        {/* Save Preset Modal */}
+        <Dialog open={showSavePresetModal()} onOpenChange={setShowSavePresetModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Design as Preset</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Preset Name</label>
+                  <input
+                    type="text"
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    value={presetName()}
+                    onInput={(e) => setPresetName(e.currentTarget.value)}
+                    placeholder="e.g., My Custom Agroforestry Design"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    rows={3}
+                    value={presetDescription()}
+                    onInput={(e) => setPresetDescription(e.currentTarget.value)}
+                    placeholder="Describe your design configuration..."
+                  />
+                </div>
+              </div>
+            </DialogDescription>
+            <DialogFooter>
+              <button
+                class="rounded-sm p-2 btn-default"
+                onClick={() => {
+                  setShowSavePresetModal(false);
+                  setPresetName("");
+                  setPresetDescription("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                class="rounded-sm p-2 btn-default"
+                onClick={saveAsPreset}
+                disabled={savingPreset()}
+              >
+                {savingPreset() ? "Saving..." : "Save Preset"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <div
           style={{
             display: "flex",
@@ -999,13 +1121,29 @@ export default function view() {
 
                   <div>
                     <div class="flex justify-between px-2	 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1">
-                      <A
+                      <div>                        
+                        <button
+                          class="rounded-sm p-1 mr-2 my-2 btn-default"
+                          onClick={() => setShowSavePresetModal(true)}
+                          title="Save current design as preset"
+                        >
+                          <i class="fas fa-save" /> Save as Preset
+                        </button>
+                        <button
+                          class="rounded-sm p-1 my-2 btn-default"
+                          onClick={() => setDuplicateModalOpen(true)}
+                          title="Duplicate scenario"
+                        >
+                          <i class="fa-regular fa-copy" /> Duplicate
+                        </button>
+                        </div>
+                      {/* <A
                         end={true}
                         href={`/parcels/${params.parcelId}/layers/${params.layerId}`}
                         class="rounded-sm p-1 mr-1 my-2 btn-default "
                       >
                         <i class="fas fa-arrow-left" /> Back to field
-                      </A>
+                      </A> */}
 
                       <div class="form-group">
                         <button
@@ -1034,13 +1172,7 @@ export default function view() {
                         >
                           Generate preview
                         </button>
-                        <button
-                          class="rounded-sm p-1 my-2 btn-default"
-                          onClick={() => setDuplicateModalOpen(true)}
-                          title="Duplicate scenario"
-                        >
-                          <i class="fa-regular fa-copy" /> Duplicate
-                        </button>
+
                       </div>
 
                       {/* <div class='form-group'>
