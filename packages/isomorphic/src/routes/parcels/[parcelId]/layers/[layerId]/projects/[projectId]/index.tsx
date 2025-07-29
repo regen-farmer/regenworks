@@ -514,7 +514,7 @@ export default function view() {
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="edit" style={{ overflow: "overlay", flex: "1 1 auto" }}>
+                    <TabsContent value="edit" style={{ overflow: "hidden", flex: "1 1 auto", display: "flex", "flex-direction": "column" }}>
                       <Show when={!isFreemium()} fallback={
                         <div style={{ height: "100%", display: "flex", "align-items": "center", "justify-content": "center", padding: "40px" }}>
                           <div class="text-center">
@@ -530,7 +530,7 @@ export default function view() {
                           </div>
                         </div>
                       }>
-                      <div style={{ height: "100%", position: "relative" }}>
+                      <div style={{ flex: "1 1 auto", position: "relative", overflow: "auto" }}>
                         <button
                           class="absolute top-2 right-2 rounded-sm p-2 btn-default z-10"
                           onClick={() => setShowSettings(prev => !prev)}
@@ -594,7 +594,6 @@ export default function view() {
                             "flex-direction": "row",
                             "min-height": "100%",
                             "padding-bottom": "20px",
-                            flex: 1,
                           }}
                         >
                         <For each={system.rows}>
@@ -1079,6 +1078,52 @@ export default function view() {
                         />
                         </div>
                       </div>
+                      
+                      {/* Sticky bottom bar */}
+                      <div class="flex justify-between px-2 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1" style={{ "flex-shrink": 0 }}>
+                        <div>                        
+                          <button
+                            class="rounded-sm p-1 mr-2 my-2 btn-default"
+                            onClick={() => setShowSavePresetModal(true)}
+                            title="Save current design as preset"
+                          >
+                            <i class="fas fa-save" /> Save as Preset
+                          </button>
+                          <button
+                            class="rounded-sm p-1 my-2 btn-default"
+                            onClick={() => setDuplicateModalOpen(true)}
+                            title="Duplicate scenario"
+                          >
+                            <i class="fa-regular fa-copy" /> Duplicate
+                          </button>
+                        </div>
+                        <div class="form-group">
+                          <button
+                            type="submit"
+                            class="rounded-sm p-1 mr-2 my-2 btn-default"
+                            onclick={saveSystem}
+                            disabled={
+                              saving() ||
+                              (!savedSystem() || !system
+                                ? false
+                                : systemDesignsAreEqual(
+                                    JSON.stringify(savedSystem()),
+                                    JSON.stringify(system)
+                                  ))
+                            }
+                          >
+                            Save system design
+                          </button>
+                          <button
+                            type="submit"
+                            class="rounded-sm p-1 mr-2 my-2 btn-default"
+                            onclick={getSystemDesign}
+                            disabled={previewing() || system.rows.length === 0}
+                          >
+                            Generate preview
+                          </button>
+                        </div>
+                      </div>
                     </Show>
                   </TabsContent>
 
@@ -1118,74 +1163,6 @@ export default function view() {
                     />
                   </TabsContent>
                 </Tabs>
-
-                  <div>
-                    <div class="flex justify-between px-2	 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1">
-                      <div>                        
-                        <button
-                          class="rounded-sm p-1 mr-2 my-2 btn-default"
-                          onClick={() => setShowSavePresetModal(true)}
-                          title="Save current design as preset"
-                        >
-                          <i class="fas fa-save" /> Save as Preset
-                        </button>
-                        <button
-                          class="rounded-sm p-1 my-2 btn-default"
-                          onClick={() => setDuplicateModalOpen(true)}
-                          title="Duplicate scenario"
-                        >
-                          <i class="fa-regular fa-copy" /> Duplicate
-                        </button>
-                        </div>
-                      {/* <A
-                        end={true}
-                        href={`/parcels/${params.parcelId}/layers/${params.layerId}`}
-                        class="rounded-sm p-1 mr-1 my-2 btn-default "
-                      >
-                        <i class="fas fa-arrow-left" /> Back to field
-                      </A> */}
-
-                      <div class="form-group">
-                        <button
-                          // disabled={submitDisabled()}
-                          type="submit"
-                          class="rounded-sm p-1 mr-2 my-2 btn-default"
-                          onclick={saveSystem}
-                          disabled={
-                            saving() ||
-                            (!savedSystem() || !system
-                              ? false
-                              : systemDesignsAreEqual(
-                                  JSON.stringify(savedSystem()),
-                                  JSON.stringify(system)
-                                ))
-                          }
-                        >
-                          Save system design
-                        </button>
-                        <button
-                          // disabled={submitDisabled()}
-                          type="submit"
-                          class="rounded-sm p-1 mr-2 my-2 btn-default"
-                          onclick={getSystemDesign}
-                          disabled={previewing() || system.rows.length === 0}
-                        >
-                          Generate preview
-                        </button>
-
-                      </div>
-
-                      {/* <div class='form-group'>
-                      <button
-                        // disabled={submitDisabled()}
-                        type='submit'
-                        class='btn btn-default'
-                      >
-                        Preview
-                      </button>
-                    </div> */}
-                    </div>
-                  </div>
                 </div>
               </>
               {/* </form> */}
