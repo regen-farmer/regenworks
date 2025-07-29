@@ -966,6 +966,7 @@ export default function view() {
                       system={system}
                       setSystem={setSystem}
                       logSystem={logSystem}
+                      map={map}
                       triggerFarmerAdvisorSelector={() => {
                         setTimeout(() => {
                           const key = "farmerAdvisorSelector";
@@ -1113,8 +1114,111 @@ const DesignPresetContent = ({
   setSystem,
   logSystem,
   getSystemDesign,
+  map,
   triggerFarmerAdvisorSelector,
 }: any) => {
+  const [userPresets, setUserPresets] = createSignal<any[]>([]);
+  const [showSaveModal, setShowSaveModal] = createSignal(false);
+  const [presetName, setPresetName] = createSignal("");
+  const [presetDescription, setPresetDescription] = createSignal("");
+  const [savingPreset, setSavingPreset] = createSignal(false);
+  const [deletingPresetId, setDeletingPresetId] = createSignal<string | null>(null);
+  
+  // Fetch user presets on mount
+  createEffect(async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/userpresets`,
+        apiFetchOptions()
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUserPresets(data.presets || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user presets:", err);
+    }
+  });
+  
+  const saveAsPreset = async () => {
+    if (!presetName().trim() || !presetDescription().trim()) {
+      showToast({ title: "Please provide both name and description", variant: "destructive" });
+      return;
+    }
+    
+    setSavingPreset(true);
+    try {
+      // Try to capture a thumbnail from the map if available
+      let thumbnail = null;
+      const mapElement = document.getElementById('layerMapShow');
+      if (mapElement && map) {
+        try {
+          const canvas = map.getCanvas();
+          thumbnail = canvas.toDataURL('image/png');
+        } catch (err) {
+          console.log('Could not capture map thumbnail:', err);
+        }
+      }
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/userpresets`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: presetName(),
+            description: presetDescription(),
+            systemDesign: system,
+            thumbnail,
+            isPublic: false,
+          }),
+          ...apiFetchOptions(),
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserPresets([data.preset, ...userPresets()]);
+        showToast({ title: "Preset saved successfully!" });
+        setShowSaveModal(false);
+        setPresetName("");
+        setPresetDescription("");
+      } else {
+        showToast({ title: "Failed to save preset", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to save preset:", err);
+      showToast({ title: "Failed to save preset", variant: "destructive" });
+    } finally {
+      setSavingPreset(false);
+    }
+  };
+  
+  const deletePreset = async (presetId: string) => {
+    setDeletingPresetId(presetId);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/userpresets/${presetId}`,
+        {
+          method: "DELETE",
+          body: JSON.stringify({}),
+          ...apiFetchOptions(),
+        }
+      );
+      
+      if (response.ok) {
+        setUserPresets(userPresets().filter(p => p._id !== presetId));
+        showToast({ title: "Preset deleted successfully!" });
+      } else {
+        showToast({ title: "Failed to delete preset", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error("Failed to delete preset:", err);
+      showToast({ title: "Failed to delete preset", variant: "destructive" });
+    } finally {
+      setDeletingPresetId(null);
+    }
+  };
+  
   const images = [
     {
       src: "/freemium/presets/Silvoarable.jpg",
@@ -1237,6 +1341,28 @@ N/S alignment
     },
   ];
 
+  // Combine predefined and user presets
+  const allPresets = createMemo(() => {
+    const predefinedPresets = images.map((img, idx) => ({
+      ...img,
+      id: `predefined-${idx}`,
+      type: 'predefined',
+      canDelete: false,
+    }));
+    
+    const userPresetsMapped = userPresets().map(preset => ({
+      id: preset._id,
+      type: 'user',
+      canDelete: true,
+      src: preset.thumbnail || '/placeholder-preset.svg',
+      alt: preset.name,
+      desc: preset.description,
+      system: preset.systemDesign,
+    }));
+    
+    return [...userPresetsMapped, ...predefinedPresets];
+  });
+  
   const [hoveredPreset, setHoveredPreset] = createSignal<number | null>(null);
   const [mousePosition, setMousePosition] = createSignal({ x: 0, y: 0 });
 
@@ -1247,10 +1373,19 @@ N/S alignment
   return (
     <>
       <div class="dark:bg-customdark1 bg-white text-black dark:text-white relative">
-        <h2 class="font-bold text-lg mb-4">Design Presets</h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-bold text-lg">Design Presets</h2>
+          <button
+            class="rounded-sm p-2 btn-default"
+            onClick={() => setShowSaveModal(true)}
+            title="Save current design as preset"
+          >
+            <i class="fas fa-save" /> Save as Preset
+          </button>
+        </div>
         
         <div class="space-y-3">
-          <For each={images}>
+          <For each={allPresets()}>
             {(preset, index) => (
               <div
                 class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
@@ -1275,11 +1410,31 @@ N/S alignment
                 
                 {/* Text content */}
                 <div class="flex-1">
-                  <h3 class="font-semibold">{preset.alt}</h3>
+                  <h3 class="font-semibold">
+                    {preset.alt}
+                    {preset.type === 'user' && (
+                      <span class="text-xs text-gray-500 ml-2">(Personal)</span>
+                    )}
+                  </h3>
                   <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
                     {preset.desc.trim()}
                   </p>
                 </div>
+                
+                {/* Delete button for user presets */}
+                <Show when={preset.canDelete}>
+                  <button
+                    class="rounded-sm p-2 btn-danger ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletePreset(preset.id);
+                    }}
+                    disabled={deletingPresetId() === preset.id}
+                    title="Delete preset"
+                  >
+                    <i class="fas fa-trash" />
+                  </button>
+                </Show>
               </div>
             )}
           </For>
@@ -1296,8 +1451,8 @@ N/S alignment
           >
             <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-2xl border border-zinc-300 dark:border-slate-600">
               <img
-                src={images[hoveredPreset()!].src}
-                alt={images[hoveredPreset()!].alt}
+                src={allPresets()[hoveredPreset()!].src}
+                alt={allPresets()[hoveredPreset()!].alt}
                 class="rounded-md object-contain"
                 style={{ 
                   width: "500px", 
@@ -1316,6 +1471,54 @@ N/S alignment
             <FreemiumBox />
           </div>
         </Show>
+        
+        {/* Save Preset Modal */}
+        <Dialog open={showSaveModal()} onOpenChange={setShowSaveModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Design as Preset</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Preset Name</label>
+                  <input
+                    type="text"
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    value={presetName()}
+                    onInput={(e) => setPresetName(e.currentTarget.value)}
+                    placeholder="e.g., My Custom Agroforestry Design"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    rows={3}
+                    value={presetDescription()}
+                    onInput={(e) => setPresetDescription(e.currentTarget.value)}
+                    placeholder="Describe your design configuration..."
+                  />
+                </div>
+              </div>
+            </DialogDescription>
+            <DialogFooter>
+              <button
+                class="rounded-sm p-2 btn-default"
+                onClick={() => setShowSaveModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                class="rounded-sm p-2 btn-primary"
+                onClick={saveAsPreset}
+                disabled={savingPreset()}
+              >
+                {savingPreset() ? "Saving..." : "Save Preset"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

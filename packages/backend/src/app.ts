@@ -43,6 +43,7 @@ import farmflowRoutes from "./routes/farmflows.ts";
 import rotationRoutes from "./routes/rotations.ts";
 import varietyRoutes from "./routes/varieties.ts";
 import stripeRoutes from "./routes/stripe.ts";
+import userPresetsRoutes from "./routes/userpresets.ts";
 
 export type Auth0IDToken = {
   nickname: string;
@@ -236,6 +237,7 @@ app.use("", farmflowRoutes);
 app.use("", rotationRoutes);
 app.use("", varietyRoutes);
 app.use("", stripeRoutes);
+app.use("", userPresetsRoutes);
 
 // 404 ROUTE
 app.get(
