@@ -43,6 +43,7 @@ import farmflowRoutes from "./routes/farmflows.ts";
 import rotationRoutes from "./routes/rotations.ts";
 import varietyRoutes from "./routes/varieties.ts";
 import stripeRoutes from "./routes/stripe.ts";
+import userPresetsRoutes from "./routes/userpresets.ts";
 
 export type Auth0IDToken = {
   nickname: string;
@@ -66,6 +67,7 @@ app.use(cors());
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
 app.use(methodOverride("_method")); // USE "_method" TO PASS PUT AND DELETE REQUESTS
@@ -235,6 +237,7 @@ app.use("", farmflowRoutes);
 app.use("", rotationRoutes);
 app.use("", varietyRoutes);
 app.use("", stripeRoutes);
+app.use("", userPresetsRoutes);
 
 // 404 ROUTE
 app.get(

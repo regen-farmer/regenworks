@@ -13,13 +13,13 @@
   "keywords": [],
   "author": "",
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@types/node": "^24.0.6",
+    "@biomejs/biome": "^2.1.2",
+    "@types/node": "^24.1.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "mongoose": "^8.16.1",
-    "proj4": "^2.19.4",
-    "stripe": "^17.7.0"
+    "mongoose": "^8.16.5",
+    "proj4": "^2.19.10",
+    "stripe": "^18.3.0"
   }
 }

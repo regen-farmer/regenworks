@@ -57,10 +57,15 @@ const SystemInfoBox: Component<{
 			<For each={props.systemLayout.speciesCountArray}>
 				{(speciesEl) => {
 					// console.log("species", systemDesignData()?.species);
+					const species = props.species.speciesById.get(speciesEl.species);
+					if (!species) {
+						console.warn(`Species not found:`, speciesEl.species, typeof speciesEl.species);
+						return null;
+					}
 					return (
 						<>
 							<span>
-								{props.species.speciesById.get(speciesEl.species).nameCommon}:{" "}
+								{species.nameCommon}:{" "}
 								{speciesEl.count}
 							</span>
 							<br />
@@ -78,10 +83,15 @@ const SystemInfoBox: Component<{
 					<For each={Object.keys(props.systemLayout.groundCoverAreasM2)}>
 						{(speciesEl) => {
 							console.log("groundcover", speciesEl);
+							const species = props.species.speciesById.get(speciesEl);
+							if (!species) {
+								console.warn(`Ground cover species not found: ${speciesEl}`);
+								return null;
+							}
 							return (
 								<>
 									<span>
-										{props.species.speciesById.get(speciesEl).nameCommon}:{" "}
+										{species.nameCommon}:{" "}
 										{`${(
 											Number.parseFloat(
 												props.systemLayout.groundCoverAreasM2[speciesEl],
