@@ -39,9 +39,8 @@ export const subscriptions = createMemo(() => {
 export const allowFarmCreation = createMemo<boolean>(() => {
   if (getMongoDBUser) {
     return (
-      getMongoDBUser()?.isAdmin ||
-      (paymentPlan() === "farm" &&
-        getMongoDBUser() &&
+      getMongoDBUser()?.isAdmin || 
+      (getMongoDBUser() &&
         getMongoDBUser().parcels?.length < 1) ||
       (paymentPlan() === "advisor" &&
         getMongoDBUser() &&
