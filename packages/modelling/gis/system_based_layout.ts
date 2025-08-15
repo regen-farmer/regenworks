@@ -12,6 +12,7 @@ import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import { makeInitialLine } from "./make_line.ts";
 import { makeTreeRowLines } from "./make_tree_row_lines.ts";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
+import { makeAllStripPolygons } from "./make_all_strip_polygons.ts";
 import { applyHeadland } from "./headland.ts";
 import SystemDesign, {
 	type ISystemDesignSchema,
@@ -60,7 +61,15 @@ export function systemBasedLayout(
 		systemdesign.rows,
 	);
 
-	// GROUND COVER AREAS
+	// ALL STRIP POLYGONS (for accurate area calculations)
+	const { stripPolygons, stripAreasM2 } = makeAllStripPolygons(
+		headlandPolygon,
+		lineIntersectingAreaInsideMargin,
+		widthOfAreaInsideMargin,
+		systemdesign.rows,
+	);
+
+	// GROUND COVER AREAS (for display/visualization)
 	const { groundCoverAreas, groundCoverAreasM2 } = makeGroundCoverAreas(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,

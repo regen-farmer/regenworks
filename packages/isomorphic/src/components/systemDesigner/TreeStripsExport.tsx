@@ -36,6 +36,46 @@ const TreeStripsExport: Component<{
 
     const strips: TreeStripData[] = [];
     
+    // First, generate strip polygons for ALL rows (not just ground cover)
+    // This mimics what makeGroundCoverAreas does but for all strips
+    const allStripPolygons: any[] = [];
+    let accumulatingWidth = 0;
+    const rowPatterns = props.systemDesign.rows;
+    let currentRowIdx = 0;
+    
+    // Generate polygons for each strip based on the row pattern
+    for (let i = 0; i < props.systemLayout.treeRowLines.length; i++) {
+      const rowLine = props.systemLayout.treeRowLines[i];
+      const rowDesign = rowPatterns[rowLine.systemDesignRowIndex];
+      
+      if (rowDesign && rowDesign.width > 0) {
+        // Create the strip polygon using the same logic as makeGroundCoverAreas
+        let stripPolygon = null;
+        
+        try {
+          // Buffer the line to create the strip polygon
+          const bufferPolygon = buffer(rowLine.line, rowDesign.width / 2, { units: "meters" });
+          
+          // Intersect with headland polygon if it exists
+          if (props.systemLayout.headlandPolygon && bufferPolygon) {
+            const intersected = intersect({
+              type: "FeatureCollection",
+              features: [props.systemLayout.headlandPolygon, bufferPolygon]
+            });
+            stripPolygon = intersected;
+          } else {
+            stripPolygon = bufferPolygon;
+          }
+        } catch (error) {
+          console.warn("Failed to generate strip polygon:", error);
+        }
+        
+        allStripPolygons[i] = stripPolygon;
+      } else {
+        allStripPolygons[i] = null;
+      }
+    }
+    
     // Track the current pattern instance (which repetition of the full pattern we're in)
     let currentPatternInstance = 1;
     let lastSeenPatternIndex = -1;
@@ -73,13 +113,29 @@ const TreeStripsExport: Component<{
       // Calculate strip length for this specific row line
       const stripLength = turfLength(rowLine.line, { units: "meters" });
       
-      // Calculate the area for this specific strip
+      // Calculate the actual area using the pre-generated polygon
       let stripArea = 0;
       const stripWidth = rowDesign.width || 0;
       
-      // For now, use simplified area calculation
-      // TODO: Could improve by finding the actual polygon for this specific strip
-      stripArea = stripWidth * stripLength;
+      // Use the pre-generated polygon for this strip
+      const stripPolygon = allStripPolygons[index];
+      if (stripPolygon) {
+        try {
+          stripArea = turfArea(stripPolygon);
+        } catch (error) {
+          console.error("Failed to calculate area from polygon:", error);
+          // Skip this strip if we can't calculate its area properly
+          return;
+        }
+      } else if (stripWidth === 0) {
+        // Zero-width strips have zero area
+        stripArea = 0;
+      } else {
+        // If we couldn't generate a polygon for a strip with width > 0, 
+        // something is wrong - skip this strip
+        console.error(`Failed to generate polygon for strip at index ${index}`);
+        return;
+      }
 
       // Count trees for this specific row line
       const speciesCounts = new Map<string, number>();
