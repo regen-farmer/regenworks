@@ -1167,9 +1167,11 @@ export default function view() {
                     <ExportAndShareContent
                       scenarioData={scenarioData}
                       params={params}
-                      systemLayout={systemLayout()}
+                      systemLayout={systemLayout}
+                      system={system}
                       species={species()}
                       mapInstance={mapInstance()}
+                      onGeneratePreview={getSystemDesign}
                     />
                   </TabsContent>
 
@@ -1814,7 +1816,7 @@ N/S alignment
   );
 };
 
-const ExportAndShareContent = ({ scenarioData, params, systemLayout, species, mapInstance }: any) => {
+const ExportAndShareContent = ({ scenarioData, params, systemLayout, system, species, mapInstance, onGeneratePreview }: any) => {
   const [exportingKML, setExportingKML] = createSignal(false);
   const [isPublic, setIsPublic] = createSignal(scenarioData()?.project.isPublic || false);
   const [exportingImage, setExportingImage] = createSignal(false);
@@ -2058,15 +2060,14 @@ const ExportAndShareContent = ({ scenarioData, params, systemLayout, species, ma
         </div>
       </div>
 
-      {systemLayout && scenarioData()?.project.systemdesign && (
-        <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
-          <TreeStripsExport 
-            systemLayout={systemLayout} 
-            systemDesign={scenarioData()?.project.systemdesign}
-            species={species}
-          />
-        </div>
-      )}
+      <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
+        <TreeStripsExport 
+          systemLayout={systemLayout()} 
+          systemDesign={systemLayout() || !scenarioData()?.project.systemdesign ? system : scenarioData()?.project.systemdesign}
+          species={species}
+          onGeneratePreview={onGeneratePreview}
+        />
+      </div>
 
       <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
         <h3 class="font-semibold mb-2">Public Preview</h3>

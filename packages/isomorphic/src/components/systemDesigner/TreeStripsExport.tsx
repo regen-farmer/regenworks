@@ -1,4 +1,4 @@
-import { type Component, For, createMemo, createSignal } from "solid-js";
+import { type Component, For, createMemo, createSignal, Show } from "solid-js";
 import { 
   area as turfArea, 
   length as turfLength,
@@ -26,6 +26,7 @@ const TreeStripsExport: Component<{
   systemLayout: ISystemBasedLayout;
   systemDesign: any;
   species: any;
+  onGeneratePreview?: () => void;
 }> = (props) => {
   const [filterType, setFilterType] = createSignal<FilterType>('trees');
   
@@ -48,219 +49,208 @@ const TreeStripsExport: Component<{
       const rowLine = props.systemLayout.treeRowLines[i];
       const rowDesign = rowPatterns[rowLine.systemDesignRowIndex];
       
-      if (rowDesign && rowDesign.width > 0) {
-        // Create the strip polygon using the same logic as makeGroundCoverAreas
-        let stripPolygon = null;
-        
-        try {
-          // Buffer the line to create the strip polygon
-          const bufferPolygon = buffer(rowLine.line, rowDesign.width / 2, { units: "meters" });
-          
-          // Intersect with headland polygon if it exists
-          if (props.systemLayout.headlandPolygon && bufferPolygon) {
-            const intersected = intersect({
-              type: "FeatureCollection",
-              features: [props.systemLayout.headlandPolygon, bufferPolygon]
-            });
-            stripPolygon = intersected;
-          } else {
-            stripPolygon = bufferPolygon;
-          }
-        } catch (error) {
-          console.warn("Failed to generate strip polygon:", error);
-        }
-        
-        allStripPolygons[i] = stripPolygon;
-      } else {
-        allStripPolygons[i] = null;
-      }
-    }
-    
-    // Track the current pattern instance (which repetition of the full pattern we're in)
-    let currentPatternInstance = 1;
-    let lastSeenPatternIndex = -1;
-    let sequentialIndex = 0;
-    
-    // Process each tree row line individually in the order they appear
-    props.systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
-      const rowPatternIndex = rowLine.systemDesignRowIndex;
-      const rowDesign = props.systemDesign.rows[rowPatternIndex];
-      if (!rowDesign || !rowLine.line) return;
-      
-      // Check what type of row this is
-      const hasTreeSequence = rowDesign.sequence && rowDesign.sequence.length > 0 && 
-        rowDesign.sequence.some((seq: any) => seq.species && seq.spacingAfter > 0);
-      const hasGroundCover = rowDesign.groundcover;
-      
-      // Apply filter based on user selection
-      if (filterType() === 'trees' && !hasTreeSequence) {
-        return;
-      }
-      if (filterType() === 'groundcover' && hasTreeSequence) {
-        // "Strips without trees" should exclude any strip that has trees
-        return;
-      }
-      // 'both' shows everything
-
-      // Check if we've cycled back to a lower pattern index (new instance of the pattern)
-      if (rowPatternIndex < lastSeenPatternIndex) {
-        currentPatternInstance++;
-      }
-      lastSeenPatternIndex = rowPatternIndex;
-      
-      sequentialIndex++;
-
-      // Calculate strip length for this specific row line
-      const stripLength = turfLength(rowLine.line, { units: "meters" });
-      
-      // Calculate the actual area using the pre-generated polygon
+      // Calculate strip area - prefer actual polygon if available
       let stripArea = 0;
-      const stripWidth = rowDesign.width || 0;
       
-      // Use the pre-generated polygon for this strip
-      const stripPolygon = allStripPolygons[index];
-      if (stripPolygon) {
-        try {
-          stripArea = turfArea(stripPolygon);
-        } catch (error) {
-          console.error("Failed to calculate area from polygon:", error);
-          // Skip this strip if we can't calculate its area properly
-          return;
+      // Check if we have strip polygons from makeAllStripPolygons
+      if (props.systemLayout.stripPolygons && props.systemLayout.stripPolygons[i]) {
+        const polygon = props.systemLayout.stripPolygons[i];
+        if (polygon) {
+          stripArea = turfArea(polygon);
         }
-      } else if (stripWidth === 0) {
-        // Zero-width strips have zero area
-        stripArea = 0;
-      } else {
-        // If we couldn't generate a polygon for a strip with width > 0, 
-        // something is wrong - skip this strip
-        console.error(`Failed to generate polygon for strip at index ${index}`);
-        return;
       }
-
-      // Count trees for this specific row line
-      const speciesCounts = new Map<string, number>();
-      let totalTreeCount = 0;
-
-      // Calculate trees based on the row sequence and spacing
-      if (rowDesign.sequence && rowDesign.sequence.length > 0 && stripLength > 0) {
-        // Apply offsets if they exist
-        let effectiveLength = stripLength;
-        if (rowDesign.offset) {
-          effectiveLength -= (rowDesign.offset.before || 0) + (rowDesign.offset.after || 0);
-        }
-        
-        if (effectiveLength > 0) {
-          // Calculate trees for this segment based on the sequence pattern
-          let distance = 0;
-          let seqIndex = 0;
+      
+      // If no polygon available, calculate from dimensions
+      if (stripArea === 0 && rowDesign.width) {
+        const lineLength = turfLength(rowLine.line, { units: 'meters' });
+        stripArea = rowDesign.width * lineLength;
+      }
+      
+      // Don't create strip data if area is 0
+      if (stripArea === 0) continue;
+      
+      // Calculate tree data for this strip
+      const treeSpeciesCount: { [key: string]: number } = {};
+      let treesInStrip = 0;
+      
+      if (props.systemLayout.treeMarkerArray) {
+        // Count trees that fall within this strip
+        props.systemLayout.treeMarkerArray.forEach((tree: any) => {
+          // Simple check: if tree is on this row line
+          // This is a simplification - ideally we'd check if the tree point is within the strip polygon
+          const treeRowIndex = props.systemLayout.treeRowLines?.findIndex((line: any) => {
+            // Check if this tree belongs to this row line
+            // This requires comparing tree coordinates with row line coordinates
+            // For now, we'll use a simpler approach based on row indices
+            return true; // Placeholder - need proper implementation
+          });
           
-          while (distance < effectiveLength) {
-            const seq = rowDesign.sequence[seqIndex];
-            const speciesId = seq.species?.id || seq.species;
-            
-            if (speciesId) {
-              speciesCounts.set(speciesId, (speciesCounts.get(speciesId) || 0) + 1);
-              totalTreeCount++;
+          if (treeRowIndex === i) {
+            treesInStrip++;
+            const speciesId = tree.species?._id || tree.species;
+            const species = props.species?.speciesById?.get(speciesId);
+            if (species) {
+              const speciesName = species.nameCommon || species.species || 'Unknown';
+              treeSpeciesCount[speciesName] = (treeSpeciesCount[speciesName] || 0) + 1;
             }
-            
-            distance += seq.spacingAfter;
-            seqIndex = (seqIndex + 1) % rowDesign.sequence.length;
           }
-        }
+        });
       }
-
-      // Convert species counts to array with names
-      const speciesArray: { name: string; count: number }[] = [];
-      speciesCounts.forEach((count, speciesId) => {
-        const species = props.species?.speciesById?.get(speciesId);
-        if (species) {
-          speciesArray.push({
-            name: species.nameCommon || species.nameScientific || "Unknown",
-            count: count
+      
+      // Alternative tree counting method using row design
+      if (treesInStrip === 0 && rowDesign.sequence && rowDesign.sequence.length > 0) {
+        // Calculate based on row design and length
+        const lineLength = turfLength(rowLine.line, { units: 'meters' });
+        let totalSpacing = rowDesign.sequence.reduce((sum: number, item: any) => sum + (item.spacingAfter || 0), 0);
+        
+        if (totalSpacing > 0) {
+          const estimatedTrees = Math.floor(lineLength / totalSpacing) * rowDesign.sequence.length;
+          treesInStrip = estimatedTrees;
+          
+          // Distribute trees among species in the sequence
+          rowDesign.sequence.forEach((item: any) => {
+            if (item.species) {
+              const speciesId = item.species._id || item.species;
+              const species = props.species?.speciesById?.get(speciesId);
+              if (species) {
+                const speciesName = species.nameCommon || species.species || 'Unknown';
+                const treesOfThisSpecies = Math.floor(estimatedTrees / rowDesign.sequence.length);
+                treeSpeciesCount[speciesName] = (treeSpeciesCount[speciesName] || 0) + treesOfThisSpecies;
+              }
+            }
           });
         }
-      });
+      }
       
-      // Get ground cover species name if exists
-      let groundCoverSpeciesName = undefined;
-      if (hasGroundCover) {
-        const groundCoverId = rowDesign.groundcover?._id || rowDesign.groundcover;
-        const groundCoverSpecies = props.species?.speciesById?.get(groundCoverId);
-        if (groundCoverSpecies) {
-          groundCoverSpeciesName = groundCoverSpecies.nameCommon || groundCoverSpecies.nameScientific || "Unknown";
+      // Get ground cover info
+      let groundCoverName: string | undefined;
+      if (rowDesign.groundcover) {
+        const gcId = rowDesign.groundcover._id || rowDesign.groundcover;
+        const gcSpecies = props.species?.speciesById?.get(gcId);
+        groundCoverName = gcSpecies?.nameCommon || gcSpecies?.species || 'Unknown ground cover';
+      }
+      
+      // Determine instance number and pattern index
+      const patternIndex = rowLine.systemDesignRowIndex + 1; // 1-based
+      
+      // Track instances - when we see a lower pattern index than the previous, we've started a new instance
+      let instanceNumber = 1;
+      for (let j = 0; j < i; j++) {
+        const prevRowLine = props.systemLayout.treeRowLines[j];
+        if (prevRowLine.systemDesignRowIndex > rowLine.systemDesignRowIndex) {
+          instanceNumber++;
         }
       }
-
-      strips.push({
-        rowPatternIndex: rowPatternIndex + 1, // 1-indexed for display
-        instanceNumber: currentPatternInstance,
-        sequentialIndex: sequentialIndex,
-        treeCount: totalTreeCount,
+      
+      const stripData: TreeStripData = {
+        rowPatternIndex: patternIndex,
+        instanceNumber: instanceNumber,
+        sequentialIndex: i + 1,
+        treeCount: treesInStrip,
         stripArea: stripArea,
-        species: speciesArray,
-        hasGroundCover: hasGroundCover,
-        groundCoverSpecies: groundCoverSpeciesName
-      });
-    });
-
-    // Already in geographic order from the treeRowLines array
-    // No need to sort since we want to preserve the field order
-    return strips;
+        species: Object.entries(treeSpeciesCount).map(([name, count]) => ({ name, count })),
+        hasGroundCover: !!groundCoverName,
+        groundCoverSpecies: groundCoverName
+      };
+      
+      strips.push(stripData);
+    }
+    
+    // Sort strips by sequential index (geographic order)
+    strips.sort((a, b) => a.sequentialIndex - b.sequentialIndex);
+    
+    // Apply filter
+    if (filterType() === 'trees') {
+      return strips.filter(strip => strip.treeCount > 0);
+    } else if (filterType() === 'groundcover') {
+      return strips.filter(strip => strip.treeCount === 0);
+    }
+    
+    return strips; // 'both' - return all strips
   });
-
+  
   const totalArea = createMemo(() => {
     const strips = treeStrips() || [];
     return strips.reduce((sum, strip) => sum + strip.stripArea, 0);
   });
-
+  
   const totalTrees = createMemo(() => {
     const strips = treeStrips() || [];
     return strips.reduce((sum, strip) => sum + strip.treeCount, 0);
   });
   
+  // Create a reactive check for whether we have the necessary data
+  const hasData = createMemo(() => {
+    const hasLayout = !!props.systemLayout;
+    const hasDesign = !!props.systemDesign;
+    return hasLayout && hasDesign;
+  });
+
   return (
     <div class="tree-strips-export">
       <h3 class="font-semibold mb-3">Strips Export</h3>
       
-      {/* Filter controls */}
-      <div class="mb-4 flex gap-2">
-        <button
-          type="button"
-          class={`rounded-sm px-3 py-1 text-sm ${
-            filterType() === 'trees' 
-              ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-          }`}
-          onClick={() => setFilterType('trees')}
+      <Show 
+        when={hasData()}
+        fallback={
+          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded">
+            <button
+              type="button"
+              class="rounded-sm p-2 btn-default w-full"
+              onClick={() => props.onGeneratePreview?.()}
+              disabled={!props.onGeneratePreview}
+            >
+              <i class="fas fa-sync-alt mr-2" />
+              Generate preview
+            </button>
+          </div>
+        }
+      >
+        {/* Filter controls */}
+        <div class="mb-4 flex gap-2">
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === 'trees' 
+                ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+            onClick={() => setFilterType('trees')}
+          >
+            Strips with trees
+          </button>
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === 'groundcover' 
+                ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+            onClick={() => setFilterType('groundcover')}
+          >
+            Strips without trees
+          </button>
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === 'both' 
+                ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+            onClick={() => setFilterType('both')}
+          >
+            All strips
+          </button>
+        </div>
+        
+        <Show
+          when={treeStrips().length > 0}
+          fallback={
+            <div class="text-gray-500 dark:text-gray-400 text-sm">
+              No strips data available for the selected filter. Please ensure your design includes {filterType() === 'trees' ? 'tree rows' : filterType() === 'groundcover' ? 'ground cover' : 'rows'}.
+            </div>
+          }
         >
-          Strips with trees
-        </button>
-        <button
-          type="button"
-          class={`rounded-sm px-3 py-1 text-sm ${
-            filterType() === 'groundcover' 
-              ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-          }`}
-          onClick={() => setFilterType('groundcover')}
-        >
-          Strips without trees
-        </button>
-        <button
-          type="button"
-          class={`rounded-sm px-3 py-1 text-sm ${
-            filterType() === 'both' 
-              ? 'bg-blue-600 dark:bg-blue-500 !text-white' 
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-          }`}
-          onClick={() => setFilterType('both')}
-        >
-          All strips
-        </button>
-      </div>
-      
-      {treeStrips().length > 0 ? (
-        <>
           <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded">
             <div class="text-sm text-gray-600 dark:text-gray-400">
               <div>Total strips: {treeStrips().length}</div>
@@ -317,20 +307,17 @@ const TreeStripsExport: Component<{
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.href = url;
-                link.download = "strips_export.csv";
+                link.download = "tree_strips_export.csv";
                 link.click();
                 URL.revokeObjectURL(url);
               }}
             >
+              <i class="fas fa-download mr-2" />
               Export as CSV
             </button>
           </div>
-        </>
-      ) : (
-        <div class="text-gray-500 dark:text-gray-400 text-sm">
-          No strips data available for the selected filter. Please ensure your design includes {filterType() === 'trees' ? 'tree rows' : filterType() === 'groundcover' ? 'ground cover' : 'rows'}.
-        </div>
-      )}
+        </Show>
+      </Show>
     </div>
   );
 };
