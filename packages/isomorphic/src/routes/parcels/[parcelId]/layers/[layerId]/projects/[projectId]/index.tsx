@@ -101,6 +101,7 @@ export default function view() {
 
   const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
   const [show3D, setShow3D] = createSignal(false);
+  const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | undefined>();
 
   const [system, setSystem] = createStore<ISystemDesignSchema>({
     rows: [],
@@ -181,11 +182,15 @@ export default function view() {
           zoom: 16,
           maxZoom: 20,
           pitch: 0,
+          // @ts-ignore - preserveDrawingBuffer is needed for canvas export
+          preserveDrawingBuffer: true, // Enable canvas export capability
 
           ...mapCameraState,
           // bearing: 40,
           // maxPitch: 85,
         });
+
+        setMapInstance(map); // Store the map instance
 
         map.on("load", () => {
           window.dispatchEvent(new Event("resize"));
@@ -1164,6 +1169,7 @@ export default function view() {
                       params={params}
                       systemLayout={systemLayout()}
                       species={species()}
+                      mapInstance={mapInstance()}
                     />
                   </TabsContent>
 
@@ -1808,9 +1814,10 @@ N/S alignment
   );
 };
 
-const ExportAndShareContent = ({ scenarioData, params, systemLayout, species }: any) => {
+const ExportAndShareContent = ({ scenarioData, params, systemLayout, species, mapInstance }: any) => {
   const [exportingKML, setExportingKML] = createSignal(false);
   const [isPublic, setIsPublic] = createSignal(scenarioData()?.project.isPublic || false);
+  const [exportingImage, setExportingImage] = createSignal(false);
 
   createEffect(() => {
     if (scenarioData()) {
@@ -1901,20 +1908,154 @@ const ExportAndShareContent = ({ scenarioData, params, systemLayout, species }: 
     setIsPublic(value);
   }
 
+  function exportMapImage() {
+    setExportingImage(true);
+    
+    if (!mapInstance) {
+      console.error("Map not initialized");
+      setExportingImage(false);
+      showToast({
+        title: "Error",
+        description: "Map is not ready. Please wait for it to load.",
+        variant: "error"
+      });
+      return;
+    }
+    
+    const captureMap = () => {
+      try {
+        // Get the map canvas
+        const mapCanvas = mapInstance.getCanvas();
+        
+        if (!mapCanvas) {
+          console.error("Map canvas not found");
+          setExportingImage(false);
+          showToast({
+            title: "Error",
+            description: "Failed to find map canvas",
+            variant: "error"
+          });
+          return;
+        }
+        
+        // Create a new canvas to draw the map
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = mapCanvas.width;
+        exportCanvas.height = mapCanvas.height;
+        const context = exportCanvas.getContext('2d');
+        
+        if (!context) {
+          console.error("Failed to get canvas context");
+          setExportingImage(false);
+          return;
+        }
+        
+        // Draw the map canvas to our export canvas
+        context.drawImage(mapCanvas, 0, 0);
+        
+        // Log canvas dimensions for debugging
+        console.log("Canvas dimensions:", exportCanvas.width, "x", exportCanvas.height);
+        
+        // Convert canvas to blob
+        exportCanvas.toBlob((blob: Blob | null) => {
+          if (!blob) {
+            console.error("Failed to create image blob");
+            setExportingImage(false);
+            showToast({
+              title: "Error",
+              description: "Failed to capture map image. Try refreshing the page.",
+              variant: "error"
+            });
+            return;
+          }
+          
+          console.log("Blob created, size:", blob.size);
+          
+          if (blob.size < 1000) {
+            console.error("Image too small, likely empty");
+            showToast({
+              title: "Error",
+              description: "Map capture resulted in empty image. Please try again.",
+              variant: "error"
+            });
+            setExportingImage(false);
+            return;
+          }
+          
+          // Create download link
+          const url = URL.createObjectURL(blob);
+          const element = document.createElement("a");
+          const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+          const filename = `${scenarioData()?.project.layer.name || 'map'}_${scenarioData()?.project.name || 'export'}_${timestamp}.png`;
+          
+          element.setAttribute("href", url);
+          element.setAttribute("download", filename);
+          element.style.display = "none";
+          document.body.appendChild(element);
+          
+          element.click();
+          
+          document.body.removeChild(element);
+          URL.revokeObjectURL(url);
+          setExportingImage(false);
+          
+          showToast({
+            title: "Success",
+            description: "Map image exported successfully",
+            variant: "success"
+          });
+        }, 'image/png', 1.0);
+      } catch (error) {
+        console.error("Error exporting map image:", error);
+        setExportingImage(false);
+        showToast({
+          title: "Error",
+          description: "Failed to export map image",
+          variant: "error"
+        });
+      }
+    };
+    
+    // Wait for map to be idle and fully rendered
+    if (mapInstance.isMoving() || !mapInstance.loaded()) {
+      mapInstance.once('idle', () => {
+        // Force a repaint and wait for next frame
+        mapInstance.triggerRepaint();
+        requestAnimationFrame(captureMap);
+      });
+    } else {
+      // Map is already idle, trigger repaint and capture
+      mapInstance.triggerRepaint();
+      requestAnimationFrame(captureMap);
+    }
+  }
+
   return (
     <div class="dark:bg-customdark1 bg-white text-black dark:text-white">
       <h2 class="font-bold text-lg mb-4">Export and Share</h2>
       
       <div class="mb-6">
-        <h3 class="font-semibold mb-2">Export KML</h3>
-        <button
-          type="button"
-          class="rounded-sm p-1 my-2 btn-default"
-          onClick={exportKML}
-          disabled={exportingKML()}
-        >
-          Export trees from system design as KML
-        </button>
+        <h3 class="font-semibold mb-2">Export Options</h3>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportKML}
+            disabled={exportingKML()}
+          >
+            <i class="fas fa-map-marker-alt mr-2" />
+            {exportingKML() ? "Exporting..." : "Export trees as KML"}
+          </button>
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportMapImage}
+            disabled={exportingImage()}
+          >
+            <i class="fas fa-image mr-2" />
+            {exportingImage() ? "Capturing..." : "Export map as image"}
+          </button>
+        </div>
       </div>
 
       {systemLayout && scenarioData()?.project.systemdesign && (
