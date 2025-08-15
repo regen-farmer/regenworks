@@ -1,8 +1,8 @@
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
-import { featureCollection, helpers as turf } from "@turf/turf";
+import { featureCollection, point as turfPoint, helpers as turf, centroid, midpoint } from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 
-function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
+function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?: boolean) {
 	console.log("Draw layers!");
 
 	// const layerNames = ['correctgeometry', 'alleys', 'strips', 'col', 'trees']
@@ -291,6 +291,100 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout) {
 				"fill-outline-color": "#F0F8FF",
 			},
 		});
+	}
+
+	// Add row labels in 2D mode
+	console.log("Adding row labels - show3D:", show3D, "treeRowsVisible:", treeRowsVisible, "treeRowLines:", systemLayout.treeRowLines);
+	
+	// Always remove labels first if in 3D mode
+	if (show3D) {
+		if (map.getLayer("row-labels")) {
+			map.removeLayer("row-labels");
+			console.log("Removed row labels (3D mode active)");
+		}
+		if (map.getSource("row-labels")) {
+			map.removeSource("row-labels");
+		}
+		return; // Exit early if in 3D mode
+	}
+	
+	if (treeRowsVisible && systemLayout.treeRowLines && systemLayout.treeRowLines.length > 0) {
+		// Create label features for each row line
+		const rowLabels: any[] = [];
+		const instanceCountByPattern = new Map<number, number>();
+		let lastSeenPatternIndex = -1;
+		let currentInstance = 1;
+
+		console.log("Processing", systemLayout.treeRowLines.length, "tree row lines");
+
+		systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
+			const patternIndex = rowLine.systemDesignRowIndex;
+			
+			// Track instance numbers
+			if (patternIndex < lastSeenPatternIndex) {
+				currentInstance++;
+			}
+			lastSeenPatternIndex = patternIndex;
+
+			console.log("Row line", index, "- Pattern:", patternIndex, "Instance:", currentInstance, "Line:", rowLine.line);
+
+			// Get the midpoint of the line for label placement
+			if (rowLine.line && rowLine.line.geometry && rowLine.line.geometry.coordinates && rowLine.line.geometry.coordinates.length > 0) {
+				const coords = rowLine.line.geometry.coordinates;
+				const midIndex = Math.floor(coords.length / 2);
+				const labelPoint = turfPoint(coords[midIndex], {
+					label: `${currentInstance}-${patternIndex + 1}`, // Instance-Row format
+					instance: currentInstance,
+					row: patternIndex + 1
+				});
+				rowLabels.push(labelPoint);
+				console.log("Added label at:", coords[midIndex], "Label:", `${currentInstance}-${patternIndex + 1}`);
+			} else {
+				console.log("No valid coordinates for row line", index);
+			}
+		});
+
+		console.log("Total labels created:", rowLabels.length);
+
+		const labelCollection = featureCollection(rowLabels);
+		console.log("Label collection:", labelCollection);
+
+		// Remove existing label layer if it exists
+		if (map.getLayer("row-labels")) {
+			map.removeLayer("row-labels");
+		}
+		if (map.getSource("row-labels")) {
+			map.removeSource("row-labels");
+		}
+
+		// Add the label layer
+		map.addSource("row-labels", {
+			type: "geojson",
+			data: labelCollection
+		});
+
+		// Use simpler text settings for better compatibility
+		map.addLayer({
+			id: "row-labels",
+			type: "symbol",
+			source: "row-labels",
+			layout: {
+				"text-field": ["get", "label"],
+				"text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+				"text-size": 14,
+				"text-anchor": "center",
+				"text-allow-overlap": true,  // Changed to true to ensure labels show
+				"symbol-placement": "point"
+			},
+			paint: {
+				"text-color": "#FFFFFF",  // White text
+				"text-halo-color": "#000000",
+				"text-halo-width": 2,
+				"text-halo-blur": 0.5
+			}
+		});
+		
+		console.log("Row labels layer added successfully");
 	}
 }
 

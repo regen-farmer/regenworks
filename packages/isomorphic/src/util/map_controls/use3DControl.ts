@@ -21,10 +21,12 @@ class Show3DControl implements maplibregl.IControl {
 	_3dModelsButtonSpan: HTMLSpanElement | undefined;
 	_show3D: () => boolean;
 	_setShow3D: (show: boolean) => void;
+	_onToggle?: () => void;
 
-	constructor(_show3D: () => boolean, _setShow3D: (show: boolean) => void) {
+	constructor(_show3D: () => boolean, _setShow3D: (show: boolean) => void, _onToggle?: () => void) {
 		this._show3D = _show3D;
 		this._setShow3D = _setShow3D;
+		this._onToggle = _onToggle;
 	}
 
 	onAdd(map: maplibregl.Map) {
@@ -42,6 +44,10 @@ class Show3DControl implements maplibregl.IControl {
 			const button = document.getElementById("MapButton3D");
 			if (button) {
 				button.innerHTML = `3D\n\r${this._show3D() ? "ON" : "OFF"}`;
+			}
+			// Call the callback if provided
+			if (this._onToggle) {
+				this._onToggle();
 			}
 		});
 
@@ -80,7 +86,14 @@ export function use3DControl(
 		| Accessor<speciesData | undefined>,
 ) {
 	const [show3D, setShow3D] = createSignal(false);
-	map.addControl(new Show3DControl(show3D, setShow3D));
+	
+	// Create a control with a callback that triggers when toggled
+	const control = new Show3DControl(show3D, setShow3D, () => {
+		// This callback will be triggered when the 3D toggle changes
+		// The parent component can listen to the show3D signal changes
+	});
+	
+	map.addControl(control);
 	map.addControl(deckOverlay as unknown as IControl);
 
 	createEffect(() => {
@@ -201,4 +214,6 @@ export function use3DControl(
 			});
 		}
 	});
+
+	return { show3D, setShow3D };
 }

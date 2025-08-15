@@ -100,6 +100,7 @@ export default function view() {
   }>();
 
   const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
+  const [show3D, setShow3D] = createSignal(false);
 
   const [system, setSystem] = createStore<ISystemDesignSchema>({
     rows: [],
@@ -192,7 +193,16 @@ export default function view() {
           const areaLat = scenarioData()?.project.layer.lat;
           const areaLng = scenarioData()?.project.layer.lng;
 
-          use3DControl(map, systemLayout, species);
+          // Use the 3D control and link it to our local signal
+          const { show3D: controlShow3D, setShow3D: controlSetShow3D } = use3DControl(map, systemLayout, species);
+          
+          // Create an effect to sync the control's signal with our local one
+          createEffect(() => {
+            const is3D = controlShow3D();
+            setShow3D(is3D);
+            // The global effect will handle the redraw
+          });
+          
           useMeasureControl(map);
 
           if (withinDKBBox(areaLng!, areaLat!)) {
@@ -258,9 +268,10 @@ export default function view() {
     }
   });
 
+  // Draw the system design when the layout or 3D mode changes
   createEffect(() => {
     if (mapLoaded() && systemLayout() && map) {
-      drawSystemDesign(map, systemLayout()!);
+      drawSystemDesign(map, systemLayout()!, show3D());
     }
   });
 
