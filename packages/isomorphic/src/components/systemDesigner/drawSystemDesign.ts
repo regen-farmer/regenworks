@@ -1,6 +1,7 @@
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { featureCollection, point as turfPoint, helpers as turf, centroid, midpoint } from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
+import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";
 
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?: boolean) {
 	console.log("Draw layers! show3D:", show3D);
@@ -9,22 +10,40 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 	if (show3D) {
 		console.log("3D mode active - hiding all 2D layers for photorealistic view");
 		
-		// List of all 2D layers to hide
-		const layersToHide = [
-			"strips", "strips-border", "strips-points",
+		// List of static layers to hide
+		const staticLayersToHide = [
+			"strips-points",
 			"headland-sides", "margin-polygon", "headland-polygon",
 			"bearing-sides", "headland-intersection-points",
-			"treeRowLines", "trees", "row-labels"
+			"treeRowLines", "row-labels"
 		];
 		
-		// Remove all 2D layers
-		for (const layerId of layersToHide) {
+		// Remove all static 2D layers
+		for (const layerId of staticLayersToHide) {
 			if (map.getLayer(layerId)) {
 				map.removeLayer(layerId);
 			}
 			if (map.getSource(layerId)) {
 				map.removeSource(layerId);
 			}
+		}
+		
+		// Remove all dynamic species-based layers
+		// Get all layers and filter for our dynamic ones
+		const style = map.getStyle();
+		if (style && style.layers) {
+			style.layers.forEach((layer: any) => {
+				if (layer.id.startsWith('trees-') || 
+				    layer.id.startsWith('strips-') || 
+				    layer.id.startsWith('strips-border-')) {
+					if (map.getLayer(layer.id)) {
+						map.removeLayer(layer.id);
+					}
+					if (map.getSource(layer.id)) {
+						map.removeSource(layer.id);
+					}
+				}
+			});
 		}
 		
 		return; // Exit early - only 3D models should be visible
@@ -61,11 +80,18 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 
 	const treeMarkerArray = systemLayout.treeMarkerArray;
 
-	const treeCircles = featureCollection(
-		treeMarkerArray?.map((tree) => tree.circle),
-	);
+	// Group trees by species for color coding
+	const treesBySpecies = new Map<string, any[]>();
+	treeMarkerArray?.forEach((tree) => {
+		const speciesId = tree.species?._id || tree.species || 'unknown';
+		if (!treesBySpecies.has(speciesId)) {
+			treesBySpecies.set(speciesId, []);
+		}
+		treesBySpecies.get(speciesId)!.push(tree);
+	});
 
 	console.log("speciesCountArray", systemLayout.speciesCountArray);
+	console.log("treesBySpecies", treesBySpecies);
 
 	// console.log("treeMarkerArray", treeMarkerArray);
 
@@ -93,44 +119,80 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 	// })
 
 	if (stripsVisible) {
+		// Group ground cover areas by species
+		const groundCoverBySpecies = new Map<string, any[]>();
+		systemLayout.groundCoverAreas?.forEach((area: any) => {
+			const speciesId = area.properties?.speciesId || 'unknown';
+			if (!groundCoverBySpecies.has(speciesId)) {
+				groundCoverBySpecies.set(speciesId, []);
+			}
+			groundCoverBySpecies.get(speciesId)!.push(area);
+		});
+
+		// Remove old generic strips layers
 		if (map.getSource("strips")) {
 			map.removeLayer("strips");
 			map.removeSource("strips");
 		}
-
-		map.addLayer({
-			id: "strips",
-			type: "fill",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: groundCoverAreas,
-			},
-			layout: {},
-			paint: {
-				"fill-color": "#002eff",
-				"fill-opacity": 0.5,
-			},
-		});
-
 		if (map.getSource("strips-border")) {
 			map.removeLayer("strips-border");
 			map.removeSource("strips-border");
 		}
 
-		map.addLayer({
-			id: "strips-border",
-			type: "line",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: groundCoverAreas,
-			},
-			layout: {},
-			paint: {
-				"line-color": "rgba(255,255,255,1)",
-				"line-width": 1,
-			},
+		// Remove all existing ground cover layers
+		groundCoverBySpecies.forEach((areas, speciesId) => {
+			const layerId = `strips-${speciesId}`;
+			const borderLayerId = `strips-border-${speciesId}`;
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
+			}
+			if (map.getSource(layerId)) {
+				map.removeSource(layerId);
+			}
+			if (map.getLayer(borderLayerId)) {
+				map.removeLayer(borderLayerId);
+			}
+			if (map.getSource(borderLayerId)) {
+				map.removeSource(borderLayerId);
+			}
+		});
+
+		// Create layers for each ground cover species with unique colors
+		groundCoverBySpecies.forEach((areas, speciesId) => {
+			const groundCoverCollection = turf.featureCollection(areas);
+			const layerId = `strips-${speciesId}`;
+			const borderLayerId = `strips-border-${speciesId}`;
+			const color = getSpeciesColorWithAlpha(speciesId, 0.5);
+			
+			map.addLayer({
+				id: layerId,
+				type: "fill",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: groundCoverCollection,
+				},
+				layout: {},
+				paint: {
+					"fill-color": color,
+					"fill-opacity": 1, // Alpha is already in the color
+				},
+			});
+
+			map.addLayer({
+				id: borderLayerId,
+				type: "line",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: groundCoverCollection,
+				},
+				layout: {},
+				paint: {
+					"line-color": "rgba(255,255,255,0.8)",
+					"line-width": 1,
+				},
+			});
 		});
 
 		if (showHeadlandPolygonPoints) {
@@ -286,25 +348,47 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 		});
 	}
 	if (treesVisible) {
+		// Remove all existing tree layers
+		treesBySpecies.forEach((trees, speciesId) => {
+			const layerId = `trees-${speciesId}`;
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
+			}
+			if (map.getSource(layerId)) {
+				map.removeSource(layerId);
+			}
+		});
+		
+		// Also remove the old generic trees layer if it exists
 		if (map.getSource("trees")) {
 			map.removeLayer("trees");
 			map.removeSource("trees");
 		}
 
-		map.addLayer({
-			id: "trees",
-			type: "fill",
-			//@ts-ignore
-			source: {
-				type: "geojson",
-				data: treeCircles,
-			},
-			layout: {},
-			paint: {
-				"fill-color": "#7eff36",
-				"fill-opacity": 0.8,
-				"fill-outline-color": "#F0F8FF",
-			},
+		// Create a layer for each species with unique color
+		treesBySpecies.forEach((trees, speciesId) => {
+			const treeCircles = featureCollection(
+				trees.map((tree) => tree.circle)
+			);
+			
+			const layerId = `trees-${speciesId}`;
+			const color = getSpeciesColor(speciesId);
+			
+			map.addLayer({
+				id: layerId,
+				type: "fill",
+				//@ts-ignore
+				source: {
+					type: "geojson",
+					data: treeCircles,
+				},
+				layout: {},
+				paint: {
+					"fill-color": color,
+					"fill-opacity": 0.8,
+					"fill-outline-color": "#FFFFFF",
+				},
+			});
 		});
 	}
 

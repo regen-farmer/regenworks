@@ -1,6 +1,7 @@
 import { type Component, For } from "solid-js";
 import { difference as turfDifference, area as turfArea } from "@turf/turf";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import { getSpeciesColor } from "~/util/speciesColors";
 
 const SystemInfoBox: Component<{
 	systemLayout: ISystemBasedLayout;
@@ -63,13 +64,21 @@ const SystemInfoBox: Component<{
 						return null;
 					}
 					return (
-						<>
+						<div style={{ display: "flex", "align-items": "center", "margin-bottom": "4px" }}>
+							<div
+								style={{
+									width: "16px",
+									height: "16px",
+									"background-color": getSpeciesColor(speciesEl.species),
+									border: "1px solid rgba(0,0,0,0.3)",
+									"margin-right": "8px",
+									"flex-shrink": "0"
+								}}
+							/>
 							<span>
-								{species.nameCommon}:{" "}
-								{speciesEl.count}
+								{species.nameCommon}: {speciesEl.count}
 							</span>
-							<br />
-						</>
+						</div>
 					);
 				}}
 			</For>
@@ -89,7 +98,17 @@ const SystemInfoBox: Component<{
 								return null;
 							}
 							return (
-								<>
+								<div style={{ display: "flex", "align-items": "center", "margin-bottom": "4px" }}>
+									<div
+										style={{
+											width: "16px",
+											height: "16px",
+											"background-color": getSpeciesColor(speciesEl),
+											border: "1px solid rgba(0,0,0,0.3)",
+											"margin-right": "8px",
+											"flex-shrink": "0"
+										}}
+									/>
 									<span>
 										{species.nameCommon}:{" "}
 										{`${(
@@ -103,8 +122,7 @@ const SystemInfoBox: Component<{
 											props.scenarioData.project.layer.geometry,
 										)}%)`}
 									</span>
-									<br />
-								</>
+								</div>
 							);
 						}}
 					</For>
