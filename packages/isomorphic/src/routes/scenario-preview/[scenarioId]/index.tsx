@@ -28,6 +28,7 @@ const RouteDesignPreview: Component = () => {
 
 	const species = getSpecies();
 	const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
+	const [show3D, setShow3D] = createSignal(false);
 
 	const scenarioData = getScenario(params.scenarioId);
 
@@ -69,7 +70,18 @@ const RouteDesignPreview: Component = () => {
 				const areaLat = scenarioData()?.project.layer.lat;
 				const areaLng = scenarioData()?.project.layer.lng;
 
-				use3DControl(map, systemLayout, species);
+				// Use the 3D control and sync with our local signal
+				const { show3D: controlShow3D } = use3DControl(map, systemLayout, species);
+				
+				// Sync the control's signal with our local one
+				createEffect(() => {
+					const is3D = controlShow3D();
+					setShow3D(is3D);
+					// Redraw the system design when 3D mode changes
+					if (systemLayout()) {
+						drawSystemDesign(map, systemLayout()!, is3D);
+					}
+				});
 
 				if (withinDKBBox(areaLng!, areaLat!)) {
 					useHCControl(map);
@@ -80,13 +92,50 @@ const RouteDesignPreview: Component = () => {
 				map.addControl(nav, "top-right");
 
 				setMapLoaded(true);
+
+				// Add the field polygon layer (stays visible in both 2D and 3D modes)
+				const unparsedFieldPolygon: any = scenarioData()?.project.layer.geometry;
+				const fieldPolygon = JSON.parse(
+					unparsedFieldPolygon!.replace(/&#34;/g, '"')
+				);
+
+				const fieldPolygonVisible = true;
+				if (fieldPolygonVisible) {
+					if (map.getSource("fieldPolygon")) {
+						map.removeLayer("fieldPolygon");
+						map.removeSource("fieldPolygon");
+					}
+
+					map.addLayer({
+						id: "fieldPolygon",
+						type: "fill",
+						//@ts-ignore
+						source: {
+							type: "geojson",
+							data: {
+								type: "Feature",
+								geometry: {
+									type: "Polygon",
+									coordinates: fieldPolygon.geometry.coordinates,
+								},
+								properties: {}
+							},
+						},
+						layout: {},
+						paint: {
+							"fill-color": "#b4aab4",
+							"fill-opacity": 0.5,
+							"fill-outline-color": "#F0F8FF",
+						},
+					});
+				}
 			});
 		}
 	});
 
 	createEffect(() => {
 		if (mapLoaded() && systemLayout()) {
-			drawSystemDesign(map, systemLayout()!);
+			drawSystemDesign(map, systemLayout()!, show3D());
 		}
 	});
 
