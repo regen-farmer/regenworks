@@ -3,19 +3,34 @@ import { featureCollection, point as turfPoint, helpers as turf, centroid, midpo
 import type { Map as MLMap } from "maplibre-gl";
 
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?: boolean) {
-	console.log("Draw layers!");
+	console.log("Draw layers! show3D:", show3D);
 
-	// const layerNames = ['correctgeometry', 'alleys', 'strips', 'col', 'trees']
-	// layerNames.forEach((layerName) => {
-	//   map.removeLayer(layerName)
-	// })
+	// In 3D mode, hide all 2D layers for photorealistic view
+	if (show3D) {
+		console.log("3D mode active - hiding all 2D layers for photorealistic view");
+		
+		// List of all 2D layers to hide
+		const layersToHide = [
+			"strips", "strips-border", "strips-points",
+			"headland-sides", "margin-polygon", "headland-polygon",
+			"bearing-sides", "headland-intersection-points",
+			"treeRowLines", "trees", "row-labels"
+		];
+		
+		// Remove all 2D layers
+		for (const layerId of layersToHide) {
+			if (map.getLayer(layerId)) {
+				map.removeLayer(layerId);
+			}
+			if (map.getSource(layerId)) {
+				map.removeSource(layerId);
+			}
+		}
+		
+		return; // Exit early - only 3D models should be visible
+	}
 
-	// var trees = layoutData()?.trees
-
-	// var alleys = layoutData()?.alleys
-
-	// var strips = layoutData()?.strips
-
+	// 2D mode - draw all the layers
 	const debug = true;
 
 	const stripsVisible = true;
@@ -295,18 +310,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 
 	// Add row labels in 2D mode
 	console.log("Adding row labels - show3D:", show3D, "treeRowsVisible:", treeRowsVisible, "treeRowLines:", systemLayout.treeRowLines);
-	
-	// Always remove labels first if in 3D mode
-	if (show3D) {
-		if (map.getLayer("row-labels")) {
-			map.removeLayer("row-labels");
-			console.log("Removed row labels (3D mode active)");
-		}
-		if (map.getSource("row-labels")) {
-			map.removeSource("row-labels");
-		}
-		return; // Exit early if in 3D mode
-	}
 	
 	if (treeRowsVisible && systemLayout.treeRowLines && systemLayout.treeRowLines.length > 0) {
 		// Create label features for each row line
