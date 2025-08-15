@@ -1,4 +1,4 @@
-export type ISystemBasedLayout {
+export type ISystemBasedLayout = {
 	treeRowLines: any;
 	groundCoverAreas: any;
 	headlandSides: any;

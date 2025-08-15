@@ -51,6 +51,7 @@ import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.t
 import { getSpecies } from "~/util/getSpecies.ts";
 import { getScenario } from "~/util/getScenario.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
+import { TreeStripsExport } from "~/components/systemDesigner/TreeStripsExport.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
@@ -1150,6 +1151,8 @@ export default function view() {
                     <ExportAndShareContent
                       scenarioData={scenarioData}
                       params={params}
+                      systemLayout={systemLayout()}
+                      species={species()}
                     />
                   </TabsContent>
 
@@ -1794,7 +1797,7 @@ N/S alignment
   );
 };
 
-const ExportAndShareContent = ({ scenarioData, params }: any) => {
+const ExportAndShareContent = ({ scenarioData, params, systemLayout, species }: any) => {
   const [exportingKML, setExportingKML] = createSignal(false);
   const [isPublic, setIsPublic] = createSignal(scenarioData()?.project.isPublic || false);
 
@@ -1903,7 +1906,17 @@ const ExportAndShareContent = ({ scenarioData, params }: any) => {
         </button>
       </div>
 
-      <div class="mb-6">
+      {systemLayout && scenarioData()?.project.systemdesign && (
+        <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
+          <TreeStripsExport 
+            systemLayout={systemLayout} 
+            systemDesign={scenarioData()?.project.systemdesign}
+            species={species}
+          />
+        </div>
+      )}
+
+      <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
         <h3 class="font-semibold mb-2">Public Preview</h3>
         <div style={{ display: "flex", "align-items": "center" }}>
           Enable public preview of system design:
