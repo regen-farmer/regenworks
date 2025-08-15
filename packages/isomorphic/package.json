@@ -16,7 +16,7 @@
     "@types/mailchimp__mailchimp_transactional": "^1.0.11",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@xmldom/xmldom": "^0.9.5",
-    "vite": "^7.1.2"
+    "vite": "^6.0.0"
   },
   "dependencies": {
     "@auth/core": "^0.38.0",
