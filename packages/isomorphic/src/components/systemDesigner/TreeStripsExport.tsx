@@ -209,7 +209,7 @@ const TreeStripsExport: Component<{
             }`}
             onClick={() => setFilterType("trees")}
           >
-            Strips with trees
+            Tree Strips
           </button>
           <button
             type="button"
@@ -220,7 +220,7 @@ const TreeStripsExport: Component<{
             }`}
             onClick={() => setFilterType("groundcover")}
           >
-            Strips without trees
+            Alleys
           </button>
           <button
             type="button"
