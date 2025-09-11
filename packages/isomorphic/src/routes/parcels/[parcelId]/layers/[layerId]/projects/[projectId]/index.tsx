@@ -1082,8 +1082,11 @@ export default function view() {
                                   </div>
                                 </div>
 
-                                <div class="flex w-full justify-center align-middle">
-                                  <i
+                                <div class="flex w-full items-center justify-center gap-2 py-1">
+                                  <button
+                                    type="button"
+                                    aria-label="Delete row"
+                                    class="flex items-center justify-center h-6 w-6 rounded-sm text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-500 transition"
                                     onClick={() => {
                                       setSystem("rows", (prev) => {
                                         const newRows = [...prev];
@@ -1092,12 +1095,12 @@ export default function view() {
                                       });
                                       logSystem();
                                     }}
-                                    class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
-                                  />
-
-                                  <p class="font-bold leading-9">
+                                  >
+                                    <i class="fa-solid fa-trash text-sm" />
+                                  </button>
+                                  <span class="font-bold leading-none select-none">
                                     Row {rowIdx() + 1}
-                                  </p>
+                                  </span>
                                 </div>
                               </div>
                             </>
