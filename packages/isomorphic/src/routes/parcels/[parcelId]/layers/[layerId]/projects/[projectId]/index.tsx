@@ -1291,6 +1291,47 @@ const DesignPresetContent = ({
       console.error("Failed to fetch user presets:", err);
     }
   });
+
+  // Clear previously drawn system design layers from the map
+  const clearSystemDesignLayers = () => {
+    try {
+      if (!map) return;
+      const staticLayersToRemove = [
+        "strips-points",
+        "headland-sides",
+        "margin-polygon",
+        "headland-polygon",
+        "bearing-sides",
+        "headland-intersection-points",
+        "treeRowLines",
+        "row-labels",
+      ];
+
+      // Remove known static layers
+      for (const id of staticLayersToRemove) {
+        if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(id)) map.removeSource(id);
+      }
+
+      // Remove dynamic species-based layers (trees-/strips-/strips-border-)
+      const style = map.getStyle();
+      if (style && style.layers) {
+        style.layers.forEach((layer: any) => {
+          const id = layer.id as string;
+          if (
+            id.startsWith("trees-") ||
+            id.startsWith("strips-") ||
+            id.startsWith("strips-border-")
+          ) {
+            if (map.getLayer(id)) map.removeLayer(id);
+            if (map.getSource(id)) map.removeSource(id);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("clearSystemDesignLayers error:", err);
+    }
+  };
   
   const saveAsPreset = async () => {
     if (!presetName().trim() || !presetDescription().trim()) {
@@ -1612,6 +1653,8 @@ N/S alignment
                 class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
                 onClick={() => {
                   console.log('Applying preset:', preset.system);
+                  // Clear existing system layers before drawing the preset
+                  clearSystemDesignLayers();
                   // Clean the preset system to only use IDs
                   const cleanSystem = {
                     ...preset.system,
