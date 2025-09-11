@@ -1,5 +1,6 @@
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { featureCollection, point as turfPoint, helpers as turf, centroid, midpoint } from "@turf/turf";
+import { toRepetitionLetter } from "~/util/repetition";
 import type { Map as MLMap } from "maplibre-gl";
 import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";
 
@@ -63,7 +64,7 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 	const treeRowsVisible = true;
 
 	const treeRowLines = featureCollection(
-		systemLayout.treeRowLines?.map((tree) => tree.line),
+		systemLayout.treeRowLines?.map((tree: any) => tree.line),
 	);
 	const groundCoverAreas = turf.featureCollection(
 		systemLayout.groundCoverAreas,
@@ -82,7 +83,7 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 
 	// Group trees by species for color coding
 	const treesBySpecies = new Map<string, any[]>();
-	treeMarkerArray?.forEach((tree) => {
+	treeMarkerArray?.forEach((tree: any) => {
 		const speciesId = tree.species?._id || tree.species || 'unknown';
 		if (!treesBySpecies.has(speciesId)) {
 			treesBySpecies.set(speciesId, []);
@@ -398,34 +399,34 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 	if (treeRowsVisible && systemLayout.treeRowLines && systemLayout.treeRowLines.length > 0) {
 		// Create label features for each row line
 		const rowLabels: any[] = [];
-		const instanceCountByPattern = new Map<number, number>();
 		let lastSeenPatternIndex = -1;
-		let currentInstance = 1;
+		let currentRepetition = 1; // 1-based; will convert to letters using toRepetitionLetter
 
 		console.log("Processing", systemLayout.treeRowLines.length, "tree row lines");
 
 		systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
 			const patternIndex = rowLine.systemDesignRowIndex;
 			
-			// Track instance numbers
+			// Track repetition transitions (pattern index wraps)
 			if (patternIndex < lastSeenPatternIndex) {
-				currentInstance++;
+				currentRepetition++;
 			}
 			lastSeenPatternIndex = patternIndex;
 
-			console.log("Row line", index, "- Pattern:", patternIndex, "Instance:", currentInstance, "Line:", rowLine.line);
+			const repLetter = toRepetitionLetter(currentRepetition);
+			console.log("Row line", index, "- Pattern:", patternIndex, "Repetition:", repLetter, "Line:", rowLine.line);
 
 			// Get the midpoint of the line for label placement
 			if (rowLine.line && rowLine.line.geometry && rowLine.line.geometry.coordinates && rowLine.line.geometry.coordinates.length > 0) {
 				const coords = rowLine.line.geometry.coordinates;
 				const midIndex = Math.floor(coords.length / 2);
 				const labelPoint = turfPoint(coords[midIndex], {
-					label: `${currentInstance}-${patternIndex + 1}`, // Instance-Row format
-					instance: currentInstance,
+					label: `${repLetter}-${patternIndex + 1}`, // RepetitionLetter-RowNumber
+					repetition: repLetter,
 					row: patternIndex + 1
 				});
 				rowLabels.push(labelPoint);
-				console.log("Added label at:", coords[midIndex], "Label:", `${currentInstance}-${patternIndex + 1}`);
+				console.log("Added label at:", coords[midIndex], "Label:", `${repLetter}-${patternIndex + 1}`);
 			} else {
 				console.log("No valid coordinates for row line", index);
 			}

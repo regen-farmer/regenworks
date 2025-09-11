@@ -8,10 +8,11 @@ import {
   helpers as turf,
 } from "@turf/turf";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import { toRepetitionLetter } from "~/util/repetition";
 
 interface TreeStripData {
   rowPatternIndex: number; // Index in the pattern (1, 2, etc.)
-  instanceNumber: number; // Which instance of the pattern (1st, 2nd, etc.)
+  repetitionNumber: number; // Which repetition of the full row set (A, B, C ...)
   sequentialIndex: number; // The order this strip appears on the field
   treeCount: number;
   stripArea: number; // in m²
@@ -40,9 +41,9 @@ const TreeStripsExport: Component<{
     // First, generate strip polygons for ALL rows (not just ground cover)
     // This mimics what makeGroundCoverAreas does but for all strips
     const rowPatterns = props.systemDesign.rows;
-    // Track instance numbers as we iterate through the generated row lines
+    // Track repetition numbers as we iterate through the generated row lines
     let lastSeenPatternIdx = -1; // 0-based
-    let currentInstance = 1;
+    let currentRepetition = 1;
 
     // Generate polygons for each strip based on the row pattern
     for (let i = 0; i < props.systemLayout.treeRowLines.length; i++) {
@@ -118,17 +119,17 @@ const TreeStripsExport: Component<{
           gcSpecies?.nameCommon || gcSpecies?.species || "Unknown ground cover";
       }
 
-      // Determine instance number and pattern index
+      // Determine repetition number and pattern index
       const currentPatternIdx0 = rowLine.systemDesignRowIndex; // 0-based
       if (currentPatternIdx0 < lastSeenPatternIdx) {
-        currentInstance++;
+        currentRepetition++;
       }
       lastSeenPatternIdx = currentPatternIdx0;
       const patternIndex = currentPatternIdx0 + 1; // 1-based row index for display
 
       const stripData: TreeStripData = {
         rowPatternIndex: patternIndex,
-        instanceNumber: currentInstance,
+        repetitionNumber: currentRepetition,
         sequentialIndex: i + 1,
         treeCount: treesInStrip,
         stripArea: stripArea,
@@ -143,10 +144,10 @@ const TreeStripsExport: Component<{
       strips.push(stripData);
     }
 
-    // Sort strips by instance first, then by row within each instance
+    // Sort strips by repetition first, then by row within each repetition
     strips.sort((a, b) => {
-      if (a.instanceNumber !== b.instanceNumber) {
-        return a.instanceNumber - b.instanceNumber;
+      if (a.repetitionNumber !== b.repetitionNumber) {
+        return a.repetitionNumber - b.repetitionNumber;
       }
       return a.rowPatternIndex - b.rowPatternIndex;
     });
@@ -165,9 +166,6 @@ const TreeStripsExport: Component<{
     const strips = treeStrips() || [];
     return strips.reduce((sum, strip) => sum + strip.stripArea, 0);
   });
-  
-  
-  
 
   const totalTrees = createMemo(() => {
     const strips = treeStrips() || [];
@@ -202,50 +200,9 @@ const TreeStripsExport: Component<{
         }
       >
         {/* Filter controls */}
-        <div class="mb-2 flex items-center justify-between">
-          <div class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            Filter:
-          </div>
-          
-        </div>
-        <div class="mb-4 flex gap-2">
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "both"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("both")}
-          >
-            Select all tree strips and cropping areas.
-          </button>
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "trees"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("trees")}
-          >
-            Select tree strips
-          </button>
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "groundcover"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("groundcover")}
-          >
-            Select cropping areas
-          </button>
-          
-        </div>
+        
 
-  <div class="mt-4">
+        <div class="mt-4">
           <button
             type="button"
             class="rounded-sm p-2 mb-4 btn-default text-sm"
@@ -258,15 +215,17 @@ const TreeStripsExport: Component<{
                   ? "tree_strips"
                   : "cropping_areas";
               let csv =
-                "Instance,Row,Area (ha),Area (m²),Total Trees,Ground Cover,Tree Species Details\n";
+                "Repetition,Row,Area (ha),Area (m²),Total Trees,Ground Cover,Tree Species Details\n";
               treeStrips().forEach((strip) => {
                 const speciesDetails = strip.species
                   .map((sp) => `${sp.name}: ${sp.count}`)
                   .join("; ");
                 const groundCover = strip.groundCoverSpecies || "";
-                csv += `${strip.instanceNumber},${strip.rowPatternIndex},${(
-                  strip.stripArea / 10000
-                ).toFixed(3)},${strip.stripArea.toFixed(0)},${
+                csv += `${toRepetitionLetter(strip.repetitionNumber)},${
+                  strip.rowPatternIndex
+                },${(strip.stripArea / 10000).toFixed(
+                  3
+                )},${strip.stripArea.toFixed(0)},${
                   strip.treeCount
                 },"${groundCover}","${speciesDetails}"\n`;
               });
@@ -307,23 +266,29 @@ const TreeStripsExport: Component<{
               // Compute instance numbering from rowIndex sequence if available
               if (stripPolys && stripPolys.length > 0) {
                 let lastRowIdx = -1;
-                let instanceNo = 1;
+                let repetitionNo = 1;
                 stripPolys.forEach((poly, idx) => {
                   if (!poly) return;
                   const rowIdx = poly.properties?.rowIndex ?? 0;
                   // Determine whether this strip is a tree strip or groundcover-only
                   const rowDesign = rows[rowIdx];
                   const totalSpacing = Array.isArray(rowDesign?.sequence)
-                    ? rowDesign.sequence.reduce((s: number, it: any) => s + (it?.spacingAfter || 0), 0)
+                    ? rowDesign.sequence.reduce(
+                        (s: number, it: any) => s + (it?.spacingAfter || 0),
+                        0
+                      )
                     : 0;
                   const isTreeStrip = totalSpacing > 0;
                   const includeStrip =
-                    mode === "both" || (mode === "trees" && isTreeStrip) || (mode === "groundcover" && !isTreeStrip);
+                    mode === "both" ||
+                    (mode === "trees" && isTreeStrip) ||
+                    (mode === "groundcover" && !isTreeStrip);
                   if (!includeStrip) return;
                   if (rowIdx < lastRowIdx) {
-                    instanceNo++;
+                    repetitionNo++;
                   }
                   lastRowIdx = rowIdx;
+                  const repetition = toRepetitionLetter(repetitionNo);
                   const fc = {
                     type: "Feature",
                     geometry: poly.geometry,
@@ -332,8 +297,8 @@ const TreeStripsExport: Component<{
                       name: poly.properties?.name ?? `strip_${idx}`,
                       rowIndex: rowIdx,
                       row: rowIdx + 1,
-                      instance: instanceNo,
-                    }
+                      repetition,
+                    },
                   };
                   features.push(fc);
                 });
@@ -350,18 +315,23 @@ const TreeStripsExport: Component<{
                     properties: {
                       type: "tree",
                       species: tree.species?._id || tree.species || undefined,
-                      name: tree.species?.nameCommon || tree.species?.species || undefined,
-                    }
+                      name:
+                        tree.species?.nameCommon ||
+                        tree.species?.species ||
+                        undefined,
+                    },
                   });
                 });
               }
 
               const geojson = {
                 type: "FeatureCollection",
-                features
+                features,
               };
 
-              const blob = new Blob([JSON.stringify(geojson)], { type: "application/geo+json" });
+              const blob = new Blob([JSON.stringify(geojson)], {
+                type: "application/geo+json",
+              });
               const url = URL.createObjectURL(blob);
               const link = document.createElement("a");
               link.href = url;
@@ -394,39 +364,55 @@ const TreeStripsExport: Component<{
               let kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
 
               // Helper to serialize coordinates
-              const serializeCoords = (coords: any) => coords.map((c: any) => c.join(",")).join(" ");
+              const serializeCoords = (coords: any) =>
+                coords.map((c: any) => c.join(",")).join(" ");
 
               // Strips
               if (stripPolys && stripPolys.length > 0) {
                 let lastRowIdx = -1;
-                let instanceNo = 1;
+                let repetitionNo = 1;
                 stripPolys.forEach((poly, idx) => {
                   if (!poly) return;
                   const rowIdx = poly.properties?.rowIndex ?? 0;
                   const rowDesign = rows[rowIdx];
                   const totalSpacing = Array.isArray(rowDesign?.sequence)
-                    ? rowDesign.sequence.reduce((s: number, it: any) => s + (it?.spacingAfter || 0), 0)
+                    ? rowDesign.sequence.reduce(
+                        (s: number, it: any) => s + (it?.spacingAfter || 0),
+                        0
+                      )
                     : 0;
                   const isTreeStrip = totalSpacing > 0;
                   const includeStrip =
-                    mode === "both" || (mode === "trees" && isTreeStrip) || (mode === "groundcover" && !isTreeStrip);
+                    mode === "both" ||
+                    (mode === "trees" && isTreeStrip) ||
+                    (mode === "groundcover" && !isTreeStrip);
                   if (!includeStrip) return;
-                  if (rowIdx < lastRowIdx) instanceNo++;
+                  if (rowIdx < lastRowIdx) repetitionNo++;
                   lastRowIdx = rowIdx;
-                  const name = `Instance ${instanceNo} - Row ${rowIdx + 1}`;
-                  if (poly.geometry.type === 'Polygon') {
+                  const name = `Repetition ${toRepetitionLetter(
+                    repetitionNo
+                  )} - Row ${rowIdx + 1}`;
+                  if (poly.geometry.type === "Polygon") {
                     const rings = poly.geometry.coordinates as any[];
-                    kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[0])}</coordinates></LinearRing></outerBoundaryIs>`;
+                    kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                      rings[0]
+                    )}</coordinates></LinearRing></outerBoundaryIs>`;
                     for (let r = 1; r < rings.length; r++) {
-                      kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[r])}</coordinates></LinearRing></innerBoundaryIs>`;
+                      kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                        rings[r]
+                      )}</coordinates></LinearRing></innerBoundaryIs>`;
                     }
                     kml += `</Polygon></Placemark>\n`;
-                  } else if (poly.geometry.type === 'MultiPolygon') {
+                  } else if (poly.geometry.type === "MultiPolygon") {
                     const mps = poly.geometry.coordinates as any[][][];
                     mps.forEach((rings) => {
-                      kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[0])}</coordinates></LinearRing></outerBoundaryIs>`;
+                      kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                        rings[0]
+                      )}</coordinates></LinearRing></outerBoundaryIs>`;
                       for (let r = 1; r < rings.length; r++) {
-                        kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[r])}</coordinates></LinearRing></innerBoundaryIs>`;
+                        kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                          rings[r]
+                        )}</coordinates></LinearRing></innerBoundaryIs>`;
                       }
                       kml += `</Polygon></Placemark>\n`;
                     });
@@ -438,12 +424,17 @@ const TreeStripsExport: Component<{
               if (mode !== "groundcover") {
                 trees.forEach((tree) => {
                   const poly = tree?.circle?.geometry;
-                  if (!poly || poly.type !== 'Polygon') return;
+                  if (!poly || poly.type !== "Polygon") return;
                   const rings = poly.coordinates as any[];
-                  const name = tree.species?.nameCommon || tree.species?.species || 'Tree';
-                  kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[0])}</coordinates></LinearRing></outerBoundaryIs>`;
+                  const name =
+                    tree.species?.nameCommon || tree.species?.species || "Tree";
+                  kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                    rings[0]
+                  )}</coordinates></LinearRing></outerBoundaryIs>`;
                   for (let r = 1; r < rings.length; r++) {
-                    kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(rings[r])}</coordinates></LinearRing></innerBoundaryIs>`;
+                    kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
+                      rings[r]
+                    )}</coordinates></LinearRing></innerBoundaryIs>`;
                   }
                   kml += `</Polygon></Placemark>\n`;
                 });
@@ -451,7 +442,9 @@ const TreeStripsExport: Component<{
 
               kml += `</Document>\n</kml>`;
 
-              const blob = new Blob([kml], { type: "application/vnd.google-earth.kml+xml" });
+              const blob = new Blob([kml], {
+                type: "application/vnd.google-earth.kml+xml",
+              });
               const url = URL.createObjectURL(blob);
               const link = document.createElement("a");
               link.href = url;
@@ -463,6 +456,49 @@ const TreeStripsExport: Component<{
             <i class="fas fa-download mr-2" />
             Export as KML
           </button>
+
+          <div class="mb-2 flex items-center justify-between">
+          <div class="text-sm font-medium text-gray-800 dark:text-gray-100">
+            Filter:
+          </div>
+        </div>
+        <div class="mb-4 flex gap-2">
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === "both"
+                ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            }`}
+            onClick={() => setFilterType("both")}
+          >
+            Select all tree strips and cropping areas.
+          </button>
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === "trees"
+                ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            }`}
+            onClick={() => setFilterType("trees")}
+          >
+            Select tree strips
+          </button>
+          <button
+            type="button"
+            class={`rounded-sm px-3 py-1 text-sm ${
+              filterType() === "groundcover"
+                ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            }`}
+            onClick={() => setFilterType("groundcover")}
+          >
+            Select cropping areas
+          </button>
+        </div>
+
+          
         </div>
 
         <Show
@@ -495,8 +531,8 @@ const TreeStripsExport: Component<{
               {(strip) => (
                 <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                   <div class="font-medium mb-2">
-                    Instance {strip.instanceNumber} - Row{" "}
-                    {strip.rowPatternIndex}
+                    Repetition {toRepetitionLetter(strip.repetitionNumber)} -
+                    Row {strip.rowPatternIndex}
                   </div>
                   <div class="text-sm space-y-1 text-gray-700 dark:text-gray-300">
                     <div>
@@ -523,8 +559,6 @@ const TreeStripsExport: Component<{
               )}
             </For>
           </div>
-
-
         </Show>
       </Show>
     </div>
