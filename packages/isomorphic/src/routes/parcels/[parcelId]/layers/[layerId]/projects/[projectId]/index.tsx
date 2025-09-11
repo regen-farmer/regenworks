@@ -2095,40 +2095,7 @@ const ExportAndShareContent = ({ scenarioData, params, systemLayout, system, spe
     <div class="dark:bg-customdark1 bg-white text-black dark:text-white">
       <h2 class="font-bold text-lg mb-4">Export and Share</h2>
       
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Export Options</h3>
-        <div class="flex gap-2 flex-wrap">
-          <button
-            type="button"
-            class="rounded-sm p-2 my-2 btn-default"
-            onClick={exportKML}
-            disabled={exportingKML()}
-          >
-            <i class="fas fa-map-marker-alt mr-2" />
-            {exportingKML() ? "Exporting..." : "Export trees as KML"}
-          </button>
-          <button
-            type="button"
-            class="rounded-sm p-2 my-2 btn-default"
-            onClick={exportMapImage}
-            disabled={exportingImage()}
-          >
-            <i class="fas fa-image mr-2" />
-            {exportingImage() ? "Capturing..." : "Export map as image"}
-          </button>
-        </div>
-      </div>
-
-      <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
-        <TreeStripsExport 
-          systemLayout={systemLayout()} 
-          systemDesign={systemLayout() || !scenarioData()?.project.systemdesign ? system : scenarioData()?.project.systemdesign}
-          species={species}
-          onGeneratePreview={onGeneratePreview}
-        />
-      </div>
-
-      <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
+            <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
         <h3 class="font-semibold mb-2">Public Preview</h3>
         <div style={{ display: "flex", "align-items": "center" }}>
           Enable public preview of system design:
@@ -2157,6 +2124,49 @@ const ExportAndShareContent = ({ scenarioData, params, systemLayout, system, spe
           ""
         )}
       </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Export map view as image (png)</h3>
+        <div class="flex gap-2 flex-wrap">
+          
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportMapImage}
+            disabled={exportingImage()}
+          >
+            <i class="fas fa-image mr-2" />
+            {exportingImage() ? "Capturing..." : "Export map as image"}
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Export tree coordinates</h3>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportKML}
+            disabled={exportingKML()}
+          >
+            <i class="fas fa-map-marker-alt mr-2" />
+            {exportingKML() ? "Exporting..." : "Export trees as KML"}
+          </button>
+          
+        </div>
+      </div>
+
+      <div class="mb-6  border-zinc-300 dark:border-slate-600 pt-6">
+        <TreeStripsExport 
+          systemLayout={systemLayout()} 
+          systemDesign={systemLayout() || !scenarioData()?.project.systemdesign ? system : scenarioData()?.project.systemdesign}
+          species={species}
+          onGeneratePreview={onGeneratePreview}
+        />
+      </div>
+
+
     </div>
   );
 };
