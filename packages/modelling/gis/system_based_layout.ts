@@ -58,7 +58,7 @@ export function systemBasedLayout(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
-		systemdesign.rows,
+		systemdesign.rows as any,
 	);
 
 	// ALL STRIP POLYGONS (for accurate area calculations)
@@ -66,7 +66,7 @@ export function systemBasedLayout(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
-		systemdesign.rows,
+		systemdesign.rows as any,
 	);
 
 	// GROUND COVER AREAS (for display/visualization)
@@ -74,15 +74,11 @@ export function systemBasedLayout(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
-		systemdesign.rows,
+		systemdesign.rows as any,
 	);
 
 	// INDIVIDUAL TREES
-	const treeMarkerArray: {
-		species: ISpeciesSchema;
-		point: turf.Feature<turf.Point, turf.Properties>;
-		circle: turf.Feature<turf.Polygon, turf.Properties>;
-	}[] = [];
+	const treeMarkerArray: any[] = [];
 
 	for (const treeRowLine of treeRowLines) {
 		if (
@@ -111,21 +107,20 @@ export function systemBasedLayout(
 		}
 	}
 
-	const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
+	const speciesCounts = treeMarkerArray.reduce((counts: Record<string, { species: any; count: number }>, marker: any) => {
 		// console.log('marker.species', marker.species)
 		if (!marker.species) return counts;
 
-		// console.log('marker.species', marker.species)
-		const speciesId = marker.species.id ?? marker.species;
-		if (!counts[speciesId]) {
-			counts[speciesId] = {
+		const key = String((marker.species as any)?._id ?? (marker.species as any)?.id ?? marker.species);
+		if (!counts[key]) {
+			counts[key] = {
 				species: marker.species,
 				count: 0,
 			};
 		}
-		counts[speciesId].count++;
+		counts[key].count++;
 		return counts;
-	}, {});
+	}, {} as Record<string, { species: any; count: number }>);
 
 	console.log("speciesCounts", speciesCounts);
 
@@ -156,6 +151,8 @@ export function systemBasedLayout(
 		intersectionPoints,
 		treeMarkerArray,
 		groundCoverAreasM2,
+		stripPolygons,
+		stripAreasM2,
 		// marginGeometry,
 		// marginArea
 	};
