@@ -531,8 +531,7 @@ const TreeStripsExport: Component<{
               {(strip) => (
                 <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                   <div class="font-medium mb-2">
-                    Repetition {toRepetitionLetter(strip.repetitionNumber)} -
-                    Row {strip.rowPatternIndex}
+                    <span class="font-mono">Row {toRepetitionLetter(strip.repetitionNumber)}-{strip.rowPatternIndex}</span>
                   </div>
                   <div class="text-sm space-y-1 text-gray-700 dark:text-gray-300">
                     <div>
