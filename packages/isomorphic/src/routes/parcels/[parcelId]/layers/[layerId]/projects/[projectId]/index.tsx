@@ -216,9 +216,7 @@ export default function view() {
           }
 
           const nav = new MaptilerNavigationControl();
-          map.addControl(nav, "top-right");
-
-          setMapLoaded(true);
+          map!.addControl(nav, "top-right");
 
           const unparsedFieldPolygon: any =
             scenarioData()?.project.layer.geometry;
@@ -230,12 +228,12 @@ export default function view() {
 
           const fieldPolygonVisible = true;
           if (fieldPolygonVisible) {
-            if (map.getSource("fieldPolygon")) {
-              map.removeLayer("fieldPolygon");
-              map.removeSource("fieldPolygon");
+            if (map!.getSource("fieldPolygon")) {
+              map!.removeLayer("fieldPolygon");
+              map!.removeSource("fieldPolygon");
             }
 
-            map.addLayer({
+            map!.addLayer({
               id: "fieldPolygon",
               type: "fill",
               //@ts-ignore
@@ -247,6 +245,7 @@ export default function view() {
                     type: "Polygon",
                     coordinates: fieldPolygon.geometry.coordinates,
                   },
+                  properties: {}
                 },
               },
               layout: {},
@@ -257,6 +256,8 @@ export default function view() {
               },
             });
           }
+
+          setMapLoaded(true);
         });
 
         // map.transformCameraUpdate = ({ center, zoom }) => {
@@ -277,6 +278,21 @@ export default function view() {
   createEffect(() => {
     if (mapLoaded() && systemLayout() && map) {
       drawSystemDesign(map, systemLayout()!, show3D());
+      // Ensure field polygon sits below system layers
+      try {
+        const style = map.getStyle();
+        if (style && style.layers) {
+          const target = style.layers.find((l: any) =>
+            l.id.startsWith("strips-") ||
+            l.id.startsWith("trees-") ||
+            l.id === "treeRowLines" ||
+            l.id === "row-labels"
+          );
+          if (target && map.getLayer("fieldPolygon")) {
+            map.moveLayer("fieldPolygon", target.id);
+          }
+        }
+      } catch {}
     }
   });
 

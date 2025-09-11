@@ -91,9 +91,7 @@ const RouteDesignPreview: Component = () => {
 				const nav = new MaptilerNavigationControl();
 				map.addControl(nav, "top-right");
 
-				setMapLoaded(true);
 
-				// Add the field polygon layer (stays visible in both 2D and 3D modes)
 				const unparsedFieldPolygon: any = scenarioData()?.project.layer.geometry;
 				const fieldPolygon = JSON.parse(
 					unparsedFieldPolygon!.replace(/&#34;/g, '"')
@@ -129,6 +127,9 @@ const RouteDesignPreview: Component = () => {
 						},
 					});
 				}
+
+
+				setMapLoaded(true);
 			});
 		}
 	});
@@ -136,6 +137,21 @@ const RouteDesignPreview: Component = () => {
 	createEffect(() => {
 		if (mapLoaded() && systemLayout()) {
 			drawSystemDesign(map, systemLayout()!, show3D());
+
+			try {
+				const style = map.getStyle();
+				if (style && style.layers) {
+					const target = style.layers.find((l: any) =>
+						l.id.startsWith("strips-") ||
+						l.id.startsWith("trees-") ||
+						l.id === "treeRowLines" ||
+						l.id === "row-labels"
+					);
+					if (target && map.getLayer("fieldPolygon")) {
+						map.moveLayer("fieldPolygon", target.id);
+					}
+				}
+			} catch {}
 		}
 	});
 
