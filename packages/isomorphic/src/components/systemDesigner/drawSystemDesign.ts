@@ -1,5 +1,5 @@
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
-import { featureCollection, point as turfPoint, helpers as turf, centroid, midpoint } from "@turf/turf";
+import { featureCollection, point as turfPoint, helpers as turf, centroid, midpoint, circle as turfCircle, distance as turfDistance } from "@turf/turf";
 import { toRepetitionLetter } from "~/util/repetition";
 import type { Map as MLMap } from "maplibre-gl";
 import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";
@@ -366,23 +366,51 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 			map.removeSource("trees");
 		}
 
-		// Create a layer for each species with unique color
+		// Create a layer for each species with unique color using accurate geodesic scaling of original circle polygons.
+		const TREE_SCALE_FACTOR = 0.7; // target ~30% smaller diameter
 		treesBySpecies.forEach((trees, speciesId) => {
-			const treeCircles = featureCollection(
-				trees.map((tree) => tree.circle)
-			);
-			
+			const scaledFeatures: any[] = [];
+			trees.forEach((tree) => {
+				const feat = tree.circle;
+				const geom = feat?.geometry;
+				if (!geom) return;
+				if (geom.type === 'Polygon') {
+					// Estimate original radius from centroid to first coordinate
+					const center = centroid(feat).geometry.coordinates as [number, number];
+					const first = geom.coordinates?.[0]?.[0];
+					if (!first) return;
+					const r = turfDistance(turfPoint(center), turfPoint(first), { units: 'meters' });
+					const scaledCircle = turfCircle(center, r * TREE_SCALE_FACTOR, { steps: 32, units: 'meters' });
+					scaledFeatures.push({ ...scaledCircle, properties: { ...(feat.properties || {}) } });
+				} else if (geom.type === 'MultiPolygon') {
+					// Take first polygon of multipolygon as shape reference
+					const firstPoly = geom.coordinates?.[0];
+					if (firstPoly?.[0]?.[0]) {
+						const tmp = { type: 'Feature', geometry: { type: 'Polygon', coordinates: firstPoly }, properties: {} } as any;
+						const center = centroid(tmp).geometry.coordinates as [number, number];
+						const first = firstPoly[0][0];
+						const r = turfDistance(turfPoint(center), turfPoint(first), { units: 'meters' });
+						const scaledCircle = turfCircle(center, r * TREE_SCALE_FACTOR, { steps: 32, units: 'meters' });
+						scaledFeatures.push({ ...scaledCircle, properties: { ...(feat.properties || {}) } });
+					}
+				} else if (geom.type === 'Point') {
+					// For point data, just create a small circle
+					const center = geom.coordinates as [number, number];
+					const scaledCircle = turfCircle(center, 1 * TREE_SCALE_FACTOR, { steps: 16, units: 'meters' });
+					scaledFeatures.push({ ...scaledCircle, properties: { ...(feat.properties || {}) } });
+				}
+			});
+			if (scaledFeatures.length === 0) return;
+			const treePolys = featureCollection(scaledFeatures);
 			const layerId = `trees-${speciesId}`;
 			const color = getSpeciesColor(speciesId);
-			
+			if (map.getLayer(layerId)) map.removeLayer(layerId);
+			if (map.getSource(layerId)) map.removeSource(layerId);
 			map.addLayer({
 				id: layerId,
 				type: "fill",
 				//@ts-ignore
-				source: {
-					type: "geojson",
-					data: treeCircles,
-				},
+				source: { type: "geojson", data: treePolys },
 				layout: {},
 				paint: {
 					"fill-color": color,
