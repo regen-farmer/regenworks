@@ -30,6 +30,8 @@ const TreeStripsExport: Component<{
   onGeneratePreview?: () => void;
 }> = (props) => {
   const [filterType, setFilterType] = createSignal<FilterType>("both");
+  // Controls visibility of the (potentially long) detailed rows list
+  const [showRowsList, setShowRowsList] = createSignal(false);
 
   const treeStrips = createMemo(() => {
     if (!props.systemLayout?.treeRowLines || !props.systemDesign?.rows) {
@@ -525,39 +527,52 @@ const TreeStripsExport: Component<{
               )}
             </div>
           </div>
-
-          <div class="space-y-3">
-            <For each={treeStrips()}>
-              {(strip) => (
-                <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
-                  <div class="font-medium mb-2">
-                    <span class="font-mono">Row {toRepetitionLetter(strip.repetitionNumber)}-{strip.rowPatternIndex}</span>
-                  </div>
-                  <div class="text-sm space-y-1 text-gray-700 dark:text-gray-300">
-                    <div>
-                      Area: {(strip.stripArea / 10000).toFixed(3)} ha (
-                      {strip.stripArea.toFixed(0)} m²)
-                    </div>
-                    {strip.treeCount > 0 && <div>Trees: {strip.treeCount}</div>}
-                    {strip.groundCoverSpecies && (
-                      <div>Ground cover: {strip.groundCoverSpecies}</div>
-                    )}
-                    {strip.species.length > 0 && (
-                      <div class="mt-2 pl-3 border-l-2 border-gray-300 dark:border-gray-600">
-                        <For each={strip.species}>
-                          {(sp) => (
-                            <div class="text-xs">
-                              {sp.name}: {sp.count} trees
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </For>
+          <div class="mb-2">
+            <button
+              type="button"
+              class="rounded-sm px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              onClick={() => setShowRowsList((v) => !v)}
+            >
+              <i
+                class={`fas mr-2 ${showRowsList() ? "fa-minus" : "fa-plus"}`}
+              />
+              {`Detailed row list (${treeStrips().length})`}
+            </button>
           </div>
+          <Show when={showRowsList()}>
+            <div class="space-y-3">
+              <For each={treeStrips()}>
+                {(strip) => (
+                  <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
+                    <div class="font-medium mb-2">
+                      <span class="font-mono">Row {toRepetitionLetter(strip.repetitionNumber)}-{strip.rowPatternIndex}</span>
+                    </div>
+                    <div class="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                      <div>
+                        Area: {(strip.stripArea / 10000).toFixed(3)} ha (
+                        {strip.stripArea.toFixed(0)} m²)
+                      </div>
+                      {strip.treeCount > 0 && <div>Trees: {strip.treeCount}</div>}
+                      {strip.groundCoverSpecies && (
+                        <div>Ground cover: {strip.groundCoverSpecies}</div>
+                      )}
+                      {strip.species.length > 0 && (
+                        <div class="mt-2 pl-3 border-l-2 border-gray-300 dark:border-gray-600">
+                          <For each={strip.species}>
+                            {(sp) => (
+                              <div class="text-xs">
+                                {sp.name}: {sp.count} trees
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
         </Show>
       </Show>
     </div>
