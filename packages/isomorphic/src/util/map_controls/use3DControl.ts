@@ -2,6 +2,7 @@ import type { Accessor } from "solid-js";
 import { createSignal, createEffect } from "solid-js";
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { helpers as turf } from "@turf/turf";
+import type { Feature, Point, Polygon, GeoJsonProperties } from "geojson";
 import type { Resource } from "solid-js";
 // @ts-ignore
 import { MapboxOverlay } from "@deck.gl/mapbox";
@@ -101,13 +102,24 @@ export function use3DControl(
 			layers: [],
 		});
 
+		// Animate camera pitch based on 2D/3D state
+		try {
+			if (show3D()) {
+				// Go to a slightly tilted view for 3D
+				map.flyTo({ pitch: 50, duration: 700 });
+			} else {
+				// Return to top-down view for 2D
+				map.flyTo({ pitch: 0, duration: 700 });
+			}
+		} catch {}
+
 		if (show3D()) {
 			console.log("SHOW 3D", layoutData()?.treeMarkerArray);
 
 			type TreeAsset = {
-				species: string;
-				point: turf.Feature<turf.Point, turf.Properties>;
-				circle: turf.Feature<turf.Polygon, turf.Properties>;
+				species: any;
+				point: Feature<Point, GeoJsonProperties>;
+				circle: Feature<Polygon, GeoJsonProperties>;
 			};
 
 			//   console.log("treeAssetArray", layoutData()?.treeMarkerArray);
@@ -118,9 +130,8 @@ export function use3DControl(
 
 					if (entry.species) {
 						// console.log('entry.species', entry.species)
-						const cultivar = species()?.speciesById.get(
-							entry.species._id ?? entry.species,
-						);
+						const speciesKey = typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
+						const cultivar = species()?.speciesById.get(speciesKey);
 
 						// console.log("cultivar", cultivar)
 						return cultivar.form !== undefined;
@@ -133,9 +144,8 @@ export function use3DControl(
 			console.log("correctTreeAssetArray", correctTreeAssetArray);
 
 			const assetFormArrays = _.groupBy(correctTreeAssetArray, (entry) => {
-				const cultivar = species()?.speciesById.get(
-					entry.species._id ?? entry.species,
-				);
+				const speciesKey2 = typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
+				const cultivar = species()?.speciesById.get(speciesKey2);
 
 				if (cultivar?.family === "pinaceae") {
 					return "conifer";
@@ -193,7 +203,7 @@ export function use3DControl(
 						data: value,
 						// @ts-ignore
 						scenegraph: models[newKey].path,
-						getPosition: (d: TreeAsset) => d.point.geometry.coordinates,
+						getPosition: (d: TreeAsset) => d.point.geometry.coordinates as unknown as any,
 						getOrientation: [0, 0, 90],
 						_animations: {
 							"*": { speed: 5 },
