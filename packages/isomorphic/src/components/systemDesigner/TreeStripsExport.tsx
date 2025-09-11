@@ -180,7 +180,7 @@ const TreeStripsExport: Component<{
 
   return (
     <div class="tree-strips-export">
-      <h3 class="font-semibold mb-3">Strips Export</h3>
+      <h3 class="font-semibold mb-3">Export tree strips and cropping areas</h3>
 
       <Show
         when={hasData()}
@@ -209,7 +209,7 @@ const TreeStripsExport: Component<{
             }`}
             onClick={() => setFilterType("trees")}
           >
-            Tree Strips
+            Select tree strips
           </button>
           <button
             type="button"
@@ -220,7 +220,7 @@ const TreeStripsExport: Component<{
             }`}
             onClick={() => setFilterType("groundcover")}
           >
-            Alleys
+            Select cropping areas
           </button>
           <button
             type="button"
@@ -231,7 +231,46 @@ const TreeStripsExport: Component<{
             }`}
             onClick={() => setFilterType("both")}
           >
-            All strips
+            Select tree strips and cropping areas.
+          </button>
+        </div>
+
+        <div class="mt-4">
+          <button
+            type="button"
+            class="rounded-sm p-2 mb-4 btn-default text-sm"
+            onClick={() => {
+              // Export as CSV
+              let csv =
+                "Instance,Row,Area (ha),Area (m²),Total Trees,Ground Cover,Tree Species Details\n";
+              treeStrips().forEach((strip) => {
+                const speciesDetails = strip.species
+                  .map((sp) => `${sp.name}: ${sp.count}`)
+                  .join("; ");
+                const groundCover = strip.groundCoverSpecies || "";
+                csv += `${strip.instanceNumber},${strip.rowPatternIndex},${(
+                  strip.stripArea / 10000
+                ).toFixed(3)},${strip.stripArea.toFixed(0)},${
+                  strip.treeCount
+                },"${groundCover}","${speciesDetails}"\n`;
+              });
+
+              // Add summary row
+              csv += `\nTotal,,${(totalArea() / 10000).toFixed(
+                2
+              )},${totalArea().toFixed(0)},${totalTrees()},,\n`;
+
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "tree_strips_export.csv";
+              link.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <i class="fas fa-download mr-2" />
+            Export as CSV
           </button>
         </div>
 
@@ -294,44 +333,7 @@ const TreeStripsExport: Component<{
             </For>
           </div>
 
-          <div class="mt-4">
-            <button
-              type="button"
-              class="rounded-sm p-2 btn-default text-sm"
-              onClick={() => {
-                // Export as CSV
-                let csv =
-                  "Instance,Row,Area (ha),Area (m²),Total Trees,Ground Cover,Tree Species Details\n";
-                treeStrips().forEach((strip) => {
-                  const speciesDetails = strip.species
-                    .map((sp) => `${sp.name}: ${sp.count}`)
-                    .join("; ");
-                  const groundCover = strip.groundCoverSpecies || "";
-                  csv += `${strip.instanceNumber},${strip.rowPatternIndex},${(
-                    strip.stripArea / 10000
-                  ).toFixed(3)},${strip.stripArea.toFixed(0)},${
-                    strip.treeCount
-                  },"${groundCover}","${speciesDetails}"\n`;
-                });
 
-                // Add summary row
-                csv += `\nTotal,,${(totalArea() / 10000).toFixed(
-                  2
-                )},${totalArea().toFixed(0)},${totalTrees()},,\n`;
-
-                const blob = new Blob([csv], { type: "text/csv" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = "tree_strips_export.csv";
-                link.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              <i class="fas fa-download mr-2" />
-              Export as CSV
-            </button>
-          </div>
         </Show>
       </Show>
     </div>
