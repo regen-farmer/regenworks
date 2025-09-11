@@ -93,7 +93,8 @@ export function systemBasedLayout(
 			while (distance < turfLength(treeRowLine.line, { units: "meters" })) {
 				const point = along(treeRowLine.line, distance, { units: "meters" });
 
-				const newCircle = circle(point.geometry.coordinates, 2, {
+				// Reduced radius from 2m to 1.4m (~30% smaller) so later rendering need not rescale
+				const newCircle = circle(point.geometry.coordinates, 1.4, {
 					units: "meters",
 				});
 				treeMarkerArray.push({
