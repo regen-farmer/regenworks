@@ -12,6 +12,7 @@ import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import { makeInitialLine } from "./make_line.ts";
 import { makeTreeRowLines } from "./make_tree_row_lines.ts";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
+import { makeAllStripPolygons } from "./make_all_strip_polygons.ts";
 import { applyHeadland } from "./headland.ts";
 import SystemDesign, {
 	type ISystemDesignSchema,
@@ -57,23 +58,27 @@ export function systemBasedLayout(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
-		systemdesign.rows,
+		systemdesign.rows as any,
 	);
 
-	// GROUND COVER AREAS
+	// ALL STRIP POLYGONS (for accurate area calculations)
+	const { stripPolygons, stripAreasM2 } = makeAllStripPolygons(
+		headlandPolygon,
+		lineIntersectingAreaInsideMargin,
+		widthOfAreaInsideMargin,
+		systemdesign.rows as any,
+	);
+
+	// GROUND COVER AREAS (for display/visualization)
 	const { groundCoverAreas, groundCoverAreasM2 } = makeGroundCoverAreas(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
-		systemdesign.rows,
+		systemdesign.rows as any,
 	);
 
 	// INDIVIDUAL TREES
-	const treeMarkerArray: {
-		species: ISpeciesSchema;
-		point: turf.Feature<turf.Point, turf.Properties>;
-		circle: turf.Feature<turf.Polygon, turf.Properties>;
-	}[] = [];
+	const treeMarkerArray: any[] = [];
 
 	for (const treeRowLine of treeRowLines) {
 		if (
@@ -88,7 +93,8 @@ export function systemBasedLayout(
 			while (distance < turfLength(treeRowLine.line, { units: "meters" })) {
 				const point = along(treeRowLine.line, distance, { units: "meters" });
 
-				const newCircle = circle(point.geometry.coordinates, 2, {
+				// Reduced radius from 2m to 1.4m (~30% smaller) so later rendering need not rescale
+				const newCircle = circle(point.geometry.coordinates, 1.4, {
 					units: "meters",
 				});
 				treeMarkerArray.push({
@@ -102,21 +108,20 @@ export function systemBasedLayout(
 		}
 	}
 
-	const speciesCounts = treeMarkerArray.reduce((counts, marker) => {
+	const speciesCounts = treeMarkerArray.reduce((counts: Record<string, { species: any; count: number }>, marker: any) => {
 		// console.log('marker.species', marker.species)
 		if (!marker.species) return counts;
 
-		// console.log('marker.species', marker.species)
-		const speciesId = marker.species.id ?? marker.species;
-		if (!counts[speciesId]) {
-			counts[speciesId] = {
+		const key = String((marker.species as any)?._id ?? (marker.species as any)?.id ?? marker.species);
+		if (!counts[key]) {
+			counts[key] = {
 				species: marker.species,
 				count: 0,
 			};
 		}
-		counts[speciesId].count++;
+		counts[key].count++;
 		return counts;
-	}, {});
+	}, {} as Record<string, { species: any; count: number }>);
 
 	console.log("speciesCounts", speciesCounts);
 
@@ -147,6 +152,8 @@ export function systemBasedLayout(
 		intersectionPoints,
 		treeMarkerArray,
 		groundCoverAreasM2,
+		stripPolygons,
+		stripAreasM2,
 		// marginGeometry,
 		// marginArea
 	};

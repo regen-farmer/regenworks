@@ -106,6 +106,7 @@ export function makeGroundCoverAreas(
 
 				const newPolygon = turf.polygon(area.geometry.coordinates, {
 					name: `alleypoly${groundCoverAreas.length}`,
+					speciesId: groundCoverId,
 				});
 				groundCoverAreasM2[groundCoverId] += turfArea(newPolygon);
 
@@ -119,6 +120,7 @@ export function makeGroundCoverAreas(
 				for (const polygon of area.geometry.coordinates) {
 					const newPolygon = turf.polygon(polygon, {
 						name: `alleypoly${groundCoverAreas.length}`,
+						speciesId: groundCoverId,
 					});
 
 					groundCoverAreasM2[groundCoverId] += turfArea(newPolygon);

@@ -51,6 +51,7 @@ import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.t
 import { getSpecies } from "~/util/getSpecies.ts";
 import { getScenario } from "~/util/getScenario.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
+import { TreeStripsExport } from "~/components/systemDesigner/TreeStripsExport.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
@@ -99,6 +100,8 @@ export default function view() {
   }>();
 
   const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
+  const [show3D, setShow3D] = createSignal(false);
+  const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | undefined>();
 
   const [system, setSystem] = createStore<ISystemDesignSchema>({
     rows: [],
@@ -179,11 +182,15 @@ export default function view() {
           zoom: 16,
           maxZoom: 20,
           pitch: 0,
+          // @ts-ignore - preserveDrawingBuffer is needed for canvas export
+          preserveDrawingBuffer: true, // Enable canvas export capability
 
           ...mapCameraState,
           // bearing: 40,
           // maxPitch: 85,
         });
+
+        setMapInstance(map); // Store the map instance
 
         map.on("load", () => {
           window.dispatchEvent(new Event("resize"));
@@ -191,7 +198,16 @@ export default function view() {
           const areaLat = scenarioData()?.project.layer.lat;
           const areaLng = scenarioData()?.project.layer.lng;
 
-          use3DControl(map, systemLayout, species);
+          // Use the 3D control and link it to our local signal
+          const { show3D: controlShow3D, setShow3D: controlSetShow3D } = use3DControl(map, systemLayout, species);
+          
+          // Create an effect to sync the control's signal with our local one
+          createEffect(() => {
+            const is3D = controlShow3D();
+            setShow3D(is3D);
+            // The global effect will handle the redraw
+          });
+          
           useMeasureControl(map);
 
           if (withinDKBBox(areaLng!, areaLat!)) {
@@ -200,9 +216,7 @@ export default function view() {
           }
 
           const nav = new MaptilerNavigationControl();
-          map.addControl(nav, "top-right");
-
-          setMapLoaded(true);
+          map!.addControl(nav, "top-right");
 
           const unparsedFieldPolygon: any =
             scenarioData()?.project.layer.geometry;
@@ -214,12 +228,12 @@ export default function view() {
 
           const fieldPolygonVisible = true;
           if (fieldPolygonVisible) {
-            if (map.getSource("fieldPolygon")) {
-              map.removeLayer("fieldPolygon");
-              map.removeSource("fieldPolygon");
+            if (map!.getSource("fieldPolygon")) {
+              map!.removeLayer("fieldPolygon");
+              map!.removeSource("fieldPolygon");
             }
 
-            map.addLayer({
+            map!.addLayer({
               id: "fieldPolygon",
               type: "fill",
               //@ts-ignore
@@ -231,6 +245,7 @@ export default function view() {
                     type: "Polygon",
                     coordinates: fieldPolygon.geometry.coordinates,
                   },
+                  properties: {}
                 },
               },
               layout: {},
@@ -241,6 +256,8 @@ export default function view() {
               },
             });
           }
+
+          setMapLoaded(true);
         });
 
         // map.transformCameraUpdate = ({ center, zoom }) => {
@@ -257,9 +274,25 @@ export default function view() {
     }
   });
 
+  // Draw the system design when the layout or 3D mode changes
   createEffect(() => {
     if (mapLoaded() && systemLayout() && map) {
-      drawSystemDesign(map, systemLayout()!);
+      drawSystemDesign(map, systemLayout()!, show3D());
+      // Ensure field polygon sits below system layers
+      try {
+        const style = map.getStyle();
+        if (style && style.layers) {
+          const target = style.layers.find((l: any) =>
+            l.id.startsWith("strips-") ||
+            l.id.startsWith("trees-") ||
+            l.id === "treeRowLines" ||
+            l.id === "row-labels"
+          );
+          if (target && map.getLayer("fieldPolygon")) {
+            map.moveLayer("fieldPolygon", target.id);
+          }
+        }
+      } catch {}
     }
   });
 
@@ -1049,8 +1082,11 @@ export default function view() {
                                   </div>
                                 </div>
 
-                                <div class="flex w-full justify-center align-middle">
-                                  <i
+                                <div class="flex w-full items-center justify-center gap-2 py-1">
+                                  <button
+                                    type="button"
+                                    aria-label="Delete row"
+                                    class="flex items-center justify-center h-6 w-6 rounded-sm text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-500 transition"
                                     onClick={() => {
                                       setSystem("rows", (prev) => {
                                         const newRows = [...prev];
@@ -1059,12 +1095,12 @@ export default function view() {
                                       });
                                       logSystem();
                                     }}
-                                    class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 text-lg "
-                                  />
-
-                                  <p class="font-bold leading-9">
+                                  >
+                                    <i class="fa-solid fa-trash text-sm" />
+                                  </button>
+                                  <span class="font-bold leading-none select-none">
                                     Row {rowIdx() + 1}
-                                  </p>
+                                  </span>
                                 </div>
                               </div>
                             </>
@@ -1150,6 +1186,11 @@ export default function view() {
                     <ExportAndShareContent
                       scenarioData={scenarioData}
                       params={params}
+                      systemLayout={systemLayout}
+                      system={system}
+                      species={species()}
+                      mapInstance={mapInstance()}
+                      onGeneratePreview={getSystemDesign}
                     />
                   </TabsContent>
 
@@ -1253,6 +1294,47 @@ const DesignPresetContent = ({
       console.error("Failed to fetch user presets:", err);
     }
   });
+
+  // Clear previously drawn system design layers from the map
+  const clearSystemDesignLayers = () => {
+    try {
+      if (!map) return;
+      const staticLayersToRemove = [
+        "strips-points",
+        "headland-sides",
+        "margin-polygon",
+        "headland-polygon",
+        "bearing-sides",
+        "headland-intersection-points",
+        "treeRowLines",
+        "row-labels",
+      ];
+
+      // Remove known static layers
+      for (const id of staticLayersToRemove) {
+        if (map.getLayer(id)) map.removeLayer(id);
+        if (map.getSource(id)) map.removeSource(id);
+      }
+
+      // Remove dynamic species-based layers (trees-/strips-/strips-border-)
+      const style = map.getStyle();
+      if (style && style.layers) {
+        style.layers.forEach((layer: any) => {
+          const id = layer.id as string;
+          if (
+            id.startsWith("trees-") ||
+            id.startsWith("strips-") ||
+            id.startsWith("strips-border-")
+          ) {
+            if (map.getLayer(id)) map.removeLayer(id);
+            if (map.getSource(id)) map.removeSource(id);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("clearSystemDesignLayers error:", err);
+    }
+  };
   
   const saveAsPreset = async () => {
     if (!presetName().trim() || !presetDescription().trim()) {
@@ -1574,6 +1656,8 @@ N/S alignment
                 class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
                 onClick={() => {
                   console.log('Applying preset:', preset.system);
+                  // Clear existing system layers before drawing the preset
+                  clearSystemDesignLayers();
                   // Clean the preset system to only use IDs
                   const cleanSystem = {
                     ...preset.system,
@@ -1794,9 +1878,10 @@ N/S alignment
   );
 };
 
-const ExportAndShareContent = ({ scenarioData, params }: any) => {
+const ExportAndShareContent = ({ scenarioData, params, systemLayout, system, species, mapInstance, onGeneratePreview }: any) => {
   const [exportingKML, setExportingKML] = createSignal(false);
   const [isPublic, setIsPublic] = createSignal(scenarioData()?.project.isPublic || false);
+  const [exportingImage, setExportingImage] = createSignal(false);
 
   createEffect(() => {
     if (scenarioData()) {
@@ -1887,23 +1972,133 @@ const ExportAndShareContent = ({ scenarioData, params }: any) => {
     setIsPublic(value);
   }
 
+  function exportMapImage() {
+    setExportingImage(true);
+    
+    if (!mapInstance) {
+      console.error("Map not initialized");
+      setExportingImage(false);
+      showToast({
+        title: "Error",
+        description: "Map is not ready. Please wait for it to load.",
+        variant: "error"
+      });
+      return;
+    }
+    
+    const captureMap = () => {
+      try {
+        // Get the map canvas
+        const mapCanvas = mapInstance.getCanvas();
+        
+        if (!mapCanvas) {
+          console.error("Map canvas not found");
+          setExportingImage(false);
+          showToast({
+            title: "Error",
+            description: "Failed to find map canvas",
+            variant: "error"
+          });
+          return;
+        }
+        
+        // Create a new canvas to draw the map
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = mapCanvas.width;
+        exportCanvas.height = mapCanvas.height;
+        const context = exportCanvas.getContext('2d');
+        
+        if (!context) {
+          console.error("Failed to get canvas context");
+          setExportingImage(false);
+          return;
+        }
+        
+        // Draw the map canvas to our export canvas
+        context.drawImage(mapCanvas, 0, 0);
+        
+        // Log canvas dimensions for debugging
+        console.log("Canvas dimensions:", exportCanvas.width, "x", exportCanvas.height);
+        
+        // Convert canvas to blob
+        exportCanvas.toBlob((blob: Blob | null) => {
+          if (!blob) {
+            console.error("Failed to create image blob");
+            setExportingImage(false);
+            showToast({
+              title: "Error",
+              description: "Failed to capture map image. Try refreshing the page.",
+              variant: "error"
+            });
+            return;
+          }
+          
+          console.log("Blob created, size:", blob.size);
+          
+          if (blob.size < 1000) {
+            console.error("Image too small, likely empty");
+            showToast({
+              title: "Error",
+              description: "Map capture resulted in empty image. Please try again.",
+              variant: "error"
+            });
+            setExportingImage(false);
+            return;
+          }
+          
+          // Create download link
+          const url = URL.createObjectURL(blob);
+          const element = document.createElement("a");
+          const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+          const filename = `${scenarioData()?.project.layer.name || 'map'}_${scenarioData()?.project.name || 'export'}_${timestamp}.png`;
+          
+          element.setAttribute("href", url);
+          element.setAttribute("download", filename);
+          element.style.display = "none";
+          document.body.appendChild(element);
+          
+          element.click();
+          
+          document.body.removeChild(element);
+          URL.revokeObjectURL(url);
+          setExportingImage(false);
+          
+          showToast({
+            title: "Success",
+            description: "Map image exported successfully",
+            variant: "success"
+          });
+        }, 'image/png', 1.0);
+      } catch (error) {
+        console.error("Error exporting map image:", error);
+        setExportingImage(false);
+        showToast({
+          title: "Error",
+          description: "Failed to export map image",
+          variant: "error"
+        });
+      }
+    };
+    
+    // Wait for map to be idle and fully rendered
+    if (mapInstance.isMoving() || !mapInstance.loaded()) {
+      mapInstance.once('idle', () => {
+        // Force a repaint and wait for next frame
+        mapInstance.triggerRepaint();
+        requestAnimationFrame(captureMap);
+      });
+    } else {
+      // Map is already idle, trigger repaint and capture
+      mapInstance.triggerRepaint();
+      requestAnimationFrame(captureMap);
+    }
+  }
+
   return (
     <div class="dark:bg-customdark1 bg-white text-black dark:text-white">
       <h2 class="font-bold text-lg mb-4">Export and Share</h2>
       
-      <div class="mb-6">
-        <h3 class="font-semibold mb-2">Export KML</h3>
-        <button
-          type="button"
-          class="rounded-sm p-1 my-2 btn-default"
-          onClick={exportKML}
-          disabled={exportingKML()}
-        >
-          Export trees from system design as KML
-        </button>
-      </div>
-
-      <div class="mb-6">
+            <div class="mb-6 border-t border-zinc-300 dark:border-slate-600 pt-6">
         <h3 class="font-semibold mb-2">Public Preview</h3>
         <div style={{ display: "flex", "align-items": "center" }}>
           Enable public preview of system design:
@@ -1932,6 +2127,49 @@ const ExportAndShareContent = ({ scenarioData, params }: any) => {
           ""
         )}
       </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Export map view as image (png)</h3>
+        <div class="flex gap-2 flex-wrap">
+          
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportMapImage}
+            disabled={exportingImage()}
+          >
+            <i class="fas fa-image mr-2" />
+            {exportingImage() ? "Capturing..." : "Export map as image"}
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="font-semibold mb-2">Export tree coordinates</h3>
+        <div class="flex gap-2 flex-wrap">
+          <button
+            type="button"
+            class="rounded-sm p-2 my-2 btn-default"
+            onClick={exportKML}
+            disabled={exportingKML()}
+          >
+            <i class="fas fa-map-marker-alt mr-2" />
+            {exportingKML() ? "Exporting..." : "Export trees as KML"}
+          </button>
+          
+        </div>
+      </div>
+
+      <div class="mb-6  border-zinc-300 dark:border-slate-600 pt-6">
+        <TreeStripsExport 
+          systemLayout={systemLayout()} 
+          systemDesign={systemLayout() || !scenarioData()?.project.systemdesign ? system : scenarioData()?.project.systemdesign}
+          species={species}
+          onGeneratePreview={onGeneratePreview}
+        />
+      </div>
+
+
     </div>
   );
 };

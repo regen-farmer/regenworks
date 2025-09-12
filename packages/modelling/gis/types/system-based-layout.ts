@@ -1,4 +1,4 @@
-export type ISystemBasedLayout {
+export type ISystemBasedLayout = {
 	treeRowLines: any;
 	groundCoverAreas: any;
 	headlandSides: any;
@@ -8,5 +8,7 @@ export type ISystemBasedLayout {
 	intersectionPoints: any;
 	treeMarkerArray: any;
 	speciesCountArray: any;
-	groundCoverAreasM2: any;	
+	groundCoverAreasM2: any;
+	stripPolygons?: any[];
+	stripAreasM2?: number[];
 }
