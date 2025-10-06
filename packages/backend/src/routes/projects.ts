@@ -1017,6 +1017,27 @@ router.post(
 	},
 );
 
+// GET projects for a layer
+router.get(
+	"/layers/:id/projects",
+	middleware.isLoggedIn,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		try {
+			const projects = await Project.find({ layer: req.params.id })
+				.select("name description status systemdesign")
+				.populate("systemdesign", "rows")
+				.exec();
+			res.send(projects);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send({ error: "Failed to fetch projects" });
+		}
+	},
+);
+
 router.post(
 	"/layers/:id/projects",
 	middleware.isLoggedIn,

@@ -33,25 +33,60 @@ export function systemBasedLayout(
 
 	const systemRows = systemdesign.rows;
 
-	const polygon = JSON.parse(fieldGeometry);
+	// Parse and validate the geometry
+	let polygon;
+	try {
+		polygon = JSON.parse(fieldGeometry);
+		if (!polygon || !polygon.geometry) {
+			console.error("Invalid polygon structure:", polygon);
+			throw new Error("Invalid polygon structure");
+		}
+	} catch (error) {
+		console.error("Failed to parse field geometry:", error);
+		throw error;
+	}
 
 	// MARGIN
-	const marginPolygon = buffer(polygon, -systemdesign.margin, {
-		units: "meters",
-	});
+	let marginPolygon;
+	try {
+		// Ensure margin is a valid number and not too large
+		const margin = systemdesign.margin || 0;
+		if (margin > 0) {
+			marginPolygon = buffer(polygon, -margin, {
+				units: "meters",
+			});
+			
+			// If buffer returns null (can happen with invalid geometries or too large margins)
+			if (!marginPolygon) {
+				console.warn("Buffer operation returned null, using original polygon");
+				marginPolygon = polygon;
+			}
+		} else {
+			// If no margin, use original polygon
+			marginPolygon = polygon;
+		}
+	} catch (error) {
+		console.error("Buffer operation failed:", error);
+		// Fall back to original polygon if buffer fails
+		marginPolygon = polygon;
+	}
 
 	// HEADLAND
+	// Ensure bearing is a valid number
+	const bearing = typeof systemdesign.bearing === 'number' ? systemdesign.bearing : 0;
+	const headland = typeof systemdesign.headland === 'number' ? systemdesign.headland : 0;
+	
 	const {
 		headlandSides,
 		headlandPolygon,
 		sidesCloseToBearing,
 		intersectionPoints,
-	} = applyHeadland(marginPolygon, systemdesign.headland, systemdesign.bearing);
+	} = applyHeadland(marginPolygon, headland, bearing);
 
 	const {
 		lineIntersectingPolygon: lineIntersectingAreaInsideMargin,
 		widthOfPolygon: widthOfAreaInsideMargin,
-	} = makeInitialLine(systemdesign.bearing, headlandPolygon);
+	} = makeInitialLine(bearing, headlandPolygon);
 
 	// TREE ROW LINES
 	const treeRowLines = makeTreeRowLines(

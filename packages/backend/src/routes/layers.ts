@@ -181,6 +181,27 @@ router.post(
 	},
 );
 
+// GET LAYERS FOR A PARCEL
+router.get(
+	"/parcels/:id/layers",
+	middleware.checkParcelOwnership,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		try {
+			const foundParcel = await Parcel.findById(req.params.id).populate("layers");
+			if (!foundParcel) {
+				return res.status(404).send({ error: "Parcel not found" });
+			}
+			res.send(foundParcel.layers);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send({ error: "Failed to fetch layers" });
+		}
+	},
+);
+
 router.put(
 	"/layers/:id",
 	async (

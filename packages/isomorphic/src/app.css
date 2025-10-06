@@ -113,6 +113,9 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  :root {
+    --app-nav-height: 3.5rem;
+  }
   *,
   ::after,
   ::before,
@@ -258,3 +261,19 @@
   }
 }
 
+.accordion-section {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    max-height 0.3s ease,
+    opacity 0.25s ease,
+    transform 0.3s ease;
+}
+
+.accordion-section.accordion-open {
+  max-height: 75vh;
+  opacity: 1;
+  transform: translateY(0);
+}
