@@ -470,78 +470,80 @@ function DefaultMode({
 							</div>
 						</div>
 					</div>
-					<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
-						<button
-							type="button"
-							class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-							onClick={() =>
-								setActiveListingPanel((current) =>
-									current === "scenarios" ? null : "scenarios",
-								)
-						}
-							aria-expanded={activeListingPanel() === "scenarios"}
-						>
-							<span>Farm Planting Plan</span>
-							<i
-								class="fa-solid fa-chevron-down transition-transform"
-								classList={{ "rotate-180": activeListingPanel() === "scenarios" }}
-							/>
-						</button>
-							<div
-								class="accordion-section"
-								classList={{
-									"accordion-open": activeListingPanel() === "scenarios",
-								}}
-						>
-							<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
-								<button
-									type="button"
-									class="w-full rounded-sm bg-blue-600 p-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-									onClick={openCreateScenarioModal}
-								>
-									<i class="fa-solid fa-plus mr-1" /> Create scenario
-								</button>
-								<Show
-									when={!farmConfigs.loading}
-									fallback={<div class="text-sm text-gray-300">Loading scenarios...</div>}
-								>
-									<Show
-										when={farmConfigs() && farmConfigs()!.length > 0}
-										fallback={<div class="text-sm text-gray-300">No scenarios yet.</div>}
+					<Show when={data()?.parcel.layers && data()!.parcel.layers.length > 0}>
+						<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
+							<button
+								type="button"
+								class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+								onClick={() =>
+									setActiveListingPanel((current) =>
+										current === "scenarios" ? null : "scenarios",
+									)
+							}
+								aria-expanded={activeListingPanel() === "scenarios"}
+							>
+								<span>Farm Planting Plan</span>
+								<i
+									class="fa-solid fa-chevron-down transition-transform"
+									classList={{ "rotate-180": activeListingPanel() === "scenarios" }}
+								/>
+							</button>
+								<div
+									class="accordion-section"
+									classList={{
+										"accordion-open": activeListingPanel() === "scenarios",
+									}}
+							>
+								<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
+									<button
+										type="button"
+										class="w-full rounded-sm bg-blue-600 p-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+										onClick={openCreateScenarioModal}
 									>
-										<div
-											class="list-group rounded-md"
-											style={{
-												"max-height": "45vh",
-												"overflow-y": "auto",
-											}}
+										<i class="fa-solid fa-plus mr-1" /> Create scenario
+									</button>
+									<Show
+										when={!farmConfigs.loading}
+										fallback={<div class="text-sm text-gray-300">Loading scenarios...</div>}
+									>
+										<Show
+											when={farmConfigs() && farmConfigs()!.length > 0}
+											fallback={<div class="text-sm text-gray-300">No scenarios yet.</div>}
 										>
-											<For each={farmConfigs()}>
-												{(config: any) => (
-													<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div py-2">
-													<div class="flex w-full items-center gap-3 text-xs text-gray-100">
-														<div
-															class="text-sm font-semibold max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
-															title={config.name || "Unnamed scenario"}
-														>
-															{config.name || "Unnamed scenario"}
-														</div>
-														<button
-															class="ml-auto rounded-sm px-2 py-1 btn-default text-xs"
-																onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
+											<div
+												class="list-group rounded-md"
+												style={{
+													"max-height": "45vh",
+													"overflow-y": "auto",
+												}}
+											>
+												<For each={farmConfigs()}>
+													{(config: any) => (
+														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div py-2">
+														<div class="flex w-full items-center gap-3 text-xs text-gray-100">
+															<div
+																class="text-sm font-semibold max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
+																title={config.name || "Unnamed scenario"}
 															>
-																View
-															</button>
+																{config.name || "Unnamed scenario"}
+															</div>
+															<button
+																class="ml-auto rounded-sm px-2 py-1 btn-default text-xs"
+																	onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
+																>
+																	View
+																</button>
+															</div>
 														</div>
-													</div>
-												)}
-											</For>
-										</div>
+													)}
+												</For>
+											</div>
+										</Show>
 									</Show>
-								</Show>
+								</div>
 							</div>
 						</div>
-					</div>
+					</Show>
 				</div>
 			</div>
 		</>
