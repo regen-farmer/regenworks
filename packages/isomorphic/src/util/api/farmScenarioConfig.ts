@@ -10,7 +10,7 @@ export async function getFarmScenarioConfig(configId: string) {
   );
   
   if (!response.ok) {
-    throw new Error(`Failed to fetch farm scenario config: ${response.statusText}`);
+    throw new Error(`Failed to fetch farm planting plan config: ${response.statusText}`);
   }
   
   return response.json() as Promise<FarmScenarioConfigDocument>;
@@ -24,7 +24,7 @@ export async function getFarmScenarioConfigs(parcelId?: string) {
   const response = await fetch(url, apiFetchOptions());
   
   if (!response.ok) {
-    throw new Error(`Failed to fetch farm scenario configs: ${response.statusText}`);
+    throw new Error(`Failed to fetch farm planting plan configs: ${response.statusText}`);
   }
   
   return response.json() as Promise<FarmScenarioConfigDocument[]>;
@@ -45,7 +45,7 @@ export async function createFarmScenarioConfig(config: Partial<FarmScenarioConfi
   );
   
   if (!response.ok) {
-    throw new Error(`Failed to create farm scenario config: ${response.statusText}`);
+    throw new Error(`Failed to create farm planting plan config: ${response.statusText}`);
   }
   
   return response.json() as Promise<FarmScenarioConfigDocument>;
@@ -69,7 +69,7 @@ export async function updateFarmScenarioConfig(
   );
   
   if (!response.ok) {
-    throw new Error(`Failed to update farm scenario config: ${response.statusText}`);
+    throw new Error(`Failed to update farm planting plan config: ${response.statusText}`);
   }
   
   return response.json() as Promise<FarmScenarioConfigDocument>;
@@ -85,7 +85,7 @@ export async function deleteFarmScenarioConfig(configId: string) {
   );
   
   if (!response.ok) {
-    throw new Error(`Failed to delete farm scenario config: ${response.statusText}`);
+    throw new Error(`Failed to delete farm planting plan config: ${response.statusText}`);
   }
   
   return response.json();
@@ -100,7 +100,7 @@ export async function getFarmScenarioConfigPreview(configId: string) {
   if (!response.ok) {
     const errorText = await response.text();
     console.error(`Failed to fetch preview: ${response.status} ${response.statusText}`, errorText);
-    throw new Error(`Failed to fetch farm scenario config preview: ${response.statusText}`);
+    throw new Error(`Failed to fetch farm planting plan config preview: ${response.statusText}`);
   }
   
   const text = await response.text();

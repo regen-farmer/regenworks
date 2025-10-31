@@ -65,7 +65,7 @@ function DefaultMode({
 
 	const navigate = useNavigate();
 	
-	// Fetch existing farm scenario configurations
+	// Fetch existing farm planting plan configurations
 	const [farmConfigs, { refetch: refetchFarmConfigs }] = createResource(
 		() => params.parcelId,
 		async (parcelId) => {
@@ -133,7 +133,7 @@ function DefaultMode({
 			await refetchFarmConfigs();
 				navigate(`/parcels/${params.parcelId}/farm-scenario/${created._id}`);
 		} catch (error) {
-			console.error("Failed to create farm scenario config:", error);
+			console.error("Failed to create farm planting plan config:", error);
 			showToast({
 				title: "Creation failed",
 				description:
@@ -296,7 +296,7 @@ function DefaultMode({
 			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Create farm scenario</DialogTitle>
+						<DialogTitle>Create Farm Planting Plan</DialogTitle>
 						<DialogDescription>
 							Give the scenario a name and optional description. All current fields will be included by default.
 						</DialogDescription>

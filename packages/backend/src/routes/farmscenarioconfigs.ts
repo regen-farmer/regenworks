@@ -25,7 +25,7 @@ router.get("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthReques
     
     res.send(configs);
   } catch (error) {
-    console.error("Error fetching farm scenario configs:", error);
+    console.error("Error fetching farm planting plan configs:", error);
     res.status(500).send({ error: "Failed to fetch configurations" });
   }
 });
@@ -88,7 +88,7 @@ router.get("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
 // POST /farmscenarioconfigs - Create a new config
 router.post("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthRequest, res) => {
   try {
-    console.log("Creating farm scenario config with body:", JSON.stringify(req.body, null, 2));
+    console.log("Creating farm planting plan config with body:", JSON.stringify(req.body, null, 2));
     
     // Verify parcel ownership
     const parcel = await Parcel.findById(req.body.parcel);

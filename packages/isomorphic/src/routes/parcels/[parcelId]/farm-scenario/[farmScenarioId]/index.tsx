@@ -104,7 +104,7 @@ const FarmScenarioPreview: Component = () => {
     checkAuth();
   });
 
-  // Fetch the farm scenario configuration with preview data
+  // Fetch the farm planting plan configuration with preview data
   const [configData, { refetch, mutate: mutateConfig }] = createResource(
     () => authReady() && params.farmScenarioId,
     async (farmScenarioId) => {
@@ -1018,7 +1018,7 @@ const FarmScenarioPreview: Component = () => {
       {/* Sidebar with field list */}
       <div class="flex h-full w-80 flex-col overflow-y-auto border-r border-gray-200 bg-white p-0 dark:border-gray-700 dark:bg-gray-900">
         <div class="p-4">
-          <h2 class="text-xl font-bold mb-4">Farm Scenario Preview</h2>
+          <h2 class="text-xl font-bold mb-4">Farm Planting Plan</h2>
 
           <Show
             when={!configData.error && configData()}
@@ -1089,7 +1089,7 @@ const FarmScenarioPreview: Component = () => {
                     Public preview
                   </span>
                   <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Allow anyone with the link to view this farm scenario.
+                    Allow anyone with the link to view this farm planting plan.
                   </p>
                 </div>
                 <div>
