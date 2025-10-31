@@ -10,6 +10,12 @@ import {
 } from "@turf/turf";
 
 export function makeInitialLine(bearing: number, polygon) {
+	// Ensure bearing is a valid number, default to 0 if not
+	if (typeof bearing !== 'number' || isNaN(bearing)) {
+		console.warn('Invalid bearing provided to makeInitialLine, defaulting to 0');
+		bearing = 0;
+	}
+	
 	const pivotPoint = centroid(polygon);
 
 	const rotatedPolygon = transformRotate(polygon, -bearing, {

@@ -9,33 +9,61 @@ const SystemInfoBox: Component<{
 	scenarioData: any;
 }> = (props) => {
 	function calculateMarginHeadlandArea(): number {
-		const geometry = turfDifference({
-			type: "FeatureCollection",
-			features: [
-				JSON.parse(props.scenarioData.project.layer.geometry),
-				props.systemLayout.headlandPolygon,
-			],
-		});
+		try {
+			if (!props.scenarioData?.project?.layer?.geometry) {
+				console.warn("No geometry available for margin/headland calculation");
+				return 0;
+			}
+			
+			const geometry = turfDifference({
+				type: "FeatureCollection",
+				features: [
+					JSON.parse(props.scenarioData.project.layer.geometry),
+					props.systemLayout.headlandPolygon,
+				],
+			});
 
-		const area = Number.parseFloat(turfArea(geometry!).toString());
+			const area = Number.parseFloat(turfArea(geometry!).toString());
 
-		return area;
+			return area;
+		} catch (error) {
+			console.error("Error calculating margin/headland area:", error);
+			return 0;
+		}
 	}
 
 	function fieldArea(geometry: string): number {
-		return turfArea(JSON.parse(geometry));
+		try {
+			if (!geometry || geometry === "undefined") {
+				console.warn("Invalid geometry for field area calculation");
+				return 0;
+			}
+			return turfArea(JSON.parse(geometry));
+		} catch (error) {
+			console.error("Error calculating field area:", error);
+			return 0;
+		}
 	}
 
 	function groundCoverPercentage(
 		groundCoverArea: string,
 		fieldGeometry: string,
 	): string {
-		return (
-			(Number.parseFloat(groundCoverArea) / fieldArea(fieldGeometry)) *
-			100
-		)
-			.toFixed(2)
-			.replace(".", ",");
+		try {
+			const area = fieldArea(fieldGeometry);
+			if (area === 0) {
+				return "0,00";
+			}
+			return (
+				(Number.parseFloat(groundCoverArea) / area) *
+				100
+			)
+				.toFixed(2)
+				.replace(".", ",");
+		} catch (error) {
+			console.error("Error calculating ground cover percentage:", error);
+			return "0,00";
+		}
 	}
 
 	return (

@@ -44,6 +44,7 @@ import rotationRoutes from "./routes/rotations.ts";
 import varietyRoutes from "./routes/varieties.ts";
 import stripeRoutes from "./routes/stripe.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
+import farmScenarioConfigRoutes from "./routes/farmscenarioconfigs.ts";
 
 export type Auth0IDToken = {
   nickname: string;
@@ -238,6 +239,7 @@ app.use("", rotationRoutes);
 app.use("", varietyRoutes);
 app.use("", stripeRoutes);
 app.use("", userPresetsRoutes);
+app.use("", farmScenarioConfigRoutes);
 
 // 404 ROUTE
 app.get(
