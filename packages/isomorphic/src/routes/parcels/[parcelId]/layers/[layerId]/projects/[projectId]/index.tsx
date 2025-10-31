@@ -548,21 +548,20 @@ export default function view() {
                     </TabsList>
 
                     <TabsContent value="edit" style={{ overflow: "hidden", flex: "1 1 auto", display: "flex", "flex-direction": "column" }}>
-                      <Show when={!isFreemium()} fallback={
-                        <div style={{ height: "100%", display: "flex", "align-items": "center", "justify-content": "center", padding: "40px" }}>
-                          <div class="text-center">
-                            <i class="fas fa-lock text-6xl text-gray-400 mb-4" />
-                            <h2 class="text-2xl font-bold mb-4">Upgrade to unlock full design functionality</h2>
-                            <p class="text-gray-600 dark:text-gray-400 mb-6">
-                              You are using the free version of RegenWorks. 
-                              Choose a paid plan to access the full row editor and system design tools.
-                            </p>
-                            <A href="/settings" class="rounded-sm p-2 px-4 btn-default">
-                              View upgrade options
-                            </A>
+                      <Show when={isFreemium()}>
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 m-2">
+                          <div class="flex items-start gap-2">
+                            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 mt-0.5" />
+                            <div class="text-sm">
+                              <p class="font-semibold text-blue-900 dark:text-blue-100">Free plan - Limited editing</p>
+                              <p class="text-blue-800 dark:text-blue-200">
+                                You can apply presets and adjust the bearing angle.<br />
+                                <A href="/settings" class="underline">Upgrade to unlock</A> full row editing capabilities.
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      }>
+                      </Show>
                       <div style={{ flex: "1 1 auto", position: "relative", overflow: "auto" }}>
                         <button
                           class="absolute top-2 right-2 rounded-sm p-2 btn-default z-10"
@@ -577,7 +576,6 @@ export default function view() {
                             <div class="form-group justify-between flex my-1 align-middle">
                               <label class="leading-7 mr-2 w-full text-right">Bearing</label>
                               <input
-                                disabled={isFreemium()}
                                 type="number"
                                 min={-180}
                                 class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
@@ -596,6 +594,7 @@ export default function view() {
                                 type="number"
                                 min={0}
                                 class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
+                                classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
                                 onchange={(e) => {
                                   setSystem("margin", Number.parseFloat(e.target.value));
                                   logSystem();
@@ -611,6 +610,7 @@ export default function view() {
                                 type="number"
                                 min={0}
                                 class="form-control p-1 rounded-sm w-20 border border-zinc-300 dark:border-slate-600"
+                                classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
                                 onchange={(e) => {
                                   setSystem("headland", Number.parseFloat(e.target.value));
                                   logSystem();
@@ -636,6 +636,7 @@ export default function view() {
                                 index={rowIdx()}
                                 setSystem={setSystem}
                                 logSystem={logSystem}
+                                disabled={isFreemium()}
                               />
 
                               <div
@@ -676,6 +677,8 @@ export default function view() {
                                               type="number"
                                               min={0}
                                               class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                              classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
+                                              disabled={isFreemium()}
                                               value={row.offset?.before}
                                               onChange={(e) => {
                                                 setSystem(
@@ -703,6 +706,7 @@ export default function view() {
                                         <button
                                           title="Add tree"
                                           class="rounded-sm p-1 mt-2 mb-2 btn-default"
+                                          disabled={isFreemium()}
                                           onclick={() => {
                                             // console.log('test')
                                             setSystem(
@@ -753,6 +757,7 @@ export default function view() {
                                       > */}
                                               <i
                                                 onClick={() => {
+                                                  if (isFreemium()) return;
                                                   setSystem(
                                                     "rows",
                                                     rowIdx(),
@@ -771,6 +776,7 @@ export default function view() {
                                                   logSystem();
                                                 }}
                                                 class="fa-solid fa-trash cursor-pointer text-zinc-400 dark:text-zinc-500 dark:hover:text-red-500 hover:text-red-500 m-1 "
+                                                classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
                                               />
                                               {/* </button> */}
 
@@ -793,7 +799,9 @@ export default function view() {
                                                     type="number"
                                                     min={0}
                                                     class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                                    classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
                                                     placeholder="Spacing (m)"
+                                                    disabled={isFreemium()}
                                                     value={
                                                       sequence.spacingAfter
                                                     }
@@ -846,6 +854,7 @@ export default function view() {
                                                           species.form
                                                         )
                                                     )??[]}
+                                                    disabled={isFreemium()}
                                                     onChange={(e)=>{
                                                       setSystem(
                                                         "rows",
@@ -886,6 +895,7 @@ export default function view() {
 
                                         <button
                                           class="rounded-sm p-1 mt-2 btn-default"
+                                          disabled={isFreemium()}
                                           onclick={() => {
                                             // console.log('test')
                                             setSystem(
@@ -932,6 +942,8 @@ export default function view() {
                                               type="number"
                                               min={0}
                                               class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                              classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
+                                              disabled={isFreemium()}
                                               value={row.offset?.after}
                                               onChange={(e) => {
                                                 setSystem(
@@ -960,6 +972,7 @@ export default function view() {
                                   ) : (
                                     <button
                                       class="rounded-sm p-1  w-full btn-default"
+                                      disabled={isFreemium()}
                                       onclick={() => {
                                         // console.log('test')
                                         setSystem(
@@ -1000,6 +1013,7 @@ export default function view() {
                                             species.form
                                           )
                                       )??[]}
+                                      disabled={isFreemium()}
                                       onChange={(e)=>{
                                         setSystem(
                                           "rows",
@@ -1057,7 +1071,9 @@ export default function view() {
                                         type="number"
                                         min={0}
                                         class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                                        classList={{ "opacity-50 cursor-not-allowed": isFreemium() }}
                                         placeholder="Width"
+                                        disabled={isFreemium()}
                                         value={row.width}
                                         onChange={(e) => {
                                           setSystem(
@@ -1087,6 +1103,7 @@ export default function view() {
                                     type="button"
                                     aria-label="Delete row"
                                     class="flex items-center justify-center h-6 w-6 rounded-sm text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-500 transition"
+                                    disabled={isFreemium()}
                                     onClick={() => {
                                       setSystem("rows", (prev) => {
                                         const newRows = [...prev];
@@ -1111,6 +1128,7 @@ export default function view() {
                           index={system.rows.length}
                           setSystem={setSystem}
                           logSystem={logSystem}
+                          disabled={isFreemium()}
                         />
                         </div>
                       </div>
@@ -1160,8 +1178,7 @@ export default function view() {
                           </button>
                         </div>
                       </div>
-                    </Show>
-                  </TabsContent>
+                    </TabsContent>
 
                   <TabsContent value="presets" style={{ overflow: "auto", flex: "1 1 auto", padding: "20px" }}>
                     <DesignPresetContent

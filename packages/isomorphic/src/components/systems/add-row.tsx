@@ -21,12 +21,14 @@ export function AddRow(props: {
 	index: number;
 	setSystem: any;
 	logSystem: any;
+	disabled?: boolean;
 }) {
 	return (
 		<div class="trigger">
 			<div
-				class={`rounded-sm p-1 my-2 btn-default ${props.ping?'animate-bounce':''}`}
+				class={`rounded-sm p-1 my-2 btn-default ${props.ping?'animate-bounce':''} ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
 				onClick={() => {
+					if (props.disabled) return;
 					props.setSystem("rows", (prev: IRow[]) => [
 						...prev.slice(0, props.index),
 						{
