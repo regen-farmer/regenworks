@@ -481,7 +481,7 @@ function DefaultMode({
 						}
 							aria-expanded={activeListingPanel() === "scenarios"}
 						>
-							<span>Farm scenarios</span>
+							<span>Farm Planting Plan</span>
 							<i
 								class="fa-solid fa-chevron-down transition-transform"
 								classList={{ "rotate-180": activeListingPanel() === "scenarios" }}
