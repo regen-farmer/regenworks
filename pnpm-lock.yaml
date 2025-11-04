@@ -90,6 +90,9 @@ importers:
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0
+      resend:
+        specifier: ^6.3.0
+        version: 6.3.0
       sharp:
         specifier: ^0.34.3
         version: 0.34.3
@@ -143,7 +146,7 @@ importers:
     dependencies:
       '@auth/core':
         specifier: ^0.38.0
-        version: 0.38.0
+        version: 0.38.0(nodemailer@6.10.1)
       '@corvu/resizable':
         specifier: ^0.2.5
         version: 0.2.5(solid-js@1.9.9)
@@ -191,7 +194,7 @@ importers:
         version: link:../modelling
       '@solid-mediakit/auth':
         specifier: ^3.1.3
-        version: 3.1.3(@auth/core@0.38.0)(@solidjs/meta@0.29.4(solid-js@1.9.9))(@solidjs/router@0.15.3(solid-js@1.9.9))(@solidjs/start@1.1.7(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.3.5(@types/node@24.2.1)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.7.0)))(rollup@4.46.1)(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))
+        version: 3.1.3(@auth/core@0.38.0(nodemailer@6.10.1))(@solidjs/meta@0.29.4(solid-js@1.9.9))(@solidjs/router@0.15.3(solid-js@1.9.9))(@solidjs/start@1.1.7(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.3.5(@types/node@24.2.1)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.7.0)))(rollup@4.46.1)(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))
       '@solid-primitives/media':
         specifier: ^2.3.3
         version: 2.3.3(solid-js@1.9.9)
@@ -2267,6 +2270,9 @@ packages:
   '@speed-highlight/core@1.2.7':
     resolution: {integrity: sha512-0dxmVj4gxg3Jg879kvFS/msl4s9F3T9UXC1InxgOf7t5NvcPD97u/WTA5vL/IxWHMn7qSxBozqrnnE2wvl1m8g==}
 
+  '@stablelib/base64@1.0.1':
+    resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
+
   '@swc/helpers@0.5.17':
     resolution: {integrity: sha512-5IKx/Y13RsYd+sauPb2x+U/xZikHjolzfuDgTAl/Tdf3Q8rslRvC19NKDLgAJQ6wsqADk10ntlv08nPFw/gO/A==}
 
@@ -2853,6 +2859,9 @@ packages:
 
   '@types/node-geocoder@4.2.6':
     resolution: {integrity: sha512-rONIqFylsxAeyqCpfy626vs9ofNI8oXjNyBS2KuI+ePbCyLGrcqkVSrhIvuKxfeXtqikGk118EZtjehU0cUH9w==}
+
+  '@types/node@22.18.13':
+    resolution: {integrity: sha512-Bo45YKIjnmFtv6I1TuC8AaHBbqXtIo+Om5fE4QiU1Tj8QR/qt+8O3BAtOimG5IFmwaWiPmB3Mv3jtYzBA4Us2A==}
 
   '@types/node@24.2.1':
     resolution: {integrity: sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==}
@@ -3820,6 +3829,9 @@ packages:
     resolution: {integrity: sha512-j6vWzfrGVfyXxge+O0x5sh6cvxAog0a/4Rdd2K36zCMV5eJ+/+tOAngRO8cODMNWbVRdVlmGZQL2YS3yR8bIUA==}
     engines: {node: '>= 0.4'}
 
+  es6-promise@4.2.8:
+    resolution: {integrity: sha512-HJDGx5daxeIvxdBxvG2cb9g4tEvwIk3i8+nhX0yGrYmZUzbkdg8QbDevheDB8gd0//uPj4c1EQua8Q+MViT0/w==}
+
   esbuild@0.25.5:
     resolution: {integrity: sha512-P8OtKZRv/5J5hhz0cUAdu/cLuPIKXpQl1R9pZtvmHWQvrAUVd0UNIPT4IB4W3rNOqVO0rlqHmCIbSwxh/c9yUQ==}
     engines: {node: '>=18'}
@@ -3925,6 +3937,9 @@ packages:
   fast-glob@3.3.3:
     resolution: {integrity: sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==}
     engines: {node: '>=8.6.0'}
+
+  fast-sha256@1.3.0:
+    resolution: {integrity: sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==}
 
   fast-xml-parser@4.5.3:
     resolution: {integrity: sha512-RKihhV+SHsIUGXObeVy9AXiBbFwkVk7Syp8XgwN5U3JV416+Gwp/GO9i0JYKmikykgz/UHRrrV4ROuZEo/T0ig==}
@@ -5054,6 +5069,10 @@ packages:
     resolution: {integrity: sha512-3VW/8JpPqPvnJvseXowjZcirPisssnBuDikk6JIZ8jQzF7KJQX52iPFX4RYYxLycYH7IbMRSPUOga/esVjy5Yg==}
     engines: {node: '>=18'}
 
+  nodemailer@6.10.1:
+    resolution: {integrity: sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==}
+    engines: {node: '>=6.0.0'}
+
   nodemon@3.1.10:
     resolution: {integrity: sha512-WDjw3pJ0/0jMFmyNDp3gvY2YizjLmmOUQo6DEBY+JgdvW/yQ9mEeSw6H5ythl5Ny2ytb7f9C2nIbjSxMNzbJXw==}
     engines: {node: '>=10'}
@@ -5348,6 +5367,9 @@ packages:
   quansync@0.2.10:
     resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
 
+  querystringify@2.2.0:
+    resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -5460,6 +5482,15 @@ packages:
 
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
+
+  resend@6.3.0:
+    resolution: {integrity: sha512-Nmg5cFojC2E07gQ/RnlcroXpclFnlr05yQP2QNbbAhfX1Q4LBqiSd6/0t/fq95MvcuP8EDbb+Eyw1NG2P0OWgw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@react-email/render': '*'
+    peerDependenciesMeta:
+      '@react-email/render':
+        optional: true
 
   resolve-from@5.0.0:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
@@ -5891,6 +5922,9 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  svix@1.76.1:
+    resolution: {integrity: sha512-CRuDWBTgYfDnBLRaZdKp9VuoPcNUq9An14c/k+4YJ15Qc5Grvf66vp0jvTltd4t7OIRj+8lM1DAgvSgvf7hdLw==}
+
   sweepline-intersections@1.5.0:
     resolution: {integrity: sha512-AoVmx72QHpKtItPu72TzFL+kcYjd67BPLDoR0LarIk+xyaRg+pDTMFXndIEvZf9xEKnJv6JdhgRMnocoG0D3AQ==}
 
@@ -6056,6 +6090,9 @@ packages:
   undici-types@5.28.4:
     resolution: {integrity: sha512-3OeMF5Lyowe8VW0skf5qaIE7Or3yS9LS7fvMUI0gg4YxpIBVg0L8BxCmROw2CcYhSkpR68Epz7CGc8MPj94Uww==}
 
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
   undici-types@7.10.0:
     resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
 
@@ -6203,6 +6240,9 @@ packages:
   uqr@0.1.2:
     resolution: {integrity: sha512-MJu7ypHq6QasgF5YRTjqscSzQp/W11zoUk6kvmlH+fmWEs63Y0Eib13hYFwAzagRJcVY8WVnlV+eBDUGMJ5IbA==}
 
+  url-parse@1.5.10:
+    resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
+
   urlpattern-polyfill@10.1.0:
     resolution: {integrity: sha512-IGjKp/o0NL3Bso1PymYURCJxMPNAf/ILOpendP9f5B6e1rTJgdgiOvgfoT8VxCAdY+Wisb9uhGaJJf3yZ2V9nw==}
 
@@ -6215,6 +6255,10 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+
+  uuid@10.0.0:
+    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    hasBin: true
 
   uuid@11.1.0:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
@@ -6493,13 +6537,15 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@auth/core@0.38.0':
+  '@auth/core@0.38.0(nodemailer@6.10.1)':
     dependencies:
       '@panva/hkdf': 1.2.1
       jose: 6.0.11
       oauth4webapi: 3.3.1
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
+    optionalDependencies:
+      nodemailer: 6.10.1
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -8307,9 +8353,9 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@solid-mediakit/auth@3.1.3(@auth/core@0.38.0)(@solidjs/meta@0.29.4(solid-js@1.9.9))(@solidjs/router@0.15.3(solid-js@1.9.9))(@solidjs/start@1.1.7(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.3.5(@types/node@24.2.1)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.7.0)))(rollup@4.46.1)(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))':
+  '@solid-mediakit/auth@3.1.3(@auth/core@0.38.0(nodemailer@6.10.1))(@solidjs/meta@0.29.4(solid-js@1.9.9))(@solidjs/router@0.15.3(solid-js@1.9.9))(@solidjs/start@1.1.7(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))(vite@6.3.5(@types/node@24.2.1)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.7.0)))(rollup@4.46.1)(solid-js@1.9.9)(vinxi@0.5.8(@netlify/blobs@9.1.2)(@types/node@24.2.1)(db0@0.3.2)(ioredis@5.6.1)(jiti@2.5.1)(lightningcss@1.30.1)(rolldown@1.0.0-beta.32)(terser@5.43.1)(tsx@4.20.3)(xml2js@0.6.2)(yaml@2.7.0))':
     dependencies:
-      '@auth/core': 0.38.0
+      '@auth/core': 0.38.0(nodemailer@6.10.1)
       '@solid-mediakit/shared': 0.0.6(rollup@4.46.1)
       '@solidjs/meta': 0.29.4(solid-js@1.9.9)
       '@solidjs/router': 0.15.3(solid-js@1.9.9)
@@ -8421,6 +8467,8 @@ snapshots:
       - vite
 
   '@speed-highlight/core@1.2.7': {}
+
+  '@stablelib/base64@1.0.1': {}
 
   '@swc/helpers@0.5.17':
     dependencies:
@@ -9823,6 +9871,10 @@ snapshots:
       '@types/node': 24.2.1
       '@types/node-fetch': 2.6.12
 
+  '@types/node@22.18.13':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@24.2.1':
     dependencies:
       undici-types: 7.10.0
@@ -10810,6 +10862,8 @@ snapshots:
       has-tostringtag: 1.0.2
       hasown: 2.0.2
 
+  es6-promise@4.2.8: {}
+
   esbuild@0.25.5:
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.25.5
@@ -11016,6 +11070,8 @@ snapshots:
       glob-parent: 5.1.2
       merge2: 1.4.1
       micromatch: 4.0.8
+
+  fast-sha256@1.3.0: {}
 
   fast-xml-parser@4.5.3:
     dependencies:
@@ -12302,6 +12358,9 @@ snapshots:
     dependencies:
       '@babel/parser': 7.28.0
 
+  nodemailer@6.10.1:
+    optional: true
+
   nodemon@3.1.10:
     dependencies:
       chokidar: 3.6.0
@@ -12601,6 +12660,8 @@ snapshots:
 
   quansync@0.2.10: {}
 
+  querystringify@2.2.0: {}
+
   queue-microtask@1.2.3: {}
 
   quick-lru@7.0.1: {}
@@ -12730,6 +12791,10 @@ snapshots:
   require-package-name@2.0.1: {}
 
   requires-port@1.0.0: {}
+
+  resend@6.3.0:
+    dependencies:
+      svix: 1.76.1
 
   resolve-from@5.0.0: {}
 
@@ -13244,6 +13309,15 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
+  svix@1.76.1:
+    dependencies:
+      '@stablelib/base64': 1.0.1
+      '@types/node': 22.18.13
+      es6-promise: 4.2.8
+      fast-sha256: 1.3.0
+      url-parse: 1.5.10
+      uuid: 10.0.0
+
   sweepline-intersections@1.5.0:
     dependencies:
       tinyqueue: 2.0.3
@@ -13395,6 +13469,8 @@ snapshots:
 
   undici-types@5.28.4: {}
 
+  undici-types@6.21.0: {}
+
   undici-types@7.10.0: {}
 
   unenv@1.10.0:
@@ -13541,6 +13617,11 @@ snapshots:
 
   uqr@0.1.2: {}
 
+  url-parse@1.5.10:
+    dependencies:
+      querystringify: 2.2.0
+      requires-port: 1.0.0
+
   urlpattern-polyfill@10.1.0: {}
 
   urlpattern-polyfill@8.0.2: {}
@@ -13548,6 +13629,8 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@10.0.0: {}
 
   uuid@11.1.0: {}
 

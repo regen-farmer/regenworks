@@ -26,7 +26,17 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { getFarmScenarioConfigPreview } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
-import { getAuth0User } from "~/auth/useAuth";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 interface FieldScenarioData {
   layerId: string;
@@ -46,43 +56,21 @@ const FarmScenarioPreview: Component = () => {
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
   const [selectedFieldId, setSelectedFieldId] = createSignal<string | null>(null);
   const [show3D, setShow3D] = createSignal(false);
+  const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
+  const [userEmail, setUserEmail] = createSignal("");
+  const [userNotes, setUserNotes] = createSignal("");
+  const [isSendingOfferRequest, setIsSendingOfferRequest] = createSignal(false);
+  const [offerRequestError, setOfferRequestError] = createSignal<string | null>(null);
+  const [offerRequestSuccess, setOfferRequestSuccess] = createSignal(false);
+  const [editableQuantities, setEditableQuantities] = createSignal<Record<string, number>>({});
+  const [enabledSpecies, setEnabledSpecies] = createSignal<Record<string, boolean>>({});
   
-  // Wait for auth to be ready before fetching
+  // Signal to indicate the page is ready to fetch data
   const [authReady, setAuthReady] = createSignal(false);
-  
-  // Check if auth is ready or if we should proceed without it (for public configs)
+
+  // Public previews don't require authentication - proceed immediately
   onMount(() => {
-    // For public previews, we don't need to wait for auth
-    // The backend will handle public access appropriately
-    const checkAuth = async () => {
-      // First check if auth is already available
-      if (getAuth0User()) {
-        console.log("Auth available, proceeding with authenticated request");
-        setAuthReady(true);
-        return;
-      }
-      
-      // If not, wait a brief moment for auth to initialize
-      // But don't wait too long - public previews don't need auth
-      let attempts = 0;
-      const maxAttempts = 5; // 0.5 seconds max wait for public previews
-      
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (getAuth0User()) {
-          console.log("Auth became available, proceeding with authenticated request");
-          setAuthReady(true);
-          return;
-        }
-        attempts++;
-      }
-      
-      // No auth available - proceed anyway (might be a public preview)
-      console.log("No auth available, proceeding (might be public preview)");
-      setAuthReady(true);
-    };
-    
-    checkAuth();
+    setAuthReady(true);
   });
   
   // Fetch the farm planting plan configuration with preview data
@@ -96,7 +84,7 @@ const FarmScenarioPreview: Component = () => {
         const data = await getFarmScenarioConfigPreview(configId);
         console.log("Preview data received:", data);
         return data;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching preview data:", error);
         // If it's an auth error, we might want to retry once
         if (error.message.includes("Empty response") || error.message.includes("Unexpected end")) {
@@ -209,6 +197,154 @@ const FarmScenarioPreview: Component = () => {
     
     return undefined;
   });
+
+  const speciesBreakdown = createMemo(() => {
+    const aggregated = aggregatedLayoutData();
+    if (!aggregated?.speciesCountArray) return [] as { id: string; name: string; count: number }[];
+
+    return aggregated.speciesCountArray.map((item: any, index: number) => {
+      const speciesEntry = item.species;
+      const speciesId =
+        typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry._id ?? `${index}`
+          : speciesEntry ?? `${index}`;
+      const speciesData = species();
+      const speciesDoc =
+        (typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry
+          : speciesData?.speciesById?.get(speciesId)) || undefined;
+
+      const displayName =
+        speciesDoc?.nameCommon ||
+        speciesDoc?.species ||
+        (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
+        "Unknown species";
+
+      return {
+        id: String(speciesId ?? index),
+        name: displayName,
+        count: Number(item.count ?? 0),
+      };
+    });
+  });
+
+  const totalTrees = createMemo(() => {
+    return speciesBreakdown().reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+  });
+
+  // Check if the farm scenario creator is from an allowed country for plant offers
+  const ALLOWED_COUNTRIES = ['DK', 'SE', 'NL', 'DE', 'CZ', 'UK'];
+  const canRequestPlantOffer = createMemo(() => {
+    const config = configData();
+    if (!config) return false;
+
+    // Get the creator's country code from the populated user field
+    // The user field should be populated with countryCode by the backend
+    const user = config.user as any;
+    const creatorCountryCode = user?.countryCode;
+
+    if (!creatorCountryCode) return false;
+    return ALLOWED_COUNTRIES.includes(creatorCountryCode.toUpperCase());
+  });
+
+  createEffect(() => {
+    if (isOfferModalOpen()) {
+      setOfferRequestError(null);
+      setOfferRequestSuccess(false);
+
+      // Leave email blank - user will fill it in
+      setUserEmail("");
+      setUserNotes(""); // Clear notes when modal opens
+
+      // Initialize editable quantities with the current counts
+      const quantities: Record<string, number> = {};
+      const enabled: Record<string, boolean> = {};
+      speciesBreakdown().forEach(entry => {
+        quantities[entry.id] = entry.count;
+        enabled[entry.id] = true; // All species enabled by default
+      });
+      setEditableQuantities(quantities);
+      setEnabledSpecies(enabled);
+    }
+  });
+
+  // Calculate total from editable quantities (only enabled species)
+  const totalEditableTrees = createMemo(() => {
+    const quantities = editableQuantities();
+    const enabled = enabledSpecies();
+    return Object.entries(quantities).reduce((sum, [id, count]) => {
+      return sum + (enabled[id] ? count : 0);
+    }, 0);
+  });
+
+  const handleSendOfferRequest = async () => {
+    if (isSendingOfferRequest()) return;
+
+    const email = userEmail().trim();
+    if (!email) {
+      setOfferRequestError("Please provide an email address so we can get back to you.");
+      return;
+    }
+
+    if (totalEditableTrees() <= 0) {
+      setOfferRequestError("We couldn't find any trees to include in the request.");
+      return;
+    }
+
+    setOfferRequestError(null);
+    setOfferRequestSuccess(false);
+    setIsSendingOfferRequest(true);
+
+    try {
+      const baseOptions = apiFetchOptions();
+      const quantities = editableQuantities();
+      const enabled = enabledSpecies();
+      const config = configData();
+
+      // Get country from the creator's user data
+      const creatorUser = config?.user as any;
+      const country = creatorUser?.countryCode || undefined;
+
+      const response = await fetch(`${BACKEND_URL}/plant-offer-requests`, {
+        ...baseOptions,
+        method: "POST",
+        headers: {
+          ...(baseOptions.headers ?? {}),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          configId: params.configId,
+          totalTrees: totalEditableTrees(),
+          species: speciesBreakdown()
+            .filter((entry) => enabled[entry.id]) // Only include enabled species
+            .map((entry) => ({
+              id: entry.id,
+              name: entry.name,
+              count: quantities[entry.id] || 0,
+            }))
+            .filter((entry) => entry.count > 0), // Only include species with quantity > 0
+          senderEmail: email,
+          notes: userNotes(),
+          country: country,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}));
+        throw new Error(errorPayload.message || "Failed to send offer request.");
+      }
+
+      setOfferRequestSuccess(true);
+    } catch (error) {
+      setOfferRequestError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while sending the request."
+      );
+    } finally {
+      setIsSendingOfferRequest(false);
+    }
+  };
 
   // Calculate map bounds for all fields
   const mapBounds = createMemo(() => {
@@ -523,7 +659,21 @@ const FarmScenarioPreview: Component = () => {
                     {fieldsData()!.filter(f => f.projectId).length}
                   </span>
                 </div>
+                <Show when={totalTrees() > 0}>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">Total trees:</span>
+                    <span class="font-medium">{totalTrees().toLocaleString()}</span>
+                  </div>
+                </Show>
               </div>
+            </div>
+          </Show>
+
+          <Show when={totalTrees() > 0 && canRequestPlantOffer()}>
+            <div class="mt-4">
+              <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
+                Request plant offer
+              </Button>
             </div>
           </Show>
         </div>
@@ -538,7 +688,7 @@ const FarmScenarioPreview: Component = () => {
         
         {/* Info box for selected field */}
         <Show when={selectedFieldId() && fieldsData()}>
-          {() => {
+          {(_key) => {
             const field = fieldsData()!.find((f) => f.layerId === selectedFieldId());
             return (
               <Show when={field?.systemLayout && species()}>
@@ -560,6 +710,140 @@ const FarmScenarioPreview: Component = () => {
           }}
         </Show>
       </div>
+      
+      <Dialog open={isOfferModalOpen()} onOpenChange={setOfferModalOpen}>
+        <DialogContent onClose={() => setOfferModalOpen(false)}>
+          <DialogHeader>
+            <DialogTitle>Request plant offer</DialogTitle>
+            <DialogDescription>
+              Review the treed totals before sending your request to our nursery team.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div class="space-y-4">
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+              <div class="flex items-center justify-between text-base font-semibold mb-3">
+                <span>Total trees</span>
+                <span>{totalEditableTrees().toLocaleString()}</span>
+              </div>
+              <Show when={speciesBreakdown().length > 0}>
+                <div class="mt-3">
+                  <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                    Species breakdown
+                  </h4>
+                  <div class="overflow-hidden rounded border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-sm">
+                      <thead class="bg-gray-100 dark:bg-gray-800">
+                        <tr>
+                          <th class="text-center px-2 py-2 font-medium text-gray-700 dark:text-gray-300 w-12">Include</th>
+                          <th class="text-left px-3 py-2 font-medium text-gray-700 dark:text-gray-300">Species</th>
+                          <th class="text-right px-3 py-2 font-medium text-gray-700 dark:text-gray-300">Design</th>
+                          <th class="text-right px-3 py-2 font-medium text-gray-700 dark:text-gray-300">Request</th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <For each={speciesBreakdown()}>
+                          {(entry) => {
+                            const isEnabled = () => enabledSpecies()[entry.id];
+                            return (
+                              <tr classList={{ "opacity-50": !isEnabled() }}>
+                                <td class="px-2 py-2 text-center">
+                                  <input
+                                    type="checkbox"
+                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 cursor-pointer"
+                                    checked={isEnabled()}
+                                    onChange={(e) => {
+                                      setEnabledSpecies({
+                                        ...enabledSpecies(),
+                                        [entry.id]: e.currentTarget.checked
+                                      });
+                                    }}
+                                  />
+                                </td>
+                                <td class="px-3 py-2 text-gray-700 dark:text-gray-300">{entry.name}</td>
+                                <td class="px-3 py-2 text-right text-gray-500 dark:text-gray-400">{entry.count.toLocaleString()}</td>
+                                <td class="px-3 py-2 text-right">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    disabled={!isEnabled()}
+                                    class="w-24 px-2 py-1 text-right border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    value={editableQuantities()[entry.id] || 0}
+                                    onInput={(e) => {
+                                      const value = parseInt(e.currentTarget.value) || 0;
+                                      setEditableQuantities({
+                                        ...editableQuantities(),
+                                        [entry.id]: Math.max(0, value)
+                                      });
+                                    }}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          }}
+                        </For>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </Show>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-200" for="offer-request-email">
+                Your email
+              </label>
+              <input
+                id="offer-request-email"
+                type="email"
+                class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                placeholder="you@example.com"
+                value={userEmail()}
+                onInput={(event) => setUserEmail((event.currentTarget as HTMLInputElement).value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-200" for="offer-request-notes">
+                Additional notes (optional)
+              </label>
+              <textarea
+                id="offer-request-notes"
+                rows="4"
+                class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 resize-y"
+                placeholder="Any specific requirements or questions about your order..."
+                value={userNotes()}
+                onInput={(event) => setUserNotes((event.currentTarget as HTMLTextAreaElement).value)}
+              />
+            </div>
+
+            <Show when={offerRequestError()}>
+              <p class="text-sm text-red-600 dark:text-red-400">{offerRequestError()}</p>
+            </Show>
+            <Show when={offerRequestSuccess()}>
+              <p class="text-sm text-green-600 dark:text-green-400">
+                Request sent! We'll be in touch soon.
+              </p>
+            </Show>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOfferModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendOfferRequest}
+              disabled={isSendingOfferRequest() || !userEmail().trim()}
+            >
+              <Show when={isSendingOfferRequest()} fallback={<span>Send request</span>}>
+                Sending…
+              </Show>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
