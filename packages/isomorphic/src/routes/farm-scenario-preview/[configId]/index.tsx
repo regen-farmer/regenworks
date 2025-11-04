@@ -716,7 +716,7 @@ const FarmScenarioPreview: Component = () => {
           <DialogHeader>
             <DialogTitle>Request plant offer</DialogTitle>
             <DialogDescription>
-              Review the treed totals before sending your request to our nursery team.
+              Review the amounts before sending your request to our nursery team.
             </DialogDescription>
           </DialogHeader>
 
