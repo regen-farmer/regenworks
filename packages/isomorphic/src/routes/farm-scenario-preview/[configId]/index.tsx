@@ -672,7 +672,7 @@ const FarmScenarioPreview: Component = () => {
           <Show when={totalTrees() > 0 && canRequestPlantOffer()}>
             <div class="mt-4">
               <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
-                Request plant offer
+                Request offer on trees
               </Button>
             </div>
           </Show>
@@ -714,7 +714,7 @@ const FarmScenarioPreview: Component = () => {
       <Dialog open={isOfferModalOpen()} onOpenChange={setOfferModalOpen}>
         <DialogContent onClose={() => setOfferModalOpen(false)}>
           <DialogHeader>
-            <DialogTitle>Request plant offer</DialogTitle>
+            <DialogTitle>Request offer on trees</DialogTitle>
             <DialogDescription>
               Review the amounts before sending your request to our nursery team.
             </DialogDescription>
