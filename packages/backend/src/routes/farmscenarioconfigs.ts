@@ -243,6 +243,10 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
       updatePayload.isPublic = req.body.isPublic;
     }
 
+    if (typeof req.body.showOfferButton === "boolean") {
+      updatePayload.showOfferButton = req.body.showOfferButton;
+    }
+
     if (Array.isArray(req.body.fieldScenarios)) {
       const normalizedScenarios = req.body.fieldScenarios.map((fieldScenario: any, index: number) => {
         const layerIdString = fieldScenario.layer ? String(fieldScenario.layer) : undefined;

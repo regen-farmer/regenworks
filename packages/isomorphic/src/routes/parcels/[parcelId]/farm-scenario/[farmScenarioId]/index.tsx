@@ -60,6 +60,7 @@ const FarmScenarioPreview: Component = () => {
   const [scenarioName, setScenarioName] = createSignal("");
   const [scenarioDescription, setScenarioDescription] = createSignal("");
   const [isPublic, setIsPublic] = createSignal(false);
+  const [showOfferButton, setShowOfferButton] = createSignal(true);
   const [isSavingDetails, setIsSavingDetails] = createSignal(false);
   const [fieldScenarioSelections, setFieldScenarioSelections] = createSignal<
     Map<string, string | null>
@@ -258,6 +259,7 @@ const FarmScenarioPreview: Component = () => {
     if (config) {
       setScenarioName(config.name ?? "");
       setScenarioDescription(config.description ?? "");
+      setShowOfferButton(config.showOfferButton ?? true);
       const selections = new Map<string, string | null>();
       config.fieldScenarios.forEach((fieldScenario: any) => {
         const layerIdRaw =
@@ -287,10 +289,12 @@ const FarmScenarioPreview: Component = () => {
       return false;
     }
     const originalPublic = Boolean(config.isPublic);
+    const originalShowOfferButton = config.showOfferButton ?? true;
     return (
       scenarioName().trim() !== (config.name ?? "") ||
       scenarioDescription().trim() !== (config.description ?? "") ||
-      isPublic() !== originalPublic
+      isPublic() !== originalPublic ||
+      showOfferButton() !== originalShowOfferButton
     );
   });
 
@@ -300,6 +304,7 @@ const FarmScenarioPreview: Component = () => {
       setScenarioName(config.name ?? "");
       setScenarioDescription(config.description ?? "");
       setIsPublic(Boolean(config.isPublic));
+      setShowOfferButton(config.showOfferButton ?? true);
     }
   };
 
@@ -328,6 +333,7 @@ const FarmScenarioPreview: Component = () => {
           name: trimmedName,
           description: trimmedDescription || undefined,
           isPublic: isPublic(),
+          showOfferButton: showOfferButton(),
         }
       );
       showToast({
@@ -348,6 +354,10 @@ const FarmScenarioPreview: Component = () => {
                 typeof updatedConfig.isPublic === "boolean"
                   ? updatedConfig.isPublic
                   : isPublic(),
+              showOfferButton:
+                typeof updatedConfig.showOfferButton === "boolean"
+                  ? updatedConfig.showOfferButton
+                  : showOfferButton(),
             }
           : previous
       );
@@ -1210,8 +1220,8 @@ const FarmScenarioPreview: Component = () => {
                   </p>
                 </div>
 
-                {/* Link icon on the right - only shown when enabled */}
-                <Show when={isPublic()}>
+                {/* Link icon on the right - only shown when saved as public */}
+                <Show when={configData()?.isPublic === true}>
                   <a
                     href={`/farm-scenario-preview/${params.farmScenarioId}`}
                     target="_blank"
@@ -1226,6 +1236,44 @@ const FarmScenarioPreview: Component = () => {
                   </a>
                 </Show>
               </div>
+
+              <div class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900">
+                {/* Toggle on the left */}
+                <input
+                  type="checkbox"
+                  class={`h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 ${
+                    !isPublic() || isSavingDetails() ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
+                  checked={showOfferButton()}
+                  disabled={!isPublic() || isSavingDetails()}
+                  onChange={(event) =>
+                    setShowOfferButton(event.currentTarget.checked)
+                  }
+                />
+
+                {/* Text in the middle */}
+                <div class="flex-1">
+                  <span class={`text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    !isPublic()
+                      ? "text-gray-400 dark:text-gray-600"
+                      : showOfferButton()
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
+                    Show offer button in public preview
+                  </span>
+                  <p class={`mt-0.5 text-xs transition-colors ${
+                    !isPublic()
+                      ? "text-gray-400 dark:text-gray-600"
+                      : showOfferButton()
+                      ? "text-gray-700 dark:text-gray-200"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
+                    Display "Request offer on trees" button in the preview for eligible countries.
+                  </p>
+                </div>
+              </div>
+
               <div class="flex justify-end gap-2">
                 <button
                   type="button"

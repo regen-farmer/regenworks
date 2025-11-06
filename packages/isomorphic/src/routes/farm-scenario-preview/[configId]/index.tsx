@@ -726,7 +726,7 @@ const FarmScenarioPreview: Component = () => {
             </div>
           </Show>
 
-          <Show when={totalTrees() > 0 && canRequestPlantOffer()}>
+          <Show when={totalTrees() > 0 && canRequestPlantOffer() && (configData()?.showOfferButton ?? true)}>
             <div class="mt-4">
               <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
                 Request offer on trees
