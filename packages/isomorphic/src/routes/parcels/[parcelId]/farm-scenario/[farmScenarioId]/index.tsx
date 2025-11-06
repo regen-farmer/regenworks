@@ -848,9 +848,17 @@ const FarmScenarioPreview: Component = () => {
 
   const mapCenter = createMemo(() => {
     const field = selectedField();
-    if (!field) return [0, 0];
+    if (field) {
+      return [field.lng, field.lat];
+    }
 
-    return [field.lng, field.lat];
+    // If no field is selected, use the first available field as the center
+    const fields = fieldsData();
+    if (fields && fields.length > 0) {
+      return [fields[0].lng, fields[0].lat];
+    }
+
+    return [0, 0];
   });
 
   let map: maplibregl.Map | undefined;
@@ -904,8 +912,9 @@ const FarmScenarioPreview: Component = () => {
   createEffect(() => {
     const field = selectedField();
     const container = mapRef();
+    const fields = fieldsData();
 
-    if (!container || !field) {
+    if (!container) {
       if (map) {
         if (mapLoaded()) {
           clearAllFieldLayers(map);
@@ -918,6 +927,12 @@ const FarmScenarioPreview: Component = () => {
       return;
     }
 
+    // Wait for fields data to load before initializing map
+    if (!fields || fields.length === 0) {
+      return;
+    }
+
+    // Initialize map even if no field is selected
     if (!map) {
       map = new maplibregl.Map({
         container,
@@ -932,7 +947,8 @@ const FarmScenarioPreview: Component = () => {
 
       map.on("load", () => {
         const bounds = mapBounds();
-        if (bounds) {
+        // Only fit to bounds if a field is selected
+        if (bounds && field) {
           map!.fitBounds(bounds as any, { padding: 50 });
         }
 
@@ -949,7 +965,8 @@ const FarmScenarioPreview: Component = () => {
 
         setMapLoaded(true);
       });
-    } else if (mapLoaded()) {
+    } else if (mapLoaded() && field) {
+      // Only pan to field if one is selected
       map!.easeTo({
         center: mapCenter() as [number, number],
         zoom: Math.max(map!.getZoom(), 13),
