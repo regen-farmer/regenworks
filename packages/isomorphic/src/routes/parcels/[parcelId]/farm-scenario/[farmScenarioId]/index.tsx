@@ -463,11 +463,19 @@ const FarmScenarioPreview: Component = () => {
 
         if (!selected || !selected.projectId) {
           // No scenario selected for this field
+          console.log("No project selected for field");
         } else {
           let systemDesign = selected.systemDesign;
 
+          console.log("Field has project:", {
+            projectId: selected.projectId,
+            hasSystemDesign: !!systemDesign,
+            systemDesign: systemDesign
+          });
+
           // Fetch project to get system design if missing
           if (!systemDesign) {
+            console.log("System design missing, fetching project...");
             const resp = await fetch(
               `${import.meta.env.VITE_BACKEND_URL}/projects/${
                 selected.projectId
@@ -476,28 +484,53 @@ const FarmScenarioPreview: Component = () => {
             );
             if (resp.ok) {
               const project = await resp.json();
+              console.log("Fetched project:", project);
               systemDesign =
                 project?.systemdesign ?? project?.systemDesign ?? null;
             } else {
               console.error(
                 `Failed to fetch project ${selected.projectId}: ${resp.statusText}`
               );
+
+              // If project not found, clear it from the field
+              if (resp.status === 404) {
+                console.warn("Project not found, clearing from field");
+                selected.projectId = undefined;
+                selected.systemDesign = null;
+                selected.systemLayout = undefined;
+                // Continue to draw the field geometry without the system design
+              }
             }
+          } else {
+            console.log("Using system design from config");
           }
 
           if (systemDesign) {
-            const geometryString =
-              typeof selected.geometry === "string"
-                ? selected.geometry
-                : JSON.stringify(selected.geometry);
-
-            try {
-              const layout = systemBasedLayout(systemDesign, geometryString);
-              // Mutate the selected field so downstream effects can draw it
+            // Validate system design has required data
+            if (!systemDesign.rows || !Array.isArray(systemDesign.rows) || systemDesign.rows.length === 0) {
+              console.warn("System design is missing rows data, skipping layout calculation");
               selected.systemDesign = systemDesign;
-              selected.systemLayout = layout;
-            } catch (e) {
-              console.error("Failed to compute system layout:", e);
+              selected.systemLayout = undefined;
+              // Continue to draw the field without system layout
+            } else {
+
+              const geometryString =
+                typeof selected.geometry === "string"
+                  ? selected.geometry
+                  : JSON.stringify(selected.geometry);
+
+              try {
+                const layout = systemBasedLayout(systemDesign, geometryString);
+                // Mutate the selected field so downstream effects can draw it
+                selected.systemDesign = systemDesign;
+                selected.systemLayout = layout;
+              } catch (e) {
+                console.error("Failed to compute system layout:", e);
+                console.error("System design:", systemDesign);
+                // Set systemDesign but leave systemLayout undefined
+                selected.systemDesign = systemDesign;
+                selected.systemLayout = undefined;
+              }
             }
           }
         }
@@ -622,7 +655,16 @@ const FarmScenarioPreview: Component = () => {
           const selected = allFields?.find((f) => f.layerId === layerId);
 
           if (selected) {
+            // Update the project ID
             selected.projectId = normalizedProjectId ?? undefined;
+
+            // If no project selected, clear the system design
+            if (!normalizedProjectId) {
+              console.log("No scenario selected, clearing system design");
+              selected.projectName = undefined;
+              selected.systemDesign = null;
+              selected.systemLayout = undefined;
+            }
 
             map.easeTo({
               center: [selected.lng, selected.lat],
@@ -633,11 +675,10 @@ const FarmScenarioPreview: Component = () => {
             if (normalizedProjectId) {
               try {
                 const resp = await fetch(
-                  `${
-                    import.meta.env.VITE_BACKEND_URL
-                  }/projects/${normalizedProjectId}`,
+                  `${import.meta.env.VITE_BACKEND_URL}/projects/${normalizedProjectId}`,
                   apiFetchOptions()
                 );
+
                 if (resp.ok) {
                   const project = await resp.json();
                   selected.projectName = project?.name ?? selected.projectName;
@@ -649,6 +690,20 @@ const FarmScenarioPreview: Component = () => {
                   console.error(
                     `Failed to fetch project ${normalizedProjectId}: ${resp.status} ${resp.statusText}`
                   );
+
+                  // If project not found, show warning and clear selection
+                  if (resp.status === 404) {
+                    showToast({
+                      title: "Scenario not found",
+                      description: "The selected scenario no longer exists. Please choose a different one.",
+                      variant: "error",
+                    });
+
+                    // Clear the invalid project reference
+                    selected.projectId = undefined;
+                    selected.systemDesign = null;
+                    selected.systemLayout = undefined;
+                  }
                 }
               } catch (e) {
                 console.error(
@@ -680,22 +735,41 @@ const FarmScenarioPreview: Component = () => {
                 console.error(
                   `Failed to fetch project ${selected.projectId}: ${resp.statusText}`
                 );
+
+                // If project not found, clear the reference
+                if (resp.status === 404) {
+                  console.warn("Project not found, clearing from field");
+                  selected.projectId = undefined;
+                  selected.systemDesign = null;
+                  selected.systemLayout = undefined;
+                }
               }
             }
 
             if (systemDesign) {
-              const geometryString =
-                typeof selected.geometry === "string"
-                  ? selected.geometry
-                  : JSON.stringify(selected.geometry);
-
-              try {
-                const layout = systemBasedLayout(systemDesign, geometryString);
-                // Mutate the selected field so downstream effects can draw it
+              // Validate system design has required data
+              if (!systemDesign.rows || !Array.isArray(systemDesign.rows) || systemDesign.rows.length === 0) {
+                console.warn("System design is missing rows data, skipping layout calculation");
                 selected.systemDesign = systemDesign;
-                selected.systemLayout = layout;
-              } catch (e) {
-                console.error("Failed to compute system layout:", e);
+                selected.systemLayout = undefined;
+              } else {
+                const geometryString =
+                  typeof selected.geometry === "string"
+                    ? selected.geometry
+                    : JSON.stringify(selected.geometry);
+
+                try {
+                  const layout = systemBasedLayout(systemDesign, geometryString);
+                  // Mutate the selected field so downstream effects can draw it
+                  selected.systemDesign = systemDesign;
+                  selected.systemLayout = layout;
+                } catch (e) {
+                  console.error("Failed to compute system layout:", e);
+                  console.error("System design:", systemDesign);
+                  // Set systemDesign but leave systemLayout undefined
+                  selected.systemDesign = systemDesign;
+                  selected.systemLayout = undefined;
+                }
               }
             }
           }

@@ -65,7 +65,10 @@ router.get("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
       })
       .populate({
         path: "fieldScenarios.project",
-        select: "name description systemdesign"
+        select: "name description systemdesign",
+        populate: {
+          path: "systemdesign"
+        }
       });
     
     if (!config) {
