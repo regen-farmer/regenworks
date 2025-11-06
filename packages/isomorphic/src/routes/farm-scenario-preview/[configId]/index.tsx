@@ -372,6 +372,14 @@ const FarmScenarioPreview: Component = () => {
     return [avgLng, avgLat];
   });
 
+  // Get the currently selected field
+  const selectedField = createMemo(() => {
+    const fields = fieldsData();
+    const fieldId = selectedFieldId();
+    if (!fields || !fieldId) return null;
+    return fields.find((f) => f.layerId === fieldId) ?? null;
+  });
+
   let map: maplibregl.Map;
   const [mapRef, setMapRef] = createSignal<HTMLElement>();
 
@@ -685,27 +693,20 @@ const FarmScenarioPreview: Component = () => {
         />
         
         {/* Info box for selected field */}
-        <Show when={selectedFieldId() && fieldsData()}>
-          {(_key) => {
-            const field = fieldsData()!.find((f) => f.layerId === selectedFieldId());
-            return (
-              <Show when={field?.systemLayout && species()}>
-                <SystemInfoBox
-                  systemLayout={field!.systemLayout!}
-                  species={species()}
-                  scenarioData={{
-                    project: {
-                      name: field!.projectName || "Unnamed",
-                      layer: { 
-                        name: field!.layerName,
-                        geometry: JSON.stringify(field!.geometry)
-                      },
-                    },
-                  }}
-                />
-              </Show>
-            );
-          }}
+        <Show when={selectedField()?.systemLayout && species()}>
+          <SystemInfoBox
+            systemLayout={selectedField()!.systemLayout!}
+            species={species()}
+            scenarioData={{
+              project: {
+                name: selectedField()!.projectName || "Unnamed",
+                layer: {
+                  name: selectedField()!.layerName,
+                  geometry: JSON.stringify(selectedField()!.geometry)
+                },
+              },
+            }}
+          />
         </Show>
       </div>
       
