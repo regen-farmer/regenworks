@@ -11,7 +11,7 @@ import {
   createResource,
   onMount,
 } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
@@ -567,8 +567,24 @@ const FarmScenarioPreview: Component = () => {
       {/* Sidebar with field list */}
       <div class="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
         <div class="p-4">
-          <h2 class="text-xl font-bold mb-4">Farm Planting Plan</h2>
-          
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Farm Planting Plan</h2>
+            <Show when={configData()?.parcel && params.configId}>
+              {() => {
+                const parcel = configData()!.parcel;
+                const parcelId = typeof parcel === 'string' ? parcel : parcel._id;
+                return (
+                  <A
+                    href={`/parcels/${parcelId}/farm-scenario/${params.configId}`}
+                    class="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Edit
+                  </A>
+                );
+              }}
+            </Show>
+          </div>
+
           <Show 
             when={!configData.error && configData() && isConfigPublic()} 
             fallback={
