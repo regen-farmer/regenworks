@@ -31,6 +31,11 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
 import { getAuth0User } from "~/auth/useAuth";
 import { showToast } from "~/components/ui/toast";
+import {
+  Resizable,
+  ResizableHandle,
+  ResizablePanel,
+} from "~/components/ui/resizable";
 
 interface FieldScenarioData {
   layerId: string;
@@ -1086,11 +1091,18 @@ const FarmScenarioPreview: Component = () => {
 
   return (
     <div
-      class="flex flex-1 min-h-0 overflow-hidden"
       style={{ height: "calc(100vh - var(--app-nav-height, 3.5rem))" }}
     >
-      {/* Sidebar with field list */}
-      <div class="flex h-full w-80 flex-col overflow-y-auto border-r border-gray-200 bg-white p-0 dark:border-gray-700 dark:bg-gray-900">
+      <Resizable>
+        {/* Sidebar with field list */}
+        <ResizablePanel
+          initialSize={0.5}
+          minSize={0.2}
+          maxSize={0.7}
+          collapsible={false}
+          style={{ overflow: "hidden" }}
+        >
+          <div class="flex h-full flex-col overflow-y-auto bg-white dark:bg-gray-900">
         <div class="p-4">
           <h2 class="text-xl font-bold mb-4">Farm Planting Plan</h2>
 
@@ -1320,11 +1332,18 @@ const FarmScenarioPreview: Component = () => {
             </div>
           </Show>
         </div>
-      </div>
+          </div>
+        </ResizablePanel>
 
-      {/* Map container */}
-      <div class="relative flex-1 min-h-0">
-        <div ref={(el) => setMapRef(el)} class="h-full w-full" />
+        {/* Drag Handle */}
+        <ResizableHandle withHandle />
+
+        {/* Map container */}
+        <ResizablePanel
+          initialSize={0.5}
+        >
+          <div class="relative h-full w-full">
+            <div ref={(el) => setMapRef(el)} class="h-full w-full" />
 
         {/* Info box for selected field */}
         <Show when={!isMapFieldLoading() && selectedField()}>
@@ -1349,7 +1368,9 @@ const FarmScenarioPreview: Component = () => {
             );
           }}
         </Show>
-      </div>
+          </div>
+        </ResizablePanel>
+      </Resizable>
     </div>
   );
 };
