@@ -261,9 +261,12 @@ const FarmScenarioPreview: Component = () => {
         (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
         "Unknown species";
 
+      const latinName = speciesDoc?.species || undefined;
+
       return {
         id: String(speciesId ?? index),
         name: displayName,
+        latinName: latinName,
         count: Number(item.count ?? 0),
       };
     });
@@ -811,7 +814,14 @@ const FarmScenarioPreview: Component = () => {
                                     }}
                                   />
                                 </td>
-                                <td class="px-3 py-2 text-gray-700 dark:text-gray-300">{entry.name}</td>
+                                <td class="px-3 py-2 text-gray-700 dark:text-gray-300">
+                                  <div class="flex flex-col">
+                                    <span>{entry.name}</span>
+                                    <Show when={entry.latinName && entry.latinName !== entry.name}>
+                                      <span class="text-xs italic text-gray-500 dark:text-gray-400">{entry.latinName}</span>
+                                    </Show>
+                                  </div>
+                                </td>
                                 <td class="px-3 py-2 text-right text-gray-500 dark:text-gray-400">{entry.count.toLocaleString()}</td>
                                 <td class="px-3 py-2 text-right">
                                   <input
