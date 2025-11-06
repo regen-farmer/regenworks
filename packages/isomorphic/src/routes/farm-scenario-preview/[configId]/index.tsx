@@ -706,6 +706,7 @@ const FarmScenarioPreview: Component = () => {
                 },
               },
             }}
+            showFieldScenarioName={true}
           />
         </Show>
       </div>

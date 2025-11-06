@@ -7,6 +7,7 @@ const SystemInfoBox: Component<{
 	systemLayout: ISystemBasedLayout;
 	species: any;
 	scenarioData: any;
+	showFieldScenarioName?: boolean;
 }> = (props) => {
 	function calculateMarginHeadlandArea(): number {
 		try {
@@ -78,6 +79,14 @@ const SystemInfoBox: Component<{
 				bottom: "10px",
 			}}
 		>
+			{props.showFieldScenarioName ? (
+				<>
+					<p><strong>Field</strong><br/>{props.scenarioData?.project.layer.name}</p>
+					<p><strong>Scenario</strong><br/>{props.scenarioData?.project.name}</p>
+					<br />
+				</>
+			) : (<></>
+			)}
 			<strong>
 				<span>Tree and shrub counts:</span>
 			</strong>
