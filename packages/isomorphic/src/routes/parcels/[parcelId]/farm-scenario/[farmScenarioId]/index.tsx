@@ -465,7 +465,6 @@ const FarmScenarioPreview: Component = () => {
       clearAllFieldLayers(map);
       map.easeTo({
         center: [field.lng, field.lat],
-        zoom: 15,
         duration: 1000,
       });
 
@@ -690,7 +689,6 @@ const FarmScenarioPreview: Component = () => {
 
             map.easeTo({
               center: [selected.lng, selected.lat],
-              zoom: 15,
               duration: 1000,
             });
 

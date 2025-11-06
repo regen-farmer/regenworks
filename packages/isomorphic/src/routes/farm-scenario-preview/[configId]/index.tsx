@@ -476,11 +476,10 @@ const FarmScenarioPreview: Component = () => {
         map.on("click", layerId, (e) => {
           e.preventDefault();
           setSelectedFieldId(field.layerId);
-          
+
           // Ease to the field
           map.easeTo({
             center: [field.lng, field.lat],
-            zoom: 15,
             duration: 1000
           });
         });
@@ -624,7 +623,6 @@ const FarmScenarioPreview: Component = () => {
                       if (map && mapLoaded()) {
                         map.easeTo({
                           center: [field.lng, field.lat],
-                          zoom: 15,
                           duration: 1000
                         });
                       }
