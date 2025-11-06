@@ -966,10 +966,9 @@ const FarmScenarioPreview: Component = () => {
         setMapLoaded(true);
       });
     } else if (mapLoaded() && field) {
-      // Only pan to field if one is selected
+      // Only pan to field if one is selected, without changing zoom
       map!.easeTo({
         center: mapCenter() as [number, number],
-        zoom: Math.max(map!.getZoom(), 13),
         duration: 800,
       });
     }
@@ -1055,11 +1054,6 @@ const FarmScenarioPreview: Component = () => {
     }
 
     renderedFieldId = field.layerId;
-
-    const bounds = mapBounds();
-    if (bounds) {
-      map!.fitBounds(bounds as any, { padding: 50 });
-    }
   }
 
   // Redraw when 3D mode changes
