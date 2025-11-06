@@ -891,17 +891,28 @@ const FarmScenarioPreview: Component = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setOfferModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSendOfferRequest}
-              disabled={isSendingOfferRequest() || !userEmail().trim()}
-            >
-              <Show when={isSendingOfferRequest()} fallback={<span>Send request</span>}>
-                Sending…
-              </Show>
-            </Button>
+            <Show when={offerRequestSuccess()}>
+              <Button onClick={() => setOfferModalOpen(false)}>
+                Close
+              </Button>
+            </Show>
+            <Show when={!offerRequestSuccess()}>
+              <Button
+                variant="ghost"
+                onClick={() => setOfferModalOpen(false)}
+                disabled={isSendingOfferRequest()}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendOfferRequest}
+                disabled={isSendingOfferRequest() || !userEmail().trim()}
+              >
+                <Show when={isSendingOfferRequest()} fallback={<span>Send request</span>}>
+                  Sending…
+                </Show>
+              </Button>
+            </Show>
           </DialogFooter>
         </DialogContent>
       </Dialog>
