@@ -880,7 +880,7 @@ const FarmScenarioPreview: Component = () => {
     const field = selectedField();
     const container = mapRef();
 
-    if (!container || !field || !field.projectId) {
+    if (!container || !field) {
       if (map) {
         if (mapLoaded()) {
           clearAllFieldLayers(map);
