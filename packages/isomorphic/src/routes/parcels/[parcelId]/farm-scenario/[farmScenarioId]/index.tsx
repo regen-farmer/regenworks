@@ -36,6 +36,8 @@ import {
   ResizableHandle,
   ResizablePanel,
 } from "~/components/ui/resizable";
+import { Button } from "~/components/ui/button";
+import { OfferRequestModal } from "~/components/OfferRequestModal";
 
 interface FieldScenarioData {
   layerId: string;
@@ -69,6 +71,7 @@ const FarmScenarioPreview: Component = () => {
     null
   );
   const [isMapFieldLoading, setIsMapFieldLoading] = createSignal(false);
+  const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
 
   // Wait for auth to be ready before fetching
   const [authReady, setAuthReady] = createSignal(false);
@@ -126,6 +129,9 @@ const FarmScenarioPreview: Component = () => {
     }
   );
 
+  // Signal to track when fields need to be re-evaluated for reactivity
+  const [fieldsUpdateTrigger, setFieldsUpdateTrigger] = createSignal(0);
+
   // Fetch all field and scenario data
   const [fieldsData] = createResource(
     () => configData(),
@@ -161,14 +167,20 @@ const FarmScenarioPreview: Component = () => {
           systemDesign = projectData.systemdesign;
 
           // Calculate system layout - pass the geometry as a string
-          // try {
-          //   const geometryString = layerData.geometry.replace(/&#34;/g, '"');
-          //   systemLayout = systemBasedLayout(systemDesign, geometryString);
-          // } catch (error) {
-          //   console.error(`Failed to calculate system layout for layer ${layerData._id}:`, error);
-          //   // Continue without system layout for this field
-          //   systemLayout = null;
-          // }
+          try {
+            const geometryString = layerData.geometry.replace(/&#34;/g, '"');
+
+            // Validate that systemDesign has required data before calculating layout
+            if (systemDesign.rows && Array.isArray(systemDesign.rows) && systemDesign.rows.length > 0) {
+              systemLayout = systemBasedLayout(systemDesign, geometryString);
+            } else {
+              console.warn(`System design for layer ${layerData._id} is missing rows data, skipping layout calculation`);
+            }
+          } catch (error) {
+            console.error(`Failed to calculate system layout for layer ${layerData._id}:`, error);
+            // Continue without system layout for this field
+            systemLayout = null;
+          }
         }
 
         fields.push({
@@ -222,36 +234,87 @@ const FarmScenarioPreview: Component = () => {
     return fields.find((field) => field.layerId === id);
   });
 
-  // Aggregate tree data from the selected field for 3D display
+  // Aggregate tree data from all fields for the offer modal
   const aggregatedLayoutData = createMemo(() => {
-    const field = selectedField();
-    if (!field || !field.systemLayout || !field.projectId) {
+    // Depend on the trigger to ensure reactivity when fields are mutated
+    fieldsUpdateTrigger();
+
+    const fields = fieldsData();
+    if (!fields || fields.length === 0) {
       return undefined;
     }
 
-    const treeMarkerArray = field.systemLayout.treeMarkerArray ?? [];
-    const speciesCount: Record<string, number> = {};
+    const allTreeMarkers: any[] = [];
+    const speciesCount: Record<string, any> = {};
 
-    if (field.systemLayout.speciesCountArray) {
-      field.systemLayout.speciesCountArray.forEach((item: any) => {
-        const speciesId = item.species?._id || item.species;
-        if (speciesId) {
-          speciesCount[speciesId] = (speciesCount[speciesId] || 0) + item.count;
-        }
-      });
-    }
+    fields.forEach(field => {
+      if (field.systemLayout?.treeMarkerArray) {
+        allTreeMarkers.push(...field.systemLayout.treeMarkerArray);
+      }
 
-    return treeMarkerArray.length > 0
-      ? {
-          treeMarkerArray,
-          speciesCountArray: Object.entries(speciesCount).map(
-            ([species, count]) => ({
-              species,
-              count,
-            })
-          ),
-        }
-      : undefined;
+      if (field.systemLayout?.speciesCountArray) {
+        field.systemLayout.speciesCountArray.forEach((item: any) => {
+          const speciesEntry = item.species;
+          const speciesId = speciesEntry?._id || speciesEntry;
+          if (speciesId) {
+            if (!speciesCount[speciesId]) {
+              speciesCount[speciesId] = {
+                species: speciesEntry,
+                count: 0
+              };
+            }
+            speciesCount[speciesId].count += item.count;
+          }
+        });
+      }
+    });
+
+    return {
+      treeMarkerArray: allTreeMarkers,
+      speciesCountArray: Object.values(speciesCount),
+    };
+  });
+
+  const speciesBreakdown = createMemo(() => {
+    const aggregated = aggregatedLayoutData();
+    if (!aggregated?.speciesCountArray) return [];
+
+    return aggregated.speciesCountArray.map((item: any, index: number) => {
+      const speciesEntry = item.species;
+      const speciesId =
+        typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry._id ?? `${index}`
+          : speciesEntry ?? `${index}`;
+      const speciesData = species();
+      const speciesDoc =
+        (typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry
+          : speciesData?.speciesById?.get(speciesId)) || undefined;
+
+      const displayName =
+        speciesDoc?.nameCommon ||
+        speciesDoc?.species ||
+        (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
+        "Unknown species";
+
+      const latinName = speciesDoc?.species || undefined;
+
+      return {
+        id: String(speciesId ?? index),
+        name: displayName,
+        latinName: latinName,
+        count: Number(item.count ?? 0),
+      };
+    });
+  });
+
+  const totalTrees = createMemo(() => {
+    return speciesBreakdown().reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+  });
+
+  const userEmail = createMemo(() => {
+    const authUser = getAuth0User();
+    return authUser?.email || "";
   });
 
   createEffect(() => {
@@ -700,6 +763,8 @@ const FarmScenarioPreview: Component = () => {
               selected.projectName = undefined;
               selected.systemDesign = null;
               selected.systemLayout = undefined;
+              // Trigger reactivity update
+              setFieldsUpdateTrigger(prev => prev + 1);
             }
 
             map.easeTo({
@@ -798,12 +863,16 @@ const FarmScenarioPreview: Component = () => {
                   // Mutate the selected field so downstream effects can draw it
                   selected.systemDesign = systemDesign;
                   selected.systemLayout = layout;
+                  // Trigger reactivity update for aggregated data
+                  setFieldsUpdateTrigger(prev => prev + 1);
                 } catch (e) {
                   console.error("Failed to compute system layout:", e);
                   console.error("System design:", systemDesign);
                   // Set systemDesign but leave systemLayout undefined
                   selected.systemDesign = systemDesign;
                   selected.systemLayout = undefined;
+                  // Trigger reactivity update even on error
+                  setFieldsUpdateTrigger(prev => prev + 1);
                 }
               }
             }
@@ -1396,7 +1465,24 @@ const FarmScenarioPreview: Component = () => {
                     {fieldsData()!.filter((f) => f.projectId).length}
                   </span>
                 </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">
+                    Total trees:
+                  </span>
+                  <span class="font-medium">
+                    {totalTrees().toLocaleString()}
+                  </span>
+                </div>
               </div>
+            </div>
+          </Show>
+
+          {/* Request offer on trees button */}
+          <Show when={totalTrees() > 0}>
+            <div class="mt-4 px-4">
+              <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
+                Request offer on trees ({totalTrees().toLocaleString()} trees)
+              </Button>
             </div>
           </Show>
         </div>
@@ -1439,6 +1525,14 @@ const FarmScenarioPreview: Component = () => {
           </div>
         </ResizablePanel>
       </Resizable>
+
+      <OfferRequestModal
+        isOpen={isOfferModalOpen()}
+        onOpenChange={setOfferModalOpen}
+        speciesBreakdown={speciesBreakdown()}
+        configId={params.farmScenarioId}
+        userEmail={userEmail()}
+      />
     </div>
   );
 };
