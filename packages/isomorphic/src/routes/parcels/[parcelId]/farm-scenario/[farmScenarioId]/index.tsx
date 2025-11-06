@@ -24,7 +24,7 @@ import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import {
-  getFarmScenarioConfigPreview,
+  getFarmScenarioConfig,
   updateFarmScenarioConfig,
 } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
@@ -111,30 +111,10 @@ const FarmScenarioPreview: Component = () => {
       if (!farmScenarioId) return null;
 
       try {
-        console.log("Fetching preview for config ID:", farmScenarioId);
-        const data = await getFarmScenarioConfigPreview(farmScenarioId);
-        console.log("Preview data received:", data);
+        const data = await getFarmScenarioConfig(farmScenarioId);
         return data;
       } catch (error) {
-        console.error("Error fetching preview data:", error);
-        // If it's an auth error, we might want to retry once
-        if (
-          error.message.includes("Empty response") ||
-          error.message.includes("Unexpected end")
-        ) {
-          // Wait a bit and retry once
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          console.log("Retrying after brief wait...");
-          try {
-            const retryData = await getFarmScenarioConfigPreview(
-              farmScenarioId
-            );
-            return retryData;
-          } catch (retryError) {
-            console.error("Retry also failed:", retryError);
-            throw retryError;
-          }
-        }
+        console.error("Error fetching farm scenario config:", error);
         throw error;
       }
     }
