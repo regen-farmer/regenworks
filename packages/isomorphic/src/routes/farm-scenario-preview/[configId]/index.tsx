@@ -766,7 +766,7 @@ const FarmScenarioPreview: Component = () => {
       </div>
       
       <Dialog open={isOfferModalOpen()} onOpenChange={setOfferModalOpen}>
-        <DialogContent onClose={() => setOfferModalOpen(false)}>
+        <DialogContent class="max-w-3xl lg:max-w-5xl" onClose={() => setOfferModalOpen(false)}>
           <DialogHeader>
             <DialogTitle>Request offer on trees</DialogTitle>
             <DialogDescription>
