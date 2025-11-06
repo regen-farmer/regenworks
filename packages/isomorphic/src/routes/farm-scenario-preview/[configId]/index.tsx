@@ -12,6 +12,7 @@ import {
   onMount,
 } from "solid-js";
 import { A, useParams } from "@solidjs/router";
+import { getMongoDBUser } from "~/auth/useAuth";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
@@ -64,7 +65,7 @@ const FarmScenarioPreview: Component = () => {
   const [offerRequestSuccess, setOfferRequestSuccess] = createSignal(false);
   const [editableQuantities, setEditableQuantities] = createSignal<Record<string, number>>({});
   const [enabledSpecies, setEnabledSpecies] = createSignal<Record<string, boolean>>({});
-  
+
   // Signal to indicate the page is ready to fetch data
   const [authReady, setAuthReady] = createSignal(false);
 
@@ -105,6 +106,46 @@ const FarmScenarioPreview: Component = () => {
   );
 
   const isConfigPublic = createMemo(() => Boolean(configData()?.isPublic));
+
+  // Fetch current user
+  const [currentUserData, setCurrentUserData] = createSignal<any>(null);
+
+  onMount(async () => {
+    // First try to get from the signal (if user is logged in via the main app)
+    const signalUser = getMongoDBUser();
+    if (signalUser) {
+      setCurrentUserData(signalUser);
+      return;
+    }
+
+    // Otherwise, try to fetch from API
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/myuser`,
+        apiFetchOptions()
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUserData(data.user);
+      }
+    } catch (error) {
+      // User not authenticated, that's fine for public previews
+    }
+  });
+
+  // Check if the current user is the creator of this config
+  const isCreator = createMemo(() => {
+    const config = configData();
+    const currentUser = currentUserData();
+
+    if (!config || !currentUser) return false;
+
+    const creatorUser = config.user as any;
+    const creatorId = typeof creatorUser === 'string' ? creatorUser : creatorUser?._id;
+    const currentUserId = currentUser._id;
+
+    return creatorId && currentUserId && String(creatorId) === String(currentUserId);
+  });
 
   // Fetch all field and scenario data
   const [fieldsData] = createResource(
@@ -569,19 +610,13 @@ const FarmScenarioPreview: Component = () => {
         <div class="p-4">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold">Farm Planting Plan</h2>
-            <Show when={configData()?.parcel && params.configId}>
-              {() => {
-                const parcel = configData()!.parcel;
-                const parcelId = typeof parcel === 'string' ? parcel : parcel._id;
-                return (
-                  <A
-                    href={`/parcels/${parcelId}/farm-scenario/${params.configId}`}
-                    class="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Edit
-                  </A>
-                );
-              }}
+            <Show when={isCreator() && configData()?.parcel && params.configId}>
+              <A
+                href={`/parcels/${typeof configData()!.parcel === 'string' ? configData()!.parcel : configData()!.parcel._id}/farm-scenario/${params.configId}`}
+                class="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Edit
+              </A>
             </Show>
           </div>
 

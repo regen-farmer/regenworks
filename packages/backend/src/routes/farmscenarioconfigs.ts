@@ -323,7 +323,7 @@ router.get("/farmscenarioconfigs/:id/preview", async (req: AuthRequest, res) => 
     const config = await FarmScenarioConfig.findById(req.params.id)
       .populate({
         path: "user",
-        select: "countryCode"
+        select: "_id countryCode"
       })
       .populate({
         path: "parcel",
