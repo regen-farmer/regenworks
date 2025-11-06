@@ -1183,10 +1183,18 @@ const FarmScenarioPreview: Component = () => {
 
                 {/* Text in the middle */}
                 <div class="flex-1">
-                  <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <span class={`text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    isPublic()
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
                     Public preview
                   </span>
-                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  <p class={`mt-0.5 text-xs transition-colors ${
+                    isPublic()
+                      ? "text-gray-700 dark:text-gray-200"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
                     Allow anyone with the link to view this farm planting plan.
                   </p>
                 </div>
