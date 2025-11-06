@@ -1169,42 +1169,43 @@ const FarmScenarioPreview: Component = () => {
                   disabled={isSavingDetails()}
                 />
               </div>
-              <div class="flex items-start justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
-                <div>
+              <div class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900">
+                {/* Toggle on the left */}
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                  checked={isPublic()}
+                  disabled={isSavingDetails()}
+                  onChange={(event) =>
+                    setIsPublic(event.currentTarget.checked)
+                  }
+                />
+
+                {/* Text in the middle */}
+                <div class="flex-1">
                   <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Public preview
                   </span>
-                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                     Allow anyone with the link to view this farm planting plan.
                   </p>
                 </div>
-                <div>
-                <label class="flex cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    checked={isPublic()}
-                    disabled={isSavingDetails()}
-                    onChange={(event) =>
-                      setIsPublic(event.currentTarget.checked)
-                    }
-                  />
-                  
-                  <span class="select-none text-gray-700 dark:text-gray-200">
-                    {"Public"}
-                  </span>
-                  
-                  
-                </label>
-                  <br />
+
+                {/* Link icon on the right - only shown when enabled */}
+                <Show when={isPublic()}>
                   <a
                     href={`/farm-scenario-preview/${params.farmScenarioId}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    class="flex-shrink-0 p-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                    title="Open preview link"
                   >
-                    Link
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
                   </a>
-                  </div>
+                </Show>
               </div>
               <div class="flex justify-end gap-2">
                 <button
