@@ -426,8 +426,7 @@ const FarmScenarioPreview: Component = () => {
         };
       })
       .filter(
-        (entry) =>
-          selections.has(entry.layerId) && (entry.projects?.length ?? 0) > 0
+        (entry) => selections.has(entry.layerId)
       );
   });
 
@@ -1230,7 +1229,7 @@ const FarmScenarioPreview: Component = () => {
                           Selected scenario
                         </label>
                         <select
-                          class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                          class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           value={
                             fieldScenarioSelections().get(field.layerId) ?? ""
                           }
@@ -1243,10 +1242,15 @@ const FarmScenarioPreview: Component = () => {
                           disabled={
                             layerProjects.loading ||
                             updatingFieldId() === field.layerId ||
-                            isSavingDetails()
+                            isSavingDetails() ||
+                            (field.projects?.length ?? 0) === 0
                           }
                         >
-                          <option value="">No scenario selected</option>
+                          <option value="">
+                            {(field.projects?.length ?? 0) === 0
+                              ? "No scenarios available"
+                              : "No scenario selected"}
+                          </option>
                           <For each={field.projects}>
                             {(project: any) => (
                               <option
@@ -1257,7 +1261,11 @@ const FarmScenarioPreview: Component = () => {
                             )}
                           </For>
                         </select>
-                        <div class="text-xs text-gray-500 dark:text-gray-400"></div>
+                        <Show when={(field.projects?.length ?? 0) === 0}>
+                          <div class="text-xs text-amber-600 dark:text-amber-400">
+                            Create a system design for this field to enable scenario selection.
+                          </div>
+                        </Show>
                       </div>
                     </div>
                   )}
