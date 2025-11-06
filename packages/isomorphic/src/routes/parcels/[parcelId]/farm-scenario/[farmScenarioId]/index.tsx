@@ -133,6 +133,18 @@ const FarmScenarioPreview: Component = () => {
         if (!fieldScenario.enabled) continue;
 
         const layerData = fieldScenario.layer;
+
+        // Skip if layer has been deleted or is not populated
+        if (
+          !layerData ||
+          typeof layerData === 'string' ||
+          !layerData._id ||
+          !layerData.geometry
+        ) {
+          console.warn("Skipping field scenario with missing or deleted layer:", fieldScenario);
+          continue;
+        }
+
         const projectData = fieldScenario.project;
 
         let systemDesign = null;
@@ -154,7 +166,7 @@ const FarmScenarioPreview: Component = () => {
         }
 
         fields.push({
-          layerId: layerData._id ? String(layerData._id) : "",
+          layerId: String(layerData._id),
           layerName: layerData.name || "Unnamed Field",
           projectId: projectData?._id ? String(projectData._id) : undefined,
           projectName: projectData?.name,
@@ -404,10 +416,13 @@ const FarmScenarioPreview: Component = () => {
       .map((layer: any) => {
         const layerId = String(layer._id);
         const projectsRaw = projectsMap.get(layerId) ?? [];
-        const projects = projectsRaw.map((project: any) => ({
-          ...project,
-          _id: project._id ? String(project._id) : undefined,
-        }));
+        // Filter out deleted or invalid projects
+        const projects = projectsRaw
+          .filter((project: any) => project && project._id && project.name)
+          .map((project: any) => ({
+            ...project,
+            _id: project._id ? String(project._id) : undefined,
+          }));
 
         const selectedProjectId = selections.get(layerId) ?? null;
         const selectedProject = projects.find(
@@ -585,8 +600,16 @@ const FarmScenarioPreview: Component = () => {
     });
 
     try {
-      const updatedFieldScenarios = config.fieldScenarios.map(
-        (fieldScenario: any) => {
+      const updatedFieldScenarios = config.fieldScenarios
+        .filter((fieldScenario: any) => {
+          // Skip field scenarios with deleted or invalid layers
+          if (!fieldScenario.layer) {
+            console.warn("Skipping field scenario with missing layer");
+            return false;
+          }
+          return true;
+        })
+        .map((fieldScenario: any) => {
           const layerIdRaw =
             typeof fieldScenario.layer === "string"
               ? fieldScenario.layer
