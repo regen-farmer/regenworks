@@ -65,9 +65,6 @@ router.post(
 
     try {
       const subjectParts = ["Plant Offer Request"];
-      if (userCountry !== "Unknown") {
-        subjectParts.push(userCountry);
-      }
 
       // Add DEVELOPMENT indicator if in dev mode
       const stripeMode = process.env.STRIPE_MODE as "DEV" | "PROD" | undefined;
