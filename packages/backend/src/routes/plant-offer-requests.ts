@@ -69,6 +69,12 @@ router.post(
         subjectParts.push(userCountry);
       }
 
+      // Add DEVELOPMENT indicator if in dev mode
+      const stripeMode = process.env.STRIPE_MODE as "DEV" | "PROD" | undefined;
+      if (stripeMode === "DEV") {
+        subjectParts.push("DEVELOPMENT");
+      }
+
       // Build email body
       const emailLines = [
         "<h2>Request for an offer on trees</h2>",
