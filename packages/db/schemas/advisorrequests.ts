@@ -5,6 +5,8 @@ export interface IAdvisorRequestSchema {
   email: string;
   requestDate: number;
   status: 'pending' | 'resolved';
+  projectDetails?: string;
+  phoneNumber?: string;
 }
 
 const AdvisorRequestSchema = new mongoose.Schema({
@@ -13,18 +15,26 @@ const AdvisorRequestSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
-  email: { 
-    type: String, 
-    required: true 
+  email: {
+    type: String,
+    required: true
   },
-  creationDate: { 
+  creationDate: {
     type: Date,
-    default: Date.now 
+    default: Date.now
   },
   status: {
     type: String,
     enum: ['pending', 'resolved'],
     required: true
+  },
+  projectDetails: {
+    type: String,
+    required: false
+  },
+  phoneNumber: {
+    type: String,
+    required: false
   }
 });
 
