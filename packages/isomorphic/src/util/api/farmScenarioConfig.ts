@@ -75,61 +75,6 @@ export async function updateFarmScenarioConfig(
   return response.json() as Promise<FarmScenarioConfigDocument>;
 }
 
-export async function updateFarmScenarioMetadata(
-  configId: string,
-  metadata: {
-    name?: string;
-    description?: string;
-    isPublic?: boolean;
-    showOfferButton?: boolean;
-    displaySettings?: any;
-  }
-) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs/${configId}/metadata`,
-    {
-      ...apiFetchOptions(),
-      method: "PATCH",
-      headers: {
-        ...apiFetchOptions().headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(metadata),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to update farm planting plan metadata: ${response.statusText}`);
-  }
-
-  return response.json() as Promise<FarmScenarioConfigDocument>;
-}
-
-export async function updateFieldScenario(
-  configId: string,
-  layerId: string,
-  projectId: string | null
-) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs/${configId}/field-scenario/${layerId}`,
-    {
-      ...apiFetchOptions(),
-      method: "PATCH",
-      headers: {
-        ...apiFetchOptions().headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ projectId }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to update field scenario: ${response.statusText}`);
-  }
-
-  return response.json() as Promise<FarmScenarioConfigDocument>;
-}
-
 export async function deleteFarmScenarioConfig(configId: string) {
   const response = await fetch(
     `${BACKEND_URL}/farmscenarioconfigs/${configId}`,

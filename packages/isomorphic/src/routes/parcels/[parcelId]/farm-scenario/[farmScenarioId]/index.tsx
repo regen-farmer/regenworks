@@ -12,10 +12,6 @@ import {
   onMount,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { use3DControl } from "~/util/map_controls/use3DControl.ts";
-import { useBSControl } from "~/util/map_controls/useBSControl.ts";
-import { useHCControl } from "~/util/map_controls/useHCControl.ts";
-import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesignWithPrefix } from "~/components/systemDesigner/drawSystemDesignWithPrefix.ts";
@@ -26,8 +22,6 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import {
   getFarmScenarioConfig,
   updateFarmScenarioConfig,
-  updateFarmScenarioMetadata,
-  updateFieldScenario,
 } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
@@ -65,7 +59,6 @@ const FarmScenarioPreview: Component = () => {
   const [scenarioDescription, setScenarioDescription] = createSignal("");
   const [isPublic, setIsPublic] = createSignal(false);
   const [showOfferButton, setShowOfferButton] = createSignal(true);
-  const [isSavingDetails, setIsSavingDetails] = createSignal(false);
   const [fieldScenarioSelections, setFieldScenarioSelections] = createSignal<
     Map<string, string | null>
   >(new Map());
@@ -76,7 +69,6 @@ const FarmScenarioPreview: Component = () => {
     null
   );
   const [isMapFieldLoading, setIsMapFieldLoading] = createSignal(false);
-  const [isSavingFieldScenarios, setIsSavingFieldScenarios] = createSignal(false);
   const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
 
   // Wait for auth to be ready before fetching
@@ -326,129 +318,85 @@ const FarmScenarioPreview: Component = () => {
     return authUser?.email || "";
   });
 
+  // Track whether we've initialized field scenarios from the server
+  const [fieldScenariosInitialized, setFieldScenariosInitialized] = createSignal(false);
+
   createEffect(() => {
     const config = configData();
     if (config) {
       setScenarioName(config.name ?? "");
       setScenarioDescription(config.description ?? "");
       setShowOfferButton(config.showOfferButton ?? true);
-      const selections = new Map<string, string | null>();
-      config.fieldScenarios.forEach((fieldScenario: any) => {
-        const layerIdRaw =
-          typeof fieldScenario.layer === "string"
-            ? fieldScenario.layer
-            : fieldScenario.layer?._id;
-        const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
-        if (!layerIdValue) {
-          return;
-        }
-        const projectIdRaw = fieldScenario.project
-          ? typeof fieldScenario.project === "string"
-            ? fieldScenario.project
-            : fieldScenario.project?._id
-          : null;
-        const projectIdValue = projectIdRaw ? String(projectIdRaw) : null;
-        selections.set(layerIdValue, projectIdValue);
-      });
-      setFieldScenarioSelections(selections);
-      setSavedFieldScenarioSelections(new Map(selections)); // Save original state
+
+      // Only initialize field scenarios once on initial load
+      // Don't overwrite user's unsaved changes when config updates from metadata saves
+      if (!fieldScenariosInitialized()) {
+        const selections = new Map<string, string | null>();
+        config.fieldScenarios.forEach((fieldScenario: any) => {
+          const layerIdRaw =
+            typeof fieldScenario.layer === "string"
+              ? fieldScenario.layer
+              : fieldScenario.layer?._id;
+          const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
+          if (!layerIdValue) {
+            return;
+          }
+          const projectIdRaw = fieldScenario.project
+            ? typeof fieldScenario.project === "string"
+              ? fieldScenario.project
+              : fieldScenario.project?._id
+            : null;
+          const projectIdValue = projectIdRaw ? String(projectIdRaw) : null;
+          selections.set(layerIdValue, projectIdValue);
+        });
+        setFieldScenarioSelections(selections);
+        setSavedFieldScenarioSelections(new Map(selections)); // Save original state
+        setFieldScenariosInitialized(true);
+      }
+
       setIsPublic(Boolean(config.isPublic));
     }
   });
 
-  const detailsDirty = createMemo(() => {
+  // Check if anything has changed (metadata or field scenarios)
+  const hasUnsavedChanges = createMemo(() => {
     const config = configData();
     if (!config) {
       return false;
     }
+
+    // Check metadata changes
     const originalPublic = Boolean(config.isPublic);
     const originalShowOfferButton = config.showOfferButton ?? true;
-    return (
+    const metadataDirty = (
       scenarioName().trim() !== (config.name ?? "") ||
       scenarioDescription().trim() !== (config.description ?? "") ||
       isPublic() !== originalPublic ||
       showOfferButton() !== originalShowOfferButton
     );
-  });
 
-  const fieldScenariosDirty = createMemo(() => {
+    // Check field scenario changes
     const current = fieldScenarioSelections();
     const saved = savedFieldScenarioSelections();
+    let fieldScenariosDirty = false;
 
     if (current.size !== saved.size) {
-      return true;
-    }
-
-    for (const [layerId, projectId] of current.entries()) {
-      if (saved.get(layerId) !== projectId) {
-        return true;
-      }
-    }
-
-    return false;
-  });
-
-  const handleResetDetails = () => {
-    const config = configData();
-    if (config) {
-      setScenarioName(config.name ?? "");
-      setScenarioDescription(config.description ?? "");
-      setIsPublic(Boolean(config.isPublic));
-      setShowOfferButton(config.showOfferButton ?? true);
-    }
-  };
-
-  const handleResetFieldScenarios = () => {
-    setFieldScenarioSelections(new Map(savedFieldScenarioSelections()));
-    // Redraw the map with the saved selections
-    drawField();
-  };
-
-  const handleSaveFieldScenarios = async () => {
-    setIsSavingFieldScenarios(true);
-    try {
-      const current = fieldScenarioSelections();
-      const saved = savedFieldScenarioSelections();
-      const changedFields: Array<{ layerId: string; projectId: string | null }> = [];
-
-      // Find all changed fields
+      fieldScenariosDirty = true;
+    } else {
       for (const [layerId, projectId] of current.entries()) {
         if (saved.get(layerId) !== projectId) {
-          changedFields.push({ layerId, projectId });
+          fieldScenariosDirty = true;
+          break;
         }
       }
-
-      // Save all changed fields
-      await Promise.all(
-        changedFields.map(({ layerId, projectId }) =>
-          updateFieldScenario(params.farmScenarioId, layerId, projectId)
-        )
-      );
-
-      // Update saved state
-      setSavedFieldScenarioSelections(new Map(current));
-
-      showToast({
-        title: "Field scenarios saved",
-        description: `Updated ${changedFields.length} field${changedFields.length !== 1 ? 's' : ''}.`,
-        variant: "success",
-      });
-    } catch (error) {
-      console.error("Failed to save field scenarios:", error);
-      showToast({
-        title: "Save failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Unable to save field scenarios. Please try again.",
-        variant: "error",
-      });
-    } finally {
-      setIsSavingFieldScenarios(false);
     }
-  };
 
-  const handleSaveDetails = async () => {
+    return metadataDirty || fieldScenariosDirty;
+  });
+
+  const [isSaving, setIsSaving] = createSignal(false);
+
+  const handleSave = async () => {
     const config = configData();
     if (!config) {
       return;
@@ -464,55 +412,51 @@ const FarmScenarioPreview: Component = () => {
       return;
     }
 
-    setIsSavingDetails(true);
+    setIsSaving(true);
     try {
       const trimmedDescription = scenarioDescription().trim();
-      const updatedConfig = await updateFarmScenarioMetadata(
+      const current = fieldScenarioSelections();
+
+      // Build the updated fieldScenarios array from current selections
+      const updatedFieldScenarios = Array.from(current.entries()).map(([layerId, projectId]) => ({
+        layer: layerId,
+        project: projectId || undefined,
+        enabled: true,
+      }));
+
+      // Use the PUT endpoint to update the entire config
+      const updatedConfig = await updateFarmScenarioConfig(
         params.farmScenarioId,
         {
           name: trimmedName,
           description: trimmedDescription || undefined,
           isPublic: isPublic(),
           showOfferButton: showOfferButton(),
+          fieldScenarios: updatedFieldScenarios,
         }
       );
+
+      // Update local state
+      setSavedFieldScenarioSelections(new Map(current));
+      mutateConfig(() => updatedConfig);
+
       showToast({
-        title: "Scenario updated",
-        description: "Name and description saved successfully.",
+        title: "Changes saved",
+        description: "All changes have been saved successfully.",
         variant: "success",
       });
-      mutateConfig((previous) =>
-        previous
-          ? {
-              ...previous,
-              name: updatedConfig.name ?? trimmedName,
-              description:
-                typeof updatedConfig.description === "string"
-                  ? updatedConfig.description
-                  : trimmedDescription,
-              isPublic:
-                typeof updatedConfig.isPublic === "boolean"
-                  ? updatedConfig.isPublic
-                  : isPublic(),
-              showOfferButton:
-                typeof updatedConfig.showOfferButton === "boolean"
-                  ? updatedConfig.showOfferButton
-                  : showOfferButton(),
-            }
-          : previous
-      );
     } catch (error) {
-      console.error("Failed to update scenario details:", error);
+      console.error("Failed to save:", error);
       showToast({
-        title: "Update failed",
+        title: "Save failed",
         description:
           error instanceof Error
             ? error.message
-            : "Unable to save the scenario details. Please try again.",
+            : "Unable to save changes. Please try again.",
         variant: "error",
       });
     } finally {
-      setIsSavingDetails(false);
+      setIsSaving(false);
     }
   };
 
@@ -1252,7 +1196,7 @@ const FarmScenarioPreview: Component = () => {
                   }
                   class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                   placeholder="Scenario name"
-                  disabled={isSavingDetails()}
+                  disabled={isSaving()}
                 />
               </div>
               <div>
@@ -1267,7 +1211,7 @@ const FarmScenarioPreview: Component = () => {
                   }
                   class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                   placeholder="Add a short description for this scenario"
-                  disabled={isSavingDetails()}
+                  disabled={isSaving()}
                 />
               </div>
               <div class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900">
@@ -1276,7 +1220,7 @@ const FarmScenarioPreview: Component = () => {
                   type="checkbox"
                   class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
                   checked={isPublic()}
-                  disabled={isSavingDetails()}
+                  disabled={isSaving()}
                   onChange={(event) =>
                     setIsPublic(event.currentTarget.checked)
                   }
@@ -1322,10 +1266,10 @@ const FarmScenarioPreview: Component = () => {
                 <input
                   type="checkbox"
                   class={`h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 ${
-                    !isPublic() || isSavingDetails() ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                    !isPublic() || isSaving() ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                   }`}
                   checked={showOfferButton()}
-                  disabled={!isPublic() || isSavingDetails()}
+                  disabled={!isPublic() || isSaving()}
                   onChange={(event) =>
                     setShowOfferButton(event.currentTarget.checked)
                   }
@@ -1354,16 +1298,6 @@ const FarmScenarioPreview: Component = () => {
                 </div>
               </div>
 
-              <div class="flex justify-end">
-                <button
-                  type="button"
-                  class="rounded-sm px-3 py-1 text-sm btn-primary bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                  onClick={handleSaveDetails}
-                  disabled={!detailsDirty() || isSavingDetails()}
-                >
-                  {isSavingDetails() ? "Saving..." : "Save changes"}
-                </button>
-              </div>
             </div>
           </Show>
 
@@ -1413,6 +1347,7 @@ const FarmScenarioPreview: Component = () => {
                             )
                           }
                           disabled={
+                            isSaving() ||
                             layerProjects.loading ||
                             updatingFieldId() === field.layerId ||
                             (field.projects?.length ?? 0) === 0
@@ -1445,19 +1380,18 @@ const FarmScenarioPreview: Component = () => {
               </Show>
             </Show>
 
-            {/* Save button for field scenarios */}
-            <Show when={fieldsData() && fieldsData()!.length > 0}>
-              <div class="mt-4 px-4 flex justify-end">
-                <button
-                  type="button"
-                  class="rounded-sm px-3 py-1 text-sm btn-primary bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                  onClick={handleSaveFieldScenarios}
-                  disabled={!fieldScenariosDirty() || isSavingFieldScenarios()}
-                >
-                  {isSavingFieldScenarios() ? "Saving..." : "Save changes"}
-                </button>
-              </div>
-            </Show>
+          </div>
+
+          {/* Unified save button */}
+          <div class="mt-6 px-4 flex justify-end">
+            <button
+              type="button"
+              class="rounded-sm px-3 py-1 text-sm btn-primary bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+              onClick={handleSave}
+              disabled={!hasUnsavedChanges() || isSaving()}
+            >
+              {isSaving() ? "Saving..." : "Save changes"}
+            </button>
           </div>
 
           {/* Summary stats */}
