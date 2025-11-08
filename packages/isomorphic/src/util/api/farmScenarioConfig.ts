@@ -67,11 +67,36 @@ export async function updateFarmScenarioConfig(
       body: JSON.stringify(updates),
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`Failed to update farm planting plan config: ${response.statusText}`);
   }
-  
+
+  return response.json() as Promise<FarmScenarioConfigDocument>;
+}
+
+export async function updateFieldScenario(
+  configId: string,
+  layerId: string,
+  projectId: string | null
+) {
+  const response = await fetch(
+    `${BACKEND_URL}/farmscenarioconfigs/${configId}/field-scenario/${layerId}`,
+    {
+      ...apiFetchOptions(),
+      method: "PATCH",
+      headers: {
+        ...apiFetchOptions().headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectId }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to update field scenario: ${response.statusText}`);
+  }
+
   return response.json() as Promise<FarmScenarioConfigDocument>;
 }
 

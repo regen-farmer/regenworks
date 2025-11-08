@@ -233,8 +233,9 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
     }
 
     if (req.body.displaySettings && typeof req.body.displaySettings === "object") {
+      const existingSettings = config.displaySettings || {};
       updatePayload.displaySettings = {
-        ...config.displaySettings?.toObject?.() ?? config.displaySettings,
+        ...existingSettings,
         ...req.body.displaySettings,
       } as typeof config.displaySettings;
     }
@@ -293,6 +294,78 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
   } catch (error) {
     console.error("Error updating config:", error);
     res.status(500).send({ error: "Failed to update configuration" });
+  }
+});
+
+// PATCH /farmscenarioconfigs/:id/field-scenario/:layerId - Update a single field scenario
+router.patch("/farmscenarioconfigs/:id/field-scenario/:layerId", middleware.isLoggedIn, async (req: AuthRequest, res) => {
+  try {
+    const config = await FarmScenarioConfig.findById(req.params.id);
+
+    if (!config) {
+      return res.status(404).send({ error: "Configuration not found" });
+    }
+
+    // Check ownership
+    if (config.user.toString() !== req.user!._id.toString()) {
+      return res.status(403).send({ error: "Unauthorized" });
+    }
+
+    const layerId = req.params.layerId;
+    const { projectId } = req.body;
+
+    // Verify layer belongs to this config's parcel
+    const parcel = await Parcel.findById(config.parcel).populate("layers");
+    if (!parcel) {
+      return res.status(404).send({ error: "Parcel not found" });
+    }
+
+    const layerBelongsToParcel = parcel.layers.some((layer: any) =>
+      layer._id.toString() === layerId
+    );
+
+    if (!layerBelongsToParcel) {
+      return res.status(400).send({ error: "Layer does not belong to the config's parcel" });
+    }
+
+    // If projectId is provided, verify it exists and belongs to this layer
+    if (projectId) {
+      const project = await Project.findById(projectId);
+      if (!project) {
+        return res.status(404).send({ error: `Project ${projectId} not found` });
+      }
+      if (project.layer.toString() !== layerId) {
+        return res.status(400).send({ error: "Project does not belong to the specified layer" });
+      }
+    }
+
+    // Find or create the field scenario for this layer
+    const fieldScenarioIndex = config.fieldScenarios.findIndex(
+      (fs: any) => fs.layer.toString() === layerId
+    );
+
+    if (fieldScenarioIndex >= 0) {
+      // Update existing field scenario
+      if (projectId === null || projectId === undefined) {
+        config.fieldScenarios[fieldScenarioIndex].project = undefined;
+      } else {
+        config.fieldScenarios[fieldScenarioIndex].project = new Types.ObjectId(projectId);
+      }
+    } else {
+      // Create new field scenario for this layer
+      config.fieldScenarios.push({
+        layer: new Types.ObjectId(layerId),
+        project: projectId ? new Types.ObjectId(projectId) : undefined,
+        enabled: true,
+      } as any);
+    }
+
+    await config.save();
+
+    res.status(200).send(config);
+  } catch (error) {
+    console.error("Error updating field scenario:", error);
+    res.status(500).send({ error: "Failed to update field scenario" });
   }
 });
 

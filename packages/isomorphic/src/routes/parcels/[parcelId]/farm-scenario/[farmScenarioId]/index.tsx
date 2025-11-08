@@ -26,6 +26,7 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import {
   getFarmScenarioConfig,
   updateFarmScenarioConfig,
+  updateFieldScenario,
 } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
@@ -680,66 +681,12 @@ const FarmScenarioPreview: Component = () => {
     });
 
     try {
-      const updatedFieldScenarios = config.fieldScenarios
-        .filter((fieldScenario: any) => {
-          // Skip field scenarios with deleted or invalid layers
-          if (!fieldScenario.layer) {
-            console.warn("Skipping field scenario with missing layer");
-            return false;
-          }
-          return true;
-        })
-        .map((fieldScenario: any) => {
-          const layerIdRaw =
-            typeof fieldScenario.layer === "string"
-              ? fieldScenario.layer
-              : fieldScenario.layer?._id || fieldScenario.layer?.id;
-          const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
-
-          const existingProjectIdRaw = fieldScenario.project
-            ? typeof fieldScenario.project === "string"
-              ? fieldScenario.project
-              : fieldScenario.project?._id
-            : null;
-          const existingProjectId = existingProjectIdRaw
-            ? String(existingProjectIdRaw)
-            : null;
-
-          const projectToUse =
-            layerIdValue === layerIdString
-              ? normalizedProjectId
-              : existingProjectId;
-
-          const finalLayerId = layerIdValue ?? layerIdString;
-          if (!finalLayerId) {
-            return undefined;
-          }
-
-          const scenarioPayload: any = {
-            layer: finalLayerId,
-            enabled:
-              typeof fieldScenario.enabled === "boolean"
-                ? fieldScenario.enabled
-                : true,
-          };
-
-          if (typeof fieldScenario.displayOrder !== "undefined") {
-            scenarioPayload.displayOrder = fieldScenario.displayOrder;
-          }
-
-          if (projectToUse === null) {
-            scenarioPayload.project = undefined;
-          } else if (projectToUse) {
-            scenarioPayload.project = projectToUse;
-          }
-
-          return scenarioPayload;
-        }
+      // Use the new endpoint that only updates the specific field scenario
+      await updateFieldScenario(
+        params.farmScenarioId,
+        layerIdString,
+        normalizedProjectId
       );
-
-      await updateFarmScenarioConfig(params.farmScenarioId, {
-        fieldScenarios: updatedFieldScenarios.filter(Boolean),
-      });
 
       showToast({
         title: "Scenario updated",
