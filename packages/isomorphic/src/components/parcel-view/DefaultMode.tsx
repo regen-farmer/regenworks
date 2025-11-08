@@ -587,7 +587,7 @@ function DefaultMode({
 														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div py-2">
 														<div class="flex w-full items-center gap-2 text-xs text-gray-100">
 															<div
-																class="text-sm font-semibold max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
+																class="text-sm max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
 																title={config.name || "Unnamed scenario"}
 															>
 																{config.name || "Unnamed scenario"}
