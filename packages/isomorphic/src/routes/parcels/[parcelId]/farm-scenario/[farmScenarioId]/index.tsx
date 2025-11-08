@@ -1302,9 +1302,9 @@ const FarmScenarioPreview: Component = () => {
           </Show>
 
           <div class="space-y-2">
-            <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Fields
-            </h3>
+            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Field Scenarios
+            </h4>
 
             <Show
               when={!layerProjects.loading}
