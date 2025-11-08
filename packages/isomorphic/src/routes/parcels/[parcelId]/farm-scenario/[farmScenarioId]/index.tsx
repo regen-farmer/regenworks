@@ -1302,7 +1302,7 @@ const FarmScenarioPreview: Component = () => {
           </Show>
 
           <div class="space-y-2">
-            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Field Scenarios
             </h4>
 
