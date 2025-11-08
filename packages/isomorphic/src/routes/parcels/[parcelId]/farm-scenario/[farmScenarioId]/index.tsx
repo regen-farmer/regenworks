@@ -297,7 +297,10 @@ const FarmScenarioPreview: Component = () => {
         (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
         "Unknown species";
 
-      const latinName = speciesDoc?.species || undefined;
+      // Construct latin name from genus and species
+      const latinName = speciesDoc?.genus && speciesDoc?.species
+        ? `${speciesDoc.genus} ${speciesDoc.species}`
+        : speciesDoc?.species || undefined;
 
       return {
         id: String(speciesId ?? index),

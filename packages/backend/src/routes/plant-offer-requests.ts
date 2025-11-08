@@ -15,6 +15,7 @@ const resend = new Resend(RESEND_API_KEY);
 interface SpeciesBreakdownEntry {
   id: string;
   name: string;
+  latinName?: string;
   count: number;
 }
 
@@ -58,6 +59,7 @@ router.post(
           .map((entry) => ({
             id: String(entry.id ?? ""),
             name: entry.name ?? "Unknown species",
+            latinName: entry.latinName,
             count: entry.count,
           }))
           .sort((a, b) => a.name.localeCompare(b.name))
@@ -87,7 +89,10 @@ router.post(
       if (breakdown.length > 0) {
         emailLines.push("", "<h3>Species Breakdown</h3>", "<ul>");
         breakdown.forEach((entry) => {
-          emailLines.push(`<li><strong>${entry.name}:</strong> ${entry.count.toLocaleString()} trees</li>`);
+          const nameWithLatin = entry.latinName
+            ? `${entry.name} (<em>${entry.latinName}</em>)`
+            : entry.name;
+          emailLines.push(`<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`);
         });
         emailLines.push("</ul>");
       }
@@ -132,7 +137,10 @@ router.post(
       if (breakdown.length > 0) {
         receiptLines.push("", "<h3>Species Breakdown</h3>", "<ul>");
         breakdown.forEach((entry) => {
-          receiptLines.push(`<li><strong>${entry.name}:</strong> ${entry.count.toLocaleString()} trees</li>`);
+          const nameWithLatin = entry.latinName
+            ? `${entry.name} (<em>${entry.latinName}</em>)`
+            : entry.name;
+          receiptLines.push(`<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`);
         });
         receiptLines.push("</ul>");
       }

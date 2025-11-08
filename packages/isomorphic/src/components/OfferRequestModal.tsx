@@ -106,9 +106,10 @@ export const OfferRequestModal: Component<OfferRequestModalProps> = (props) => {
             .map((entry) => ({
               id: entry.id,
               name: entry.name,
+              latinName: entry.latinName,
               count: quantities[entry.id] || 0,
             })),
-          email,
+          senderEmail: email,
           notes: userNotes().trim() || undefined,
         }),
       });
