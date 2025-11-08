@@ -584,31 +584,31 @@ function DefaultMode({
 											>
 												<For each={farmConfigs()}>
 													{(config: any) => (
-														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div py-2">
-														<div class="flex w-full items-center gap-2 text-xs text-gray-100">
-															<div
-																class="text-sm max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
-																title={config.name || "Unnamed scenario"}
+														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
+															<A
+																class="overlay-list-link"
+																href={`/parcels/${params.parcelId}/farm-scenario/${config._id}`}
 															>
 																{config.name || "Unnamed scenario"}
-															</div>
-															<button
-																class="ml-auto rounded-sm px-2 py-1 btn-default text-xs"
-																onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
-															>
-																View
-															</button>
-															<button
-																class="rounded-sm px-2 py-1 btn-danger text-xs"
-																title="Delete scenario"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setScenarioToDelete(config._id);
-																	setDeleteScenarioModalOpen(true);
-																}}
-															>
-																<i class="fa-solid fa-trash" />
-															</button>
+															</A>
+															<div>
+																<button
+																	title="Edit scenario"
+																	class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
+																	onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
+																>
+																	<i class="fa-solid fa-pen" />
+																</button>
+																<button
+																	class="rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"
+																	title="Delete scenario"
+																	onclick={() => {
+																		setScenarioToDelete(config._id);
+																		setDeleteScenarioModalOpen(true);
+																	}}
+																>
+																	<i class="fa-solid fa-trash" />
+																</button>
 															</div>
 														</div>
 													)}
