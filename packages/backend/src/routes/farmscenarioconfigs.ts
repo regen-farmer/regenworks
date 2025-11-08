@@ -297,6 +297,56 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
   }
 });
 
+// PATCH /farmscenarioconfigs/:id/metadata - Update only metadata (name, description, isPublic, etc.)
+router.patch("/farmscenarioconfigs/:id/metadata", middleware.isLoggedIn, async (req: AuthRequest, res) => {
+  try {
+    const config = await FarmScenarioConfig.findById(req.params.id);
+
+    if (!config) {
+      return res.status(404).send({ error: "Configuration not found" });
+    }
+
+    // Check ownership
+    if (config.user.toString() !== req.user!._id.toString()) {
+      return res.status(403).send({ error: "Unauthorized" });
+    }
+
+    const updatePayload: any = {};
+
+    if (typeof req.body.name === "string") {
+      updatePayload.name = req.body.name.trim();
+    }
+
+    if (typeof req.body.description === "string") {
+      updatePayload.description = req.body.description.trim();
+    }
+
+    if (req.body.displaySettings && typeof req.body.displaySettings === "object") {
+      const existingSettings = config.displaySettings || {};
+      updatePayload.displaySettings = {
+        ...existingSettings,
+        ...req.body.displaySettings,
+      };
+    }
+
+    if (typeof req.body.isPublic === "boolean") {
+      updatePayload.isPublic = req.body.isPublic;
+    }
+
+    if (typeof req.body.showOfferButton === "boolean") {
+      updatePayload.showOfferButton = req.body.showOfferButton;
+    }
+
+    config.set(updatePayload);
+    await config.save();
+
+    res.status(200).send(config);
+  } catch (error) {
+    console.error("Error updating config metadata:", error);
+    res.status(500).send({ error: "Failed to update configuration metadata" });
+  }
+});
+
 // PATCH /farmscenarioconfigs/:id/field-scenario/:layerId - Update a single field scenario
 router.patch("/farmscenarioconfigs/:id/field-scenario/:layerId", middleware.isLoggedIn, async (req: AuthRequest, res) => {
   try {

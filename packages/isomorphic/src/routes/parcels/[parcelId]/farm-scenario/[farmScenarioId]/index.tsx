@@ -26,6 +26,7 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import {
   getFarmScenarioConfig,
   updateFarmScenarioConfig,
+  updateFarmScenarioMetadata,
   updateFieldScenario,
 } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
@@ -394,7 +395,7 @@ const FarmScenarioPreview: Component = () => {
     setIsSavingDetails(true);
     try {
       const trimmedDescription = scenarioDescription().trim();
-      const updatedConfig = await updateFarmScenarioConfig(
+      const updatedConfig = await updateFarmScenarioMetadata(
         params.farmScenarioId,
         {
           name: trimmedName,
@@ -1362,7 +1363,6 @@ const FarmScenarioPreview: Component = () => {
                           disabled={
                             layerProjects.loading ||
                             updatingFieldId() === field.layerId ||
-                            isSavingDetails() ||
                             (field.projects?.length ?? 0) === 0
                           }
                         >
