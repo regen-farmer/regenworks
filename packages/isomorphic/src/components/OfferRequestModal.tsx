@@ -134,15 +134,16 @@ export const OfferRequestModal: Component<OfferRequestModalProps> = (props) => {
 
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
-      <DialogContent class="max-w-3xl lg:max-w-5xl" onClose={() => props.onOpenChange(false)}>
-        <DialogHeader>
-          <DialogTitle>Request offer on trees</DialogTitle>
-          <DialogDescription>
-            Review the amounts before sending your request to our nursery team.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent class="max-w-3xl lg:max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClose={() => props.onOpenChange(false)}>
+        <div class="overflow-y-auto flex-1 pr-2">
+          <DialogHeader>
+            <DialogTitle>Request offer on trees</DialogTitle>
+            <DialogDescription>
+              Review the amounts before sending your request to our nursery team.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div class="space-y-4">
+          <div class="space-y-4 mt-4">
           <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
             <div class="flex items-center justify-between text-base font-semibold mb-3">
               <span>Total trees</span>
@@ -258,9 +259,10 @@ export const OfferRequestModal: Component<OfferRequestModalProps> = (props) => {
               Request sent! We'll be in touch soon.
             </p>
           </Show>
+          </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 flex-shrink-0">
           <Show when={offerRequestSuccess()}>
             <Button onClick={() => props.onOpenChange(false)}>
               Close
