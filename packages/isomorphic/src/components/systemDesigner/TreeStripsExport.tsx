@@ -306,25 +306,7 @@ const TreeStripsExport: Component<{
                 });
               }
 
-              // Add tree circles
-              if (mode !== "groundcover") {
-                const trees: any[] = layout?.treeMarkerArray || [];
-                trees.forEach((tree, i) => {
-                  if (!tree?.circle) return;
-                  features.push({
-                    type: "Feature",
-                    geometry: tree.circle.geometry,
-                    properties: {
-                      type: "tree",
-                      species: tree.species?._id || tree.species || undefined,
-                      name:
-                        tree.species?.nameCommon ||
-                        tree.species?.species ||
-                        undefined,
-                    },
-                  });
-                });
-              }
+              // Tree circles removed - only export strip areas, not individual trees
 
               const geojson = {
                 type: "FeatureCollection",
@@ -353,7 +335,6 @@ const TreeStripsExport: Component<{
               // Build KML from the same data
               const layout: any = props.systemLayout as any;
               const stripPolys: any[] | undefined = layout?.stripPolygons;
-              const trees: any[] = layout?.treeMarkerArray || [];
               const rows: any[] = props.systemDesign?.rows || [];
               const mode = filterType();
               const baseName =
@@ -422,25 +403,7 @@ const TreeStripsExport: Component<{
                 });
               }
 
-              // Trees (circles as polygons) only when exporting trees or both
-              if (mode !== "groundcover") {
-                trees.forEach((tree) => {
-                  const poly = tree?.circle?.geometry;
-                  if (!poly || poly.type !== "Polygon") return;
-                  const rings = poly.coordinates as any[];
-                  const name =
-                    tree.species?.nameCommon || tree.species?.species || "Tree";
-                  kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                    rings[0]
-                  )}</coordinates></LinearRing></outerBoundaryIs>`;
-                  for (let r = 1; r < rings.length; r++) {
-                    kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                      rings[r]
-                    )}</coordinates></LinearRing></innerBoundaryIs>`;
-                  }
-                  kml += `</Polygon></Placemark>\n`;
-                });
-              }
+              // Tree circles removed - only export strip areas, not individual trees
 
               kml += `</Document>\n</kml>`;
 
