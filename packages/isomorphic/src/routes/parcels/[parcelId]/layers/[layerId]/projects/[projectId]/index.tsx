@@ -159,6 +159,13 @@ export default function view() {
     return location.pathname;
   });
 
+  // Clear systemLayout when project changes to remove old previews from map
+  createEffect(() => {
+    const projectId = params.projectId;
+    // Clear the system layout when switching projects
+    setSystemLayout(undefined);
+  });
+
   const species = getSpecies();
 
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
@@ -320,8 +327,12 @@ export default function view() {
     });
   }
 
-  // Draw the system design when the layout or 3D mode changes
+  // Draw the system design when the layout, 3D mode, or project changes
   createEffect(() => {
+    // Track project ID to clear when switching projects via breadcrumbs
+    // (accessing params.projectId registers it as a dependency even if unused)
+    const projectId = params.projectId;
+
     if (mapLoaded() && map) {
       // Always clear old system design layers first
       // This ensures switching projects via breadcrumbs removes obsolete designs
