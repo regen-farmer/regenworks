@@ -220,6 +220,13 @@ export default function view() {
           const nav = new MaptilerNavigationControl();
           map!.addControl(nav, "top-right");
 
+          // Add scale control
+          const scale = new maplibregl.ScaleControl({
+            maxWidth: 100,
+            unit: 'metric'
+          });
+          map!.addControl(scale, 'bottom-right');
+
           const unparsedFieldPolygon: any =
             scenarioData()?.project.layer.geometry;
           const fieldPolygon = JSON.parse(

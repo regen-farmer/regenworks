@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, on, onMount } from "solid-js";
+import maplibregl from "maplibre-gl";
 
 import * as togeojson from "@tmcw/togeojson";
 
@@ -206,7 +207,13 @@ export const EditFieldMode: Component<{
 		drawFields();
 		setFieldName(field?.name ? field.name : "");
 
-		
+		// Add scale control to map
+		const scale = new maplibregl.ScaleControl({
+			maxWidth: 100,
+			unit: 'metric'
+		});
+		getMap().addControl(scale, 'bottom-left');
+
 		addDrawControl();
 		loadDrawCoordinates();
 	});

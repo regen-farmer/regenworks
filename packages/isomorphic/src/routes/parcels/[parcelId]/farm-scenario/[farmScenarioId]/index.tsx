@@ -997,6 +997,13 @@ const FarmScenarioPreview: Component = () => {
         const nav = new MaptilerNavigationControl();
         map!.addControl(nav, "top-right");
 
+        // Add scale control
+        const scale = new maplibregl.ScaleControl({
+          maxWidth: 100,
+          unit: 'metric'
+        });
+        map!.addControl(scale, 'bottom-right');
+
         setMapLoaded(true);
       });
     } else if (mapLoaded() && field) {
