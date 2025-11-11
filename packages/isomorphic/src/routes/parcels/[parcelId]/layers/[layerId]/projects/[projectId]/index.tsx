@@ -101,6 +101,34 @@ export default function view() {
     layerId: string;
   }>();
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get initial tab from URL params, default to "edit"
+  const getInitialTab = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('tab') || 'edit';
+  };
+
+  const [activeTab, setActiveTab] = createSignal(getInitialTab());
+
+  // Update active tab when URL changes
+  createEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabParam !== activeTab()) {
+      setActiveTab(tabParam);
+    }
+  });
+
+  // Handle tab change - update both state and URL
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL without navigating away
+    const newUrl = `${location.pathname}?tab=${value}`;
+    navigate(newUrl, { replace: true });
+  };
+
   const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
   const [show3D, setShow3D] = createSignal(false);
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | undefined>();
@@ -133,8 +161,6 @@ export default function view() {
     console.log(`Rendering in: ${timeTaken} milliseconds`);
   }
 
-  const location = useLocation();
-  
   // Use createResource for project data to get refetch capability
   const [scenarioData, { refetch }] = createResource(async () => {
     const response = await fetch(
@@ -142,14 +168,23 @@ export default function view() {
       apiFetchOptions(),
     );
     const result = await response.json();
-    
+
     if (result?.project.systemdesign) {
       setSavedSystem(
         JSON.parse(JSON.stringify(result.project.systemdesign!))
       );
       setSystem(result.project.systemdesign!);
+    } else {
+      // No saved system design, reset to empty
+      setSavedSystem(undefined);
+      setSystem({
+        rows: [],
+        bearing: 0,
+        margin: 0,
+        headland: 0,
+      });
     }
-    
+
     return result;
   });
   
@@ -525,8 +560,6 @@ export default function view() {
   const [deleteModalOpen, setDeleteModalOpen] = createSignal(false);
   const [duplicateModalOpen, setDuplicateModalOpen] = createSignal(false);
 
-  const navigate = useNavigate();
-  
   const deleteProjectAction = action(async (formData: FormData) => {
     await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/projects/${params.projectId}`,
@@ -645,7 +678,7 @@ export default function view() {
                     height: "100%",
                   }}
                 >
-                  <Tabs defaultValue="edit" style={{ height: "100%", display: "flex", "flex-direction": "column" }}>
+                  <Tabs value={activeTab()} onChange={handleTabChange} style={{ height: "100%", display: "flex", "flex-direction": "column" }}>
                     <TabsList class="grid w-fit grid-cols-4 m-2">
                       <TabsTrigger class="border" value="edit">
                         Edit design
@@ -1301,6 +1334,9 @@ export default function view() {
                       setSystem={setSystem}
                       logSystem={logSystem}
                       map={mapLoaded() ? map : undefined}
+                      params={params}
+                      scenarioData={scenarioData}
+                      systemLayout={systemLayout}
                       triggerFarmerAdvisorSelector={() => {
                         setTimeout(() => {
                           const key = "farmerAdvisorSelector";
@@ -1415,8 +1451,12 @@ const DesignPresetContent = ({
   logSystem,
   getSystemDesign,
   map,
+  params,
+  scenarioData,
+  systemLayout,
   triggerFarmerAdvisorSelector,
 }: any) => {
+  const navigate = useNavigate();
   const [userPresets, setUserPresets] = createSignal<any[]>([]);
   const [showSaveModal, setShowSaveModal] = createSignal(false);
   const [presetName, setPresetName] = createSignal("");
@@ -1428,7 +1468,220 @@ const DesignPresetContent = ({
   const [editName, setEditName] = createSignal("");
   const [editDescription, setEditDescription] = createSignal("");
   const [updatingPreset, setUpdatingPreset] = createSignal(false);
-  
+
+  // Preset confirmation modal state
+  const [showPresetConfirmModal, setShowPresetConfirmModal] = createSignal(false);
+  const [pendingPreset, setPendingPreset] = createSignal<any>(null);
+  const [duplicatingScenario, setDuplicatingScenario] = createSignal(false);
+
+  // Duplicate name modal state
+  const [showDuplicateNameModal, setShowDuplicateNameModal] = createSignal(false);
+  const [duplicateScenarioName, setDuplicateScenarioName] = createSignal("");
+
+  // Check if there's an existing system design on the client (saved or unsaved)
+  const hasExistingSystem = () => {
+    return system.rows && system.rows.length > 0;
+  };
+
+  // Apply preset directly (overwrite)
+  const applyPreset = (preset: any) => {
+    console.log('Applying preset:', preset.system);
+    // Clear existing system layers before drawing the preset
+    const clearSystemDesignLayers = () => {
+      if (!map) return;
+      const style = map.getStyle();
+      if (!style || !style.layers) return;
+
+      // Get all layer IDs that belong to system design
+      const systemLayerIds = style.layers
+        .map((layer: any) => layer.id)
+        .filter((id: string) =>
+          id.startsWith("strips-") ||
+          id.startsWith("trees-") ||
+          id.startsWith("strips-border-") ||
+          id === "headland-sides" ||
+          id === "margin-polygon" ||
+          id === "headland-polygon" ||
+          id === "bearing-sides" ||
+          id === "headland-intersection-points" ||
+          id === "treeRowLines" ||
+          id === "row-labels"
+        );
+
+      // Remove all system design layers and sources
+      systemLayerIds.forEach((layerId: string) => {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+        if (map.getSource(layerId)) {
+          map.removeSource(layerId);
+        }
+      });
+    };
+
+    clearSystemDesignLayers();
+
+    // Clean the preset system to only use IDs
+    const cleanSystem = {
+      ...preset.system,
+      rows: preset.system.rows.map((row: any) => ({
+        ...row,
+        groundcover: typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover,
+        sequence: row.sequence ? row.sequence.map((seq: any) => ({
+          ...seq,
+          species: typeof seq.species === 'object' ? seq.species._id : seq.species
+        })) : []
+      }))
+    };
+    setSystem(cleanSystem);
+    getSystemDesign();
+    triggerFarmerAdvisorSelector();
+    setShowPresetConfirmModal(false);
+    setPendingPreset(null);
+  };
+
+  // Open duplicate name modal
+  const openDuplicateNameModal = (preset: any) => {
+    // Start with blank name - user must provide their own
+    setDuplicateScenarioName("");
+    setShowPresetConfirmModal(false);
+    setShowDuplicateNameModal(true);
+  };
+
+  // Duplicate scenario with preset
+  const duplicateScenarioWithPreset = async () => {
+    if (!duplicateScenarioName().trim()) {
+      showToast({
+        title: "Name required",
+        description: "Please enter a name for the new scenario",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const preset = pendingPreset();
+    if (!preset) {
+      return;
+    }
+
+    setDuplicatingScenario(true);
+    try {
+      // Step 1: Create the new project
+      const createResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            project: {
+              name: duplicateScenarioName().trim(),
+            }
+          }),
+          ...apiFetchOptions(),
+        }
+      );
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(`Failed to create duplicate scenario: ${createResponse.status} ${createResponse.statusText}`);
+      }
+
+      const newProject = await createResponse.json();
+
+      // Step 2: Apply the preset system design to the new project
+      const cleanSystem = {
+        ...preset.system,
+        rows: preset.system.rows.map((row: any) => {
+          const cleanedRow: any = {
+            ...row,
+            sequence: row.sequence ? row.sequence.map((seq: any) => ({
+              ...seq,
+              species: typeof seq.species === 'object' ? seq.species._id : seq.species
+            })) : []
+          };
+
+          // Only include groundcover if it exists
+          if (row.groundcover) {
+            cleanedRow.groundcover = typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover;
+          }
+
+          return cleanedRow;
+        })
+      };
+
+      const updateResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/projects/${newProject._id}/set-systemdesign`,
+        {
+          method: "PUT",
+          body: JSON.stringify(cleanSystem),
+          ...apiFetchOptions(),
+        }
+      );
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error("Failed to apply preset to new project:", errorText);
+
+        // Close modals
+        setShowDuplicateNameModal(false);
+        setPendingPreset(null);
+
+        // Show warning toast
+        showToast({
+          title: "Scenario created without preset",
+          description: `Created new scenario: "${duplicateScenarioName()}", but failed to apply preset. You can apply it manually.`,
+          variant: "destructive"
+        });
+
+        // Navigate to the new project with Edit design tab selected
+        setTimeout(() => {
+          navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${newProject._id}?tab=edit`);
+        }, 500);
+
+        return;
+      }
+
+      // Close modals
+      setShowDuplicateNameModal(false);
+      setPendingPreset(null);
+
+      // Trigger breadcrumb reload
+      setReloadSignal(prev => prev + 1);
+
+      // Show success toast
+      showToast({
+        title: "Scenario created with preset",
+        description: `Created new scenario: "${duplicateScenarioName()}" with preset applied.`
+      });
+
+      // Navigate to the new project with Edit design tab selected
+      setTimeout(() => {
+        navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${newProject._id}?tab=edit`);
+      }, 500);
+
+    } catch (error) {
+      console.error("Failed to duplicate scenario:", error);
+      showToast({
+        title: "Failed to create scenario",
+        variant: "destructive"
+      });
+    } finally {
+      setDuplicatingScenario(false);
+    }
+  };
+
+  // Handle preset click
+  const handlePresetClick = (preset: any) => {
+    if (hasExistingSystem()) {
+      // Show confirmation modal
+      setPendingPreset(preset);
+      setShowPresetConfirmModal(true);
+    } else {
+      // No existing system, apply directly
+      applyPreset(preset);
+    }
+  };
+
   // Fetch user presets on mount
   createEffect(async () => {
     try {
@@ -1804,26 +2057,7 @@ N/S alignment
             {(preset, index) => (
               <div
                 class="border border-zinc-300 dark:border-slate-600 rounded-md p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-4"
-                onClick={() => {
-                  console.log('Applying preset:', preset.system);
-                  // Clear existing system layers before drawing the preset
-                  clearSystemDesignLayers();
-                  // Clean the preset system to only use IDs
-                  const cleanSystem = {
-                    ...preset.system,
-                    rows: preset.system.rows.map((row: any) => ({
-                      ...row,
-                      groundcover: typeof row.groundcover === 'object' ? row.groundcover._id : row.groundcover,
-                      sequence: row.sequence ? row.sequence.map((seq: any) => ({
-                        ...seq,
-                        species: typeof seq.species === 'object' ? seq.species._id : seq.species
-                      })) : []
-                    }))
-                  };
-                  setSystem(cleanSystem);
-                  getSystemDesign();
-                  triggerFarmerAdvisorSelector();
-                }}
+                onClick={() => handlePresetClick(preset)}
               >
                 {/* Thumbnail */}
                 <img
@@ -2019,6 +2253,96 @@ N/S alignment
                 disabled={updatingPreset()}
               >
                 {updatingPreset() ? "Updating..." : "Update Preset"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Preset Confirmation Modal */}
+        <Dialog open={showPresetConfirmModal()} onOpenChange={setShowPresetConfirmModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Apply Preset?</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Are you sure you want to apply this preset? This will replace the current system that you have already designed.
+              </p>
+            </DialogDescription>
+            <DialogFooter class="flex flex-col gap-2">
+              <button
+                class="rounded-sm p-2 btn-default w-full"
+                onClick={() => {
+                  if (pendingPreset()) {
+                    applyPreset(pendingPreset());
+                  }
+                }}
+              >
+                Yes, overwrite current design with preset
+              </button>
+              <button
+                class="rounded-sm p-2 btn-default w-full"
+                onClick={() => {
+                  if (pendingPreset()) {
+                    openDuplicateNameModal(pendingPreset());
+                  }
+                }}
+              >
+                Create a duplicate scenario with the preset
+              </button>
+              <button
+                class="rounded-sm p-2 btn-default w-full"
+                onClick={() => {
+                  setShowPresetConfirmModal(false);
+                  setPendingPreset(null);
+                }}
+              >
+                Cancel
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Duplicate Scenario Name Modal */}
+        <Dialog open={showDuplicateNameModal()} onOpenChange={setShowDuplicateNameModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Name Your New Scenario</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <div class="space-y-4">
+                <p class="text-sm text-gray-700 dark:text-gray-300">
+                  Enter a name for the duplicate scenario. You'll be able to apply the preset once the scenario is created.
+                </p>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Scenario Name</label>
+                  <input
+                    type="text"
+                    class="w-full p-2 rounded-sm border border-zinc-300 dark:border-slate-600"
+                    value={duplicateScenarioName()}
+                    onInput={(e) => setDuplicateScenarioName(e.currentTarget.value)}
+                    placeholder="Enter scenario name..."
+                  />
+                </div>
+              </div>
+            </DialogDescription>
+            <DialogFooter class="flex flex-col gap-2 sm:flex-row">
+              <button
+                class="rounded-sm p-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-70 w-full sm:w-auto"
+                onClick={duplicateScenarioWithPreset}
+                disabled={duplicatingScenario() || !duplicateScenarioName().trim()}
+              >
+                {duplicatingScenario() ? "Creating..." : "Create Scenario"}
+              </button>
+              <button
+                class="rounded-sm p-2 btn-default w-full sm:w-auto"
+                onClick={() => {
+                  setShowDuplicateNameModal(false);
+                  setShowPresetConfirmModal(true); // Go back to previous modal
+                }}
+                disabled={duplicatingScenario()}
+              >
+                Back
               </button>
             </DialogFooter>
           </DialogContent>
@@ -2494,6 +2818,7 @@ const DuplicateScenarioModalWithRedirect = ({
 
   function cancel() {
     setModalOpen(false);
+    setSubmitDisabled(false);
   }
 
   const [data, { refetch }] = createResource<{
@@ -2513,31 +2838,42 @@ const DuplicateScenarioModalWithRedirect = ({
   const routeAction = action(async (formData: FormData) => {
     setSubmitDisabled(true);
 
-    const payload = {
-      project: {
-        name: formData.get("project[name]")?.toString()!,
-        source: activeScenario()
-      },
-    };
+    try {
+      const payload = {
+        project: {
+          name: formData.get("project[name]")?.toString()!,
+          source: activeScenario()
+        },
+      };
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects/duplicate`,
-      {
-        body: JSON.stringify(payload),
-        method: "post",
-        ...apiFetchOptions(),
-      },
-    );
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects/duplicate`,
+        {
+          body: JSON.stringify(payload),
+          method: "post",
+          ...apiFetchOptions(),
+        },
+      );
 
-    const project: ProjectDocument = await response.json();
-    refetchScenarios();
-    setModalOpen(false);
-    
-    // Trigger breadcrumb reload
-    setReloadSignal(prev => prev + 1);
-    
-    // Navigate to the new duplicated project
-    navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}`);
+      if (!response.ok) {
+        throw new Error(`Failed to duplicate scenario: ${response.statusText}`);
+      }
+
+      const project: ProjectDocument = await response.json();
+      refetchScenarios();
+      setModalOpen(false);
+      setSubmitDisabled(false);
+
+      // Trigger breadcrumb reload
+      setReloadSignal(prev => prev + 1);
+
+      // Navigate to the new duplicated project with Edit design tab selected
+      navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${project._id}?tab=edit`);
+    } catch (err) {
+      console.error("Error duplicating scenario:", err);
+      setError(err instanceof Error ? err.message : "Failed to duplicate scenario");
+      setSubmitDisabled(false);
+    }
   });
 
   return (
