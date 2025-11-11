@@ -11,7 +11,8 @@ import {
   createResource,
   onMount,
 } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
+import { getMongoDBUser } from "~/auth/useAuth";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
@@ -26,7 +27,8 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { getFarmScenarioConfigPreview } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
-import { getAuth0User } from "~/auth/useAuth";
+import { Button } from "~/components/ui/button";
+import { OfferRequestModal } from "~/components/OfferRequestModal";
 
 interface FieldScenarioData {
   layerId: string;
@@ -46,43 +48,14 @@ const FarmScenarioPreview: Component = () => {
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
   const [selectedFieldId, setSelectedFieldId] = createSignal<string | null>(null);
   const [show3D, setShow3D] = createSignal(false);
-  
-  // Wait for auth to be ready before fetching
+  const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
+
+  // Signal to indicate the page is ready to fetch data
   const [authReady, setAuthReady] = createSignal(false);
-  
-  // Check if auth is ready or if we should proceed without it (for public configs)
+
+  // Public previews don't require authentication - proceed immediately
   onMount(() => {
-    // For public previews, we don't need to wait for auth
-    // The backend will handle public access appropriately
-    const checkAuth = async () => {
-      // First check if auth is already available
-      if (getAuth0User()) {
-        console.log("Auth available, proceeding with authenticated request");
-        setAuthReady(true);
-        return;
-      }
-      
-      // If not, wait a brief moment for auth to initialize
-      // But don't wait too long - public previews don't need auth
-      let attempts = 0;
-      const maxAttempts = 5; // 0.5 seconds max wait for public previews
-      
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (getAuth0User()) {
-          console.log("Auth became available, proceeding with authenticated request");
-          setAuthReady(true);
-          return;
-        }
-        attempts++;
-      }
-      
-      // No auth available - proceed anyway (might be a public preview)
-      console.log("No auth available, proceeding (might be public preview)");
-      setAuthReady(true);
-    };
-    
-    checkAuth();
+    setAuthReady(true);
   });
   
   // Fetch the farm planting plan configuration with preview data
@@ -96,7 +69,7 @@ const FarmScenarioPreview: Component = () => {
         const data = await getFarmScenarioConfigPreview(configId);
         console.log("Preview data received:", data);
         return data;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching preview data:", error);
         // If it's an auth error, we might want to retry once
         if (error.message.includes("Empty response") || error.message.includes("Unexpected end")) {
@@ -117,6 +90,46 @@ const FarmScenarioPreview: Component = () => {
   );
 
   const isConfigPublic = createMemo(() => Boolean(configData()?.isPublic));
+
+  // Fetch current user
+  const [currentUserData, setCurrentUserData] = createSignal<any>(null);
+
+  onMount(async () => {
+    // First try to get from the signal (if user is logged in via the main app)
+    const signalUser = getMongoDBUser();
+    if (signalUser) {
+      setCurrentUserData(signalUser);
+      return;
+    }
+
+    // Otherwise, try to fetch from API
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/myuser`,
+        apiFetchOptions()
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUserData(data.user);
+      }
+    } catch (error) {
+      // User not authenticated, that's fine for public previews
+    }
+  });
+
+  // Check if the current user is the creator of this config
+  const isCreator = createMemo(() => {
+    const config = configData();
+    const currentUser = currentUserData();
+
+    if (!config || !currentUser) return false;
+
+    const creatorUser = config.user as any;
+    const creatorId = typeof creatorUser === 'string' ? creatorUser : creatorUser?._id;
+    const currentUserId = currentUser._id;
+
+    return creatorId && currentUserId && String(creatorId) === String(currentUserId);
+  });
 
   // Fetch all field and scenario data
   const [fieldsData] = createResource(
@@ -210,6 +223,61 @@ const FarmScenarioPreview: Component = () => {
     return undefined;
   });
 
+  const speciesBreakdown = createMemo(() => {
+    const aggregated = aggregatedLayoutData();
+    if (!aggregated?.speciesCountArray) return [] as { id: string; name: string; count: number }[];
+
+    return aggregated.speciesCountArray.map((item: any, index: number) => {
+      const speciesEntry = item.species;
+      const speciesId =
+        typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry._id ?? `${index}`
+          : speciesEntry ?? `${index}`;
+      const speciesData = species();
+      const speciesDoc =
+        (typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry
+          : speciesData?.speciesById?.get(speciesId)) || undefined;
+
+      const displayName =
+        speciesDoc?.nameCommon ||
+        speciesDoc?.species ||
+        (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
+        "Unknown species";
+
+      // Construct latin name from genus and species
+      const latinName = speciesDoc?.genus && speciesDoc?.species
+        ? `${speciesDoc.genus} ${speciesDoc.species}`
+        : speciesDoc?.species || undefined;
+
+      return {
+        id: String(speciesId ?? index),
+        name: displayName,
+        latinName: latinName,
+        count: Number(item.count ?? 0),
+      };
+    });
+  });
+
+  const totalTrees = createMemo(() => {
+    return speciesBreakdown().reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+  });
+
+  // Check if the farm scenario creator is from an allowed country for plant offers
+  const ALLOWED_COUNTRIES = ['DK', 'SE', 'NL', 'DE', 'CZ', 'UK'];
+  const canRequestPlantOffer = createMemo(() => {
+    const config = configData();
+    if (!config) return false;
+
+    // Get the creator's country code from the populated user field
+    // The user field should be populated with countryCode by the backend
+    const user = config.user as any;
+    const creatorCountryCode = user?.countryCode;
+
+    if (!creatorCountryCode) return false;
+    return ALLOWED_COUNTRIES.includes(creatorCountryCode.toUpperCase());
+  });
+
   // Calculate map bounds for all fields
   const mapBounds = createMemo(() => {
     const fields = fieldsData();
@@ -234,6 +302,14 @@ const FarmScenarioPreview: Component = () => {
     const avgLat = fields.reduce((sum, f) => sum + f.lat, 0) / fields.length;
     
     return [avgLng, avgLat];
+  });
+
+  // Get the currently selected field
+  const selectedField = createMemo(() => {
+    const fields = fieldsData();
+    const fieldId = selectedFieldId();
+    if (!fields || !fieldId) return null;
+    return fields.find((f) => f.layerId === fieldId) ?? null;
   });
 
   let map: maplibregl.Map;
@@ -340,11 +416,10 @@ const FarmScenarioPreview: Component = () => {
         map.on("click", layerId, (e) => {
           e.preventDefault();
           setSelectedFieldId(field.layerId);
-          
+
           // Ease to the field
           map.easeTo({
             center: [field.lng, field.lat],
-            zoom: 15,
             duration: 1000
           });
         });
@@ -424,8 +499,18 @@ const FarmScenarioPreview: Component = () => {
       {/* Sidebar with field list */}
       <div class="w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
         <div class="p-4">
-          <h2 class="text-xl font-bold mb-4">Farm Planting Plan</h2>
-          
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Farm Planting Plan</h2>
+            <Show when={isCreator() && configData()?.parcel && params.configId}>
+              <A
+                href={`/parcels/${typeof configData()!.parcel === 'string' ? configData()!.parcel : configData()!.parcel._id}/farm-scenario/${params.configId}`}
+                class="text-sm px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Edit
+              </A>
+            </Show>
+          </div>
+
           <Show 
             when={!configData.error && configData() && isConfigPublic()} 
             fallback={
@@ -471,7 +556,7 @@ const FarmScenarioPreview: Component = () => {
           </Show>
           
           <div class="space-y-2">
-            <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Fields</h3>
+            <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Field Scenarios</h4>
             
             <Show when={fieldsData()} fallback={<div>Loading fields...</div>}>
               <For each={fieldsData()}>
@@ -488,7 +573,6 @@ const FarmScenarioPreview: Component = () => {
                       if (map && mapLoaded()) {
                         map.easeTo({
                           center: [field.lng, field.lat],
-                          zoom: 15,
                           duration: 1000
                         });
                       }
@@ -523,7 +607,21 @@ const FarmScenarioPreview: Component = () => {
                     {fieldsData()!.filter(f => f.projectId).length}
                   </span>
                 </div>
+                <Show when={totalTrees() > 0}>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400">Total trees:</span>
+                    <span class="font-medium">{totalTrees().toLocaleString()}</span>
+                  </div>
+                </Show>
               </div>
+            </div>
+          </Show>
+
+          <Show when={totalTrees() > 0 && canRequestPlantOffer() && (configData()?.showOfferButton ?? true)}>
+            <div class="mt-4">
+              <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
+                Request offer on trees
+              </Button>
             </div>
           </Show>
         </div>
@@ -537,29 +635,30 @@ const FarmScenarioPreview: Component = () => {
         />
         
         {/* Info box for selected field */}
-        <Show when={selectedFieldId() && fieldsData()}>
-          {() => {
-            const field = fieldsData()!.find((f) => f.layerId === selectedFieldId());
-            return (
-              <Show when={field?.systemLayout && species()}>
-                <SystemInfoBox
-                  systemLayout={field!.systemLayout!}
-                  species={species()}
-                  scenarioData={{
-                    project: {
-                      name: field!.projectName || "Unnamed",
-                      layer: { 
-                        name: field!.layerName,
-                        geometry: JSON.stringify(field!.geometry)
-                      },
-                    },
-                  }}
-                />
-              </Show>
-            );
-          }}
+        <Show when={selectedField()?.systemLayout && species()}>
+          <SystemInfoBox
+            systemLayout={selectedField()!.systemLayout!}
+            species={species()}
+            scenarioData={{
+              project: {
+                name: selectedField()!.projectName || "Unnamed",
+                layer: {
+                  name: selectedField()!.layerName,
+                  geometry: JSON.stringify(selectedField()!.geometry)
+                },
+              },
+            }}
+            showFieldScenarioName={true}
+          />
         </Show>
       </div>
+      
+      <OfferRequestModal
+        isOpen={isOfferModalOpen()}
+        onOpenChange={setOfferModalOpen}
+        speciesBreakdown={speciesBreakdown()}
+        configId={params.configId!}
+      />
     </div>
   );
 };

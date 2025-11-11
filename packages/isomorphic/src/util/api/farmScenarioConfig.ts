@@ -67,11 +67,11 @@ export async function updateFarmScenarioConfig(
       body: JSON.stringify(updates),
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`Failed to update farm planting plan config: ${response.statusText}`);
   }
-  
+
   return response.json() as Promise<FarmScenarioConfigDocument>;
 }
 

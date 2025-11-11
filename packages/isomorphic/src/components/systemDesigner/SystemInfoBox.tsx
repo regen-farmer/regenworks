@@ -1,4 +1,4 @@
-import { type Component, For } from "solid-js";
+import { type Component, For, type JSX } from "solid-js";
 import { difference as turfDifference, area as turfArea } from "@turf/turf";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { getSpeciesColor } from "~/util/speciesColors";
@@ -7,6 +7,8 @@ const SystemInfoBox: Component<{
 	systemLayout: ISystemBasedLayout;
 	species: any;
 	scenarioData: any;
+	showFieldScenarioName?: boolean;
+	children?: JSX.Element;
 }> = (props) => {
 	function calculateMarginHeadlandArea(): number {
 		try {
@@ -78,6 +80,14 @@ const SystemInfoBox: Component<{
 				bottom: "10px",
 			}}
 		>
+			{props.showFieldScenarioName ? (
+				<>
+					<p><strong>Field</strong><br/>{props.scenarioData?.project.layer.name}</p>
+					<p><strong>Scenario</strong><br/>{props.scenarioData?.project.name}</p>
+					<br />
+				</>
+			) : (<></>
+			)}
 			<strong>
 				<span>Tree and shrub counts:</span>
 			</strong>
@@ -182,6 +192,9 @@ const SystemInfoBox: Component<{
 			{`${(fieldArea(props.scenarioData.project.layer.geometry) / 10000)
 				.toFixed(2)
 				.replace(".", ",")} ha`}
+
+			{/* Render children (e.g., buttons) if provided */}
+			{props.children}
 		</div>
 	);
 };

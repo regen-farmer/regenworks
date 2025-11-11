@@ -24,13 +24,15 @@ router.post(
 			email: req.user?.email,
 			creationDate: new Date(),
 			status: "pending",
+			projectDetails: req.body.projectDetails,
+			phoneNumber: req.body.phoneNumber,
 		});
 
-			
+
 			await advisorRequest.save();
 			res.status(201).json(advisorRequest);
 		} catch (err) {
-			
+
 			res.status(500).json({ message: "Server error" });
 		}
 	},

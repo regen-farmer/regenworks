@@ -45,6 +45,7 @@ import varietyRoutes from "./routes/varieties.ts";
 import stripeRoutes from "./routes/stripe.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
 import farmScenarioConfigRoutes from "./routes/farmscenarioconfigs.ts";
+import plantOfferRequestRoutes from "./routes/plant-offer-requests.ts";
 
 export type Auth0IDToken = {
   nickname: string;
@@ -240,6 +241,7 @@ app.use("", varietyRoutes);
 app.use("", stripeRoutes);
 app.use("", userPresetsRoutes);
 app.use("", farmScenarioConfigRoutes);
+app.use("", plantOfferRequestRoutes);
 
 // 404 ROUTE
 app.get(

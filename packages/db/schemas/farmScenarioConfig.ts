@@ -24,9 +24,10 @@ export interface IFarmScenarioConfigSchema {
     initialBearing?: number;
     initialPitch?: number;
   };
-  
+
   // Metadata
   isPublic?: boolean;
+  showOfferButton?: boolean;
   tags?: string[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -105,6 +106,10 @@ const farmScenarioConfigSchema = new mongoose.Schema<FarmScenarioConfigDocument>
     isPublic: {
       type: Boolean,
       default: false,
+    },
+    showOfferButton: {
+      type: Boolean,
+      default: true,
     },
     tags: [
       {

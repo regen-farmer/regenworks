@@ -6,7 +6,7 @@ import FarmScenarioConfig from "@rw/db/schemas/farmScenarioConfig.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
-import type { UserDocument } from "@rw/db/schemas/user.ts";
+import { type UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
@@ -65,7 +65,10 @@ router.get("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
       })
       .populate({
         path: "fieldScenarios.project",
-        select: "name description systemdesign"
+        select: "name description systemdesign",
+        populate: {
+          path: "systemdesign"
+        }
       });
     
     if (!config) {
@@ -230,14 +233,19 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
     }
 
     if (req.body.displaySettings && typeof req.body.displaySettings === "object") {
+      const existingSettings = config.displaySettings || {};
       updatePayload.displaySettings = {
-        ...config.displaySettings?.toObject?.() ?? config.displaySettings,
+        ...existingSettings,
         ...req.body.displaySettings,
       } as typeof config.displaySettings;
     }
 
     if (typeof req.body.isPublic === "boolean") {
       updatePayload.isPublic = req.body.isPublic;
+    }
+
+    if (typeof req.body.showOfferButton === "boolean") {
+      updatePayload.showOfferButton = req.body.showOfferButton;
     }
 
     if (Array.isArray(req.body.fieldScenarios)) {
@@ -319,6 +327,10 @@ router.get("/farmscenarioconfigs/:id/preview", async (req: AuthRequest, res) => 
     
     const config = await FarmScenarioConfig.findById(req.params.id)
       .populate({
+        path: "user",
+        select: "_id countryCode"
+      })
+      .populate({
         path: "parcel",
         select: "name description lat lng"
       })
@@ -366,7 +378,10 @@ router.get("/farmscenarioconfigs/:id/preview", async (req: AuthRequest, res) => 
     res.json(configData);
   } catch (error) {
     console.error("Error fetching preview:", error);
-    res.status(500).json({ error: "Failed to fetch preview data", details: error.message });
+    res.status(500).json({
+      error: "Failed to fetch preview data",
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 

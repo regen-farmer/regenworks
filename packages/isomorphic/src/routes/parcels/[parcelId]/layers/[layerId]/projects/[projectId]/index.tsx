@@ -54,13 +54,15 @@ import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
 import { TreeStripsExport } from "~/components/systemDesigner/TreeStripsExport.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import { Button } from "~/components/ui/button";
+import { OfferRequestModal } from "~/components/OfferRequestModal";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import _ from "lodash";
 // import { toast } from "solid-sonner";
 // import { Toaster } from "~/components/ui/sonner";
 
 import { showToast, Toaster } from "~/components/ui/toast";
-import { isFreemium } from "~/auth/useAuth";
+import { isFreemium, getAuth0User } from "~/auth/useAuth";
 import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
@@ -313,6 +315,55 @@ export default function view() {
   const [presetDescription, setPresetDescription] = createSignal("");
   const [savingPreset, setSavingPreset] = createSignal(false);
 
+  // Offer request modal state
+  const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
+
+  // Species breakdown for offer modal
+  const speciesBreakdown = createMemo(() => {
+    const layout = systemLayout();
+    if (!layout?.speciesCountArray) return [];
+
+    return layout.speciesCountArray.map((item: any, index: number) => {
+      const speciesEntry = item.species;
+      const speciesId =
+        typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry._id ?? `${index}`
+          : speciesEntry ?? `${index}`;
+      const speciesData = species();
+      const speciesDoc =
+        (typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry
+          : speciesData?.speciesById?.get(speciesId)) || undefined;
+
+      const displayName =
+        speciesDoc?.nameCommon ||
+        speciesDoc?.species ||
+        (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
+        "Unknown species";
+
+      // Construct latin name from genus and species
+      const latinName = speciesDoc?.genus && speciesDoc?.species
+        ? `${speciesDoc.genus} ${speciesDoc.species}`
+        : speciesDoc?.species || undefined;
+
+      return {
+        id: String(speciesId ?? index),
+        name: displayName,
+        latinName: latinName,
+        count: Number(item.count ?? 0),
+      };
+    });
+  });
+
+  const totalTrees = createMemo(() => {
+    return speciesBreakdown().reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+  });
+
+  const userEmail = createMemo(() => {
+    const authUser = getAuth0User();
+    return authUser?.email || "";
+  });
+
   async function saveSystem() {
     setSaving(true);
 
@@ -428,6 +479,7 @@ export default function view() {
   });
 
   return (
+    <>
     <Resizable>
       <ResizablePanel style={{ overflow: "hidden" }}>
         <Show when={isFreemium()}>
@@ -1243,12 +1295,30 @@ export default function view() {
                 systemLayout={systemLayout()!}
                 species={species()}
                 scenarioData={scenarioData()}
-              />
+              >
+                {/* Request offer on trees button */}
+                <Show when={totalTrees() > 0}>
+                  <div style={{ "margin-top": "12px" }}>
+                    <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
+                      Request offer on trees
+                    </Button>
+                  </div>
+                </Show>
+              </SystemInfoBox>
             </Show>
           </div>
         </div>
       </ResizablePanel>
     </Resizable>
+
+    <OfferRequestModal
+      isOpen={isOfferModalOpen()}
+      onOpenChange={setOfferModalOpen}
+      speciesBreakdown={speciesBreakdown()}
+      configId={params.projectId}
+      userEmail={userEmail()}
+    />
+    </>
   );
 }
 

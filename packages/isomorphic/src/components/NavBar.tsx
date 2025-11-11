@@ -18,6 +18,7 @@ import { FieldSelect } from "./select/field-select.tsx";
 import { ProjectSelect } from "./select/project-select.tsx";
 import { A, useNavigate, useLocation } from "@solidjs/router";
 import Tooltip from "@corvu/tooltip";
+import { AdvisorRequestModal } from "~/components/AdvisorRequestModal";
 // import { ModeToggle } from "./ui/mode-toggle.tsx";
 import {
   Breadcrumb,
@@ -35,6 +36,8 @@ export function NavBar() {
   // const params = useParams()
 
   const location = useLocation();
+
+  const [isAdvisorModalOpen, setIsAdvisorModalOpen] = createSignal(false);
 
   const getParcelId = createMemo(() => {
     const pathSections = location.pathname.split("/");
@@ -200,18 +203,8 @@ export function NavBar() {
                       disabled={myAdvisorRequests()?.length > 0}
                       type="submit"
                       class={`rounded-sm p-1 mr-2 my-2 btn-default`}
-                      onclick={async (e) => {
-                        e.currentTarget.disabled = true;
-
-                        const mongodbuserResponse = await fetch(
-                          `${
-                            import.meta.env.VITE_BACKEND_URL
-                          }/advisor-requests`,
-                          { method: "post", ...apiFetchOptions() }
-                        );
-                        const response = await mongodbuserResponse.json();
-                        console.log(response);
-                        refetch();
+                      onclick={() => {
+                        setIsAdvisorModalOpen(true);
                       }}
                     >
                       {myAdvisorRequests()?.length > 0
@@ -252,6 +245,14 @@ export function NavBar() {
           </li>
         </ul>
       </div>
+
+      <AdvisorRequestModal
+        isOpen={isAdvisorModalOpen()}
+        onOpenChange={setIsAdvisorModalOpen}
+        onRequestSent={() => {
+          refetch();
+        }}
+      />
     </nav>
   );
 }

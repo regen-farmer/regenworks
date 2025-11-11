@@ -17,6 +17,8 @@ interface AdvisorRequest {
   status: "pending" | "resolved";
   creationDate: string;
   layerCount: number;
+  projectDetails?: string;
+  phoneNumber?: string;
 }
 
 export default function AdvisorRequests() {
@@ -43,103 +45,104 @@ export default function AdvisorRequests() {
       <div class="p-6">
         <h1 class="text-2xl font-bold mb-6">Advisor Requests</h1>
 
-        <div class="rounded-md border overflow-scroll">
-          <div class="bg-gray-50 dark:bg-customdark1 px-4 py-3 grid grid-cols-6 font-medium">
-            <div>RegenWorks UserID</div>
-            <div>Country</div>
-            <div># Fields</div>
-            {/* <div>ExternalID</div> */}
-            <div>Email</div>
-            <div>Date</div>
-            <div>Status</div>
-          </div>
-
-          <Show
-            when={!loading()}
-            fallback={<div class="p-4">Loading requests...</div>}
-          >
-            <For each={requests()}>
-                {(request) => (
-                <div
-                  class={`px-4 py-3 grid grid-cols-6 border-t ${
-                  request.status === "pending"
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-[#6b5d2b] dark:text-yellow-100"
-                    : "bg-green-100 text-green-800 dark:bg-[#375b32] dark:text-green-100"
-                  }`}
-                >
-                  <div class=" flex flex-col justify-center ">
-                    {request.user._id}
-                  </div>
-                  <div class=" flex flex-col justify-center ">
-                    {request.user.countryCode}
-                  </div>
-
-                  <div class=" flex flex-col justify-center ">
-                    {request.layerCount}
-                  </div>
-                  
-                  {/* <div class=" flex flex-col justify-center ">
-                    {request.user.externalId}
-                  </div> */}
-                  <div class=" flex flex-col justify-center ">
-                    {request.email}
-                  </div>
-
-                  <div class=" flex flex-col justify-center">
-                      {new Date(request.creationDate).toLocaleDateString(undefined, {
+        <div class="rounded-md border overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-customdark1">
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">RegenWorks UserID</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">Country</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap"># Fields</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">Email</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">Phone</th>
+                <th class="px-4 py-3 text-left font-medium" style="min-width: 300px; max-width: 500px;">Project Details</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">Date</th>
+                <th class="px-4 py-3 text-left font-medium whitespace-nowrap">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <Show
+                when={!loading()}
+                fallback={
+                  <tr>
+                    <td colspan="8" class="p-4">Loading requests...</td>
+                  </tr>
+                }
+              >
+                <For each={requests()}>
+                  {(request) => (
+                    <tr
+                      class={`border-t ${
+                        request.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-[#6b5d2b] dark:text-yellow-100"
+                          : "bg-green-100 text-green-800 dark:bg-[#375b32] dark:text-green-100"
+                      }`}
+                    >
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {request.user._id}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {request.user.countryCode}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {request.layerCount}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {request.email}
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {request.phoneNumber || "-"}
+                      </td>
+                      <td class="px-4 py-3" style="min-width: 300px; max-width: 500px;">
+                        <div class="text-sm whitespace-pre-wrap break-words">
+                          {request.projectDetails || "-"}
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        {new Date(request.creationDate).toLocaleDateString(undefined, {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
                         })}
-                  </div>
+                      </td>
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <select
+                          class="rounded-sm p-1 border border-gray-300 dark:border-gray-700"
+                          value={request.status}
+                          onChange={async (e) => {
+                            const response = await fetch(
+                              `${
+                                import.meta.env.VITE_BACKEND_URL
+                              }/advisor-requests/${request._id}`,
+                              {
+                                body: JSON.stringify({
+                                  status: e.currentTarget.value,
+                                }),
+                                method: "put",
+                                ...apiFetchOptions(),
+                              }
+                            );
+                            if (response.ok) {
+                              const updatedRequest = await response.json();
+                              setRequest((prev) =>
+                                prev.map((r) =>
+                                  r._id === request._id ? updatedRequest : r
+                                )
+                              );
+                            }
+                          }}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </Show>
+            </tbody>
+          </table>
 
-                  <div class=" flex flex-col justify-center ">
-                    {/* <span
-                      class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${
-                      request.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                    >
-                      {request.status}
-                    </span> */}
-                    <select
-                      class="rounded-sm p-1 ml-2 border border-gray-300 dark:border-gray-700"
-                      value={request.status}
-                      onChange={async (e) => {
-                        const response = await fetch(
-                          `${
-                            import.meta.env.VITE_BACKEND_URL
-                          }/advisor-requests/${request._id}`,
-                          {
-                            body: JSON.stringify({
-                              status: e.currentTarget.value,
-                            }),
-                            method: "put",
-                            ...apiFetchOptions(),
-                          }
-                        );
-                        if (response.ok) {
-                          const updatedRequest = await response.json();
-                          setRequest((prev) =>
-                            prev.map((r) =>
-                              r._id === request._id ? updatedRequest : r
-                            )
-                          );
-                        }
-                      }}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="resolved">Resolved</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </For>
-          </Show>
-
-          <Show when={requests()?.length === 0}>
+          <Show when={!loading() && requests()?.length === 0}>
             <div class="p-4 text-center text-gray-500">
               No advisor requests found
             </div>

@@ -12,10 +12,6 @@ import {
   onMount,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { use3DControl } from "~/util/map_controls/use3DControl.ts";
-import { useBSControl } from "~/util/map_controls/useBSControl.ts";
-import { useHCControl } from "~/util/map_controls/useHCControl.ts";
-import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
 import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesignWithPrefix } from "~/components/systemDesigner/drawSystemDesignWithPrefix.ts";
@@ -24,13 +20,20 @@ import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import {
-  getFarmScenarioConfigPreview,
+  getFarmScenarioConfig,
   updateFarmScenarioConfig,
 } from "~/util/api/farmScenarioConfig";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { bbox, helpers as turf } from "@turf/turf";
 import { getAuth0User } from "~/auth/useAuth";
 import { showToast } from "~/components/ui/toast";
+import {
+  Resizable,
+  ResizableHandle,
+  ResizablePanel,
+} from "~/components/ui/resizable";
+import { Button } from "~/components/ui/button";
+import { OfferRequestModal } from "~/components/OfferRequestModal";
 
 interface FieldScenarioData {
   layerId: string;
@@ -55,14 +58,18 @@ const FarmScenarioPreview: Component = () => {
   const [scenarioName, setScenarioName] = createSignal("");
   const [scenarioDescription, setScenarioDescription] = createSignal("");
   const [isPublic, setIsPublic] = createSignal(false);
-  const [isSavingDetails, setIsSavingDetails] = createSignal(false);
+  const [showOfferButton, setShowOfferButton] = createSignal(true);
   const [fieldScenarioSelections, setFieldScenarioSelections] = createSignal<
+    Map<string, string | null>
+  >(new Map());
+  const [savedFieldScenarioSelections, setSavedFieldScenarioSelections] = createSignal<
     Map<string, string | null>
   >(new Map());
   const [updatingFieldId, setUpdatingFieldId] = createSignal<string | null>(
     null
   );
   const [isMapFieldLoading, setIsMapFieldLoading] = createSignal(false);
+  const [isOfferModalOpen, setOfferModalOpen] = createSignal(false);
 
   // Wait for auth to be ready before fetching
   const [authReady, setAuthReady] = createSignal(false);
@@ -111,34 +118,17 @@ const FarmScenarioPreview: Component = () => {
       if (!farmScenarioId) return null;
 
       try {
-        console.log("Fetching preview for config ID:", farmScenarioId);
-        const data = await getFarmScenarioConfigPreview(farmScenarioId);
-        console.log("Preview data received:", data);
+        const data = await getFarmScenarioConfig(farmScenarioId);
         return data;
       } catch (error) {
-        console.error("Error fetching preview data:", error);
-        // If it's an auth error, we might want to retry once
-        if (
-          error.message.includes("Empty response") ||
-          error.message.includes("Unexpected end")
-        ) {
-          // Wait a bit and retry once
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          console.log("Retrying after brief wait...");
-          try {
-            const retryData = await getFarmScenarioConfigPreview(
-              farmScenarioId
-            );
-            return retryData;
-          } catch (retryError) {
-            console.error("Retry also failed:", retryError);
-            throw retryError;
-          }
-        }
+        console.error("Error fetching farm scenario config:", error);
         throw error;
       }
     }
   );
+
+  // Signal to track when fields need to be re-evaluated for reactivity
+  const [fieldsUpdateTrigger, setFieldsUpdateTrigger] = createSignal(0);
 
   // Fetch all field and scenario data
   const [fieldsData] = createResource(
@@ -153,6 +143,18 @@ const FarmScenarioPreview: Component = () => {
         if (!fieldScenario.enabled) continue;
 
         const layerData = fieldScenario.layer;
+
+        // Skip if layer has been deleted or is not populated
+        if (
+          !layerData ||
+          typeof layerData === 'string' ||
+          !layerData._id ||
+          !layerData.geometry
+        ) {
+          console.warn("Skipping field scenario with missing or deleted layer:", fieldScenario);
+          continue;
+        }
+
         const projectData = fieldScenario.project;
 
         let systemDesign = null;
@@ -163,18 +165,24 @@ const FarmScenarioPreview: Component = () => {
           systemDesign = projectData.systemdesign;
 
           // Calculate system layout - pass the geometry as a string
-          // try {
-          //   const geometryString = layerData.geometry.replace(/&#34;/g, '"');
-          //   systemLayout = systemBasedLayout(systemDesign, geometryString);
-          // } catch (error) {
-          //   console.error(`Failed to calculate system layout for layer ${layerData._id}:`, error);
-          //   // Continue without system layout for this field
-          //   systemLayout = null;
-          // }
+          try {
+            const geometryString = layerData.geometry.replace(/&#34;/g, '"');
+
+            // Validate that systemDesign has required data before calculating layout
+            if (systemDesign.rows && Array.isArray(systemDesign.rows) && systemDesign.rows.length > 0) {
+              systemLayout = systemBasedLayout(systemDesign, geometryString);
+            } else {
+              console.warn(`System design for layer ${layerData._id} is missing rows data, skipping layout calculation`);
+            }
+          } catch (error) {
+            console.error(`Failed to calculate system layout for layer ${layerData._id}:`, error);
+            // Continue without system layout for this field
+            systemLayout = null;
+          }
         }
 
         fields.push({
-          layerId: layerData._id ? String(layerData._id) : "",
+          layerId: String(layerData._id),
           layerName: layerData.name || "Unnamed Field",
           projectId: projectData?._id ? String(projectData._id) : undefined,
           projectName: projectData?.name,
@@ -224,89 +232,171 @@ const FarmScenarioPreview: Component = () => {
     return fields.find((field) => field.layerId === id);
   });
 
-  // Aggregate tree data from the selected field for 3D display
+  // Aggregate tree data from all fields for the offer modal
   const aggregatedLayoutData = createMemo(() => {
-    const field = selectedField();
-    if (!field || !field.systemLayout || !field.projectId) {
+    // Depend on the trigger to ensure reactivity when fields are mutated
+    fieldsUpdateTrigger();
+
+    const fields = fieldsData();
+    if (!fields || fields.length === 0) {
       return undefined;
     }
 
-    const treeMarkerArray = field.systemLayout.treeMarkerArray ?? [];
-    const speciesCount: Record<string, number> = {};
+    const allTreeMarkers: any[] = [];
+    const speciesCount: Record<string, any> = {};
 
-    if (field.systemLayout.speciesCountArray) {
-      field.systemLayout.speciesCountArray.forEach((item: any) => {
-        const speciesId = item.species?._id || item.species;
-        if (speciesId) {
-          speciesCount[speciesId] = (speciesCount[speciesId] || 0) + item.count;
-        }
-      });
-    }
+    fields.forEach(field => {
+      if (field.systemLayout?.treeMarkerArray) {
+        allTreeMarkers.push(...field.systemLayout.treeMarkerArray);
+      }
 
-    return treeMarkerArray.length > 0
-      ? {
-          treeMarkerArray,
-          speciesCountArray: Object.entries(speciesCount).map(
-            ([species, count]) => ({
-              species,
-              count,
-            })
-          ),
-        }
-      : undefined;
+      if (field.systemLayout?.speciesCountArray) {
+        field.systemLayout.speciesCountArray.forEach((item: any) => {
+          const speciesEntry = item.species;
+          const speciesId = speciesEntry?._id || speciesEntry;
+          if (speciesId) {
+            if (!speciesCount[speciesId]) {
+              speciesCount[speciesId] = {
+                species: speciesEntry,
+                count: 0
+              };
+            }
+            speciesCount[speciesId].count += item.count;
+          }
+        });
+      }
+    });
+
+    return {
+      treeMarkerArray: allTreeMarkers,
+      speciesCountArray: Object.values(speciesCount),
+    };
   });
+
+  const speciesBreakdown = createMemo(() => {
+    const aggregated = aggregatedLayoutData();
+    if (!aggregated?.speciesCountArray) return [];
+
+    return aggregated.speciesCountArray.map((item: any, index: number) => {
+      const speciesEntry = item.species;
+      const speciesId =
+        typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry._id ?? `${index}`
+          : speciesEntry ?? `${index}`;
+      const speciesData = species();
+      const speciesDoc =
+        (typeof speciesEntry === "object" && speciesEntry !== null
+          ? speciesEntry
+          : speciesData?.speciesById?.get(speciesId)) || undefined;
+
+      const displayName =
+        speciesDoc?.nameCommon ||
+        speciesDoc?.species ||
+        (typeof speciesEntry === "string" ? speciesEntry : undefined) ||
+        "Unknown species";
+
+      // Construct latin name from genus and species
+      const latinName = speciesDoc?.genus && speciesDoc?.species
+        ? `${speciesDoc.genus} ${speciesDoc.species}`
+        : speciesDoc?.species || undefined;
+
+      return {
+        id: String(speciesId ?? index),
+        name: displayName,
+        latinName: latinName,
+        count: Number(item.count ?? 0),
+      };
+    });
+  });
+
+  const totalTrees = createMemo(() => {
+    return speciesBreakdown().reduce((sum, entry) => sum + (Number(entry.count) || 0), 0);
+  });
+
+  const userEmail = createMemo(() => {
+    const authUser = getAuth0User();
+    return authUser?.email || "";
+  });
+
+  // Track whether we've initialized field scenarios from the server
+  const [fieldScenariosInitialized, setFieldScenariosInitialized] = createSignal(false);
 
   createEffect(() => {
     const config = configData();
     if (config) {
       setScenarioName(config.name ?? "");
       setScenarioDescription(config.description ?? "");
-      const selections = new Map<string, string | null>();
-      config.fieldScenarios.forEach((fieldScenario: any) => {
-        const layerIdRaw =
-          typeof fieldScenario.layer === "string"
-            ? fieldScenario.layer
-            : fieldScenario.layer?._id;
-        const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
-        if (!layerIdValue) {
-          return;
-        }
-        const projectIdRaw = fieldScenario.project
-          ? typeof fieldScenario.project === "string"
-            ? fieldScenario.project
-            : fieldScenario.project?._id
-          : null;
-        const projectIdValue = projectIdRaw ? String(projectIdRaw) : null;
-        selections.set(layerIdValue, projectIdValue);
-      });
-      setFieldScenarioSelections(selections);
+      setShowOfferButton(config.showOfferButton ?? true);
+
+      // Only initialize field scenarios once on initial load
+      // Don't overwrite user's unsaved changes when config updates from metadata saves
+      if (!fieldScenariosInitialized()) {
+        const selections = new Map<string, string | null>();
+        config.fieldScenarios.forEach((fieldScenario: any) => {
+          const layerIdRaw =
+            typeof fieldScenario.layer === "string"
+              ? fieldScenario.layer
+              : fieldScenario.layer?._id;
+          const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
+          if (!layerIdValue) {
+            return;
+          }
+          const projectIdRaw = fieldScenario.project
+            ? typeof fieldScenario.project === "string"
+              ? fieldScenario.project
+              : fieldScenario.project?._id
+            : null;
+          const projectIdValue = projectIdRaw ? String(projectIdRaw) : null;
+          selections.set(layerIdValue, projectIdValue);
+        });
+        setFieldScenarioSelections(selections);
+        setSavedFieldScenarioSelections(new Map(selections)); // Save original state
+        setFieldScenariosInitialized(true);
+      }
+
       setIsPublic(Boolean(config.isPublic));
     }
   });
 
-  const detailsDirty = createMemo(() => {
+  // Check if anything has changed (metadata or field scenarios)
+  const hasUnsavedChanges = createMemo(() => {
     const config = configData();
     if (!config) {
       return false;
     }
+
+    // Check metadata changes
     const originalPublic = Boolean(config.isPublic);
-    return (
+    const originalShowOfferButton = config.showOfferButton ?? true;
+    const metadataDirty = (
       scenarioName().trim() !== (config.name ?? "") ||
       scenarioDescription().trim() !== (config.description ?? "") ||
-      isPublic() !== originalPublic
+      isPublic() !== originalPublic ||
+      showOfferButton() !== originalShowOfferButton
     );
+
+    // Check field scenario changes
+    const current = fieldScenarioSelections();
+    const saved = savedFieldScenarioSelections();
+    let fieldScenariosDirty = false;
+
+    if (current.size !== saved.size) {
+      fieldScenariosDirty = true;
+    } else {
+      for (const [layerId, projectId] of current.entries()) {
+        if (saved.get(layerId) !== projectId) {
+          fieldScenariosDirty = true;
+          break;
+        }
+      }
+    }
+
+    return metadataDirty || fieldScenariosDirty;
   });
 
-  const handleResetDetails = () => {
-    const config = configData();
-    if (config) {
-      setScenarioName(config.name ?? "");
-      setScenarioDescription(config.description ?? "");
-      setIsPublic(Boolean(config.isPublic));
-    }
-  };
+  const [isSaving, setIsSaving] = createSignal(false);
 
-  const handleSaveDetails = async () => {
+  const handleSave = async () => {
     const config = configData();
     if (!config) {
       return;
@@ -322,50 +412,51 @@ const FarmScenarioPreview: Component = () => {
       return;
     }
 
-    setIsSavingDetails(true);
+    setIsSaving(true);
     try {
       const trimmedDescription = scenarioDescription().trim();
+      const current = fieldScenarioSelections();
+
+      // Build the updated fieldScenarios array from current selections
+      const updatedFieldScenarios = Array.from(current.entries()).map(([layerId, projectId]) => ({
+        layer: layerId,
+        project: projectId || undefined,
+        enabled: true,
+      }));
+
+      // Use the PUT endpoint to update the entire config
       const updatedConfig = await updateFarmScenarioConfig(
         params.farmScenarioId,
         {
           name: trimmedName,
           description: trimmedDescription || undefined,
           isPublic: isPublic(),
+          showOfferButton: showOfferButton(),
+          fieldScenarios: updatedFieldScenarios,
         }
       );
+
+      // Update local state
+      setSavedFieldScenarioSelections(new Map(current));
+      mutateConfig(() => updatedConfig);
+
       showToast({
-        title: "Scenario updated",
-        description: "Name and description saved successfully.",
+        title: "Changes saved",
+        description: "All changes have been saved successfully.",
         variant: "success",
       });
-      mutateConfig((previous) =>
-        previous
-          ? {
-              ...previous,
-              name: updatedConfig.name ?? trimmedName,
-              description:
-                typeof updatedConfig.description === "string"
-                  ? updatedConfig.description
-                  : trimmedDescription,
-              isPublic:
-                typeof updatedConfig.isPublic === "boolean"
-                  ? updatedConfig.isPublic
-                  : isPublic(),
-            }
-          : previous
-      );
     } catch (error) {
-      console.error("Failed to update scenario details:", error);
+      console.error("Failed to save:", error);
       showToast({
-        title: "Update failed",
+        title: "Save failed",
         description:
           error instanceof Error
             ? error.message
-            : "Unable to save the scenario details. Please try again.",
+            : "Unable to save changes. Please try again.",
         variant: "error",
       });
     } finally {
-      setIsSavingDetails(false);
+      setIsSaving(false);
     }
   };
 
@@ -424,10 +515,13 @@ const FarmScenarioPreview: Component = () => {
       .map((layer: any) => {
         const layerId = String(layer._id);
         const projectsRaw = projectsMap.get(layerId) ?? [];
-        const projects = projectsRaw.map((project: any) => ({
-          ...project,
-          _id: project._id ? String(project._id) : undefined,
-        }));
+        // Filter out deleted or invalid projects
+        const projects = projectsRaw
+          .filter((project: any) => project && project._id && project.name)
+          .map((project: any) => ({
+            ...project,
+            _id: project._id ? String(project._id) : undefined,
+          }));
 
         const selectedProjectId = selections.get(layerId) ?? null;
         const selectedProject = projects.find(
@@ -446,8 +540,7 @@ const FarmScenarioPreview: Component = () => {
         };
       })
       .filter(
-        (entry) =>
-          selections.has(entry.layerId) && (entry.projects?.length ?? 0) > 0
+        (entry) => selections.has(entry.layerId)
       );
   });
 
@@ -471,7 +564,6 @@ const FarmScenarioPreview: Component = () => {
       clearAllFieldLayers(map);
       map.easeTo({
         center: [field.lng, field.lat],
-        zoom: 15,
         duration: 1000,
       });
 
@@ -483,11 +575,19 @@ const FarmScenarioPreview: Component = () => {
 
         if (!selected || !selected.projectId) {
           // No scenario selected for this field
+          console.log("No project selected for field");
         } else {
           let systemDesign = selected.systemDesign;
 
+          console.log("Field has project:", {
+            projectId: selected.projectId,
+            hasSystemDesign: !!systemDesign,
+            systemDesign: systemDesign
+          });
+
           // Fetch project to get system design if missing
           if (!systemDesign) {
+            console.log("System design missing, fetching project...");
             const resp = await fetch(
               `${import.meta.env.VITE_BACKEND_URL}/projects/${
                 selected.projectId
@@ -496,28 +596,53 @@ const FarmScenarioPreview: Component = () => {
             );
             if (resp.ok) {
               const project = await resp.json();
+              console.log("Fetched project:", project);
               systemDesign =
                 project?.systemdesign ?? project?.systemDesign ?? null;
             } else {
               console.error(
                 `Failed to fetch project ${selected.projectId}: ${resp.statusText}`
               );
+
+              // If project not found, clear it from the field
+              if (resp.status === 404) {
+                console.warn("Project not found, clearing from field");
+                selected.projectId = undefined;
+                selected.systemDesign = null;
+                selected.systemLayout = undefined;
+                // Continue to draw the field geometry without the system design
+              }
             }
+          } else {
+            console.log("Using system design from config");
           }
 
           if (systemDesign) {
-            const geometryString =
-              typeof selected.geometry === "string"
-                ? selected.geometry
-                : JSON.stringify(selected.geometry);
-
-            try {
-              const layout = systemBasedLayout(systemDesign, geometryString);
-              // Mutate the selected field so downstream effects can draw it
+            // Validate system design has required data
+            if (!systemDesign.rows || !Array.isArray(systemDesign.rows) || systemDesign.rows.length === 0) {
+              console.warn("System design is missing rows data, skipping layout calculation");
               selected.systemDesign = systemDesign;
-              selected.systemLayout = layout;
-            } catch (e) {
-              console.error("Failed to compute system layout:", e);
+              selected.systemLayout = undefined;
+              // Continue to draw the field without system layout
+            } else {
+
+              const geometryString =
+                typeof selected.geometry === "string"
+                  ? selected.geometry
+                  : JSON.stringify(selected.geometry);
+
+              try {
+                const layout = systemBasedLayout(systemDesign, geometryString);
+                // Mutate the selected field so downstream effects can draw it
+                selected.systemDesign = systemDesign;
+                selected.systemLayout = layout;
+              } catch (e) {
+                console.error("Failed to compute system layout:", e);
+                console.error("System design:", systemDesign);
+                // Set systemDesign but leave systemLayout undefined
+                selected.systemDesign = systemDesign;
+                selected.systemLayout = undefined;
+              }
             }
           }
         }
@@ -566,6 +691,7 @@ const FarmScenarioPreview: Component = () => {
       clearAllFieldLayers(map);
     }
 
+    // Update the selection (optimistic update for preview)
     setFieldScenarioSelections((prev) => {
       const next = new Map(prev);
       next.set(layerIdString, normalizedProjectId);
@@ -573,65 +699,6 @@ const FarmScenarioPreview: Component = () => {
     });
 
     try {
-      const updatedFieldScenarios = config.fieldScenarios.map(
-        (fieldScenario: any) => {
-          const layerIdRaw =
-            typeof fieldScenario.layer === "string"
-              ? fieldScenario.layer
-              : fieldScenario.layer?._id || fieldScenario.layer?.id;
-          const layerIdValue = layerIdRaw ? String(layerIdRaw) : undefined;
-
-          const existingProjectIdRaw = fieldScenario.project
-            ? typeof fieldScenario.project === "string"
-              ? fieldScenario.project
-              : fieldScenario.project?._id
-            : null;
-          const existingProjectId = existingProjectIdRaw
-            ? String(existingProjectIdRaw)
-            : null;
-
-          const projectToUse =
-            layerIdValue === layerIdString
-              ? normalizedProjectId
-              : existingProjectId;
-
-          const finalLayerId = layerIdValue ?? layerIdString;
-          if (!finalLayerId) {
-            return undefined;
-          }
-
-          const scenarioPayload: any = {
-            layer: finalLayerId,
-            enabled:
-              typeof fieldScenario.enabled === "boolean"
-                ? fieldScenario.enabled
-                : true,
-          };
-
-          if (typeof fieldScenario.displayOrder !== "undefined") {
-            scenarioPayload.displayOrder = fieldScenario.displayOrder;
-          }
-
-          if (projectToUse === null) {
-            scenarioPayload.project = undefined;
-          } else if (projectToUse) {
-            scenarioPayload.project = projectToUse;
-          }
-
-          return scenarioPayload;
-        }
-      );
-
-      await updateFarmScenarioConfig(params.farmScenarioId, {
-        fieldScenarios: updatedFieldScenarios.filter(Boolean),
-      });
-
-      showToast({
-        title: "Scenario updated",
-        description: "Field scenario selection saved.",
-        variant: "success",
-      });
-
       if (map && mapLoaded()) {
         clearAllFieldLayers(map);
 
@@ -642,22 +709,31 @@ const FarmScenarioPreview: Component = () => {
           const selected = allFields?.find((f) => f.layerId === layerId);
 
           if (selected) {
+            // Update the project ID
             selected.projectId = normalizedProjectId ?? undefined;
+
+            // If no project selected, clear the system design
+            if (!normalizedProjectId) {
+              console.log("No scenario selected, clearing system design");
+              selected.projectName = undefined;
+              selected.systemDesign = null;
+              selected.systemLayout = undefined;
+              // Trigger reactivity update
+              setFieldsUpdateTrigger(prev => prev + 1);
+            }
 
             map.easeTo({
               center: [selected.lng, selected.lat],
-              zoom: 15,
               duration: 1000,
             });
 
             if (normalizedProjectId) {
               try {
                 const resp = await fetch(
-                  `${
-                    import.meta.env.VITE_BACKEND_URL
-                  }/projects/${normalizedProjectId}`,
+                  `${import.meta.env.VITE_BACKEND_URL}/projects/${normalizedProjectId}`,
                   apiFetchOptions()
                 );
+
                 if (resp.ok) {
                   const project = await resp.json();
                   selected.projectName = project?.name ?? selected.projectName;
@@ -669,6 +745,20 @@ const FarmScenarioPreview: Component = () => {
                   console.error(
                     `Failed to fetch project ${normalizedProjectId}: ${resp.status} ${resp.statusText}`
                   );
+
+                  // If project not found, show warning and clear selection
+                  if (resp.status === 404) {
+                    showToast({
+                      title: "Scenario not found",
+                      description: "The selected scenario no longer exists. Please choose a different one.",
+                      variant: "error",
+                    });
+
+                    // Clear the invalid project reference
+                    selected.projectId = undefined;
+                    selected.systemDesign = null;
+                    selected.systemLayout = undefined;
+                  }
                 }
               } catch (e) {
                 console.error(
@@ -700,22 +790,45 @@ const FarmScenarioPreview: Component = () => {
                 console.error(
                   `Failed to fetch project ${selected.projectId}: ${resp.statusText}`
                 );
+
+                // If project not found, clear the reference
+                if (resp.status === 404) {
+                  console.warn("Project not found, clearing from field");
+                  selected.projectId = undefined;
+                  selected.systemDesign = null;
+                  selected.systemLayout = undefined;
+                }
               }
             }
 
             if (systemDesign) {
-              const geometryString =
-                typeof selected.geometry === "string"
-                  ? selected.geometry
-                  : JSON.stringify(selected.geometry);
-
-              try {
-                const layout = systemBasedLayout(systemDesign, geometryString);
-                // Mutate the selected field so downstream effects can draw it
+              // Validate system design has required data
+              if (!systemDesign.rows || !Array.isArray(systemDesign.rows) || systemDesign.rows.length === 0) {
+                console.warn("System design is missing rows data, skipping layout calculation");
                 selected.systemDesign = systemDesign;
-                selected.systemLayout = layout;
-              } catch (e) {
-                console.error("Failed to compute system layout:", e);
+                selected.systemLayout = undefined;
+              } else {
+                const geometryString =
+                  typeof selected.geometry === "string"
+                    ? selected.geometry
+                    : JSON.stringify(selected.geometry);
+
+                try {
+                  const layout = systemBasedLayout(systemDesign, geometryString);
+                  // Mutate the selected field so downstream effects can draw it
+                  selected.systemDesign = systemDesign;
+                  selected.systemLayout = layout;
+                  // Trigger reactivity update for aggregated data
+                  setFieldsUpdateTrigger(prev => prev + 1);
+                } catch (e) {
+                  console.error("Failed to compute system layout:", e);
+                  console.error("System design:", systemDesign);
+                  // Set systemDesign but leave systemLayout undefined
+                  selected.systemDesign = systemDesign;
+                  selected.systemLayout = undefined;
+                  // Trigger reactivity update even on error
+                  setFieldsUpdateTrigger(prev => prev + 1);
+                }
               }
             }
           }
@@ -769,9 +882,17 @@ const FarmScenarioPreview: Component = () => {
 
   const mapCenter = createMemo(() => {
     const field = selectedField();
-    if (!field) return [0, 0];
+    if (field) {
+      return [field.lng, field.lat];
+    }
 
-    return [field.lng, field.lat];
+    // If no field is selected, use the first available field as the center
+    const fields = fieldsData();
+    if (fields && fields.length > 0) {
+      return [fields[0].lng, fields[0].lat];
+    }
+
+    return [0, 0];
   });
 
   let map: maplibregl.Map | undefined;
@@ -825,8 +946,9 @@ const FarmScenarioPreview: Component = () => {
   createEffect(() => {
     const field = selectedField();
     const container = mapRef();
+    const fields = fieldsData();
 
-    if (!container || !field || !field.projectId) {
+    if (!container) {
       if (map) {
         if (mapLoaded()) {
           clearAllFieldLayers(map);
@@ -839,6 +961,12 @@ const FarmScenarioPreview: Component = () => {
       return;
     }
 
+    // Wait for fields data to load before initializing map
+    if (!fields || fields.length === 0) {
+      return;
+    }
+
+    // Initialize map even if no field is selected
     if (!map) {
       map = new maplibregl.Map({
         container,
@@ -853,7 +981,8 @@ const FarmScenarioPreview: Component = () => {
 
       map.on("load", () => {
         const bounds = mapBounds();
-        if (bounds) {
+        // Only fit to bounds if a field is selected
+        if (bounds && field) {
           map!.fitBounds(bounds as any, { padding: 50 });
         }
 
@@ -870,10 +999,10 @@ const FarmScenarioPreview: Component = () => {
 
         setMapLoaded(true);
       });
-    } else if (mapLoaded()) {
+    } else if (mapLoaded() && field) {
+      // Only pan to field if one is selected, without changing zoom
       map!.easeTo({
         center: mapCenter() as [number, number],
-        zoom: Math.max(map!.getZoom(), 13),
         duration: 800,
       });
     }
@@ -959,11 +1088,6 @@ const FarmScenarioPreview: Component = () => {
     }
 
     renderedFieldId = field.layerId;
-
-    const bounds = mapBounds();
-    if (bounds) {
-      map!.fitBounds(bounds as any, { padding: 50 });
-    }
   }
 
   // Redraw when 3D mode changes
@@ -1012,11 +1136,18 @@ const FarmScenarioPreview: Component = () => {
 
   return (
     <div
-      class="flex flex-1 min-h-0 overflow-hidden"
       style={{ height: "calc(100vh - var(--app-nav-height, 3.5rem))" }}
     >
-      {/* Sidebar with field list */}
-      <div class="flex h-full w-80 flex-col overflow-y-auto border-r border-gray-200 bg-white p-0 dark:border-gray-700 dark:bg-gray-900">
+      <Resizable>
+        {/* Sidebar with field list */}
+        <ResizablePanel
+          initialSize={0.5}
+          minSize={0.2}
+          maxSize={0.7}
+          collapsible={false}
+          style={{ overflow: "hidden" }}
+        >
+          <div class="flex h-full flex-col overflow-y-auto bg-white dark:bg-gray-900">
         <div class="p-4">
           <h2 class="text-xl font-bold mb-4">Farm Planting Plan</h2>
 
@@ -1065,7 +1196,7 @@ const FarmScenarioPreview: Component = () => {
                   }
                   class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                   placeholder="Scenario name"
-                  disabled={isSavingDetails()}
+                  disabled={isSaving()}
                 />
               </div>
               <div>
@@ -1080,71 +1211,100 @@ const FarmScenarioPreview: Component = () => {
                   }
                   class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                   placeholder="Add a short description for this scenario"
-                  disabled={isSavingDetails()}
+                  disabled={isSaving()}
                 />
               </div>
-              <div class="flex items-start justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900">
-                <div>
-                  <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <div class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900">
+                {/* Toggle on the left */}
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                  checked={isPublic()}
+                  disabled={isSaving()}
+                  onChange={(event) =>
+                    setIsPublic(event.currentTarget.checked)
+                  }
+                />
+
+                {/* Text in the middle */}
+                <div class="flex-1">
+                  <span class={`text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    isPublic()
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
                     Public preview
                   </span>
-                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <p class={`mt-0.5 text-xs transition-colors ${
+                    isPublic()
+                      ? "text-gray-700 dark:text-gray-200"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
                     Allow anyone with the link to view this farm planting plan.
                   </p>
                 </div>
-                <div>
-                <label class="flex cursor-pointer items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    checked={isPublic()}
-                    disabled={isSavingDetails()}
-                    onChange={(event) =>
-                      setIsPublic(event.currentTarget.checked)
-                    }
-                  />
-                  
-                  <span class="select-none text-gray-700 dark:text-gray-200">
-                    {"Public"}
-                  </span>
-                  
-                  
-                </label>
-                  <br />
+
+                {/* Link icon on the right - only shown when saved as public */}
+                <Show when={configData()?.isPublic === true}>
                   <a
                     href={`/farm-scenario-preview/${params.farmScenarioId}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    class="flex-shrink-0 p-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                    title="Open preview link"
                   >
-                    Link
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
                   </a>
-                  </div>
+                </Show>
               </div>
-              <div class="flex justify-end gap-2">
-                <button
-                  type="button"
-                  class="rounded-sm px-3 py-1 text-sm btn-default"
-                  onClick={handleResetDetails}
-                  disabled={!detailsDirty() || isSavingDetails()}
-                >
-                  Reset
-                </button>
-                <button
-                  type="button"
-                  class="rounded-sm px-3 py-1 text-sm btn-primary bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                  onClick={handleSaveDetails}
-                  disabled={!detailsDirty() || isSavingDetails()}
-                >
-                  {isSavingDetails() ? "Saving..." : "Save changes"}
-                </button>
+
+              <div class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-3 dark:border-gray-700 dark:bg-gray-900">
+                {/* Toggle on the left */}
+                <input
+                  type="checkbox"
+                  class={`h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 ${
+                    !isPublic() || isSaving() ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
+                  checked={showOfferButton()}
+                  disabled={!isPublic() || isSaving()}
+                  onChange={(event) =>
+                    setShowOfferButton(event.currentTarget.checked)
+                  }
+                />
+
+                {/* Text in the middle */}
+                <div class="flex-1">
+                  <span class={`text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    !isPublic()
+                      ? "text-gray-400 dark:text-gray-600"
+                      : showOfferButton()
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
+                    Show offer button in public preview
+                  </span>
+                  <p class={`mt-0.5 text-xs transition-colors ${
+                    !isPublic()
+                      ? "text-gray-400 dark:text-gray-600"
+                      : showOfferButton()
+                      ? "text-gray-700 dark:text-gray-200"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}>
+                    Display "Request offer on trees" button in the preview for eligible countries.
+                  </p>
+                </div>
               </div>
+
             </div>
           </Show>
 
           <div class="space-y-2">
-            <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Fields
-            </h3>
+            <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Field Scenarios
+            </h4>
 
             <Show
               when={!layerProjects.loading}
@@ -1176,7 +1336,7 @@ const FarmScenarioPreview: Component = () => {
                           Selected scenario
                         </label>
                         <select
-                          class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                          class="w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           value={
                             fieldScenarioSelections().get(field.layerId) ?? ""
                           }
@@ -1187,12 +1347,17 @@ const FarmScenarioPreview: Component = () => {
                             )
                           }
                           disabled={
+                            isSaving() ||
                             layerProjects.loading ||
                             updatingFieldId() === field.layerId ||
-                            isSavingDetails()
+                            (field.projects?.length ?? 0) === 0
                           }
                         >
-                          <option value="">No scenario selected</option>
+                          <option value="">
+                            {(field.projects?.length ?? 0) === 0
+                              ? "No scenarios available"
+                              : "No scenario selected"}
+                          </option>
                           <For each={field.projects}>
                             {(project: any) => (
                               <option
@@ -1203,13 +1368,30 @@ const FarmScenarioPreview: Component = () => {
                             )}
                           </For>
                         </select>
-                        <div class="text-xs text-gray-500 dark:text-gray-400"></div>
+                        <Show when={(field.projects?.length ?? 0) === 0}>
+                          <div class="text-xs text-amber-600 dark:text-amber-400">
+                            Create a system design for this field to enable scenario selection.
+                          </div>
+                        </Show>
                       </div>
                     </div>
                   )}
                 </For>
               </Show>
             </Show>
+
+          </div>
+
+          {/* Unified save button */}
+          <div class="mt-6 px-4 flex justify-end">
+            <button
+              type="button"
+              class="rounded-sm px-3 py-1 text-sm btn-primary bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+              onClick={handleSave}
+              disabled={!hasUnsavedChanges() || isSaving()}
+            >
+              {isSaving() ? "Saving..." : "Save changes"}
+            </button>
           </div>
 
           {/* Summary stats */}
@@ -1233,15 +1415,39 @@ const FarmScenarioPreview: Component = () => {
                     {fieldsData()!.filter((f) => f.projectId).length}
                   </span>
                 </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">
+                    Total trees:
+                  </span>
+                  <span class="font-medium">
+                    {totalTrees().toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
           </Show>
-        </div>
-      </div>
 
-      {/* Map container */}
-      <div class="relative flex-1 min-h-0">
-        <div ref={(el) => setMapRef(el)} class="h-full w-full" />
+          {/* Request offer on trees button */}
+          <Show when={totalTrees() > 0}>
+            <div class="mt-4 px-4">
+              <Button class="w-full" onClick={() => setOfferModalOpen(true)}>
+                Request offer on trees ({totalTrees().toLocaleString()} trees)
+              </Button>
+            </div>
+          </Show>
+        </div>
+          </div>
+        </ResizablePanel>
+
+        {/* Drag Handle */}
+        <ResizableHandle withHandle />
+
+        {/* Map container */}
+        <ResizablePanel
+          initialSize={0.5}
+        >
+          <div class="relative h-full w-full">
+            <div ref={(el) => setMapRef(el)} class="h-full w-full" />
 
         {/* Info box for selected field */}
         <Show when={!isMapFieldLoading() && selectedField()}>
@@ -1266,7 +1472,17 @@ const FarmScenarioPreview: Component = () => {
             );
           }}
         </Show>
-      </div>
+          </div>
+        </ResizablePanel>
+      </Resizable>
+
+      <OfferRequestModal
+        isOpen={isOfferModalOpen()}
+        onOpenChange={setOfferModalOpen}
+        speciesBreakdown={speciesBreakdown()}
+        configId={params.farmScenarioId}
+        userEmail={userEmail()}
+      />
     </div>
   );
 };

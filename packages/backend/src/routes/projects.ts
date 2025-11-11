@@ -100,6 +100,42 @@ router.get(
 	},
 );
 
+// GET SINGLE PROJECT ROUTE
+router.get(
+	"/projects/:id",
+	middleware.isLoggedIn,
+	async (
+		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
+		res: express.Response,
+	) => {
+		try {
+			const project = await Project.findById(req.params.id)
+				.populate("systemdesign")
+				.populate("layer");
+
+			if (!project) {
+				return res.status(404).send({ error: "Project not found" });
+			}
+
+			// Check if user owns the layer that this project belongs to
+			const layer = await Layer.findById(project.layer);
+			if (!layer) {
+				return res.status(404).send({ error: "Layer not found" });
+			}
+
+			// Check ownership through the layer's parcel
+			if (layer.owner?.id?.toString() !== req.user?._id.toString()) {
+				return res.status(403).send({ error: "Unauthorized" });
+			}
+
+			res.send(project);
+		} catch (err) {
+			console.error("Error fetching project:", err);
+			res.status(500).send({ error: "Failed to fetch project" });
+		}
+	},
+);
+
 // SERVICES NEW ROUTE
 router.get(
 	"/projects/new",

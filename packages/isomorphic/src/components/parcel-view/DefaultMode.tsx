@@ -9,6 +9,7 @@ import { removeLayers } from "~/util/removeLayers.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import {
 	createFarmScenarioConfig,
+	deleteFarmScenarioConfig,
 	getFarmScenarioConfigs,
 } from "~/util/api/farmScenarioConfig.ts";
 import { showToast } from "~/components/ui/toast";
@@ -83,6 +84,8 @@ function DefaultMode({
 	const [newScenarioDescription, setNewScenarioDescription] = createSignal("");
 	const [isCreatingScenario, setIsCreatingScenario] = createSignal(false);
 	const [activeListingPanel, setActiveListingPanel] = createSignal<"fields" | "scenarios" | null>("fields");
+	const [deleteScenarioModalOpen, setDeleteScenarioModalOpen] = createSignal(false);
+	const [scenarioToDelete, setScenarioToDelete] = createSignal<string | undefined>(undefined);
 
 	const openCreateScenarioModal = () => {
 		setIsCreatingScenario(false);
@@ -144,6 +147,35 @@ function DefaultMode({
 			});
 		} finally {
 			setIsCreatingScenario(false);
+		}
+	};
+
+	const handleDeleteScenario = async () => {
+		const configId = scenarioToDelete();
+		if (!configId) return;
+
+		try {
+			await deleteFarmScenarioConfig(configId);
+
+			showToast({
+				title: "Scenario deleted",
+				description: "The farm planting plan has been deleted.",
+				variant: "success",
+			});
+
+			setDeleteScenarioModalOpen(false);
+			setScenarioToDelete(undefined);
+			await refetchFarmConfigs();
+		} catch (error) {
+			console.error("Failed to delete farm planting plan config:", error);
+			showToast({
+				title: "Deletion failed",
+				description:
+					error instanceof Error
+						? error.message
+						: "The scenario could not be deleted. Please try again.",
+				variant: "error",
+			});
 		}
 	};
 
@@ -350,6 +382,39 @@ function DefaultMode({
 				</DialogContent>
 			</Dialog>
 
+			<Dialog
+				open={deleteScenarioModalOpen()}
+				onOpenChange={setDeleteScenarioModalOpen}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Confirm deletion of farm planting plan</DialogTitle>
+					</DialogHeader>
+					<DialogDescription>
+						<p>
+							When you delete this farm planting plan, all information connected to it will be permanently deleted and it will not be able to be restored.
+						</p>
+					</DialogDescription>
+					<DialogFooter>
+						<button
+							class="rounded-sm p-2 btn-danger"
+							onClick={handleDeleteScenario}
+						>
+							Delete scenario
+						</button>
+						<button
+							class="rounded-sm p-2 ml-2 btn-default"
+							onClick={() => {
+								setDeleteScenarioModalOpen(false);
+								setScenarioToDelete(undefined);
+							}}
+						>
+							Cancel
+						</button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
 			<div
 				class="bg-customdark1"
 				style={{
@@ -519,19 +584,30 @@ function DefaultMode({
 											>
 												<For each={farmConfigs()}>
 													{(config: any) => (
-														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div py-2">
-														<div class="flex w-full items-center gap-3 text-xs text-gray-100">
-															<div
-																class="text-sm font-semibold max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap"
-																title={config.name || "Unnamed scenario"}
+														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
+															<A
+																class="overlay-list-link"
+																href={`/parcels/${params.parcelId}/farm-scenario/${config._id}`}
 															>
 																{config.name || "Unnamed scenario"}
-															</div>
-															<button
-																class="ml-auto rounded-sm px-2 py-1 btn-default text-xs"
+															</A>
+															<div>
+																<button
+																	title="Edit scenario"
+																	class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
 																	onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
 																>
-																	View
+																	<i class="fa-solid fa-pen" />
+																</button>
+																<button
+																	class="rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"
+																	title="Delete scenario"
+																	onclick={() => {
+																		setScenarioToDelete(config._id);
+																		setDeleteScenarioModalOpen(true);
+																	}}
+																>
+																	<i class="fa-solid fa-trash" />
 																</button>
 															</div>
 														</div>
