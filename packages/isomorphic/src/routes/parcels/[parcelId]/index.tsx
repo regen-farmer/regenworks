@@ -88,6 +88,21 @@ export default function view() {
 					useBSControl(map);
 				}
 
+				// Add navigation control (compass/north arrow + zoom buttons)
+				const nav = new maplibregl.NavigationControl({
+					showCompass: true,
+					showZoom: true,
+					visualizePitch: true
+				});
+				map.addControl(nav, "top-left");
+
+				// Add scale control
+				const scale = new maplibregl.ScaleControl({
+					maxWidth: 100,
+					unit: 'metric'
+				});
+				map.addControl(scale, 'bottom-left');
+
 			});
 		}
 	});

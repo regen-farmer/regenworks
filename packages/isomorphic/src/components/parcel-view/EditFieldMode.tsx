@@ -207,13 +207,6 @@ export const EditFieldMode: Component<{
 		drawFields();
 		setFieldName(field?.name ? field.name : "");
 
-		// Add scale control to map
-		const scale = new maplibregl.ScaleControl({
-			maxWidth: 100,
-			unit: 'metric'
-		});
-		getMap().addControl(scale, 'bottom-left');
-
 		addDrawControl();
 		loadDrawCoordinates();
 	});

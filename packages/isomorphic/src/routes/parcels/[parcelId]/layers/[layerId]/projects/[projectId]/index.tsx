@@ -217,7 +217,12 @@ export default function view() {
             useBSControl(map);
           }
 
-          const nav = new MaptilerNavigationControl();
+          // Add navigation control (compass/north arrow + zoom buttons)
+          const nav = new maplibregl.NavigationControl({
+            showCompass: true,
+            showZoom: true,
+            visualizePitch: true
+          });
           map!.addControl(nav, "top-right");
 
           // Add scale control
