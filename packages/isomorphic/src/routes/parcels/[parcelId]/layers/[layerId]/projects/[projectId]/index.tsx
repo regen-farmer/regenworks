@@ -1694,43 +1694,43 @@ N/S alignment
         headland: 0,
       },
     },
-    {
-      src: "/freemium/presets/Silvopoultry-poplar.jpg",
-      alt: "Silvopoultry with poplar preset",
-      desc: `
-Silvopoultry with poplar
-7 m double tree row + 3.5 m grass strip
-3 m margin
-N/S alignment
-`,
-      system: {
-        rows: [
-          {
-            width: 3.5,
-            sequence: [
-              { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar
-            ],
-            offset: { before: 0, after: 0 },
-          },
-          {
-            width: 3.5,
-            sequence: [
-              { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar (double row)
-            ],
-            offset: { before: 0, after: 0 },
-          },
-          {
-            width: 3.5,
-            sequence: [],
-            offset: { before: 0, after: 0 },
-            groundcover: "5e665452cccc150b186d4cd1", // Grass strip
-          },
-        ],
-        bearing: 0, // N/S alignment
-        margin: 3, // Changed from 20 to 3 as per description
-        headland: 0,
-      },
-    },
+//     {
+//       src: "/freemium/presets/Silvopoultry-poplar.jpg",
+//       alt: "Silvopoultry with poplar preset",
+//       desc: `
+// Silvopoultry with poplar
+// 7 m double tree row + 3.5 m grass strip
+// 3 m margin
+// N/S alignment
+// `,
+//       system: {
+//         rows: [
+//           {
+//             width: 3.5,
+//             sequence: [
+//               { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar
+//             ],
+//             offset: { before: 0, after: 0 },
+//           },
+//           {
+//             width: 3.5,
+//             sequence: [
+//               { spacingAfter: 1.5, species: "5e747abba84eb20bccc77d79" }, // Poplar (double row)
+//             ],
+//             offset: { before: 0, after: 0 },
+//           },
+//           {
+//             width: 3.5,
+//             sequence: [],
+//             offset: { before: 0, after: 0 },
+//             groundcover: "5e665452cccc150b186d4cd1", // Grass strip
+//           },
+//         ],
+//         bearing: 0, // N/S alignment
+//         margin: 3, // Changed from 20 to 3 as per description
+//         headland: 0,
+//       },
+//     },
   ];
 
   // Combine predefined and user presets
