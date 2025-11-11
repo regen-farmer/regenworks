@@ -1305,6 +1305,7 @@ export default function view() {
                   <TabsContent value="info" style={{ overflow: "auto", flex: "1 1 auto", padding: "20px" }}>
                     <InfoContent
                       scenarioData={scenarioData}
+                      refetchScenarioData={refetch}
                       params={params}
                       deleteModalOpen={deleteModalOpen}
                       setDeleteModalOpen={setDeleteModalOpen}
@@ -2300,20 +2301,115 @@ const ExportAndShareContent = ({ scenarioData, params, systemLayout, system, spe
   );
 };
 
-const InfoContent = ({ scenarioData, params, deleteModalOpen, setDeleteModalOpen, deleteProjectAction }: any) => {
+const InfoContent = ({ scenarioData, refetchScenarioData, params, deleteModalOpen, setDeleteModalOpen, deleteProjectAction }: any) => {
+  const [scenarioName, setScenarioName] = createSignal("");
+  const [scenarioDescription, setScenarioDescription] = createSignal("");
+  const [isSaving, setIsSaving] = createSignal(false);
+
+  // Initialize values when scenarioData loads
+  createEffect(() => {
+    const data = scenarioData();
+    if (data?.project) {
+      setScenarioName(data.project.name || "");
+      setScenarioDescription(data.project.description || "");
+    }
+  });
+
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = createMemo(() => {
+    const data = scenarioData();
+    if (!data?.project) return false;
+
+    return (
+      scenarioName().trim() !== (data.project.name || "") ||
+      scenarioDescription().trim() !== (data.project.description || "")
+    );
+  });
+
+  const saveMetadata = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/projects/${params.projectId}`,
+        {
+          method: "PUT",
+          ...apiFetchOptions(),
+          body: JSON.stringify({
+            project: {
+              name: scenarioName().trim(),
+              description: scenarioDescription().trim(),
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update scenario");
+      }
+
+      showToast({
+        title: "Saved",
+        description: "Scenario information updated successfully",
+        variant: "success",
+      });
+
+      // Refetch the scenario data to update the UI with saved values
+      if (refetchScenarioData) {
+        await refetchScenarioData();
+      }
+
+      // Trigger breadcrumb update by incrementing reload signal
+      setReloadSignal(prev => prev + 1);
+    } catch (error) {
+      console.error("Failed to update scenario:", error);
+      showToast({
+        title: "Error",
+        description: "Failed to update scenario information",
+        variant: "error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div class="dark:bg-customdark1 bg-white text-black dark:text-white">
       <h2 class="font-bold text-lg mb-4">Scenario Information</h2>
-      
+
       <div class="mb-6">
-        <h3 class="font-semibold mb-2">Title</h3>
-        <p class="text-gray-700 dark:text-gray-300">{scenarioData()?.project.name || "No title"}</p>
+        <label for="scenario-name" class="font-semibold mb-2 block">Title</label>
+        <input
+          id="scenario-name"
+          type="text"
+          value={scenarioName()}
+          onInput={(e) => setScenarioName(e.target.value)}
+          class="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+          placeholder="Enter scenario title"
+        />
       </div>
 
       <div class="mb-6">
-        <h3 class="font-semibold mb-2">Description</h3>
-        <p class="text-gray-700 dark:text-gray-300">{scenarioData()?.project.description || "No description"}</p>
+        <label for="scenario-description" class="font-semibold mb-2 block">Description</label>
+        <textarea
+          id="scenario-description"
+          value={scenarioDescription()}
+          onInput={(e) => setScenarioDescription(e.target.value)}
+          class="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 min-h-[100px]"
+          placeholder="Enter scenario description"
+        />
       </div>
+
+      <Show when={hasUnsavedChanges()}>
+        <div class="mb-6">
+          <Button
+            onClick={saveMetadata}
+            disabled={isSaving()}
+            class="w-full"
+          >
+            {isSaving() ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </Show>
 
       <div class="border-t border-zinc-300 dark:border-slate-600 pt-8">
         
