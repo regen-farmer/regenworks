@@ -276,25 +276,64 @@ export default function view() {
     }
   });
 
+  // Helper function to clear all system design layers
+  function clearSystemDesignLayers(targetMap: maplibregl.Map) {
+    const style = targetMap.getStyle();
+    if (!style || !style.layers) return;
+
+    // Get all layer IDs that belong to system design
+    const systemLayerIds = style.layers
+      .map((layer: any) => layer.id)
+      .filter((id: string) =>
+        id.startsWith("strips-") ||
+        id.startsWith("trees-") ||
+        id.startsWith("strips-border-") ||
+        id === "headland-sides" ||
+        id === "margin-polygon" ||
+        id === "headland-polygon" ||
+        id === "bearing-sides" ||
+        id === "headland-intersection-points" ||
+        id === "treeRowLines" ||
+        id === "row-labels"
+      );
+
+    // Remove all system design layers and sources
+    systemLayerIds.forEach((layerId: string) => {
+      if (targetMap.getLayer(layerId)) {
+        targetMap.removeLayer(layerId);
+      }
+      if (targetMap.getSource(layerId)) {
+        targetMap.removeSource(layerId);
+      }
+    });
+  }
+
   // Draw the system design when the layout or 3D mode changes
   createEffect(() => {
-    if (mapLoaded() && systemLayout() && map) {
-      drawSystemDesign(map, systemLayout()!, show3D());
-      // Ensure field polygon sits below system layers
-      try {
-        const style = map.getStyle();
-        if (style && style.layers) {
-          const target = style.layers.find((l: any) =>
-            l.id.startsWith("strips-") ||
-            l.id.startsWith("trees-") ||
-            l.id === "treeRowLines" ||
-            l.id === "row-labels"
-          );
-          if (target && map.getLayer("fieldPolygon")) {
-            map.moveLayer("fieldPolygon", target.id);
+    if (mapLoaded() && map) {
+      // Always clear old system design layers first
+      // This ensures switching projects via breadcrumbs removes obsolete designs
+      clearSystemDesignLayers(map);
+
+      // Only draw if we have a system layout
+      if (systemLayout()) {
+        drawSystemDesign(map, systemLayout()!, show3D());
+        // Ensure field polygon sits below system layers
+        try {
+          const style = map.getStyle();
+          if (style && style.layers) {
+            const target = style.layers.find((l: any) =>
+              l.id.startsWith("strips-") ||
+              l.id.startsWith("trees-") ||
+              l.id === "treeRowLines" ||
+              l.id === "row-labels"
+            );
+            if (target && map.getLayer("fieldPolygon")) {
+              map.moveLayer("fieldPolygon", target.id);
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      }
     }
   });
 
