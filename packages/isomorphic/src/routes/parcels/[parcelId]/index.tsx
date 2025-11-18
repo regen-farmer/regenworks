@@ -62,13 +62,10 @@ export default function view() {
 	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
-	
-	
+	let farmMarker: maplibregl.Marker | null = null;
 
 	createEffect(() => {
-		
 		if (mapref() && !styleLoaded()) {
-			
 			map = new maplibregl.Map({
 				container: mapref()!,
 				attributionControl: false,
@@ -79,7 +76,6 @@ export default function view() {
 			});
 
 			map.on("load", () => {
-			
 				setStyleLoaded(true);
 
 				if (
@@ -90,33 +86,56 @@ export default function view() {
 				) {
 					useHCControl(map);
 					useBSControl(map);
-					
-					
 				}
 
-				const farmMarker = createFarmMarkerIcon();
+				// Add navigation control (compass/north arrow + zoom buttons)
+				const nav = new maplibregl.NavigationControl({
+					showCompass: true,
+					showZoom: true,
+					visualizePitch: true
+				});
+				map.addControl(nav, "top-left");
 
-				new maplibregl.Marker({ element: farmMarker })
-					.setLngLat([
-						data()?.parcel.lng as number,
-						data()?.parcel.lat as number,
-					])
-					.setPopup(
-						new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
-							.setLngLat([
-								data()?.parcel.lng as number,
-								data()?.parcel.lat as number,
-							])
-							.setHTML(
-								`
-            <strong><span style="color: black;">${data()?.parcel.name}</span></strong><br/>
-            <span style="color: black;">${
-							data()?.parcel.location
-						}</span><br />`,
-							),
-					)
-					.addTo(map);
+				// Add scale control
+				const scale = new maplibregl.ScaleControl({
+					maxWidth: 100,
+					unit: 'metric'
+				});
+				map.addControl(scale, 'bottom-left');
+
 			});
+		}
+	});
+
+	// Update map center and marker when parcel data changes (e.g., switching farms)
+	createEffect(() => {
+		const parcel = data()?.parcel;
+		if (styleLoaded() && parcel && map) {
+			// Update map center
+			map.flyTo({
+				center: [parcel.lng as number, parcel.lat as number],
+				zoom: 12,
+				duration: 1000
+			});
+
+			// Update or recreate the farm marker
+			if (farmMarker) {
+				farmMarker.remove();
+			}
+
+			const farmMarkerIcon = createFarmMarkerIcon();
+			farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
+				.setLngLat([parcel.lng as number, parcel.lat as number])
+				.setPopup(
+					new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
+						.setLngLat([parcel.lng as number, parcel.lat as number])
+						.setHTML(
+							`
+            <strong><span style="color: black;">${parcel.name}</span></strong><br/>
+            <span style="color: black;">${parcel.location}</span><br />`,
+						),
+				)
+				.addTo(map);
 		}
 	});
 

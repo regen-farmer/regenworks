@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/dialog";
 import type MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { Show, createEffect, createSignal, on, onMount } from "solid-js";
+import maplibregl from "maplibre-gl";
 
 import * as togeojson from "@tmcw/togeojson";
 
@@ -206,7 +207,6 @@ export const EditFieldMode: Component<{
 		drawFields();
 		setFieldName(field?.name ? field.name : "");
 
-		
 		addDrawControl();
 		loadDrawCoordinates();
 	});
@@ -274,7 +274,7 @@ export const EditFieldMode: Component<{
 				});
 			}
 
-			draw.changeMode("simple_select", { featureIds: featureIds });
+			draw.changeMode("direct_select", { featureId: featureIds[0] });
 
 			updateArea(draw.get(featureIds[0]));
 		}

@@ -88,9 +88,20 @@ const RouteDesignPreview: Component = () => {
 					useBSControl(map);
 				}
 
-				const nav = new MaptilerNavigationControl();
+				// Add navigation control (compass/north arrow + zoom buttons)
+				const nav = new maplibregl.NavigationControl({
+					showCompass: true,
+					showZoom: true,
+					visualizePitch: true
+				});
 				map.addControl(nav, "top-right");
 
+				// Add scale control
+				const scale = new maplibregl.ScaleControl({
+					maxWidth: 100,
+					unit: 'metric'
+				});
+				map.addControl(scale, 'bottom-right');
 
 				const unparsedFieldPolygon: any = scenarioData()?.project.layer.geometry;
 				const fieldPolygon = JSON.parse(

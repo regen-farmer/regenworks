@@ -1,7 +1,7 @@
 
 import { A, action, useNavigate, useParams } from "@solidjs/router";
 import type { Map as MLMap } from "maplibre-gl";
-import { createSignal, For, onMount, type Resource, createResource, Show } from "solid-js";
+import { createSignal, For, onMount, type Resource, createResource, Show, createEffect } from "solid-js";
 
 import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
@@ -258,6 +258,14 @@ function DefaultMode({
 			getMap().on("load", () => {
 				drawFields();
 			});
+		}
+	});
+
+	// Redraw fields when parcel data changes (e.g., switching farms via breadcrumbs)
+	createEffect(() => {
+		const parcelData = data();
+		if (parcelData && getMap()?.isStyleLoaded()) {
+			drawFields();
 		}
 	});
 
