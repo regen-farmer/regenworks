@@ -100,9 +100,14 @@ function drawSystemDesignWithPrefix(
   const treeMarkerArray = systemLayout.treeMarkerArray;
 
   // Group trees by species for color coding
+  // Only include trees that have a species selected
   const treesBySpecies = new Map<string, any[]>();
   treeMarkerArray?.forEach((tree) => {
-    const speciesId = tree.species?._id || tree.species || 'unknown';
+    const speciesId = tree.species?._id || tree.species;
+    // Skip trees without a species
+    if (!speciesId) {
+      return;
+    }
     if (!treesBySpecies.has(speciesId)) {
       treesBySpecies.set(speciesId, []);
     }
