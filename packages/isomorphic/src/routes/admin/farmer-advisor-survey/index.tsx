@@ -1,6 +1,5 @@
 import { IUserSchema } from "@rw/db/schemas/user";
 import { createEffect, createSignal, For, Show } from "solid-js";
-import { SessionProvider } from "~/auth/SessionProvider";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 interface AdvisorRequest {
@@ -33,8 +32,7 @@ export default function FarmerAdvisorSurvey() {
   });
   
 
-  return <SessionProvider>
-    
+  return (
     <div class="p-6">
     <h1 class="text-2xl font-bold mb-6">Farmer/Advisor Survey</h1>
 
@@ -107,6 +105,5 @@ export default function FarmerAdvisorSurvey() {
 
 
       </div>
-
-  </SessionProvider>;
+  );
 }

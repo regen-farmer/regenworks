@@ -1,10 +1,11 @@
 // @refresh reload
 import { Suspense } from "solid-js";
 import { FileRoutes } from "@solidjs/start/router";
-import { Router } from "@solidjs/router";
+import { Router, query } from "@solidjs/router";
 import "./app.css";
 import "./style.css";
-import { SessionProvider } from "@solid-mediakit/auth/client";
+import { getSession } from "~/server/auth.ts";
+import { SessionProvider } from "~/auth/SessionProvider.tsx";
 
 // Import mongoose models
 import "@rw/db/schemas/activity.ts";
@@ -37,6 +38,12 @@ import "@rw/db/schemas/variety.ts";
 import "@rw/db/schemas/well.ts";
 
 import { ThemeToggler } from "./theme.tsx";
+
+// Query the session data for SSR hydration
+export const getSessionData = query(async () => {
+	"use server";
+	return await getSession();
+}, "session");
 
 export default function App() {
 	return (
