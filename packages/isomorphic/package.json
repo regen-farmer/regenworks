@@ -35,7 +35,7 @@
     "@popperjs/core": "^2.11.8",
     "@rw/db": "workspace:*",
     "@rw/modelling": "workspace:*",
-    "start-authjs": "^0.1.1",
+    "start-authjs": "^1.0.0",
     "@solid-primitives/media": "^2.3.3",
     "@solidjs/router": "^0.15.3",
     "@solidjs/start": "^1.1.7",

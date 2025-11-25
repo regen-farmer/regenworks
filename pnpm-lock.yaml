@@ -256,8 +256,8 @@ importers:
         specifier: ^0.2.8
         version: 0.2.8(solid-js@1.9.9)
       start-authjs:
-        specifier: ^0.1.1
-        version: 0.1.1(@auth/core@0.38.0(nodemailer@6.10.1))
+        specifier: ^1.0.0
+        version: 1.0.0(@auth/core@0.38.0(nodemailer@6.10.1))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -5706,8 +5706,8 @@ packages:
   standard-as-callback@2.1.0:
     resolution: {integrity: sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==}
 
-  start-authjs@0.1.1:
-    resolution: {integrity: sha512-ymw3tCjIiof/hS7NDwK3rCb3BHe8rrCkTw+HXdDWan99VJ3Upqu363nURI11w0WAOcsAJlE15aEG1j7kYcZwmg==}
+  start-authjs@1.0.0:
+    resolution: {integrity: sha512-RM0zGg15kB8Kua7ZNWv6p4oxz7LepTXKLMrfRSi01faSYgDcCQDoaOk27ig1qBLXSuDChvwTPdGYNWI5ImDjIQ==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       '@auth/core': '>=0.41.1'
@@ -12921,7 +12921,7 @@ snapshots:
 
   standard-as-callback@2.1.0: {}
 
-  start-authjs@0.1.1(@auth/core@0.38.0(nodemailer@6.10.1)):
+  start-authjs@1.0.0(@auth/core@0.38.0(nodemailer@6.10.1)):
     dependencies:
       '@auth/core': 0.38.0(nodemailer@6.10.1)
       set-cookie-parser: 2.7.1
