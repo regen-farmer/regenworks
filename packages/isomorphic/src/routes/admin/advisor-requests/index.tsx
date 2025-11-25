@@ -7,7 +7,6 @@ import {
 } from "solid-js";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
-import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import { IUserSchema } from "@rw/db/schemas/user";
 
 interface AdvisorRequest {
@@ -41,7 +40,6 @@ export default function AdvisorRequests() {
   });
 
   return (
-    <SessionProvider>
       <div class="p-6">
         <h1 class="text-2xl font-bold mb-6">Advisor Requests</h1>
 
@@ -149,6 +147,5 @@ export default function AdvisorRequests() {
           </Show>
         </div>
       </div>
-    </SessionProvider>
   );
 }

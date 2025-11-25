@@ -30,9 +30,13 @@ import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { countries } from "../util/countries.ts";
-import { useAuth } from "@solid-mediakit/auth/client";
-import { SessionProvider } from "~/auth/SessionProvider.tsx";
 import Paper from "~/components/ui/paper.tsx";
+
+function handleSignOut() {
+  localStorage.removeItem("mongodbUser");
+  localStorage.removeItem("stripeCustomer");
+  window.location.href = "/api/auth/signout";
+}
 
 async function updateStripeData() {
   const customerResponse = await fetch(
@@ -271,8 +275,6 @@ const RouteViewAccount: Component = () => {
     return `${country[0]} (${country[1]})`;
   }
 
-  const auth = useAuth();
-
   return (
     <>
       <Paper>
@@ -287,11 +289,7 @@ const RouteViewAccount: Component = () => {
         </Show>
         <button
           class="rounded-sm px-2 py-1 my-2 btn-md btn-default"
-          onClick={() => {
-            localStorage.removeItem("mongodbUser");
-            localStorage.removeItem("stripeCustomer");
-            auth.signOut({ redirectTo: "/" });
-          }}
+          onClick={handleSignOut}
         >
           Log out
         </button>
@@ -585,9 +583,5 @@ const RouteViewAccount: Component = () => {
 };
 
 export default function () {
-  return (
-    <SessionProvider>
-      <RouteViewAccount />
-    </SessionProvider>
-  );
+  return <RouteViewAccount />;
 }

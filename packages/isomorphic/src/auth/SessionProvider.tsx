@@ -1,18 +1,15 @@
-import { useAuth } from "@solid-mediakit/auth/client";
+import { createAsync } from "@solidjs/router";
 import { Show } from "solid-js";
 import NewUser from "~/auth/signup.tsx";
 import { ShowAfterAuth } from "./useAuth.tsx";
+import { getSessionData } from "~/app.tsx";
 
 const SessionProvider = (props: any) => {
-	const auth = useAuth()
+	const session = createAsync(() => getSessionData());
 	return (
-		// <div class="flex flex-col items-center justify-center gap-4">
-		<Show when={auth.session()} fallback={<NewUser />}>
-			{(session) => {
-				return <ShowAfterAuth>{props.children}</ShowAfterAuth>;
-			}}
+		<Show when={session()} fallback={<NewUser />}>
+			<ShowAfterAuth>{props.children}</ShowAfterAuth>
 		</Show>
-		// </div>
 	);
 };
 

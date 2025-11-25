@@ -14,7 +14,6 @@ import { createSignal } from "solid-js";
 import { AddFarmModal } from "~/components/AddFarmModal.tsx";
 import MLMap from "~/components/Map.tsx";
 import { createStore } from "solid-js/store";
-import { SessionProvider } from "~/auth/SessionProvider.tsx";
 
 async function postParcel(payload: parcelPayload) {
 	const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels`, {
@@ -349,9 +348,5 @@ const RouteViewHome: Component = () => {
 };
 
 export default function () {
-	return (
-		<SessionProvider>
-			<RouteViewHome />
-		</SessionProvider>
-	);
+	return <RouteViewHome />;
 }

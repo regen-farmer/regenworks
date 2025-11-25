@@ -1,14 +1,10 @@
 import {
-  createEffect,
   createMemo,
   createSignal,
   onMount,
   Show,
 } from "solid-js";
-// import { isServer } from "solid-js/web";
-import { useLocation, useNavigate } from "@solidjs/router";
 import NewUser from "~/auth/signup.tsx";
-// import { useAuth0 } from ".";
 import { NavBar } from "~/components/NavBar.tsx";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import {
@@ -16,7 +12,6 @@ import {
   paymentPlan,
   StripeIds,
 } from "~/util/paymentPlan.ts";
-import { useAuth } from "@solid-mediakit/auth/client";
 
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
 export const [getAuth0Token, setAuth0Token]: [any, any] = createSignal();
@@ -39,7 +34,7 @@ export const subscriptions = createMemo(() => {
 export const allowFarmCreation = createMemo<boolean>(() => {
   if (getMongoDBUser) {
     return (
-      getMongoDBUser()?.isAdmin || 
+      getMongoDBUser()?.isAdmin ||
       (getMongoDBUser() &&
         getMongoDBUser().parcels?.length < 1) ||
       (paymentPlan() === "advisor" &&
@@ -53,11 +48,6 @@ export const allowFarmCreation = createMemo<boolean>(() => {
 
 export const currentSubscriptions = createMemo<any[]>(() => {
   return getStripeCustomer()?.subscriptions;
-  // if (getStripeCustomer()?.subscriptions) {
-  //   return getStripeCustomer()?.subscriptions.filter((s: any) => {
-  //     return true;
-  //   });
-  // }
 });
 
 export const isFreemium = createMemo<boolean>(() => {
@@ -73,13 +63,13 @@ export const isFarmer = createMemo<boolean>(() => {
   return isFarmerRole;
 });
 
+function handleSignOut() {
+  localStorage.removeItem("mongodbUser");
+  localStorage.removeItem("stripeCustomer");
+  window.location.href = "/api/auth/signout";
+}
+
 export const ShowAfterAuth = (props: any) => {
-  // const auth0: any = useAuth0();
-
-  const locationSignal = useLocation();
-  const pathname = createMemo(() => locationSignal.pathname);
-  const navigate = useNavigate();
-
   onMount(async () => {
     // Get token cookie
     let auth0Token = document.cookie
@@ -137,41 +127,14 @@ export const ShowAfterAuth = (props: any) => {
       }
 
       setStripeCustomer(JSON.parse(stripeCustomer));
-
-      // if (pathname() !== "/settings") {
-      // 	if (getStripeCustomer()) {
-      // 		if (getStripeCustomer()?.subscriptions?.length === 0) {
-      // 			navigate("/settings");
-      // 		}
-      // 	}
-      // }
     }
   });
-
-  // createEffect(() => {
-
-  // 	console.log("Im here checking", getStripeCustomer()?.subscriptions)
-  // 	if (
-  // 		getStripeCustomer() &&
-  // 		getStripeCustomer()?.subscriptions?.length === 0 &&
-  // 		pathname() !== "/settings"
-  // 	) {
-  // 		navigate("/settings");
-  // 	}
-  // });
-
-  // if (!(auth0.isAuthenticated() || isServer)) {
-  // 	auth0.login();
-  // }
-
-  const auth = useAuth();
 
   return (
     <Show
       when={getAuth0User()}
       fallback={
         <>
-          {/* <NavBar />*/}
           <NewUser />
         </>
       }
@@ -180,7 +143,6 @@ export const ShowAfterAuth = (props: any) => {
         when={getAuth0User()?.email_verified}
         fallback={
           <>
-            {/* <NavBar /> */}
             <br />
             <p>
               We've sent you a link to verify your email address. Click it and
@@ -188,11 +150,7 @@ export const ShowAfterAuth = (props: any) => {
             </p>
             <button
               class="rounded-sm p-1 my-1 btn-sm btn-default"
-              onClick={() => {
-                localStorage.removeItem("mongodbUser");
-                localStorage.removeItem("stripeCustomer");
-                auth.signOut({ redirectTo: "/" });
-              }}
+              onClick={handleSignOut}
             >
               Log out
             </button>
