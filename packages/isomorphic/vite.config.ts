@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import { solidStart } from "@solidjs/start/config";
-import { nitroV2Plugin } from "@solidjs/vite-plugin-nitro-2";
+import { nitro } from 'nitro/vite'
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			solidStart(),
-			nitroV2Plugin({
+			nitro({
 				preset: "node-server",
 			}),
 		],

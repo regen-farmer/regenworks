@@ -17,6 +17,7 @@
     "@types/mailchimp__mailchimp_transactional": "^1.0.11",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@xmldom/xmldom": "^0.9.5",
+    "nitro": "3.0.1-alpha.1",
     "vite": "^7.2.4"
   },
   "dependencies": {
@@ -39,7 +40,6 @@
     "@solid-primitives/media": "^2.3.3",
     "@solidjs/router": "^0.15.4",
     "@solidjs/start": "https://pkg.pr.new/solidjs/solid-start/@solidjs/start@2024",
-    "@solidjs/vite-plugin-nitro-2": "0.1.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@tmcw/togeojson": "^7.1.2",
     "@turf/turf": "^7.1.0",
