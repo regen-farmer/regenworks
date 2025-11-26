@@ -1,5 +1,6 @@
 
 dist
+.nitro
 .solid
 .output
 .vercel
