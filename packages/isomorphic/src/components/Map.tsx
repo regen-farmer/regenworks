@@ -22,6 +22,7 @@ type MapProps = {
 	setParcelPayload: (prop: string, payload: any) => void;
 	enterDefaultMode: () => void;
 	coordinates: () => [number, number] | undefined;
+	geocodingFailed: () => boolean;
 	data: Resource<
 		| {
 				parcels: any[];
@@ -35,13 +36,11 @@ function MapInstance({
 	mode,
 	setParcelPayload,
 	coordinates,
+	geocodingFailed,
 	enterDefaultMode,
 }: MapProps) {
 	const [mapref, setMapref] = createSignal<HTMLElement>();
 	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
-	const [lngLat, setLngLat] = createSignal<[number, number] | undefined>(
-		undefined,
-	);
 	let map: maplibregl.Map;
 	const markers: maplibregl.Marker[] = [];
 
@@ -63,12 +62,18 @@ function MapInstance({
 	});
 
 	createEffect(() => {
-		if (coordinates()) {
-			map.flyTo({
-				center: coordinates()!,
-				zoom: 15,
-			});
-			activateDragMode();
+		if (mode() === modes.dragMode) {
+			if (coordinates()) {
+				map.flyTo({
+					center: coordinates()!,
+					zoom: 15,
+				});
+				activateDragMode(coordinates()!);
+			} else if (geocodingFailed()) {
+				// Geocoding failed - use map's current center and activate drag mode
+				const center = map.getCenter();
+				activateDragMode([center.lng, center.lat]);
+			}
 		}
 		if (mode() === modes.default) {
 			exitDragMode();
@@ -76,7 +81,7 @@ function MapInstance({
 		}
 	});
 
-	function activateDragMode() {
+	function activateDragMode(markerCoordinates: [number, number]) {
 		if (map) {
 			markers.map((marker) => {
 				marker.remove();
@@ -87,17 +92,16 @@ function MapInstance({
 			draggable: true,
 			element: createFarmMarkerIcon(),
 		})
-			.setLngLat(coordinates() as LngLatLike)
+			.setLngLat(markerCoordinates as LngLatLike)
 			.addTo(map);
 		markers.push(marker);
 
-		// const lngLat = marker.getLngLat();
-		// setParcelPayload("lat", lngLat.lat);
-		// setParcelPayload("lng", lngLat.lng);
+		// Set initial coordinates in payload
+		setParcelPayload("lat", markerCoordinates[1]);
+		setParcelPayload("lng", markerCoordinates[0]);
 
 		function onDragEnd() {
 			const lngLat = marker.getLngLat();
-			// setLngLat([lngLat.lng, lngLat.lat]);
 			setParcelPayload("lat", lngLat.lat);
 			setParcelPayload("lng", lngLat.lng);
 		}
@@ -106,8 +110,6 @@ function MapInstance({
 	}
 
 	function exitDragMode() {
-		setParcelPayload("lat", lngLat()?.[1]);
-		setParcelPayload("lng", lngLat()?.[0]);
 		if (map) {
 			markers.map((marker) => {
 				marker.remove();

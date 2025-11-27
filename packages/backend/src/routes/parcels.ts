@@ -34,6 +34,50 @@ const options: NodeGeocoder.Options = {
 
 const geocoder = NodeGeocoder(options);
 
+// Helper function to create a parcel
+async function createParcel({
+	name,
+	location,
+	lat,
+	lng,
+	owner,
+	res,
+}: {
+	name: string;
+	location: string;
+	lat: number;
+	lng: number;
+	owner: { id: any };
+	res: express.Response;
+}) {
+	const newParcel = {
+		name,
+		location,
+		lat,
+		lng,
+		owner,
+	};
+	try {
+		const newlyCreated = await Parcel.create(newParcel);
+		console.log(`${newlyCreated} added`);
+		try {
+			const foundUser = await User.findById(newlyCreated.owner.id);
+			if (foundUser) {
+				foundUser.parcels.push(newlyCreated);
+				await foundUser.save();
+				await newlyCreated.save();
+				res.send(newlyCreated);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send({ error: "Failed to associate parcel with user" });
+		}
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: "Failed to create parcel" });
+	}
+}
+
 // PARCEL INDEX ROUTE
 router.get(
 	"/parcels",
@@ -96,27 +140,29 @@ router.post(
 		const owner = {
 			id: req.user?._id,
 		};
+
+		// If lat/lng are already provided (manual placement), skip geocoding
+		if (req.body.parcel.lat && req.body.parcel.lng) {
+			const lat = req.body.parcel.lat;
+			const lng = req.body.parcel.lng;
+			const location = req.body.parcel.location; // Use user-provided location string
+			await createParcel({ name, location, lat, lng, owner, res });
+			return;
+		}
+
 		// CONVERT ADDRESS TO COORDINATES USING GEOCODER
 		geocoder.geocode(req.body.parcel.location, async (err, data) => {
 			if (err || !data.length) {
 				console.log(err);
 				console.log(data);
+				const errorMsg = err ? err.toString() : "Address not found";
 				return res
 					.status(500)
-					.send({ error: `Error while geocoding: ${err.toString()}` });
+					.send({ error: `Error while geocoding: ${errorMsg}` });
 			}
 
-			let lat: any;
-			let lng: any;
-
-			if (req.body.parcel.lat && req.body.parcel.lng) {
-				lat = req.body.parcel.lat;
-				lng = req.body.parcel.lng;
-			} else {
-				lat = data[0].latitude;
-				lng = data[0].longitude;
-			}
-
+			const lat = data[0].latitude;
+			const lng = data[0].longitude;
 			const location = data[0].formattedAddress;
 			// HARDCODE COLD HARDINESS FOR CERTAIN REGIONS
 			// if (data[0].country === 'Brazil') {
@@ -215,48 +261,8 @@ router.post(
 			//   climate.hardiness.low = -12;
 			//   climate.hardiness.high = -9;
 			// }
-			// Create new parcel
-			const newParcel = {
-				name,
-				// soilType,
-				// agType,
-				// size,
-				// description,
-				location,
-				lat,
-				lng,
-				// practices,
-				owner,
-				// climate,
-				// measurement,
-			};
-			// Create a new parcel and save it to the database
-			try {
-				const newlyCreated = await Parcel.create(newParcel);
-
-				console.log(`${newlyCreated} added`);
-				// Find user based on ID
-				try {
-					const foundUser = await User.findById(newlyCreated.owner.id);
-					// Add the parcel to the users parcels for referencing
-					if (foundUser) {
-						foundUser.parcels.push(newlyCreated);
-						await foundUser.save();
-						// Save JSON file to geometry
-						// newlyCreated.geometry = req.body.geometry;
-						// Save the layer
-						await newlyCreated.save();
-						// ADD PRECIPITATION?HARDINESS?
-						// req.flash("success", "You have successfully created a new parcel");
-						res.send(newlyCreated);
-					}
-				} catch (err) {
-					console.log(err);
-				}
-			} catch (err) {
-				// req.flash("error", "Something went wrong");
-				console.log(err);
-			}
+			// Create parcel using helper function
+			await createParcel({ name, location, lat, lng, owner, res });
 		});
 	},
 );

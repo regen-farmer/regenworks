@@ -94,6 +94,7 @@ const RouteViewHome: Component = () => {
 		lat: undefined,
 	});
 	const [coordinates, setCoordinates] = createSignal<[number, number]>();
+	const [geocodingFailed, setGeocodingFailed] = createSignal<boolean>(false);
 
 	async function enterDefaultMode() {
 		if (
@@ -113,14 +114,17 @@ const RouteViewHome: Component = () => {
 	}
 
 	async function enterDragMode() {
+		setGeocodingFailed(false);
 		if (parcelPayload.location && !isEditing()) {
 			try {
 				const result = await getGeoCodeFromLocation(parcelPayload.location);
 				setCoordinates(result);
 				setMode(modes.dragMode);
 			} catch (err) {
-				console.log("Couldn't geocode")
-			}	
+				console.log("Couldn't geocode, entering manual placement mode", err);
+				setGeocodingFailed(true);
+				setMode(modes.dragMode);
+			}
 		} else {
 			setCoordinates([parcelPayload.lng!, parcelPayload.lat!]);
 			setMode(modes.dragMode);
@@ -194,6 +198,7 @@ const RouteViewHome: Component = () => {
 					mode={mode}
 					setParcelPayload={setParcelPayload}
 					coordinates={coordinates}
+					geocodingFailed={geocodingFailed}
 				/>
 
 				<Switch>
@@ -301,7 +306,12 @@ const RouteViewHome: Component = () => {
 								padding: "10px",
 							}}
 						>
-							Drag the marker to the location of your farm
+							<Show
+								when={!geocodingFailed()}
+								fallback={"Address not found. Please place the marker on your farm's location."}
+							>
+								Drag the marker to the location of your farm
+							</Show>
 						</h1>
 						<div
 							style={{
