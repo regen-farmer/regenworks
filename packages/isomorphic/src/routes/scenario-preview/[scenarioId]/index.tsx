@@ -3,11 +3,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import {
 	type Component,
-	For,
 	Show,
 	createEffect,
 	createSignal,
 	createMemo,
+	createResource,
 } from "solid-js";
 import { useParams } from "@solidjs/router";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
@@ -15,13 +15,13 @@ import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
-import { MaptilerNavigationControl } from "@maptiler/sdk";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
 import { getSpecies } from "~/util/getSpecies.ts";
-import { getScenario } from "~/util/getScenario.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
@@ -30,7 +30,24 @@ const RouteDesignPreview: Component = () => {
 	const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
 	const [show3D, setShow3D] = createSignal(false);
 
-	const scenarioData = getScenario(params.scenarioId);
+	// Fetch scenario data with proper error handling
+	const [scenarioData, { refetch }] = createResource(
+		() => params.scenarioId,
+		async (scenarioId) => {
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/projects/${scenarioId}/layout`,
+				apiFetchOptions(),
+			);
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.error || `HTTP ${response.status}`);
+			}
+
+			const result: { project: ProjectDocument } = await response.json();
+			return result;
+		}
+	);
 
 	const systemLayout = createMemo<ISystemBasedLayout | undefined>(() => {
 		if (scenarioData()) {
@@ -168,25 +185,57 @@ const RouteDesignPreview: Component = () => {
 
 	return (
 		<div style={{ height: "100vh", position: "relative", flex: "1 1 100%" }}>
-			<div style={{ height: "100vh" }}>
-				<div
-					ref={(el) => {
-						setMapRef(el);
-					}}
-					style={{ height: "100vh" }}
-				/>
-
-				<Show
-					when={scenarioData() && systemLayout() && species()}
-					fallback={"Loading..."}
-				>
-					<SystemInfoBox
-						systemLayout={systemLayout()!}
-						species={species()}
-						scenarioData={scenarioData()}
+			<Show
+				when={!scenarioData.error}
+				fallback={
+					<div class="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-900">
+						<div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md text-center">
+							<h2 class="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
+								Unable to load scenario
+							</h2>
+							<p class="text-gray-600 dark:text-gray-300 mb-4">
+								{scenarioData.error?.message === "Authentication required"
+									? "This scenario is private. Please log in to view it."
+									: scenarioData.error?.message === "Unauthorized"
+									? "You don't have permission to view this scenario."
+									: scenarioData.error?.message || "Failed to load scenario data."}
+							</p>
+							<button
+								onClick={() => refetch()}
+								class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+							>
+								Retry
+							</button>
+						</div>
+					</div>
+				}
+			>
+				<div style={{ height: "100vh" }}>
+					<div
+						ref={(el) => {
+							setMapRef(el);
+						}}
+						style={{ height: "100vh" }}
 					/>
-				</Show>
-			</div>
+
+					<Show
+						when={scenarioData() && systemLayout() && species()}
+						fallback={
+							<div class="absolute inset-0 flex items-center justify-center bg-black/20">
+								<div class="bg-white dark:bg-gray-800 px-4 py-2 rounded shadow">
+									Loading...
+								</div>
+							</div>
+						}
+					>
+						<SystemInfoBox
+							systemLayout={systemLayout()!}
+							species={species()}
+							scenarioData={scenarioData()}
+						/>
+					</Show>
+				</div>
+			</Show>
 		</div>
 	);
 };

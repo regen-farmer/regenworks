@@ -241,16 +241,14 @@ router.post(
 	},
 );
 
-// PROJECT LAYOUT EDIT ROUTE
+// PROJECT LAYOUT ROUTE (supports public access)
 router.get(
 	"/projects/:id/layout",
-	// middleware.isLoggedIn,
 	async (
 		req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
 		res: express.Response,
 	) => {
 		try {
-
 			console.log(`Project: ${req.params.id}`);
 			const [foundProject] = await Project.aggregate([
 				{ $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
@@ -273,15 +271,21 @@ router.get(
 				{ $unwind: "$layer" },
 				{ $unwind: { path: "$systemdesign", preserveNullAndEmptyArrays: true } }
 			]).exec();
-			
-			
-			
-			
 
-			if (foundProject) {
+			if (!foundProject) {
+				return res.status(404).send({ error: "Project not found" });
+			}
+
+			// Check if project is public or user is the owner
+			const isPublic = foundProject.isPublic === true;
+			const isOwner = req.user && foundProject.owner?.id?.toString() === req.user._id.toString();
+
+			if (isPublic || isOwner) {
 				res.send({ project: foundProject });
+			} else if (!req.user) {
+				res.status(401).send({ error: "Authentication required" });
 			} else {
-				res.send({ error: "no project found" });
+				res.status(403).send({ error: "Unauthorized" });
 			}
 		} catch (err) {
 			console.log(err);
