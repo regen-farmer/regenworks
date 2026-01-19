@@ -726,102 +726,106 @@ function DefaultMode({
 						</div>
 					</Show>
 
-					{/* Financial Models Section */}
-					<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
-						<button
-							type="button"
-							class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-							onClick={() =>
-								setActiveListingPanel((current) =>
-									current === "models" ? null : "models",
-								)
-							}
-							aria-expanded={activeListingPanel() === "models"}
-						>
-							<span>Financial Models</span>
-							<i
-								class="fa-solid fa-chevron-down transition-transform"
-								classList={{ "rotate-180": activeListingPanel() === "models" }}
-							/>
-						</button>
-						<div
-							class="accordion-section"
-							classList={{
-								"accordion-open": activeListingPanel() === "models",
-							}}
-						>
-							<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
-								<button
-									type="button"
-									onClick={() => setCreateModelModalOpen(true)}
-									class="block w-full rounded-sm bg-green-600 p-2 text-center text-sm font-semibold text-white transition hover:bg-green-700"
-								>
-									<i class="fa-solid fa-plus mr-1" /> Create Model
-								</button>
-								<Show
-									when={!financialModels.loading}
-									fallback={
-										<div class="text-sm text-gray-300">Loading models...</div>
-									}
-								>
+					{/* Financial Models Section - only show when there are planting plans */}
+					<Show when={farmConfigs() && farmConfigs()!.length > 0}>
+						<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
+							<button
+								type="button"
+								class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+								onClick={() =>
+									setActiveListingPanel((current) =>
+										current === "models" ? null : "models",
+									)
+								}
+								aria-expanded={activeListingPanel() === "models"}
+							>
+								<span>Financial Models</span>
+								<i
+									class="fa-solid fa-chevron-down transition-transform"
+									classList={{
+										"rotate-180": activeListingPanel() === "models",
+									}}
+								/>
+							</button>
+							<div
+								class="accordion-section"
+								classList={{
+									"accordion-open": activeListingPanel() === "models",
+								}}
+							>
+								<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
+									<button
+										type="button"
+										onClick={() => setCreateModelModalOpen(true)}
+										class="block w-full rounded-sm bg-green-600 p-2 text-center text-sm font-semibold text-white transition hover:bg-green-700"
+									>
+										<i class="fa-solid fa-plus mr-1" /> Create Model
+									</button>
 									<Show
-										when={financialModels() && financialModels()!.length > 0}
+										when={!financialModels.loading}
 										fallback={
-											<div class="text-sm text-gray-300">
-												No financial models yet.
-											</div>
+											<div class="text-sm text-gray-300">Loading models...</div>
 										}
 									>
-										<div
-											class="list-group rounded-md"
-											style={{
-												"max-height": "30vh",
-												"overflow-y": "auto",
-											}}
+										<Show
+											when={financialModels() && financialModels()!.length > 0}
+											fallback={
+												<div class="text-sm text-gray-300">
+													No financial models yet.
+												</div>
+											}
 										>
-											<For each={financialModels()}>
-												{(model: any) => (
-													<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-														<A
-															class="overlay-list-link"
-															href={`/parcels/${params.parcelId}/models/${model._id}`}
-														>
-															<div>{model.name}</div>
-															<div class="text-xs text-gray-400">
-																{model.planName}
+											<div
+												class="list-group rounded-md"
+												style={{
+													"max-height": "30vh",
+													"overflow-y": "auto",
+												}}
+											>
+												<For each={financialModels()}>
+													{(model: any) => (
+														<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
+															<A
+																class="overlay-list-link"
+																href={`/parcels/${params.parcelId}/models/${model._id}`}
+															>
+																<div>{model.name}</div>
+																<div class="text-xs text-gray-400">
+																	{model.planName}
+																</div>
+															</A>
+															<div class="flex gap-1">
+																<button
+																	title="Open model"
+																	class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
+																	onClick={() =>
+																		navigate(
+																			`/parcels/${params.parcelId}/models/${model._id}`,
+																		)
+																	}
+																>
+																	<i class="fa-solid fa-chart-line" />
+																</button>
+																<button
+																	title="Delete model"
+																	class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button text-red-400 hover:text-red-300"
+																	onClick={() =>
+																		handleDeleteFinancialModel(model._id)
+																	}
+																>
+																	<i class="fa-solid fa-trash" />
+																</button>
 															</div>
-														</A>
-														<div class="flex gap-1">
-															<button
-																title="Open model"
-																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
-																onClick={() =>
-																	navigate(
-																		`/parcels/${params.parcelId}/models/${model._id}`,
-																	)
-																}
-															>
-																<i class="fa-solid fa-chart-line" />
-															</button>
-															<button
-																title="Delete model"
-																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button text-red-400 hover:text-red-300"
-																onClick={() =>
-																	handleDeleteFinancialModel(model._id)
-																}
-															>
-																<i class="fa-solid fa-trash" />
-															</button>
 														</div>
-													</div>
-												)}
-											</For>
-										</div>
+													)}
+												</For>
+											</div>
+										</Show>
 									</Show>
-								</Show>
+								</div>
 							</div>
 						</div>
-					</div>
+					</Show>
 				</div>
 			</div>
 
