@@ -1,18 +1,28 @@
-
-import { A, action, useNavigate, useParams } from "@solidjs/router";
-import type { Map as MLMap } from "maplibre-gl";
-import { createSignal, For, onMount, type Resource, createResource, Show, createEffect } from "solid-js";
-
-import type * as turf from "@turf/turf";
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
-import { removeLayers } from "~/util/removeLayers.ts";
-import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { A, action, useNavigate, useParams } from "@solidjs/router";
+import type * as turf from "@turf/turf";
+import type { Map as MLMap } from "maplibre-gl";
+import {
+	createEffect,
+	createResource,
+	createSignal,
+	For,
+	onMount,
+	type Resource,
+	Show,
+} from "solid-js";
+import { showToast } from "~/components/ui/toast";
 import {
 	createFarmScenarioConfig,
 	deleteFarmScenarioConfig,
 	getFarmScenarioConfigs,
 } from "~/util/api/farmScenarioConfig.ts";
-import { showToast } from "~/components/ui/toast";
+import {
+	deleteFinancialModel,
+	getFinancialModels,
+} from "~/util/api/financialModel.ts";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { removeLayers } from "~/util/removeLayers.ts";
 import {
 	Dialog,
 	DialogContent,
@@ -53,7 +63,6 @@ function DefaultMode({
 	getMap,
 	refetch,
 }: DefaultModeProps) {
-
 	function cleanupLayers() {
 		removeLayers(["field-fills", "field-outlines", "field-labels"], getMap());
 		getMap().off("click", "field-labels", moveMapToField);
@@ -65,7 +74,7 @@ function DefaultMode({
 	);
 
 	const navigate = useNavigate();
-	
+
 	// Fetch existing farm planting plan configurations
 	const [farmConfigs, { refetch: refetchFarmConfigs }] = createResource(
 		() => params.parcelId,
@@ -76,16 +85,45 @@ function DefaultMode({
 				console.error("Failed to fetch farm configs:", error);
 				return [];
 			}
-		}
+		},
 	);
-	
-	const [createScenarioModalOpen, setCreateScenarioModalOpen] = createSignal(false);
+
+	// Fetch financial models for all farm configs
+	const [financialModels, { refetch: refetchModels }] = createResource(
+		() => farmConfigs(),
+		async (configs) => {
+			if (!configs || configs.length === 0) return [];
+			try {
+				const modelPromises = configs.map(async (config) => {
+					const models = await getFinancialModels(config._id as string);
+					return models.map((m) => ({
+						...m,
+						planName: config.name || "Unnamed Plan",
+						planId: config._id as string,
+					}));
+				});
+				const results = await Promise.all(modelPromises);
+				return results.flat();
+			} catch (error) {
+				console.error("Failed to fetch financial models:", error);
+				return [];
+			}
+		},
+	);
+
+	const [createScenarioModalOpen, setCreateScenarioModalOpen] =
+		createSignal(false);
 	const [newScenarioName, setNewScenarioName] = createSignal("");
 	const [newScenarioDescription, setNewScenarioDescription] = createSignal("");
 	const [isCreatingScenario, setIsCreatingScenario] = createSignal(false);
-	const [activeListingPanel, setActiveListingPanel] = createSignal<"fields" | "scenarios" | null>("fields");
-	const [deleteScenarioModalOpen, setDeleteScenarioModalOpen] = createSignal(false);
-	const [scenarioToDelete, setScenarioToDelete] = createSignal<string | undefined>(undefined);
+	const [activeListingPanel, setActiveListingPanel] = createSignal<
+		"fields" | "scenarios" | "models" | null
+	>("fields");
+	const [deleteScenarioModalOpen, setDeleteScenarioModalOpen] =
+		createSignal(false);
+	const [scenarioToDelete, setScenarioToDelete] = createSignal<
+		string | undefined
+	>(undefined);
 
 	const openCreateScenarioModal = () => {
 		setIsCreatingScenario(false);
@@ -134,7 +172,7 @@ function DefaultMode({
 			setNewScenarioName("");
 			setNewScenarioDescription("");
 			await refetchFarmConfigs();
-				navigate(`/parcels/${params.parcelId}/farm-scenario/${created._id}`);
+			navigate(`/parcels/${params.parcelId}/farm-scenario/${created._id}`);
 		} catch (error) {
 			console.error("Failed to create farm planting plan config:", error);
 			showToast({
@@ -185,7 +223,7 @@ function DefaultMode({
 		getMap().addLayer({
 			id: "field-fills",
 			type: "fill",
-			//@ts-ignore
+			//@ts-expect-error
 			source: {
 				type: "geojson",
 				data: data()?.collection,
@@ -199,7 +237,7 @@ function DefaultMode({
 		getMap().addLayer({
 			id: "field-outlines",
 			type: "line",
-			//@ts-ignore
+			//@ts-expect-error
 			source: {
 				type: "geojson",
 				data: data()?.collection,
@@ -214,7 +252,7 @@ function DefaultMode({
 		getMap().addLayer({
 			id: "field-labels",
 			type: "symbol",
-			//@ts-ignore
+			//@ts-expect-error
 			source: {
 				type: "geojson",
 				data: data()?.places,
@@ -322,7 +360,7 @@ function DefaultMode({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-			
+
 			<Dialog
 				open={createScenarioModalOpen()}
 				onOpenChange={(open) => {
@@ -338,12 +376,16 @@ function DefaultMode({
 					<DialogHeader>
 						<DialogTitle>Create Farm Planting Plan</DialogTitle>
 						<DialogDescription>
-							Give the scenario a name and optional description. All current fields will be included by default.
+							Give the scenario a name and optional description. All current
+							fields will be included by default.
 						</DialogDescription>
 					</DialogHeader>
 					<form onSubmit={handleCreateScenario} class="space-y-4">
 						<div>
-							<label class="block text-sm font-semibold text-gray-200" for="scenario-name">
+							<label
+								class="block text-sm font-semibold text-gray-200"
+								for="scenario-name"
+							>
 								Scenario name
 							</label>
 							<input
@@ -351,20 +393,27 @@ function DefaultMode({
 								type="text"
 								autocomplete="off"
 								value={newScenarioName()}
-								onInput={(event) => setNewScenarioName(event.currentTarget.value)}
+								onInput={(event) =>
+									setNewScenarioName(event.currentTarget.value)
+								}
 								class="mt-1 w-full rounded-md border border-gray-600 bg-gray-900/70 p-2 text-sm text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								placeholder="e.g. Spring planting plan"
 							/>
 						</div>
 						<div>
-							<label class="block text-sm font-semibold text-gray-200" for="scenario-description">
+							<label
+								class="block text-sm font-semibold text-gray-200"
+								for="scenario-description"
+							>
 								Description (optional)
 							</label>
 							<textarea
 								id="scenario-description"
 								rows={4}
 								value={newScenarioDescription()}
-								onInput={(event) => setNewScenarioDescription(event.currentTarget.value)}
+								onInput={(event) =>
+									setNewScenarioDescription(event.currentTarget.value)
+								}
 								class="mt-1 w-full rounded-md border border-gray-600 bg-gray-900/70 p-2 text-sm text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								placeholder="Add any notes about this scenario"
 							/>
@@ -400,7 +449,9 @@ function DefaultMode({
 					</DialogHeader>
 					<DialogDescription>
 						<p>
-							When you delete this farm planting plan, all information connected to it will be permanently deleted and it will not be able to be restored.
+							When you delete this farm planting plan, all information connected
+							to it will be permanently deleted and it will not be able to be
+							restored.
 						</p>
 					</DialogDescription>
 					<DialogFooter>
@@ -444,7 +495,7 @@ function DefaultMode({
 								setActiveListingPanel((current) =>
 									current === "fields" ? null : "fields",
 								)
-						}
+							}
 							aria-expanded={activeListingPanel() === "fields"}
 						>
 							<span>Fields</span>
@@ -453,11 +504,11 @@ function DefaultMode({
 								classList={{ "rotate-180": activeListingPanel() === "fields" }}
 							/>
 						</button>
-							<div
-								class="accordion-section"
-								classList={{
-									"accordion-open": activeListingPanel() === "fields",
-								}}
+						<div
+							class="accordion-section"
+							classList={{
+								"accordion-open": activeListingPanel() === "fields",
+							}}
 						>
 							<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
 								<div
@@ -483,17 +534,17 @@ function DefaultMode({
 															"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
 														}
 														onClick={() => {
-														cleanupLayers();
+															cleanupLayers();
 
-														getMap().flyTo({
-															speed: 2,
-															center: JSON.parse(layer.geometry).geometry
-																.coordinates[0][0],
-															zoom: 15,
-														});
+															getMap().flyTo({
+																speed: 2,
+																center: JSON.parse(layer.geometry).geometry
+																	.coordinates[0][0],
+																zoom: 15,
+															});
 
-														editField(layer);
-													}}
+															editField(layer);
+														}}
 													>
 														<i class="fa-solid fa-pen" />
 													</button>
@@ -505,13 +556,13 @@ function DefaultMode({
 															"rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
 														}
 														onClick={() => {
-														getMap().flyTo({
-															speed: 2,
-															center: JSON.parse(layer.geometry).geometry
-																.coordinates[0][0],
-															zoom: 15,
-														});
-													}}
+															getMap().flyTo({
+																speed: 2,
+																center: JSON.parse(layer.geometry).geometry
+																	.coordinates[0][0],
+																zoom: 15,
+															});
+														}}
 													>
 														<i class="fa-solid fa-crosshairs" />
 													</button>
@@ -522,14 +573,14 @@ function DefaultMode({
 															"rounded-sm p-1 my-1 btn-danger menu-btn list-group-button rounded-sm"
 														}
 														onclick={() => {
-														setDeleteFieldModalOpen(true);
-														setActiveField(layer._id.toString());
-													}}
+															setDeleteFieldModalOpen(true);
+															setActiveField(layer._id.toString());
+														}}
 													>
 														<i class="fa-solid fa-trash" />
-												</button>
+													</button>
+												</div>
 											</div>
-										</div>
 										)}
 									</For>
 								</div>
@@ -543,7 +594,9 @@ function DefaultMode({
 							</div>
 						</div>
 					</div>
-					<Show when={data()?.parcel.layers && data()!.parcel.layers.length > 0}>
+					<Show
+						when={data()?.parcel.layers && data()!.parcel.layers.length > 0}
+					>
 						<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
 							<button
 								type="button"
@@ -552,20 +605,22 @@ function DefaultMode({
 									setActiveListingPanel((current) =>
 										current === "scenarios" ? null : "scenarios",
 									)
-							}
+								}
 								aria-expanded={activeListingPanel() === "scenarios"}
 							>
 								<span>Farm Planting Plan</span>
 								<i
 									class="fa-solid fa-chevron-down transition-transform"
-									classList={{ "rotate-180": activeListingPanel() === "scenarios" }}
+									classList={{
+										"rotate-180": activeListingPanel() === "scenarios",
+									}}
 								/>
 							</button>
-								<div
-									class="accordion-section"
-									classList={{
-										"accordion-open": activeListingPanel() === "scenarios",
-									}}
+							<div
+								class="accordion-section"
+								classList={{
+									"accordion-open": activeListingPanel() === "scenarios",
+								}}
 							>
 								<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
 									<button
@@ -577,11 +632,19 @@ function DefaultMode({
 									</button>
 									<Show
 										when={!farmConfigs.loading}
-										fallback={<div class="text-sm text-gray-300">Loading scenarios...</div>}
+										fallback={
+											<div class="text-sm text-gray-300">
+												Loading scenarios...
+											</div>
+										}
 									>
 										<Show
 											when={farmConfigs() && farmConfigs()!.length > 0}
-											fallback={<div class="text-sm text-gray-300">No scenarios yet.</div>}
+											fallback={
+												<div class="text-sm text-gray-300">
+													No scenarios yet.
+												</div>
+											}
 										>
 											<div
 												class="list-group rounded-md"
@@ -603,7 +666,11 @@ function DefaultMode({
 																<button
 																	title="Edit scenario"
 																	class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
-																	onClick={() => navigate(`/parcels/${params.parcelId}/farm-scenario/${config._id}`)}
+																	onClick={() =>
+																		navigate(
+																			`/parcels/${params.parcelId}/farm-scenario/${config._id}`,
+																		)
+																	}
 																>
 																	<i class="fa-solid fa-pen" />
 																</button>
@@ -628,6 +695,93 @@ function DefaultMode({
 							</div>
 						</div>
 					</Show>
+
+					{/* Financial Models Section */}
+					<div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
+						<button
+							type="button"
+							class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+							onClick={() =>
+								setActiveListingPanel((current) =>
+									current === "models" ? null : "models",
+								)
+							}
+							aria-expanded={activeListingPanel() === "models"}
+						>
+							<span>Financial Models</span>
+							<i
+								class="fa-solid fa-chevron-down transition-transform"
+								classList={{ "rotate-180": activeListingPanel() === "models" }}
+							/>
+						</button>
+						<div
+							class="accordion-section"
+							classList={{
+								"accordion-open": activeListingPanel() === "models",
+							}}
+						>
+							<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
+								<A
+									href={`/parcels/${params.parcelId}/models`}
+									class="block w-full rounded-sm bg-green-600 p-2 text-center text-sm font-semibold text-white transition hover:bg-green-700"
+								>
+									<i class="fa-solid fa-plus mr-1" /> Create / Manage Models
+								</A>
+								<Show
+									when={!financialModels.loading}
+									fallback={
+										<div class="text-sm text-gray-300">Loading models...</div>
+									}
+								>
+									<Show
+										when={financialModels() && financialModels()!.length > 0}
+										fallback={
+											<div class="text-sm text-gray-300">
+												No financial models yet.
+											</div>
+										}
+									>
+										<div
+											class="list-group rounded-md"
+											style={{
+												"max-height": "30vh",
+												"overflow-y": "auto",
+											}}
+										>
+											<For each={financialModels()}>
+												{(model: any) => (
+													<div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
+														<A
+															class="overlay-list-link"
+															href={`/parcels/${params.parcelId}/models/${model._id}`}
+														>
+															<div>{model.name}</div>
+															<div class="text-xs text-gray-400">
+																{model.planName}
+															</div>
+														</A>
+														<div>
+															<button
+																title="Open model"
+																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
+																onClick={() =>
+																	navigate(
+																		`/parcels/${params.parcelId}/models/${model._id}`,
+																	)
+																}
+															>
+																<i class="fa-solid fa-chart-line" />
+															</button>
+														</div>
+													</div>
+												)}
+											</For>
+										</div>
+									</Show>
+								</Show>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</>
