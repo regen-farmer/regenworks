@@ -115,14 +115,20 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 							? p.species
 							: (p.species as any)?.toString();
 					if (speciesId) {
-						incomeMap.set(speciesId, (p as any).incomePerTree || 0);
+						// Support both old (PerTree) and new (PerUnit) field names for backward compatibility
+						incomeMap.set(
+							speciesId,
+							(p as any).incomePerUnit ?? (p as any).incomePerTree ?? 0,
+						);
 						establishmentCostMap.set(
 							speciesId,
-							(p as any).establishmentCostPerTree,
+							(p as any).establishmentCostPerUnit ??
+								(p as any).establishmentCostPerTree,
 						);
 						managementCostMap.set(
 							speciesId,
-							(p as any).managementCostPerTreePerYear,
+							(p as any).managementCostPerUnitPerYear ??
+								(p as any).managementCostPerTreePerYear,
 						);
 					}
 				}
@@ -287,11 +293,11 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 		try {
 			// Build species pricing array with income and cost overrides
 			const speciesPricing = Array.from(localIncome().entries()).map(
-				([species, incomePerTree]) => ({
+				([species, incomePerUnit]) => ({
 					species,
-					incomePerTree,
-					establishmentCostPerTree: localEstablishmentCost().get(species),
-					managementCostPerTreePerYear: localManagementCost().get(species),
+					incomePerUnit,
+					establishmentCostPerUnit: localEstablishmentCost().get(species),
+					managementCostPerUnitPerYear: localManagementCost().get(species),
 				}),
 			);
 
@@ -399,12 +405,13 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 		if (agg) {
 			return agg.map((a) => ({
 				species: a.species,
+				unitType: "tree" as const, // aggregated species fallback assumes trees
 				count: a.count,
-				incomePerTree: localIncome().get(a.species._id) || 0,
-				establishmentCostPerTree: 0,
-				managementCostPerTreePerYear: 0,
-				defaultEstablishmentCostPerTree: 0,
-				defaultManagementCostPerTreePerYear: 0,
+				incomePerUnit: localIncome().get(a.species._id) || 0,
+				establishmentCostPerUnit: 0,
+				managementCostPerUnitPerYear: 0,
+				defaultEstablishmentCostPerUnit: 0,
+				defaultManagementCostPerUnitPerYear: 0,
 				establishmentCost: 0,
 				annualManagementCost: 0,
 				annualIncomeAtMaturity: 0,
@@ -493,7 +500,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 					</h3>
 					<p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
 						Costs are calculated from species activities. Enter expected income
-						per tree per year at maturity.
+						per unit (tree or m2) per year at maturity.
 					</p>
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm">
@@ -503,19 +510,19 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 										Species
 									</th>
 									<th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
-										Trees
+										Quantity
 									</th>
 									<th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 										<div>Establishment</div>
-										<div>Cost/tree</div>
+										<div>Cost/unit</div>
 									</th>
 									<th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 										<div>Management</div>
-										<div>Cost/tree/yr</div>
+										<div>Cost/unit/yr</div>
 									</th>
 									<th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 										<div>Income</div>
-										<div>/tree/yr</div>
+										<div>/unit/yr</div>
 									</th>
 									<th class="text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 										<div>Annual</div>
@@ -527,9 +534,14 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 								<For each={speciesForDisplay()}>
 									{(entry) => {
 										const speciesId = entry.species._id;
-										const incomePerTree =
-											localIncome().get(speciesId) ?? entry.incomePerTree ?? 0;
-										const annualIncome = entry.count * incomePerTree;
+										const unitType = (entry as any).unitType || "tree";
+										const unitLabel = unitType === "m2" ? "m\u00B2" : "trees";
+										const incomePerUnit =
+											localIncome().get(speciesId) ??
+											(entry as any).incomePerUnit ??
+											(entry as any).incomePerTree ??
+											0;
+										const annualIncome = entry.count * incomePerUnit;
 
 										// Get local overrides or use the calculated values from backend
 										const localEstCost =
@@ -537,28 +549,47 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 										const localMgmtCost = localManagementCost().get(speciesId);
 
 										// Display value: local override if set, otherwise backend value
-										const estCostPerTree =
+										const estCostPerUnit =
 											localEstCost !== undefined
 												? localEstCost
-												: (entry.establishmentCostPerTree ?? 0);
-										const mgmtCostPerTree =
+												: ((entry as any).establishmentCostPerUnit ??
+													(entry as any).establishmentCostPerTree ??
+													0);
+										const mgmtCostPerUnit =
 											localMgmtCost !== undefined
 												? localMgmtCost
-												: (entry.managementCostPerTreePerYear ?? 0);
+												: ((entry as any).managementCostPerUnitPerYear ??
+													(entry as any).managementCostPerTreePerYear ??
+													0);
 
 										// Defaults for placeholder
 										const defaultEstCost =
-											entry.defaultEstablishmentCostPerTree ?? 0;
+											(entry as any).defaultEstablishmentCostPerUnit ??
+											(entry as any).defaultEstablishmentCostPerTree ??
+											0;
 										const defaultMgmtCost =
-											entry.defaultManagementCostPerTreePerYear ?? 0;
+											(entry as any).defaultManagementCostPerUnitPerYear ??
+											(entry as any).defaultManagementCostPerTreePerYear ??
+											0;
+
+										// Format count based on unit type
+										const countDisplay =
+											unitType === "m2"
+												? entry.count.toLocaleString(undefined, {
+														maximumFractionDigits: 0,
+													})
+												: entry.count.toLocaleString();
 
 										return (
 											<tr class="border-b border-neutral-300 dark:border-neutral-600">
 												<td class="py-2 px-2 text-gray-900 dark:text-gray-100">
 													{entry.species.nameCommon || "Unknown"}
+													<span class="ml-1 text-xs text-gray-500">
+														({unitLabel})
+													</span>
 												</td>
 												<td class="py-2 px-2 text-right text-gray-700 dark:text-gray-300">
-													{entry.count.toLocaleString()}
+													{countDisplay}
 												</td>
 												<td class="py-2 px-2 text-right">
 													<div class="flex items-center justify-end gap-1">
@@ -578,8 +609,8 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 															}}
 															class="w-20 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-right dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 placeholder:text-gray-400"
 															min="0"
-															step="1"
-															aria-label={`Establishment cost per tree for ${entry.species.nameCommon || "species"}`}
+															step="0.01"
+															aria-label={`Establishment cost per ${unitType} for ${entry.species.nameCommon || "species"}`}
 														/>
 													</div>
 												</td>
@@ -601,8 +632,8 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 															}}
 															class="w-20 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-right dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 placeholder:text-gray-400"
 															min="0"
-															step="1"
-															aria-label={`Management cost per tree per year for ${entry.species.nameCommon || "species"}`}
+															step="0.01"
+															aria-label={`Management cost per ${unitType} per year for ${entry.species.nameCommon || "species"}`}
 														/>
 													</div>
 												</td>
@@ -611,7 +642,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 														<span class="text-gray-500">{currency()}</span>
 														<input
 															type="number"
-															value={incomePerTree}
+															value={incomePerUnit}
 															onInput={(e) =>
 																handleIncomeChange(
 																	speciesId,
@@ -620,8 +651,8 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 															}
 															class="w-20 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-right dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
 															min="0"
-															step="1"
-															aria-label={`Income per tree for ${entry.species.nameCommon || "species"}`}
+															step="0.01"
+															aria-label={`Income per ${unitType} for ${entry.species.nameCommon || "species"}`}
 														/>
 													</div>
 												</td>

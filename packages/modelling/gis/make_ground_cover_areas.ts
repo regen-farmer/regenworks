@@ -1,11 +1,11 @@
+import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import {
-	helpers as turf,
 	buffer,
-	mask,
 	intersect,
+	mask,
+	helpers as turf,
 	area as turfArea,
 } from "@turf/turf";
-import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 
 export function makeGroundCoverAreas(
 	offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>,
@@ -89,8 +89,10 @@ export function makeGroundCoverAreas(
 		});
 		// // Check if turf value is a polygon or a multipolygon
 
-		const groundCoverId =
+		const groundCoverRaw =
 			rows[currentRowIdx].groundcover?._id ?? rows[currentRowIdx].groundcover;
+		// Ensure the ID is converted to a string for consistent key usage
+		const groundCoverId = groundCoverRaw?.toString?.() ?? groundCoverRaw;
 		if (groundCoverId && !groundCoverAreasM2[groundCoverId]) {
 			groundCoverAreasM2[groundCoverId] = 0;
 		}

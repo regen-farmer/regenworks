@@ -38,6 +38,16 @@ async function computeFinancials(
 			select: "name systemdesign",
 			populate: {
 				path: "systemdesign",
+				populate: [
+					{
+						path: "rows.sequence.species",
+						model: "Species",
+					},
+					{
+						path: "rows.groundcover",
+						model: "Species",
+					},
+				],
 			},
 		});
 
@@ -61,11 +71,12 @@ async function computeFinancials(
 				: undefined,
 		}));
 
-	// Collect all species IDs from the field scenarios
+	// Collect all species IDs from the field scenarios (both trees and ground cover)
 	const speciesIds = new Set<string>();
 	for (const fs of fieldScenarios) {
 		if (fs.project?.systemdesign?.rows) {
 			for (const row of fs.project.systemdesign.rows) {
+				// Collect tree species from sequence
 				if (row.sequence) {
 					for (const entry of row.sequence) {
 						// Species may have _id or id depending on how it's stored
@@ -75,6 +86,15 @@ async function computeFinancials(
 						} else if (typeof entry.species === "string") {
 							speciesIds.add(entry.species);
 						}
+					}
+				}
+				// Collect ground cover species
+				if (row.groundcover) {
+					const groundcoverId = row.groundcover?._id || row.groundcover?.id;
+					if (groundcoverId) {
+						speciesIds.add(groundcoverId.toString());
+					} else if (typeof row.groundcover === "string") {
+						speciesIds.add(row.groundcover);
 					}
 				}
 			}

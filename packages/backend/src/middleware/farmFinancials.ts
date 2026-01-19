@@ -10,6 +10,8 @@ import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
 import area from "@turf/area";
 
 // Types for financial calculations
+export type SpeciesUnitType = "tree" | "m2";
+
 export interface SpeciesSummary {
 	species: {
 		_id: string;
@@ -17,15 +19,16 @@ export interface SpeciesSummary {
 		genus?: string;
 		species?: string;
 	};
-	count: number;
-	establishmentCostPerTree: number; // per-tree cost (from override or species default)
-	managementCostPerTreePerYear: number; // per-tree annual cost (from override or species default)
-	defaultEstablishmentCostPerTree: number; // species default (for showing placeholder)
-	defaultManagementCostPerTreePerYear: number; // species default (for showing placeholder)
+	unitType: SpeciesUnitType; // "tree" for trees, "m2" for ground cover
+	count: number; // number of trees or m2 of ground cover
+	establishmentCostPerUnit: number; // per-unit cost (from override or species default)
+	managementCostPerUnitPerYear: number; // per-unit annual cost (from override or species default)
+	defaultEstablishmentCostPerUnit: number; // species default (for showing placeholder)
+	defaultManagementCostPerUnitPerYear: number; // species default (for showing placeholder)
 	establishmentCost: number; // total for this species
 	annualManagementCost: number; // total for this species
-	incomePerTree: number; // user-provided income per tree per year
-	annualIncomeAtMaturity: number; // count * incomePerTree
+	incomePerUnit: number; // user-provided income per unit per year
+	annualIncomeAtMaturity: number; // count * incomePerUnit
 	totalIncomeOverPeriod: number;
 }
 
@@ -85,7 +88,8 @@ interface FieldScenarioData {
 interface AggregatedSpecies {
 	speciesId: string;
 	speciesDoc: ISpeciesSchema;
-	count: number;
+	unitType: SpeciesUnitType;
+	count: number; // trees or m2
 	fieldContributions: Map<string, number>; // fieldId -> count
 }
 
@@ -112,9 +116,17 @@ function calculatePaybackPeriod(cashFlow: CashFlowEntry[]): number | null {
 }
 
 /**
+ * Determine if a species is ground cover based on its form
+ */
+function isGroundCover(species: ISpeciesSchema): boolean {
+	const groundCoverForms = ["grass", "herb", "groundcover"];
+	return groundCoverForms.includes((species.form || "").toLowerCase());
+}
+
+/**
  * Calculate establishment cost for a species based on activities
  */
-function getEstablishmentCostPerTree(species: ISpeciesSchema): number {
+function getEstablishmentCostPerUnit(species: ISpeciesSchema): number {
 	if (
 		!species.activities ||
 		!Array.isArray(species.activities) ||
@@ -131,7 +143,7 @@ function getEstablishmentCostPerTree(species: ISpeciesSchema): number {
 /**
  * Calculate annual management cost for a species based on activities
  */
-function getAnnualManagementCostPerTree(species: ISpeciesSchema): number {
+function getAnnualManagementCostPerUnit(species: ISpeciesSchema): number {
 	if (
 		!species.activities ||
 		!Array.isArray(species.activities) ||
@@ -165,14 +177,20 @@ export function calculateFarmFinancials(
 			typeof pricing.species === "string"
 				? pricing.species
 				: pricing.species.toString();
-		incomeMap.set(speciesId, pricing.incomePerTree || 0);
+		// Support both old (PerTree) and new (PerUnit) field names for backward compatibility
+		incomeMap.set(
+			speciesId,
+			pricing.incomePerUnit ?? (pricing as any).incomePerTree ?? 0,
+		);
 		establishmentCostOverrides.set(
 			speciesId,
-			(pricing as any).establishmentCostPerTree,
+			pricing.establishmentCostPerUnit ??
+				(pricing as any).establishmentCostPerTree,
 		);
 		managementCostOverrides.set(
 			speciesId,
-			(pricing as any).managementCostPerTreePerYear,
+			pricing.managementCostPerUnitPerYear ??
+				(pricing as any).managementCostPerTreePerYear,
 		);
 	}
 
@@ -228,7 +246,7 @@ export function calculateFarmFinancials(
 		let fieldEstablishmentCost = 0;
 		let fieldAnnualIncome = 0;
 
-		// Process species counts from layout
+		// Process tree species counts from layout
 		for (const speciesCount of layout.speciesCountArray) {
 			const speciesEntry = speciesCount.species;
 			// Species may have _id or id depending on whether it's a mongoose doc or plain object
@@ -255,6 +273,7 @@ export function calculateFarmFinancials(
 				aggSpecies = {
 					speciesId,
 					speciesDoc: finalSpeciesDoc as ISpeciesSchema,
+					unitType: "tree" as SpeciesUnitType,
 					count: 0,
 					fieldContributions: new Map(),
 				};
@@ -269,15 +288,61 @@ export function calculateFarmFinancials(
 
 			// Calculate field-level costs (use override if provided, otherwise species default)
 			const establishmentOverride = establishmentCostOverrides.get(speciesId);
-			const establishmentCostPerTree =
+			const establishmentCostPerUnit =
 				establishmentOverride !== undefined
 					? establishmentOverride
-					: getEstablishmentCostPerTree(aggSpecies.speciesDoc);
-			fieldEstablishmentCost += count * establishmentCostPerTree;
+					: getEstablishmentCostPerUnit(aggSpecies.speciesDoc);
+			fieldEstablishmentCost += count * establishmentCostPerUnit;
 
-			// Calculate annual income at maturity using user-provided income per tree
-			const incomePerTree = incomeMap.get(speciesId) || 0;
-			fieldAnnualIncome += count * incomePerTree;
+			// Calculate annual income at maturity using user-provided income per unit
+			const incomePerUnit = incomeMap.get(speciesId) || 0;
+			fieldAnnualIncome += count * incomePerUnit;
+		}
+
+		// Process ground cover species from layout (area in m2)
+		if (layout.groundCoverAreasM2) {
+			for (const [groundCoverSpeciesId, areaM2] of Object.entries(
+				layout.groundCoverAreasM2 as Record<string, number>,
+			)) {
+				if (!groundCoverSpeciesId || !areaM2) continue;
+
+				const speciesId = groundCoverSpeciesId.toString();
+
+				// Get or create aggregated species entry for ground cover
+				let aggSpecies = aggregatedSpecies.get(speciesId);
+				if (!aggSpecies) {
+					const speciesDoc = speciesMap.get(speciesId);
+					if (!speciesDoc) continue;
+
+					aggSpecies = {
+						speciesId,
+						speciesDoc: speciesDoc as ISpeciesSchema,
+						unitType: "m2" as SpeciesUnitType,
+						count: 0,
+						fieldContributions: new Map(),
+					};
+					aggregatedSpecies.set(speciesId, aggSpecies);
+				}
+
+				aggSpecies.count += areaM2 as number;
+				aggSpecies.fieldContributions.set(
+					fieldId,
+					(aggSpecies.fieldContributions.get(fieldId) || 0) +
+						(areaM2 as number),
+				);
+
+				// Calculate field-level costs for ground cover
+				const establishmentOverride = establishmentCostOverrides.get(speciesId);
+				const establishmentCostPerUnit =
+					establishmentOverride !== undefined
+						? establishmentOverride
+						: getEstablishmentCostPerUnit(aggSpecies.speciesDoc);
+				fieldEstablishmentCost += (areaM2 as number) * establishmentCostPerUnit;
+
+				// Calculate annual income for ground cover
+				const incomePerUnit = incomeMap.get(speciesId) || 0;
+				fieldAnnualIncome += (areaM2 as number) * incomePerUnit;
+			}
 		}
 
 		fieldSummaries.push({
@@ -298,38 +363,38 @@ export function calculateFarmFinancials(
 	let totalAnnualManagementCost = 0;
 
 	for (const [speciesId, aggSpecies] of aggregatedSpecies) {
-		const incomePerTree = incomeMap.get(speciesId) || 0;
+		const incomePerUnit = incomeMap.get(speciesId) || 0;
 
 		// Use overrides if provided, otherwise use species defaults
 		const establishmentOverride = establishmentCostOverrides.get(speciesId);
 		const managementOverride = managementCostOverrides.get(speciesId);
 
-		const establishmentCostPerTree =
+		const establishmentCostPerUnit =
 			establishmentOverride !== undefined
 				? establishmentOverride
-				: getEstablishmentCostPerTree(aggSpecies.speciesDoc);
-		const managementCostPerTree =
+				: getEstablishmentCostPerUnit(aggSpecies.speciesDoc);
+		const managementCostPerUnit =
 			managementOverride !== undefined
 				? managementOverride
-				: getAnnualManagementCostPerTree(aggSpecies.speciesDoc);
+				: getAnnualManagementCostPerUnit(aggSpecies.speciesDoc);
 
 		const speciesEstablishmentCost =
-			aggSpecies.count * establishmentCostPerTree;
+			aggSpecies.count * establishmentCostPerUnit;
 		const speciesAnnualManagementCost =
-			aggSpecies.count * managementCostPerTree;
+			aggSpecies.count * managementCostPerUnit;
 
 		totalEstablishmentCost += speciesEstablishmentCost;
 		totalAnnualManagementCost += speciesAnnualManagementCost;
 
-		// Calculate income using user-provided income per tree
-		const annualIncomeAtMaturity = aggSpecies.count * incomePerTree;
+		// Calculate income using user-provided income per unit
+		const annualIncomeAtMaturity = aggSpecies.count * incomePerUnit;
 		const totalIncome = annualIncomeAtMaturity * period;
 
 		// Get species defaults for display
-		const defaultEstablishmentCostPerTree = getEstablishmentCostPerTree(
+		const defaultEstablishmentCostPerUnit = getEstablishmentCostPerUnit(
 			aggSpecies.speciesDoc,
 		);
-		const defaultManagementCostPerTreePerYear = getAnnualManagementCostPerTree(
+		const defaultManagementCostPerUnitPerYear = getAnnualManagementCostPerUnit(
 			aggSpecies.speciesDoc,
 		);
 
@@ -340,14 +405,15 @@ export function calculateFarmFinancials(
 				genus: aggSpecies.speciesDoc.genus,
 				species: aggSpecies.speciesDoc.species,
 			},
+			unitType: aggSpecies.unitType,
 			count: aggSpecies.count,
-			establishmentCostPerTree,
-			managementCostPerTreePerYear: managementCostPerTree,
-			defaultEstablishmentCostPerTree,
-			defaultManagementCostPerTreePerYear,
+			establishmentCostPerUnit,
+			managementCostPerUnitPerYear: managementCostPerUnit,
+			defaultEstablishmentCostPerUnit,
+			defaultManagementCostPerUnitPerYear,
 			establishmentCost: speciesEstablishmentCost,
 			annualManagementCost: speciesAnnualManagementCost,
-			incomePerTree,
+			incomePerUnit,
 			annualIncomeAtMaturity,
 			totalIncomeOverPeriod: totalIncome,
 		});
@@ -462,13 +528,21 @@ export function generateFinancialsCSV(result: FarmFinancialsResult): string {
 
 	// Species Summary
 	lines.push("Species Summary");
-	lines.push("Species,Count,Income per Tree,Annual Income,Total Income");
+	lines.push(
+		"Species,Unit Type,Count,Income per Unit,Annual Income,Total Income",
+	);
 	for (const species of result.speciesSummary) {
+		const unitLabel = species.unitType === "m2" ? "m2" : "trees";
+		const countDisplay =
+			species.unitType === "m2"
+				? species.count.toFixed(0)
+				: species.count.toString();
 		lines.push(
 			[
 				species.species.nameCommon,
-				species.count,
-				`${currency} ${species.incomePerTree.toFixed(2)}`,
+				unitLabel,
+				countDisplay,
+				`${currency} ${species.incomePerUnit.toFixed(2)}`,
 				`${currency} ${species.annualIncomeAtMaturity.toFixed(2)}`,
 				`${currency} ${species.totalIncomeOverPeriod.toFixed(2)}`,
 			].join(","),

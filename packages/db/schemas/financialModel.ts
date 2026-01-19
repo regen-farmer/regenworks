@@ -15,11 +15,12 @@ export interface IFinancialModelSchema {
 	};
 
 	// Species-level pricing configuration (costs default from species activities, but can be overridden)
+	// "Unit" refers to trees (count) or ground cover (m2) depending on species type
 	speciesPricing: Array<{
 		species: mongoose.Schema.Types.ObjectId | string;
-		establishmentCostPerTree?: number; // override for establishment cost (defaults to species activities)
-		managementCostPerTreePerYear?: number; // override for annual management cost (defaults to species activities)
-		incomePerTree: number; // expected income per tree per year at maturity
+		establishmentCostPerUnit?: number; // override for establishment cost (defaults to species activities)
+		managementCostPerUnitPerYear?: number; // override for annual management cost (defaults to species activities)
+		incomePerUnit: number; // expected income per unit (tree or m2) per year at maturity
 	}>;
 
 	// Timestamps
@@ -69,17 +70,17 @@ const financialModelSchema = new mongoose.Schema<FinancialModelDocument>(
 					ref: "Species",
 					required: true,
 				},
-				establishmentCostPerTree: {
+				establishmentCostPerUnit: {
 					type: Number,
 					default: undefined, // undefined means use species default
 					min: 0,
 				},
-				managementCostPerTreePerYear: {
+				managementCostPerUnitPerYear: {
 					type: Number,
 					default: undefined, // undefined means use species default
 					min: 0,
 				},
-				incomePerTree: {
+				incomePerUnit: {
 					type: Number,
 					default: 0,
 					min: 0,

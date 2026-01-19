@@ -4,6 +4,8 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 // Types for API responses
+export type SpeciesUnitType = "tree" | "m2";
+
 export interface SpeciesSummary {
 	species: {
 		_id: string;
@@ -11,14 +13,15 @@ export interface SpeciesSummary {
 		genus?: string;
 		species?: string;
 	};
-	count: number;
-	establishmentCostPerTree: number; // per-tree cost (from override or species default)
-	managementCostPerTreePerYear: number; // per-tree annual cost (from override or species default)
-	defaultEstablishmentCostPerTree: number; // species default (for showing placeholder)
-	defaultManagementCostPerTreePerYear: number; // species default (for showing placeholder)
+	unitType: SpeciesUnitType; // "tree" for trees, "m2" for ground cover
+	count: number; // number of trees or m2 of ground cover
+	establishmentCostPerUnit: number; // per-unit cost (from override or species default)
+	managementCostPerUnitPerYear: number; // per-unit annual cost (from override or species default)
+	defaultEstablishmentCostPerUnit: number; // species default (for showing placeholder)
+	defaultManagementCostPerUnitPerYear: number; // species default (for showing placeholder)
 	establishmentCost: number; // total for this species
 	annualManagementCost: number; // total for this species
-	incomePerTree: number; // user-provided income per tree per year
+	incomePerUnit: number; // user-provided income per unit per year
 	annualIncomeAtMaturity: number;
 	totalIncomeOverPeriod: number;
 }
@@ -114,9 +117,9 @@ export async function createFinancialModel(
 		};
 		speciesPricing?: Array<{
 			species: string;
-			establishmentCostPerTree?: number;
-			managementCostPerTreePerYear?: number;
-			incomePerTree: number;
+			establishmentCostPerUnit?: number;
+			managementCostPerUnitPerYear?: number;
+			incomePerUnit?: number;
 		}>;
 	},
 ): Promise<FinancialModelWithFinancials> {
@@ -175,9 +178,9 @@ export async function updateFinancialModel(
 		};
 		speciesPricing?: Array<{
 			species: string;
-			establishmentCostPerTree?: number;
-			managementCostPerTreePerYear?: number;
-			incomePerTree: number;
+			establishmentCostPerUnit?: number;
+			managementCostPerUnitPerYear?: number;
+			incomePerUnit?: number;
 		}>;
 	},
 ): Promise<FinancialModelWithFinancials> {
