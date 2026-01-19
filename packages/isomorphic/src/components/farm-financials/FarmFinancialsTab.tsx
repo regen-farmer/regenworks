@@ -12,8 +12,6 @@ import { Button } from "~/components/ui/button";
 import { showToast } from "~/components/ui/toast";
 import {
 	type AggregatedSpecies,
-	createFinancialModel,
-	deleteFinancialModel,
 	exportFinancialModelCSV,
 	getAggregatedSpecies,
 	getFinancialModel,
@@ -31,10 +29,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 	const [selectedModelId, setSelectedModelId] = createSignal<string | null>(
 		null,
 	);
-	const [isCreating, setIsCreating] = createSignal(false);
 	const [isSaving, setIsSaving] = createSignal(false);
-	const [isDeleting, setIsDeleting] = createSignal(false);
-	const [newModelName, setNewModelName] = createSignal("New Model");
 
 	// Local editable state for parameters and species pricing
 	const [localPeriod, setLocalPeriod] = createSignal(20);
@@ -284,37 +279,6 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 	});
 
 	// Handlers
-	const handleCreateModel = async () => {
-		setIsCreating(true);
-		try {
-			const result = await createFinancialModel(props.configId, {
-				name: newModelName(),
-				parameters: {
-					period: 20,
-					currency: "EUR",
-				},
-			});
-
-			await refetchModels();
-			setSelectedModelId(result.model._id as string);
-			setNewModelName("New Model");
-
-			showToast({
-				title: "Model created",
-				description: "Financial model created successfully.",
-				variant: "success",
-			});
-		} catch (error: any) {
-			showToast({
-				title: "Failed to create model",
-				description: error.message || "An error occurred.",
-				variant: "error",
-			});
-		} finally {
-			setIsCreating(false);
-		}
-	};
-
 	const handleSaveChanges = async () => {
 		const modelId = selectedModelId();
 		if (!modelId) return;
@@ -355,36 +319,6 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 			});
 		} finally {
 			setIsSaving(false);
-		}
-	};
-
-	const handleDeleteModel = async () => {
-		const modelId = selectedModelId();
-		if (!modelId) return;
-
-		if (!confirm("Are you sure you want to delete this financial model?")) {
-			return;
-		}
-
-		setIsDeleting(true);
-		try {
-			await deleteFinancialModel(modelId);
-			setSelectedModelId(null);
-			await refetchModels();
-
-			showToast({
-				title: "Model deleted",
-				description: "Financial model deleted successfully.",
-				variant: "success",
-			});
-		} catch (error: any) {
-			showToast({
-				title: "Failed to delete",
-				description: error.message || "An error occurred.",
-				variant: "error",
-			});
-		} finally {
-			setIsDeleting(false);
 		}
 	};
 
@@ -489,68 +423,23 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 
 	return (
 		<div class="h-full overflow-y-auto p-4 space-y-6">
-			{/* Model Selector */}
-			<div class="flex items-center gap-4 flex-wrap">
-				<div class="flex items-center gap-2">
-					<span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-						Model:
-					</span>
-					<select
-						class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-						value={selectedModelId() || ""}
-						onChange={(e) => setSelectedModelId(e.currentTarget.value || null)}
-						aria-label="Select financial model"
-					>
-						<option value="">+ New Model</option>
-						<For each={models()}>
-							{(model) => (
-								<option value={model._id as string}>{model.name}</option>
-							)}
-						</For>
-					</select>
-				</div>
-
-				<Show when={selectedModelId()}>
-					<Button
-						onClick={handleDeleteModel}
-						disabled={isDeleting()}
-						class="text-sm bg-red-600 hover:bg-red-700"
-					>
-						{isDeleting() ? "Deleting..." : "Delete"}
-					</Button>
-				</Show>
+			{/* Model Title */}
+			<div class="flex items-center justify-between">
+				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+					{"Financial Model: " + modelData()?.model?.name}
+				</h2>
 			</div>
 
 			<Show
 				when={selectedModelId()}
 				fallback={
-					<div class="text-center py-12 text-gray-500 dark:text-gray-400">
-						<p class="mb-4">
-							Create a financial model to start analyzing your farm planting
-							plan.
-						</p>
-						<div class="flex items-center justify-center gap-2">
-							<input
-								type="text"
-								value={newModelName()}
-								onInput={(e) => setNewModelName(e.currentTarget.value)}
-								placeholder="Model name"
-								class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 w-40"
-								aria-label="New model name"
-							/>
-							<Button
-								onClick={handleCreateModel}
-								disabled={isCreating() || !newModelName().trim()}
-								class="text-sm"
-							>
-								{isCreating() ? "Creating..." : "Create Model"}
-							</Button>
-						</div>
+					<div class="flex items-center justify-center h-full text-gray-500">
+						Loading...
 					</div>
 				}
 			>
 				{/* Parameters */}
-				<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+				<div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
 					<h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">
 						Parameters
 					</h3>
@@ -598,7 +487,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 				</div>
 
 				{/* Species Economics */}
-				<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+				<div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
 					<h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">
 						Species Economics
 					</h3>
@@ -609,7 +498,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm">
 							<thead>
-								<tr class="border-b border-gray-200 dark:border-gray-700">
+								<tr class="border-b border-neutral-300 dark:border-neutral-600">
 									<th class="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 										Species
 									</th>
@@ -664,7 +553,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											entry.defaultManagementCostPerTreePerYear ?? 0;
 
 										return (
-											<tr class="border-b border-gray-100 dark:border-gray-700/50">
+											<tr class="border-b border-neutral-300 dark:border-neutral-600">
 												<td class="py-2 px-2 text-gray-900 dark:text-gray-100">
 													{entry.species.nameCommon || "Unknown"}
 												</td>
@@ -765,12 +654,12 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 				<Show when={financials()}>
 					{(fin) => (
 						<>
-							<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+							<div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
 								<h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">
 									Summary ({fin().parameters.period} years)
 								</h3>
 								<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Total Income
 										</div>
@@ -778,7 +667,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											{formatCurrency(fin().summary.totalIncomeOverPeriod)}
 										</div>
 									</div>
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Total Costs
 										</div>
@@ -786,7 +675,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											{formatCurrency(fin().summary.totalCostsOverPeriod)}
 										</div>
 									</div>
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Total Profit
 										</div>
@@ -796,19 +685,9 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											{formatCurrency(fin().summary.totalProfitOverPeriod)}
 										</div>
 									</div>
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
-											Payback
-										</div>
-										<div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-											{fin().summary.paybackYears !== null
-												? `${fin().summary.paybackYears!.toFixed(1)} yrs`
-												: "N/A"}
-										</div>
-									</div>
 								</div>
 								<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Establishment Cost
 										</div>
@@ -816,7 +695,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											{formatCurrency(fin().summary.totalEstablishmentCost)}
 										</div>
 									</div>
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Annual Management
 										</div>
@@ -824,7 +703,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											{formatCurrency(fin().summary.totalAnnualManagementCost)}
 										</div>
 									</div>
-									<div class="bg-white dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+									<div class="bg-white dark:bg-neutral-900 rounded-lg p-3 border border-neutral-200 dark:border-neutral-700">
 										<div class="text-xs text-gray-500 dark:text-gray-400 mb-1">
 											Annual Income
 										</div>
@@ -836,7 +715,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 							</div>
 
 							{/* Cash Flow Chart */}
-							<div class="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+							<div class="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
 								<h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">
 									Cumulative Cash Flow
 								</h3>
@@ -847,14 +726,14 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 
 							{/* Field Breakdown */}
 							<Show when={fin().fieldSummary.length > 0}>
-								<div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+								<div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
 									<h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">
 										Field Breakdown
 									</h3>
 									<div class="overflow-x-auto">
 										<table class="w-full text-sm">
 											<thead>
-												<tr class="border-b border-gray-200 dark:border-gray-700">
+												<tr class="border-b border-neutral-300 dark:border-neutral-600">
 													<th class="text-left py-2 px-2 font-medium text-gray-600 dark:text-gray-400">
 														Field
 													</th>
@@ -875,7 +754,7 @@ export const FarmFinancialsTab: Component<FarmFinancialsTabProps> = (props) => {
 											<tbody>
 												<For each={fin().fieldSummary}>
 													{(field) => (
-														<tr class="border-b border-gray-100 dark:border-gray-700/50">
+														<tr class="border-b border-neutral-300 dark:border-neutral-600">
 															<td class="py-2 px-2 text-gray-900 dark:text-gray-100">
 																{field.field.name}
 															</td>
