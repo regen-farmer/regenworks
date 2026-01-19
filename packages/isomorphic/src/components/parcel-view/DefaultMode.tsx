@@ -23,6 +23,7 @@ import {
 } from "~/util/api/financialModel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { removeLayers } from "~/util/removeLayers.ts";
+import { CreateFinancialModelModal } from "../CreateFinancialModelModal";
 import {
 	Dialog,
 	DialogContent,
@@ -124,6 +125,35 @@ function DefaultMode({
 	const [scenarioToDelete, setScenarioToDelete] = createSignal<
 		string | undefined
 	>(undefined);
+	const [createModelModalOpen, setCreateModelModalOpen] = createSignal(false);
+
+	const handleDeleteFinancialModel = async (modelId: string) => {
+		if (!confirm("Are you sure you want to delete this financial model?")) {
+			return;
+		}
+
+		try {
+			await deleteFinancialModel(modelId);
+			await refetchModels();
+
+			showToast({
+				title: "Model deleted",
+				description: "Financial model deleted successfully.",
+				variant: "success",
+			});
+		} catch (error: any) {
+			showToast({
+				title: "Failed to delete",
+				description: error.message || "An error occurred.",
+				variant: "error",
+			});
+		}
+	};
+
+	const handleModelCreated = async (modelId: string) => {
+		await refetchModels();
+		navigate(`/parcels/${params.parcelId}/models/${modelId}`);
+	};
 
 	const openCreateScenarioModal = () => {
 		setIsCreatingScenario(false);
@@ -721,12 +751,13 @@ function DefaultMode({
 							}}
 						>
 							<div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
-								<A
-									href={`/parcels/${params.parcelId}/models`}
+								<button
+									type="button"
+									onClick={() => setCreateModelModalOpen(true)}
 									class="block w-full rounded-sm bg-green-600 p-2 text-center text-sm font-semibold text-white transition hover:bg-green-700"
 								>
-									<i class="fa-solid fa-plus mr-1" /> Create / Manage Models
-								</A>
+									<i class="fa-solid fa-plus mr-1" /> Create Model
+								</button>
 								<Show
 									when={!financialModels.loading}
 									fallback={
@@ -760,10 +791,10 @@ function DefaultMode({
 																{model.planName}
 															</div>
 														</A>
-														<div>
+														<div class="flex gap-1">
 															<button
 																title="Open model"
-																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
+																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
 																onClick={() =>
 																	navigate(
 																		`/parcels/${params.parcelId}/models/${model._id}`,
@@ -771,6 +802,15 @@ function DefaultMode({
 																}
 															>
 																<i class="fa-solid fa-chart-line" />
+															</button>
+															<button
+																title="Delete model"
+																class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button text-red-400 hover:text-red-300"
+																onClick={() =>
+																	handleDeleteFinancialModel(model._id)
+																}
+															>
+																<i class="fa-solid fa-trash" />
 															</button>
 														</div>
 													</div>
@@ -784,6 +824,16 @@ function DefaultMode({
 					</div>
 				</div>
 			</div>
+
+			{/* Create Financial Model Modal */}
+			<CreateFinancialModelModal
+				isOpen={() => createModelModalOpen()}
+				onOpenChange={setCreateModelModalOpen}
+				plantingPlans={() =>
+					farmConfigs()?.map((c) => ({ _id: c._id as string, name: c.name }))
+				}
+				onCreated={handleModelCreated}
+			/>
 		</>
 	);
 }
