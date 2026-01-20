@@ -4,7 +4,10 @@
 //! with accurate area calculations.
 
 use geos::Geom;
-use crate::geometry::{coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords};
+use crate::geometry::{
+    coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords,
+    project_polygon_to_local, project_polygon_to_wgs84, project_line_to_local,
+};
 use crate::types::{GeoJsonFeature, RowDefinition};
 
 /// Result of strip polygon generation
@@ -18,33 +21,14 @@ pub struct StripPolygonResult {
     pub row_index: usize,
 }
 
-/// Convert meters to degrees based on latitude
-fn meters_to_degrees(meters: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    let meters_per_degree = 111_320.0 * lat_rad.cos();
-    if meters_per_degree > 0.0 {
-        meters / meters_per_degree
-    } else {
-        meters / 111_320.0
-    }
-}
-
-/// Convert area from degrees^2 to square meters based on latitude
-fn area_deg2_to_m2(area_deg2: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    // At equator: 1 degree ≈ 111,320 meters
-    // Area scales with cos(lat) in one dimension
-    let meters_per_degree_lat = 111_320.0;
-    let meters_per_degree_lon = 111_320.0 * lat_rad.cos();
-    area_deg2 * meters_per_degree_lat * meters_per_degree_lon
-}
-
 /// Create strip polygons for all rows
 ///
 /// This function:
-/// 1. Creates "donut" buffers for each strip
-/// 2. Intersects with the field polygon
-/// 3. Calculates area for each strip
+/// 1. Projects polygon and line to local meters (Azimuthal Equidistant)
+/// 2. Creates "donut" buffers for each strip in meter-space
+/// 3. Intersects with the field polygon
+/// 4. Projects results back to WGS84
+/// 5. Calculates area for each strip
 ///
 /// # Arguments
 /// * `offset_polygon` - The headland polygon coordinates
@@ -61,18 +45,26 @@ pub fn make_all_strip_polygons(
         return Ok(vec![]);
     }
 
+    // Calculate centroid as projection center
+    let center = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
+        let n = offset_polygon[0].len() as f64;
+        let sum_lon: f64 = offset_polygon[0].iter().map(|c| c[0]).sum();
+        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
+        [sum_lon / n, sum_lat / n]
+    } else {
+        [0.0, 0.0]
+    };
+
     // Only use exterior ring (ignore holes - trees/groundcover run over them)
     let exterior_only = vec![offset_polygon[0].clone()];
-    let polygon_geom = coords_to_geos_polygon(&exterior_only)?;
-    let line_geom = coords_to_geos_line(line_intersecting_area)?;
-
-    // Get the centroid latitude for meters-to-degrees conversion
-    let centroid_lat = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
-        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
-        sum_lat / offset_polygon[0].len() as f64
-    } else {
-        0.0
-    };
+    
+    // Project polygon and line to local meters
+    let local_polygon = project_polygon_to_local(&exterior_only, center);
+    let local_line = project_line_to_local(line_intersecting_area, center);
+    
+    // Create GEOS geometries in local coordinate system (meters)
+    let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
+    let line_geom = coords_to_geos_line(&local_line)?;
 
     let mut strip_polygons: Vec<StripPolygonResult> = Vec::new();
     let mut accumulating_width = 0.0;
@@ -86,35 +78,32 @@ pub fn make_all_strip_polygons(
 
         let row_width = rows[current_row_idx].width;
         
-        // Create the elongated donut buffer
+        // Create the elongated donut buffer in meters (no conversion needed!)
         let elongated_donut = if accumulating_width > 0.0 {
-            let buffer_small_deg = meters_to_degrees(accumulating_width, centroid_lat);
-            let buffer_big_deg = meters_to_degrees(accumulating_width + row_width, centroid_lat);
-            
-            let buffer_small = line_geom.buffer(buffer_small_deg, 32)?;
-            let buffer_big = line_geom.buffer(buffer_big_deg, 32)?;
+            let buffer_small = line_geom.buffer(accumulating_width, 32)?;
+            let buffer_big = line_geom.buffer(accumulating_width + row_width, 32)?;
             
             // Create donut by subtracting small from big
             buffer_big.difference(&buffer_small)?
         } else {
-            let buffer_deg = meters_to_degrees(row_width, centroid_lat);
-            line_geom.buffer(buffer_deg, 32)?
+            line_geom.buffer(row_width, 32)?
         };
 
         // Intersect with the field polygon
         let intersection = polygon_geom.intersection(&elongated_donut)?;
         
-        // Calculate area and extract coordinates
+        // Calculate area (already in square meters!) and extract coordinates
         let geom_type = intersection.geometry_type();
         
         match geom_type {
             geos::GeometryTypes::Polygon => {
-                let area = intersection.area()?;
-                let area_m2 = area_deg2_to_m2(area, centroid_lat);
+                let area_m2 = intersection.area()?;
                 
-                if let Ok(coords) = geos_polygon_to_coords(&intersection) {
+                if let Ok(local_coords) = geos_polygon_to_coords(&intersection) {
+                    // Project back to WGS84
+                    let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
                     strip_polygons.push(StripPolygonResult {
-                        polygon: coords,
+                        polygon: wgs84_coords,
                         area_m2,
                         row_index: current_row_idx,
                     });
@@ -132,18 +121,18 @@ pub fn make_all_strip_polygons(
                         }
                         // Clone to get owned geometry for geos_polygon_to_coords
                         let owned_geom = geom.clone();
-                        if let Ok(coords) = geos_polygon_to_coords(&owned_geom) {
-                            all_coords.extend(coords);
+                        if let Ok(local_coords) = geos_polygon_to_coords(&owned_geom) {
+                            // Project back to WGS84
+                            let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
+                            all_coords.extend(wgs84_coords);
                         }
                     }
                 }
                 
-                let area_m2 = area_deg2_to_m2(total_area, centroid_lat);
-                
                 if !all_coords.is_empty() {
                     strip_polygons.push(StripPolygonResult {
                         polygon: all_coords,
-                        area_m2,
+                        area_m2: total_area,
                         row_index: current_row_idx,
                     });
                 }

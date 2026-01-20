@@ -405,6 +405,102 @@ pub fn geos_line_to_coords(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error
     Ok(coords)
 }
 
+/// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
+/// centered on a reference point. This preserves distances from the center point.
+///
+/// # Arguments
+/// * `coord` - The WGS84 coordinate [lng, lat]
+/// * `center` - The center point of the projection [lng, lat]
+///
+/// # Returns
+/// Local coordinates [x, y] in meters (x = east, y = north)
+pub fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let dist = distance(center, coord);
+    let brng = bearing(center, coord).to_radians();
+    
+    // Convert polar (distance, bearing) to cartesian (x, y) in meters
+    // x = east, y = north
+    let x = dist * brng.sin();
+    let y = dist * brng.cos();
+    
+    [x, y]
+}
+
+/// Project local meters back to WGS84 using Azimuthal Equidistant projection
+///
+/// # Arguments
+/// * `coord` - Local coordinates [x, y] in meters (x = east, y = north)
+/// * `center` - The center point of the projection [lng, lat]
+///
+/// # Returns
+/// WGS84 coordinate [lng, lat]
+pub fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let x = coord[0];
+    let y = coord[1];
+    
+    // Convert cartesian to polar
+    let dist = (x * x + y * y).sqrt();
+    let brng = x.atan2(y).to_degrees(); // atan2(x, y) for bearing from north
+    
+    destination(center, dist, brng)
+}
+
+/// Project a polygon from WGS84 to local meters
+///
+/// # Arguments
+/// * `rings` - Polygon rings in WGS84 [lng, lat]
+/// * `center` - The center point of the projection [lng, lat]
+pub fn project_polygon_to_local(rings: &[Vec<[f64; 2]>], center: [f64; 2]) -> Vec<Vec<[f64; 2]>> {
+    rings
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| wgs84_to_local_meters(*c, center))
+                .collect()
+        })
+        .collect()
+}
+
+/// Project a polygon from local meters back to WGS84
+///
+/// # Arguments
+/// * `rings` - Polygon rings in local meters [x, y]
+/// * `center` - The center point of the projection [lng, lat]
+pub fn project_polygon_to_wgs84(rings: &[Vec<[f64; 2]>], center: [f64; 2]) -> Vec<Vec<[f64; 2]>> {
+    rings
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| local_meters_to_wgs84(*c, center))
+                .collect()
+        })
+        .collect()
+}
+
+/// Project a line from WGS84 to local meters
+///
+/// # Arguments
+/// * `coords` - Line coordinates in WGS84 [lng, lat]
+/// * `center` - The center point of the projection [lng, lat]
+pub fn project_line_to_local(coords: &[[f64; 2]], center: [f64; 2]) -> Vec<[f64; 2]> {
+    coords
+        .iter()
+        .map(|c| wgs84_to_local_meters(*c, center))
+        .collect()
+}
+
+/// Project a line from local meters back to WGS84
+///
+/// # Arguments
+/// * `coords` - Line coordinates in local meters [x, y]
+/// * `center` - The center point of the projection [lng, lat]
+pub fn project_line_to_wgs84(coords: &[[f64; 2]], center: [f64; 2]) -> Vec<[f64; 2]> {
+    coords
+        .iter()
+        .map(|c| local_meters_to_wgs84(*c, center))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

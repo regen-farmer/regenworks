@@ -7,6 +7,7 @@ use geos::{Geom, Geometry};
 use crate::geometry::{
     along, bearing, line_length,
     coords_to_geos_line, coords_to_geos_polygon,
+    local_meters_to_wgs84,
 };
 use crate::types::{GeoJsonFeature, RowDefinition};
 
@@ -35,47 +36,6 @@ fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
     let x = dist * brng.sin();
     let y = dist * brng.cos();
     [x, y]
-}
-
-/// Project local meters back to WGS84
-fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
-    use crate::geometry::destination;
-    let x = coord[0];
-    let y = coord[1];
-    let dist = (x * x + y * y).sqrt();
-    let brng = x.atan2(y).to_degrees();
-    destination(center, dist, brng)
-}
-
-/// Buffer a line using geodesic projection for accurate meter distances
-fn buffer_line_geodesic(line: &[[f64; 2]], buffer_m: f64, center: [f64; 2]) -> Result<Geometry, geos::Error> {
-    // Project line to local meters
-    let local_line: Vec<[f64; 2]> = line.iter()
-        .map(|c| wgs84_to_local_meters(*c, center))
-        .collect();
-    
-    // Create GEOS line in local coordinates
-    let local_geom = coords_to_geos_line(&local_line)?;
-    
-    // Buffer in meters
-    local_geom.buffer(buffer_m, 32)
-}
-
-/// Project a GEOS polygon from local meters to WGS84
-fn project_polygon_to_wgs84(geom: &Geometry, center: [f64; 2]) -> Result<Geometry, geos::Error> {
-    use crate::geometry::geos_polygon_to_coords;
-    
-    let coords = geos_polygon_to_coords(geom)?;
-    let wgs84_coords: Vec<Vec<[f64; 2]>> = coords
-        .iter()
-        .map(|ring| {
-            ring.iter()
-                .map(|c| local_meters_to_wgs84(*c, center))
-                .collect()
-        })
-        .collect();
-    
-    coords_to_geos_polygon(&wgs84_coords)
 }
 
 /// Create tree row lines within a polygon

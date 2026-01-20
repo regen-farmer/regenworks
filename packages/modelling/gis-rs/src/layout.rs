@@ -8,6 +8,7 @@ use geos::Geom;
 
 use crate::geometry::{
     along, circle, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
+    wgs84_to_local_meters, local_meters_to_wgs84,
 };
 use crate::headland::{apply_headland, HeadlandResult};
 use crate::make_line::{make_initial_line, InitialLineResult};
@@ -184,36 +185,6 @@ pub fn system_based_layout(
             .map(|r| r.area_m2)
             .collect(),
     })
-}
-
-/// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
-/// centered on a reference point. This preserves distances from the center point.
-fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
-    use crate::geometry::{bearing, distance};
-    
-    let dist = distance(center, coord);
-    let brng = bearing(center, coord).to_radians();
-    
-    // Convert polar (distance, bearing) to cartesian (x, y) in meters
-    // x = east, y = north
-    let x = dist * brng.sin();
-    let y = dist * brng.cos();
-    
-    [x, y]
-}
-
-/// Project local meters back to WGS84 using Azimuthal Equidistant projection
-fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
-    use crate::geometry::destination;
-    
-    let x = coord[0];
-    let y = coord[1];
-    
-    // Convert cartesian to polar
-    let dist = (x * x + y * y).sqrt();
-    let brng = x.atan2(y).to_degrees(); // atan2(x, y) for bearing from north
-    
-    destination(center, dist, brng)
 }
 
 /// Apply margin (negative buffer) to a polygon using proper geodesic buffering

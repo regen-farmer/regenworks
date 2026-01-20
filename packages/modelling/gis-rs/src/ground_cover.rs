@@ -5,30 +5,11 @@
 
 use std::collections::HashMap;
 use geos::Geom;
-use crate::geometry::{coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords};
+use crate::geometry::{
+    coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords,
+    project_polygon_to_local, project_polygon_to_wgs84, project_line_to_local,
+};
 use crate::types::{GeoJsonFeature, RowDefinition};
-
-/// Convert meters to degrees based on latitude
-/// This is more accurate than a fixed conversion factor
-fn meters_to_degrees(meters: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    let meters_per_degree = 111_320.0 * lat_rad.cos();
-    if meters_per_degree > 0.0 {
-        meters / meters_per_degree
-    } else {
-        meters / 111_320.0
-    }
-}
-
-/// Convert area in square degrees to square meters based on latitude
-fn area_deg2_to_m2(area_deg2: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    // meters per degree of longitude varies with latitude
-    let meters_per_deg_lon = 111_320.0 * lat_rad.cos();
-    // meters per degree of latitude is roughly constant
-    let meters_per_deg_lat = 111_320.0;
-    area_deg2 * meters_per_deg_lon * meters_per_deg_lat
-}
 
 /// Result of ground cover area generation
 #[derive(Debug, Clone)]
@@ -45,6 +26,8 @@ pub struct GroundCoverResult {
 ///
 /// This function creates polygons only for rows that have groundcover defined,
 /// and accumulates the area by species.
+///
+/// Uses Azimuthal Equidistant projection for accurate geodesic buffering.
 ///
 /// # Arguments
 /// * `offset_polygon` - The headland polygon coordinates
@@ -64,18 +47,26 @@ pub fn make_ground_cover_areas(
         return Ok((vec![], HashMap::new()));
     }
 
+    // Calculate centroid as projection center
+    let center = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
+        let n = offset_polygon[0].len() as f64;
+        let sum_lon: f64 = offset_polygon[0].iter().map(|c| c[0]).sum();
+        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
+        [sum_lon / n, sum_lat / n]
+    } else {
+        [0.0, 0.0]
+    };
+
     // Only use exterior ring (ignore holes - trees/groundcover run over them)
     let exterior_only = vec![offset_polygon[0].clone()];
-    let polygon_geom = coords_to_geos_polygon(&exterior_only)?;
-    let line_geom = coords_to_geos_line(line_intersecting_area)?;
-
-    // Get the centroid latitude for meters-to-degrees conversion
-    let centroid_lat = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
-        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
-        sum_lat / offset_polygon[0].len() as f64
-    } else {
-        0.0
-    };
+    
+    // Project polygon and line to local meters
+    let local_polygon = project_polygon_to_local(&exterior_only, center);
+    let local_line = project_line_to_local(line_intersecting_area, center);
+    
+    // Create GEOS geometries in local coordinate system (meters)
+    let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
+    let line_geom = coords_to_geos_line(&local_line)?;
 
     let mut ground_cover_areas: Vec<GroundCoverResult> = Vec::new();
     let mut ground_cover_areas_m2: HashMap<String, f64> = HashMap::new();
@@ -100,18 +91,14 @@ pub fn make_ground_cover_areas(
             }
         };
 
-        // Create the elongated donut buffer
+        // Create the elongated donut buffer in meters (no conversion needed!)
         let elongated_donut = if accumulating_width > 0.0 {
-            let buffer_small_deg = meters_to_degrees(accumulating_width, centroid_lat);
-            let buffer_big_deg = meters_to_degrees(accumulating_width + row_width, centroid_lat);
-            
-            let buffer_small = line_geom.buffer(buffer_small_deg, 32)?;
-            let buffer_big = line_geom.buffer(buffer_big_deg, 32)?;
+            let buffer_small = line_geom.buffer(accumulating_width, 32)?;
+            let buffer_big = line_geom.buffer(accumulating_width + row_width, 32)?;
             
             buffer_big.difference(&buffer_small)?
         } else {
-            let buffer_deg = meters_to_degrees(row_width, centroid_lat);
-            line_geom.buffer(buffer_deg, 32)?
+            line_geom.buffer(row_width, 32)?
         };
 
         // Intersect with the field polygon
@@ -125,14 +112,15 @@ pub fn make_ground_cover_areas(
         
         match geom_type {
             geos::GeometryTypes::Polygon => {
-                let area = intersection.area()?;
-                let area_m2 = area_deg2_to_m2(area, centroid_lat);
+                let area_m2 = intersection.area()?; // Already in square meters!
                 
                 *ground_cover_areas_m2.get_mut(&groundcover_id).unwrap() += area_m2;
                 
-                if let Ok(coords) = geos_polygon_to_coords(&intersection) {
+                if let Ok(local_coords) = geos_polygon_to_coords(&intersection) {
+                    // Project back to WGS84
+                    let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
                     ground_cover_areas.push(GroundCoverResult {
-                        polygon: coords,
+                        polygon: wgs84_coords,
                         species_id: groundcover_id.clone(),
                         area_m2,
                     });
@@ -143,16 +131,17 @@ pub fn make_ground_cover_areas(
                 
                 for i in 0..num_geoms {
                     if let Ok(geom) = intersection.get_geometry_n(i) {
-                        let area = geom.area().unwrap_or(0.0);
-                        let area_m2 = area_deg2_to_m2(area, centroid_lat);
+                        let area_m2 = geom.area().unwrap_or(0.0); // Already in square meters!
                         
                         *ground_cover_areas_m2.get_mut(&groundcover_id).unwrap() += area_m2;
                         
                         // Clone to get owned geometry for geos_polygon_to_coords
                         let owned_geom = geom.clone();
-                        if let Ok(coords) = geos_polygon_to_coords(&owned_geom) {
+                        if let Ok(local_coords) = geos_polygon_to_coords(&owned_geom) {
+                            // Project back to WGS84
+                            let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
                             ground_cover_areas.push(GroundCoverResult {
-                                polygon: coords,
+                                polygon: wgs84_coords,
                                 species_id: groundcover_id.clone(),
                                 area_m2,
                             });
