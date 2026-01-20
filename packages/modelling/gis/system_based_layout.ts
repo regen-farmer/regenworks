@@ -17,9 +17,13 @@ import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
 import { makeInitialLine } from "./make_line.ts";
 import { makeTreeRowLines } from "./make_tree_row_lines.ts";
 
-// Rust model configuration
-const RUST_MODEL_URL = process.env.RUST_MODEL_URL || "http://localhost:3002";
-const USE_RUST_MODEL = process.env.USE_RUST_MODEL === "true";
+// Rust model configuration (only used server-side)
+const RUST_MODEL_URL =
+	typeof process !== "undefined"
+		? process.env.RUST_MODEL_URL || "http://localhost:3002"
+		: "http://localhost:3002";
+const USE_RUST_MODEL =
+	typeof process !== "undefined" && process.env.USE_RUST_MODEL === "true";
 
 /**
  * Call the Rust layout model via HTTP
@@ -28,23 +32,48 @@ async function callRustModel(
 	systemdesign: ISystemDesignSchema,
 	fieldGeometry: string,
 ) {
+	// Transform rows to match Rust expected format
+	const rows = systemdesign.rows.map((row: any) => ({
+		width: row.width,
+		sequence: (row.sequence || [])
+			.filter((entry: any) => entry && entry.species) // Filter out empty entries
+			.map((entry: any) => ({
+				species:
+					typeof entry.species === "string"
+						? entry.species
+						: entry.species?._id?.toString() ||
+							entry.species?.id ||
+							String(entry.species),
+				spacingAfter: entry.spacingAfter || 0,
+			})),
+		offset: row.offset,
+		groundcover: row.groundcover
+			? typeof row.groundcover === "string"
+				? row.groundcover
+				: row.groundcover?._id?.toString() || row.groundcover?.id
+			: undefined,
+	}));
+
+	const requestBody = {
+		systemdesign: {
+			rows,
+			bearing: systemdesign.bearing || 0,
+			margin: systemdesign.margin || 0,
+			headland: systemdesign.headland || 0,
+		},
+		fieldGeometry,
+	};
+
 	const response = await fetch(`${RUST_MODEL_URL}/layout`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			systemdesign: {
-				rows: systemdesign.rows,
-				bearing: systemdesign.bearing || 0,
-				margin: systemdesign.margin || 0,
-				headland: systemdesign.headland || 0,
-			},
-			fieldGeometry,
-		}),
+		body: JSON.stringify(requestBody),
 	});
 
 	if (!response.ok) {
+		const errorText = await response.text();
 		throw new Error(
-			`Rust model error: ${response.status} ${response.statusText}`,
+			`Rust model error: ${response.status} ${response.statusText} - ${errorText}`,
 		);
 	}
 

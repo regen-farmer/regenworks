@@ -17,8 +17,7 @@
 		"@types/mailchimp__mailchimp_transactional": "^1.0.11",
 		"@types/mapbox__mapbox-gl-draw": "^1.4.9",
 		"@xmldom/xmldom": "^0.9.5",
-		"nitro": "3.0.1-alpha.1",
-		"vite": "8.0.0-beta.8"
+		"vite": "^7.0.0"
 	},
 	"dependencies": {
 		"@auth/core": "^0.38.0",
@@ -55,6 +54,7 @@
 		"maplibre-gl": "^5.6.2",
 		"maplibre-gl-measures": "^0.0.16",
 		"multipart-object": "^1.2.0",
+
 		"postcss": "^8.5.6",
 		"solid-js": "^1.9.9",
 		"solid-sonner": "^0.2.8",
