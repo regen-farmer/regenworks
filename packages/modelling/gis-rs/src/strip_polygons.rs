@@ -61,7 +61,9 @@ pub fn make_all_strip_polygons(
         return Ok(vec![]);
     }
 
-    let polygon_geom = coords_to_geos_polygon(offset_polygon)?;
+    // Only use exterior ring (ignore holes - trees/groundcover run over them)
+    let exterior_only = vec![offset_polygon[0].clone()];
+    let polygon_geom = coords_to_geos_polygon(&exterior_only)?;
     let line_geom = coords_to_geos_line(line_intersecting_area)?;
 
     // Get the centroid latitude for meters-to-degrees conversion

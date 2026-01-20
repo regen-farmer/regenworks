@@ -114,10 +114,10 @@ pub fn make_tree_row_lines(
     };
     
     // Project polygon to local meters for accurate intersection calculations
-    let local_polygon: Vec<Vec<[f64; 2]>> = offset_polygon
-        .iter()
-        .map(|ring| ring.iter().map(|c| wgs84_to_local_meters(*c, center)).collect())
-        .collect();
+    // Only use exterior ring (ignore holes) - trees/groundcover run over holes
+    let local_polygon: Vec<Vec<[f64; 2]>> = vec![
+        offset_polygon[0].iter().map(|c| wgs84_to_local_meters(*c, center)).collect()
+    ];
     let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
     
     // Project reference line to local meters

@@ -149,8 +149,9 @@ pub fn apply_headland(
         headland_buffers.push(buffer);
     }
 
-    // Start with the margin polygon
-    let mut headland_geom = coords_to_geos_polygon(margin_polygon)?;
+    // Start with the margin polygon (exterior ring only - ignore holes)
+    let exterior_only = vec![margin_polygon[0].clone()];
+    let mut headland_geom = coords_to_geos_polygon(&exterior_only)?;
 
     // Subtract each headland buffer from the polygon
     for buffer in &headland_buffers {

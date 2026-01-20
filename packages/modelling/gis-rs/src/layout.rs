@@ -236,15 +236,12 @@ fn apply_margin(
     let center_lat: f64 = exterior.iter().map(|c| c[1]).sum::<f64>() / n;
     let center = [center_lon, center_lat];
     
-    // Project all coordinates to local meters
-    let local_coords: Vec<Vec<[f64; 2]>> = polygon_coords
-        .iter()
-        .map(|ring| {
-            ring.iter()
-                .map(|c| wgs84_to_local_meters(*c, center))
-                .collect()
-        })
-        .collect();
+    // Project exterior ring to local meters (ignore holes - trees/groundcover run over them)
+    let local_coords: Vec<Vec<[f64; 2]>> = vec![
+        polygon_coords[0].iter()
+            .map(|c| wgs84_to_local_meters(*c, center))
+            .collect()
+    ];
     
     // Create GEOS polygon in local coordinates (meters)
     let local_geom = coords_to_geos_polygon(&local_coords)
