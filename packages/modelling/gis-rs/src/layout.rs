@@ -186,49 +186,94 @@ pub fn system_based_layout(
     })
 }
 
-/// Convert meters to degrees based on latitude
-/// Convert meters to degrees for margin buffer
-/// Uses geometric mean of lat/lon conversion factors as a compromise
-/// since GEOS buffer is isotropic (same in all directions)
-fn meters_to_degrees_for_margin(meters: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    let meters_per_deg_lon = 111_320.0 * lat_rad.cos();
-    let meters_per_deg_lat = 111_320.0;
-    // Geometric mean balances the error between X and Y directions
-    let meters_per_deg_avg = (meters_per_deg_lon * meters_per_deg_lat).sqrt();
-    meters / meters_per_deg_avg
+/// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
+/// centered on a reference point. This preserves distances from the center point.
+fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    use crate::geometry::{bearing, distance};
+    
+    let dist = distance(center, coord);
+    let brng = bearing(center, coord).to_radians();
+    
+    // Convert polar (distance, bearing) to cartesian (x, y) in meters
+    // x = east, y = north
+    let x = dist * brng.sin();
+    let y = dist * brng.cos();
+    
+    [x, y]
 }
 
-/// Apply margin (negative buffer) to a polygon
+/// Project local meters back to WGS84 using Azimuthal Equidistant projection
+fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    use crate::geometry::destination;
+    
+    let x = coord[0];
+    let y = coord[1];
+    
+    // Convert cartesian to polar
+    let dist = (x * x + y * y).sqrt();
+    let brng = x.atan2(y).to_degrees(); // atan2(x, y) for bearing from north
+    
+    destination(center, dist, brng)
+}
+
+/// Apply margin (negative buffer) to a polygon using proper geodesic buffering
+/// 
+/// This projects the polygon to a local meter-based coordinate system,
+/// applies the buffer, then projects back to WGS84. This ensures the buffer
+/// distance is consistent in all directions.
 fn apply_margin(
     polygon_coords: &[Vec<[f64; 2]>],
     margin_m: f64,
 ) -> Result<Vec<Vec<[f64; 2]>>, String> {
-    let polygon_geom = coords_to_geos_polygon(polygon_coords)
+    if polygon_coords.is_empty() || polygon_coords[0].is_empty() {
+        return Ok(polygon_coords.to_vec());
+    }
+    
+    // Calculate centroid as projection center
+    let exterior = &polygon_coords[0];
+    let n = exterior.len() as f64;
+    let center_lon: f64 = exterior.iter().map(|c| c[0]).sum::<f64>() / n;
+    let center_lat: f64 = exterior.iter().map(|c| c[1]).sum::<f64>() / n;
+    let center = [center_lon, center_lat];
+    
+    // Project all coordinates to local meters
+    let local_coords: Vec<Vec<[f64; 2]>> = polygon_coords
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| wgs84_to_local_meters(*c, center))
+                .collect()
+        })
+        .collect();
+    
+    // Create GEOS polygon in local coordinates (meters)
+    let local_geom = coords_to_geos_polygon(&local_coords)
         .map_err(|e| format!("GEOS error: {:?}", e))?;
     
-    // Get centroid latitude for accurate conversion
-    let centroid_lat = if !polygon_coords.is_empty() && !polygon_coords[0].is_empty() {
-        let sum_lat: f64 = polygon_coords[0].iter().map(|c| c[1]).sum();
-        sum_lat / polygon_coords[0].len() as f64
-    } else {
-        0.0
-    };
-    
-    // Convert meters to degrees (negative for inward buffer)
-    let buffer_deg = -meters_to_degrees_for_margin(margin_m, centroid_lat);
-    
-    let buffered = polygon_geom.buffer(buffer_deg, 32)
+    // Apply buffer in meters (negative for inward buffer)
+    let buffered = local_geom.buffer(-margin_m, 32)
         .map_err(|e| format!("Buffer error: {:?}", e))?;
     
     // Check if buffer resulted in valid geometry
     if buffered.is_empty().unwrap_or(true) {
-        // Return original if buffer fails
         return Ok(polygon_coords.to_vec());
     }
     
-    geos_polygon_to_coords(&buffered)
-        .map_err(|e| format!("Coord extraction error: {:?}", e))
+    // Extract buffered coordinates (still in local meters)
+    let buffered_local = geos_polygon_to_coords(&buffered)
+        .map_err(|e| format!("Coord extraction error: {:?}", e))?;
+    
+    // Project back to WGS84
+    let result: Vec<Vec<[f64; 2]>> = buffered_local
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| local_meters_to_wgs84(*c, center))
+                .collect()
+        })
+        .collect();
+    
+    Ok(result)
 }
 
 /// Generate tree markers along row lines

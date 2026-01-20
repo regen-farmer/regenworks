@@ -5,21 +5,61 @@
 
 use geos::{Geom, Geometry};
 use crate::geometry::{
-    bearing, clamp_bearing_0_180, line_length,
+    bearing, clamp_bearing_0_180, line_length, distance, destination,
     coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords,
 };
 use crate::types::GeoJsonFeature;
 
-/// Convert meters to degrees based on latitude
-/// This is more accurate than a fixed conversion factor
-fn meters_to_degrees(meters: f64, latitude: f64) -> f64 {
-    let lat_rad = latitude.to_radians();
-    let meters_per_degree = 111_320.0 * lat_rad.cos();
-    if meters_per_degree > 0.0 {
-        meters / meters_per_degree
-    } else {
-        meters / 111_320.0
-    }
+/// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
+fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let dist = distance(center, coord);
+    let brng = bearing(center, coord).to_radians();
+    let x = dist * brng.sin();
+    let y = dist * brng.cos();
+    [x, y]
+}
+
+/// Project local meters back to WGS84
+fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let x = coord[0];
+    let y = coord[1];
+    let dist = (x * x + y * y).sqrt();
+    let brng = x.atan2(y).to_degrees();
+    destination(center, dist, brng)
+}
+
+/// Buffer a line in local meter coordinates for accurate geodesic buffering
+fn buffer_line_geodesic(line: &[[f64; 2]], buffer_m: f64) -> Result<Geometry, geos::Error> {
+    // Calculate center point for projection
+    let center = [
+        (line[0][0] + line[1][0]) / 2.0,
+        (line[0][1] + line[1][1]) / 2.0,
+    ];
+    
+    // Project line to local meters
+    let local_line: Vec<[f64; 2]> = line.iter()
+        .map(|c| wgs84_to_local_meters(*c, center))
+        .collect();
+    
+    // Create GEOS line in local coordinates
+    let local_geom = coords_to_geos_line(&local_line)?;
+    
+    // Buffer in meters
+    let buffered = local_geom.buffer(buffer_m, 32)?;
+    
+    // Extract coordinates and project back to WGS84
+    let buffered_coords = geos_polygon_to_coords(&buffered)?;
+    let wgs84_coords: Vec<Vec<[f64; 2]>> = buffered_coords
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| local_meters_to_wgs84(*c, center))
+                .collect()
+        })
+        .collect();
+    
+    // Create new GEOS polygon with WGS84 coordinates
+    coords_to_geos_polygon(&wgs84_coords)
 }
 
 /// Result of applying headland
@@ -91,16 +131,15 @@ pub fn apply_headland(
         })
         .collect();
 
-    // Create headland buffers for each perpendicular side
+    // Create headland buffers for each perpendicular side using geodesic buffering
     let mut headland_buffers: Vec<Geometry> = Vec::new();
     let mut headland_sides_coords: Vec<Vec<Vec<[f64; 2]>>> = Vec::new();
     
     let buffer_distance = if headland_m > 0.001 { headland_m } else { 0.001 };
-    let buffer_degrees = meters_to_degrees(buffer_distance, centroid_lat);
 
     for side in &sides_different_from_bearing {
-        let line_geom = coords_to_geos_line(side)?;
-        let buffer = line_geom.buffer(buffer_degrees, 32)?;
+        // Use geodesic buffering for accurate meter distances
+        let buffer = buffer_line_geodesic(side, buffer_distance)?;
         
         // Store buffer coordinates for output
         if let Ok(coords) = geos_polygon_to_coords(&buffer) {

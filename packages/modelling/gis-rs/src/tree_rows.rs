@@ -27,20 +27,55 @@ fn calculate_headland_offset(offset: &Option<crate::types::RowOffset>) -> (f64, 
     }
 }
 
-/// Convert meters to degrees based on latitude
-/// This is more accurate than a fixed conversion factor
-fn meters_to_degrees(meters: f64, latitude: f64) -> f64 {
-    // At the equator, 1 degree of longitude = ~111,320 meters
-    // This varies with latitude: 111,320 * cos(lat)
-    // For latitude adjustment: 1 degree of latitude = ~111,320 meters (constant)
-    // We use an average that works for both directions
-    let lat_rad = latitude.to_radians();
-    let meters_per_degree = 111_320.0 * lat_rad.cos();
-    if meters_per_degree > 0.0 {
-        meters / meters_per_degree
-    } else {
-        meters / 111_320.0
-    }
+/// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
+fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    use crate::geometry::{bearing as geo_bearing, distance};
+    let dist = distance(center, coord);
+    let brng = geo_bearing(center, coord).to_radians();
+    let x = dist * brng.sin();
+    let y = dist * brng.cos();
+    [x, y]
+}
+
+/// Project local meters back to WGS84
+fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    use crate::geometry::destination;
+    let x = coord[0];
+    let y = coord[1];
+    let dist = (x * x + y * y).sqrt();
+    let brng = x.atan2(y).to_degrees();
+    destination(center, dist, brng)
+}
+
+/// Buffer a line using geodesic projection for accurate meter distances
+fn buffer_line_geodesic(line: &[[f64; 2]], buffer_m: f64, center: [f64; 2]) -> Result<Geometry, geos::Error> {
+    // Project line to local meters
+    let local_line: Vec<[f64; 2]> = line.iter()
+        .map(|c| wgs84_to_local_meters(*c, center))
+        .collect();
+    
+    // Create GEOS line in local coordinates
+    let local_geom = coords_to_geos_line(&local_line)?;
+    
+    // Buffer in meters
+    local_geom.buffer(buffer_m, 32)
+}
+
+/// Project a GEOS polygon from local meters to WGS84
+fn project_polygon_to_wgs84(geom: &Geometry, center: [f64; 2]) -> Result<Geometry, geos::Error> {
+    use crate::geometry::geos_polygon_to_coords;
+    
+    let coords = geos_polygon_to_coords(geom)?;
+    let wgs84_coords: Vec<Vec<[f64; 2]>> = coords
+        .iter()
+        .map(|ring| {
+            ring.iter()
+                .map(|c| local_meters_to_wgs84(*c, center))
+                .collect()
+        })
+        .collect();
+    
+    coords_to_geos_polygon(&wgs84_coords)
 }
 
 /// Create tree row lines within a polygon
@@ -66,16 +101,31 @@ pub fn make_tree_row_lines(
         return Ok(vec![]);
     }
 
-    let polygon_geom = coords_to_geos_polygon(offset_polygon)?;
-    let line_geom = coords_to_geos_line(line_intersecting_area)?;
-    
-    // Get the centroid latitude for meters-to-degrees conversion
-    let centroid_lat = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
-        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
-        sum_lat / offset_polygon[0].len() as f64
+    // Calculate center for local projection (use polygon centroid)
+    let center = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
+        let exterior = &offset_polygon[0];
+        let n = exterior.len() as f64;
+        [
+            exterior.iter().map(|c| c[0]).sum::<f64>() / n,
+            exterior.iter().map(|c| c[1]).sum::<f64>() / n,
+        ]
     } else {
-        0.0
+        [0.0, 0.0]
     };
+    
+    // Project polygon to local meters for accurate intersection calculations
+    let local_polygon: Vec<Vec<[f64; 2]>> = offset_polygon
+        .iter()
+        .map(|ring| ring.iter().map(|c| wgs84_to_local_meters(*c, center)).collect())
+        .collect();
+    let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
+    
+    // Project reference line to local meters
+    let local_line: Vec<[f64; 2]> = line_intersecting_area
+        .iter()
+        .map(|c| wgs84_to_local_meters(*c, center))
+        .collect();
+    let line_geom = coords_to_geos_line(&local_line)?;
     
     // Get the bearing of the reference line
     let ref_bearing = bearing(line_intersecting_area[0], line_intersecting_area[1]);
@@ -98,38 +148,36 @@ pub fn make_tree_row_lines(
             break;
         }
 
-        // Buffer the line by the accumulated width
-        // Convert meters to degrees using latitude-aware conversion
-        let buffer_degrees = meters_to_degrees(accumulating_width, centroid_lat);
-        let buffer_geom = line_geom.buffer(buffer_degrees, 32)?;
+        // Buffer the line by the accumulated width (in meters, since we're in local coords)
+        let buffer_geom = line_geom.buffer(accumulating_width, 32)?;
 
         // Find intersection points between buffer boundary and polygon boundary
-        // TypeScript uses lineIntersect(bufferLine, offsetPolygon) which finds crossing points
-        // 
-        // The key insight: lineIntersect finds points where line segments CROSS each other.
-        // GEOS's intersection of two boundaries gives us the crossing points as a MultiPoint
-        // when the boundaries don't share any edges.
+        // (all in local meter coordinates)
         let buffer_boundary = buffer_geom.boundary()?;
         let polygon_boundary = polygon_geom.boundary()?;
         
         // Get the intersection of boundaries - should be Points where they cross
         let boundary_intersection = buffer_boundary.intersection(&polygon_boundary)?;
         
-        // Extract points from the intersection
-        let intersection_points = extract_all_points(&boundary_intersection)?;
+        // Extract points from the intersection (in local meters)
+        let intersection_points_local = extract_all_points(&boundary_intersection)?;
         
         // Sort intersection points and create row lines
-        if intersection_points.len() >= 2 {
-            let sorted_points = sort_intersection_points(&intersection_points);
+        if intersection_points_local.len() >= 2 {
+            let sorted_points = sort_intersection_points(&intersection_points_local);
             
             // Create lines between pairs of points
             for k in 0..(sorted_points.len() / 2) {
-                let start = sorted_points[k * 2];
-                let end = sorted_points[k * 2 + 1];
+                let start_local = sorted_points[k * 2];
+                let end_local = sorted_points[k * 2 + 1];
+                
+                // Project back to WGS84
+                let start = local_meters_to_wgs84(start_local, center);
+                let end = local_meters_to_wgs84(end_local, center);
                 
                 let mut row_line = vec![start, end];
                 
-                // Check and fix bearing direction
+                // Check and fix bearing direction (now comparing WGS84 bearings)
                 let row_bearing = bearing(row_line[0], row_line[1]);
                 let bearing_diff = (row_bearing - ref_bearing).abs();
                 if bearing_diff > 1.0 && bearing_diff < 359.0 {
@@ -142,7 +190,7 @@ pub fn make_tree_row_lines(
                     }
                 }
                 
-                // Apply offsets
+                // Apply offsets (these work in meters via geodesic along())
                 let (before, after) = calculate_headland_offset(&rows[current_row_idx].offset);
                 let row_length = line_length(&row_line);
                 
