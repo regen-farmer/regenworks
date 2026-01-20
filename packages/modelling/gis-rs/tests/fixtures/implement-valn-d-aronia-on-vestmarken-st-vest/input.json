@@ -1,0 +1,376 @@
+{
+  "name": "Implement Valnød aronia on Vestmarken - Øst vest",
+  "projectId": "63a234326cab5d65d594d7c2",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.994364,55.605553],[11.994,55.604929],[11.997517,55.604026],[11.998632,55.605177],[11.994364,55.605553]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e6502a2e4a1961d40fc538f",
+              "nameCommon": "Black chokeberries",
+              "genus": "aronia",
+              "species": "melanocarpa"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 5
+      }
+    ],
+    "bearing": 3,
+    "margin": 4,
+    "headland": 0
+  }
+}

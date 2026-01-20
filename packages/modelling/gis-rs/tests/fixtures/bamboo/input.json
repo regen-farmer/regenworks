@@ -1,0 +1,46 @@
+{
+  "name": "Bamboo",
+  "projectId": "64a3e2e558b32dd0533b89b2",
+  "fieldGeometry": "{\"id\":\"4787deaaed0d6125b7425695ff04ce3c\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[-0.12329466557628166,51.5064977396907],[-0.12389548039516285,51.5050018643677],[-0.12280113911612034,51.50470802649264],[-0.1224792740354701,51.50651109549952],[-0.12329466557628166,51.5064977396907]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "width": 8,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 5,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 5,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 6,
+    "margin": 3,
+    "headland": 2
+  }
+}

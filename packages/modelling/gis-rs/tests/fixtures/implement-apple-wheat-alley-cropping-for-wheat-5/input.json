@@ -1,0 +1,36 @@
+{
+  "name": "Implement Apple wheat alley cropping for Wheat #5",
+  "projectId": "5faa6a929d25ff2a106d056c",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.573571,54.807985],[11.575316,54.807998],[11.575333,54.808588],[11.572718,54.808583],[11.573571,54.807985]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 0,
+    "margin": 5,
+    "headland": 0
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "name": "Interrow",
+  "projectId": "68bab24e3d1eb3b69ea944f9",
+  "fieldGeometry": "{\"id\":\"c0STWwG9QBHlPf0GE2753MNtGk3wpVbN\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[10.163637209430505,55.205719502568485],[10.157666339938629,55.205836290528],[10.158953849930668,55.208309408574905],[10.164088263785487,55.20785243864668],[10.163637209430505,55.205719502568485]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e665be6a5944911743ec85f",
+              "nameCommon": "White willow",
+              "genus": "salix",
+              "species": "alba"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 6
+          }
+        ],
+        "groundcover": {
+          "_id": "602a40052bb0822e8479d155",
+          "nameCommon": "White Clover",
+          "genus": "trifolium",
+          "species": "repens"
+        },
+        "width": 3,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e665be6a5944911743ec85f",
+              "nameCommon": "White willow",
+              "genus": "salix",
+              "species": "alba"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e66195ec0c63516dc441d29",
+          "nameCommon": "Barley",
+          "genus": "hordeum",
+          "species": "vulgare"
+        },
+        "width": 24,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 16.5,
+    "margin": 26,
+    "headland": 0
+  }
+}

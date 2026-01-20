@@ -1,0 +1,180 @@
+{
+  "name": "Implement Cacao",
+  "projectId": "5f9e03dbe1864e00159b261e",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[42.896485,17.668174],[42.898829,17.666849],[42.89706,17.665696],[42.896485,17.668174]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e78bfb7dda4d61cb0c7db77",
+              "nameCommon": "Papaya",
+              "genus": "carica",
+              "species": "papaya"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e74a7f3445ae10f80d75415",
+              "nameCommon": "Cashew",
+              "genus": "anacardium",
+              "species": "occidentale"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e5e4fccf4fdee214457aa63",
+              "nameCommon": "Mango",
+              "genus": "mangifera",
+              "species": "indica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 6
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7d10cef8ceb9231c62b545",
+              "nameCommon": "Baobab",
+              "genus": "adansonia",
+              "species": "digitata"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e74a7f3445ae10f80d75415",
+              "nameCommon": "Cashew",
+              "genus": "anacardium",
+              "species": "occidentale"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 4
+      }
+    ],
+    "bearing": 0,
+    "margin": 0,
+    "headland": 0
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Implement Arecanut cacao intercropping",
+  "projectId": "5ee32f8506f06a0a40a3c8c0",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-45.676855,-22.045293],[-45.676062,-22.04558],[-45.676787,-22.045878],[-45.677164,-22.046415],[-45.677687,-22.04591],[-45.676855,-22.045293]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e5826699f940f16885865bb",
+              "nameCommon": "Betel nut",
+              "genus": "areca",
+              "species": "catechu"
+            },
+            "spacingAfter": 2.7
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 2.7
+          }
+        ],
+        "width": 2.7
+      }
+    ],
+    "bearing": 0,
+    "margin": 2,
+    "headland": 0
+  }
+}

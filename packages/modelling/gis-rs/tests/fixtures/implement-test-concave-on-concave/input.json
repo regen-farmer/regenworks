@@ -1,0 +1,26 @@
+{
+  "name": "Implement Test concave on concave",
+  "projectId": "63eb62542882383c9acb1fc0",
+  "fieldGeometry": "{\"id\":\"a54311d0a96365d881c845d361179034\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.9631642320347,55.97873475487674],[9.958437874603192,55.97902063486168],[9.96201457752386,55.97566141158242],[9.968273807635967,55.97816298856725],[9.969167983366447,55.98073587039789],[9.9631642320347,55.97873475487674]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e5e50e1f4fdee214457aa64",
+              "nameCommon": "Acai",
+              "genus": "euterpe",
+              "species": "oleracea"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "width": 9
+      }
+    ],
+    "bearing": 0,
+    "margin": 0,
+    "headland": 2
+  }
+}

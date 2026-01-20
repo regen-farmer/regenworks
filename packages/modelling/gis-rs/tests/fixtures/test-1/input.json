@@ -1,0 +1,36 @@
+{
+  "name": "Test",
+  "projectId": "64c3b27d285783301c548545",
+  "fieldGeometry": "{\"id\":\"349b0c7a4f5b6984e3dc0395f607b072\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.785047670215079,56.10192957123735],[9.785543150654888,56.103725725956394],[9.791488915931268,56.10324215408363],[9.789383124062425,56.10116963439745],[9.785047670215079,56.10192957123735]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "groundcover": {
+          "_id": "5e6619e0c0c63516dc441d2b",
+          "nameCommon": "Oat",
+          "genus": "avena",
+          "species": "sativa"
+        },
+        "width": 6,
+        "offset": {
+          "before": 2,
+          "after": 2
+        }
+      }
+    ],
+    "bearing": 0,
+    "margin": 0,
+    "headland": 4
+  }
+}

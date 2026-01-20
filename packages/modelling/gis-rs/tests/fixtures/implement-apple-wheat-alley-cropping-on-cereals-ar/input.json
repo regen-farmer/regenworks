@@ -1,0 +1,36 @@
+{
+  "name": "Implement Apple wheat alley cropping on Cereals area #1",
+  "projectId": "5f9875488c4fb6110858223a",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.574925,54.800079],[11.57486,54.800024],[11.57441,54.800096],[11.568675,54.801065],[11.565934,54.801536],[11.56709,54.803901],[11.569397,54.803579],[11.56992,54.803406],[11.570519,54.803176],[11.570845,54.803067],[11.571334,54.802948],[11.572771,54.802581],[11.574144,54.8022],[11.575491,54.801746],[11.574925,54.800079]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 0,
+    "margin": 20,
+    "headland": 0
+  }
+}

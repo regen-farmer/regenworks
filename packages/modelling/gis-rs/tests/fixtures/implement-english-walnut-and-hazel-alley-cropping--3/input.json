@@ -1,0 +1,251 @@
+{
+  "name": "Implement English walnut and hazel alley cropping system on 4801",
+  "projectId": "5f51e3e4a5b8180240fe349f",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-0.009453,52.70544],[-0.017121,52.704186],[-0.016694,52.704645],[-0.012583,52.708734],[-0.004795,52.710054],[-0.009453,52.70544]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 1
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 1
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e714ba645c2fc2308d87966",
+              "nameCommon": "White Birch",
+              "genus": "betula",
+              "species": "pubescens"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e72acdd4c6f102120c146ff",
+              "nameCommon": "Black alder",
+              "genus": "alnus",
+              "species": "glutinosa"
+            },
+            "spacingAfter": 7
+          },
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 7
+          },
+          {
+            "species": {
+              "_id": "5e72a8dc4c6f102120c146fb",
+              "nameCommon": "Sweet cherry",
+              "genus": "prunus",
+              "species": "avium"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e714ba645c2fc2308d87966",
+              "nameCommon": "White Birch",
+              "genus": "betula",
+              "species": "pubescens"
+            },
+            "spacingAfter": 7
+          },
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 7
+          },
+          {
+            "species": {
+              "_id": "5e72a8dc4c6f102120c146fb",
+              "nameCommon": "Sweet cherry",
+              "genus": "prunus",
+              "species": "avium"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e72acdd4c6f102120c146ff",
+              "nameCommon": "Black alder",
+              "genus": "alnus",
+              "species": "glutinosa"
+            },
+            "spacingAfter": 7
+          },
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 7
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 3,
+    "margin": 36,
+    "headland": 0
+  }
+}

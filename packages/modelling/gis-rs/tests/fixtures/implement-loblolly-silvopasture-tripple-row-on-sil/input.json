@@ -1,0 +1,112 @@
+{
+  "name": "Implement Loblolly Silvopasture tripple row on Silvopasture Field #1",
+  "projectId": "62a07f7dd4464b0016f29fb6",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-82.190531,34.39523],[-82.190617,34.394851],[-82.190886,34.394509],[-82.191354,34.394155],[-82.191646,34.394063],[-82.192334,34.394098],[-82.192785,34.39424],[-82.192346,34.394941],[-82.19184,34.394782],[-82.19141,34.395125],[-82.19144,34.395313],[-82.191273,34.395402],[-82.190839,34.395324],[-82.190531,34.39523]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "62a07e6dd4464b0016f29faa",
+              "nameCommon": "Loblolly Pine",
+              "genus": "pinus",
+              "species": "taeda"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 27,
+    "margin": 5,
+    "headland": 0
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "Apple trees",
+  "projectId": "64897f091ad571da4764e9a2",
+  "fieldGeometry": "{\"id\":\"ccaf07500c89141d10288465b57bba99\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.777565807180963,56.07780700829014],[9.779107264610019,56.07780700829014],[9.779976086070974,56.07743163081693],[9.78266662994821,56.07740034919581],[9.78266662994821,56.07611778086388],[9.782190179470064,56.0759926499606],[9.77896713211689,56.07616470484791],[9.778518708137227,56.07672778819878],[9.77753778068157,56.07675907036588],[9.777565807180963,56.07780700829014]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5e5e50e1f4fdee214457aa64",
+              "nameCommon": "Acai",
+              "genus": "euterpe",
+              "species": "oleracea"
+            },
+            "spacingAfter": 10
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 5,
+        "offset": {
+          "before": 10,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 10,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 0,
+    "margin": 3,
+    "headland": 7
+  }
+}

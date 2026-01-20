@@ -1,0 +1,406 @@
+{
+  "name": "Implement Sweet chestnut apple red currant  on New agroforestry system",
+  "projectId": "62cd97ee0fb48d0016f6f7c2",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[14.747684,55.211168],[14.748741,55.211982],[14.749079,55.212],[14.750694,55.211722],[14.75064,55.211572],[14.750661,55.211247],[14.750211,55.210577],[14.747684,55.211168]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6501a0e4a1961d40fc538e",
+              "nameCommon": "Sweet chestnut",
+              "genus": "castanea",
+              "species": "sativa"
+            },
+            "spacingAfter": 15
+          }
+        ],
+        "width": 6
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 1.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66bed8342b8c00150adc0e",
+              "nameCommon": "Redcurrant",
+              "genus": "ribes",
+              "species": "rubrum"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 1.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      }
+    ],
+    "bearing": 35,
+    "margin": 5,
+    "headland": 0
+  }
+}

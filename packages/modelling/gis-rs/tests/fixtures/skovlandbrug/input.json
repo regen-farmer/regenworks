@@ -1,0 +1,98 @@
+{
+  "name": "Skovlandbrug",
+  "projectId": "68abeb98f65107a4a9e4f5e3",
+  "fieldGeometry": "{\"id\":\"4fDArQV5xf1n7ultQYZbOwGJ6EgvGwiY\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[10.157064199447632,55.19581564460876],[10.159177780151367,55.19365390724721],[10.157192945480347,55.193139482208124],[10.155433416366577,55.19499505557326],[10.155755281448364,55.19527062840348],[10.155926942825317,55.19539310460493],[10.15610933303833,55.19550333286415],[10.156334638595581,55.1955890657438],[10.157064199447632,55.19581564460876]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6501a0e4a1961d40fc538e",
+              "nameCommon": "Sweet chestnut",
+              "genus": "castanea",
+              "species": "sativa"
+            },
+            "spacingAfter": 7
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 4,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": -28.5,
+    "margin": 24,
+    "headland": 0
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "chestnuts + currants",
+  "projectId": "68bab4070060a0487420f4ef",
+  "fieldGeometry": "{\"id\":\"c0STWwG9QBHlPf0GE2753MNtGk3wpVbN\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[10.163637209430505,55.205719502568485],[10.157666339938629,55.205836290528],[10.158953849930668,55.208309408574905],[10.164088263785487,55.20785243864668],[10.163637209430505,55.205719502568485]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66be67342b8c00150adc0d",
+              "nameCommon": "Blackcurrant",
+              "genus": "ribes",
+              "species": "nigrum"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6501a0e4a1961d40fc538e",
+              "nameCommon": "Sweet chestnut",
+              "genus": "castanea",
+              "species": "sativa"
+            },
+            "spacingAfter": 6
+          }
+        ],
+        "width": 4,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66be67342b8c00150adc0d",
+              "nameCommon": "Blackcurrant",
+              "genus": "ribes",
+              "species": "nigrum"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e66195ec0c63516dc441d29",
+          "nameCommon": "Barley",
+          "genus": "hordeum",
+          "species": "vulgare"
+        },
+        "width": 24,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 16.5,
+    "margin": 26,
+    "headland": 0
+  }
+}
