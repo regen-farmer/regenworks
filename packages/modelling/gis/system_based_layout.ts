@@ -1,24 +1,88 @@
-import {
-	type helpers as turf,
-	length as turfLength,
-	buffer,
-	along,
-	circle,
-	difference,
-	area
-} from "@turf/turf";
-
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import { makeInitialLine } from "./make_line.ts";
-import { makeTreeRowLines } from "./make_tree_row_lines.ts";
-import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
-import { makeAllStripPolygons } from "./make_all_strip_polygons.ts";
-import { applyHeadland } from "./headland.ts";
 import SystemDesign, {
 	type ISystemDesignSchema,
 } from "@rw/db/schemas/systemdesign.ts";
+import {
+	along,
+	area,
+	buffer,
+	circle,
+	difference,
+	type helpers as turf,
+	length as turfLength,
+} from "@turf/turf";
+import { applyHeadland } from "./headland.ts";
+import { makeAllStripPolygons } from "./make_all_strip_polygons.ts";
+import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
+import { makeInitialLine } from "./make_line.ts";
+import { makeTreeRowLines } from "./make_tree_row_lines.ts";
 
-export function systemBasedLayout(
+// Rust model configuration
+const RUST_MODEL_URL = process.env.RUST_MODEL_URL || "http://localhost:3002";
+const USE_RUST_MODEL = process.env.USE_RUST_MODEL === "true";
+
+/**
+ * Call the Rust layout model via HTTP
+ */
+async function callRustModel(
+	systemdesign: ISystemDesignSchema,
+	fieldGeometry: string,
+) {
+	const response = await fetch(`${RUST_MODEL_URL}/layout`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			systemdesign: {
+				rows: systemdesign.rows,
+				bearing: systemdesign.bearing || 0,
+				margin: systemdesign.margin || 0,
+				headland: systemdesign.headland || 0,
+			},
+			fieldGeometry,
+		}),
+	});
+
+	if (!response.ok) {
+		throw new Error(
+			`Rust model error: ${response.status} ${response.statusText}`,
+		);
+	}
+
+	const result = await response.json();
+	if (!result.success) {
+		throw new Error(`Rust model failed: ${result.error}`);
+	}
+
+	return result.data;
+}
+
+/**
+ * Async version that can use Rust model
+ */
+export async function systemBasedLayoutAsync(
+	systemdesign: ISystemDesignSchema,
+	fieldGeometry: string,
+) {
+	if (USE_RUST_MODEL) {
+		try {
+			const rustResult = await callRustModel(systemdesign, fieldGeometry);
+			console.log(
+				`[Rust model] Layout generated in ${rustResult.timingMs?.toFixed(1) || "?"}ms`,
+			);
+			return rustResult;
+		} catch (error) {
+			console.warn("[Rust model] Failed, falling back to TypeScript:", error);
+			// Fall through to TypeScript implementation
+		}
+	}
+
+	return systemBasedLayoutSync(systemdesign, fieldGeometry);
+}
+
+/**
+ * Synchronous TypeScript implementation (original)
+ */
+export function systemBasedLayoutSync(
 	systemdesign: ISystemDesignSchema,
 	fieldGeometry: string,
 ) {
@@ -55,7 +119,7 @@ export function systemBasedLayout(
 			marginPolygon = buffer(polygon, -margin, {
 				units: "meters",
 			});
-			
+
 			// If buffer returns null (can happen with invalid geometries or too large margins)
 			if (!marginPolygon) {
 				console.warn("Buffer operation returned null, using original polygon");
@@ -73,9 +137,11 @@ export function systemBasedLayout(
 
 	// HEADLAND
 	// Ensure bearing is a valid number
-	const bearing = typeof systemdesign.bearing === 'number' ? systemdesign.bearing : 0;
-	const headland = typeof systemdesign.headland === 'number' ? systemdesign.headland : 0;
-	
+	const bearing =
+		typeof systemdesign.bearing === "number" ? systemdesign.bearing : 0;
+	const headland =
+		typeof systemdesign.headland === "number" ? systemdesign.headland : 0;
+
 	const {
 		headlandSides,
 		headlandPolygon,
@@ -143,20 +209,27 @@ export function systemBasedLayout(
 		}
 	}
 
-	const speciesCounts = treeMarkerArray.reduce((counts: Record<string, { species: any; count: number }>, marker: any) => {
-		// console.log('marker.species', marker.species)
-		if (!marker.species) return counts;
+	const speciesCounts = treeMarkerArray.reduce(
+		(counts: Record<string, { species: any; count: number }>, marker: any) => {
+			// console.log('marker.species', marker.species)
+			if (!marker.species) return counts;
 
-		const key = String((marker.species as any)?._id ?? (marker.species as any)?.id ?? marker.species);
-		if (!counts[key]) {
-			counts[key] = {
-				species: marker.species,
-				count: 0,
-			};
-		}
-		counts[key].count++;
-		return counts;
-	}, {} as Record<string, { species: any; count: number }>);
+			const key = String(
+				(marker.species as any)?._id ??
+					(marker.species as any)?.id ??
+					marker.species,
+			);
+			if (!counts[key]) {
+				counts[key] = {
+					species: marker.species,
+					count: 0,
+				};
+			}
+			counts[key].count++;
+			return counts;
+		},
+		{} as Record<string, { species: any; count: number }>,
+	);
 
 	console.log("speciesCounts", speciesCounts);
 
@@ -167,14 +240,12 @@ export function systemBasedLayout(
 	// rowArray.concat(edgeRowArray);
 	// treeCanopyArray.concat(edgeTreeCanopyArray);
 
-
 	// const marginGeometry = difference({
 	// type: "FeatureCollection",
 	// features: [polygon, headlandPolygon]})
 	// const marginArea = area(marginGeometry);
-	
-	// console.log("Margin area", marginArea, area(marginArea))
 
+	// console.log("Margin area", marginArea, area(marginArea))
 
 	return {
 		speciesCountArray,
@@ -193,3 +264,9 @@ export function systemBasedLayout(
 		// marginArea
 	};
 }
+
+/**
+ * Default export - synchronous TypeScript implementation
+ * Use systemBasedLayoutAsync() to leverage the Rust model when USE_RUST_MODEL=true
+ */
+export const systemBasedLayout = systemBasedLayoutSync;
