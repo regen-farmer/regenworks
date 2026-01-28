@@ -1,21 +1,23 @@
 {
-  "name": "@rw/modelling",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "@rw/db": "workspace:*",
-    "@turf/turf": "^7.1.0",
-    "lodash": "^4.17.21"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/geojson": "^7946.0.14"
-  }
+	"name": "@rw/modelling",
+	"version": "1.0.0",
+	"description": "",
+	"type": "module",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build:wasm": "cd gis-rs && wasm-pack build --target web --out-dir ../gis-wasm/pkg"
+	},
+	"dependencies": {
+		"@rw/db": "workspace:*",
+		"@turf/turf": "^7.1.0",
+		"geos-wasm": "^3.1.1",
+		"lodash": "^4.17.21"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/geojson": "^7946.0.14"
+	}
 }

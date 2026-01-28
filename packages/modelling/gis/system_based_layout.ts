@@ -26,6 +26,77 @@ const USE_RUST_MODEL =
 	typeof process !== "undefined" && process.env.USE_RUST_MODEL === "true";
 
 /**
+ * Check if running in Tauri desktop environment
+ */
+function isTauri(): boolean {
+	return typeof window !== "undefined" && "__TAURI__" in window;
+}
+
+/**
+ * Call the Rust layout model via Tauri IPC (native, fastest)
+ */
+async function callTauriModel(
+	systemdesign: ISystemDesignSchema,
+	fieldGeometry: string,
+) {
+	// Transform rows to match Rust expected format
+	const rows = systemdesign.rows.map((row: any) => ({
+		width: row.width,
+		sequence: (row.sequence || [])
+			.filter((entry: any) => entry && entry.species)
+			.map((entry: any) => ({
+				species:
+					typeof entry.species === "string"
+						? { _id: entry.species }
+						: {
+								_id:
+									entry.species?._id?.toString() ||
+									entry.species?.id ||
+									String(entry.species),
+								nameCommon: entry.species?.nameCommon,
+								genus: entry.species?.genus,
+								species: entry.species?.species,
+							},
+				spacingAfter: entry.spacingAfter || 0,
+			})),
+		offset: row.offset,
+		groundcover: row.groundcover
+			? typeof row.groundcover === "string"
+				? { _id: row.groundcover }
+				: {
+						_id: row.groundcover?._id?.toString() || row.groundcover?.id,
+						nameCommon: row.groundcover?.nameCommon,
+					}
+			: undefined,
+	}));
+
+	const requestBody = {
+		systemdesign: {
+			rows,
+			bearing: systemdesign.bearing || 0,
+			margin: systemdesign.margin || 0,
+			headland: systemdesign.headland || 0,
+		},
+		fieldGeometry,
+	};
+
+	// Use Tauri's global API
+	const result = await (window as any).__TAURI__.core.invoke(
+		"generate_layout",
+		requestBody,
+	);
+
+	if (!result.success) {
+		throw new Error(`Tauri layout failed: ${result.error}`);
+	}
+
+	console.log(
+		`[Tauri native] Layout generated in ${result.timingMs?.toFixed(1) || "?"}ms`,
+	);
+	return result.data;
+}
+
+/**
  * Call the Rust layout model via HTTP
  */
 async function callRustModel(
@@ -86,12 +157,25 @@ async function callRustModel(
 }
 
 /**
- * Async version that can use Rust model
+ * Async version that can use Rust model (Tauri native or HTTP)
+ * Priority: 1. Tauri native (fastest), 2. HTTP Rust model, 3. TypeScript fallback
  */
 export async function systemBasedLayoutAsync(
 	systemdesign: ISystemDesignSchema,
 	fieldGeometry: string,
 ) {
+	// Try Tauri native first (desktop app)
+	if (isTauri()) {
+		try {
+			const tauriResult = await callTauriModel(systemdesign, fieldGeometry);
+			return tauriResult;
+		} catch (error) {
+			console.warn("[Tauri native] Failed, falling back:", error);
+			// Fall through to other options
+		}
+	}
+
+	// Try HTTP Rust model (server-side)
 	if (USE_RUST_MODEL) {
 		try {
 			const rustResult = await callRustModel(systemdesign, fieldGeometry);

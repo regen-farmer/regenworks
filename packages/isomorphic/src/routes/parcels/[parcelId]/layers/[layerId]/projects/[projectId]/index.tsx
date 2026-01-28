@@ -49,7 +49,7 @@ import type {
 	ISystemDesignSchema,
 	SystemDesignDocument,
 } from "@rw/db/schemas/systemdesign.ts";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
+import { systemBasedLayoutAsync } from "@rw/modelling/gis/system_based_layout.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import _ from "lodash";
 import { OfferRequestModal } from "~/components/OfferRequestModal";
@@ -178,7 +178,7 @@ export default function view() {
 			if (result.error) {
 				console.error("Layout generation failed:", result.error);
 				// Fallback to client-side
-				const layout = systemBasedLayout(
+				const layout = await systemBasedLayoutAsync(
 					system,
 					scenarioData()?.project.layer.geometry,
 				);
@@ -200,7 +200,7 @@ export default function view() {
 		} catch (error) {
 			console.error("Server layout failed, using client-side:", error);
 			// Fallback to client-side
-			const layout = systemBasedLayout(
+			const layout = await systemBasedLayoutAsync(
 				system,
 				scenarioData()?.project.layer.geometry,
 			);

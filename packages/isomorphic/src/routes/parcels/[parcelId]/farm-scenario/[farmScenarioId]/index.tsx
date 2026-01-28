@@ -2,7 +2,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { MaptilerNavigationControl } from "@maptiler/sdk";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
+import { systemBasedLayoutAsync } from "@rw/modelling/gis/system_based_layout.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { useParams } from "@solidjs/router";
 import { bbox, helpers as turf } from "@turf/turf";
@@ -176,7 +176,10 @@ const FarmScenarioPreview: Component = () => {
 							Array.isArray(systemDesign.rows) &&
 							systemDesign.rows.length > 0
 						) {
-							systemLayout = systemBasedLayout(systemDesign, geometryString);
+							systemLayout = await systemBasedLayoutAsync(
+								systemDesign,
+								geometryString,
+							);
 						} else {
 							console.warn(
 								`System design for layer ${layerData._id} is missing rows data, skipping layout calculation`,
@@ -652,7 +655,10 @@ const FarmScenarioPreview: Component = () => {
 									: JSON.stringify(selected.geometry);
 
 							try {
-								const layout = systemBasedLayout(systemDesign, geometryString);
+								const layout = await systemBasedLayoutAsync(
+									systemDesign,
+									geometryString,
+								);
 								// Mutate the selected field so downstream effects can draw it
 								selected.systemDesign = systemDesign;
 								selected.systemLayout = layout;
@@ -841,7 +847,7 @@ const FarmScenarioPreview: Component = () => {
 										: JSON.stringify(selected.geometry);
 
 								try {
-									const layout = systemBasedLayout(
+									const layout = await systemBasedLayoutAsync(
 										systemDesign,
 										geometryString,
 									);

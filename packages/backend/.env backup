@@ -1,0 +1,10 @@
+# DATABASEURL=mongodb+srv://regenfarmer:q4vd88pr3rw98z@regenclusterstaging.awh1liq.mongodb.net/test
+# DATABASEURL=mongodb+srv://regenfarmer:q4vd88pr3rw98z@regenclusterstaging.awh1liq.mongodb.net/test?retryWrites=true&w=majority&appName=RegenClusterStaging
+DATABASEURL=mongodb+srv://regenfarmer:q4vd88pr3rw98z@regenclusterstaging.awh1liq.mongodb.net/?retryWrites=true&w=majority&appName=RegenClusterStaging
+GEOCODER_API_KEY=c73b4128111c4aea9269cda936fce444
+GMAILPW=
+BACKEND_PORT=3001
+STRIPE_MODE=DEV
+STRIPE_SECRET_KEY=sk_test_v6DAwtVUgGPnYYOT8czuAFld
+RESEND_API_KEY=re_GVYyL8Ky_4xMgTWXe2NpYckj9zpoqjRBB
+PLANT_OFFER_RECIPIENT=birk@regenfarmer.com
