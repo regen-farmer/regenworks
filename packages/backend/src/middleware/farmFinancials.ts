@@ -6,7 +6,7 @@
 
 import type { IFinancialModelSchema } from "@rw/db/schemas/financialModel.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
+import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
 import area from "@turf/area";
 
 // Types for financial calculations

@@ -12,11 +12,11 @@ import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
-import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout.ts";
+import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
 import {
 	systemBasedLayout,
 	systemBasedLayoutAsync,
-} from "@rw/modelling/gis/system_based_layout.ts";
+} from "@rw/modelling/gis-ts/system_based_layout.ts";
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";

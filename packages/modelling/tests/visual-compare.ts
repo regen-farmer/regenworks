@@ -3,13 +3,13 @@
  *
  * Generates SVG images for both implementations in each fixture folder.
  *
- * Run with: pnpm tsx packages/modelling/gis-rs/tests/visual-compare.ts [fixture-name]
+ * Run with: pnpm tsx packages/modelling/tests/visual-compare.ts [fixture-name]
  */
 
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { systemBasedLayout } from "../../gis/system_based_layout.ts";
+import { systemBasedLayout } from "../gis-ts/system_based_layout.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

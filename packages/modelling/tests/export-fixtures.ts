@@ -1,7 +1,7 @@
 /**
  * Export test fixtures from the database
  *
- * Run from repo root: pnpm tsx packages/modelling/gis-rs/tests/export-fixtures.ts
+ * Run from repo root: pnpm tsx packages/modelling/tests/export-fixtures.ts
  */
 
 import * as fs from "fs";
@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Read env file manually
-const envPath = path.join(__dirname, "../../../backend/.env");
+const envPath = path.join(__dirname, "../../backend/.env");
 const envContent = fs.readFileSync(envPath, "utf-8");
 const envLines = envContent.split("\n");
 const env: Record<string, string> = {};

@@ -7,11 +7,11 @@ import System from "@rw/db/schemas/system.ts";
 import Posting, { type IPostingSchema } from "@rw/db/schemas/posting.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import middleware from "../middleware/index.ts";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
+import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import type { Auth0IDToken } from "../app.ts";
-import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout.ts";
+import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
 
 const router = express.Router();
 

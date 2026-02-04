@@ -424,7 +424,7 @@ router.get(
 
 				// Use the layout calculation to get accurate counts
 				const { systemBasedLayout } = await import(
-					"@rw/modelling/gis/system_based_layout.ts"
+					"@rw/modelling/gis-ts/system_based_layout.ts"
 				);
 
 				const layer = fs.layer as any;

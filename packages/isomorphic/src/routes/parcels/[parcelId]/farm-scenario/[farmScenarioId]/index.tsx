@@ -2,8 +2,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { MaptilerNavigationControl } from "@maptiler/sdk";
-import { systemBasedLayoutAsync } from "@rw/modelling/gis/system_based_layout.ts";
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import { useParams } from "@solidjs/router";
 import { bbox, helpers as turf } from "@turf/turf";
 import {
