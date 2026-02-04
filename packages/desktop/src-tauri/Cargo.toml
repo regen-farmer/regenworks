@@ -1,5 +1,5 @@
 [package]
-name = "regenworks-desktop"
+name = "RegenWorks"
 version = "0.1.0"
 description = "RegenWorks Desktop - Fast agroforestry planning"
 authors = ["RegenWorks"]
