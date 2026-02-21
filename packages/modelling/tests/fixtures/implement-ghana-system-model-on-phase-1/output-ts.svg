@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Ghana system model on Phase 1 - TypeScript</title>
+  <title>Implement Ghana system model on Phase 1</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Ghana system model on Phase 1 - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Ghana system model on Phase 1</text>
   <path d="M 206.74305753648733,40 L 575.3729809825251,60.33656000667855 L 457.5071725736482,560 L 40,483.835184610335 L 206.74305753648733,40 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 218.71519940663916,58.17807849697931 L 63.847948612073154,470.4023005119095 L 444.1830170076044,539.7859014557949 L 553.4337705386952,76.64381559355616 L 218.71519940663916,58.17807849697931 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 63.851074848227995,470.3939791292859 L 444.176354930349,539.775794410837 L 553.4228009353491,76.6519692264497 L 218.71197565104958,58.18665945927472 L 63.851074848227995,470.3939791292859 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

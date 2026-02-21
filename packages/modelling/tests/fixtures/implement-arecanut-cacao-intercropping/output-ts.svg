@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Arecanut cacao intercropping - TypeScript</title>
+  <title>Implement Arecanut cacao intercropping</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Arecanut cacao intercropping - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Arecanut cacao intercropping</text>
   <path d="M 700.6517571879427,248.99680511235584 L 760,560 L 40,513.9936102237309 L 700.6517571879427,248.99680511235584 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 693.8285670018955,260.75023352512767 L 77.2271168608178,508.07797047642026 L 749.2196089902634,551.0166749528332 L 693.8285670018955,260.75023352512767 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 77.24573038651621,508.07501256973393 L 749.2142187914585,551.0121832626952 L 693.8251554040925,260.7561102124306 L 77.24573038651621,508.07501256973393 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

@@ -10,6 +10,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { systemBasedLayout } from "../gis-ts/system_based_layout.ts";
+import { Resvg } from "@resvg/resvg-js";
+import pixelmatch from "pixelmatch";
+import { PNG } from "pngjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -205,6 +208,36 @@ function layoutToSvg(
 }
 
 /**
+ * Generate a PNG pixel diff from two SVGs
+ */
+function createPixelDiffPng(tsSvg: string, rsSvg: string, width: number, height: number): Buffer {
+	// Rasterize TS SVG
+	const tsResvg = new Resvg(tsSvg, { fitTo: { mode: "width", value: width } });
+	const tsPngData = tsResvg.render();
+	const tsImage = PNG.sync.read(tsPngData.asPng());
+
+	// Rasterize RS SVG
+	const rsResvg = new Resvg(rsSvg, { fitTo: { mode: "width", value: width } });
+	const rsPngData = rsResvg.render();
+	const rsImage = PNG.sync.read(rsPngData.asPng());
+
+	// Create blank diff image
+	const diffImage = new PNG({ width, height });
+
+	// Use pixelmatch to find the difference between standard renders
+	const numDiffPixels = pixelmatch(
+		tsImage.data,
+		rsImage.data,
+		diffImage.data,
+		width,
+		height,
+		{ threshold: 0.1, diffColor: [255, 0, 0] } // Red for mismatches
+	);
+
+	return PNG.sync.write(diffImage);
+}
+
+/**
  * Call Rust server for layout
  */
 async function callRustLayout(fixture: any): Promise<LayoutResult | null> {
@@ -333,15 +366,18 @@ async function main() {
 		const tsStart = Date.now();
 		const tsResult = runTypeScriptLayout(fixture);
 		const tsTime = Date.now() - tsStart;
+		
+		let tsSvg = "";
+		let rustSvg = "";
 
 		if (tsResult) {
 			console.log(
 				`  TypeScript: ${tsTime}ms, ${tsResult.treeMarkerArray?.length || 0} trees`,
 			);
-			const tsSvg = layoutToSvg(
+			tsSvg = layoutToSvg(
 				tsResult,
 				fixture.fieldGeometry,
-				`${fixture.name} - TypeScript`,
+				fixture.name,
 			);
 			const tsPath = path.join(fixtureDir, "output-ts.svg");
 			fs.writeFileSync(tsPath, tsSvg);
@@ -358,10 +394,10 @@ async function main() {
 			console.log(
 				`  Rust: ${rustTime}ms, ${rustResult.treeMarkerArray?.length || 0} trees`,
 			);
-			const rustSvg = layoutToSvg(
+			rustSvg = layoutToSvg(
 				rustResult,
 				fixture.fieldGeometry,
-				`${fixture.name} - Rust`,
+				fixture.name,
 			);
 			const rustPath = path.join(fixtureDir, "output-rs.svg");
 			fs.writeFileSync(rustPath, rustSvg);
@@ -370,6 +406,11 @@ async function main() {
 
 		// Record results
 		if (tsResult && rustResult) {
+			const diffPngBuffer = createPixelDiffPng(tsSvg, rustSvg, 800, 600);
+			const diffPath = path.join(fixtureDir, "output-diff.png");
+			fs.writeFileSync(diffPath, diffPngBuffer);
+			console.log(`  Saved: ${diffPath}`);
+
 			const tsTrees = tsResult.treeMarkerArray?.length || 0;
 			const rustTrees = rustResult.treeMarkerArray?.length || 0;
 			results.push({ name: fixtureName, tsTrees, rustTrees, tsTime, rustTime });

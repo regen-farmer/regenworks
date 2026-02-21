@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Test - Rust</title>
+  <title>Test</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Test - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Test</text>
   <path d="M 40,475.0545486330832 L 95.38461539610134,274.28105625377475 L 760,328.33453654789594 L 524.6153846054872,560 L 40,475.0545486330832 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 40.00000000019856,475.0545486330832 L 95.38461539610134,274.28105625377475 L 760,328.33453654789594 L 524.6153846052886,560 L 40.00000000019856,475.0545486330832 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 101.41638148640982,278.8306425759647 L 748.5445772186281,331.46188057970437 L 521.2203125270559,555.1946700527401 L 48.058254329849156,472.25679928875076 L 101.41638148640982,278.8306425759647 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

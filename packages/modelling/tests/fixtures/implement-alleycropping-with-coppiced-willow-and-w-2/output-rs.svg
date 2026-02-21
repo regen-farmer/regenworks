@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Alleycropping with coppiced willow and wheat - Rust</title>
+  <title>Implement Alleycropping with coppiced willow and wheat</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Alleycropping with coppiced willow and wheat - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Alleycropping with coppiced willow and wheat</text>
   <path d="M 760,168.45921450076344 L 437.63141993963166,71.87915407741235 L 40,491.2628398795725 L 300.5921450148989,560 L 591.6374622356374,355.5287009062977 L 760,168.45921450076344 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 760,168.45921450076344 L 437.63141993963166,71.87915407741235 L 40,491.2628398795725 L 300.5921450148989,560 L 591.6374622356374,355.5287009062977 L 760,168.45921450076344 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 300.5902161268164,559.9951932507778 L 40.00944128555396,491.2610322763694 L 437.6341857152523,71.88438730786555 L 759.9908609417164,168.46088109038504 L 591.6317693578791,355.5265384754832 L 300.5902161268164,559.9951932507778 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

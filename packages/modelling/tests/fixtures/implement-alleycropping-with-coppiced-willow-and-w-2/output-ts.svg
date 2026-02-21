@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Alleycropping with coppiced willow and wheat - TypeScript</title>
+  <title>Implement Alleycropping with coppiced willow and wheat</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Alleycropping with coppiced willow and wheat - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Alleycropping with coppiced willow and wheat</text>
   <path d="M 760,168.45921450076344 L 437.63141993963166,71.87915407741235 L 40,491.2628398795725 L 300.5921450148989,560 L 591.6374622356374,355.5287009062977 L 760,168.45921450076344 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 760,168.45921450076344 L 437.63141993963166,71.87915407741235 L 40,491.2628398795725 L 300.5921450148989,560 L 591.6374622356374,355.5287009062977 L 760,168.45921450076344 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 40.00945184580754,491.2610302485534 L 300.59021396685233,559.9951878783019 L 591.6317629892695,355.5265360581782 L 759.990850717629,168.46088295436834 L 437.63418881416317,71.88439315638362 L 40.00945184580754,491.2610302485534 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

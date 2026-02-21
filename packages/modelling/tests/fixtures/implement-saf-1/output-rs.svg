@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement SAF 1 - Rust</title>
+  <title>Implement SAF 1</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement SAF 1 - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement SAF 1</text>
   <path d="M 40,115.50822846064574 L 642.0522749312947,560 L 707.4927395966513,261.99419167499605 L 62.65246853828316,40 L 40,115.50822846064574 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 40,115.50822846064574 L 642.0522749312947,560 L 707.4927395966513,261.99419167499605 L 62.65246853828316,40 L 40,115.50822846064574 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 40.00538369577809,115.50651380828674 L 62.65557679585618,40.00587011304356 L 707.4873148751124,261.9971241995989 L 642.0492361993311,559.992067121896 L 40.00538369577809,115.50651380828674 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Multistrata olive w. poplar, pistachio and mulberry - TypeScript</title>
+  <title>Implement Multistrata olive w. poplar, pistachio and mulberry</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Multistrata olive w. poplar, pistachio and mulberry - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Multistrata olive w. poplar, pistachio and mulberry</text>
   <path d="M 236.0893126369712,560 L 703.4872144589489,539.292008278537 L 760.0000000000001,505.4058916662769 L 664.8750652505554,188.60601642661817 L 40,135.9159100408757 L 236.0893126369712,560 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 269.1976793080513,533.093306664527 L 683.3822595858261,514.7430432976977 L 712.8334814547701,497.08350860055475 L 626.9432975891791,211.04212563670524 L 99.73295678637825,166.5869343160693 L 269.1976793080513,533.093306664527 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 99.7389300306522,166.5900014715644 L 269.20099013379433,533.0906160220957 L 683.3802490745636,514.7405884105574 L 712.828764791308,497.0826763687457 L 626.9395044119983,211.04436927195405 L 99.7389300306522,166.5900014715644 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

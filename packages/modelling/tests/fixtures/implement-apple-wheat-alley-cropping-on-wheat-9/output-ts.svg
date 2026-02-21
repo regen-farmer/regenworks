@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Apple wheat alley cropping on Wheat #9 - TypeScript</title>
+  <title>Implement Apple wheat alley cropping on Wheat #9</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Apple wheat alley cropping on Wheat #9 - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Apple wheat alley cropping on Wheat #9</text>
   <path d="M 760,343.8808166266702 L 128.59297406663381,256.08239838184306 L 40,537.7524370063509 L 453.43387897738916,560 L 725.9665256575895,443.4651462209644 L 760,343.8808166266702 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 702.1547140271064,365.23891742310747 L 168.02248423767878,290.9666881858322 L 98.43968786103034,512.1898457484465 L 439.1365716321121,530.5236869185323 L 681.0152872538437,427.0961955543364 L 702.1547140271064,365.23891742310747 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 98.4421228698407,512.1887806685921 L 439.1359759102074,530.5224587468904 L 681.0134142774109,427.09551352865896 L 702.1523038095594,365.23980738215744 L 168.02412712717438,290.9681417406368 L 98.4421228698407,512.1887806685921 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

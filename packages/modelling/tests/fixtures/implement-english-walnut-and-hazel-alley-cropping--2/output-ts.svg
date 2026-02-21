@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement English walnut and hazel alley cropping system on 1826 - TypeScript</title>
+  <title>Implement English walnut and hazel alley cropping system on 1826</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement English walnut and hazel alley cropping system on 1826 - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement English walnut and hazel alley cropping system on 1826</text>
   <path d="M 40,560 L 238.80996653030866,363.8676087765497 L 315.9910747489773,350.6805503905324 L 760,276.9133506878369 L 564.2692450725177,472.0416511713921 L 40,560 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 100.70634474231233,532.3223107059821 L 546.2143773791743,457.57981037070715 L 699.886835749527,304.3772117067536 L 323.4494529939913,366.9199499249382 L 256.8325720495326,378.3019635612128 L 100.70634474231233,532.3223107059821 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 100.70851285168241,532.3213223022461 L 546.2137325611898,457.5792938880528 L 699.8846888903154,304.3781926287837 L 323.4497192346101,366.9205299255153 L 256.83321572457385,378.30247907405163 L 100.70851285168241,532.3213223022461 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

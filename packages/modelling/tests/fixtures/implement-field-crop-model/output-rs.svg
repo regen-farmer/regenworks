@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Field Crop Model - Rust</title>
+  <title>Implement Field Crop Model</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Field Crop Model - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Field Crop Model</text>
   <path d="M 40,560 L 562.4601305763076,560 L 562.4601305763076,40 L 40,40 L 40,560 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 40,560.0000000010087 L 562.4601305763076,560.0000000010087 L 562.4601305763076,40.00000000100886 L 40,40.00000000100886 L 40,560.0000000010087 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 562.4548704705012,39.99999997780685 L 562.4548704926943,560.0000000010087 L 40.005260084622115,559.9999999979824 L 40.005260106815285,40.000000014122975 L 562.4548704705012,39.99999997780685 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

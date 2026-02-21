@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Agave-Mezquite Sistema Agroflorestal - TypeScript</title>
+  <title>Agave-Mezquite Sistema Agroflorestal</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Agave-Mezquite Sistema Agroflorestal - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Agave-Mezquite Sistema Agroflorestal</text>
   <path d="M 428.45360815709387,113.94494565266064 L 760,267.6371015987705 L 401.2371133114318,560 L 40,424.79642043197293 L 428.45360815709387,113.94494565266064 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 430.65278500367754,130.44617002208895 L 68.26787953975267,420.4366235323222 L 398.3242861402112,543.9699610531608 L 733.4954357392967,270.8323302089154 L 430.65278500367754,130.44617002208895 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 68.27105956993215,420.4340788028261 L 398.3274268569211,543.9674016180933 L 733.492408355606,270.83479728253025 L 430.6497224318019,130.44862078768114 L 68.27105956993215,420.4340788028261 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

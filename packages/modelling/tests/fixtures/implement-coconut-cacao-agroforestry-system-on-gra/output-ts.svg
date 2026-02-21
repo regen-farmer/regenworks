@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Coconut cacao agroforestry system on grassland - TypeScript</title>
+  <title>Implement Coconut cacao agroforestry system on grassland</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Coconut cacao agroforestry system on grassland - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Coconut cacao agroforestry system on grassland</text>
   <path d="M 77.97752808740958,560 L 509.60674157053376,554.1573033699702 L 509.60674157053376,118.14606741562102 L 40,40 L 77.97752808740958,560 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 111.05755351272715,526.7084196558809 L 474.17638854465923,521.7931074628602 L 474.17651751056087,145.61566712611932 L 78.41495188426902,79.75801472972637 L 111.05755351272715,526.7084196558809 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 78.42263487269676,79.76596631408609 L 111.06416951226065,526.7017613267618 L 474.1763885394699,521.786538702044 L 474.17651751056087,145.62234020858045 L 78.42263487269676,79.76596631408609 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

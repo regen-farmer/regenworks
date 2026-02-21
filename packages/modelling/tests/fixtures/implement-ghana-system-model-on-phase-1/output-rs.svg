@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Ghana system model on Phase 1 - Rust</title>
+  <title>Implement Ghana system model on Phase 1</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Ghana system model on Phase 1 - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Ghana system model on Phase 1</text>
   <path d="M 206.74305753648733,40 L 575.3729809825251,60.33656000667855 L 457.5071725736482,560 L 40,483.835184610335 L 206.74305753648733,40 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 218.70181935239387,58.157762693842244 L 553.4582897789965,76.62559061919154 L 444.1979080721441,539.8084927149282 L 63.82129616713296,470.4173130896973 L 218.70181935239387,58.157762693842244 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 218.69859920187358,58.166334061332975 L 553.4473324354987,76.63373513835938 L 444.1912534407086,539.7983969662572 L 63.824418909635355,470.4090010030394 L 218.69859920187358,58.166334061332975 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

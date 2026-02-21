@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Field Crop Model - TypeScript</title>
+  <title>Implement Field Crop Model</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Field Crop Model - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Field Crop Model</text>
   <path d="M 40,560 L 562.4601305763076,560 L 562.4601305763076,40 L 40,40 L 40,560 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 40,560 L 562.4601305763076,560 L 562.4601305763076,40 L 40,40 L 40,560 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 562.4548646064607,569.4741665787435 L 562.4548645842675,54.92102814792395 L 40.00526599103133,54.92102814792395 L 40.00526596984694,569.4741665787435 L 562.4548646064607,569.4741665787435 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

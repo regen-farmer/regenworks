@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Coconut cacao agroforestry system - Rust</title>
+  <title>Implement Coconut cacao agroforestry system</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Coconut cacao agroforestry system - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Coconut cacao agroforestry system</text>
   <path d="M 411.4922048973863,198.6636971042485 L 40,377.1937639193016 L 205.16703785943693,526.3251670373163 L 434.4766146997548,560 L 760,511.3585746094569 L 743.9643652547798,266.54788418639725 L 411.4922048973863,198.6636971042485 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 415.0840672958223,223.98113697936475 L 719.294934824789,286.0949512358723 L 732.7241843801886,491.11590751643047 L 434.4411334187679,535.6869037756271 L 217.347161933415,503.80597637857335 L 83.77369590724751,383.20087758787884 L 415.0840672958223,223.98113697936475 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 719.2900009401,286.0988606382065 L 732.7187292236246,491.11185897621914 L 434.44112633169755,535.6820411566337 L 217.3495979486353,503.80147253586995 L 83.78245064577038,383.2020789944255 L 415.0847856649726,223.9862004613518 L 719.2900009401,286.0988606382065 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

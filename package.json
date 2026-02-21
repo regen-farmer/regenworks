@@ -14,11 +14,17 @@
   "author": "",
   "devDependencies": {
     "@biomejs/biome": "^2.2.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.2.1",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "mongoose": "^8.17.1",
     "proj4": "^2.19.10",
     "stripe": "^18.4.0"

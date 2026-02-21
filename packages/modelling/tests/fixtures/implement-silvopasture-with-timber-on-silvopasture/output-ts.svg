@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Silvopasture with timber on Silvopasture with timber - TypeScript</title>
+  <title>Implement Silvopasture with timber on Silvopasture with timber</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Silvopasture with timber on Silvopasture with timber - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Silvopasture with timber on Silvopasture with timber</text>
   <path d="M 760,313.49786602365134 L 757.1942846534107,555.0565967713346 L 41.7368714041274,560 L 40,297.99962887409123 L 760,313.49786602365134 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 732.4243891087548,330.9364411328006 L 67.49604100772206,316.62360260936555 L 68.98778967241877,541.7869850804734 L 730.0292443451679,537.2195792615976 L 732.4243891087548,330.9364411328006 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 67.49786610613181,316.62364198258354 L 68.9896143645178,541.7869724772463 L 730.0274193834607,537.2195917651457 L 732.4225646938585,330.93640188299474 L 67.49786610613181,316.62364198258354 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

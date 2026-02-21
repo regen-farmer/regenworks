@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement English walnut and hazel alley cropping system on 4801 - Rust</title>
+  <title>Implement English walnut and hazel alley cropping system on 4801</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement English walnut and hazel alley cropping system on 4801 - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement English walnut and hazel alley cropping system on 4801</text>
   <path d="M 487.9117312996918,486.74995943516615 L 40,560 L 64.94239818270324,533.1883822813961 L 305.0786954405322,294.33717345449963 L 760,217.23186759697637 L 487.9117312996918,486.74995943516615 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 104.8225772651633,529.830515383384 L 325.31318074814794,310.52284133329124 L 692.0127223788954,248.36844004943777 L 467.7963039693714,470.4727567667094 L 104.8225772651633,529.830515383384 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 325.31374282427834,310.52329094338234 L 692.0108339310954,248.36930501677938 L 467.79574521394454,470.4723046314533 L 104.82444480308301,529.829666472256 L 325.31374282427834,310.52329094338234 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

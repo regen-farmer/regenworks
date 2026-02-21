@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Valnød aronia on Vestmarken - Øst vest - Rust</title>
+  <title>Implement Valnød aronia on Vestmarken - Øst vest</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Valnød aronia on Vestmarken - Øst vest - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Valnød aronia on Vestmarken - Øst vest</text>
   <path d="M 96.58031088071981,322.64248704621866 L 40,419.63730569935456 L 586.6839378238008,560 L 760,381.0880829015682 L 96.58031088071981,322.64248704621866 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 103.34572983102979,328.8912506650926 L 744.5696661421025,385.3813567653797 L 582.4175392782641,552.7692109870663 L 52.1670805559168,416.6258424117044 L 103.34572983102979,328.8912506650926 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 744.565808556073,385.38243014510675 L 582.4164726730835,552.7674033310035 L 52.17012231481682,416.62508958357637 L 103.34742117281144,328.8928128901224 L 744.565808556073,385.38243014510675 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

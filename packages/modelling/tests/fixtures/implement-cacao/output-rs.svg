@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Cacao - Rust</title>
+  <title>Implement Cacao</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Cacao - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Cacao</text>
   <path d="M 40,40 L 531.880548829871,318.04681194540314 L 160.66182405267898,560 L 40,40 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 40,40 L 531.880548829871,318.04681194540314 L 160.66182405267898,560 L 40,40 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 531.8768712829519,318.046924978186 L 160.6631236892499,559.9968690049618 L 40.002917463239875,40.003841018945764 L 531.8768712829519,318.046924978186 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

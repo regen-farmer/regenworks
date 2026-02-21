@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Implement Apple wheat alley cropping on Wheat #9 - Rust</title>
+  <title>Implement Apple wheat alley cropping on Wheat #9</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Implement Apple wheat alley cropping on Wheat #9 - Rust</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Implement Apple wheat alley cropping on Wheat #9</text>
   <path d="M 760,343.8808166266702 L 128.59297406663381,256.08239838184306 L 40,537.7524370063509 L 453.43387897738916,560 L 725.9665256575895,443.4651462209644 L 760,343.8808166266702 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 702.2193616077996,365.2150475142696 L 681.0655248701693,427.11448940888977 L 439.15255037964823,530.556629610682 L 98.37437541134597,512.2184143602155 L 167.97841814489925,290.92770148110134 L 702.2193616077996,365.2150475142696 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 681.0636539878054,427.11380814349434 L 439.1519553239312,530.555402812817 L 98.37680769753746,512.2173504715952 L 167.98005919767388,290.9291534118381 L 702.2169540829965,365.2159364796837 L 681.0636539878054,427.11380814349434 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>

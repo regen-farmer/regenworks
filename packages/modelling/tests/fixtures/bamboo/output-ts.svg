@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" style="background: white;">
-  <title>Bamboo - TypeScript</title>
+  <title>Bamboo</title>
   <style>
     .label { font-family: sans-serif; font-size: 12px; }
     .title { font-family: sans-serif; font-size: 16px; font-weight: bold; }
   </style>
-  <text x="400" y="20" class="title" text-anchor="middle">Bamboo - TypeScript</text>
+  <text x="400" y="20" class="title" text-anchor="middle">Bamboo</text>
   <path d="M 213.27329382604836,43.851777474324194 L 40,475.25798821376924 L 355.604928557868,560 L 448.42990713563916,40 L 213.27329382604836,43.851777474324194 Z" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
   <path d="M 223.09716733805047,51.47437164860139 L 54.702983633558276,470.7318597317812 L 345.0463461766422,548.6909479450156 L 434.42170167921506,48.01293961869595 L 223.09716733805047,51.47437164860139 Z" fill="none" stroke="#ef6c00" stroke-width="1.5" stroke-dasharray="5,3"/>
   <path d="M 64.505015294065,467.7144915307938 L 346.00866552631567,543.3000643765384 L 433.4926995394928,53.217181199160564 L 229.64645266938615,56.55612113368579 L 64.505015294065,467.7144915307938 Z" fill="#e3f2fd" fill-opacity="0.3" stroke="#1565c0" stroke-width="1"/>
