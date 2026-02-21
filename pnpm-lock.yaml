@@ -218,8 +218,8 @@ importers:
         specifier: ^0.15.4
         version: 0.15.4(solid-js@1.9.10)
       '@solidjs/start':
-        specifier: ^2.0.0-alpha.1
-        version: 2.0.0-alpha.1(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
+        specifier: ^2.0.0-alpha.2
+        version: 2.0.0-alpha.2(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
       '@tailwindcss/postcss':
         specifier: ^4.1.12
         version: 4.1.18
@@ -1688,8 +1688,8 @@ packages:
     peerDependencies:
       solid-js: ^1.8.6
 
-  '@solidjs/start@2.0.0-alpha.1':
-    resolution: {integrity: sha512-53wR5Z3fMKY746iQeIFk/J5zf28abwnSEls3uTjWMllDbRA0hYHSlSUGsl8FXATrt4SyLihNYhCv2ILrxskvGA==}
+  '@solidjs/start@2.0.0-alpha.2':
+    resolution: {integrity: sha512-z56ATi3P07q8F5Io2I+RQrwjyWZtFZzpXN/J+8scf/gqrAW83LtgRkZFZjJaGH7i9WrHP+ep9F+ZiJ2gDHVBcw==}
     engines: {node: '>=22'}
     peerDependencies:
       vite: ^7
@@ -5827,7 +5827,7 @@ snapshots:
     dependencies:
       solid-js: 1.9.10
 
-  '@solidjs/start@2.0.0-alpha.1(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))':
+  '@solidjs/start@2.0.0-alpha.2(vite@7.3.1(@types/node@24.10.9)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))':
     dependencies:
       '@babel/core': 7.28.6
       '@babel/traverse': 7.28.6
