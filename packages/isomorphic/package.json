@@ -6,8 +6,8 @@
 		"format": "biome format --write ./src",
 		"build": "vite build",
 		"preview": "vite preview",
-		"start": "node .output/server/index.mjs",
-		"start-local": "PORT=10000 node --env-file=.env .output/server/index.mjs"
+		"start": "srvx --prod --static dist/client dist/server/entry-server.js",
+		"start-local": "PORT=10000 NODE_OPTIONS=\"--env-file=.env\" srvx --prod --static dist/client dist/server/entry-server.js"
 	},
 	"type": "module",
 	"devDependencies": {
