@@ -1,0 +1,4 @@
+[install]
+# Hoist nitro-nightly to avoid "Node env worker should be initialized" error
+# See: https://github.com/nitrojs/nitro/issues/3915
+publicHoistPattern = ["nitro*"]

@@ -7,7 +7,7 @@ import {
   intersect,
   helpers as turf,
 } from "@turf/turf";
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import { toRepetitionLetter } from "~/util/repetition";
 
 interface TreeStripData {

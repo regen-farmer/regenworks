@@ -1,0 +1,132 @@
+{
+  "name": "Skovlandbrug",
+  "projectId": "69130c281a34b5a03b195290",
+  "fieldGeometry": "{\"id\":\"XDpeXeWK2rGfnkuSCys35rDic2MdRhuk\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[8.676818121608221,55.69913297997226],[8.675777435891092,55.70075283540453],[8.682495004779355,55.70194775562547],[8.683161306103699,55.701539537987],[8.681721629025901,55.699229586050734],[8.679584680287562,55.69930963814848],[8.67938109101388,55.69931445794913],[8.677841612755543,55.699209315362054],[8.676818121608221,55.69913297997226]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 9
+          }
+        ],
+        "groundcover": {
+          "_id": "602a3fb42bb0822e8479d154",
+          "nameCommon": "Red Clover",
+          "genus": "trifolium",
+          "species": "pratense"
+        },
+        "width": 9,
+        "offset": {
+          "before": 2,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 36,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6501a0e4a1961d40fc538e",
+              "nameCommon": "Sweet chestnut",
+              "genus": "castanea",
+              "species": "sativa"
+            },
+            "spacingAfter": 9
+          }
+        ],
+        "groundcover": {
+          "_id": "602a40052bb0822e8479d155",
+          "nameCommon": "White Clover",
+          "genus": "trifolium",
+          "species": "repens"
+        },
+        "width": 9,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 36,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e72a8dc4c6f102120c146fb",
+              "nameCommon": "Sweet cherry",
+              "genus": "prunus",
+              "species": "avium"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 6,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e72a8dc4c6f102120c146fb",
+              "nameCommon": "Sweet cherry",
+              "genus": "prunus",
+              "species": "avium"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 6,
+        "offset": {
+          "before": 3,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 100,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 72.5,
+    "margin": 36,
+    "headland": 0
+  }
+}

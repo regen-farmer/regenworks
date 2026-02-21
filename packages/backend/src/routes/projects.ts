@@ -1,29 +1,33 @@
-import express from "express";
-import unique from "array-unique";
-import { helpers as turf, length as turfLength, circle } from "@turf/turf";
-import PDFDocument from "pdfkit";
-import NodeGeocoder from "node-geocoder";
-import mongoose from "mongoose";
-import _ from "lodash";
-import Project from "@rw/db/schemas/project.ts";
-import Layer from "@rw/db/schemas/layer.ts";
-import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
-import Budget from "@rw/db/schemas/budget.ts";
 import Activity from "@rw/db/schemas/activity.ts";
+import Area from "@rw/db/schemas/area.ts";
 import Asset from "@rw/db/schemas/asset.ts";
+import Budget from "@rw/db/schemas/budget.ts";
+import Layer from "@rw/db/schemas/layer.ts";
 import Posting, { type IPostingSchema } from "@rw/db/schemas/posting.ts";
-import Sequence from "@rw/db/schemas/sequence.ts";
+import Project from "@rw/db/schemas/project.ts";
 import Rotation from "@rw/db/schemas/rotation.ts";
 import Row from "@rw/db/schemas/row.ts";
-import Area from "@rw/db/schemas/area.ts";
-import middleware from "../middleware/index.ts";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
-import dyFiMo from "../middleware/financials.ts";
-import type { UserDocument } from "@rw/db/schemas/user.ts";
-import type { Auth0IDToken } from "../app.ts";
+import Sequence from "@rw/db/schemas/sequence.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import { rowBasedLayout } from "@rw/modelling/gis/row_based_layout.ts";
+import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
+import type { UserDocument } from "@rw/db/schemas/user.ts";
+import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
+import {
+	systemBasedLayout,
+	systemBasedLayoutAsync,
+} from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { circle, helpers as turf, length as turfLength } from "@turf/turf";
+import unique from "array-unique";
+import express from "express";
+import _ from "lodash";
+import mongoose from "mongoose";
+import NodeGeocoder from "node-geocoder";
+import PDFDocument from "pdfkit";
+import type { Auth0IDToken } from "../app.ts";
+import dyFiMo from "../middleware/financials.ts";
+import middleware from "../middleware/index.ts";
+
 // import SystemDesign from 'collections/systemdesign.js';
 
 // =======
@@ -75,9 +79,9 @@ const options: NodeGeocoder.Options = {
 	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null,
 	headers: {
-			'User-Agent': 'RegenWorks',
-			'Referer': 'https://regenfarmer.com'
-	}
+		"User-Agent": "RegenWorks",
+		Referer: "https://regenfarmer.com",
+	},
 };
 
 const geocoder = NodeGeocoder(options);
@@ -221,11 +225,15 @@ router.post(
 		const payload: { geometry; systemdesign } = req.body;
 
 		try {
-			const layout = systemBasedLayout(payload.systemdesign, payload.geometry);
+			const layout = await systemBasedLayoutAsync(
+				payload.systemdesign,
+				payload.geometry,
+			);
 
 			res.send({
 				treeRowLines: layout.treeRowLines,
 				groundCoverAreas: turf.featureCollection(layout.groundCoverAreas),
+				groundCoverAreasM2: layout.groundCoverAreasM2,
 				headlandPolygon: layout.headlandPolygon,
 				marginPolygon: layout.marginPolygon,
 				speciesCountArray: layout.speciesCountArray,
@@ -257,19 +265,21 @@ router.get(
 						from: "layers",
 						localField: "layer",
 						foreignField: "_id",
-						as: "layer"
-					}
+						as: "layer",
+					},
 				},
 				{
 					$lookup: {
 						from: "systemdesigns",
 						localField: "systemdesign",
 						foreignField: "_id",
-						as: "systemdesign"
-					}
+						as: "systemdesign",
+					},
 				},
 				{ $unwind: "$layer" },
-				{ $unwind: { path: "$systemdesign", preserveNullAndEmptyArrays: true } }
+				{
+					$unwind: { path: "$systemdesign", preserveNullAndEmptyArrays: true },
+				},
 			]).exec();
 
 			if (!foundProject) {
@@ -278,7 +288,9 @@ router.get(
 
 			// Check if project is public or user is the owner
 			const isPublic = foundProject.isPublic === true;
-			const isOwner = req.user && foundProject.owner?.id?.toString() === req.user._id.toString();
+			const isOwner =
+				req.user &&
+				foundProject.owner?.id?.toString() === req.user._id.toString();
 
 			if (isPublic || isOwner) {
 				res.send({ project: foundProject });
@@ -314,10 +326,13 @@ router.get(
 					populate: { path: "rows", populate: { path: "groundcover" } },
 				})
 				.exec();
-			
-			if (foundProject?.isPublic || (req.user && foundProject?.owner?.id.equals(req.user._id))) {
+
+			if (
+				foundProject?.isPublic ||
+				(req.user && foundProject?.owner?.id.equals(req.user._id))
+			) {
 				console.time("systemBasedLayout");
-				const layout = systemBasedLayout(
+				const layout = await systemBasedLayoutAsync(
 					foundProject.systemdesign,
 					foundProject.layer.geometry,
 				);
@@ -625,7 +640,7 @@ router.put(
 									for (let i = 0; i < createdAssets.length; i++) {
 										const ref = treeAssetRowRef[i];
 										console.log(`ref ${ref}`);
-										// @ts-ignore
+										// @ts-expect-error
 										foundRows[ref].assets.push(createdAssets[i]);
 									}
 									// SAVE ROWS INDIVIDUALLY
@@ -999,57 +1014,48 @@ router.post(
 			source.id = undefined;
 			source._id = undefined;
 
-
 			// create new project
-			
+
 			const createdProject = await Project.create(source);
 			createdProject.name = req.body.project.name;
 
 			// create new systemdesign
 
-			if (createdProject.systemdesign?._id || createdProject.systemdesign){
-				
+			if (createdProject.systemdesign?._id || createdProject.systemdesign) {
+				const systemDesignId =
+					createdProject.systemdesign?._id ?? createdProject.systemdesign;
 
-				const systemDesignId = createdProject.systemdesign?._id ?? createdProject.systemdesign;
-			
-				const existingSystemDesign = await SystemDesign.findById(systemDesignId);
-			
+				const existingSystemDesign =
+					await SystemDesign.findById(systemDesignId);
+
 				if (!existingSystemDesign) {
-					console.log("System Design not found", existingSystemDesign)
+					console.log("System Design not found", existingSystemDesign);
 				}
 
 				existingSystemDesign.id = undefined;
 				existingSystemDesign._id = undefined;
-				const newSystemDesign = await SystemDesign.create(JSON.parse(JSON.stringify(existingSystemDesign)));
-				await newSystemDesign.save()
-				
+				const newSystemDesign = await SystemDesign.create(
+					JSON.parse(JSON.stringify(existingSystemDesign)),
+				);
+				await newSystemDesign.save();
 
 				createdProject.systemdesign = newSystemDesign;
-				
 			}
 
-			
 			await createdProject.save();
 
 			// get layer, append project, save layer
 
-
 			const foundLayer = await Layer.findById(req.params.id);
 			if (!foundLayer) {
-				throw new Error('Layer not found');
+				throw new Error("Layer not found");
 			}
 			foundLayer.projects.push(createdProject.id);
 			await foundLayer.save();
 
-
-			console.log("Project2", createdProject)
-			
-
-
+			console.log("Project2", createdProject);
 
 			res.send(createdProject);
-			
-
 		} catch (err) {
 			console.log(err);
 			res.send(`/layers/${req.params.id}`);

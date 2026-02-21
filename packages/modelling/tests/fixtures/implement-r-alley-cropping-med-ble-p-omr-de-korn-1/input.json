@@ -1,0 +1,36 @@
+{
+  "name": "Implementér alley cropping med æble på område \"korn #1\"",
+  "projectId": "5f875932e7255f252880e5c2",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.574912,54.800011],[11.575504,54.801749],[11.572464,54.802679],[11.570784,54.803074],[11.56972,54.80347],[11.569154,54.803599],[11.567147,54.803876],[11.565861,54.801521],[11.574912,54.800011]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 90,
+    "margin": 20,
+    "headland": 0
+  }
+}

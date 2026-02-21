@@ -1,0 +1,36 @@
+{
+  "name": "Pinerow",
+  "projectId": "5f7480801e454d11844eff12",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.565355,54.807794],[11.561496,54.808506],[11.56189,54.809426],[11.563005,54.809822],[11.564017,54.810465],[11.565475,54.811058],[11.566933,54.811682],[11.567019,54.81087],[11.566384,54.809535],[11.565612,54.809624],[11.565046,54.808892],[11.565818,54.808645],[11.565355,54.807794]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 90,
+    "margin": 10,
+    "headland": 0
+  }
+}

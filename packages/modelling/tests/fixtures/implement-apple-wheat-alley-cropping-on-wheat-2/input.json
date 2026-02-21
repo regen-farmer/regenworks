@@ -1,0 +1,50 @@
+{
+  "name": "Implement Apple wheat alley cropping on Wheat #2",
+  "projectId": "5fa26b04a294b9001513ef9b",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.575507,54.801755],[11.574893,54.800016],[11.565917,54.801536],[11.567124,54.803906],[11.569089,54.803609],[11.56941,54.803547],[11.569741,54.80346],[11.570139,54.803324],[11.570776,54.803082],[11.571923,54.802813],[11.573821,54.802305],[11.575507,54.801755]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24
+      }
+    ],
+    "bearing": 90,
+    "margin": 24,
+    "headland": 0
+  }
+}

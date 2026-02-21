@@ -1,11 +1,18 @@
 // @refresh reload
-import { Suspense } from "solid-js";
+
+import { query, Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
-import { Router, query } from "@solidjs/router";
+import { onMount, Suspense } from "solid-js";
 import "./app.css";
 import "./style.css";
-import { getSession } from "~/server/auth.ts";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
+import { getSession } from "~/server/auth.ts";
+import { initTauriTestUtils, isTauri } from "~/util/platform.ts";
+
+// Initialize Tauri test utilities in development
+if (typeof window !== "undefined" && isTauri()) {
+	initTauriTestUtils();
+}
 
 // Import mongoose models
 import "@rw/db/schemas/activity.ts";

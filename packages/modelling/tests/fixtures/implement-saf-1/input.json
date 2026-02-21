@@ -1,0 +1,119 @@
+{
+  "name": "Implement SAF 1",
+  "projectId": "5f10782f3567230015c6d5fb",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-91.214453,14.768255],[-91.213257,14.767372],[-91.213127,14.767964],[-91.214408,14.768405],[-91.214453,14.768255]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e7b725ac4e7ef26e81492fe",
+              "nameCommon": "Pigeon pea",
+              "genus": "cajanus",
+              "species": "cajan"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e7b725ac4e7ef26e81492fe",
+              "nameCommon": "Pigeon pea",
+              "genus": "cajanus",
+              "species": "cajan"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 0.5
+          },
+          {
+            "species": {
+              "_id": "5e714f7806e46b23d00d39e1",
+              "nameCommon": "Common oak",
+              "genus": "quercus",
+              "species": "robur"
+            },
+            "spacingAfter": 0.5
+          }
+        ],
+        "width": 1
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e5e3804d1daa10fb0aa054f",
+          "nameCommon": "Chickpea",
+          "genus": "cicer",
+          "species": "arietinum"
+        },
+        "width": 3.5
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e8c8a75430b84196828f436",
+          "nameCommon": "Napier grass",
+          "genus": "pennisetum",
+          "species": "purpureum"
+        },
+        "width": 1
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e5e3804d1daa10fb0aa054f",
+          "nameCommon": "Chickpea",
+          "genus": "cicer",
+          "species": "arietinum"
+        },
+        "width": 3.5
+      }
+    ],
+    "bearing": 0,
+    "margin": 0,
+    "headland": 0
+  }
+}

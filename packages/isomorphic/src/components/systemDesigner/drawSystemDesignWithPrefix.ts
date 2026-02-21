@@ -1,4 +1,4 @@
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import { featureCollection, point as turfPoint, helpers as turf } from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";

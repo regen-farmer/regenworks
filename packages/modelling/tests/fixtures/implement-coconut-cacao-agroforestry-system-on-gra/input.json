@@ -1,0 +1,176 @@
+{
+  "name": "Implement Coconut cacao agroforestry system on grassland",
+  "projectId": "5f0cb3351771e32350b21771",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-45.680379,-22.043616],[-45.679788,-22.043608],[-45.679788,-22.043011],[-45.680431,-22.042904],[-45.680379,-22.043616]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e5826699f940f16885865bb",
+              "nameCommon": "Betel nut",
+              "genus": "areca",
+              "species": "catechu"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58274b9f940f16885865bc",
+              "nameCommon": "Cacao",
+              "genus": "theobroma",
+              "species": "cacao"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e58258b9f940f16885865ba",
+              "nameCommon": "Coconut palm",
+              "genus": "cocos",
+              "species": "nucifera"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      }
+    ],
+    "bearing": 0,
+    "margin": 5,
+    "headland": 0
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "name": "Implement Silvopasture with timber on Silvopasture with timber",
+  "projectId": "615edac05127820015ac2687",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-122.519041,48.818751],[-122.519062,48.816943],[-122.524417,48.816906],[-122.52443,48.818867],[-122.519041,48.818751]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5ff85c118d0b992280b63f24",
+              "nameCommon": "Silver Fir",
+              "genus": "abies",
+              "species": "alba"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 9
+      }
+    ],
+    "bearing": 90,
+    "margin": 15,
+    "headland": 0
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "name": "apples",
+  "projectId": "649c3a8a5984a4aad3147f27",
+  "fieldGeometry": "{\"id\":\"fbbd336d0873063ba0bf5284de827afd\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[10.667036880841522,56.163822244982754],[10.669042787136618,56.16348811942288],[10.669591411080859,56.16201793242908],[10.667191181325961,56.161750619656914],[10.666848291360964,56.16277212629288],[10.66641967890385,56.16290577935689],[10.667036880841522,56.163822244982754]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5fb054cc9a396020a8de4002",
+              "nameCommon": "Agarwood",
+              "genus": "aquilaria",
+              "species": "malaccensis"
+            },
+            "spacingAfter": 9
+          },
+          {
+            "species": {
+              "_id": "unknown"
+            },
+            "spacingAfter": 0
+          }
+        ],
+        "groundcover": {
+          "_id": "5fa92c4d6f28411b2cd75ab6",
+          "nameCommon": "Artichoke",
+          "genus": "cynara",
+          "species": "scolymus"
+        },
+        "width": 3,
+        "offset": {
+          "before": 3,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 1,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 4,
+    "margin": 1,
+    "headland": 1
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "Implement Field Crop Model",
+  "projectId": "5f7f2d609d03650015a0bf95",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-15.50670862197876,14.106256588706033],[-15.5057886242955,14.106256588706033],[-15.5057886242955,14.107172254356477],[-15.50670862197876,14.107172254356477],[-15.50670862197876,14.106256588706033]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e7dfca6dc0b8d09cc83be7b",
+          "nameCommon": "Corn",
+          "genus": "zea",
+          "species": "mays"
+        },
+        "width": 30
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 0.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e5e5542f4fdee214457aa6d",
+              "nameCommon": "Gliricidia",
+              "genus": "gliricidia",
+              "species": "sepium"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 0.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7b725ac4e7ef26e81492fe",
+              "nameCommon": "Pigeon pea",
+              "genus": "cajanus",
+              "species": "cajan"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 0.5
+      }
+    ],
+    "bearing": 90,
+    "margin": 0,
+    "headland": 0
+  }
+}

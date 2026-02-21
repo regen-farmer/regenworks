@@ -1,0 +1,45 @@
+{
+  "name": "Implement Hazzle silvopoultry on Field #2 2",
+  "projectId": "64366b18c0a85fbc82e7fce3",
+  "fieldGeometry": "{\"id\":\"97efb364802bf33d1147e7656a4efed4\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[12.019003472083824,55.03425905578155],[12.022715649360407,55.03396392422334],[12.021685681099228,55.03036068450936],[12.019346794837048,55.03053286033074],[12.01892651658261,55.02906504005762],[12.01695241074782,55.02913883217175],[12.018497363140312,55.03146321421485],[12.018711939862214,55.031844449192846],[12.01885666736024,55.03295211309077],[12.019003472083824,55.03425905578155]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          },
+          {
+            "species": {
+              "_id": "5e666db86c525f19a0978384",
+              "nameCommon": "Common Hazel",
+              "genus": "corylus",
+              "species": "avellana"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 5
+      }
+    ],
+    "bearing": 89,
+    "margin": 0,
+    "headland": 6
+  }
+}

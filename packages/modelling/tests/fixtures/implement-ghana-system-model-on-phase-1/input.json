@@ -1,0 +1,82 @@
+{
+  "name": "Implement Ghana system model on Phase 1",
+  "projectId": "6270ea61d70b750016075e54",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-0.9213097902890799,6.833362093915497,0.00002158115564335644],[-0.9209307113722431,6.833341180905865,-0.00001129668084209278],[-0.9210519181439725,6.832827354264108,-0.00001829731981639806],[-0.9214812597591926,6.832905678008011,-0.00002275824955425864],[-0.9213097902890799,6.833362093915497,0.00002158115564335644]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5f9de8c42df6cc19c4d61732",
+              "nameCommon": "African Breadfruit",
+              "genus": "treculia",
+              "species": "africana"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5e7b71adc4e7ef26e81492fd",
+              "nameCommon": "Moringa",
+              "genus": "moringa",
+              "species": "oleifera"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5f9de8c42df6cc19c4d61732",
+              "nameCommon": "African Breadfruit",
+              "genus": "treculia",
+              "species": "africana"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "width": 1
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e8c98a306d256299c2a2b04",
+          "nameCommon": "Cowpea",
+          "genus": "vigna",
+          "species": "unguiculata"
+        },
+        "width": 2
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e8c98a306d256299c2a2b04",
+          "nameCommon": "Cowpea",
+          "genus": "vigna",
+          "species": "unguiculata"
+        },
+        "width": 2
+      }
+    ],
+    "bearing": 20,
+    "margin": 2,
+    "headland": 0
+  }
+}

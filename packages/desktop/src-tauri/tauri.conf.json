@@ -1,0 +1,56 @@
+{
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "RegenWorks",
+	"version": "0.1.0",
+	"identifier": "com.regenworks.desktop",
+	"build": {
+		"beforeDevCommand": "cd ../.. && pnpm --filter isomorphic dev",
+		"devUrl": "http://localhost:10000",
+		"beforeBuildCommand": "cd ../.. && pnpm --filter isomorphic build",
+		"frontendDist": "../../isomorphic/.output/public"
+	},
+	"app": {
+		"withGlobalTauri": true,
+		"windows": [
+			{
+				"title": "RegenWorks",
+				"width": 1400,
+				"height": 900,
+				"minWidth": 800,
+				"minHeight": 600,
+				"resizable": true,
+				"fullscreen": false
+			}
+		],
+		"security": {
+			"csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.regenworks.com https://*.mapbox.com https://*.maptiler.com https://*.auth0.com wss://*.regenworks.com; font-src 'self' data:; worker-src 'self' blob:;"
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		],
+		"macOS": {
+			"minimumSystemVersion": "10.15"
+		},
+		"windows": {
+			"webviewInstallMode": {
+				"type": "embedBootstrapper"
+			}
+		}
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc0NzMzREM2OTVFRTMyQTgKUldTb011NlZ4ajF6ZFBMbGtIeGZITEFHa3FhUTdNMU5sdHpwWjdLZTYrMzFqYllNT1BiRk1SbU8K",
+			"endpoints": [
+				"http://releases.regenfarmer.com/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+			]
+		}
+	}
+}

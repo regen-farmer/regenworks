@@ -1,0 +1,165 @@
+{
+  "name": "Multistory coffee",
+  "projectId": "64b7a7067bce025bb360b851",
+  "fieldGeometry": "{\"id\":\"1731a8028605f23ec94c33c1511cba02\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[-45.59960147051817,-22.04495432806803],[-45.598974537844185,-22.045462640644715],[-45.59891840508499,-22.04552978571614],[-45.59889580064572,-22.045604200479872],[-45.598922302401604,-22.04568511745987],[-45.59941237871854,-22.04685136024176],[-45.60060244181682,-22.045859473140013],[-45.59960147051817,-22.04495432806803]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeee07d68e2095ccd375f",
+              "nameCommon": "Macadamia",
+              "genus": "macadamia",
+              "species": "integrifolia"
+            },
+            "spacingAfter": 7
+          }
+        ],
+        "width": 4,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 2
+          },
+          {
+            "species": {
+              "_id": "5e4af02f7d68e2095ccd3760",
+              "nameCommon": "Arabian coffee",
+              "genus": "coffea",
+              "species": "arabica"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 46,
+    "margin": 2,
+    "headland": 0
+  }
+}

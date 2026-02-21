@@ -1,0 +1,82 @@
+{
+  "name": "Test 3",
+  "projectId": "646380cc7550da8720a07753",
+  "fieldGeometry": "{\"id\":\"a2f152a92831d452b46b47241318162e\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.781394004821777,56.11400257276682],[9.782145023345947,56.113912845972095],[9.78408694267273,56.11343429953348],[9.783872365951538,56.11325484308472],[9.783153533935547,56.11310529540478],[9.782423973083496,56.112788252401344],[9.782005548477173,56.11288994572473],[9.781275987625122,56.11302154845018],[9.780685901641846,56.11306940387516],[9.780642986297607,56.11308136772206],[9.780170917510986,56.11308136772206],[9.780128002166748,56.11321895169456],[9.780267477035522,56.11375133721438],[9.780911207199097,56.11393677313782],[9.781394004821777,56.11400257276682]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e5e50e1f4fdee214457aa64",
+              "nameCommon": "Acai",
+              "genus": "euterpe",
+              "species": "oleracea"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 5
+          },
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "width": 8,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "width": 6,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 4,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 30,
+    "margin": 3,
+    "headland": 0
+  }
+}

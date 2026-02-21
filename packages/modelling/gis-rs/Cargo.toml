@@ -1,0 +1,64 @@
+[package]
+name = "gis-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Rust implementation of RegenWorks layout modelling"
+
+[lib]
+name = "gis_rs"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["native"]
+native = ["geos", "axum", "tokio", "tower", "tower-http", "tracing-subscriber"]
+wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook", "getrandom/js"]
+
+[dependencies]
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# GeoJSON parsing
+geojson = "0.24"
+
+# Coordinate projections (pure Rust, works in WASM)
+# proj = "0.27"  # Uses PROJ C library, not WASM compatible
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Random number generation (needed for getrandom in WASM)
+getrandom = { version = "0.2", optional = true }
+
+# === Native-only dependencies ===
+# HTTP server
+axum = { version = "0.7", optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["cors", "trace"], optional = true }
+
+# Geometry operations (GEOS bindings) - native only
+geos = { version = "10.0", optional = true }
+
+# Logging - native only
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+
+# === WASM-only dependencies ===
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["console"] }
+console_error_panic_hook = { version = "0.1", optional = true }
+
+# Cross-platform timing (works in both native and WASM)
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+
+[dev-dependencies]
+approx = "0.5"
+
+[[bin]]
+name = "gis-server"
+path = "src/main.rs"
+required-features = ["native"]

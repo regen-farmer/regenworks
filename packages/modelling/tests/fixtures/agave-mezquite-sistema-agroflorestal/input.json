@@ -1,0 +1,66 @@
+{
+  "name": "Agave-Mezquite Sistema Agroflorestal",
+  "projectId": "64b5ab277bce025bb360af33",
+  "fieldGeometry": "{\"id\":\"cae3c1cfb27b57f58fc6073d3f833b95\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[-100.70926089009711,20.91794671751073],[-100.70840087601752,20.917548048059672],[-100.70933148826781,20.91678967392211],[-100.71026851853314,20.91714038496859],[-100.70926089009711,20.91794671751073]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5ef0b0d1c171220d40da9aa0",
+              "nameCommon": "Smooth mesquite",
+              "genus": "prosopis",
+              "species": "laevigata"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "width": 4,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6817c10c26140b840332ca",
+              "nameCommon": "Giant agave",
+              "genus": "agave",
+              "species": "salmiana"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2,
+        "offset": {
+          "before": 1,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6817c10c26140b840332ca",
+              "nameCommon": "Giant agave",
+              "genus": "agave",
+              "species": "salmiana"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 1.95,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 49,
+    "margin": 4,
+    "headland": 0
+  }
+}

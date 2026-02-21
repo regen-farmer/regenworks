@@ -1,0 +1,406 @@
+{
+  "name": "Implement Alley cropping with chestnut, apples and elderberry on Dandelion Project Area",
+  "projectId": "60510524d3ebf51cc8cff8f1",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-70.926722,42.942832],[-70.92654,42.943065],[-70.926339,42.943281],[-70.926189,42.943398],[-70.92611,42.943445],[-70.925997,42.943481],[-70.925881,42.943512],[-70.925733,42.943575],[-70.925579,42.943629],[-70.92526,42.943713],[-70.925004,42.943794],[-70.924746,42.943891],[-70.924572,42.943993],[-70.924444,42.944025],[-70.924363,42.943887],[-70.924298,42.943711],[-70.924208,42.943561],[-70.924152,42.943369],[-70.924088,42.943272],[-70.924011,42.943155],[-70.923974,42.94309],[-70.923952,42.943007],[-70.923992,42.942918],[-70.924146,42.942821],[-70.924434,42.942703],[-70.924648,42.942711],[-70.924839,42.942534],[-70.925044,42.942384],[-70.92538,42.942183],[-70.925691,42.942141],[-70.926034,42.942167],[-70.926271,42.942286],[-70.926389,42.942443],[-70.926722,42.942832]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5fc2c8ea145cdf0acc96c48b",
+              "nameCommon": "Chinese Chestnut",
+              "genus": "castanea",
+              "species": "mollissima"
+            },
+            "spacingAfter": 15
+          }
+        ],
+        "width": 6
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 1.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e72aad14c6f102120c146fd",
+              "nameCommon": "European elderberry",
+              "genus": "sambucus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 1.5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          },
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 3
+      }
+    ],
+    "bearing": 14,
+    "margin": 5,
+    "headland": 0
+  }
+}

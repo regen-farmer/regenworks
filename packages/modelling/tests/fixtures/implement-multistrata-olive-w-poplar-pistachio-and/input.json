@@ -1,0 +1,284 @@
+{
+  "name": "Implement Multistrata olive w. poplar, pistachio and mulberry",
+  "projectId": "5ede9d702dc92b00154e83eb",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.56814020881285,54.80946873185223],[11.56979739204241,54.8095421530988],[11.56999776102158,54.80966229806297],[11.56966049068732,54.81078552826646],[11.56744496409923,54.81097234374065],[11.56814020881285,54.80946873185223]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 2.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747abba84eb20bccc77d79",
+              "nameCommon": "Poplar (black)",
+              "genus": "populus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68159e0c26140b840332c9",
+              "nameCommon": "Olive",
+              "genus": "olea",
+              "species": "europea"
+            },
+            "spacingAfter": 2.5
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747abba84eb20bccc77d79",
+              "nameCommon": "Poplar (black)",
+              "genus": "populus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68159e0c26140b840332c9",
+              "nameCommon": "Olive",
+              "genus": "olea",
+              "species": "europea"
+            },
+            "spacingAfter": 2.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747abba84eb20bccc77d79",
+              "nameCommon": "Poplar (black)",
+              "genus": "populus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 2.5
+          }
+        ],
+        "width": 5
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          },
+          {
+            "species": {
+              "_id": "5e68147a0c26140b840332c8",
+              "nameCommon": "Pistachio",
+              "genus": "pistacia",
+              "species": "vera"
+            },
+            "spacingAfter": 1
+          },
+          {
+            "species": {
+              "_id": "5e747a2ea84eb20bccc77d78",
+              "nameCommon": "Black mulberry",
+              "genus": "morus",
+              "species": "nigra"
+            },
+            "spacingAfter": 1.5
+          }
+        ],
+        "width": 5
+      }
+    ],
+    "bearing": 0,
+    "margin": 10,
+    "headland": 0
+  }
+}

@@ -1,27 +1,27 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import type { ProjectDocument } from "@rw/db/schemas/project.ts";
+import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
+import { useParams } from "@solidjs/router";
 import {
 	type Component,
-	Show,
 	createEffect,
-	createSignal,
 	createMemo,
 	createResource,
+	createSignal,
+	Show,
 } from "solid-js";
-import { useParams } from "@solidjs/router";
+import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
+import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
+import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { getSpecies } from "~/util/getSpecies.ts";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
-import { systemBasedLayout } from "@rw/modelling/gis/system_based_layout.ts";
-import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
-import { getSpecies } from "~/util/getSpecies.ts";
-import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
-import type { ISystemBasedLayout } from "@rw/modelling/gis/types/system-based-layout.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
-import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 const RouteDesignPreview: Component = () => {
 	const params = useParams();
@@ -46,17 +46,21 @@ const RouteDesignPreview: Component = () => {
 
 			const result: { project: ProjectDocument } = await response.json();
 			return result;
-		}
+		},
 	);
 
-	const systemLayout = createMemo<ISystemBasedLayout | undefined>(() => {
-		if (scenarioData()) {
-			return systemBasedLayout(
-				scenarioData()?.project.systemdesign,
-				scenarioData()?.project.layer.geometry,
-			);
-		}
-	});
+	const [systemLayout] = createResource(
+		() => scenarioData(),
+		async (data) => {
+			if (data) {
+				return systemBasedLayoutAsync(
+					data.project.systemdesign,
+					data.project.layer.geometry,
+				);
+			}
+			return undefined;
+		},
+	);
 
 	// const [mapCameraState, setMapCameraState] = createSignal({})
 	const mapCameraState = {};
@@ -88,8 +92,12 @@ const RouteDesignPreview: Component = () => {
 				const areaLng = scenarioData()?.project.layer.lng;
 
 				// Use the 3D control and sync with our local signal
-				const { show3D: controlShow3D } = use3DControl(map, systemLayout, species);
-				
+				const { show3D: controlShow3D } = use3DControl(
+					map,
+					systemLayout,
+					species,
+				);
+
 				// Sync the control's signal with our local one
 				createEffect(() => {
 					const is3D = controlShow3D();
@@ -109,20 +117,21 @@ const RouteDesignPreview: Component = () => {
 				const nav = new maplibregl.NavigationControl({
 					showCompass: true,
 					showZoom: true,
-					visualizePitch: true
+					visualizePitch: true,
 				});
 				map.addControl(nav, "top-right");
 
 				// Add scale control
 				const scale = new maplibregl.ScaleControl({
 					maxWidth: 100,
-					unit: 'metric'
+					unit: "metric",
 				});
-				map.addControl(scale, 'bottom-right');
+				map.addControl(scale, "bottom-right");
 
-				const unparsedFieldPolygon: any = scenarioData()?.project.layer.geometry;
+				const unparsedFieldPolygon: any =
+					scenarioData()?.project.layer.geometry;
 				const fieldPolygon = JSON.parse(
-					unparsedFieldPolygon!.replace(/&#34;/g, '"')
+					unparsedFieldPolygon!.replace(/&#34;/g, '"'),
 				);
 
 				const fieldPolygonVisible = true;
@@ -135,7 +144,7 @@ const RouteDesignPreview: Component = () => {
 					map.addLayer({
 						id: "fieldPolygon",
 						type: "fill",
-						//@ts-ignore
+						//@ts-expect-error
 						source: {
 							type: "geojson",
 							data: {
@@ -144,7 +153,7 @@ const RouteDesignPreview: Component = () => {
 									type: "Polygon",
 									coordinates: fieldPolygon.geometry.coordinates,
 								},
-								properties: {}
+								properties: {},
 							},
 						},
 						layout: {},
@@ -155,7 +164,6 @@ const RouteDesignPreview: Component = () => {
 						},
 					});
 				}
-
 
 				setMapLoaded(true);
 			});
@@ -169,11 +177,12 @@ const RouteDesignPreview: Component = () => {
 			try {
 				const style = map.getStyle();
 				if (style && style.layers) {
-					const target = style.layers.find((l: any) =>
-						l.id.startsWith("strips-") ||
-						l.id.startsWith("trees-") ||
-						l.id === "treeRowLines" ||
-						l.id === "row-labels"
+					const target = style.layers.find(
+						(l: any) =>
+							l.id.startsWith("strips-") ||
+							l.id.startsWith("trees-") ||
+							l.id === "treeRowLines" ||
+							l.id === "row-labels",
 					);
 					if (target && map.getLayer("fieldPolygon")) {
 						map.moveLayer("fieldPolygon", target.id);
@@ -197,8 +206,9 @@ const RouteDesignPreview: Component = () => {
 								{scenarioData.error?.message === "Authentication required"
 									? "This scenario is private. Please log in to view it."
 									: scenarioData.error?.message === "Unauthorized"
-									? "You don't have permission to view this scenario."
-									: scenarioData.error?.message || "Failed to load scenario data."}
+										? "You don't have permission to view this scenario."
+										: scenarioData.error?.message ||
+											"Failed to load scenario data."}
 							</p>
 							<button
 								onClick={() => refetch()}

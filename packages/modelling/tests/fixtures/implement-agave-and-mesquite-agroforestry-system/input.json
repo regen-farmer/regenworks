@@ -1,0 +1,54 @@
+{
+  "name": "Implement Agave and mesquite agroforestry system",
+  "projectId": "5f8edd616030ec1bfc8154eb",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-7.789393,40.145979],[-7.789393,40.145979],[-7.789254,40.146159],[-7.789254,40.146159],[-7.789093,40.146086],[-7.789093,40.146086],[-7.78876,40.145946],[-7.78876,40.145946],[-7.788846,40.145807],[-7.788846,40.145807],[-7.789393,40.145979]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6817c10c26140b840332ca",
+              "nameCommon": "Giant agave",
+              "genus": "agave",
+              "species": "salmiana"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6817c10c26140b840332ca",
+              "nameCommon": "Giant agave",
+              "genus": "agave",
+              "species": "salmiana"
+            },
+            "spacingAfter": 1
+          }
+        ],
+        "width": 2
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5ef0b0d1c171220d40da9aa0",
+              "nameCommon": "Smooth mesquite",
+              "genus": "prosopis",
+              "species": "laevigata"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "width": 4
+      }
+    ],
+    "bearing": 0,
+    "margin": 2,
+    "headland": 0
+  }
+}

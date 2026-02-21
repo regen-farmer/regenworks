@@ -1,0 +1,116 @@
+{
+  "name": "Silvoarable with walnut 24 m",
+  "projectId": "6492b6c6957114b55271ee59",
+  "fieldGeometry": "{\"id\":\"38414bb8eec34f347927605a946d6721\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[12.016908787624146,55.029015978791534],[12.0189991628244,55.0289760413506],[12.018929483651334,55.0285766647504],[12.020991987182498,55.02855270202781],[12.020796885497276,55.02777789961067],[12.020350938787828,55.02780186279648],[12.020350938787828,55.0275222914035],[12.020741142158215,55.02749832805043],[12.020358698745639,55.02635043153535],[12.01549071489822,55.02600078220257],[12.015586400084231,55.02639156654996],[12.015048170912223,55.02648069227129],[12.016908787624146,55.029015978791534]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 6
+          },
+          {
+            "species": {
+              "_id": "5e66810184922d089c392dc2",
+              "nameCommon": "Persian walnut",
+              "genus": "juglans",
+              "species": "regia"
+            },
+            "spacingAfter": 6
+          },
+          {
+            "species": {
+              "_id": "6055d88a31b24601e0062381",
+              "nameCommon": "Sour Cherry",
+              "genus": "prunus",
+              "species": "cerasus"
+            },
+            "spacingAfter": 4
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 3,
+        "offset": {
+          "before": 3,
+          "after": 3
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 2
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 2,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e66195ec0c63516dc441d29",
+          "nameCommon": "Barley",
+          "genus": "hordeum",
+          "species": "vulgare"
+        },
+        "width": 24,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 23,
+    "margin": 26,
+    "headland": 0
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "name": "apples",
+  "projectId": "661efb64e88bacd118e4b5cf",
+  "fieldGeometry": "{\"id\":\"bacafaac61ab0a797ecf250d0d8324cb\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[11.995601805251795,55.60245467381867],[12.00017099771594,55.60120234896576],[12.000804351126305,55.601227907015584],[12.005893798178192,55.60227577271573],[12.006775969000017,55.602224657965195],[12.007725999116218,55.60187963165632],[12.008449831585835,55.60157293905658],[12.00973915817272,55.60249300966291],[12.01003321511385,55.60411585938084],[11.991688585962834,55.605738641960414],[11.991032612787649,55.60368140225822],[11.992367178902754,55.60329805374167],[11.994267239135212,55.60484420317377],[11.99781854218881,55.60392418771403],[11.995601805251795,55.60245467381867]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 3,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 5
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 5,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5f15b6b14f5c4110a42201e7",
+              "nameCommon": "Autumn Olive",
+              "genus": "elaeagnus",
+              "species": "umbellata"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 3,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 10,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 40,
+    "margin": 10,
+    "headland": 0
+  }
+}

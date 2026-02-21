@@ -1,0 +1,36 @@
+{
+  "name": "Implement Alleycropping with coppiced willow and wheat",
+  "projectId": "5ebbf56c1de23d2ad8ce5da8",
+  "fieldGeometry": "{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[11.566132,54.808516],[11.56893,54.808506],[11.56905,54.808219],[11.570166,54.808635],[11.570972,54.808486],[11.572157,54.807927],[11.572157,54.807096],[11.56632,54.806839],[11.56632,54.807373],[11.565565,54.807828],[11.566132,54.808516]]]}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e665be6a5944911743ec85f",
+              "nameCommon": "White willow",
+              "genus": "salix",
+              "species": "alba"
+            },
+            "spacingAfter": 0.5
+          }
+        ],
+        "width": 10.7
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 50
+      }
+    ],
+    "bearing": 0,
+    "margin": 8,
+    "headland": 0
+  }
+}

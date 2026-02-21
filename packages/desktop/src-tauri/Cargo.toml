@@ -1,0 +1,42 @@
+[package]
+name = "RegenWorks"
+version = "0.1.0"
+description = "RegenWorks Desktop - Fast agroforestry planning"
+authors = ["RegenWorks"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "regenworks_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-shell = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+
+# Our layout engine with native GEOS
+gis-rs = { path = "../../modelling/gis-rs", default-features = true }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Async runtime (Tauri uses tokio)
+tokio = { version = "1", features = ["full"] }
+
+# Logging
+tracing = "0.1"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
