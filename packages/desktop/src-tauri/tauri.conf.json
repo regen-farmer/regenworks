@@ -49,7 +49,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc0NzMzREM2OTVFRTMyQTgKUldTb011NlZ4ajF6ZFBMbGtIeGZITEFHa3FhUTdNMU5sdHpwWjdLZTYrMzFqYllNT1BiRk1SbU8K",
 			"endpoints": [
-				"http://releases.regenfarmer.com/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+				"https://app.regenfarmer.com/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
 			]
 		}
 	}

@@ -5,7 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tauri dev",
+		"dev:staging": "tauri dev --config src-tauri/tauri.staging.conf.json",
 		"build": "tauri build",
+		"build:staging": "tauri build --config src-tauri/tauri.staging.conf.json",
 		"tauri": "tauri"
 	},
 	"dependencies": {
