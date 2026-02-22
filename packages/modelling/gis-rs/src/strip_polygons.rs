@@ -3,12 +3,12 @@
 //! Equivalent to make_all_strip_polygons.ts - creates polygons for each row strip
 //! with accurate area calculations.
 
-use geos::Geom;
 use crate::geometry::{
-    coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords,
-    project_polygon_to_local, project_polygon_to_wgs84, project_line_to_local,
+    coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords, project_line_to_local,
+    project_polygon_to_local, project_polygon_to_wgs84,
 };
 use crate::types::{GeoJsonFeature, RowDefinition};
+use geos::Geom;
 
 /// Result of strip polygon generation
 #[derive(Debug, Clone)]
@@ -57,11 +57,11 @@ pub fn make_all_strip_polygons(
 
     // Only use exterior ring (ignore holes - trees/groundcover run over them)
     let exterior_only = vec![offset_polygon[0].clone()];
-    
+
     // Project polygon and line to local meters
     let local_polygon = project_polygon_to_local(&exterior_only, center);
     let local_line = project_line_to_local(line_intersecting_area, center);
-    
+
     // Create GEOS geometries in local coordinate system (meters)
     let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
     let line_geom = coords_to_geos_line(&local_line)?;
@@ -77,12 +77,12 @@ pub fn make_all_strip_polygons(
         }
 
         let row_width = rows[current_row_idx].width;
-        
+
         // Create the elongated donut buffer in meters (no conversion needed!)
         let elongated_donut = if accumulating_width > 0.0 {
             let buffer_small = line_geom.buffer(accumulating_width, 32)?;
             let buffer_big = line_geom.buffer(accumulating_width + row_width, 32)?;
-            
+
             // Create donut by subtracting small from big
             buffer_big.difference(&buffer_small)?
         } else {
@@ -91,14 +91,14 @@ pub fn make_all_strip_polygons(
 
         // Intersect with the field polygon
         let intersection = polygon_geom.intersection(&elongated_donut)?;
-        
+
         // Calculate area (already in square meters!) and extract coordinates
         let geom_type = intersection.geometry_type();
-        
+
         match geom_type {
             geos::GeometryTypes::Polygon => {
                 let area_m2 = intersection.area()?;
-                
+
                 if let Ok(local_coords) = geos_polygon_to_coords(&intersection) {
                     // Project back to WGS84
                     let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
@@ -111,30 +111,22 @@ pub fn make_all_strip_polygons(
             }
             geos::GeometryTypes::MultiPolygon => {
                 let num_geoms = intersection.get_num_geometries()?;
-                let mut total_area = 0.0;
-                let mut all_coords = Vec::new();
-                
+
                 for i in 0..num_geoms {
                     if let Ok(geom) = intersection.get_geometry_n(i) {
-                        if let Ok(area) = geom.area() {
-                            total_area += area;
-                        }
+                        let area = geom.area().unwrap_or(0.0);
                         // Clone to get owned geometry for geos_polygon_to_coords
                         let owned_geom = geom.clone();
                         if let Ok(local_coords) = geos_polygon_to_coords(&owned_geom) {
                             // Project back to WGS84
                             let wgs84_coords = project_polygon_to_wgs84(&local_coords, center);
-                            all_coords.extend(wgs84_coords);
+                            strip_polygons.push(StripPolygonResult {
+                                polygon: wgs84_coords,
+                                area_m2: area,
+                                row_index: current_row_idx,
+                            });
                         }
                     }
-                }
-                
-                if !all_coords.is_empty() {
-                    strip_polygons.push(StripPolygonResult {
-                        polygon: all_coords,
-                        area_m2: total_area,
-                        row_index: current_row_idx,
-                    });
                 }
             }
             _ => {
@@ -161,12 +153,15 @@ impl StripPolygonResult {
     /// Convert to GeoJSON feature
     pub fn to_geojson(&self) -> GeoJsonFeature {
         if self.polygon.is_empty() {
-            return GeoJsonFeature::polygon(vec![], Some(serde_json::json!({
-                "rowIndex": self.row_index,
-                "areaM2": self.area_m2
-            })));
+            return GeoJsonFeature::polygon(
+                vec![],
+                Some(serde_json::json!({
+                    "rowIndex": self.row_index,
+                    "areaM2": self.area_m2
+                })),
+            );
         }
-        
+
         GeoJsonFeature::polygon(
             self.polygon
                 .iter()
@@ -194,7 +189,7 @@ mod tests {
             [0.0, 0.0],
         ]];
         let line = [[0.0, 0.0005], [0.001, 0.0005]];
-        
+
         let result = make_all_strip_polygons(&polygon, &line, 100.0, &[]).unwrap();
         assert!(result.is_empty());
     }

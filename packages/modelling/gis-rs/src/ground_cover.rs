@@ -50,8 +50,8 @@ pub fn make_ground_cover_areas(
         if let Some(groundcover) = &rows[row_idx].groundcover {
             let species_id = groundcover.id().to_string();
 
-            // Ignore empty polygons or area
-            if strip.area_m2 <= 0.0 || strip.polygon.is_empty() {
+            // Ignore empty polygons, area, or missing/empty species IDs
+            if strip.area_m2 <= 0.0 || strip.polygon.is_empty() || species_id.is_empty() {
                 continue;
             }
 

@@ -6,9 +6,15 @@ import {
 	helpers as turf,
 	area as turfArea,
 } from "@turf/turf";
+import type {
+  Feature,
+  Polygon,
+  MultiPolygon,
+  GeoJsonProperties as Properties
+} from "geojson";
 
 export function makeGroundCoverAreas(
-	stripPolygons: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[],
+	stripPolygons: Feature<Polygon | MultiPolygon, Properties>[],
 	rows: {
 		sequence: {
 			species: ISpeciesSchema;
@@ -26,10 +32,10 @@ export function makeGroundCoverAreas(
 		width: number;
 	}[]
 ): {
-	groundCoverAreas: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[];
-	groundCoverAreasM2: any;
+	groundCoverAreas: Feature<Polygon, Properties>[];
+	groundCoverAreasM2: Record<string, number>;
 } {
-	const groundCoverAreas: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[] = [];
+	const groundCoverAreas: Feature<Polygon, Properties>[] = [];
 	const groundCoverAreasM2 = {};
 
 	if (!(rows.length > 0)) {
@@ -44,22 +50,30 @@ export function makeGroundCoverAreas(
 		const groundCoverRaw =
 			rows[currentRowIdx].groundcover?._id ?? rows[currentRowIdx].groundcover;
 		// Ensure the ID is converted to a string for consistent key usage
-		const groundCoverId = groundCoverRaw?.toString?.() ?? groundCoverRaw;
+		const groundCoverId = groundCoverRaw ? String(groundCoverRaw) : undefined;
+		
 		if (groundCoverId && !groundCoverAreasM2[groundCoverId]) {
 			groundCoverAreasM2[groundCoverId] = 0;
 		}
 
 		if (groundCoverId && intersectionAreas) {
-			// Clone and update the polygon properties
-			const area = JSON.parse(JSON.stringify(intersectionAreas));
-			area.properties = area.properties || {};
-			area.properties.name = `alleypoly${groundCoverAreas.length}`;
-			area.properties.speciesId = groundCoverId;
-			
-			// We already calculated total strip areas in makeAllStripPolygons, but this
-			// aggregates it per-species. We can calculate it directly here via turfArea
-			groundCoverAreasM2[groundCoverId] += turfArea(area);
-			groundCoverAreas.push(area);
+			if (intersectionAreas.geometry.type === "MultiPolygon") {
+				for (const coords of intersectionAreas.geometry.coordinates) {
+					const poly = turf.polygon(coords, {
+						name: `alleypoly${groundCoverAreas.length}`,
+						speciesId: groundCoverId,
+					});
+					groundCoverAreasM2[groundCoverId] += turfArea(poly);
+					groundCoverAreas.push(poly);
+				}
+			} else if (intersectionAreas.geometry.type === "Polygon") {
+				const poly = turf.polygon(intersectionAreas.geometry.coordinates, {
+					name: `alleypoly${groundCoverAreas.length}`,
+					speciesId: groundCoverId,
+				});
+				groundCoverAreasM2[groundCoverId] += turfArea(poly);
+				groundCoverAreas.push(poly);
+			}
 		}
 	}
 
