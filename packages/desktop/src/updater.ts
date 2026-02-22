@@ -101,6 +101,16 @@ export function initUpdater(delayMs: number = 5000): void {
 		try {
 			const version = await getAppVersion();
 			console.log(`[Updater] Current version: ${version}`);
+
+			if (version) {
+				try {
+					const { getCurrentWindow } = await import("@tauri-apps/api/window");
+					await getCurrentWindow().setTitle(`RegenWorks v${version}`);
+				} catch (e) {
+					console.error("[Updater] Failed to set window title", e);
+				}
+			}
+
 			await checkForUpdates();
 		} catch (error) {
 			console.error("[Updater] Init failed:", error);
