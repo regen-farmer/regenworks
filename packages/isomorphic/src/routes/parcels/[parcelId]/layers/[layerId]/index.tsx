@@ -6,6 +6,7 @@ import {
   createSignal,
   For,
   Show,
+  onCleanup,
 } from "solid-js";
 import maplibregl from "maplibre-gl";
 import type { LayerDocument } from "@rw/db/schemas/layer";
@@ -113,6 +114,7 @@ export default function view() {
                 type: "Polygon",
                 coordinates: correctgeometry?.geometry.coordinates,
               },
+              properties: {}
             },
           },
           layout: {},
@@ -122,6 +124,12 @@ export default function view() {
             "fill-outline-color": "#F0F8FF",
           },
         });
+      });
+
+      onCleanup(() => {
+        if (map) {
+          map.remove();
+        }
       });
     }
   });
