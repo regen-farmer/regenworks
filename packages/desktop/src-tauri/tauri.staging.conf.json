@@ -2,7 +2,7 @@
 	"plugins": {
 		"updater": {
 			"endpoints": [
-				"https://staging.regenfarmer.com/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+				"https://staging.regenfarmer.com/api/updater/{{target}}/{{arch}}/{{current_version}}"
 			]
 		}
 	}

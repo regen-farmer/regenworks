@@ -2,7 +2,7 @@
 	"plugins": {
 		"updater": {
 			"endpoints": [
-				"http://localhost:10000/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+				"http://localhost:10000/api/updater/{{target}}/{{arch}}/{{current_version}}"
 			]
 		}
 	}
