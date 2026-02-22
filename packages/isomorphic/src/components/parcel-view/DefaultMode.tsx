@@ -55,7 +55,7 @@ type DefaultModeProps = {
 	refetch: any;
 };
 
-function DefaultMode({
+export default function DefaultMode({
 	addField,
 	editField,
 	data,
@@ -842,4 +842,4 @@ function DefaultMode({
 	);
 }
 
-export default DefaultMode;
+

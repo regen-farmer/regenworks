@@ -12,9 +12,8 @@ import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 // import { breadcrumb } from '~/breadcrumb'
 
-export const [reloadSignal, setReloadSignal] = createSignal(1);
-
 export function FieldSelect() {
+	const [reloadSignal, setReloadSignal] = createSignal(1);
 	const location = useLocation();
 	const params = useParams();
 

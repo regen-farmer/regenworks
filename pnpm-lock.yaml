@@ -301,6 +301,9 @@ importers:
       solid-sonner:
         specifier: ^0.2.8
         version: 0.2.8(solid-js@1.9.10)
+      source-map-js:
+        specifier: 1.2.1
+        version: 1.2.1
       start-authjs:
         specifier: ^1.0.0
         version: 1.0.2(@auth/core@0.38.0)

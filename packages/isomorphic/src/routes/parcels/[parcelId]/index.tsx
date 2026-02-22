@@ -51,9 +51,9 @@ export default function view() {
 		return await response.json();
 	});
 
-	createMemo(() => {
+	createEffect(() => {
+		useLocation().pathname;
 		refetch();
-		return useLocation().pathname;
 	});
 
 	const [mapref, setMapref] = createSignal<HTMLElement>();
