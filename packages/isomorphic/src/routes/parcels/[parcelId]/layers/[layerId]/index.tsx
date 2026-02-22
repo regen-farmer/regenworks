@@ -22,6 +22,8 @@ import { CreateNewScenarioModal } from "~/components/CreateNewScenarioModal.tsx"
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import DuplicateScenarioModal from "~/components/DuplicateScenarioModal.tsx";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
+import { useBSControl } from "~/util/map_controls/useBSControl.ts";
+import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 import {
   Dialog,
   DialogContent,
@@ -96,8 +98,8 @@ export default function view() {
 
       map.on("load", () => {
         useMeasureControl(map);
-
-        // map.addControl(new maplibregl.FullscreenControl({}));
+        useHCControl(map);
+        useBSControl(map);
 
         map.addLayer({
           id: "map",

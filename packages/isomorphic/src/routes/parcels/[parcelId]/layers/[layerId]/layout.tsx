@@ -6,9 +6,11 @@ import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import maplibregl from "maplibre-gl";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import type turf from "@turf/turf";
+import type * as turf from "@turf/turf";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { Row } from "~/components/row/Row";
+import { useBSControl } from "~/util/map_controls/useBSControl.ts";
+import { useHCControl } from "~/util/map_controls/useHCControl.ts";
 
 export default function view() {
   const params = useParams();
@@ -111,6 +113,8 @@ export default function view() {
 
       map.on("load", () => {
         map.addControl(new maplibregl.FullscreenControl({}));
+        useBSControl(map);
+        useHCControl(map);
 
         map.addLayer({
           id: "map",
