@@ -50,6 +50,7 @@ import type {
 	SystemDesignDocument,
 } from "@rw/db/schemas/systemdesign.ts";
 import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { generateLayout } from "~/util/layoutService.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import _ from "lodash";
 import { OfferRequestModal } from "~/components/OfferRequestModal";
@@ -157,54 +158,26 @@ export default function view() {
 
 		setPreviewing(true);
 
-		// Use server-side generation (with Rust model when enabled)
 		try {
-			const response = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/projects/${params.projectId}/preview`,
-				{
-					...apiFetchOptions(),
-					method: "POST",
-					headers: {
-						...apiFetchOptions().headers,
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						systemdesign: system,
-						geometry: scenarioData()?.project.layer.geometry,
-					}),
-				},
-			);
-			const result = await response.json();
-			if (result.error) {
-				console.error("Layout generation failed:", result.error);
-				// Fallback to client-side
-				const layout = await systemBasedLayoutAsync(
-					system,
-					scenarioData()?.project.layer.geometry,
-				);
-				setSystemLayout(layout);
-			} else {
-				setSystemLayout({
-					treeRowLines: result.treeRowLines,
-					groundCoverAreas: result.groundCoverAreas?.features || [],
-					groundCoverAreasM2: result.groundCoverAreasM2 || 0,
-					headlandPolygon: result.headlandPolygon,
-					marginPolygon: result.marginPolygon,
-					speciesCountArray: result.speciesCountArray,
-					sidesCloseToBearing: result.sidesCloseToBearing?.features || [],
-					intersectionPoints: result.intersectionPoints?.features || [],
-					headlandSides: result.headlandSides?.features || [],
-					treeMarkerArray: result.treeMarkerArray,
-				} as ISystemBasedLayout);
-			}
-		} catch (error) {
-			console.error("Server layout failed, using client-side:", error);
-			// Fallback to client-side
-			const layout = await systemBasedLayoutAsync(
+			const result = await generateLayout(
 				system,
 				scenarioData()?.project.layer.geometry,
 			);
-			setSystemLayout(layout);
+			
+			setSystemLayout({
+				treeRowLines: result.treeRowLines,
+				groundCoverAreas: result.groundCoverAreas?.features || result.groundCoverAreas || [],
+				groundCoverAreasM2: result.groundCoverAreasM2 || 0,
+				headlandPolygon: result.headlandPolygon,
+				marginPolygon: result.marginPolygon,
+				speciesCountArray: result.speciesCountArray,
+				sidesCloseToBearing: result.sidesCloseToBearing?.features || result.sidesCloseToBearing || [],
+				intersectionPoints: result.intersectionPoints?.features || result.intersectionPoints || [],
+				headlandSides: result.headlandSides?.features || result.headlandSides || [],
+				treeMarkerArray: result.treeMarkerArray,
+			} as ISystemBasedLayout);
+		} catch (error) {
+			console.error("Layout generation failed:", error);
 		}
 
 		// Don't touch

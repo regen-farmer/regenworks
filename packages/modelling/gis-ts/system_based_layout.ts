@@ -213,7 +213,11 @@ export function systemBasedLayoutSync(
 	// Parse and validate the geometry
 	let polygon;
 	try {
-		polygon = JSON.parse(fieldGeometry);
+        if (typeof fieldGeometry === "string") {
+		    polygon = JSON.parse(fieldGeometry);
+        } else {
+            polygon = fieldGeometry;
+        }
 		if (!polygon || !polygon.geometry) {
 			console.error("Invalid polygon structure:", polygon);
 			throw new Error("Invalid polygon structure");

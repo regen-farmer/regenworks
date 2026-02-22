@@ -9,6 +9,7 @@
  */
 
 import { isTauri } from "./platform";
+import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
 
 // Types that match the layout response structure
 export interface LayoutResult {
@@ -77,32 +78,33 @@ interface LayoutResponse {
  * @returns Layout result
  */
 export async function generateLayout(
-	systemDesign: SystemDesign,
-	fieldGeometry: string,
-	apiBaseUrl?: string,
-): Promise<LayoutResult> {
+	systemDesign: any,
+	fieldGeometry: any,
+): Promise<any> {
 	if (isTauri()) {
 		return generateLayoutTauri(systemDesign, fieldGeometry);
 	}
-	if (!apiBaseUrl) {
-		throw new Error("apiBaseUrl is required for web layout generation");
-	}
-	return generateLayoutApi(systemDesign, fieldGeometry, apiBaseUrl);
+	return generateLayoutBrowser(systemDesign, fieldGeometry);
 }
 
 /**
  * Generate layout using Tauri (native Rust + GEOS)
  */
 async function generateLayoutTauri(
-	systemDesign: SystemDesign,
-	fieldGeometry: string,
-): Promise<LayoutResult> {
+	systemDesign: any,
+	fieldGeometry: any,
+): Promise<any> {
 	// Dynamic import to avoid bundling Tauri API in web builds
 	const { invoke } = await import("@tauri-apps/api/core");
 
+	// Ensure fieldGeometry is a string, as Rust expects a String
+	const geometryString = typeof fieldGeometry === "string" 
+		? fieldGeometry 
+		: JSON.stringify(fieldGeometry);
+
 	const response = await invoke<LayoutResponse>("generate_layout", {
 		systemdesign: systemDesign,
-		fieldGeometry: fieldGeometry,
+		field_geometry: geometryString,
 	});
 
 	if (!response.success || !response.data) {
@@ -114,36 +116,23 @@ async function generateLayoutTauri(
 }
 
 /**
- * Generate layout using API (backend server)
+ * Generate layout using Browser (TypeScript model directly)
  */
-async function generateLayoutApi(
-	systemDesign: SystemDesign,
-	fieldGeometry: string,
-	apiBaseUrl: string,
-): Promise<LayoutResult> {
-	const response = await fetch(`${apiBaseUrl}/layout`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			systemdesign: systemDesign,
-			fieldGeometry: fieldGeometry,
-		}),
-	});
+async function generateLayoutBrowser(
+	systemDesign: any,
+	fieldGeometry: any,
+): Promise<any> {
+	const startTime = performance.now();
+    
+    // Parse if it's a string, as systemBasedLayoutAsync expects an object
+    const geometryObj = typeof fieldGeometry === "string" 
+        ? JSON.parse(fieldGeometry) 
+        : fieldGeometry;
+        
+	const layout = await systemBasedLayoutAsync(systemDesign, geometryObj);
 
-	if (!response.ok) {
-		throw new Error(`Layout API error: ${response.statusText}`);
-	}
-
-	const result = (await response.json()) as LayoutResponse;
-
-	if (!result.success || !result.data) {
-		throw new Error(result.error || "Layout generation failed");
-	}
-
-	console.log(`[API] Layout generated in ${result.timingMs?.toFixed(1)}ms`);
-	return result.data;
+	console.log(`[Browser TS] Layout generated in ${(performance.now() - startTime).toFixed(1)}ms`);
+	return layout;
 }
 
 /**

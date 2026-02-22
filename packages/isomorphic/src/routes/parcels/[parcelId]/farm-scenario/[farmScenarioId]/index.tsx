@@ -2,7 +2,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { MaptilerNavigationControl } from "@maptiler/sdk";
-import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { generateLayout } from "~/util/layoutService.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import { useParams } from "@solidjs/router";
 import { bbox, helpers as turf } from "@turf/turf";
@@ -176,7 +176,7 @@ const FarmScenarioPreview: Component = () => {
 							Array.isArray(systemDesign.rows) &&
 							systemDesign.rows.length > 0
 						) {
-							systemLayout = await systemBasedLayoutAsync(
+							systemLayout = await generateLayout(
 								systemDesign,
 								geometryString,
 							);
@@ -655,7 +655,7 @@ const FarmScenarioPreview: Component = () => {
 									: JSON.stringify(selected.geometry);
 
 							try {
-								const layout = await systemBasedLayoutAsync(
+								const layout = await generateLayout(
 									systemDesign,
 									geometryString,
 								);
@@ -847,7 +847,7 @@ const FarmScenarioPreview: Component = () => {
 										: JSON.stringify(selected.geometry);
 
 								try {
-									const layout = await systemBasedLayoutAsync(
+									const layout = await generateLayout(
 										systemDesign,
 										geometryString,
 									);

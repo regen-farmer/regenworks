@@ -2,7 +2,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
-import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { generateLayout } from "~/util/layoutService.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
 import { useParams } from "@solidjs/router";
 import {
@@ -53,10 +53,10 @@ const RouteDesignPreview: Component = () => {
 		() => scenarioData(),
 		async (data) => {
 			if (data) {
-				return systemBasedLayoutAsync(
+				return generateLayout(
 					data.project.systemdesign,
 					data.project.layer.geometry,
-				);
+				) as Promise<ISystemBasedLayout>;
 			}
 			return undefined;
 		},
