@@ -399,15 +399,12 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 	}
 
 	// Add row labels in 2D mode
-	console.log("Adding row labels - show3D:", show3D, "treeRowsVisible:", treeRowsVisible, "treeRowLines:", systemLayout.treeRowLines);
 	
 	if (treeRowsVisible && systemLayout.treeRowLines && systemLayout.treeRowLines.length > 0) {
 		// Create label features for each row line
 		const rowLabels: any[] = [];
 		let lastSeenPatternIndex = -1;
 		let currentRepetition = 1; // 1-based; will convert to letters using toRepetitionLetter
-
-		console.log("Processing", systemLayout.treeRowLines.length, "tree row lines");
 
 		systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
 			const patternIndex = rowLine.systemDesignRowIndex;
@@ -419,7 +416,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 			lastSeenPatternIndex = patternIndex;
 
 			const repLetter = toRepetitionLetter(currentRepetition);
-			console.log("Row line", index, "- Pattern:", patternIndex, "Repetition:", repLetter, "Line:", rowLine.line);
 
 			// Get the midpoint of the line for label placement
 			if (rowLine.line && rowLine.line.geometry && rowLine.line.geometry.coordinates && rowLine.line.geometry.coordinates.length > 0) {
@@ -431,16 +427,10 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 					row: patternIndex + 1
 				});
 				rowLabels.push(labelPoint);
-				console.log("Added label at:", coords[midIndex], "Label:", `${repLetter}-${patternIndex + 1}`);
-			} else {
-				console.log("No valid coordinates for row line", index);
 			}
 		});
 
-		console.log("Total labels created:", rowLabels.length);
-
 		const labelCollection = featureCollection(rowLabels);
-		console.log("Label collection:", labelCollection);
 
 		// Remove existing label layer if it exists
 		if (map.getLayer("row-labels")) {
@@ -476,8 +466,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 				"text-halo-blur": 0.5
 			}
 		});
-		
-		console.log("Row labels layer added successfully");
 	}
 }
 
