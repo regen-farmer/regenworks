@@ -27,6 +27,8 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
 import { EditFieldMode } from "~/components/parcel-view/EditFieldMode.tsx";
 
+import type { FeatureCollection, Point } from "geojson";
+
 export enum modes {
 	default = 0,
 	editField = 2,
@@ -36,9 +38,9 @@ export default function view() {
 	const params = useParams<{ parcelId: string }>();
 	const [data, { refetch }] = createResource<{
 		parcel: IParcelSchema;
-		collection: turf.helpers.FeatureCollection<any, any>;
-		places: turf.helpers.FeatureCollection<
-			turf.helpers.Point,
+		collection: FeatureCollection<any, any>;
+		places: FeatureCollection<
+			Point,
 			{
 				description: string;
 			}

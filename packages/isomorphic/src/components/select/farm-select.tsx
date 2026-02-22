@@ -18,8 +18,9 @@ import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 // import { breadcrumb } from '~/breadcrumb'
 
+export const [reloadSignal, setReloadSignal] = createSignal(1);
+
 export function FarmSelect() {
-	const [reloadSignal, setReloadSignal] = createSignal(1);
 	const [farmListData, { refetch }] = createResource(
 		reloadSignal,
 		async (reloader) => {

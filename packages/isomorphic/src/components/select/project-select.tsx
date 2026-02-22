@@ -12,8 +12,9 @@ import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 // import { breadcrumb } from '~/breadcrumb'
 
+export const [reloadSignal, setReloadSignal] = createSignal(1);
+
 export function ProjectSelect() {
-	const [reloadSignal, setReloadSignal] = createSignal(1);
 	const location = useLocation();
 
 	const getParcelId = createMemo(() => {
