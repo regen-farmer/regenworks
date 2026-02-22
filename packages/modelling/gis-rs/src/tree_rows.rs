@@ -3,13 +3,11 @@
 //! Equivalent to make_tree_row_lines.ts - creates parallel row lines
 //! within the headland polygon.
 
-use geos::{Geom, Geometry};
 use crate::geometry::{
-    along, bearing, line_length,
-    coords_to_geos_line, coords_to_geos_polygon,
-    local_meters_to_wgs84,
+    along, bearing, coords_to_geos_line, coords_to_geos_polygon, line_length, local_meters_to_wgs84,
 };
 use crate::types::{GeoJsonFeature, RowDefinition};
+use geos::{Geom, Geometry};
 
 /// A tree row line with its system design index
 #[derive(Debug, Clone)]
@@ -72,21 +70,22 @@ pub fn make_tree_row_lines(
     } else {
         [0.0, 0.0]
     };
-    
+
     // Project polygon to local meters for accurate intersection calculations
     // Only use exterior ring (ignore holes) - trees/groundcover run over holes
-    let local_polygon: Vec<Vec<[f64; 2]>> = vec![
-        offset_polygon[0].iter().map(|c| wgs84_to_local_meters(*c, center)).collect()
-    ];
+    let local_polygon: Vec<Vec<[f64; 2]>> = vec![offset_polygon[0]
+        .iter()
+        .map(|c| wgs84_to_local_meters(*c, center))
+        .collect()];
     let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
-    
+
     // Project reference line to local meters
     let local_line: Vec<[f64; 2]> = line_intersecting_area
         .iter()
         .map(|c| wgs84_to_local_meters(*c, center))
         .collect();
     let line_geom = coords_to_geos_line(&local_line)?;
-    
+
     // Get the bearing of the reference line
     let ref_bearing = bearing(line_intersecting_area[0], line_intersecting_area[1]);
 
@@ -115,28 +114,28 @@ pub fn make_tree_row_lines(
         // (all in local meter coordinates)
         let buffer_boundary = buffer_geom.boundary()?;
         let polygon_boundary = polygon_geom.boundary()?;
-        
+
         // Get the intersection of boundaries - should be Points where they cross
         let boundary_intersection = buffer_boundary.intersection(&polygon_boundary)?;
-        
+
         // Extract points from the intersection (in local meters)
         let intersection_points_local = extract_all_points(&boundary_intersection)?;
-        
+
         // Sort intersection points and create row lines
         if intersection_points_local.len() >= 2 {
             let sorted_points = sort_intersection_points(&intersection_points_local);
-            
+
             // Create lines between pairs of points
             for k in 0..(sorted_points.len() / 2) {
                 let start_local = sorted_points[k * 2];
                 let end_local = sorted_points[k * 2 + 1];
-                
+
                 // Project back to WGS84
                 let start = local_meters_to_wgs84(start_local, center);
                 let end = local_meters_to_wgs84(end_local, center);
-                
+
                 let mut row_line = vec![start, end];
-                
+
                 // Check and fix bearing direction (now comparing WGS84 bearings)
                 let row_bearing = bearing(row_line[0], row_line[1]);
                 let bearing_diff = (row_bearing - ref_bearing).abs();
@@ -149,23 +148,23 @@ pub fn make_tree_row_lines(
                         row_line.reverse();
                     }
                 }
-                
+
                 // Apply offsets (these work in meters via geodesic along())
                 let (before, after) = calculate_headland_offset(&rows[current_row_idx].offset);
                 let row_length = line_length(&row_line);
-                
+
                 if before + after >= row_length {
                     // Offsets are longer than the row, skip
                     continue;
                 }
-                
+
                 // Trim the line by offsets
                 if before > 0.0 || after > 0.0 {
                     let start_point = along(&row_line, before);
                     let end_point = along(&row_line, row_length - after);
                     row_line = vec![start_point, end_point];
                 }
-                
+
                 tree_rows.push(TreeRowLineResult {
                     line: row_line,
                     system_design_row_index: current_row_idx,
@@ -186,9 +185,9 @@ pub fn make_tree_row_lines(
 /// Extract all points from any geometry type (Point, MultiPoint, etc.)
 fn extract_all_points(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error> {
     let mut points = Vec::new();
-    
+
     let geom_type = geom.geometry_type();
-    
+
     match geom_type {
         geos::GeometryTypes::Point => {
             let coord_seq = geom.get_coord_seq()?;
@@ -227,7 +226,7 @@ fn extract_all_points(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error> {
         }
         _ => {}
     }
-    
+
     // Deduplicate close points
     let points = deduplicate_points(&points, 1e-10);
     Ok(points)
@@ -237,9 +236,9 @@ fn extract_all_points(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error> {
 fn deduplicate_points(points: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
     let mut result = Vec::new();
     for p in points {
-        let is_dup = result.iter().any(|q: &[f64; 2]| {
-            (p[0] - q[0]).abs() < tol && (p[1] - q[1]).abs() < tol
-        });
+        let is_dup = result
+            .iter()
+            .any(|q: &[f64; 2]| (p[0] - q[0]).abs() < tol && (p[1] - q[1]).abs() < tol);
         if !is_dup {
             result.push(*p);
         }
@@ -250,7 +249,7 @@ fn deduplicate_points(points: &[[f64; 2]], tol: f64) -> Vec<[f64; 2]> {
 /// Sort intersection points for pairing
 fn sort_intersection_points(points: &[[f64; 2]]) -> Vec<[f64; 2]> {
     let mut sorted = points.to_vec();
-    
+
     // Check if all x coordinates are unique (within tolerance)
     let x_unique = {
         let mut x_vals: Vec<f64> = sorted.iter().map(|p| (p[0] * 1e9).round()).collect();
@@ -258,14 +257,14 @@ fn sort_intersection_points(points: &[[f64; 2]]) -> Vec<[f64; 2]> {
         x_vals.dedup();
         x_vals.len() == sorted.len()
     };
-    
+
     if x_unique {
         sorted.sort_by(|a, b| a[0].partial_cmp(&b[0]).unwrap());
     } else {
         // Sort by y if x has duplicates
         sorted.sort_by(|a, b| a[1].partial_cmp(&b[1]).unwrap());
     }
-    
+
     sorted
 }
 
@@ -295,7 +294,7 @@ mod tests {
             [0.0, 0.0],
         ]];
         let line = [[0.0, 0.0005], [0.001, 0.0005]];
-        
+
         let result = make_tree_row_lines(&polygon, &line, 100.0, &[]).unwrap();
         assert!(result.is_empty());
     }
@@ -307,16 +306,5 @@ mod tests {
         assert_eq!(sorted[0][0], 0.001);
         assert_eq!(sorted[1][0], 0.002);
         assert_eq!(sorted[2][0], 0.003);
-    }
-    
-    #[test]
-    fn test_meters_to_degrees() {
-        // At equator, 111320 meters = 1 degree
-        let deg = meters_to_degrees(111320.0, 0.0);
-        assert!((deg - 1.0).abs() < 0.01);
-        
-        // At 60 degrees latitude, it's roughly half
-        let deg_60 = meters_to_degrees(111320.0, 60.0);
-        assert!(deg_60 > 1.5 && deg_60 < 2.5);
     }
 }
