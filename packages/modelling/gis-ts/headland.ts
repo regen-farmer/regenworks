@@ -11,7 +11,7 @@ import {
 } from "@turf/turf";
 import proj4 from "proj4";
 
-import _ from "lodash";
+
 
 function clampNumberToBetween0And180Degrees(bearing: number) {
   while (bearing < 0) {
@@ -203,16 +203,16 @@ export function applyHeadland(
 
     if (beforeIdx < afterIdx) {
       headlandPolygonCoords = [
-        ..._.slice(headlandPolygonCoords, 0, beforeIdx + 1),
+        ...headlandPolygonCoords.slice(0, beforeIdx + 1),
         intersectionBefore.features[0].geometry.coordinates,
 
         // Add additional points similar to the one above to keep length of headland polygon array
-        ...Array(_.slice(headlandPolygonCoords, beforeIdx + 1, afterIdx + 1).length - 2).fill(
+        ...Array(headlandPolygonCoords.slice(beforeIdx + 1, afterIdx + 1).length - 2).fill(
           intersectionBefore.features[0].geometry.coordinates,
         ),
 
         intersectionAfter.features[0].geometry.coordinates,
-        ..._.slice(headlandPolygonCoords, afterIdx + 1),
+        ...headlandPolygonCoords.slice(afterIdx + 1),
       ];
     }
 
@@ -221,13 +221,13 @@ export function applyHeadland(
       headlandPolygonCoords = [
         // Add additional points similar to the one below to keep length of headland polygon array
 
-        ...Array(_.slice(headlandPolygonCoords, 0, afterIdx + 1).length).fill(
+        ...Array(headlandPolygonCoords.slice(0, afterIdx + 1).length).fill(
           intersectionAfter.features[0].geometry.coordinates,
         ),
 
-        ..._.slice(headlandPolygonCoords, afterIdx + 1, beforeIdx + 1),
+        ...headlandPolygonCoords.slice(afterIdx + 1, beforeIdx + 1),
 
-        ...Array(_.slice(headlandPolygonCoords, beforeIdx).length - 1).fill(
+        ...Array(headlandPolygonCoords.slice(beforeIdx).length - 1).fill(
           intersectionBefore.features[0].geometry.coordinates,
         ),
         intersectionAfter.features[0].geometry.coordinates,
@@ -251,7 +251,7 @@ export function applyHeadland(
     // if (intersectionAfter) intersectionPoints.push(intersectionAfter);
   }
 
-  headlandPolygonCoords = _.remove(headlandPolygonCoords, (coord: number[], i) => {
+  headlandPolygonCoords = headlandPolygonCoords.filter((coord: number[], i) => {
     // remove duplicate points, but keep first and last point the same
     if (i !== 0 && i !== headlandPolygonCoords.length - 1) {
       if (

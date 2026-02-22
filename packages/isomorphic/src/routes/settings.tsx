@@ -25,7 +25,6 @@ import {
 
 import { type Component, createEffect, createSignal, Show } from "solid-js";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import _ from "lodash";
 import { action } from "@solidjs/router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
@@ -182,9 +181,9 @@ const RouteViewAccount: Component = () => {
   }
 
   function formatPrice(price: StripePrice) {
-    return (
-      _.get(price.currency_options, `${currency()?.toString().toLowerCase()!}.unit_amount`)! / 100
-    );
+    const currStr = currency()?.toString().toLowerCase();
+    const unitAmount = currStr ? (price.currency_options as any)[currStr]?.unit_amount : 0;
+    return unitAmount / 100;
   }
 
   async function deleteSubscription(subscriptionId: string, cancel_at_period_end = true) {

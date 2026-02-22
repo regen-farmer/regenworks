@@ -8,7 +8,7 @@ import type { Resource } from "solid-js";
 import { MapboxOverlay } from "@deck.gl/mapbox";
 // @ts-ignore
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
-import _ from "lodash";
+
 import type { IControl } from "maplibre-gl";
 const deckOverlay = new MapboxOverlay({
   interleaved: true,
@@ -154,16 +154,20 @@ export function use3DControl(
         },
       );
 
-      const assetFormArrays = _.groupBy(correctTreeAssetArray, (entry) => {
+      const assetFormArrays = correctTreeAssetArray.reduce((acc: Record<string, TreeAsset[]>, entry) => {
         const speciesKey2 =
           typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
         const cultivar = species()?.speciesById.get(speciesKey2);
 
+        let groupKey = cultivar?.form ?? "palm";
         if (cultivar?.family === "pinaceae") {
-          return "conifer";
+          groupKey = "conifer";
         }
-        return cultivar?.form ?? "palm";
-      });
+        
+        if (!acc[groupKey]) acc[groupKey] = [];
+        acc[groupKey].push(entry);
+        return acc;
+      }, {});
 
       const models: any = {
         giantherb: {
@@ -194,7 +198,7 @@ export function use3DControl(
 
       const Layers3D: any[] = [];
 
-      _.forEach(assetFormArrays, (value, key) => {
+      Object.entries(assetFormArrays).forEach(([key, value]) => {
         let newKey = key;
 
         if (!newKey || newKey === "grass") {
@@ -219,6 +223,14 @@ export function use3DControl(
             // 	return [1+scale, 1+scale, 1+scale]
             // },
             _lighting: "pbr",
+            loadOptions: {
+              imagebitmap: {
+                premultiplyAlpha: "none",
+              },
+              image: {
+                decode: true,
+              },
+            },
           }),
         );
       });

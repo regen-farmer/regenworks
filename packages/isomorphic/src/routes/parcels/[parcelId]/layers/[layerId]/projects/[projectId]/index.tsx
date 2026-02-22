@@ -44,7 +44,6 @@ import type { ISystemDesignSchema, SystemDesignDocument } from "@rw/db/schemas/s
 
 import { generateLayout } from "~/util/layoutService.ts";
 import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
-import _ from "lodash";
 import { OfferRequestModal } from "~/components/OfferRequestModal";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
@@ -69,6 +68,21 @@ import { Row } from "~/components/row/Row";
 import { setReloadSignal } from "~/components/select/project-select";
 import { showToast, Toaster } from "~/components/ui/toast";
 
+function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+  if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 == null || obj2 == null) return false;
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+  
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  if (keys1.length !== keys2.length) return false;
+  
+  for (const key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
+  }
+  return true;
+}
+
 function systemDesignsAreEqual(sd1: string, sd2: string) {
   function deleteKeys(sd: SystemDesignDocument) {
     sd._id = undefined;
@@ -89,8 +103,7 @@ function systemDesignsAreEqual(sd1: string, sd2: string) {
   const sd1JSON = deleteKeys(JSON.parse(sd1));
   const sd2JSON = deleteKeys(JSON.parse(sd2));
 
-  const equal = _.isEqual(sd1JSON, sd2JSON);
-  return equal;
+  return deepEqual(sd1JSON, sd2JSON);
 }
 
 export default function view() {

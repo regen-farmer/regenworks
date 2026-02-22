@@ -7,7 +7,7 @@ import {
   bearing as turfBearing,
   transformRotate,
 } from "@turf/turf";
-import _ from "lodash";
+
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 
 function calculateHeadlandOffset(
@@ -87,24 +87,18 @@ export function makeTreeRowLines(
     // Order intersection points
     let sortedIntersectionPoints: turf.Feature<turf.Point, turf.Properties>[] = [];
 
-    if (
-      _.uniqBy(
-        bufferLineIntersectionPoints.features,
-        (feature: turf.Feature) => feature.geometry.coordinates[0],
-      ).length === bufferLineIntersectionPoints.features.length
-    ) {
-      sortedIntersectionPoints = _.sortBy(bufferLineIntersectionPoints.features, [
-        (feature) => feature.geometry.coordinates[0],
-      ]);
-    } else if (
-      _.uniqBy(
-        bufferLineIntersectionPoints.features,
-        (feature: turf.Feature) => feature.geometry.coordinates[1],
-      ).length === bufferLineIntersectionPoints.features.length
-    ) {
-      sortedIntersectionPoints = _.sortBy(bufferLineIntersectionPoints.features, [
-        (feature) => feature.geometry.coordinates[1],
-      ]);
+    const uniqueX = new Set(bufferLineIntersectionPoints.features.map((f: turf.Feature) => (f.geometry as turf.Point).coordinates[0])).size;
+    const uniqueY = new Set(bufferLineIntersectionPoints.features.map((f: turf.Feature) => (f.geometry as turf.Point).coordinates[1])).size;
+    const totalFeats = bufferLineIntersectionPoints.features.length;
+
+    if (uniqueX === totalFeats) {
+      sortedIntersectionPoints = [...bufferLineIntersectionPoints.features].sort(
+        (a, b) => (a.geometry as turf.Point).coordinates[0] - (b.geometry as turf.Point).coordinates[0],
+      );
+    } else if (uniqueY === totalFeats) {
+      sortedIntersectionPoints = [...bufferLineIntersectionPoints.features].sort(
+        (a, b) => (a.geometry as turf.Point).coordinates[1] - (b.geometry as turf.Point).coordinates[1],
+      );
     } else {
       console.error(
         "Duplicates in both coordinates! Can't sort row intersections with area withing margin",
