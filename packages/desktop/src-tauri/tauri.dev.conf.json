@@ -1,0 +1,9 @@
+{
+	"plugins": {
+		"updater": {
+			"endpoints": [
+				"http://localhost:10000/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+			]
+		}
+	}
+}

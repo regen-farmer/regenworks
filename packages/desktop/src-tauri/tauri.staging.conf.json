@@ -1,0 +1,9 @@
+{
+	"plugins": {
+		"updater": {
+			"endpoints": [
+				"https://staging.regenfarmer.com/regenworks-desktop/{{target}}/{{arch}}/{{current_version}}"
+			]
+		}
+	}
+}

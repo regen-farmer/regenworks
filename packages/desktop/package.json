@@ -4,7 +4,7 @@
 	"description": "RegenWorks Desktop - Fast agroforestry planning application",
 	"type": "module",
 	"scripts": {
-		"dev": "tauri dev",
+		"dev": "tauri dev --config src-tauri/tauri.dev.conf.json",
 		"dev:staging": "tauri dev --config src-tauri/tauri.staging.conf.json",
 		"build": "tauri build",
 		"build:staging": "tauri build --config src-tauri/tauri.staging.conf.json",
