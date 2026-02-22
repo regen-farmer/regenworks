@@ -1,13 +1,13 @@
 // export const [currentLayer, setCurrentLayer] = createSignal('');
 
 export default function LayerOutlet(props: any) {
-	// const params = useParams();
+  // const params = useParams();
 
-	// setBreadcrumb({...breadcrumb(), field: params.layerId});
-	// console.log('field', breadcrumb())
+  // setBreadcrumb({...breadcrumb(), field: params.layerId});
+  // console.log('field', breadcrumb())
 
-	// // createEffect(()=>{
-	// // })
+  // // createEffect(()=>{
+  // // })
 
-	return props.children;
+  return props.children;
 }

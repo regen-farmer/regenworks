@@ -11,7 +11,7 @@ import { initTauriTestUtils, isTauri } from "~/util/platform.ts";
 
 // Initialize Tauri test utilities in development
 if (typeof window !== "undefined" && isTauri()) {
-	initTauriTestUtils();
+  initTauriTestUtils();
 }
 
 // Import mongoose models
@@ -48,36 +48,36 @@ import { ThemeToggler } from "./theme.tsx";
 
 // Query the session data for SSR hydration
 export const getSessionData = query(async () => {
-	"use server";
-	return await getSession();
+  "use server";
+  return await getSession();
 }, "session");
 
 export default function App() {
-	return (
-		<Router
-			root={(props) => {
-				onMount(async () => {
-					if (typeof window !== "undefined" && isTauri()) {
-						console.log("Initializing Tauri update check...");
-						const { initUpdater } = await import("@rw/desktop/src/updater.ts");
-						initUpdater();
-					}
-				});
+  return (
+    <Router
+      root={(props) => {
+        onMount(async () => {
+          if (typeof window !== "undefined" && isTauri()) {
+            console.log("Initializing Tauri update check...");
+            const { initUpdater } = await import("@rw/desktop/src/updater.ts");
+            initUpdater();
+          }
+        });
 
-				return (
-					<ThemeToggler>
-						<Suspense>
-							<SessionProvider>
-								<div class="d-flex flex-column" style={{ height: "100%" }}>
-									{props.children}
-								</div>
-							</SessionProvider>
-						</Suspense>
-					</ThemeToggler>
-				);
-			}}
-		>
-			<FileRoutes />
-		</Router>
-	);
+        return (
+          <ThemeToggler>
+            <Suspense>
+              <SessionProvider>
+                <div class="d-flex flex-column" style={{ height: "100%" }}>
+                  {props.children}
+                </div>
+              </SessionProvider>
+            </Suspense>
+          </ThemeToggler>
+        );
+      }}
+    >
+      <FileRoutes />
+    </Router>
+  );
 }

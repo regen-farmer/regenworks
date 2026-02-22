@@ -1,10 +1,4 @@
-import {
-  Show,
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-} from "solid-js";
+import { Show, createEffect, createMemo, createResource, createSignal } from "solid-js";
 import {
   currentSubscriptions,
   getMongoDBUser,
@@ -59,13 +53,10 @@ export function NavBar() {
 
   const [myAdvisorRequests, { mutate, refetch }] = createResource(async () => {
     if (getMongoDBUser()) {
-      const myRequests = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/my-advisor-requests`,
-        {
-          method: "get",
-          ...apiFetchOptions(),
-        }
-      );
+      const myRequests = await fetch(`${import.meta.env.VITE_BACKEND_URL}/my-advisor-requests`, {
+        method: "get",
+        ...apiFetchOptions(),
+      });
 
       const response = await myRequests.json();
 
@@ -79,15 +70,12 @@ export function NavBar() {
     };
     window.addEventListener("refetchAdviseRequests", handleRefetch);
 
-    return () =>
-      window.removeEventListener("refetchAdviseRequests", handleRefetch);
+    return () => window.removeEventListener("refetchAdviseRequests", handleRefetch);
   });
 
   const getProjectId = createMemo(() => {
     const pathSections = location.pathname.split("/");
-    const projectsIndex = pathSections.findIndex(
-      (value) => value === "projects"
-    );
+    const projectsIndex = pathSections.findIndex((value) => value === "projects");
 
     const projcetId: string = pathSections[projectsIndex + 1];
 

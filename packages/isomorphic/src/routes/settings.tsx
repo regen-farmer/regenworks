@@ -45,7 +45,7 @@ async function updateStripeData() {
       method: "POST",
       body: JSON.stringify({ user: getMongoDBUser() }),
       ...apiFetchOptions(),
-    }
+    },
   );
   const customerData = await customerResponse.json();
   const stripeCustomer = JSON.stringify(customerData);
@@ -152,10 +152,7 @@ const RouteViewAccount: Component = () => {
       }
 
       const prices = await (
-        await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/stripe/get_prices`,
-          apiFetchOptions()
-        )
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/stripe/get_prices`, apiFetchOptions())
       ).json();
 
       setCurrency(currency);
@@ -186,17 +183,11 @@ const RouteViewAccount: Component = () => {
 
   function formatPrice(price: StripePrice) {
     return (
-      _.get(
-        price.currency_options,
-        `${currency()?.toString().toLowerCase()!}.unit_amount`
-      )! / 100
+      _.get(price.currency_options, `${currency()?.toString().toLowerCase()!}.unit_amount`)! / 100
     );
   }
 
-  async function deleteSubscription(
-    subscriptionId: string,
-    cancel_at_period_end = true
-  ) {
+  async function deleteSubscription(subscriptionId: string, cancel_at_period_end = true) {
     await fetch(
       `${
         import.meta.env.VITE_BACKEND_URL
@@ -207,7 +198,7 @@ const RouteViewAccount: Component = () => {
           cancel_at_period_end: cancel_at_period_end,
         }),
         ...apiFetchOptions,
-      }
+      },
     );
 
     document.location.reload();
@@ -215,13 +206,11 @@ const RouteViewAccount: Component = () => {
 
   async function resumeSubscription(subscriptionId: string) {
     await fetch(
-      `${
-        import.meta.env.VITE_BACKEND_URL
-      }/stripe/resume_subscription/${subscriptionId}`,
+      `${import.meta.env.VITE_BACKEND_URL}/stripe/resume_subscription/${subscriptionId}`,
       {
         method: "PUT",
         ...apiFetchOptions,
-      }
+      },
     );
 
     document.location.reload();
@@ -242,7 +231,7 @@ const RouteViewAccount: Component = () => {
         body: JSON.stringify(payload),
         method: "post",
         ...apiFetchOptions(),
-      }
+      },
     );
 
     const checkoutUrl = (await checkoutUrlRes.json()).checkoutUrl;
@@ -254,16 +243,14 @@ const RouteViewAccount: Component = () => {
 
   async function saveCountryCode() {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/users/${
-        getMongoDBUser()?._id
-      }/countrycode`,
+      `${import.meta.env.VITE_BACKEND_URL}/users/${getMongoDBUser()?._id}/countrycode`,
       {
         method: "PUT",
         body: JSON.stringify({
           countryCode: countryCode(),
         }),
         ...apiFetchOptions(),
-      }
+      },
     );
 
     if (response.status === 200) {
@@ -282,15 +269,9 @@ const RouteViewAccount: Component = () => {
 
         <p>Email: {getMongoDBUser()?.email}</p>
         <Show when={getMongoDBUser()?.countryCode}>
-          <p>
-            Country:{" "}
-            {countries.find((cc) => cc[1] === getMongoDBUser().countryCode)![0]}
-          </p>
+          <p>Country: {countries.find((cc) => cc[1] === getMongoDBUser().countryCode)![0]}</p>
         </Show>
-        <button
-          class="rounded-sm px-2 py-1 my-2 btn-md btn-default"
-          onClick={handleSignOut}
-        >
+        <button class="rounded-sm px-2 py-1 my-2 btn-md btn-default" onClick={handleSignOut}>
           Log out
         </button>
 
@@ -315,9 +296,7 @@ const RouteViewAccount: Component = () => {
                 itemComponent={(props) => (
                   <SelectItem item={props.item}>
                     {props.item
-                      ? dispayCountry(
-                          countries.find((cc) => cc[1] === props.item.rawValue)
-                        )
+                      ? dispayCountry(countries.find((cc) => cc[1] === props.item.rawValue))
                       : ""}
                   </SelectItem>
                 )}
@@ -326,21 +305,14 @@ const RouteViewAccount: Component = () => {
                   <SelectValue<string>>
                     {(state) =>
                       state.selectedOption()
-                        ? dispayCountry(
-                            countries.find(
-                              (cc) => cc[1] === state.selectedOption()
-                            )
-                          )
+                        ? dispayCountry(countries.find((cc) => cc[1] === state.selectedOption()))
                         : ""
                     }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent class="select__content" />
               </Select>
-              <button
-                class="rounded-sm p-1 my-2 btn-default"
-                onClick={saveCountryCode}
-              >
+              <button class="rounded-sm p-1 my-2 btn-default" onClick={saveCountryCode}>
                 Save
               </button>
             </>
@@ -358,25 +330,18 @@ const RouteViewAccount: Component = () => {
 
                   {subscriptions()?.legacy ? (
                     <>
-                      {subscriptions().plan} - Expires{" "}
-                      {subscriptions().expirationDate}
+                      {subscriptions().plan} - Expires {subscriptions().expirationDate}
                     </>
                   ) : (
                     <div>
                       {formatProductId(subscriptions().plan.product)} -{" "}
-                      {formatInterval(subscriptions().plan.interval_count)}.{" "}
-                      <br />
+                      {formatInterval(subscriptions().plan.interval_count)}. <br />
                       {!subscriptions().cancel_at_period_end ? (
                         <span>
                           Renewing{" "}
                           {format(
-                            fromUnixTime(
-                              Number.parseInt(
-                                subscriptions().current_period_end,
-                                10
-                              )
-                            ),
-                            "PPP"
+                            fromUnixTime(Number.parseInt(subscriptions().current_period_end, 10)),
+                            "PPP",
                           )}
                           {" - "}
                           <span
@@ -392,10 +357,7 @@ const RouteViewAccount: Component = () => {
                           <span
                             class="cursor-pointer underline-offset-2 underline "
                             onClick={async () => {
-                              await deleteSubscription(
-                                subscriptions().id,
-                                false
-                              );
+                              await deleteSubscription(subscriptions().id, false);
                               await updateStripeData();
                             }}
                           >
@@ -407,13 +369,8 @@ const RouteViewAccount: Component = () => {
                           <span>
                             Expires{" "}
                             {format(
-                              fromUnixTime(
-                                Number.parseInt(
-                                  subscriptions().current_period_end,
-                                  10
-                                )
-                              ),
-                              "PPP"
+                              fromUnixTime(Number.parseInt(subscriptions().current_period_end, 10)),
+                              "PPP",
                             )}{" "}
                             -{" "}
                             <span
@@ -452,26 +409,12 @@ const RouteViewAccount: Component = () => {
                           <input
                             type="hidden"
                             name="priceId"
-                            value={
-                              StripeIds.farm.prices.month[getDevProdStatus()]
-                            }
+                            value={StripeIds.farm.prices.month[getDevProdStatus()]}
                           />
-                          <input
-                            type="hidden"
-                            name="currency"
-                            value={currency()}
-                          />
-                          <input
-                            type="hidden"
-                            name="email"
-                            value={getMongoDBUser()?.email}
-                          />
-                          <button
-                            class="rounded-sm p-1 my-2 btn-default"
-                            type="submit"
-                          >
-                            1 Month - {formatPrice(prices().farmMonth!)}{" "}
-                            {currency()}
+                          <input type="hidden" name="currency" value={currency()} />
+                          <input type="hidden" name="email" value={getMongoDBUser()?.email} />
+                          <button class="rounded-sm p-1 my-2 btn-default" type="submit">
+                            1 Month - {formatPrice(prices().farmMonth!)} {currency()}
                           </button>
                         </form>
 
@@ -479,28 +422,12 @@ const RouteViewAccount: Component = () => {
                           <input
                             type="hidden"
                             name="priceId"
-                            value={
-                              StripeIds.farm.prices.sixmonths[
-                                getDevProdStatus()
-                              ]
-                            }
+                            value={StripeIds.farm.prices.sixmonths[getDevProdStatus()]}
                           />
-                          <input
-                            type="hidden"
-                            name="email"
-                            value={getMongoDBUser()?.email}
-                          />
-                          <input
-                            type="hidden"
-                            name="currency"
-                            value={currency()}
-                          />
-                          <button
-                            class="rounded-sm p-1 my-2 btn-default"
-                            type="submit"
-                          >
-                            6 Months - {formatPrice(prices().farm6Months!)}{" "}
-                            {currency()}
+                          <input type="hidden" name="email" value={getMongoDBUser()?.email} />
+                          <input type="hidden" name="currency" value={currency()} />
+                          <button class="rounded-sm p-1 my-2 btn-default" type="submit">
+                            6 Months - {formatPrice(prices().farm6Months!)} {currency()}
                           </button>
                         </form>
                       </CardContent>
@@ -517,27 +444,13 @@ const RouteViewAccount: Component = () => {
                           <input
                             type="hidden"
                             name="priceId"
-                            value={
-                              StripeIds.advisor.prices.month[getDevProdStatus()]
-                            }
+                            value={StripeIds.advisor.prices.month[getDevProdStatus()]}
                           />
                           {/* price_1MhZWjKY1xVwmVYOokR9zJKn */}
-                          <input
-                            type="hidden"
-                            name="currency"
-                            value={currency()}
-                          />
-                          <input
-                            type="hidden"
-                            name="email"
-                            value={getMongoDBUser()?.email}
-                          />
-                          <button
-                            class="rounded-sm p-1 my-2 btn-default"
-                            type="submit"
-                          >
-                            1 Month - {formatPrice(prices().advisorMonth!)}{" "}
-                            {currency()}
+                          <input type="hidden" name="currency" value={currency()} />
+                          <input type="hidden" name="email" value={getMongoDBUser()?.email} />
+                          <button class="rounded-sm p-1 my-2 btn-default" type="submit">
+                            1 Month - {formatPrice(prices().advisorMonth!)} {currency()}
                           </button>
                         </form>
 
@@ -545,28 +458,12 @@ const RouteViewAccount: Component = () => {
                           <input
                             type="hidden"
                             name="priceId"
-                            value={
-                              StripeIds.advisor.prices.sixmonths[
-                                getDevProdStatus()
-                              ]
-                            }
+                            value={StripeIds.advisor.prices.sixmonths[getDevProdStatus()]}
                           />
-                          <input
-                            type="hidden"
-                            name="currency"
-                            value={currency()}
-                          />
-                          <input
-                            type="hidden"
-                            name="email"
-                            value={getMongoDBUser()?.email}
-                          />
-                          <button
-                            class="rounded-sm p-1 my-2 btn-default"
-                            type="submit"
-                          >
-                            6 Months - {formatPrice(prices().advisor6Months!)}{" "}
-                            {currency()}
+                          <input type="hidden" name="currency" value={currency()} />
+                          <input type="hidden" name="email" value={getMongoDBUser()?.email} />
+                          <button class="rounded-sm p-1 my-2 btn-default" type="submit">
+                            6 Months - {formatPrice(prices().advisor6Months!)} {currency()}
                           </button>
                         </form>
                       </CardContent>

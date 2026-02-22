@@ -1,71 +1,74 @@
 import {
-	bbox,
-	bboxPolygon,
-	helpers as turf,
-	length as turfLength,
-	type LineString,
-	transformRotate,
-	centroid,
-	bearing as turfBearing,
+  bbox,
+  bboxPolygon,
+  helpers as turf,
+  length as turfLength,
+  type LineString,
+  transformRotate,
+  centroid,
+  bearing as turfBearing,
 } from "@turf/turf";
 
 export function makeInitialLine(bearing: number, polygon) {
-	// Ensure bearing is a valid number, default to 0 if not
-	if (typeof bearing !== 'number' || isNaN(bearing)) {
-		console.warn('Invalid bearing provided to makeInitialLine, defaulting to 0');
-		bearing = 0;
-	}
-	
-	const pivotPoint = centroid(polygon);
+  // Ensure bearing is a valid number, default to 0 if not
+  if (typeof bearing !== "number" || isNaN(bearing)) {
+    console.warn("Invalid bearing provided to makeInitialLine, defaulting to 0");
+    bearing = 0;
+  }
 
-	const rotatedPolygon = transformRotate(polygon, -bearing, {
-		pivot: pivotPoint,
-	});
+  const pivotPoint = centroid(polygon);
 
-	const box = bboxPolygon(bbox(rotatedPolygon));
-	const lengthLine = turf.lineString(
-		[box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]],
-		{ name: "line-0" },
-	);
-	const widthOfPolygon: number = turfLength(lengthLine, { units: "meters" });
-	const rotatedLineIntersectingPolygon = turf.lineString(
-		[box.geometry.coordinates[0][3], box.geometry.coordinates[0][4]],
-		{ name: "line-1" },
-	);
+  const rotatedPolygon = transformRotate(polygon, -bearing, {
+    pivot: pivotPoint,
+  });
 
-	// Rotate line back using same pivot
+  const box = bboxPolygon(bbox(rotatedPolygon));
+  const lengthLine = turf.lineString(
+    [box.geometry.coordinates[0][2], box.geometry.coordinates[0][3]],
+    { name: "line-0" },
+  );
+  const widthOfPolygon: number = turfLength(lengthLine, { units: "meters" });
+  const rotatedLineIntersectingPolygon = turf.lineString(
+    [box.geometry.coordinates[0][3], box.geometry.coordinates[0][4]],
+    { name: "line-1" },
+  );
 
-	let lineIntersectingPolygon: turf.Feature<LineString, turf.Properties> =
-		transformRotate(rotatedLineIntersectingPolygon, bearing, {
-			pivot: pivotPoint,
-		});
+  // Rotate line back using same pivot
 
-	let lineBearing = turfBearing(
-		lineIntersectingPolygon.geometry.coordinates[0],
-		lineIntersectingPolygon.geometry.coordinates[1],
-	);
+  let lineIntersectingPolygon: turf.Feature<LineString, turf.Properties> = transformRotate(
+    rotatedLineIntersectingPolygon,
+    bearing,
+    {
+      pivot: pivotPoint,
+    },
+  );
 
-	if (lineBearing < 0) {
-		lineBearing += 360;
-	}
+  let lineBearing = turfBearing(
+    lineIntersectingPolygon.geometry.coordinates[0],
+    lineIntersectingPolygon.geometry.coordinates[1],
+  );
 
-	// console.log(`### Line bearing ${lineBearing}, should be ${bearing}`)
+  if (lineBearing < 0) {
+    lineBearing += 360;
+  }
 
-	if (Math.abs(lineBearing - bearing) > 1) {
-		lineIntersectingPolygon = transformRotate(lineIntersectingPolygon, 180);
-	}
+  // console.log(`### Line bearing ${lineBearing}, should be ${bearing}`)
 
-	lineBearing = turfBearing(
-		lineIntersectingPolygon.geometry.coordinates[0],
-		lineIntersectingPolygon.geometry.coordinates[1],
-	);
-	if (lineBearing < 0) {
-		lineBearing += 360;
-	}
-	// console.log(`### Line bearing ${lineBearing}, should be ${bearing}`)
+  if (Math.abs(lineBearing - bearing) > 1) {
+    lineIntersectingPolygon = transformRotate(lineIntersectingPolygon, 180);
+  }
 
-	return {
-		lineIntersectingPolygon,
-		widthOfPolygon,
-	};
+  lineBearing = turfBearing(
+    lineIntersectingPolygon.geometry.coordinates[0],
+    lineIntersectingPolygon.geometry.coordinates[1],
+  );
+  if (lineBearing < 0) {
+    lineBearing += 360;
+  }
+  // console.log(`### Line bearing ${lineBearing}, should be ${bearing}`)
+
+  return {
+    lineIntersectingPolygon,
+    widthOfPolygon,
+  };
 }

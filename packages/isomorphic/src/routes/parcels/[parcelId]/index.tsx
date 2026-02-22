@@ -1,12 +1,5 @@
 import { useLocation, useParams, useIsRouting } from "@solidjs/router";
-import {
-	createEffect,
-	createMemo,
-	createResource,
-	createSignal,
-	Show,
-	onCleanup,
-} from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, Show, onCleanup } from "solid-js";
 import maplibregl from "maplibre-gl";
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
 
@@ -15,7 +8,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
-
 
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
@@ -30,175 +22,184 @@ import { EditFieldMode } from "~/components/parcel-view/EditFieldMode.tsx";
 import type { FeatureCollection, Point } from "geojson";
 
 export enum modes {
-	default = 0,
-	editField = 2,
+  default = 0,
+  editField = 2,
 }
 
-	export default function view() {
-	const params = useParams<{ parcelId: string }>();
-	const isRouting = useIsRouting();
-	const [data, { refetch }] = createResource(
-		() => params.parcelId,
-		async (parcelId) => {
-			const response = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/parcels/${parcelId}`,
-				apiFetchOptions(),
-			);
-			return await response.json();
-		}
-	);
+export default function view() {
+  const params = useParams<{ parcelId: string }>();
+  const isRouting = useIsRouting();
+  const [data, { refetch }] = createResource(
+    () => params.parcelId,
+    async (parcelId) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/parcels/${parcelId}`,
+        apiFetchOptions(),
+      );
+      return await response.json();
+    },
+  );
 
-	const [mapref, setMapref] = createSignal<HTMLElement>();
-	const [mode, setMode] = createSignal<modes>(modes.default);
-	const [isMapReady, setIsMapReady] = createSignal<boolean>(false);
+  const [mapref, setMapref] = createSignal<HTMLElement>();
+  const [mode, setMode] = createSignal<modes>(modes.default);
+  const [isMapReady, setIsMapReady] = createSignal<boolean>(false);
 
-	let map: maplibregl.Map;
-	let farmMarker: maplibregl.Marker | null = null;
-	let mapInitialized = false;
-	let currentParcelId: string | null = null;
+  let map: maplibregl.Map;
+  let farmMarker: maplibregl.Marker | null = null;
+  let mapInitialized = false;
+  let currentParcelId: string | null = null;
 
-	createEffect(() => {
-		if (mapref() && !mapInitialized && data()?.parcel && (data()?.parcel as any)?._id === params.parcelId) {
-			mapInitialized = true;
-			currentParcelId = params.parcelId;
-			const parcel = data()?.parcel!;
+  createEffect(() => {
+    if (
+      mapref() &&
+      !mapInitialized &&
+      data()?.parcel &&
+      (data()?.parcel as any)?._id === params.parcelId
+    ) {
+      mapInitialized = true;
+      currentParcelId = params.parcelId;
+      const parcel = data()?.parcel!;
 
-			map = new maplibregl.Map({
-				container: mapref()!,
-				attributionControl: false,
-				style: GoogleSatStyle,
-				center: [parcel.lng as number, parcel.lat as number],
-				zoom: 12,
-				maxZoom: 20,
-			});
+      map = new maplibregl.Map({
+        container: mapref()!,
+        attributionControl: false,
+        style: GoogleSatStyle,
+        center: [parcel.lng as number, parcel.lat as number],
+        zoom: 12,
+        maxZoom: 20,
+      });
 
-			setIsMapReady(true);
+      setIsMapReady(true);
 
-			const farmMarkerIcon = createFarmMarkerIcon();
-			farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
-				.setLngLat([parcel.lng as number, parcel.lat as number])
-				.setPopup(
-					new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
-						.setLngLat([parcel.lng as number, parcel.lat as number])
-						.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
-				)
-				.addTo(map);
+      const farmMarkerIcon = createFarmMarkerIcon();
+      farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
+        .setLngLat([parcel.lng as number, parcel.lat as number])
+        .setPopup(
+          new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
+            .setLngLat([parcel.lng as number, parcel.lat as number])
+            .setHTML(
+              `<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`,
+            ),
+        )
+        .addTo(map);
 
-			if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
-				useHCControl(map);
-				useBSControl(map);
-			}
+      if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
+        useHCControl(map);
+        useBSControl(map);
+      }
 
-			const nav = new maplibregl.NavigationControl({
-				showCompass: true,
-				showZoom: true,
-				visualizePitch: true
-			});
-			map.addControl(nav, "top-left");
+      const nav = new maplibregl.NavigationControl({
+        showCompass: true,
+        showZoom: true,
+        visualizePitch: true,
+      });
+      map.addControl(nav, "top-left");
 
-			const scale = new maplibregl.ScaleControl({
-				maxWidth: 100,
-				unit: 'metric'
-			});
-			map.addControl(scale, 'bottom-left');
-		}
-	});
+      const scale = new maplibregl.ScaleControl({
+        maxWidth: 100,
+        unit: "metric",
+      });
+      map.addControl(scale, "bottom-left");
+    }
+  });
 
-	createEffect(() => {
-		const parcel = data()?.parcel;
-		const _id = (parcel as any)?._id;
-		if (isMapReady() && parcel && map && _id === params.parcelId) {
-			if (currentParcelId && currentParcelId !== params.parcelId) {
-				currentParcelId = params.parcelId;
-				
-				setTimeout(() => {
-					map?.resize();
-					map?.flyTo({
-						center: [parcel.lng as number, parcel.lat as number],
-						zoom: 12,
-						duration: 500,
-					});
-				}, 50);
+  createEffect(() => {
+    const parcel = data()?.parcel;
+    const _id = (parcel as any)?._id;
+    if (isMapReady() && parcel && map && _id === params.parcelId) {
+      if (currentParcelId && currentParcelId !== params.parcelId) {
+        currentParcelId = params.parcelId;
 
-				if (farmMarker) {
-					farmMarker.remove();
-				}
+        setTimeout(() => {
+          map?.resize();
+          map?.flyTo({
+            center: [parcel.lng as number, parcel.lat as number],
+            zoom: 12,
+            duration: 500,
+          });
+        }, 50);
 
-				const farmMarkerIcon = createFarmMarkerIcon();
-				farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
-					.setLngLat([parcel.lng as number, parcel.lat as number])
-					.setPopup(
-						new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
-							.setLngLat([parcel.lng as number, parcel.lat as number])
-							.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
-					)
-					.addTo(map);
-			}
-		}
-	});
+        if (farmMarker) {
+          farmMarker.remove();
+        }
 
-	onCleanup(() => {
-		if (map) {
-			map.remove();
-		}
-	});
+        const farmMarkerIcon = createFarmMarkerIcon();
+        farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
+          .setLngLat([parcel.lng as number, parcel.lat as number])
+          .setPopup(
+            new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
+              .setLngLat([parcel.lng as number, parcel.lat as number])
+              .setHTML(
+                `<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`,
+              ),
+          )
+          .addTo(map);
+      }
+    }
+  });
 
-	function getMap() {
-		return map;
-	}
+  onCleanup(() => {
+    if (map) {
+      map.remove();
+    }
+  });
 
-	const [editedField, setEditedField] = createSignal<ILayerSchema|null>(null);
+  function getMap() {
+    return map;
+  }
 
-	function editField(field: ILayerSchema){
-		setEditedField(field);
-		setMode(modes.editField)
-	}
+  const [editedField, setEditedField] = createSignal<ILayerSchema | null>(null);
 
-	function addField(){
-		setEditedField(null);
-		setMode(modes.editField)
-	}
+  function editField(field: ILayerSchema) {
+    setEditedField(field);
+    setMode(modes.editField);
+  }
 
-	return (
-		<div style="position: relative; width: 100%; height: calc(100vh - 57px);">
-			<div
-				id="map"
-				ref={(r) => {
-					setMapref(r);
-				}}
-				style="position: absolute; inset: 0; outline: none; border: none;"
-			/>
-			
-			<Show when={data.loading || isRouting()}>
-				<div class="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300">
-					<div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-400 border-t-white"></div>
-				</div>
-			</Show>
+  function addField() {
+    setEditedField(null);
+    setMode(modes.editField);
+  }
 
-			<Show when={data()?.parcel && isMapReady()}>
-				<Switch>
-					<Match when={mode() === modes.default}>
-						<DefaultMode
-							addField={addField}
-							editField={editField}
-							getMap={getMap}
-							data={data}
-							params={params}
-							setMode={setMode}
-							refetch={refetch}
-						/>
-					</Match>
-					<Match when={mode() === modes.editField}>
-						<EditFieldMode
-							data={data}
-							setMode={setMode}
-							getMap={getMap}
-							refetch={refetch}
-							field={editedField()!}
-						/>
-					</Match>
-				</Switch>
-			</Show>
-		</div>
-	);
+  return (
+    <div style="position: relative; width: 100%; height: calc(100vh - 57px);">
+      <div
+        id="map"
+        ref={(r) => {
+          setMapref(r);
+        }}
+        style="position: absolute; inset: 0; outline: none; border: none;"
+      />
+
+      <Show when={data.loading || isRouting()}>
+        <div class="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300">
+          <div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-400 border-t-white"></div>
+        </div>
+      </Show>
+
+      <Show when={data()?.parcel && isMapReady()}>
+        <Switch>
+          <Match when={mode() === modes.default}>
+            <DefaultMode
+              addField={addField}
+              editField={editField}
+              getMap={getMap}
+              data={data}
+              params={params}
+              setMode={setMode}
+              refetch={refetch}
+            />
+          </Match>
+          <Match when={mode() === modes.editField}>
+            <EditFieldMode
+              data={data}
+              setMode={setMode}
+              getMap={getMap}
+              refetch={refetch}
+              field={editedField()!}
+            />
+          </Match>
+        </Switch>
+      </Show>
+    </div>
+  );
 }

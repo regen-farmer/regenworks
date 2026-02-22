@@ -1,8 +1,8 @@
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import * as turf from "@turf/turf";
 
-import {Converter} from "convert-units";
-import type {IControl} from 'maplibre-gl';
+import { Converter } from "convert-units";
+import type { IControl } from "maplibre-gl";
 const DRAW_LABELS_SOURCE_ID = "source-draw-labels";
 const DRAW_LABELS_LAYER_ID = "layer-draw-labels";
 const SOURCE_DATA = {
@@ -18,7 +18,6 @@ export default class MeasuresControl implements IControl {
       useGrouping: "always",
     };
     this._drawCtrl = new MapboxDraw({
-      
       displayControlsDefault: false,
       styles: [
         // ACTIVE (being drawn)
@@ -26,21 +25,15 @@ export default class MeasuresControl implements IControl {
         {
           id: "gl-draw-line",
           type: "line",
-          filter: [
-            "all",
-            ["==", "$type", "LineString"],
-            ["!=", "mode", "static"],
-          ],
+          filter: ["all", ["==", "$type", "LineString"], ["!=", "mode", "static"]],
           layout: {
             "line-cap": "round",
             "line-join": "round",
           },
           paint: {
-            "line-color":
-              this.options?.style?.lengthMeasurement?.lineColor ?? "#D20C0C",
+            "line-color": this.options?.style?.lengthMeasurement?.lineColor ?? "#D20C0C",
             "line-dasharray": [0.2, 2],
-            "line-width":
-              this.options?.style?.lengthMeasurement?.lineWidth ?? 2,
+            "line-width": this.options?.style?.lengthMeasurement?.lineWidth ?? 2,
           },
         },
         // polygon fill
@@ -49,13 +42,10 @@ export default class MeasuresControl implements IControl {
           type: "fill",
           filter: ["all", ["==", "$type", "Polygon"], ["!=", "mode", "static"]],
           paint: {
-            "fill-color":
-              this.options?.style?.areaMeasurement?.fillColor ?? "#D20C0C",
+            "fill-color": this.options?.style?.areaMeasurement?.fillColor ?? "#D20C0C",
             "fill-outline-color":
-              this.options?.style?.areaMeasurement?.fillOutlineColor ??
-              "#D20C0C",
-            "fill-opacity":
-              this.options?.style?.areaMeasurement?.fillOpacity ?? 0.1,
+              this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#D20C0C",
+            "fill-opacity": this.options?.style?.areaMeasurement?.fillOpacity ?? 0.1,
           },
         },
         // polygon mid points
@@ -65,8 +55,7 @@ export default class MeasuresControl implements IControl {
           filter: ["all", ["==", "$type", "Point"], ["==", "meta", "midpoint"]],
           paint: {
             "circle-radius": this.options?.style?.common?.midPointRadius ?? 3,
-            "circle-color":
-              this.options?.style?.common?.midPointColor ?? "#fbb03b",
+            "circle-color": this.options?.style?.common?.midPointColor ?? "#fbb03b",
           },
         },
         // polygon outline stroke
@@ -80,9 +69,7 @@ export default class MeasuresControl implements IControl {
             "line-join": "round",
           },
           paint: {
-            "line-color":
-              this.options?.style?.areaMeasurement?.fillOutlineColor ??
-              "#D20C0C",
+            "line-color": this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#D20C0C",
             "line-dasharray": [0.2, 2],
             "line-width": this.options?.style?.areaMeasurement?.lineWidth ?? 2,
           },
@@ -98,10 +85,8 @@ export default class MeasuresControl implements IControl {
             ["!=", "mode", "static"],
           ],
           paint: {
-            "circle-radius":
-              this.options?.style?.common?.midPointHaloRadius ?? 3,
-            "circle-color":
-              this.options?.style?.common?.midPointHaloColor ?? "#FFF",
+            "circle-radius": this.options?.style?.common?.midPointHaloRadius ?? 3,
+            "circle-color": this.options?.style?.common?.midPointHaloColor ?? "#FFF",
           },
         },
         // vertex points
@@ -116,8 +101,7 @@ export default class MeasuresControl implements IControl {
           ],
           paint: {
             "circle-radius": this.options?.style?.common?.midPointRadius ?? 3,
-            "circle-color":
-              this.options?.style?.common?.midPointColor ?? "#fbb03b",
+            "circle-color": this.options?.style?.common?.midPointColor ?? "#fbb03b",
           },
         },
 
@@ -126,20 +110,14 @@ export default class MeasuresControl implements IControl {
         {
           id: "gl-draw-line-static",
           type: "line",
-          filter: [
-            "all",
-            ["==", "$type", "LineString"],
-            ["==", "mode", "static"],
-          ],
+          filter: ["all", ["==", "$type", "LineString"], ["==", "mode", "static"]],
           layout: {
             "line-cap": "round",
             "line-join": "round",
           },
           paint: {
-            "line-color":
-              this.options?.style?.lengthMeasurement?.lineColor ?? "#D20C0C",
-            "line-width":
-              this.options?.style?.lengthMeasurement?.lineWidth ?? 3,
+            "line-color": this.options?.style?.lengthMeasurement?.lineColor ?? "#D20C0C",
+            "line-width": this.options?.style?.lengthMeasurement?.lineWidth ?? 3,
           },
         },
         // polygon fill
@@ -148,12 +126,9 @@ export default class MeasuresControl implements IControl {
           type: "fill",
           filter: ["all", ["==", "$type", "Polygon"], ["==", "mode", "static"]],
           paint: {
-            "fill-color":
-              this.options?.style?.areaMeasurement?.fillColor ?? "#000",
-            "fill-outline-color":
-              this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#000",
-            "fill-opacity":
-              this.options?.style?.areaMeasurement?.fillOpacity ?? 0.1,
+            "fill-color": this.options?.style?.areaMeasurement?.fillColor ?? "#000",
+            "fill-outline-color": this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#000",
+            "fill-opacity": this.options?.style?.areaMeasurement?.fillOpacity ?? 0.1,
           },
         },
         // polygon outline
@@ -166,8 +141,7 @@ export default class MeasuresControl implements IControl {
             "line-join": "round",
           },
           paint: {
-            "line-color":
-              this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#000",
+            "line-color": this.options?.style?.areaMeasurement?.fillOutlineColor ?? "#000",
             "line-width": this.options?.style?.areaMeasurement?.lineWidth ?? 2,
           },
         },
@@ -176,7 +150,6 @@ export default class MeasuresControl implements IControl {
   }
 
   onAdd(map) {
-    
     this._map = map;
     this._map.addControl(this._drawCtrl, "top-left");
     this._initControl();
@@ -185,9 +158,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _initControl() {
-
-    
-
     this._container = document.createElement("div");
     this._container.className =
       "maplibregl-ctrl mapboxgl-ctrl maplibregl-measures maplibregl-ctrl-group mapboxgl-ctrl-group";
@@ -198,10 +168,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _formatMeasure(dist, isAreaMeasurement = false) {
-
-    
-
-
     if (this.options?.units == "imperial") {
       return isAreaMeasurement
         ? this._formatAreaToImperialSystem(dist)
@@ -215,14 +181,12 @@ export default class MeasuresControl implements IControl {
 
   // area in sqm
   _formatAreaToMetricSystem(dist) {
+    return `${(dist * 0.0001).toFixed(2)} ha`;
 
-    return `${(dist * 0.0001).toFixed(2)} ha`
-    
     // const converte = new Converter(dist)
-    
 
     // let measure = converte.from("m2").toBest({ system: "metric" });
-    
+
     // let unit = measure.unit.replaceAll("2", "²");
     // let val = this._getLocaleNumber(measure.val);
     // return `${val} ${unit}`;
@@ -230,7 +194,6 @@ export default class MeasuresControl implements IControl {
 
   // area in sqm
   _formatAreaToImperialSystem(dist) {
-    
     let measure = new Converter(dist).from("m2").to("mi2");
     measure = new Converter(measure).from("mi2").toBest({ system: "imperial" });
     let unit = measure.unit.replaceAll("2", "²");
@@ -239,23 +202,17 @@ export default class MeasuresControl implements IControl {
   }
 
   _formatToMetricSystem(dist) {
-    
     // const converter = new Converter(dist);
-    
 
     // let measure = converter.from("m").toBest({ system: "metric" });
 
-    
-    
     // let val = this._getLocaleNumber(measure.val);
-    
+
     // return `${val} ${measure.unit}`;
-    return `${dist.toFixed(2)} m`
+    return `${dist.toFixed(2)} m`;
   }
 
   _formatToImperialSystem(dist) {
-    
-
     let measure = new Converter(dist).from("m").to("mi");
     measure = new Converter(measure).from("mi").toBest({ system: "imperial" });
     let val = this._getLocaleNumber(measure.val);
@@ -263,8 +220,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _getLocaleNumber(val) {
-
-    
     // Format without grouping separator
     let formattedNumber = val.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -275,19 +230,13 @@ export default class MeasuresControl implements IControl {
     let groupingSeparator = this.options?.unitsGroupingSeparator;
     if (groupingSeparator) {
       // Insert spaces for grouping
-      formattedNumber = formattedNumber.replace(
-        /\B(?=(\d{3})+(?!\d))/g,
-        groupingSeparator
-      );
+      formattedNumber = formattedNumber.replace(/\B(?=(\d{3})+(?!\d))/g, groupingSeparator);
     }
 
     return formattedNumber;
   }
 
   initDrawBtn(mode) {
-
-    
-
     let btn = document.createElement("button");
     btn.type = "button";
     switch (mode) {
@@ -331,7 +280,6 @@ export default class MeasuresControl implements IControl {
   }
 
   initClearBtn() {
-    
     let btn = document.createElement("button");
     btn.type = "button";
     btn.title = this.options?.lang?.clearMeasurementsButtonTitle ?? "";
@@ -363,9 +311,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _registerEvents() {
-
-    
-
     if (this._map) {
       this._map.on("load", () => {
         this._recreateSourceAndLayers();
@@ -378,9 +323,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _recreateSourceAndLayers() {
-
-    
-
     if (!this._map.getSource(DRAW_LABELS_SOURCE_ID))
       this._map.addSource(DRAW_LABELS_SOURCE_ID, {
         type: "geojson",
@@ -392,15 +334,12 @@ export default class MeasuresControl implements IControl {
         type: "symbol",
         source: DRAW_LABELS_SOURCE_ID,
         layout: {
-          "text-font": [
-            this.options?.style?.text?.font ?? "Klokantech Noto Sans Bold",
-          ],
+          "text-font": [this.options?.style?.text?.font ?? "Klokantech Noto Sans Bold"],
           "text-field": ["get", "measurement"],
           "text-variable-anchor": ["top", "bottom", "left", "right"],
           "text-radial-offset": this.options?.style?.text?.radialOffset ?? 0.5,
           "text-justify": "auto",
-          "text-letter-spacing":
-            this.options?.style?.text?.letterSpacing ?? 0.05,
+          "text-letter-spacing": this.options?.style?.text?.letterSpacing ?? 0.05,
           "text-size": [
             "interpolate",
             ["linear"],
@@ -426,7 +365,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _reorderLayers() {
-    
     if (this._map) {
       let mapboxGlSources = Object.values(MapboxDraw.constants.sources);
       this._map
@@ -442,8 +380,6 @@ export default class MeasuresControl implements IControl {
   }
 
   _updateLabels() {
-
-    
     let source = this._map.getSource(DRAW_LABELS_SOURCE_ID);
     if (!source && this._map) {
       // in case of the source is somehow missing, recreate and empty one
@@ -468,7 +404,7 @@ export default class MeasuresControl implements IControl {
           features.push(centroid);
         } else if (feature.geometry.type == "LineString") {
           let segments = turf.lineSegment(feature);
-          
+
           let totalDistance = 0;
 
           segments.features.forEach((segment) => {
@@ -488,14 +424,13 @@ export default class MeasuresControl implements IControl {
               measurement: this._formatMeasure(totalDistance),
             },
             geometry: {
-              coordinates: segments.features[segments.features.length-1].geometry.coordinates[1],
-              type: "Point"
+              coordinates: segments.features[segments.features.length - 1].geometry.coordinates[1],
+              type: "Point",
             },
-            type: "Feature"
+            type: "Feature",
           };
           features.push(centroid);
         }
-        
       } catch (e) {
         //Silently ignored
       }

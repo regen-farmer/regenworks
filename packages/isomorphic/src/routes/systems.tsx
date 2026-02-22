@@ -1,3 +1,3 @@
 export default function ParcelOutlet(props: any) {
-	return <>{props.children}</>;
+  return <>{props.children}</>;
 }

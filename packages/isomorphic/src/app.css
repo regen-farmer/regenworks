@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 
@@ -126,7 +126,6 @@
 }
 
 @layer base {
-
   h1 {
     @apply text-2xl;
   }
@@ -140,15 +139,12 @@
   /* a {
     @apply text-zinc-500  dark:text-zinc-500 rounded-sm p-1 dark:hover:text-white hover:text-black;
   } */
-  
+
   a {
     @apply dark:hover:text-white hover:text-black;
   }
 
-
-
   :root {
-
     --font-color-dark: #e5e5e5;
 
     --background: 0 0% 95%;
@@ -196,7 +192,7 @@
   }
 
   .dark,
-  .theme-dark, 
+  .theme-dark,
   [data-kb-theme="dark"] {
     --background: 240 10% 10%;
     --foreground: 0 0% 98%;

@@ -4,1046 +4,835 @@ import { NavBar } from "~/components/NavBar.tsx";
 import Paper from "~/components/ui/paper";
 
 const RouteViewTerms: Component = () => {
-	return (
-		<>
-			<NavBar />
-			<Paper>
-				
-						<h1 class="h1">Terms of Service</h1>
-						<p>
-							<em>Effective as of October 9, 2020</em>
-						</p>
-						<p>
-							Welcome to RegenWorks™, a web-based software-as-a-service platform
-							provided by Regen Farmer ApS. RegenWorks (hereinafter,
-							“RegenWorks” or “we” or “us” or “our”) helps farmers with the
-							assessment, planning, implementation and management of
-							regenerative farming and its integration in the farms business and
-							operations. The RegenWorks platform comprises the RegenWorks
-							website and all other software tools, applications and services as
-							may be made available from time to time by RegenWorks
-							(collectively, the “RegenWorks Platform”).
-						</p>
-						<p>
-							Use of the RegenWorks Platform is expressly subject to these Terms
-							of Use and our Privacy Policy (as well as any additional terms and
-							policies expressly referenced or incorporated herein or therein),
-							all of which, together, constitute a legally binding contract
-							between each farm and its users (hereinafter collectively, “you”)
-							and Regen Farmer ApS. PLEASE READ THESE TERMS OF USE AND OUR
-							PRIVACY POLICY CAREFULLY. If you do not agree with anything stated
-							in these Terms of Use or our Privacy Policy, please do not use the
-							RegenWorks Platform.
-						</p>
-						<p>
-							IMPORTANT NOTE: THESE TERMS OF USE CONTAIN PROVISIONS THAT LIMIT
-							OUR LIABILITY TO YOU AND REQUIRE YOU TO RESOLVE ANY DISPUTE WITH
-							US THROUGH BINDING ARBITRATION ON AN INDIVIDUAL BASIS AND NOT AS
-							PART OF ANY CLASS OR REPRESENTATIVE ACTION. PLEASE SEE SECTION 6
-							(Disclaimer of Warranties; Limitations of Liability) AND SECTION 7
-							(Dispute Resolution by Binding Arbitration And Class Action
-							Waiver; Choice of Law) OF THESE TERMS OF USE FOR DETAILS.
-						</p>
+  return (
+    <>
+      <NavBar />
+      <Paper>
+        <h1 class="h1">Terms of Service</h1>
+        <p>
+          <em>Effective as of October 9, 2020</em>
+        </p>
+        <p>
+          Welcome to RegenWorks™, a web-based software-as-a-service platform provided by Regen
+          Farmer ApS. RegenWorks (hereinafter, “RegenWorks” or “we” or “us” or “our”) helps farmers
+          with the assessment, planning, implementation and management of regenerative farming and
+          its integration in the farms business and operations. The RegenWorks platform comprises
+          the RegenWorks website and all other software tools, applications and services as may be
+          made available from time to time by RegenWorks (collectively, the “RegenWorks Platform”).
+        </p>
+        <p>
+          Use of the RegenWorks Platform is expressly subject to these Terms of Use and our Privacy
+          Policy (as well as any additional terms and policies expressly referenced or incorporated
+          herein or therein), all of which, together, constitute a legally binding contract between
+          each farm and its users (hereinafter collectively, “you”) and Regen Farmer ApS. PLEASE
+          READ THESE TERMS OF USE AND OUR PRIVACY POLICY CAREFULLY. If you do not agree with
+          anything stated in these Terms of Use or our Privacy Policy, please do not use the
+          RegenWorks Platform.
+        </p>
+        <p>
+          IMPORTANT NOTE: THESE TERMS OF USE CONTAIN PROVISIONS THAT LIMIT OUR LIABILITY TO YOU AND
+          REQUIRE YOU TO RESOLVE ANY DISPUTE WITH US THROUGH BINDING ARBITRATION ON AN INDIVIDUAL
+          BASIS AND NOT AS PART OF ANY CLASS OR REPRESENTATIVE ACTION. PLEASE SEE SECTION 6
+          (Disclaimer of Warranties; Limitations of Liability) AND SECTION 7 (Dispute Resolution by
+          Binding Arbitration And Class Action Waiver; Choice of Law) OF THESE TERMS OF USE FOR
+          DETAILS.
+        </p>
 
-						<h2 class="h2">1.CERTAIN DEFINITIONS</h2>
-						<p>As used in these Terms of Use:</p>
-						<ul>
-							<li>
-								“Suppliers” means third-party vendors that provide products
-								and/or services for the operation of the RegenWorks Platform.
-								For example, RegenWorks uses a third-party vendor (currently
-								Heroku) to provide hosting services for the RegenWorks Platform.
-							</li>
-							<li>
-								“RegenWorks Software” means any and all software tools,
-								applications and services, whether or not downloadable,
-								comprised in or accessible on or through the RegenWorks
-								Platform. For the purposes of these Terms of Use, all RegenWorks
-								Software shall be deemed a part of the RegenWorks Platform.
-							</li>
-							<li>
-								“RegenWorks Content” means any and all content, data and
-								information (in whatever form or medium) comprised in or
-								accessible on or through the RegenWorks Platform, including,
-								without limitation: text, graphics, designs, artworks, images,
-								photos, videos, audios, forms and templates (such as those
-								designed to help users track, record, or organize their farm
-								data, generate analytics reports, etc., and whether or not
-								downloadable, printable, or customizable), instructions,
-								descriptions, messages, advertisements, and RegenWorks
-								Trademarks (as defined below); but specifically excluding any
-								User Content (as defined below). For the avoidance of doubt,
-								“RegenWorks Content” also includes the following: (i) the “look
-								and feel” and user interface designs of the RegenWorks platform
-								and its components; and (ii) the programming code (including
-								HTML code) of the RegenWorks platform and its components,
-								whether in human-readable or machine-readable form. For the
-								purposes of these Terms of Use, all RegenWorks Content shall be
-								deemed a part of the RegenWorks Platform.
-							</li>
-							<li>
-								“RegenWorks Trademarks” means, collectively, the “Regen Farmer
-								RegenWorks” name and logo, the regenfarmer.com domain name, and
-								any and all other marks and logos owned or used by RegenWorks,
-								whether existing now or in the future, and whether registered or
-								unregistered. As used herein, RegenWorks Trademarks also include
-								its Suppliers’ marks and logos as used by RegenWorks under
-								license.
-							</li>
-							<li>
-								“User Content” means any and all of the following: (i) account
-								information provided by users, including identifying information
-								about themselves and their farms; (ii) farm business and
-								operational data provided by users in connection with their use
-								of the RegenWorks Platform, including, for example, farm crops,
-								yields, and sales data, and farm customer contact lists; (iii)
-								farm analytics generated by users through the use of the
-								analytics tools of the RegenWorks Platform; (iv) user-provided
-								photos, images, artworks, videos, audios, advertisements,
-								descriptions, messages, and other content about their farms, and
-								including also logos, trademarks, service marks, trade names and
-								other trade identifiers associated with their farms; and (v)
-								User Feedback (as defined below). To the extent your User
-								Content includes any element of your identity (name, voice,
-								photograph, likeness, biographical information, etc.), you
-								acknowledge and agree that any such element of your identity
-								will be treated as part of your User Content.
-							</li>
-							<li>
-								“User Feedback” means any idea, opinion, suggestion, comment,
-								review, or other feedback (whether solicited or unsolicited)
-								provided by users to RegenWorks in connection with their use of
-								the RegenWorks Platform.
-							</li>
-						</ul>
-						<h2 class="h2">2. GENERAL PROVISIONS.</h2>
-						<p>
-							2.1 Eligibility. You represent and warrant that you have reached
-							the age of majority in your country of resident and have full
-							legal capacity to enter into a legally binding contract with Regen
-							Farmer ApS. If you are agreeing to these Terms of Use on behalf of
-							a farm organization or entity, you represent and warrant that you
-							are duly authorized to agree to these Terms of Use on behalf of
-							that farm organization or entity and bind it to these Terms of Use
-							(in which case all subsequent references to “you” and “your” in
-							these Terms of Use are deemed to include the farm organization or
-							entity that you are representing).
-						</p>
-						<p>
-							2.2 Compliance with Applicable Laws. Use of the RegenWorks
-							Platform is subject to all applicable laws and regulations. You
-							acknowledge and agree that it is solely and entirely your
-							responsibility to comply with all laws and regulations applicable
-							to your farm and/or your use of the RegenWorks Platform. Use of
-							the RegenWorks Platform is prohibited if such use would be deemed
-							illegal under applicable laws or regulations in the jurisdiction
-							in which your farm operates.
-						</p>
-						<p>
-							2.3 International Use. The RegenWorks Platform is hosted and
-							operated within and from Denmark. RegenWorks and its Suppliers do
-							not represent or warrant that the RegenWorks Platform will be
-							appropriate or available for use in locations outside the Denmark.
-							If you access the RegenWorks Platform from a location outside
-							Denmark, you acknowledge and agree that you do so of your own
-							volition and at your own risk and that you are solely and entirely
-							responsible for complying with all applicable local laws and
-							regulations.
-						</p>
-						<p>
-							2.4 Reservation of Rights. You acknowledge and agree that we
-							reserve the right to: (i) cease (whether temporarily or
-							permanently) providing the RegenWorks Platform (in whole or in
-							part), or any RegenWorks Software or RegenWorks Content, to you or
-							to users generally, at any time and with or without reason, by
-							giving 30 days advance notice of our intention to do so; and (ii)
-							immediately terminate your access to the RegenWorks Platform
-							(including your account and any subscription you have with
-							RegenWorks ), if we determine, in our sole judgment, that you are
-							in violation of these Terms of Use or any applicable law or that
-							your use of the RegenWorks Platform may expose RegenWorks or its
-							Suppliers to liability of any kind, or may adversely affect the
-							reputation or goodwill of RegenWorks or its Suppliers.
-						</p>
-						<p>
-							2.5 Agreement Term. These Terms of Use will take effect as soon as
-							your acceptance hereof by registering a membership account on the
-							RegenWorks Platform, and will remain in force and effect for as
-							long as you are allowed to continue to use the RegenWorks
-							Platform.
-						</p>
-						<p>
-							2.6 Privacy. We respect our users’ privacy. Please review our
-							Privacy Policy which describes our data collection, use and
-							sharing practices associated with the RegenWorks Platform.
-						</p>
-						<p>
-							2.7 Ownership. The RegenWorks Platform, including all RegenWorks
-							Software, RegenWorks Content and RegenWorks Trademarks, and all
-							rights, title and interest therein and thereto (including, without
-							limitation, all copyrights, moral rights, trademark rights, trade
-							dress rights, trade secret rights, patent rights, and all other
-							intellectual property or proprietary rights), are the property of
-							RegenWorks and/or its Suppliers, and are protected by Danish and
-							foreign intellectual property and other laws. Other than a limited
-							license to use as specified in Section 4.1 of these Terms of Use,
-							you have no other right or license with respect to the RegenWorks
-							Platform. Any unauthorized use or exploitation of the property of
-							RegenWorks and/or its Suppliers is strictly prohibited and may
-							result in civil and/or criminal penalties. RegenWorks and its
-							Suppliers reserve all rights not expressly granted herein. There
-							are no implied rights or licenses granted to you under these Terms
-							of Use.
-						</p>
-						<p>
-							You retain ownership of your User Content. However, by using the
-							RegenWorks Platform you expressly give RegenWorks permission to
-							use your User Content as described in Section 4.3 of these Terms
-							of Use.
-						</p>
-						<p>
-							2.8 Electronic Communications. When you use the RegenWorks
-							Platform, you are communicating with us electronically, and you
-							consent to receiving communications from us electronically,
-							including emails, push messages, in-app messages, and messages
-							posted to your account on the RegenWorks Platform. You acknowledge
-							and agree that all agreements, notices, disclosures, and other
-							communications that we provide to you electronically satisfy any
-							legal requirement that the same be in writing.
-						</p>
-						<p>
-							2.9 Mobile Service Charges. By using the RegenWorks Platform on a
-							mobile device (including downloading any RegenWorks Content or
-							RegenWorks Software onto a mobile device), you acknowledge and
-							agree that standard carrier charges may apply and that depending
-							on your wireless service plan, your wireless carrier may impose
-							data and/or other charges when you use the RegenWorks Platform,
-							and that any and all such charges will solely be your
-							responsibility.
-						</p>
-						<p>
-							2.10 Export Controls. The RegenWorks Platform may be subject to
-							Danish export control laws and regulations. You agree not to
-							export, re-export, or transfer, directly or indirectly, any Danish
-							technical data acquired from RegenWorks, or any products utilizing
-							such data, in violation of the Danish export laws or regulations.
-						</p>
+        <h2 class="h2">1.CERTAIN DEFINITIONS</h2>
+        <p>As used in these Terms of Use:</p>
+        <ul>
+          <li>
+            “Suppliers” means third-party vendors that provide products and/or services for the
+            operation of the RegenWorks Platform. For example, RegenWorks uses a third-party vendor
+            (currently Heroku) to provide hosting services for the RegenWorks Platform.
+          </li>
+          <li>
+            “RegenWorks Software” means any and all software tools, applications and services,
+            whether or not downloadable, comprised in or accessible on or through the RegenWorks
+            Platform. For the purposes of these Terms of Use, all RegenWorks Software shall be
+            deemed a part of the RegenWorks Platform.
+          </li>
+          <li>
+            “RegenWorks Content” means any and all content, data and information (in whatever form
+            or medium) comprised in or accessible on or through the RegenWorks Platform, including,
+            without limitation: text, graphics, designs, artworks, images, photos, videos, audios,
+            forms and templates (such as those designed to help users track, record, or organize
+            their farm data, generate analytics reports, etc., and whether or not downloadable,
+            printable, or customizable), instructions, descriptions, messages, advertisements, and
+            RegenWorks Trademarks (as defined below); but specifically excluding any User Content
+            (as defined below). For the avoidance of doubt, “RegenWorks Content” also includes the
+            following: (i) the “look and feel” and user interface designs of the RegenWorks platform
+            and its components; and (ii) the programming code (including HTML code) of the
+            RegenWorks platform and its components, whether in human-readable or machine-readable
+            form. For the purposes of these Terms of Use, all RegenWorks Content shall be deemed a
+            part of the RegenWorks Platform.
+          </li>
+          <li>
+            “RegenWorks Trademarks” means, collectively, the “Regen Farmer RegenWorks” name and
+            logo, the regenfarmer.com domain name, and any and all other marks and logos owned or
+            used by RegenWorks, whether existing now or in the future, and whether registered or
+            unregistered. As used herein, RegenWorks Trademarks also include its Suppliers’ marks
+            and logos as used by RegenWorks under license.
+          </li>
+          <li>
+            “User Content” means any and all of the following: (i) account information provided by
+            users, including identifying information about themselves and their farms; (ii) farm
+            business and operational data provided by users in connection with their use of the
+            RegenWorks Platform, including, for example, farm crops, yields, and sales data, and
+            farm customer contact lists; (iii) farm analytics generated by users through the use of
+            the analytics tools of the RegenWorks Platform; (iv) user-provided photos, images,
+            artworks, videos, audios, advertisements, descriptions, messages, and other content
+            about their farms, and including also logos, trademarks, service marks, trade names and
+            other trade identifiers associated with their farms; and (v) User Feedback (as defined
+            below). To the extent your User Content includes any element of your identity (name,
+            voice, photograph, likeness, biographical information, etc.), you acknowledge and agree
+            that any such element of your identity will be treated as part of your User Content.
+          </li>
+          <li>
+            “User Feedback” means any idea, opinion, suggestion, comment, review, or other feedback
+            (whether solicited or unsolicited) provided by users to RegenWorks in connection with
+            their use of the RegenWorks Platform.
+          </li>
+        </ul>
+        <h2 class="h2">2. GENERAL PROVISIONS.</h2>
+        <p>
+          2.1 Eligibility. You represent and warrant that you have reached the age of majority in
+          your country of resident and have full legal capacity to enter into a legally binding
+          contract with Regen Farmer ApS. If you are agreeing to these Terms of Use on behalf of a
+          farm organization or entity, you represent and warrant that you are duly authorized to
+          agree to these Terms of Use on behalf of that farm organization or entity and bind it to
+          these Terms of Use (in which case all subsequent references to “you” and “your” in these
+          Terms of Use are deemed to include the farm organization or entity that you are
+          representing).
+        </p>
+        <p>
+          2.2 Compliance with Applicable Laws. Use of the RegenWorks Platform is subject to all
+          applicable laws and regulations. You acknowledge and agree that it is solely and entirely
+          your responsibility to comply with all laws and regulations applicable to your farm and/or
+          your use of the RegenWorks Platform. Use of the RegenWorks Platform is prohibited if such
+          use would be deemed illegal under applicable laws or regulations in the jurisdiction in
+          which your farm operates.
+        </p>
+        <p>
+          2.3 International Use. The RegenWorks Platform is hosted and operated within and from
+          Denmark. RegenWorks and its Suppliers do not represent or warrant that the RegenWorks
+          Platform will be appropriate or available for use in locations outside the Denmark. If you
+          access the RegenWorks Platform from a location outside Denmark, you acknowledge and agree
+          that you do so of your own volition and at your own risk and that you are solely and
+          entirely responsible for complying with all applicable local laws and regulations.
+        </p>
+        <p>
+          2.4 Reservation of Rights. You acknowledge and agree that we reserve the right to: (i)
+          cease (whether temporarily or permanently) providing the RegenWorks Platform (in whole or
+          in part), or any RegenWorks Software or RegenWorks Content, to you or to users generally,
+          at any time and with or without reason, by giving 30 days advance notice of our intention
+          to do so; and (ii) immediately terminate your access to the RegenWorks Platform (including
+          your account and any subscription you have with RegenWorks ), if we determine, in our sole
+          judgment, that you are in violation of these Terms of Use or any applicable law or that
+          your use of the RegenWorks Platform may expose RegenWorks or its Suppliers to liability of
+          any kind, or may adversely affect the reputation or goodwill of RegenWorks or its
+          Suppliers.
+        </p>
+        <p>
+          2.5 Agreement Term. These Terms of Use will take effect as soon as your acceptance hereof
+          by registering a membership account on the RegenWorks Platform, and will remain in force
+          and effect for as long as you are allowed to continue to use the RegenWorks Platform.
+        </p>
+        <p>
+          2.6 Privacy. We respect our users’ privacy. Please review our Privacy Policy which
+          describes our data collection, use and sharing practices associated with the RegenWorks
+          Platform.
+        </p>
+        <p>
+          2.7 Ownership. The RegenWorks Platform, including all RegenWorks Software, RegenWorks
+          Content and RegenWorks Trademarks, and all rights, title and interest therein and thereto
+          (including, without limitation, all copyrights, moral rights, trademark rights, trade
+          dress rights, trade secret rights, patent rights, and all other intellectual property or
+          proprietary rights), are the property of RegenWorks and/or its Suppliers, and are
+          protected by Danish and foreign intellectual property and other laws. Other than a limited
+          license to use as specified in Section 4.1 of these Terms of Use, you have no other right
+          or license with respect to the RegenWorks Platform. Any unauthorized use or exploitation
+          of the property of RegenWorks and/or its Suppliers is strictly prohibited and may result
+          in civil and/or criminal penalties. RegenWorks and its Suppliers reserve all rights not
+          expressly granted herein. There are no implied rights or licenses granted to you under
+          these Terms of Use.
+        </p>
+        <p>
+          You retain ownership of your User Content. However, by using the RegenWorks Platform you
+          expressly give RegenWorks permission to use your User Content as described in Section 4.3
+          of these Terms of Use.
+        </p>
+        <p>
+          2.8 Electronic Communications. When you use the RegenWorks Platform, you are communicating
+          with us electronically, and you consent to receiving communications from us
+          electronically, including emails, push messages, in-app messages, and messages posted to
+          your account on the RegenWorks Platform. You acknowledge and agree that all agreements,
+          notices, disclosures, and other communications that we provide to you electronically
+          satisfy any legal requirement that the same be in writing.
+        </p>
+        <p>
+          2.9 Mobile Service Charges. By using the RegenWorks Platform on a mobile device (including
+          downloading any RegenWorks Content or RegenWorks Software onto a mobile device), you
+          acknowledge and agree that standard carrier charges may apply and that depending on your
+          wireless service plan, your wireless carrier may impose data and/or other charges when you
+          use the RegenWorks Platform, and that any and all such charges will solely be your
+          responsibility.
+        </p>
+        <p>
+          2.10 Export Controls. The RegenWorks Platform may be subject to Danish export control laws
+          and regulations. You agree not to export, re-export, or transfer, directly or indirectly,
+          any Danish technical data acquired from RegenWorks, or any products utilizing such data,
+          in violation of the Danish export laws or regulations.
+        </p>
 
-						<h2 class="h2">3. ACCOUNT REGISTRATION; SUBSCRIPTION.</h2>
-						<p>
-							3.1 Account Registration. To use the RegenWorks Platform, you must
-							register an account.
-						</p>
-						<p>
-							By registering an account on the RegenWorks Platform, you
-							represent and warrant that all account information you submit is
-							your own information and is truthful and accurate. You acknowledge
-							and agree that we may immediately suspend or terminate your
-							account and your access to the RegenWorks Platform if we have any
-							reason to believe that you have misrepresented or provided false
-							account information to us.
-						</p>
-						<p>
-							It is your responsibility to keep your farm’s RegenWorks account
-							information (including contact, billing, and other information
-							about your farm) accurate and current. This includes updating your
-							farm’s account information in the event of a change of ownership
-							of your farm. For example, if your farm is sold or transferred to
-							a new owner, your farm’s RegenWorks account will need be updated
-							to reflect the new owner’s information, and by continuing to use
-							the account, the new owner will be deemed to have accepted, and
-							will be bound by, these Terms of Use and our Privacy Policy.
-							Failure to keep your farm’s account information up to date may
-							result in suspension or cancellation of the account (at
-							RegenWorks’s sole discretion). As the account holder, you are
-							responsible for safeguarding your farm’s account login
-							information, and you should notify us immediately in the event
-							your account login has been stolen, lost, or used by another
-							without your permission. If your farm’s account has two or more
-							authorized users, you are responsible for all your farm users’
-							activities under the account.
-						</p>
-						<p>
-							3.2 Subscription. Access to certain tools and service features on
-							the RegenWorks Platform may require a paid subscription
-							(“Subscription”). Subscription may be month-to-month or on a
-							yearly (i.e., 12 months) basis.
-						</p>
-						<p>
-							By purchasing a Subscription, you represent and warrant that you
-							are the account holder (or an authorized user) of the credit/debit
-							card or payment account that you use to pay for your Subscription
-							purchase, and such payment card or account has sufficient funds to
-							cover your Subscription purchase. You acknowledge and agree that
-							we may immediately suspend or terminate your Subscription and your
-							access to the RegenWorks Platform if we have any reason to believe
-							that you have misrepresented or provided false payment information
-							to us.
-						</p>
-						<p>
-							Once your Subscription purchase is processed and completed, we
-							will send you a Subscription confirmation email that includes
-							details about your Subscription, including the start date and end
-							date of your Subscription, your renewal option, and the applicable
-							Subscription fee charged to your payment card or account. If you
-							believe there is an error in any detail about your Subscription,
-							please immediately contact our customer service at
-							hello@regenfarmer.com .
-						</p>
-						<p>
-							Unless you cancel your Subscription before its scheduled end date
-							pursuant to Section 3.2(v) below, all Subscriptions are subject to
-							automatic renewal, which means that, on the scheduled end date of
-							your Subscription, your payment card/account that is on file with
-							RegenWorks will automatically be charged the then-applicable
-							Subscription fee for a new Subscription term. A monthly
-							Subscription will automatically renew for another month, and a
-							yearly Subscription will automatically renew for another 12-month
-							period; except that you may elect to have your Subscription
-							renewed to a different plan (i.e., from monthly to yearly, or from
-							yearly to monthly).
-						</p>
-						<p>
-							Unless expressly otherwise indicated by RegenWorks, a purchased
-							Subscription is NON-REFUNDABLE. This means that if you cancel your
-							Subscription before its scheduled end date, cancellation will not
-							take effect until the scheduled end date of your Subscription, and
-							the Subscription fee you already paid will not be refunded.
-						</p>
-						<p>
-							All cancellation requests must be submitted electronically by
-							clicking “Cancel Subscription” in the Subscription settings of the
-							web application, by using our online cancellation request form or
-							by notifying us through email (On hello@regenfarmer.com). Once
-							processing is completed, we will send you a cancellation
-							confirmation via email, and you will have access to your account
-							until the end of the paid billing cycle. Once cancellation takes
-							effect, you will no longer have access to those tools and service
-							features covered by your cancelled Subscription, including any
-							User Content you have stored on the RegenWorks Platform using
-							those tools and service features. It is your responsibility to
-							download such stored User Content from the RegenWorks Platform
-							prior to cancelling your Subscription. Upon cancellation of your
-							Subscription, we reserve the right to delete such stored User
-							Content from the RegenWorks Platform.
-						</p>
-						<p>
-							IMPORTANT: If you do not want your Subscription renewed, please be
-							sure to cancel your Subscription prior to its scheduled end date.
-							Otherwise, we cannot guarantee that your Subscription will be
-							cancelled in time so that you won’t be charged for renewal.
-						</p>
-						<p>
-							From time to time we may offer our users an opportunity to try out
-							some of our Subscription-based tools and features for free for a
-							limited time (“Free Trial”). If you participate in a Free Trial,
-							you will pay nothing during the specified trial period for using
-							the applicable tools and features. At the conclusion of the Free
-							Trial, you will need to purchase a Subscription if you wish to
-							continue to use the applicable tools and features.
-						</p>
-						<p>
-							We reserve the right to change our Subscription plan terms
-							(including pricing) at any time. If you have an existing
-							Subscription, we will notify you of any price change for the
-							upcoming renewal term at least fifteen (15) days before the
-							beginning of the renewal term in which the new price will be
-							effective, and such notice may be sent via email and/or posted
-							directly to your account on the RegenWorks Platform.
-						</p>
-						<p>
-							IMPORTANT: If you do not cancel your Subscription prior to its
-							scheduled end date pursuant to Section 3.2(v) above, you will be
-							deemed to have agreed to the new price and have authorized us to
-							charge your payment card/account based on the new price at the
-							time of renewal of your Subscription.
-						</p>
-						<p>
-							Some subscriptions can be made for RegenWorks in pre-production,
-							testing, early access, or “beta” phase (each, a “Beta Offering”),
-							for the purpose of evaluating performance, identifying defects and
-							obtaining feedback. We have no obligation to release a final
-							version of any Beta Offering.
-						</p>
+        <h2 class="h2">3. ACCOUNT REGISTRATION; SUBSCRIPTION.</h2>
+        <p>
+          3.1 Account Registration. To use the RegenWorks Platform, you must register an account.
+        </p>
+        <p>
+          By registering an account on the RegenWorks Platform, you represent and warrant that all
+          account information you submit is your own information and is truthful and accurate. You
+          acknowledge and agree that we may immediately suspend or terminate your account and your
+          access to the RegenWorks Platform if we have any reason to believe that you have
+          misrepresented or provided false account information to us.
+        </p>
+        <p>
+          It is your responsibility to keep your farm’s RegenWorks account information (including
+          contact, billing, and other information about your farm) accurate and current. This
+          includes updating your farm’s account information in the event of a change of ownership of
+          your farm. For example, if your farm is sold or transferred to a new owner, your farm’s
+          RegenWorks account will need be updated to reflect the new owner’s information, and by
+          continuing to use the account, the new owner will be deemed to have accepted, and will be
+          bound by, these Terms of Use and our Privacy Policy. Failure to keep your farm’s account
+          information up to date may result in suspension or cancellation of the account (at
+          RegenWorks’s sole discretion). As the account holder, you are responsible for safeguarding
+          your farm’s account login information, and you should notify us immediately in the event
+          your account login has been stolen, lost, or used by another without your permission. If
+          your farm’s account has two or more authorized users, you are responsible for all your
+          farm users’ activities under the account.
+        </p>
+        <p>
+          3.2 Subscription. Access to certain tools and service features on the RegenWorks Platform
+          may require a paid subscription (“Subscription”). Subscription may be month-to-month or on
+          a yearly (i.e., 12 months) basis.
+        </p>
+        <p>
+          By purchasing a Subscription, you represent and warrant that you are the account holder
+          (or an authorized user) of the credit/debit card or payment account that you use to pay
+          for your Subscription purchase, and such payment card or account has sufficient funds to
+          cover your Subscription purchase. You acknowledge and agree that we may immediately
+          suspend or terminate your Subscription and your access to the RegenWorks Platform if we
+          have any reason to believe that you have misrepresented or provided false payment
+          information to us.
+        </p>
+        <p>
+          Once your Subscription purchase is processed and completed, we will send you a
+          Subscription confirmation email that includes details about your Subscription, including
+          the start date and end date of your Subscription, your renewal option, and the applicable
+          Subscription fee charged to your payment card or account. If you believe there is an error
+          in any detail about your Subscription, please immediately contact our customer service at
+          hello@regenfarmer.com .
+        </p>
+        <p>
+          Unless you cancel your Subscription before its scheduled end date pursuant to Section
+          3.2(v) below, all Subscriptions are subject to automatic renewal, which means that, on the
+          scheduled end date of your Subscription, your payment card/account that is on file with
+          RegenWorks will automatically be charged the then-applicable Subscription fee for a new
+          Subscription term. A monthly Subscription will automatically renew for another month, and
+          a yearly Subscription will automatically renew for another 12-month period; except that
+          you may elect to have your Subscription renewed to a different plan (i.e., from monthly to
+          yearly, or from yearly to monthly).
+        </p>
+        <p>
+          Unless expressly otherwise indicated by RegenWorks, a purchased Subscription is
+          NON-REFUNDABLE. This means that if you cancel your Subscription before its scheduled end
+          date, cancellation will not take effect until the scheduled end date of your Subscription,
+          and the Subscription fee you already paid will not be refunded.
+        </p>
+        <p>
+          All cancellation requests must be submitted electronically by clicking “Cancel
+          Subscription” in the Subscription settings of the web application, by using our online
+          cancellation request form or by notifying us through email (On hello@regenfarmer.com).
+          Once processing is completed, we will send you a cancellation confirmation via email, and
+          you will have access to your account until the end of the paid billing cycle. Once
+          cancellation takes effect, you will no longer have access to those tools and service
+          features covered by your cancelled Subscription, including any User Content you have
+          stored on the RegenWorks Platform using those tools and service features. It is your
+          responsibility to download such stored User Content from the RegenWorks Platform prior to
+          cancelling your Subscription. Upon cancellation of your Subscription, we reserve the right
+          to delete such stored User Content from the RegenWorks Platform.
+        </p>
+        <p>
+          IMPORTANT: If you do not want your Subscription renewed, please be sure to cancel your
+          Subscription prior to its scheduled end date. Otherwise, we cannot guarantee that your
+          Subscription will be cancelled in time so that you won’t be charged for renewal.
+        </p>
+        <p>
+          From time to time we may offer our users an opportunity to try out some of our
+          Subscription-based tools and features for free for a limited time (“Free Trial”). If you
+          participate in a Free Trial, you will pay nothing during the specified trial period for
+          using the applicable tools and features. At the conclusion of the Free Trial, you will
+          need to purchase a Subscription if you wish to continue to use the applicable tools and
+          features.
+        </p>
+        <p>
+          We reserve the right to change our Subscription plan terms (including pricing) at any
+          time. If you have an existing Subscription, we will notify you of any price change for the
+          upcoming renewal term at least fifteen (15) days before the beginning of the renewal term
+          in which the new price will be effective, and such notice may be sent via email and/or
+          posted directly to your account on the RegenWorks Platform.
+        </p>
+        <p>
+          IMPORTANT: If you do not cancel your Subscription prior to its scheduled end date pursuant
+          to Section 3.2(v) above, you will be deemed to have agreed to the new price and have
+          authorized us to charge your payment card/account based on the new price at the time of
+          renewal of your Subscription.
+        </p>
+        <p>
+          Some subscriptions can be made for RegenWorks in pre-production, testing, early access, or
+          “beta” phase (each, a “Beta Offering”), for the purpose of evaluating performance,
+          identifying defects and obtaining feedback. We have no obligation to release a final
+          version of any Beta Offering.
+        </p>
 
-						<h2 class="h2">4. USE OF THE RegenWorks PLATFORM.</h2>
-						<p>
-							4.1 Our Limited License to You. Subject to your compliance with
-							these Terms of Use and all applicable laws, RegenWorks hereby
-							grants you a revocable, non-exclusive, non-transferable,
-							non-sublicensable, limited license to access the RegenWorks
-							Platform (including RegenWorks Software and RegenWorks Content)
-							solely for your own lawful use in connection with the management
-							and operation of your farm business.
-						</p>
-						<p>
-							You acknowledge and agree that: (a) the above license is personal
-							to you, which means that only your farm (including those acting on
-							your behalf, such as your employees and agents) are authorized to
-							access the RegenWorks Platform and that you may not sell, lend,
-							rent, lease, transfer, assign, sublicense, or otherwise provide
-							such access to any third party (except with RegenWorks express
-							written approval); and (b) the above license is immediately
-							revocable and terminable by RegenWorks, if RegenWorks determines,
-							in its sole judgement, that you are in violation of these Terms of
-							Use or any applicable law or that your use of the RegenWorks
-							Platform may expose RegenWorks or its Suppliers to liability of
-							any kind, or may adversely affect the reputation or goodwill of
-							RegenWorks or its Suppliers.
-						</p>
-						<p>
-							You further acknowledge and agree that your use of any RegenWorks
-							Software, including any downloaded RegenWorks Software, is subject
-							to the following additional terms and conditions:
-						</p>
-						<p>
-							Any such RegenWorks Software is licensed, and NOT sold or
-							transferred, to you.
-						</p>
-						<p>
-							You may not distribute, sell, offer to sell, lend, rent, lease,
-							transfer, or otherwise furnish any RegenWorks Software to a third
-							party.
-						</p>
-						<p>
-							You may not modify, translate, or otherwise make derivative works
-							from, or reverse engineer, decompile, disassemble, or otherwise
-							attempt to derive the source code of, any RegenWorks Software.
-						</p>
-						<p>
-							You may not bypass, disable, deactivate or render ineffective any
-							copy control, copy protection, or other digital rights management
-							(DRM) mechanism, scheme, device, program, tool, code or file
-							contained or embedded in or associated with any RegenWorks
-							Software.
-						</p>
-						<p>
-							All RegenWorks Software is subject to Danish and EU export control
-							laws and regulations and may not be downloaded or otherwise
-							exported or re-exported (i) into (or to a national or resident of)
-							Sudan, Libya, North Korea, Iran, Syria, or any other country to
-							which Denmark and the EU has embargoed goods. By downloading,
-							installing, or using any RegenWorks Software, you represent and
-							warrant that you are not located in, under the control of, or a
-							national or resident of any such country or on any such list. You
-							may not download, install, use, export or re-export any RegenWorks
-							Software or any underlying information or technology except in
-							full compliance with Danish and EU export control laws and
-							regulations.
-						</p>
-						<p>
-							You acknowledge and agree that, unless expressly otherwise
-							indicated by RegenWorks, RegenWorks and its Suppliers are not
-							obligated or required to provide any assistance or support
-							(including any technical or customer support) with respect to your
-							download, installation, or use of any RegenWorks Software.
-						</p>
-						<p>
-							From time to time RegenWorks and/or its Suppliers may make changes
-							and updates to certain RegenWorks Software, and you understand
-							that it may be necessary for you to download and install the
-							changes and updates in order for such RegenWorks Software to
-							function properly on your computer or mobile device.
-						</p>
-						<p>
-							4.2 Prohibited Uses. Any unauthorized or unlawful use of the
-							RegenWorks Platform or any RegenWorks Software or RegenWorks
-							Content is strictly prohibited. Specifically, you may not:
-						</p>
-						<p>
-							use the RegenWorks Platform or any RegenWorks Software or
-							RegenWorks Content for any unlawful purpose, including, without
-							limitation: operating any scam or fraudulent scheme (such as a
-							pyramid or ponzi scheme); impersonating another, or making
-							unauthorized use of another’s information; selling or offering to
-							sell products without requisite licenses, permits, approvals or
-							certifications; conducting false or deceptive advertising, or
-							engaging in any other unfair trade practice; disseminating junk
-							email, spam, or other unsolicited and unwanted messages or
-							communications; or collecting personal information from or about
-							others (including your farm customers) without their knowledge or
-							consent, including through “phishing” or under any other false
-							pretense;
-						</p>
-						<p>
-							use the RegenWorks Platform or any RegenWorks Software or
-							RegenWorks Content to upload, store, display, transmit, publish or
-							distribute any content, data or information that: (i) is unlawful;
-							threatening; harassing; abusive; hateful; discriminatory;
-							derogatory; obscene; vulgar; pornographic; excessively violent;
-							false, deceptive or misleading; defamatory or libelous; or
-							otherwise offensive; (ii) promotes, solicits or aids crimes or
-							illegal activities; (iii) promotes or solicits violence; (iv)
-							promotes or solicits gambling, public intoxication, underage
-							drinking, or drug abuse; (v) promotes or solicits animal cruelty;
-							(vi) contains, promotes, or links to fake offers, scams, or other
-							fraudulent schemes (such as pyramid schemes and ponzi schemes);
-							(vii) contains, promotes, or links to viruses, worms, Trojan
-							horses, spyware, malware, ransomware, or other malicious, harmful
-							or disruptive code or material that is designed to damage,
-							interfere with, intercept, lock out, or expropriate any software,
-							hardware, information or data; or (viii) violates another’s
-							copyright, trademark, trade secret, patent, right of publicity,
-							right of privacy, contractual right, or other property or
-							proprietary right of any kind (including, without limitation:
-							using another’s name, likeness, photo, or other identity without
-							consent);
-						</p>
-						<p>
-							copy, reproduce, distribute, sell, lend, rent, lease, or modify,
-							translate, or otherwise make derivative works from, the RegenWorks
-							Platform or any RegenWorks Software or RegenWorks Content;
-						</p>
-						<p>
-							use the RegenWorks Platform for purposes of monitoring its
-							availability, performance or functionality, or for any other
-							benchmarking or competitive purposes, including, without
-							limitation, for the purpose of developing any product or service
-							to compete against RegenWorks ;
-						</p>
-						<p>
-							offer the use of the RegenWorks Platform or any RegenWorks
-							Software or RegenWorks Content as part of a service bureau,
-							time-sharing, or other similar arrangement;
-						</p>
-						<p>
-							interfere in any way with the operation of the RegenWorks Platform
-							or any RegenWorks Software or RegenWorks Content, or any server,
-							network or system associated therewith, including, without
-							limitation: hacking, mail-bombing, flooding, overloading, or
-							making “denial of service” attacks; probing, scanning or testing
-							the vulnerability of the RegenWorks Platform or any RegenWorks
-							Software or RegenWorks Content, or any server, network or system
-							associated therewith; breaching or circumventing firewall,
-							encryption, security or authentication routines; accessing data
-							not intended for you, or accessing another’s account that you are
-							not expressly authorized to access;
-						</p>
-						<p>
-							use any automated program, tool or process (including, without
-							limitation, web crawlers, robots, bots, spiders, or automated
-							agents or scripts) to access the RegenWorks Platform, or to
-							register multiple accounts on the RegenWorks Platform, or to
-							generate automated searches, requests, or queries to the
-							RegenWorks Platform, or to strip, scrape, extract, or mine data or
-							information from the RegenWorks Platform (except, however, that we
-							conditionally grant to the operators of public search engines
-							revocable permission to use spiders to copy materials from the
-							RegenWorks Platform for the sole purpose of and solely to the
-							extent necessary for creating publicly available searchable
-							indices of the materials, but not caches or archives of such
-							materials, subject to the parameters set forth in our robots.txt
-							file);
-						</p>
-						<p>
-							remove, erase, conceal, alter, or otherwise tamper with RegenWorks
-							or third-party intellectual property, attribution, or other legal
-							notices included in or associated with the RegenWorks Platform or
-							any RegenWorks Software or RegenWorks Content;
-						</p>
-						<p>
-							frame, or otherwise create a browser or border environment around,
-							any portion of the RegenWorks Platform, or any RegenWorks Software
-							or RegenWorks Content;
-						</p>
-						<p>
-							use any of RegenWorks Trademarks: (i) for advertising,
-							promotional, marketing, sale, or any other commercial or
-							for-profit purposes (unless with the express prior written consent
-							of Regen Farmer ); (ii) in any way that falsely suggests or
-							implies an association or affiliation with, or endorsement,
-							sponsorship or approval by, Regen Farmer ; or (iii) in any way
-							that defames or disparages Regen Farmer or its Suppliers; or
-						</p>
-						<p>
-							otherwise use the RegenWorks Platform in a way that violates these
-							Terms of Use or any applicable law.
-						</p>
-						<p>4.3 User Content.</p>
-						<p>
-							By using the RegenWorks Platform, and for as long as you maintain
-							an account on the RegenWorks Platform, you expressly and
-							irrevocably give RegenWorks permission:
-						</p>
-						<ul>
-							<li>
-								to do all things with your User Content as are reasonably
-								necessary for RegenWorks to provide, host, operate, manage,
-								maintain and improve the RegenWorks Platform, including
-								performing tasks with your User Content as directed by you, such
-								as: tracking, recording, storing, processing, organizing and
-								managing your farm data; generating and reporting your requested
-								analytics; enabling you to build and publish your farm
-								website/online store; enabling you to organize and host farm
-								events; and enabling you to stay connected with your farm
-								customers through emails, newsletters, events, etc.; and
-							</li>
-							<li>
-								to use, reproduce, publicly display, and distribute your User
-								Content for the purposes of marketing and promoting the
-								RegenWorks Platform (provided, however, that RegenWorks will not
-								publish or disclose to others your farm business or operational
-								data or analytics without your express written permission).
-							</li>
-						</ul>
-						<p>
-							If you submit User Feedback to RegenWorks , you acknowledge and
-							agree as follows:
-						</p>
-						<ul>
-							<li>
-								You expressly and irrevocably give RegenWorks permission to use
-								your User Feedback indefinitely for any and all purposes
-								(including, without limitation, for marketing and promoting the
-								RegenWorks Platform, for making improvements to the RegenWorks
-								Platform, and for developing new RegenWorks products and
-								services).
-							</li>
-							<li>
-								Your submission of User Feedback is voluntary and consensual and
-								is made without any condition or reservation of rights,
-								including, without limitation, any condition of compensation,
-								payment, credit, attribution, secrecy or confidentiality. No
-								contractual, fiduciary or confidential relationship of any kind
-								(whether express or implied) is created between you and
-								RegenWorks by reason of your submission of User Feedback. Your
-								submission is not returnable and may be retained indefinitely by
-								RegenWorks .
-							</li>
-						</ul>
-						<p>You represent and warrant that:</p>
-						<ul>
-							<li>
-								you own or control all rights (including intellectual property
-								rights) necessary for RegenWorks to make use of your User
-								Content as expressly permitted under these Terms of Use; and
-							</li>
-							<li>
-								your User Content does not contain any third party’s
-								confidential or proprietary information, does not violate any
-								right (including, without limitation, any intellectual property
-								right, right of privacy, or right of publicity) of any third
-								party, and does not violate any applicable law.
-							</li>
-							<li>
-								You acknowledge and agree that RegenWorks will have the absolute
-								right to remove, delete, or block or disable access to, any of
-								your User Content which RegenWorks determines, in its sole
-								judgment, violates these Terms of Use or any applicable law, or
-								may expose RegenWorks or its Suppliers to liability of any kind,
-								or may adversely affect the reputation or goodwill of RegenWorks
-								or its Suppliers.
-							</li>
-						</ul>
-						<p>
-							4.4 Aggregate Platform Data. By using the RegenWorks Platform, you
-							acknowledge and agree that RegenWorks will be free to: (i) compile
-							and combine your and other users’ farm data and analytics (after
-							de-identifying such data and analytics as necessary so that they
-							do not identify any particular user or farm) to create RegenWorks
-							and anonymized data in connection with measuring the usage and
-							performance of the RegenWorks Platform (hereinafter, “Aggregate
-							Platform Data”); and (ii) reproduce, disclose to others, publish,
-							distribute, and otherwise use such Aggregate Platform Data
-							indefinitely for any and all purposes (including, without
-							limitation, for marketing and promoting the RegenWorks Platform,
-							for making improvements to the RegenWorks Platform, and for
-							developing new RegenWorks products and services).
-						</p>
-						<p>
-							4.5 Use of RegenWorks Forms and Templates. The RegenWorks Platform
-							include electronic forms and templates that are designed to help
-							users to track, record, or organize farm data, generate analytics
-							reports, build farm websites/online stores, etc. You acknowledge
-							and agree that: (i) all such forms and templates constitute
-							RegenWorks Content; (ii) you are granted a limited license to use
-							such forms and templates as described in Section 4.1 above and you
-							may incorporate your User Content into such forms and templates,
-							but you do not acquire any title, ownership or exclusive right in
-							such forms and templates by doing so; (iv) other users are free to
-							use the same forms and templates in a way similar to yours
-							pursuant to these Terms of Use; and (v) you will keep intact and
-							not remove, erase, conceal, alter, or otherwise tamper with
-							RegenWorks or third-party intellectual property, attribution, and
-							other legal notices contained in such forms and templates.
-						</p>
-						<p>
-							4.6 Use of RegenWorks Recommendations, Reports, etc. To the extent
-							you receive any recommendation, report or data from the RegenWorks
-							Platform concerning your farm business or operations, you
-							acknowledge and agree that: (i) any such recommendation, report or
-							data is for general informational purposes only and should not be
-							viewed or relied upon as professional or expert advice; and (ii)
-							RegenWorks is not responsible or liable in any way for the results
-							of your reliance upon any such recommendation, report or data,
-							including for any losses (financial or otherwise), damages, costs
-							or expenses that you may incur as a result of following any such
-							recommendation, report or data. You should always do your own
-							independent research (including consulting farm experts) prior to
-							making any business or financial decision concerning your farm.
-						</p>
-						<p>
-							4.7 Third-Party Links & Ads. The RegenWorks Platform may display
-							links to or advertisements of third-party websites or products or
-							services that are not provided, operated, or controlled by
-							RegenWorks (hereinafter, “Third-Party Sites/Products/Services”).
-							The display of such links or ads does not constitute or imply
-							RegenWorks sponsorship, endorsement or approval of Third-Party
-							Sites/Products/Services, and RegenWorks is not responsible for,
-							and does not make any representation or warranty (whether express
-							or implied) with respect to, any Third-Party
-							Sites/Products/Services. If you choose to use Third-Party
-							Sites/Products/Services, you do so of your own volition and at
-							your own risk. You understand that when using Third-Party
-							Sites/Products/Services, you are subject to the terms of use and
-							privacy policies of the third-party providers, and not these Terms
-							of Use or RegenWorks Privacy Policy. Any claim you may have in
-							relation to Third-Party Sites/Products/Services must be brought
-							directly against the third-party providers. You acknowledge and
-							agree that under no circumstances will RegenWorks be liable in any
-							way for any act or omission of the third-party providers or for
-							any injury, loss or damage incurred by you as a result of your use
-							of Third-Party Sites/Products/Services.
-						</p>
-						<p>
-							4.8 Linking to RegenWorks. You may link to the RegenWorks
-							Platform, provided that you comply with the following terms and
-							conditions:
-						</p>
-						<ul>
-							<li>
-								Your link must be a text-only link. The RegenWorks logo may not
-								be used for linking purposes, except with the express prior
-								written consent of RegenWorks .
-							</li>
-							<li>
-								You do not frame or otherwise create a browser or border
-								environment around any portion of the RegenWorks Platform or any
-								RegenWorks Software or RegenWorks Content.
-							</li>
-							<li>
-								You do not link to the RegenWorks Platform from any adult or
-								sexually oriented website.
-							</li>
-							<li>
-								You do not misrepresent or falsely suggest that your website or
-								product or service is sponsored, endorsed or approved by, or
-								affiliated with, RegenWorks .
-							</li>
-							<li>
-								You do not disparage RegenWorks , or publish false, misleading
-								or inaccurate information about RegenWorks.
-							</li>
-							<li>
-								You also acknowledge and agree that RegenWorks is under no
-								obligation to support your link to the RegenWorks Platform and
-								may block traffic from your website at any time and for any
-								reason.
-							</li>
-						</ul>
-						<p>
-							4.9 User Indemnity. By using the RegenWorks Platform, you agree to
-							(i) indemnify and hold harmless RegenWorks and its Suppliers
-							(including their respective officers, directors, employees, agents
-							and representatives) (collectively, “RegenWorks and Related
-							Parties”) from and against any claim, action, suit, proceeding or
-							investigation brought by a third party (including by any of your
-							customers) (hereinafter, a “Third Party Claim”) and (ii) pay any
-							and all damages, settlements, judgments, awards, fines, costs and
-							expenses (including, without limitation, court costs and
-							attorneys’ fees) associated with such Third Party Claim, to the
-							extent such Third Party Claim arises out of or relates to any of
-							the following:
-						</p>
-						<ul>
-							<li>
-								your use or misuse of, or your reliance upon the RegenWorks
-								Platform (including your use or misuse of, or your reliance
-								upon, any RegenWorks Software or RegenWorks Content or another’s
-								User Content);
-							</li>
-							<li>
-								your violation of these Terms of Use or any applicable laws or
-								regulations;
-							</li>
-							<li>any of your User Content;</li>
-							<li>any product sold or provided by you;</li>
-							<li>
-								any of your transactions or dealings with your customers, other
-								users, or any other third parties;
-							</li>
-							<li>any of your communications to your customers;</li>
-							<li>
-								the conduct of your farm business, including any of your
-								business or trade practices.
-							</li>
-						</ul>
-						<p>
-							NOTE: This provision does not require you to indemnify any of
-							RegenWorks and Related Parties for any unconscionable commercial
-							practice by such party, or for such party’s negligence, fraud,
-							deception, false promise, misrepresentation or concealment,
-							suppression, or omission of any material fact in connection with
-							the RegenWorks Platform.
-						</p>
-						<p>
-							RegenWorks reserves the right, at your expense, to assume the
-							legal defense of a Third Party Claim for which you are required to
-							indemnify RegenWorks and its Suppliers, and you agree to fully
-							cooperate with RegenWorks in such legal defense. You agree not to
-							settle any Third Party Claim for which you are required to
-							indemnify RegenWorks and its Suppliers, without the express prior
-							written consent of RegenWorks. RegenWorks will use reasonable
-							efforts to notify you in the event RegenWorks receives notice of a
-							Third Party Claim for which you are required to indemnify
-							RegenWorks and its Suppliers; however, RegenWorks’s failure to so
-							notify you will not in any way excuse or relieve you from your
-							indemnity obligations hereunder.
-						</p>
+        <h2 class="h2">4. USE OF THE RegenWorks PLATFORM.</h2>
+        <p>
+          4.1 Our Limited License to You. Subject to your compliance with these Terms of Use and all
+          applicable laws, RegenWorks hereby grants you a revocable, non-exclusive,
+          non-transferable, non-sublicensable, limited license to access the RegenWorks Platform
+          (including RegenWorks Software and RegenWorks Content) solely for your own lawful use in
+          connection with the management and operation of your farm business.
+        </p>
+        <p>
+          You acknowledge and agree that: (a) the above license is personal to you, which means that
+          only your farm (including those acting on your behalf, such as your employees and agents)
+          are authorized to access the RegenWorks Platform and that you may not sell, lend, rent,
+          lease, transfer, assign, sublicense, or otherwise provide such access to any third party
+          (except with RegenWorks express written approval); and (b) the above license is
+          immediately revocable and terminable by RegenWorks, if RegenWorks determines, in its sole
+          judgement, that you are in violation of these Terms of Use or any applicable law or that
+          your use of the RegenWorks Platform may expose RegenWorks or its Suppliers to liability of
+          any kind, or may adversely affect the reputation or goodwill of RegenWorks or its
+          Suppliers.
+        </p>
+        <p>
+          You further acknowledge and agree that your use of any RegenWorks Software, including any
+          downloaded RegenWorks Software, is subject to the following additional terms and
+          conditions:
+        </p>
+        <p>Any such RegenWorks Software is licensed, and NOT sold or transferred, to you.</p>
+        <p>
+          You may not distribute, sell, offer to sell, lend, rent, lease, transfer, or otherwise
+          furnish any RegenWorks Software to a third party.
+        </p>
+        <p>
+          You may not modify, translate, or otherwise make derivative works from, or reverse
+          engineer, decompile, disassemble, or otherwise attempt to derive the source code of, any
+          RegenWorks Software.
+        </p>
+        <p>
+          You may not bypass, disable, deactivate or render ineffective any copy control, copy
+          protection, or other digital rights management (DRM) mechanism, scheme, device, program,
+          tool, code or file contained or embedded in or associated with any RegenWorks Software.
+        </p>
+        <p>
+          All RegenWorks Software is subject to Danish and EU export control laws and regulations
+          and may not be downloaded or otherwise exported or re-exported (i) into (or to a national
+          or resident of) Sudan, Libya, North Korea, Iran, Syria, or any other country to which
+          Denmark and the EU has embargoed goods. By downloading, installing, or using any
+          RegenWorks Software, you represent and warrant that you are not located in, under the
+          control of, or a national or resident of any such country or on any such list. You may not
+          download, install, use, export or re-export any RegenWorks Software or any underlying
+          information or technology except in full compliance with Danish and EU export control laws
+          and regulations.
+        </p>
+        <p>
+          You acknowledge and agree that, unless expressly otherwise indicated by RegenWorks,
+          RegenWorks and its Suppliers are not obligated or required to provide any assistance or
+          support (including any technical or customer support) with respect to your download,
+          installation, or use of any RegenWorks Software.
+        </p>
+        <p>
+          From time to time RegenWorks and/or its Suppliers may make changes and updates to certain
+          RegenWorks Software, and you understand that it may be necessary for you to download and
+          install the changes and updates in order for such RegenWorks Software to function properly
+          on your computer or mobile device.
+        </p>
+        <p>
+          4.2 Prohibited Uses. Any unauthorized or unlawful use of the RegenWorks Platform or any
+          RegenWorks Software or RegenWorks Content is strictly prohibited. Specifically, you may
+          not:
+        </p>
+        <p>
+          use the RegenWorks Platform or any RegenWorks Software or RegenWorks Content for any
+          unlawful purpose, including, without limitation: operating any scam or fraudulent scheme
+          (such as a pyramid or ponzi scheme); impersonating another, or making unauthorized use of
+          another’s information; selling or offering to sell products without requisite licenses,
+          permits, approvals or certifications; conducting false or deceptive advertising, or
+          engaging in any other unfair trade practice; disseminating junk email, spam, or other
+          unsolicited and unwanted messages or communications; or collecting personal information
+          from or about others (including your farm customers) without their knowledge or consent,
+          including through “phishing” or under any other false pretense;
+        </p>
+        <p>
+          use the RegenWorks Platform or any RegenWorks Software or RegenWorks Content to upload,
+          store, display, transmit, publish or distribute any content, data or information that: (i)
+          is unlawful; threatening; harassing; abusive; hateful; discriminatory; derogatory;
+          obscene; vulgar; pornographic; excessively violent; false, deceptive or misleading;
+          defamatory or libelous; or otherwise offensive; (ii) promotes, solicits or aids crimes or
+          illegal activities; (iii) promotes or solicits violence; (iv) promotes or solicits
+          gambling, public intoxication, underage drinking, or drug abuse; (v) promotes or solicits
+          animal cruelty; (vi) contains, promotes, or links to fake offers, scams, or other
+          fraudulent schemes (such as pyramid schemes and ponzi schemes); (vii) contains, promotes,
+          or links to viruses, worms, Trojan horses, spyware, malware, ransomware, or other
+          malicious, harmful or disruptive code or material that is designed to damage, interfere
+          with, intercept, lock out, or expropriate any software, hardware, information or data; or
+          (viii) violates another’s copyright, trademark, trade secret, patent, right of publicity,
+          right of privacy, contractual right, or other property or proprietary right of any kind
+          (including, without limitation: using another’s name, likeness, photo, or other identity
+          without consent);
+        </p>
+        <p>
+          copy, reproduce, distribute, sell, lend, rent, lease, or modify, translate, or otherwise
+          make derivative works from, the RegenWorks Platform or any RegenWorks Software or
+          RegenWorks Content;
+        </p>
+        <p>
+          use the RegenWorks Platform for purposes of monitoring its availability, performance or
+          functionality, or for any other benchmarking or competitive purposes, including, without
+          limitation, for the purpose of developing any product or service to compete against
+          RegenWorks ;
+        </p>
+        <p>
+          offer the use of the RegenWorks Platform or any RegenWorks Software or RegenWorks Content
+          as part of a service bureau, time-sharing, or other similar arrangement;
+        </p>
+        <p>
+          interfere in any way with the operation of the RegenWorks Platform or any RegenWorks
+          Software or RegenWorks Content, or any server, network or system associated therewith,
+          including, without limitation: hacking, mail-bombing, flooding, overloading, or making
+          “denial of service” attacks; probing, scanning or testing the vulnerability of the
+          RegenWorks Platform or any RegenWorks Software or RegenWorks Content, or any server,
+          network or system associated therewith; breaching or circumventing firewall, encryption,
+          security or authentication routines; accessing data not intended for you, or accessing
+          another’s account that you are not expressly authorized to access;
+        </p>
+        <p>
+          use any automated program, tool or process (including, without limitation, web crawlers,
+          robots, bots, spiders, or automated agents or scripts) to access the RegenWorks Platform,
+          or to register multiple accounts on the RegenWorks Platform, or to generate automated
+          searches, requests, or queries to the RegenWorks Platform, or to strip, scrape, extract,
+          or mine data or information from the RegenWorks Platform (except, however, that we
+          conditionally grant to the operators of public search engines revocable permission to use
+          spiders to copy materials from the RegenWorks Platform for the sole purpose of and solely
+          to the extent necessary for creating publicly available searchable indices of the
+          materials, but not caches or archives of such materials, subject to the parameters set
+          forth in our robots.txt file);
+        </p>
+        <p>
+          remove, erase, conceal, alter, or otherwise tamper with RegenWorks or third-party
+          intellectual property, attribution, or other legal notices included in or associated with
+          the RegenWorks Platform or any RegenWorks Software or RegenWorks Content;
+        </p>
+        <p>
+          frame, or otherwise create a browser or border environment around, any portion of the
+          RegenWorks Platform, or any RegenWorks Software or RegenWorks Content;
+        </p>
+        <p>
+          use any of RegenWorks Trademarks: (i) for advertising, promotional, marketing, sale, or
+          any other commercial or for-profit purposes (unless with the express prior written consent
+          of Regen Farmer ); (ii) in any way that falsely suggests or implies an association or
+          affiliation with, or endorsement, sponsorship or approval by, Regen Farmer ; or (iii) in
+          any way that defames or disparages Regen Farmer or its Suppliers; or
+        </p>
+        <p>
+          otherwise use the RegenWorks Platform in a way that violates these Terms of Use or any
+          applicable law.
+        </p>
+        <p>4.3 User Content.</p>
+        <p>
+          By using the RegenWorks Platform, and for as long as you maintain an account on the
+          RegenWorks Platform, you expressly and irrevocably give RegenWorks permission:
+        </p>
+        <ul>
+          <li>
+            to do all things with your User Content as are reasonably necessary for RegenWorks to
+            provide, host, operate, manage, maintain and improve the RegenWorks Platform, including
+            performing tasks with your User Content as directed by you, such as: tracking,
+            recording, storing, processing, organizing and managing your farm data; generating and
+            reporting your requested analytics; enabling you to build and publish your farm
+            website/online store; enabling you to organize and host farm events; and enabling you to
+            stay connected with your farm customers through emails, newsletters, events, etc.; and
+          </li>
+          <li>
+            to use, reproduce, publicly display, and distribute your User Content for the purposes
+            of marketing and promoting the RegenWorks Platform (provided, however, that RegenWorks
+            will not publish or disclose to others your farm business or operational data or
+            analytics without your express written permission).
+          </li>
+        </ul>
+        <p>If you submit User Feedback to RegenWorks , you acknowledge and agree as follows:</p>
+        <ul>
+          <li>
+            You expressly and irrevocably give RegenWorks permission to use your User Feedback
+            indefinitely for any and all purposes (including, without limitation, for marketing and
+            promoting the RegenWorks Platform, for making improvements to the RegenWorks Platform,
+            and for developing new RegenWorks products and services).
+          </li>
+          <li>
+            Your submission of User Feedback is voluntary and consensual and is made without any
+            condition or reservation of rights, including, without limitation, any condition of
+            compensation, payment, credit, attribution, secrecy or confidentiality. No contractual,
+            fiduciary or confidential relationship of any kind (whether express or implied) is
+            created between you and RegenWorks by reason of your submission of User Feedback. Your
+            submission is not returnable and may be retained indefinitely by RegenWorks .
+          </li>
+        </ul>
+        <p>You represent and warrant that:</p>
+        <ul>
+          <li>
+            you own or control all rights (including intellectual property rights) necessary for
+            RegenWorks to make use of your User Content as expressly permitted under these Terms of
+            Use; and
+          </li>
+          <li>
+            your User Content does not contain any third party’s confidential or proprietary
+            information, does not violate any right (including, without limitation, any intellectual
+            property right, right of privacy, or right of publicity) of any third party, and does
+            not violate any applicable law.
+          </li>
+          <li>
+            You acknowledge and agree that RegenWorks will have the absolute right to remove,
+            delete, or block or disable access to, any of your User Content which RegenWorks
+            determines, in its sole judgment, violates these Terms of Use or any applicable law, or
+            may expose RegenWorks or its Suppliers to liability of any kind, or may adversely affect
+            the reputation or goodwill of RegenWorks or its Suppliers.
+          </li>
+        </ul>
+        <p>
+          4.4 Aggregate Platform Data. By using the RegenWorks Platform, you acknowledge and agree
+          that RegenWorks will be free to: (i) compile and combine your and other users’ farm data
+          and analytics (after de-identifying such data and analytics as necessary so that they do
+          not identify any particular user or farm) to create RegenWorks and anonymized data in
+          connection with measuring the usage and performance of the RegenWorks Platform
+          (hereinafter, “Aggregate Platform Data”); and (ii) reproduce, disclose to others, publish,
+          distribute, and otherwise use such Aggregate Platform Data indefinitely for any and all
+          purposes (including, without limitation, for marketing and promoting the RegenWorks
+          Platform, for making improvements to the RegenWorks Platform, and for developing new
+          RegenWorks products and services).
+        </p>
+        <p>
+          4.5 Use of RegenWorks Forms and Templates. The RegenWorks Platform include electronic
+          forms and templates that are designed to help users to track, record, or organize farm
+          data, generate analytics reports, build farm websites/online stores, etc. You acknowledge
+          and agree that: (i) all such forms and templates constitute RegenWorks Content; (ii) you
+          are granted a limited license to use such forms and templates as described in Section 4.1
+          above and you may incorporate your User Content into such forms and templates, but you do
+          not acquire any title, ownership or exclusive right in such forms and templates by doing
+          so; (iv) other users are free to use the same forms and templates in a way similar to
+          yours pursuant to these Terms of Use; and (v) you will keep intact and not remove, erase,
+          conceal, alter, or otherwise tamper with RegenWorks or third-party intellectual property,
+          attribution, and other legal notices contained in such forms and templates.
+        </p>
+        <p>
+          4.6 Use of RegenWorks Recommendations, Reports, etc. To the extent you receive any
+          recommendation, report or data from the RegenWorks Platform concerning your farm business
+          or operations, you acknowledge and agree that: (i) any such recommendation, report or data
+          is for general informational purposes only and should not be viewed or relied upon as
+          professional or expert advice; and (ii) RegenWorks is not responsible or liable in any way
+          for the results of your reliance upon any such recommendation, report or data, including
+          for any losses (financial or otherwise), damages, costs or expenses that you may incur as
+          a result of following any such recommendation, report or data. You should always do your
+          own independent research (including consulting farm experts) prior to making any business
+          or financial decision concerning your farm.
+        </p>
+        <p>
+          4.7 Third-Party Links & Ads. The RegenWorks Platform may display links to or
+          advertisements of third-party websites or products or services that are not provided,
+          operated, or controlled by RegenWorks (hereinafter, “Third-Party
+          Sites/Products/Services”). The display of such links or ads does not constitute or imply
+          RegenWorks sponsorship, endorsement or approval of Third-Party Sites/Products/Services,
+          and RegenWorks is not responsible for, and does not make any representation or warranty
+          (whether express or implied) with respect to, any Third-Party Sites/Products/Services. If
+          you choose to use Third-Party Sites/Products/Services, you do so of your own volition and
+          at your own risk. You understand that when using Third-Party Sites/Products/Services, you
+          are subject to the terms of use and privacy policies of the third-party providers, and not
+          these Terms of Use or RegenWorks Privacy Policy. Any claim you may have in relation to
+          Third-Party Sites/Products/Services must be brought directly against the third-party
+          providers. You acknowledge and agree that under no circumstances will RegenWorks be liable
+          in any way for any act or omission of the third-party providers or for any injury, loss or
+          damage incurred by you as a result of your use of Third-Party Sites/Products/Services.
+        </p>
+        <p>
+          4.8 Linking to RegenWorks. You may link to the RegenWorks Platform, provided that you
+          comply with the following terms and conditions:
+        </p>
+        <ul>
+          <li>
+            Your link must be a text-only link. The RegenWorks logo may not be used for linking
+            purposes, except with the express prior written consent of RegenWorks .
+          </li>
+          <li>
+            You do not frame or otherwise create a browser or border environment around any portion
+            of the RegenWorks Platform or any RegenWorks Software or RegenWorks Content.
+          </li>
+          <li>
+            You do not link to the RegenWorks Platform from any adult or sexually oriented website.
+          </li>
+          <li>
+            You do not misrepresent or falsely suggest that your website or product or service is
+            sponsored, endorsed or approved by, or affiliated with, RegenWorks .
+          </li>
+          <li>
+            You do not disparage RegenWorks , or publish false, misleading or inaccurate information
+            about RegenWorks.
+          </li>
+          <li>
+            You also acknowledge and agree that RegenWorks is under no obligation to support your
+            link to the RegenWorks Platform and may block traffic from your website at any time and
+            for any reason.
+          </li>
+        </ul>
+        <p>
+          4.9 User Indemnity. By using the RegenWorks Platform, you agree to (i) indemnify and hold
+          harmless RegenWorks and its Suppliers (including their respective officers, directors,
+          employees, agents and representatives) (collectively, “RegenWorks and Related Parties”)
+          from and against any claim, action, suit, proceeding or investigation brought by a third
+          party (including by any of your customers) (hereinafter, a “Third Party Claim”) and (ii)
+          pay any and all damages, settlements, judgments, awards, fines, costs and expenses
+          (including, without limitation, court costs and attorneys’ fees) associated with such
+          Third Party Claim, to the extent such Third Party Claim arises out of or relates to any of
+          the following:
+        </p>
+        <ul>
+          <li>
+            your use or misuse of, or your reliance upon the RegenWorks Platform (including your use
+            or misuse of, or your reliance upon, any RegenWorks Software or RegenWorks Content or
+            another’s User Content);
+          </li>
+          <li>your violation of these Terms of Use or any applicable laws or regulations;</li>
+          <li>any of your User Content;</li>
+          <li>any product sold or provided by you;</li>
+          <li>
+            any of your transactions or dealings with your customers, other users, or any other
+            third parties;
+          </li>
+          <li>any of your communications to your customers;</li>
+          <li>
+            the conduct of your farm business, including any of your business or trade practices.
+          </li>
+        </ul>
+        <p>
+          NOTE: This provision does not require you to indemnify any of RegenWorks and Related
+          Parties for any unconscionable commercial practice by such party, or for such party’s
+          negligence, fraud, deception, false promise, misrepresentation or concealment,
+          suppression, or omission of any material fact in connection with the RegenWorks Platform.
+        </p>
+        <p>
+          RegenWorks reserves the right, at your expense, to assume the legal defense of a Third
+          Party Claim for which you are required to indemnify RegenWorks and its Suppliers, and you
+          agree to fully cooperate with RegenWorks in such legal defense. You agree not to settle
+          any Third Party Claim for which you are required to indemnify RegenWorks and its
+          Suppliers, without the express prior written consent of RegenWorks. RegenWorks will use
+          reasonable efforts to notify you in the event RegenWorks receives notice of a Third Party
+          Claim for which you are required to indemnify RegenWorks and its Suppliers; however,
+          RegenWorks’s failure to so notify you will not in any way excuse or relieve you from your
+          indemnity obligations hereunder.
+        </p>
 
-						<h2 class="h2">5. DISCLAIMER OF WARRANTIES; LIMITATIONS OF LIABILITY.</h2>
-						<p>
-							By using the RegenWorks Platform, you acknowledge and agree as
-							follows:
-						</p>
-						<p>
-							THE RegenWorks PLATFORM (INCLUDING ALL RegenWorks SOFTWARE AND
-							RegenWorks CONTENT) AND ALL USER CONTENT ARE PROVIDED “AS IS” AND
-							“AS AVAILABLE” WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR
-							IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, RegenWorks AND
-							ITS SUPPLIERS EXPRESSLY DISCLAIM ANY AND ALL WARRANTIES, WHETHER
-							EXPRESS OR IMPLIED, WITH RESPECT TO THE RegenWorks PLATFORM
-							(INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL
-							USER CONTENT, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF
-							MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND
-							WARRANTIES OF TITLE AND NON-INFRINGEMENT. WITHOUT LIMITATION TO
-							THE GENERALITY OF THE FOREGOING, RegenWorks AND ITS SUPPLIERS DO
-							NOT WARRANT THAT: (A) THE RegenWorks PLATFORM (INCLUDING ALL
-							RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL USER CONTENT
-							WILL BE ACCURATE, ERROR-FREE, UP TO DATE, COMPLETE, OR USEFUL, OR
-							WILL BE UNINTERRUPTED, OR WILL BE AVAILABLE AT ANY PARTICULAR TIME
-							OR LOCATION; (B) ANY DEFECT OR ERROR IN THE RegenWorks PLATFORM
-							(INCLUDING ANY RegenWorks SOFTWARE OR RegenWorks CONTENT) OR IN
-							ANY USER CONTENT WILL BE CORRECTED; OR (C) THE RegenWorks PLATFORM
-							(INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL
-							USER CONTENT WILL BE SECURE AND FREE OF ANY VIRUS OR OTHER HARMFUL
-							COMPONENT. ANY USE OF OR RELIANCE UPON THE RegenWorks PLATFORM
-							(INCLUDING ANY RegenWorks SOFTWARE OR RegenWorks CONTENT) OR ANY
-							USER CONTENT IS ENTIRELY AT YOUR OWN RISK.
-						</p>
-						<p>
-							EXCEPT WHERE PROHIBITED BY APPLICABLE LAW, IN NO EVENT SHALL
-							RegenWorks AND/OR ITS SUPPLIERS BE LIABLE TO YOU OR ANY OTHER USER
-							(WHETHER UNDER CONTRACT, TORT, NEGLIGENCE, STRICT LIABILITY,
-							WARRANTY OR ANY OTHER LEGAL OR EQUITABLE THEORY) FOR ANY DIRECT,
-							INDIRECT, INCIDENTAL, EXEMPLARY, SPECIAL, PUNITIVE OR
-							CONSEQUENTIAL DAMAGES (INCLUDING, WITHOUT LIMITATION, LOSS OF USE,
-							LOSS OR CORRUPTION OF DATA, LOSS OF BUSINESS, LOSS OF BUSINESS
-							OPPORTUNITY, LOSS OF SALES, LOSS OF INCOME, REVENUE OR PROFIT,
-							LOSS OF GOODWILL, OR LOST OR WASTED STAFF TIME) ARISING OUT OF OR
-							RELATED TO THE RegenWorks PLATFORM (INCLUDING ANY RegenWorks
-							SOFTWARE OR RegenWorks CONTENT), OR ANY USER CONTENT, OR YOUR USE
-							OF OR RELIANCE UPON THE RegenWorks PLATFORM (INCLUDING ANY
-							RegenWorks SOFTWARE OR RegenWorks CONTENT) OR ANY USER CONTENT,
-							EVEN IF RegenWorks AND ITS SUPPLIERS HAVE BEEN ADVISED OF THE
-							POSSIBILITY OF SUCH LOSS OR DAMAGES.
-						</p>
-						<p>
-							EXCEPT WHERE PROHIBITED BY APPLICABLE LAW, IN NO EVENT SHALL
-							RegenWorks AND/OR ITS SUPPLIERS BE LIABLE TO ANY USER FOR ANY
-							DAMAGES IN EXCESS OF THE SUBSCRIPTION FEE AMOUNT (IF ANY) ACTUALLY
-							PAID BY SUCH USER DURING THE 12-MONTH PERIOD IMMEDIATELY PRECEDING
-							THE EVENT FOR WHICH DAMAGES ARE CLAIMED.
-						</p>
+        <h2 class="h2">5. DISCLAIMER OF WARRANTIES; LIMITATIONS OF LIABILITY.</h2>
+        <p>By using the RegenWorks Platform, you acknowledge and agree as follows:</p>
+        <p>
+          THE RegenWorks PLATFORM (INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL
+          USER CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT WARRANTY OF ANY KIND, WHETHER
+          EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, RegenWorks AND ITS SUPPLIERS
+          EXPRESSLY DISCLAIM ANY AND ALL WARRANTIES, WHETHER EXPRESS OR IMPLIED, WITH RESPECT TO THE
+          RegenWorks PLATFORM (INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL
+          USER CONTENT, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF MERCHANTABILITY AND
+          FITNESS FOR A PARTICULAR PURPOSE, AND WARRANTIES OF TITLE AND NON-INFRINGEMENT. WITHOUT
+          LIMITATION TO THE GENERALITY OF THE FOREGOING, RegenWorks AND ITS SUPPLIERS DO NOT WARRANT
+          THAT: (A) THE RegenWorks PLATFORM (INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks
+          CONTENT) AND ALL USER CONTENT WILL BE ACCURATE, ERROR-FREE, UP TO DATE, COMPLETE, OR
+          USEFUL, OR WILL BE UNINTERRUPTED, OR WILL BE AVAILABLE AT ANY PARTICULAR TIME OR LOCATION;
+          (B) ANY DEFECT OR ERROR IN THE RegenWorks PLATFORM (INCLUDING ANY RegenWorks SOFTWARE OR
+          RegenWorks CONTENT) OR IN ANY USER CONTENT WILL BE CORRECTED; OR (C) THE RegenWorks
+          PLATFORM (INCLUDING ALL RegenWorks SOFTWARE AND RegenWorks CONTENT) AND ALL USER CONTENT
+          WILL BE SECURE AND FREE OF ANY VIRUS OR OTHER HARMFUL COMPONENT. ANY USE OF OR RELIANCE
+          UPON THE RegenWorks PLATFORM (INCLUDING ANY RegenWorks SOFTWARE OR RegenWorks CONTENT) OR
+          ANY USER CONTENT IS ENTIRELY AT YOUR OWN RISK.
+        </p>
+        <p>
+          EXCEPT WHERE PROHIBITED BY APPLICABLE LAW, IN NO EVENT SHALL RegenWorks AND/OR ITS
+          SUPPLIERS BE LIABLE TO YOU OR ANY OTHER USER (WHETHER UNDER CONTRACT, TORT, NEGLIGENCE,
+          STRICT LIABILITY, WARRANTY OR ANY OTHER LEGAL OR EQUITABLE THEORY) FOR ANY DIRECT,
+          INDIRECT, INCIDENTAL, EXEMPLARY, SPECIAL, PUNITIVE OR CONSEQUENTIAL DAMAGES (INCLUDING,
+          WITHOUT LIMITATION, LOSS OF USE, LOSS OR CORRUPTION OF DATA, LOSS OF BUSINESS, LOSS OF
+          BUSINESS OPPORTUNITY, LOSS OF SALES, LOSS OF INCOME, REVENUE OR PROFIT, LOSS OF GOODWILL,
+          OR LOST OR WASTED STAFF TIME) ARISING OUT OF OR RELATED TO THE RegenWorks PLATFORM
+          (INCLUDING ANY RegenWorks SOFTWARE OR RegenWorks CONTENT), OR ANY USER CONTENT, OR YOUR
+          USE OF OR RELIANCE UPON THE RegenWorks PLATFORM (INCLUDING ANY RegenWorks SOFTWARE OR
+          RegenWorks CONTENT) OR ANY USER CONTENT, EVEN IF RegenWorks AND ITS SUPPLIERS HAVE BEEN
+          ADVISED OF THE POSSIBILITY OF SUCH LOSS OR DAMAGES.
+        </p>
+        <p>
+          EXCEPT WHERE PROHIBITED BY APPLICABLE LAW, IN NO EVENT SHALL RegenWorks AND/OR ITS
+          SUPPLIERS BE LIABLE TO ANY USER FOR ANY DAMAGES IN EXCESS OF THE SUBSCRIPTION FEE AMOUNT
+          (IF ANY) ACTUALLY PAID BY SUCH USER DURING THE 12-MONTH PERIOD IMMEDIATELY PRECEDING THE
+          EVENT FOR WHICH DAMAGES ARE CLAIMED.
+        </p>
 
-						<h2 class="h2">
-							6. DISPUTE RESOLUTION BY BINDING ARBITRATION AND CLASS ACTION
-							WAIVER; CHOICE OF LAW.
-						</h2>
-						<p>
-							We encourage you to contact our Customer Service department if you
-							have concerns or complaints about the RegenWorks Platform.
-							Generally, customer complaints can be satisfactorily resolved in
-							this way. If we cannot resolve your concerns informally, disputes
-							between you and RegenWorks shall be resolved pursuant to this
-							Section 7.
-						</p>
-						<p>
-							You and RegenWorks agree to arbitrate all disputes and claims
-							(including the interpretation and scope of this clause, and the
-							arbitrability of the dispute or claim) relating to the RegenWorks
-							Platform, including, without limitation, all claims arising out of
-							or relating to any aspect of your relationship with RegenWorks ,
-							whether based in contract, tort, statute, fraud, misrepresentation
-							or any other legal theory, that arose either before or during
-							this, or any prior, version of these Terms of Use, or that may
-							arise after termination of your relationship with RegenWorks .
-						</p>
-						<p>
-							Arbitration is more informal than a lawsuit. Arbitration uses a
-							neutral arbitrator instead of a judge or jury, allows for more
-							limited discovery than in court, and is subject to limited review
-							by courts. Under this Agreement, arbitrators can award the same
-							individual relief affecting individual parties that a court can
-							award, including damages and an award of attorneys' fees, if the
-							applicable law allows. BY AGREEING TO RESOLVE DISPUTES THROUGH
-							ARBITRATION, YOU AND RegenWorks AGREE TO EACH UNCONDITIONALLY
-							WAIVE THE RIGHT TO A TRIAL BY JURY OR COURT (except small claims
-							court). Instead of arbitration, either party may bring an
-							individual action in a small claims court for disputes or claims
-							that are within the scope of the small claims court's authority.
-						</p>
-						<p>
-							The arbitrator shall issue a reasoned written decision sufficient
-							to explain the essential findings and conclusions on which the
-							award is based. The arbitrator’s award shall be final and may be
-							enforced in any court of competent jurisdiction.
-						</p>
-						<p>
-							In the event that you are able to demonstrate to the arbitrator
-							that the costs of arbitration will be prohibitive as compared to
-							costs of litigation, RegenWorks will pay as much of your
-							arbitration filing and hearing fees in connection with the
-							arbitration as the arbitrator deems necessary to prevent the
-							arbitration from being cost-prohibitive as compared to the cost of
-							litigation. RegenWorks also reserves the right in its sole and
-							exclusive discretion to assume responsibility for all of the costs
-							of the arbitration. However, RegenWorks will not pay your share of
-							the arbitration fees if the arbitrator finds that either your
-							claim or the relief sought is frivolous or brought for an improper
-							purpose, as measured by the standards of Federal Rule of Civil
-							Procedure 11(b).
-						</p>
-						<p>
-							YOU AND RegenWorks AGREE THAT ANY CLAIMS BROUGHT BY YOU OR
-							RegenWorks WILL BE BROUGHT IN THE PARTIES’ INDIVIDUAL CAPACITY AND
-							WILL NOT BE BROUGHT AS A CLASS, REPRESENTATIVE, COLLECTIVE OR
-							PRIVATE ATTORNEY GENERAL ACTION. The arbitrator may not
-							consolidate more than one person’s claims, and may not otherwise
-							preside over any form of a class, representative, or private
-							attorney general proceeding. You and RegenWorks agree to seek only
-							such individual relief – whether in the form of individual
-							damages, an individualized injunction, or other non-monetary
-							individual relief – as is necessary to resolve any individual
-							injury that either you or RegenWorks has suffered or may suffer.
-						</p>
-						<p>
-							The requirement that claims be brought in binding arbitration only
-							in an individual capacity and not as a representative, private
-							attorney general, or class member (“Class Action Waiver”) is
-							non-severable. If the Class Action Waiver is found to be
-							unenforceable, then the entirety of this arbitration provision
-							shall be null and void, with the exception of the next sentence.
-							In the event the Class Action Waiver is found to be unenforceable,
-							or in the event the agreement to arbitrate is found to not apply
-							to a dispute, that such action between you and RegenWorks shall
-							proceed in the federal or state courts located in Denmark.
-						</p>
-						<p>
-							Notwithstanding any provision in these Terms of Use to the
-							contrary, RegenWorks agrees that if RegenWorks makes any change to
-							this arbitration provision, such change will not be applicable to
-							any dispute to which you had previously provided notice to
-							RegenWorks .
-						</p>
-						<p>
-							If you do not want to be bound to this agreement to arbitrate, you
-							must opt out of it within 30 days of it first becoming applicable
-							to you (i.e., within 30 days of you first agreeing to a version of
-							these Terms of Use containing an arbitration agreement). To opt
-							out of this agreement to arbitrate, you must send a letter or
-							postcard to RegenWorks headquarters, to the attention of the
-							“Legal Department” and state that you do not want to be bound by
-							this arbitration agreement. Regen Farmer's address is Kostervej
-							60, 4780 Stege, Denmark.
-						</p>
-						<p>
-							These Terms of Use and your use of the RegenWorks Platform are
-							governed by the laws of Denmark.
-						</p>
-						<p>
-							These Terms of Use expressly exclude and disclaim the terms of the
-							U.N. Convention on Contracts for the International Sale of Goods,
-							which shall not apply to any transaction conducted through or
-							otherwise involving the RegenWorks Platform.
-						</p>
+        <h2 class="h2">
+          6. DISPUTE RESOLUTION BY BINDING ARBITRATION AND CLASS ACTION WAIVER; CHOICE OF LAW.
+        </h2>
+        <p>
+          We encourage you to contact our Customer Service department if you have concerns or
+          complaints about the RegenWorks Platform. Generally, customer complaints can be
+          satisfactorily resolved in this way. If we cannot resolve your concerns informally,
+          disputes between you and RegenWorks shall be resolved pursuant to this Section 7.
+        </p>
+        <p>
+          You and RegenWorks agree to arbitrate all disputes and claims (including the
+          interpretation and scope of this clause, and the arbitrability of the dispute or claim)
+          relating to the RegenWorks Platform, including, without limitation, all claims arising out
+          of or relating to any aspect of your relationship with RegenWorks , whether based in
+          contract, tort, statute, fraud, misrepresentation or any other legal theory, that arose
+          either before or during this, or any prior, version of these Terms of Use, or that may
+          arise after termination of your relationship with RegenWorks .
+        </p>
+        <p>
+          Arbitration is more informal than a lawsuit. Arbitration uses a neutral arbitrator instead
+          of a judge or jury, allows for more limited discovery than in court, and is subject to
+          limited review by courts. Under this Agreement, arbitrators can award the same individual
+          relief affecting individual parties that a court can award, including damages and an award
+          of attorneys' fees, if the applicable law allows. BY AGREEING TO RESOLVE DISPUTES THROUGH
+          ARBITRATION, YOU AND RegenWorks AGREE TO EACH UNCONDITIONALLY WAIVE THE RIGHT TO A TRIAL
+          BY JURY OR COURT (except small claims court). Instead of arbitration, either party may
+          bring an individual action in a small claims court for disputes or claims that are within
+          the scope of the small claims court's authority.
+        </p>
+        <p>
+          The arbitrator shall issue a reasoned written decision sufficient to explain the essential
+          findings and conclusions on which the award is based. The arbitrator’s award shall be
+          final and may be enforced in any court of competent jurisdiction.
+        </p>
+        <p>
+          In the event that you are able to demonstrate to the arbitrator that the costs of
+          arbitration will be prohibitive as compared to costs of litigation, RegenWorks will pay as
+          much of your arbitration filing and hearing fees in connection with the arbitration as the
+          arbitrator deems necessary to prevent the arbitration from being cost-prohibitive as
+          compared to the cost of litigation. RegenWorks also reserves the right in its sole and
+          exclusive discretion to assume responsibility for all of the costs of the arbitration.
+          However, RegenWorks will not pay your share of the arbitration fees if the arbitrator
+          finds that either your claim or the relief sought is frivolous or brought for an improper
+          purpose, as measured by the standards of Federal Rule of Civil Procedure 11(b).
+        </p>
+        <p>
+          YOU AND RegenWorks AGREE THAT ANY CLAIMS BROUGHT BY YOU OR RegenWorks WILL BE BROUGHT IN
+          THE PARTIES’ INDIVIDUAL CAPACITY AND WILL NOT BE BROUGHT AS A CLASS, REPRESENTATIVE,
+          COLLECTIVE OR PRIVATE ATTORNEY GENERAL ACTION. The arbitrator may not consolidate more
+          than one person’s claims, and may not otherwise preside over any form of a class,
+          representative, or private attorney general proceeding. You and RegenWorks agree to seek
+          only such individual relief – whether in the form of individual damages, an individualized
+          injunction, or other non-monetary individual relief – as is necessary to resolve any
+          individual injury that either you or RegenWorks has suffered or may suffer.
+        </p>
+        <p>
+          The requirement that claims be brought in binding arbitration only in an individual
+          capacity and not as a representative, private attorney general, or class member (“Class
+          Action Waiver”) is non-severable. If the Class Action Waiver is found to be unenforceable,
+          then the entirety of this arbitration provision shall be null and void, with the exception
+          of the next sentence. In the event the Class Action Waiver is found to be unenforceable,
+          or in the event the agreement to arbitrate is found to not apply to a dispute, that such
+          action between you and RegenWorks shall proceed in the federal or state courts located in
+          Denmark.
+        </p>
+        <p>
+          Notwithstanding any provision in these Terms of Use to the contrary, RegenWorks agrees
+          that if RegenWorks makes any change to this arbitration provision, such change will not be
+          applicable to any dispute to which you had previously provided notice to RegenWorks .
+        </p>
+        <p>
+          If you do not want to be bound to this agreement to arbitrate, you must opt out of it
+          within 30 days of it first becoming applicable to you (i.e., within 30 days of you first
+          agreeing to a version of these Terms of Use containing an arbitration agreement). To opt
+          out of this agreement to arbitrate, you must send a letter or postcard to RegenWorks
+          headquarters, to the attention of the “Legal Department” and state that you do not want to
+          be bound by this arbitration agreement. Regen Farmer's address is Kostervej 60, 4780
+          Stege, Denmark.
+        </p>
+        <p>
+          These Terms of Use and your use of the RegenWorks Platform are governed by the laws of
+          Denmark.
+        </p>
+        <p>
+          These Terms of Use expressly exclude and disclaim the terms of the U.N. Convention on
+          Contracts for the International Sale of Goods, which shall not apply to any transaction
+          conducted through or otherwise involving the RegenWorks Platform.
+        </p>
 
-						<h2 class="h2">7. CHANGES TO TERMS.</h2>
-						<p>
-							From time to time, we may also modify these Terms of Use to
-							accommodate new technology, industry practices, regulatory
-							requirements, or for other purposes. If we make material changes
-							to these Terms of Use that would impact your continued use of the
-							RegenWorks Platform, we will make reasonable efforts to notify you
-							of such changes (including through email and/or by posting a
-							notice directly to your account), and may also ask you to
-							affirmatively consent to the changes at the time of your next
-							login on the RegenWorks Platform. By continuing to use the
-							RegenWorks Platform after such notice and/or consent, you agree to
-							be bound by these Terms of Use as modified. If you do not agree
-							with our changes to these Terms of Use, your sole and exclusive
-							remedy will be to cancel your account (and your Subscription, if
-							any) and discontinue use of the RegenWorks Platform.
-						</p>
+        <h2 class="h2">7. CHANGES TO TERMS.</h2>
+        <p>
+          From time to time, we may also modify these Terms of Use to accommodate new technology,
+          industry practices, regulatory requirements, or for other purposes. If we make material
+          changes to these Terms of Use that would impact your continued use of the RegenWorks
+          Platform, we will make reasonable efforts to notify you of such changes (including through
+          email and/or by posting a notice directly to your account), and may also ask you to
+          affirmatively consent to the changes at the time of your next login on the RegenWorks
+          Platform. By continuing to use the RegenWorks Platform after such notice and/or consent,
+          you agree to be bound by these Terms of Use as modified. If you do not agree with our
+          changes to these Terms of Use, your sole and exclusive remedy will be to cancel your
+          account (and your Subscription, if any) and discontinue use of the RegenWorks Platform.
+        </p>
 
-						<h2 class="h2">8. FORCE MAJEURE.</h2>
-						<p>
-							Any failure or delay by RegenWorks in the performance of its
-							obligations pursuant to these Terms of Use will not be deemed a
-							default or breach of these Terms of Use or a ground for
-							termination to the extent such failure or delay is due to computer
-							or Internet or telecommunications breakdowns, denial of service
-							attacks, fire, flood, earthquake, elements of nature or acts of
-							God, acts of war, terrorism, riots, civil unrest, rebellions or
-							revolutions in Denmark or any nation where the obligations under
-							these Terms of Use are to be executed, strikes, supplier and third
-							party failure, lockouts, or labor difficulties, or any similar
-							cause beyond the reasonable control of RegenWorks.
-						</p>
+        <h2 class="h2">8. FORCE MAJEURE.</h2>
+        <p>
+          Any failure or delay by RegenWorks in the performance of its obligations pursuant to these
+          Terms of Use will not be deemed a default or breach of these Terms of Use or a ground for
+          termination to the extent such failure or delay is due to computer or Internet or
+          telecommunications breakdowns, denial of service attacks, fire, flood, earthquake,
+          elements of nature or acts of God, acts of war, terrorism, riots, civil unrest, rebellions
+          or revolutions in Denmark or any nation where the obligations under these Terms of Use are
+          to be executed, strikes, supplier and third party failure, lockouts, or labor
+          difficulties, or any similar cause beyond the reasonable control of RegenWorks.
+        </p>
 
-						<h2 class="h2">9. MISCELLANEOUS.</h2>
-						<p>
-							If any provision of these Terms of Use is deemed invalid, illegal
-							or unenforceable by a court of competent jurisdiction, the
-							invalidity, illegality or unenforceability of such provision shall
-							not affect the remaining provisions of these Terms of Use, all of
-							which shall remain in full force and effect. No waiver of any
-							provision of these Terms of Use shall be deemed a further or
-							continuing waiver of such provision or a waiver of any other
-							provision, and RegenWorks’s failure to assert any right under
-							these Terms of Use or to enforce any provision of these Terms of
-							Use shall not be deemed a waiver of such right or provision.
-							RegenWorks may assign its rights and obligations under these Terms
-							of Use to any third party at any time without notice to you. These
-							Terms of Use will be binding upon and inure to the benefit of the
-							parties and their respective successors, heirs, trustees,
-							administrators, and assigns. These Terms of Use contains the final
-							and entire agreement of the parties and supersedes all previous
-							and contemporaneous verbal or written negotiations,
-							understandings, or agreements regarding the subject matter hereof.
-						</p>
+        <h2 class="h2">9. MISCELLANEOUS.</h2>
+        <p>
+          If any provision of these Terms of Use is deemed invalid, illegal or unenforceable by a
+          court of competent jurisdiction, the invalidity, illegality or unenforceability of such
+          provision shall not affect the remaining provisions of these Terms of Use, all of which
+          shall remain in full force and effect. No waiver of any provision of these Terms of Use
+          shall be deemed a further or continuing waiver of such provision or a waiver of any other
+          provision, and RegenWorks’s failure to assert any right under these Terms of Use or to
+          enforce any provision of these Terms of Use shall not be deemed a waiver of such right or
+          provision. RegenWorks may assign its rights and obligations under these Terms of Use to
+          any third party at any time without notice to you. These Terms of Use will be binding upon
+          and inure to the benefit of the parties and their respective successors, heirs, trustees,
+          administrators, and assigns. These Terms of Use contains the final and entire agreement of
+          the parties and supersedes all previous and contemporaneous verbal or written
+          negotiations, understandings, or agreements regarding the subject matter hereof.
+        </p>
 
-						<h2 class="h2">10. CONTACT US.</h2>
+        <h2 class="h2">10. CONTACT US.</h2>
 
-						<p>
-							Regen Farmer ApS
-							<br />
-							Kochsgade 31 D,
-							<br />
-							5000 Odense C
-							<br />
-							Denmark
-							<br />
-							Tel: +45 6179 5560
-							<br />
-							Email: hello@regenfarmer.com
-						</p>
+        <p>
+          Regen Farmer ApS
+          <br />
+          Kochsgade 31 D,
+          <br />
+          5000 Odense C
+          <br />
+          Denmark
+          <br />
+          Tel: +45 6179 5560
+          <br />
+          Email: hello@regenfarmer.com
+        </p>
 
-						<p>Copyright © 2020 Regen Farmer ApS. All rights reserved.</p>
-				
-			</Paper>
-		</>
-	);
+        <p>Copyright © 2020 Regen Farmer ApS. All rights reserved.</p>
+      </Paper>
+    </>
+  );
 };
 
 export default RouteViewTerms;

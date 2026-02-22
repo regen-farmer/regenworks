@@ -12,7 +12,7 @@ router.post(
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response
+    res: express.Response,
   ) => {
     try {
       const advisorRequest = new FarmerAdvisorSurveyDocument({
@@ -28,7 +28,7 @@ router.post(
     } catch (err) {
       res.status(500).json({ message: "Server error" });
     }
-  }
+  },
 );
 
 router.get(
@@ -36,32 +36,28 @@ router.get(
   middleware.adminIsLoggedIn,
   async (req: express.Request, res: express.Response) => {
     try {
-      const surveys = await FarmerAdvisorSurveyDocument.find().populate('user');;
+      const surveys = await FarmerAdvisorSurveyDocument.find().populate("user");
 
       // Add layer counts for each user
-			const requestsWithLayerCounts = await Promise.all(
-				surveys.map(async (request) => {
-					const userId = request.user?._id;
-					const layerCount = userId 
-						? await Layer.countDocuments({ 'owner.id': userId })
-						: 0;
-						
-					// Convert to plain object to add the new property
-					const requestObj = request.toObject();
-					return {
-						...requestObj,
-						layerCount
-					};
-				})
-			);
+      const requestsWithLayerCounts = await Promise.all(
+        surveys.map(async (request) => {
+          const userId = request.user?._id;
+          const layerCount = userId ? await Layer.countDocuments({ "owner.id": userId }) : 0;
 
+          // Convert to plain object to add the new property
+          const requestObj = request.toObject();
+          return {
+            ...requestObj,
+            layerCount,
+          };
+        }),
+      );
 
       res.status(200).json(requestsWithLayerCounts);
     } catch (err) {
       res.status(500).json({ message: "Server error" });
     }
-  }
+  },
 );
-
 
 export default router;

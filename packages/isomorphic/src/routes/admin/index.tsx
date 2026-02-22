@@ -7,10 +7,7 @@ export default function AdminView() {
         Advisor Requests
       </A>
       <br />
-      <A
-        class=" hover:text-blue-400 underline"
-        href="./farmer-advisor-survey"
-      >
+      <A class=" hover:text-blue-400 underline" href="./farmer-advisor-survey">
         Farmer/Advisor Survey
       </A>
     </div>

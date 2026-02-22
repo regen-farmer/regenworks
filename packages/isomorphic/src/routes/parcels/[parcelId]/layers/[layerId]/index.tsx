@@ -48,7 +48,7 @@ export default function view() {
   }>(async () => {
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}`,
-      apiFetchOptions()
+      apiFetchOptions(),
     );
     return await response.json();
   });
@@ -65,14 +65,11 @@ export default function view() {
   const [activeScenario, setActiveScenario] = createSignal(undefined);
 
   const deleteForm = action(async (formData: FormData) => {
-    await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}`,
-      {
-        body: "",
-        method: "delete",
-        ...apiFetchOptions(),
-      }
-    );
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}`, {
+      body: "",
+      method: "delete",
+      ...apiFetchOptions(),
+    });
     navigate(`/parcels/${params.parcelId}`);
   });
 
@@ -114,7 +111,7 @@ export default function view() {
                 type: "Polygon",
                 coordinates: correctgeometry?.geometry.coordinates,
               },
-              properties: {}
+              properties: {},
             },
           },
           layout: {},
@@ -144,7 +141,7 @@ export default function view() {
           body: JSON.stringify({}),
           method: "delete",
           ...apiFetchOptions(),
-        }
+        },
       );
 
       if (response.status !== 200) {
@@ -166,30 +163,23 @@ export default function view() {
   const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
 
   function getArea() {
-    const area = geojsonArea.geometry(
-      JSON.parse(data()?.layer.geometry).geometry
-    );
+    const area = geojsonArea.geometry(JSON.parse(data()?.layer.geometry).geometry);
     console.log(area);
     return area;
   }
 
   return (
     <>
-      <Dialog
-        open={deleteFieldModalOpen()}
-        onOpenChange={setDeleteFieldModalOpen}
-      >
+      <Dialog open={deleteFieldModalOpen()} onOpenChange={setDeleteFieldModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle id="deleteFieldModalLabel">
-              Confirm deletion of field
-            </DialogTitle>
+            <DialogTitle id="deleteFieldModalLabel">Confirm deletion of field</DialogTitle>
           </DialogHeader>
           <DialogDescription>
             <p>
-              When you delete your field, all information connected to it like
-              saved systems, projects and budgets will be permanently deleted
-              and it will not be able to be restored.
+              When you delete your field, all information connected to it like saved systems,
+              projects and budgets will be permanently deleted and it will not be able to be
+              restored.
             </p>
           </DialogDescription>
           <DialogFooter>
@@ -293,9 +283,7 @@ export default function view() {
                 setModalOpen={setModalOpen}
                 refetchScenarios={refetch}
               >
-                <button class="rounded-sm p-1 my-2 btn-default w-full">
-                  Create new scenario
-                </button>
+                <button class="rounded-sm p-1 my-2 btn-default w-full">Create new scenario</button>
               </CreateNewScenarioModal>
             </Show>
           </div>
@@ -321,18 +309,11 @@ export default function view() {
 
             <p>{data()?.layer.description ?? ""}</p>
             <hr />
-            <Show
-              when={
-                getMongoDBUser() &&
-                data()?.layer.owner.id === getMongoDBUser()._id
-              }
-            >
+            <Show when={getMongoDBUser() && data()?.layer.owner.id === getMongoDBUser()._id}>
               <>
                 <A
                   class="rounded-sm p-1 my-2 btn-default"
-                  href={`/parcels/${params.parcelId}/layers/${
-                    data()?.layer._id
-                  }/edit`}
+                  href={`/parcels/${params.parcelId}/layers/${data()?.layer._id}/edit`}
                 >
                   Edit field details
                 </A>

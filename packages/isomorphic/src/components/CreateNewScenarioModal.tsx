@@ -5,9 +5,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
-} from "~/components/ui/dialog"
-
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 import { Show, createResource, createSignal } from "solid-js";
 
@@ -20,155 +19,138 @@ import { useParams } from "@solidjs/router";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 type CreateNewScenarioModalProps = {
-	modalOpen: () => boolean;
-	setModalOpen: (modalOpen: boolean) => void;
-	refetchScenarios: any;
-	children: any;
+  modalOpen: () => boolean;
+  setModalOpen: (modalOpen: boolean) => void;
+  refetchScenarios: any;
+  children: any;
 };
 
 export function CreateNewScenarioModal({
-	modalOpen,
-	setModalOpen,
-	refetchScenarios,
-	children
+  modalOpen,
+  setModalOpen,
+  refetchScenarios,
+  children,
 }: CreateNewScenarioModalProps) {
-	const [error, setError] = createSignal<string>("");
-	const [submitDisabled, setSubmitDisabled] = createSignal(false);
-	const params = useParams();
+  const [error, setError] = createSignal<string>("");
+  const [submitDisabled, setSubmitDisabled] = createSignal(false);
+  const params = useParams();
 
-	// function cancel() {
-	// 	console.log("CCALLED")
-	// 	setModalOpen(false);
-	// }
+  // function cancel() {
+  // 	console.log("CCALLED")
+  // 	setModalOpen(false);
+  // }
 
-	const [data, { refetch }] = createResource<{
-		layer: LayerDocument;
-		system: SystemDocument;
-	}>(async () => {
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${
-				params.layerId
-			}/new-project`,
-			apiFetchOptions(),
-		);
-		const result = await response.json();
-		return result;
-	});
+  const [data, { refetch }] = createResource<{
+    layer: LayerDocument;
+    system: SystemDocument;
+  }>(async () => {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/new-project`,
+      apiFetchOptions(),
+    );
+    const result = await response.json();
+    return result;
+  });
 
-	const routeAction = action(async (formData: FormData) => {
-		setSubmitDisabled(true);
+  const routeAction = action(async (formData: FormData) => {
+    setSubmitDisabled(true);
 
-		const payload = {
-			project: {
-				name: formData.get("project[name]")?.toString()!,
-				description: formData.get("project[description]")?.toString()!,
-			},
-			existingrows: formData.get("existingrows")?.toString()!,
-		};
+    const payload = {
+      project: {
+        name: formData.get("project[name]")?.toString()!,
+        description: formData.get("project[description]")?.toString()!,
+      },
+      existingrows: formData.get("existingrows")?.toString()!,
+    };
 
-		console.log(payload);
+    console.log(payload);
 
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects`,
-			{
-				body: JSON.stringify(payload),
-				method: "post",
-				...apiFetchOptions(),
-			},
-		);
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects`,
+      {
+        body: JSON.stringify(payload),
+        method: "post",
+        ...apiFetchOptions(),
+      },
+    );
 
-		const project: ProjectDocument = await response.json();
-		setModalOpen(false);
-		refetchScenarios();
-		setSubmitDisabled(false);
-	});
+    const project: ProjectDocument = await response.json();
+    setModalOpen(false);
+    refetchScenarios();
+    setSubmitDisabled(false);
+  });
 
-	return (
-		<div>
-			{/* <Show when={modalOpen()}> */}
-				<Dialog open={modalOpen()} onOpenChange={e=>setModalOpen(e.valueOf())} >
-					<DialogTrigger>{children}</DialogTrigger>
+  return (
+    <div>
+      {/* <Show when={modalOpen()}> */}
+      <Dialog open={modalOpen()} onOpenChange={(e) => setModalOpen(e.valueOf())}>
+        <DialogTrigger>{children}</DialogTrigger>
 
-							<DialogContent 
-								// close={cancel}
-								// onPointerDownOutside={cancel}
-								
-								
-							>
-								<DialogHeader>
-									<DialogTitle>
-										Create New Scenario
-									</DialogTitle>
-								</DialogHeader>
-								<DialogDescription class="dialog__description">
-									<Show when={data()}>
-										<Row>
-											<div>
-												<form method="post" action={routeAction}>
-													<div class="form-group">
-														<label for="project[name]">Scenario title</label>
-														{/* disable input when submiting disabled */}
-														<input
-															type="text"
-															class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
-															name="project[name]"
-															placeholder=""
-															required
-															disabled={submitDisabled()}
-														/>
-													</div>
-													{false &&
-													data()?.layer.rows &&
-													data()?.layer.rows.length! > 0 ? (
-														<div class="form-check btn-group-toggle">
-															<div class="card-body">
-																<input
-																	type="checkbox"
-																	class="form-check-input"
-																	name="existingrows"
-																	id="exampleRadios1"
-																/>
-																<label
-																	class="form-check-label"
-																	for="exampleRadios1"
-																>
-																	Base layout of new system on existing rows.
-																</label>
-															</div>
-														</div>
-													) : (
-														<input
-															type="hidden"
-															id="exampleRadios1"
-															name="existingrows"
-															value=""
-														/>
-													)}
-													<br />
-													<div class="btn-group">
-														<button
-															disabled={submitDisabled()}
-															type="submit"
-															class="rounded-sm p-1 my-2 btn-default"
-														>
-															Create scenario
-														</button>
-													</div>
-												</form>
-											</div>
-										</Row>
-									</Show>
+        <DialogContent
+        // close={cancel}
+        // onPointerDownOutside={cancel}
+        >
+          <DialogHeader>
+            <DialogTitle>Create New Scenario</DialogTitle>
+          </DialogHeader>
+          <DialogDescription class="dialog__description">
+            <Show when={data()}>
+              <Row>
+                <div>
+                  <form method="post" action={routeAction}>
+                    <div class="form-group">
+                      <label for="project[name]">Scenario title</label>
+                      {/* disable input when submiting disabled */}
+                      <input
+                        type="text"
+                        class="form-control p-1 rounded-sm border border-zinc-300 dark:border-slate-600"
+                        name="project[name]"
+                        placeholder=""
+                        required
+                        disabled={submitDisabled()}
+                      />
+                    </div>
+                    {false && data()?.layer.rows && data()?.layer.rows.length! > 0 ? (
+                      <div class="form-check btn-group-toggle">
+                        <div class="card-body">
+                          <input
+                            type="checkbox"
+                            class="form-check-input"
+                            name="existingrows"
+                            id="exampleRadios1"
+                          />
+                          <label class="form-check-label" for="exampleRadios1">
+                            Base layout of new system on existing rows.
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <input type="hidden" id="exampleRadios1" name="existingrows" value="" />
+                    )}
+                    <br />
+                    <div class="btn-group">
+                      <button
+                        disabled={submitDisabled()}
+                        type="submit"
+                        class="rounded-sm p-1 my-2 btn-default"
+                      >
+                        Create scenario
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </Row>
+            </Show>
 
-									<Show when={error()}>
-										<p>{error()}</p>
-									</Show>
-								</DialogDescription>
-							</DialogContent>
-					
-				</Dialog>
-			{/* </Show> */}
-		</div>
-	);
+            <Show when={error()}>
+              <p>{error()}</p>
+            </Show>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
+      {/* </Show> */}
+    </div>
+  );
 }
 
 export default CreateNewScenarioModal;

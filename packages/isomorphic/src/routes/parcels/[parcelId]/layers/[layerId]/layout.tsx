@@ -1,11 +1,4 @@
-import {
-	createEffect,
-	createResource,
-	createSignal,
-	For,
-	Show,
-	onCleanup,
-} from "solid-js";
+import { createEffect, createResource, createSignal, For, Show, onCleanup } from "solid-js";
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
@@ -18,454 +11,426 @@ import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 import { Row } from "~/components/row/Row";
 
 export default function view() {
-	const params = useParams();
+  const params = useParams();
 
-	const [data] = createResource<{
-		layer: LayerDocument;
-		presentsystem: SystemDocument;
-		species: SpeciesDocument[];
-		collection: turf.FeatureCollection<turf.Geometry, turf.Properties>;
-		places: turf.FeatureCollection<
-			turf.Point,
-			{
-				description: string;
-			}
-		>;
-		trees: turf.FeatureCollection<turf.Polygon, turf.Properties>;
-		treenames: turf.FeatureCollection<
-			turf.Point,
-			{
-				description: string;
-			}
-		>;
-		vegetables: turf.FeatureCollection<turf.Polygon, turf.Properties>;
-		strips: turf.FeatureCollection<
-			turf.Polygon,
-			{
-				name: string;
-			}
-		>;
-		alleys: turf.FeatureCollection<
-			turf.Polygon,
-			{
-				name: string;
-			}
-		>;
-	}>(async () => {
-		const params = useParams<{ parcelId: string; layerId: string }>();
+  const [data] = createResource<{
+    layer: LayerDocument;
+    presentsystem: SystemDocument;
+    species: SpeciesDocument[];
+    collection: turf.FeatureCollection<turf.Geometry, turf.Properties>;
+    places: turf.FeatureCollection<
+      turf.Point,
+      {
+        description: string;
+      }
+    >;
+    trees: turf.FeatureCollection<turf.Polygon, turf.Properties>;
+    treenames: turf.FeatureCollection<
+      turf.Point,
+      {
+        description: string;
+      }
+    >;
+    vegetables: turf.FeatureCollection<turf.Polygon, turf.Properties>;
+    strips: turf.FeatureCollection<
+      turf.Polygon,
+      {
+        name: string;
+      }
+    >;
+    alleys: turf.FeatureCollection<
+      turf.Polygon,
+      {
+        name: string;
+      }
+    >;
+  }>(async () => {
+    const params = useParams<{ parcelId: string; layerId: string }>();
 
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/layout`,
-			{
-				...apiFetchOptions(),
-			},
-		);
-		return await response.json();
-	});
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/layout`,
+      {
+        ...apiFetchOptions(),
+      },
+    );
+    return await response.json();
+  });
 
-	const deleteRowForm = action(async (formData: FormData) => {
-		const rowId = formData.get("row[id]")?.toString()!;
+  const deleteRowForm = action(async (formData: FormData) => {
+    const rowId = formData.get("row[id]")?.toString()!;
 
-		await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${
-				params.layerId
-			}/row/${rowId}`,
-			{
-				body: "",
-				method: "delete",
-				...apiFetchOptions(),
-			},
-		);
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/row/${rowId}`, {
+      body: "",
+      method: "delete",
+      ...apiFetchOptions(),
+    });
 
-		// Update data in the view
-		// const response = await fetch(
-		//   `${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers/${params.layerId}/layout`
-		// )
-		// const responseJSON = await response.json()
-		// setData(responseJSON)
+    // Update data in the view
+    // const response = await fetch(
+    //   `${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers/${params.layerId}/layout`
+    // )
+    // const responseJSON = await response.json()
+    // setData(responseJSON)
 
-		// document.location = `/parcels/${params.parcelId}/layers/${params.layerId}/layout`
-	});
+    // document.location = `/parcels/${params.parcelId}/layers/${params.layerId}/layout`
+  });
 
-	createEffect(async () => {
-		if (data.state === "ready") {
-			const areaLat = data()?.layer.lat;
-			const areaLng = data()?.layer.lng;
+  createEffect(async () => {
+    if (data.state === "ready") {
+      const areaLat = data()?.layer.lat;
+      const areaLng = data()?.layer.lng;
 
-			const trees = data()?.trees;
+      const trees = data()?.trees;
 
-			const alleys = data()?.alleys;
+      const alleys = data()?.alleys;
 
-			const strips = data()?.strips;
+      const strips = data()?.strips;
 
-			const col = data()?.collection;
+      const col = data()?.collection;
 
-			// @ts-ignore
-			const getgeometry = data()?.layer.geometry;
-			const correctgeometry = JSON.parse(getgeometry!.replace(/&#34;/g, '"'));
+      // @ts-ignore
+      const getgeometry = data()?.layer.geometry;
+      const correctgeometry = JSON.parse(getgeometry!.replace(/&#34;/g, '"'));
 
-			const placecollection = data()?.places;
+      const placecollection = data()?.places;
 
-			const treenames = data()?.treenames;
+      const treenames = data()?.treenames;
 
-			const vegecollection = data()?.vegetables;
+      const vegecollection = data()?.vegetables;
 
-			console.log(correctgeometry);
+      console.log(correctgeometry);
 
-			const map = new maplibregl.Map({
-				container: "layerMapShow",
-				attributionControl: false,
-				style: GoogleSatStyle,
-				center: [areaLng!, areaLat!],
-				zoom: 16,
-				maxZoom: 20,
-			});
+      const map = new maplibregl.Map({
+        container: "layerMapShow",
+        attributionControl: false,
+        style: GoogleSatStyle,
+        center: [areaLng!, areaLat!],
+        zoom: 16,
+        maxZoom: 20,
+      });
 
-			map.on("load", () => {
-				map.addControl(new maplibregl.FullscreenControl({}));
+      map.on("load", () => {
+        map.addControl(new maplibregl.FullscreenControl({}));
 
-				map.addLayer({
-					id: "map",
-					type: "fill",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: {
-							type: "Feature",
-							geometry: {
-								type: "Polygon",
-								coordinates: correctgeometry.geometry.coordinates,
-							},
-							properties: {},
-						},
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#fff1ff",
-						"fill-opacity": 0.5,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
+        map.addLayer({
+          id: "map",
+          type: "fill",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: correctgeometry.geometry.coordinates,
+              },
+              properties: {},
+            },
+          },
+          layout: {},
+          paint: {
+            "fill-color": "#fff1ff",
+            "fill-opacity": 0.5,
+            "fill-outline-color": "#F0F8FF",
+          },
+        });
 
-				map.addLayer({
-					id: "alleys",
-					type: "fill",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: alleys,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#1EBEC8",
-						"fill-opacity": 0.6,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
+        map.addLayer({
+          id: "alleys",
+          type: "fill",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: alleys,
+          },
+          layout: {},
+          paint: {
+            "fill-color": "#1EBEC8",
+            "fill-opacity": 0.6,
+            "fill-outline-color": "#F0F8FF",
+          },
+        });
 
-				map.addLayer({
-					id: "strips",
-					type: "fill",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: strips,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#002eff",
-						"fill-opacity": 0.6,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
+        map.addLayer({
+          id: "strips",
+          type: "fill",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: strips,
+          },
+          layout: {},
+          paint: {
+            "fill-color": "#002eff",
+            "fill-opacity": 0.6,
+            "fill-outline-color": "#F0F8FF",
+          },
+        });
 
-				map.addLayer({
-					id: "map1",
-					type: "line",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: col,
-					},
-					layout: {},
-					paint: {
-						"line-color": "#1f1f1f",
-					},
-				});
+        map.addLayer({
+          id: "map1",
+          type: "line",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: col,
+          },
+          layout: {},
+          paint: {
+            "line-color": "#1f1f1f",
+          },
+        });
 
-				map.addLayer({
-					id: "poi-labels",
-					type: "symbol",
-					maxzoom: 20,
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: placecollection,
-					},
-					layout: {
-						"text-field": ["get", "description"],
-						"text-justify": "center",
-						"icon-image": ["concat", ["get", "icon"], "-15"],
-					},
-				});
+        map.addLayer({
+          id: "poi-labels",
+          type: "symbol",
+          maxzoom: 20,
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: placecollection,
+          },
+          layout: {
+            "text-field": ["get", "description"],
+            "text-justify": "center",
+            "icon-image": ["concat", ["get", "icon"], "-15"],
+          },
+        });
 
-				map.addLayer({
-					id: "map2",
-					type: "fill",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: trees,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#1EBEC8",
-						"fill-opacity": 0.8,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
+        map.addLayer({
+          id: "map2",
+          type: "fill",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: trees,
+          },
+          layout: {},
+          paint: {
+            "fill-color": "#1EBEC8",
+            "fill-opacity": 0.8,
+            "fill-outline-color": "#F0F8FF",
+          },
+        });
 
-				map.addLayer({
-					id: "map3",
-					type: "fill",
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: vegecollection,
-					},
-					layout: {},
-					paint: {
-						"fill-color": "#1EBEC8",
-						"fill-opacity": 0.8,
-						"fill-outline-color": "#F0F8FF",
-					},
-				});
+        map.addLayer({
+          id: "map3",
+          type: "fill",
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: vegecollection,
+          },
+          layout: {},
+          paint: {
+            "fill-color": "#1EBEC8",
+            "fill-opacity": 0.8,
+            "fill-outline-color": "#F0F8FF",
+          },
+        });
 
-				map.addLayer({
-					id: "tree-labels",
-					type: "symbol",
-					minzoom: 20,
-					// @ts-ignore
-					source: {
-						type: "geojson",
-						data: treenames,
-					},
-					layout: {
-						"text-field": ["get", "description"],
-						"text-justify": "center",
-						"icon-image": ["concat", ["get", "icon"], "-15"],
-					},
-				});
-			});
+        map.addLayer({
+          id: "tree-labels",
+          type: "symbol",
+          minzoom: 20,
+          // @ts-ignore
+          source: {
+            type: "geojson",
+            data: treenames,
+          },
+          layout: {
+            "text-field": ["get", "description"],
+            "text-justify": "center",
+            "icon-image": ["concat", ["get", "icon"], "-15"],
+          },
+        });
+      });
 
-			onCleanup(() => {
-				if (map) {
-					map.remove();
-				}
-			});
-		}
-	});
+      onCleanup(() => {
+        if (map) {
+          map.remove();
+        }
+      });
+    }
+  });
 
-	const [showDeleteRowModal, setShowDeleteRowModal] = createSignal("");
+  const [showDeleteRowModal, setShowDeleteRowModal] = createSignal("");
 
-	return (
-		<>
-			<div style={{ margin: "20px" }}>
-				test
-				<Show when={data()}>
-					<Row>
-						<div class="col-md-6">
-							<div id="layerMapShow" />
-							<A
-								href={`/parcels/${params.parcelId}/layers/${params.layerId}`}
-								class="rounded-sm p-1 my-1 mt-2 btn-default"
-							>
-								<i class="fas fa-arrow-left" /> Field
-							</A>
-							<A
-								title="Draw row/line on map"
-								href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/new`}
-								class="rounded-sm p-1 my-1 mt-2 btn-default"
-							>
-								Draw row/line on map <i class="fas fa-plus" />
-							</A>
-							<A
-								href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/new`}
-								class="rounded-sm p-1 my-1 mt-2 btn-default"
-							>
-								Create new row sequence
-							</A>
-						</div>
-						{/* <!--<div class="col-md-3">
+  return (
+    <>
+      <div style={{ margin: "20px" }}>
+        test
+        <Show when={data()}>
+          <Row>
+            <div class="col-md-6">
+              <div id="layerMapShow" />
+              <A
+                href={`/parcels/${params.parcelId}/layers/${params.layerId}`}
+                class="rounded-sm p-1 my-1 mt-2 btn-default"
+              >
+                <i class="fas fa-arrow-left" /> Field
+              </A>
+              <A
+                title="Draw row/line on map"
+                href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/new`}
+                class="rounded-sm p-1 my-1 mt-2 btn-default"
+              >
+                Draw row/line on map <i class="fas fa-plus" />
+              </A>
+              <A
+                href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/new`}
+                class="rounded-sm p-1 my-1 mt-2 btn-default"
+              >
+                Create new row sequence
+              </A>
+            </div>
+            {/* <!--<div class="col-md-3">
             <div class="card">
                 <div class="card-body">
                     <h2 class="h2">Existing assets</h2>
                 </div>
             </div>
         </div>--> */}
-						<div class="col-md-6">
-							<div class="card">
-								<div class="card-body">
-									<h2 class="h2">Existing rows {showDeleteRowModal()}</h2>
-									<table class="table small">
-										<tbody>
-											<tr class="table-secondary">
-												<td>Row ref</td>
-												<td>Row sequense pattern</td>
-												<td />
-											</tr>
-											<Show
-												when={
-													data()?.layer.rows && data()?.layer.rows.length! > 0
-												}
-											>
-												<For each={data()?.layer.rows}>
-													{(row, i) => (
-														<>
-															<tr>
-																<td>{row.name}</td>
-																{row.sequence ? (
-																	<td>
-																		{row.sequence.name}
-																		<A
-																			href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/${row.sequence._id}/edit`}
-																			class="rounded-sm p-1 my-1 btn-sm btn-default"
-																		>
-																			<i class="far fa-edit" />
-																		</A>
-																	</td>
-																) : (
-																	<td>---</td>
-																)}
-																<td>
-																	<A
-																		href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/${row._id}/edit`}
-																		class="rounded-sm p-1 my-1 btn-sm btn-default"
-																	>
-																		<i class="far fa-edit" />
-																	</A>
-																	<button class="rounded-sm p-1 my-1 btn-danger"
-																		data-bs-toggle="modal"
-																		data-bs-target={`#deleteRowModal_${row._id}`}
-																		onClick={() =>
-																			setShowDeleteRowModal(row._id.toString())
-																		}
-																	>
-																		<i class="far fa-trash-alt" />
-																	</button>
-																</td>
-															</tr>
-															{/* // <!-- Modal --> */}
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-body">
+                  <h2 class="h2">Existing rows {showDeleteRowModal()}</h2>
+                  <table class="table small">
+                    <tbody>
+                      <tr class="table-secondary">
+                        <td>Row ref</td>
+                        <td>Row sequense pattern</td>
+                        <td />
+                      </tr>
+                      <Show when={data()?.layer.rows && data()?.layer.rows.length! > 0}>
+                        <For each={data()?.layer.rows}>
+                          {(row, i) => (
+                            <>
+                              <tr>
+                                <td>{row.name}</td>
+                                {row.sequence ? (
+                                  <td>
+                                    {row.sequence.name}
+                                    <A
+                                      href={`/parcels/${params.parcelId}/layers/${params.layerId}/sequences/${row.sequence._id}/edit`}
+                                      class="rounded-sm p-1 my-1 btn-sm btn-default"
+                                    >
+                                      <i class="far fa-edit" />
+                                    </A>
+                                  </td>
+                                ) : (
+                                  <td>---</td>
+                                )}
+                                <td>
+                                  <A
+                                    href={`/parcels/${params.parcelId}/layers/${params.layerId}/row/${row._id}/edit`}
+                                    class="rounded-sm p-1 my-1 btn-sm btn-default"
+                                  >
+                                    <i class="far fa-edit" />
+                                  </A>
+                                  <button
+                                    class="rounded-sm p-1 my-1 btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target={`#deleteRowModal_${row._id}`}
+                                    onClick={() => setShowDeleteRowModal(row._id.toString())}
+                                  >
+                                    <i class="far fa-trash-alt" />
+                                  </button>
+                                </td>
+                              </tr>
+                              {/* // <!-- Modal --> */}
 
-															<div
-																class="modal fade"
-																id={`deleteRowModal_${row._id}`}
-																tabindex="-1"
-																aria-labelledby={`deleteRowModalLabel_${row._id}`}
-																aria-hidden="true"
-															>
-																<div class="modal-dialog">
-																	<div class="modal-content">
-																		<div class="modal-header">
-																			<h1
-																				class="modal-title"
-																				id={`deleteRowModalLabel_${row._id}`}
-																			>
-																				Confirm deletion of row
-																			</h1>
-																		</div>
-																		<div class="modal-body">
-																			<p>
-																				Confirm deletion of row: "{row.name}"
-																			</p>
-																		</div>
-																		<div class="modal-footer">
-																			<form
-																				method="post"
-																				action={deleteRowForm}
-																				class="delete-form"
-																			>
-																				<input
-																					type="hidden"
-																					name="row[id]"
-																					value={row._id.toString()}
-																				/>
-																				<button
-																					class="rounded-sm p-1 my-1 btn-sm btn-danger"
-																					data-bs-dismiss="modal"
-																				>
-																					Delete row{" "}
-																					<i class="far fa-trash-alt" />
-																				</button>
-																			</form>
-																			<button class="rounded-sm p-1 my-2 btn-default"
-																				data-bs-dismiss="modal"
-																				onClick={() =>
-																					setShowDeleteRowModal("")
-																				}
-																			>
-																				Cancel
-																			</button>
-																		</div>
-																	</div>
-																</div>
-															</div>
-														</>
-													)}
-												</For>
-											</Show>
-										</tbody>
-									</table>
-								</div>
-							</div>
-							<Show
-								when={data()?.layer.areas && data()?.layer.areas.length! > 0}
-							>
-								<div class="card">
-									<div class="card-body">
-										<h2 class="h2">Sub-areas</h2>
-										<table class="table small">
-											<tbody>
-												<tr class="table-secondary">
-													<td>Area ref</td>
-													<td>Crop rotation</td>
-													<td>Size</td>
-													<td />
-												</tr>
-												<Show
-													when={
-														data()?.layer.areas &&
-														data()?.layer.areas.length! > 0
-													}
-												>
-													<For each={data()?.layer.areas}>
-														{(area, i) => (
-															<>
-																<tr>
-																	<td>{area.name}</td>
-																	{area.rotation ? (
-																		<td>
-																			{area.rotation.name}
-																			{/* //                                 <!--
+                              <div
+                                class="modal fade"
+                                id={`deleteRowModal_${row._id}`}
+                                tabindex="-1"
+                                aria-labelledby={`deleteRowModalLabel_${row._id}`}
+                                aria-hidden="true"
+                              >
+                                <div class="modal-dialog">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h1 class="modal-title" id={`deleteRowModalLabel_${row._id}`}>
+                                        Confirm deletion of row
+                                      </h1>
+                                    </div>
+                                    <div class="modal-body">
+                                      <p>Confirm deletion of row: "{row.name}"</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <form
+                                        method="post"
+                                        action={deleteRowForm}
+                                        class="delete-form"
+                                      >
+                                        <input
+                                          type="hidden"
+                                          name="row[id]"
+                                          value={row._id.toString()}
+                                        />
+                                        <button
+                                          class="rounded-sm p-1 my-1 btn-sm btn-danger"
+                                          data-bs-dismiss="modal"
+                                        >
+                                          Delete row <i class="far fa-trash-alt" />
+                                        </button>
+                                      </form>
+                                      <button
+                                        class="rounded-sm p-1 my-2 btn-default"
+                                        data-bs-dismiss="modal"
+                                        onClick={() => setShowDeleteRowModal("")}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </For>
+                      </Show>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <Show when={data()?.layer.areas && data()?.layer.areas.length! > 0}>
+                <div class="card">
+                  <div class="card-body">
+                    <h2 class="h2">Sub-areas</h2>
+                    <table class="table small">
+                      <tbody>
+                        <tr class="table-secondary">
+                          <td>Area ref</td>
+                          <td>Crop rotation</td>
+                          <td>Size</td>
+                          <td />
+                        </tr>
+                        <Show when={data()?.layer.areas && data()?.layer.areas.length! > 0}>
+                          <For each={data()?.layer.areas}>
+                            {(area, i) => (
+                              <>
+                                <tr>
+                                  <td>{area.name}</td>
+                                  {area.rotation ? (
+                                    <td>
+                                      {area.rotation.name}
+                                      {/* //                                 <!--
 //                                     <A href="/projects/${params.layerId}/rotations/<%= layer.areas[i].rotation._id %>/edit" class="rounded-sm p-1 my-1 btn-sm btn-default"><i class="far fa-edit" /></A>
 // --> */}
-																		</td>
-																	) : (
-																		<td>---</td>
-																	)}
-																	{area.size ? (
-																		<td>{Math.round(area.size)} m2</td>
-																	) : (
-																		<td>---</td>
-																	)}
-																	<td>
-																		{/* //   <!--  <A href="/layers/${params.layerId}/areas/${ area._id }/edit" class="rounded-sm p-1 my-1 btn-sm btn-default"><i class="far fa-edit" /></A>
+                                    </td>
+                                  ) : (
+                                    <td>---</td>
+                                  )}
+                                  {area.size ? <td>{Math.round(area.size)} m2</td> : <td>---</td>}
+                                  <td>
+                                    {/* //   <!--  <A href="/layers/${params.layerId}/areas/${ area._id }/edit" class="rounded-sm p-1 my-1 btn-sm btn-default"><i class="far fa-edit" /></A>
                             //     <button type="button" class="rounded-sm p-1 my-1 btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteArea<%= i %>"><i class="far fa-trash-alt" /></button>
                             // --> */}
-																	</td>
-																</tr>
-																{/* // <!-- Modal --> */}
-																{/* <div
+                                  </td>
+                                </tr>
+                                {/* // <!-- Modal --> */}
+                                {/* <div
                                 class='modal fade'
                                 id={`myModalDeleteArea${i}`}
                                 role='dialog'
@@ -511,17 +476,17 @@ export default function view() {
                                   </div>
                                 </div>
                               </div> */}
-															</>
-														)}
-													</For>
-												</Show>
-											</tbody>
-										</table>
-										{/* <!--
+                              </>
+                            )}
+                          </For>
+                        </Show>
+                      </tbody>
+                    </table>
+                    {/* <!--
                     <button type="button" class="rounded-sm p-1 my-1 btn-sm btn-danger" data-toggle="modal" data-target="#myModalDeleteAllAreas">Delete all sub-areas <i class="far fa-trash-alt" /></button>
 --> */}
-										{/* <!-- Modal --> */}
-										{/* <div
+                    {/* <!-- Modal --> */}
+                    {/* <div
                     class='modal fade'
                     id='myModalDeleteAllAreas'
                     role='dialog'
@@ -566,13 +531,13 @@ export default function view() {
                       </div>
                     </div>
                   </div> */}
-									</div>
-								</div>
-							</Show>
-						</div>
-					</Row>
-				</Show>
-			</div>
-		</>
-	);
+                  </div>
+                </div>
+              </Show>
+            </div>
+          </Row>
+        </Show>
+      </div>
+    </>
+  );
 }

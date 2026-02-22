@@ -56,9 +56,7 @@ const TreeStripsExport: Component<{
       let stripArea = 0;
 
       // Check if we have strip polygons from makeAllStripPolygons
-      const stripPolys = (props.systemLayout as any)?.stripPolygons as
-        | any[]
-        | undefined;
+      const stripPolys = (props.systemLayout as any)?.stripPolygons as any[] | undefined;
       if (stripPolys && stripPolys[i]) {
         const polygon = stripPolys[i];
         if (polygon) {
@@ -85,12 +83,11 @@ const TreeStripsExport: Component<{
         const lineLength = turfLength(rowLine.line, { units: "meters" });
         let totalSpacing = rowDesign.sequence.reduce(
           (sum: number, item: any) => sum + (item.spacingAfter || 0),
-          0
+          0,
         );
 
         if (totalSpacing > 0) {
-          const estimatedTrees =
-            Math.floor(lineLength / totalSpacing) * rowDesign.sequence.length;
+          const estimatedTrees = Math.floor(lineLength / totalSpacing) * rowDesign.sequence.length;
           treesInStrip = estimatedTrees;
 
           // Distribute trees among species in the sequence
@@ -99,11 +96,8 @@ const TreeStripsExport: Component<{
               const speciesId = item.species._id || item.species;
               const species = props.species?.speciesById?.get(speciesId);
               if (species) {
-                const speciesName =
-                  species.nameCommon || species.species || "Unknown";
-                const treesOfThisSpecies = Math.floor(
-                  estimatedTrees / rowDesign.sequence.length
-                );
+                const speciesName = species.nameCommon || species.species || "Unknown";
+                const treesOfThisSpecies = Math.floor(estimatedTrees / rowDesign.sequence.length);
                 treeSpeciesCount[speciesName] =
                   (treeSpeciesCount[speciesName] || 0) + treesOfThisSpecies;
               }
@@ -117,8 +111,7 @@ const TreeStripsExport: Component<{
       if (rowDesign.groundcover) {
         const gcId = rowDesign.groundcover._id || rowDesign.groundcover;
         const gcSpecies = props.species?.speciesById?.get(gcId);
-        groundCoverName =
-          gcSpecies?.nameCommon || gcSpecies?.species || "Unknown ground cover";
+        groundCoverName = gcSpecies?.nameCommon || gcSpecies?.species || "Unknown ground cover";
       }
 
       // Determine repetition number and pattern index
@@ -202,7 +195,6 @@ const TreeStripsExport: Component<{
         }
       >
         {/* Filter controls */}
-        
 
         <div class="mt-4">
           <button
@@ -214,8 +206,8 @@ const TreeStripsExport: Component<{
                 filterType() === "both"
                   ? "tree_strips_and_cropping_areas"
                   : filterType() === "trees"
-                  ? "tree_strips"
-                  : "cropping_areas";
+                    ? "tree_strips"
+                    : "cropping_areas";
               let csv =
                 "Repetition,Row,Area (ha),Area (m²),Total Trees,Ground Cover,Tree Species Details\n";
               treeStrips().forEach((strip) => {
@@ -223,18 +215,16 @@ const TreeStripsExport: Component<{
                   .map((sp) => `${sp.name}: ${sp.count}`)
                   .join("; ");
                 const groundCover = strip.groundCoverSpecies || "";
-                csv += `${toRepetitionLetter(strip.repetitionNumber)},${
-                  strip.rowPatternIndex
-                },${(strip.stripArea / 10000).toFixed(
-                  3
-                )},${strip.stripArea.toFixed(0)},${
+                csv += `${toRepetitionLetter(strip.repetitionNumber)},${strip.rowPatternIndex},${(
+                  strip.stripArea / 10000
+                ).toFixed(3)},${strip.stripArea.toFixed(0)},${
                   strip.treeCount
                 },"${groundCover}","${speciesDetails}"\n`;
               });
 
               // Add summary row
               csv += `\nTotal,,${(totalArea() / 10000).toFixed(
-                2
+                2,
               )},${totalArea().toFixed(0)},${totalTrees()},,\n`;
 
               const blob = new Blob([csv], { type: "text/csv" });
@@ -263,8 +253,8 @@ const TreeStripsExport: Component<{
                 mode === "both"
                   ? "tree_strips_and_cropping_areas"
                   : mode === "trees"
-                  ? "tree_strips"
-                  : "cropping_areas";
+                    ? "tree_strips"
+                    : "cropping_areas";
               // Compute instance numbering from rowIndex sequence if available
               if (stripPolys && stripPolys.length > 0) {
                 let lastRowIdx = -1;
@@ -277,7 +267,7 @@ const TreeStripsExport: Component<{
                   const totalSpacing = Array.isArray(rowDesign?.sequence)
                     ? rowDesign.sequence.reduce(
                         (s: number, it: any) => s + (it?.spacingAfter || 0),
-                        0
+                        0,
                       )
                     : 0;
                   const isTreeStrip = totalSpacing > 0;
@@ -341,8 +331,8 @@ const TreeStripsExport: Component<{
                 mode === "both"
                   ? "tree_strips_and_cropping_areas"
                   : mode === "trees"
-                  ? "tree_strips"
-                  : "cropping_areas";
+                    ? "tree_strips"
+                    : "cropping_areas";
 
               let kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
 
@@ -361,7 +351,7 @@ const TreeStripsExport: Component<{
                   const totalSpacing = Array.isArray(rowDesign?.sequence)
                     ? rowDesign.sequence.reduce(
                         (s: number, it: any) => s + (it?.spacingAfter || 0),
-                        0
+                        0,
                       )
                     : 0;
                   const isTreeStrip = totalSpacing > 0;
@@ -372,17 +362,15 @@ const TreeStripsExport: Component<{
                   if (!includeStrip) return;
                   if (rowIdx < lastRowIdx) repetitionNo++;
                   lastRowIdx = rowIdx;
-                  const name = `Repetition ${toRepetitionLetter(
-                    repetitionNo
-                  )} - Row ${rowIdx + 1}`;
+                  const name = `Repetition ${toRepetitionLetter(repetitionNo)} - Row ${rowIdx + 1}`;
                   if (poly.geometry.type === "Polygon") {
                     const rings = poly.geometry.coordinates as any[];
                     kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                      rings[0]
+                      rings[0],
                     )}</coordinates></LinearRing></outerBoundaryIs>`;
                     for (let r = 1; r < rings.length; r++) {
                       kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                        rings[r]
+                        rings[r],
                       )}</coordinates></LinearRing></innerBoundaryIs>`;
                     }
                     kml += `</Polygon></Placemark>\n`;
@@ -390,11 +378,11 @@ const TreeStripsExport: Component<{
                     const mps = poly.geometry.coordinates as any[][][];
                     mps.forEach((rings) => {
                       kml += `<Placemark><name>${name}</name><Polygon><outerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                        rings[0]
+                        rings[0],
                       )}</coordinates></LinearRing></outerBoundaryIs>`;
                       for (let r = 1; r < rings.length; r++) {
                         kml += `<innerBoundaryIs><LinearRing><coordinates>${serializeCoords(
-                          rings[r]
+                          rings[r],
                         )}</coordinates></LinearRing></innerBoundaryIs>`;
                       }
                       kml += `</Polygon></Placemark>\n`;
@@ -423,60 +411,55 @@ const TreeStripsExport: Component<{
           </button>
 
           <div class="mb-2 flex items-center justify-between">
-          <div class="text-sm font-medium text-gray-800 dark:text-gray-100">
-            Filter:
+            <div class="text-sm font-medium text-gray-800 dark:text-gray-100">Filter:</div>
           </div>
-        </div>
-        <div class="mb-4 flex gap-2">
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "both"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("both")}
-          >
-            Select all tree strips and cropping areas.
-          </button>
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "trees"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("trees")}
-          >
-            Select tree strips
-          </button>
-          <button
-            type="button"
-            class={`rounded-sm px-3 py-1 text-sm ${
-              filterType() === "groundcover"
-                ? "bg-blue-600 dark:bg-blue-500 !text-white"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            }`}
-            onClick={() => setFilterType("groundcover")}
-          >
-            Select cropping areas
-          </button>
-        </div>
-
-          
+          <div class="mb-4 flex gap-2">
+            <button
+              type="button"
+              class={`rounded-sm px-3 py-1 text-sm ${
+                filterType() === "both"
+                  ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              }`}
+              onClick={() => setFilterType("both")}
+            >
+              Select all tree strips and cropping areas.
+            </button>
+            <button
+              type="button"
+              class={`rounded-sm px-3 py-1 text-sm ${
+                filterType() === "trees"
+                  ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              }`}
+              onClick={() => setFilterType("trees")}
+            >
+              Select tree strips
+            </button>
+            <button
+              type="button"
+              class={`rounded-sm px-3 py-1 text-sm ${
+                filterType() === "groundcover"
+                  ? "bg-blue-600 dark:bg-blue-500 !text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              }`}
+              onClick={() => setFilterType("groundcover")}
+            >
+              Select cropping areas
+            </button>
+          </div>
         </div>
 
         <Show
           when={treeStrips().length > 0}
           fallback={
             <div class="text-gray-500 dark:text-gray-400 text-sm">
-              No strips data available for the selected filter. Please ensure
-              your design includes{" "}
+              No strips data available for the selected filter. Please ensure your design includes{" "}
               {filterType() === "trees"
                 ? "tree rows"
                 : filterType() === "groundcover"
-                ? "ground cover"
-                : "rows"}
+                  ? "ground cover"
+                  : "rows"}
               .
             </div>
           }
@@ -485,9 +468,7 @@ const TreeStripsExport: Component<{
             <div class="text-sm text-gray-600 dark:text-gray-400">
               <div>Total strips: {treeStrips().length}</div>
               <div>Total area: {(totalArea() / 10000).toFixed(2)} ha</div>
-              {filterType() !== "groundcover" && (
-                <div>Total trees: {totalTrees()}</div>
-              )}
+              {filterType() !== "groundcover" && <div>Total trees: {totalTrees()}</div>}
             </div>
           </div>
           <div class="mb-2">
@@ -496,9 +477,7 @@ const TreeStripsExport: Component<{
               class="rounded-sm px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
               onClick={() => setShowRowsList((v) => !v)}
             >
-              <i
-                class={`fas mr-2 ${showRowsList() ? "fa-minus" : "fa-plus"}`}
-              />
+              <i class={`fas mr-2 ${showRowsList() ? "fa-minus" : "fa-plus"}`} />
               {`Detailed row list (${treeStrips().length})`}
             </button>
           </div>
@@ -508,7 +487,9 @@ const TreeStripsExport: Component<{
                 {(strip) => (
                   <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                     <div class="font-medium mb-2">
-                      <span class="font-mono">Row {toRepetitionLetter(strip.repetitionNumber)}-{strip.rowPatternIndex}</span>
+                      <span class="font-mono">
+                        Row {toRepetitionLetter(strip.repetitionNumber)}-{strip.rowPatternIndex}
+                      </span>
                     </div>
                     <div class="text-sm space-y-1 text-gray-700 dark:text-gray-300">
                       <div>

@@ -2,8 +2,8 @@
 	"name": "isomorphic",
 	"scripts": {
 		"dev": "vite dev --port 10000",
-		"lint": "biome lint ./src",
-		"format": "biome format --write ./src",
+		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
+		"format": "oxfmt --write ./src",
 		"build": "vite build",
 		"preview": "vite preview",
 		"start": "srvx --prod --static ../client dist/server/entry-server.js",

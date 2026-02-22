@@ -6,7 +6,9 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build:wasm": "cd gis-rs && wasm-pack build --target web --out-dir ../gis-wasm/pkg"
+		"build:wasm": "cd gis-rs && wasm-pack build --target web --out-dir ../gis-wasm/pkg",
+		"lint": "oxlint --import-plugin --jsdoc-plugin ./gis-ts",
+		"format": "oxfmt --write ./gis-ts"
 	},
 	"dependencies": {
 		"@rw/db": "workspace:*",

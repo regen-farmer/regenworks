@@ -1,8 +1,7 @@
 .buttons {
   display: none;
-  
+
   /* min-width: '200px'; */
-  
 }
 
 .trigger .btn {
@@ -15,12 +14,10 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0 10px;
-  
 }
 
 .trigger:hover .plus {
   display: none;
-  
 }
 
 .trigger:hover .buttons {

@@ -39,8 +39,8 @@
     "build": "vite build",
     "build:watch": "vite build --watch",
     "preview": "node build/app.js",
-    "lint": "biome lint ./src",
-    "format": "biome format --write ./src",
+    "lint": "oxlint --import-plugin --jsdoc-plugin ./src",
+    "format": "oxfmt --write ./src",
     "clean": "rm -rf build"
   },
   "author": "Regen Farmer",

@@ -8,60 +8,52 @@ import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export default function view() {
-	const params = useParams<{
-		projectId: string;
-		parcelId: string;
-		layerId: string;
-	}>();
+  const params = useParams<{
+    projectId: string;
+    parcelId: string;
+    layerId: string;
+  }>();
 
-	const [data, { refetch }] = createResource<{
-		layer: LayerDocument;
-		systems: SystemDocument[];
-	}>(async () => {
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/mysystems`,
-			apiFetchOptions(),
-		);
-		const result = await response.json();
-		console.log(result);
-		return result;
-	});
-	const navigate = useNavigate();
-	const Form = action(async (formData: FormData) => {
-		const payload: any = {
-			systemid: formData.get("systemid")?.toString()!,
-		};
+  const [data, { refetch }] = createResource<{
+    layer: LayerDocument;
+    systems: SystemDocument[];
+  }>(async () => {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/mysystems`,
+      apiFetchOptions(),
+    );
+    const result = await response.json();
+    console.log(result);
+    return result;
+  });
+  const navigate = useNavigate();
+  const Form = action(async (formData: FormData) => {
+    const payload: any = {
+      systemid: formData.get("systemid")?.toString()!,
+    };
 
-		// console.log(payload)
+    // console.log(payload)
 
-		await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/editfuture`,
-			{
-				body: JSON.stringify(payload),
-				method: "post",
-				...apiFetchOptions(),
-			},
-		);
+    await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/editfuture`, {
+      body: JSON.stringify(payload),
+      method: "post",
+      ...apiFetchOptions(),
+    });
 
-		navigate(
-			`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`,
-		);
-	});
+    navigate(`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`);
+  });
 
-	return (
-		<>
-			<div style={{ padding: "20px" }}>
-				<h1 class="h1">My systems</h1>
-				<p>
-					Add one of your own systems as a future draft on area: "
-					{data()?.layer.name}"
-				</p>
-				<Row>
-					<For each={data()?.systems}>
-						{(system, i) => (
-							<div class="col-lg-4">
-								<div class="card text-center">
-									{/* <!--<div class="row p-3 justify-content-center">
+  return (
+    <>
+      <div style={{ padding: "20px" }}>
+        <h1 class="h1">My systems</h1>
+        <p>Add one of your own systems as a future draft on area: "{data()?.layer.name}"</p>
+        <Row>
+          <For each={data()?.systems}>
+            {(system, i) => (
+              <div class="col-lg-4">
+                <div class="card text-center">
+                  {/* <!--<div class="row p-3 justify-content-center">
                 <% systems[i].rows.forEach(function(row){ %>
                 <div class="col-sm-3">
                     <% if(row.sequense[0].family === "pinaceae"){ %>
@@ -93,29 +85,29 @@ export default function view() {
                 </div>
                 <% }; %>
             </div>--> */}
-									<div class="card-body">
-										<h5 class="body-title">{system.name}</h5>
-										{/* <!--<button class="rounded-sm p-1 my-2 btn-default" type="button" data-toggle="collapse" data-target="#collapseExample<%= systems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
+                  <div class="card-body">
+                    <h5 class="body-title">{system.name}</h5>
+                    {/* <!--<button class="rounded-sm p-1 my-2 btn-default" type="button" data-toggle="collapse" data-target="#collapseExample<%= systems[i]._id %>" aria-expanded="false" aria-controls="collapseExample">
                     More details
                 </button>--> */}
-										<form method="post" action={Form}>
-											<input
-												type="hidden"
-												id="systemid"
-												name="systemid"
-												value={system._id.toString()}
-											/>
-											<button class="rounded-sm p-1 my-2 btn-default" type="button">
-												Add system to future drafts
-											</button>
-										</form>
-									</div>
-								</div>
-							</div>
-						)}
-					</For>
-				</Row>
-			</div>
-		</>
-	);
+                    <form method="post" action={Form}>
+                      <input
+                        type="hidden"
+                        id="systemid"
+                        name="systemid"
+                        value={system._id.toString()}
+                      />
+                      <button class="rounded-sm p-1 my-2 btn-default" type="button">
+                        Add system to future drafts
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+          </For>
+        </Row>
+      </div>
+    </>
+  );
 }

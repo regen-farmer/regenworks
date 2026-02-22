@@ -4,69 +4,60 @@ import type { FarmScenarioConfigDocument } from "@rw/db/schemas/farmScenarioConf
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 export async function getFarmScenarioConfig(configId: string) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs/${configId}`,
-    apiFetchOptions()
-  );
-  
+  const response = await fetch(`${BACKEND_URL}/farmscenarioconfigs/${configId}`, apiFetchOptions());
+
   if (!response.ok) {
     throw new Error(`Failed to fetch farm planting plan config: ${response.statusText}`);
   }
-  
+
   return response.json() as Promise<FarmScenarioConfigDocument>;
 }
 
 export async function getFarmScenarioConfigs(parcelId?: string) {
-  const url = parcelId 
+  const url = parcelId
     ? `${BACKEND_URL}/parcels/${parcelId}/farmscenarioconfigs`
     : `${BACKEND_URL}/farmscenarioconfigs`;
-  
+
   const response = await fetch(url, apiFetchOptions());
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch farm planting plan configs: ${response.statusText}`);
   }
-  
+
   return response.json() as Promise<FarmScenarioConfigDocument[]>;
 }
 
 export async function createFarmScenarioConfig(config: Partial<FarmScenarioConfigDocument>) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs`,
-    {
-      ...apiFetchOptions(),
-      method: "POST",
-      headers: {
-        ...apiFetchOptions().headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(config),
-    }
-  );
-  
+  const response = await fetch(`${BACKEND_URL}/farmscenarioconfigs`, {
+    ...apiFetchOptions(),
+    method: "POST",
+    headers: {
+      ...apiFetchOptions().headers,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(config),
+  });
+
   if (!response.ok) {
     throw new Error(`Failed to create farm planting plan config: ${response.statusText}`);
   }
-  
+
   return response.json() as Promise<FarmScenarioConfigDocument>;
 }
 
 export async function updateFarmScenarioConfig(
   configId: string,
-  updates: Partial<FarmScenarioConfigDocument>
+  updates: Partial<FarmScenarioConfigDocument>,
 ) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs/${configId}`,
-    {
-      ...apiFetchOptions(),
-      method: "PUT",
-      headers: {
-        ...apiFetchOptions().headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updates),
-    }
-  );
+  const response = await fetch(`${BACKEND_URL}/farmscenarioconfigs/${configId}`, {
+    ...apiFetchOptions(),
+    method: "PUT",
+    headers: {
+      ...apiFetchOptions().headers,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to update farm planting plan config: ${response.statusText}`);
@@ -76,39 +67,36 @@ export async function updateFarmScenarioConfig(
 }
 
 export async function deleteFarmScenarioConfig(configId: string) {
-  const response = await fetch(
-    `${BACKEND_URL}/farmscenarioconfigs/${configId}`,
-    {
-      ...apiFetchOptions(),
-      method: "DELETE",
-    }
-  );
-  
+  const response = await fetch(`${BACKEND_URL}/farmscenarioconfigs/${configId}`, {
+    ...apiFetchOptions(),
+    method: "DELETE",
+  });
+
   if (!response.ok) {
     throw new Error(`Failed to delete farm planting plan config: ${response.statusText}`);
   }
-  
+
   return response.json();
 }
 
 export async function getFarmScenarioConfigPreview(configId: string) {
   const response = await fetch(
     `${BACKEND_URL}/farmscenarioconfigs/${configId}/preview`,
-    apiFetchOptions()
+    apiFetchOptions(),
   );
-  
+
   if (!response.ok) {
     const errorText = await response.text();
     console.error(`Failed to fetch preview: ${response.status} ${response.statusText}`, errorText);
     throw new Error(`Failed to fetch farm planting plan config preview: ${response.statusText}`);
   }
-  
+
   const text = await response.text();
   if (!text) {
     console.error("Empty response body from preview endpoint");
     throw new Error("Empty response from server");
   }
-  
+
   try {
     return JSON.parse(text) as FarmScenarioConfigDocument;
   } catch (error) {

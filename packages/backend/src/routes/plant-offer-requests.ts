@@ -5,8 +5,7 @@ import type { UserDocument } from "@rw/db/schemas/user.ts";
 
 const router = express.Router();
 
-const PLANT_OFFER_RECIPIENT =
-  process.env.PLANT_OFFER_RECIPIENT;
+const PLANT_OFFER_RECIPIENT = process.env.PLANT_OFFER_RECIPIENT;
 
 // Initialize Resend with API key
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -32,7 +31,7 @@ router.post(
   "/plant-offer-requests",
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
-    res: express.Response
+    res: express.Response,
   ) => {
     const { configId, totalTrees, species, senderEmail, notes, country } =
       (req.body as PlantOfferRequestBody) ?? {};
@@ -41,16 +40,12 @@ router.post(
     const userCountry = country ?? req.user?.countryCode ?? "Unknown";
 
     if (!resolvedSenderEmail) {
-      return res
-        .status(400)
-        .json({ message: "An email address is required to send the request." });
+      return res.status(400).json({ message: "An email address is required to send the request." });
     }
 
     const total = Number(totalTrees);
     if (!Number.isFinite(total) || total <= 0) {
-      return res
-        .status(400)
-        .json({ message: "Total trees must be a positive number." });
+      return res.status(400).json({ message: "Total trees must be a positive number." });
     }
 
     const breakdown = Array.isArray(species)
@@ -92,25 +87,19 @@ router.post(
           const nameWithLatin = entry.latinName
             ? `${entry.name} (<em>${entry.latinName}</em>)`
             : entry.name;
-          emailLines.push(`<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`);
+          emailLines.push(
+            `<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`,
+          );
         });
         emailLines.push("</ul>");
       }
 
       if (notes && notes.trim()) {
-        emailLines.push(
-          "",
-          "<h3>Additional Notes</h3>",
-          `<p>${notes.replace(/\n/g, "<br>")}</p>`
-        );
+        emailLines.push("", "<h3>Additional Notes</h3>", `<p>${notes.replace(/\n/g, "<br>")}</p>`);
       }
 
       if (configId) {
-        emailLines.push(
-          "",
-          "<hr>",
-          `<p><small>Configuration ID: ${configId}</small></p>`
-        );
+        emailLines.push("", "<hr>", `<p><small>Configuration ID: ${configId}</small></p>`);
       }
 
       const htmlBody = emailLines.join("\n");
@@ -140,23 +129,21 @@ router.post(
           const nameWithLatin = entry.latinName
             ? `${entry.name} (<em>${entry.latinName}</em>)`
             : entry.name;
-          receiptLines.push(`<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`);
+          receiptLines.push(
+            `<li><strong>${nameWithLatin}:</strong> ${entry.count.toLocaleString()} trees</li>`,
+          );
         });
         receiptLines.push("</ul>");
       }
 
       if (notes && notes.trim()) {
-        receiptLines.push(
-          "",
-          "<h3>Your Notes</h3>",
-          `<p>${notes.replace(/\n/g, "<br>")}</p>`
-        );
+        receiptLines.push("", "<h3>Your Notes</h3>", `<p>${notes.replace(/\n/g, "<br>")}</p>`);
       }
 
       receiptLines.push(
         "",
         "<hr>",
-        "<p><small>This is an automated confirmation. Please do not reply to this email.</small></p>"
+        "<p><small>This is an automated confirmation. Please do not reply to this email.</small></p>",
       );
 
       const receiptHtml = receiptLines.join("\n");
@@ -172,12 +159,10 @@ router.post(
     } catch (error) {
       console.error("Failed to send plant offer request email", error);
       const message =
-        error instanceof Error
-          ? error.message
-          : "Unexpected error while sending the email.";
+        error instanceof Error ? error.message : "Unexpected error while sending the email.";
       return res.status(500).json({ message });
     }
-  }
+  },
 );
 
 export default router;

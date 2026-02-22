@@ -72,7 +72,7 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to send request. Please try again or contact us directly."
+          : "Failed to send request. Please try again or contact us directly.",
       );
     } finally {
       setIsSending(false);
@@ -85,13 +85,17 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
         <DialogHeader>
           <DialogTitle>Request Agriculture Advisor</DialogTitle>
           <DialogDescription>
-            Are you looking for an agroforestry advisor to assist with your project? Then fill out the form below.
+            Are you looking for an agroforestry advisor to assist with your project? Then fill out
+            the form below.
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4">
           <div>
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-200" for="project-details">
+            <label
+              class="text-sm font-medium text-gray-700 dark:text-gray-200"
+              for="project-details"
+            >
               Tell us a bit more about your project
             </label>
             <textarea
@@ -100,7 +104,9 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
               class="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               placeholder="Describe your project, goals, and how an advisor could help..."
               value={projectDetails()}
-              onInput={(event) => setProjectDetails((event.currentTarget as HTMLTextAreaElement).value)}
+              onInput={(event) =>
+                setProjectDetails((event.currentTarget as HTMLTextAreaElement).value)
+              }
             />
           </div>
 
@@ -118,9 +124,7 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
             />
           </div>
 
-          {error() && (
-            <p class="text-sm text-red-600 dark:text-red-400">{error()}</p>
-          )}
+          {error() && <p class="text-sm text-red-600 dark:text-red-400">{error()}</p>}
 
           {success() && (
             <p class="text-sm text-green-600 dark:text-green-400">
@@ -138,16 +142,15 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
                 class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
               >
                 Discord support chat here
-              </a>.
+              </a>
+              .
             </p>
           </div>
         </div>
 
         <DialogFooter>
           {success() ? (
-            <Button onClick={() => props.onOpenChange(false)}>
-              Close
-            </Button>
+            <Button onClick={() => props.onOpenChange(false)}>Close</Button>
           ) : (
             <>
               <Button
@@ -157,10 +160,7 @@ export const AdvisorRequestModal: Component<AdvisorRequestModalProps> = (props) 
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleSendRequest}
-                disabled={isSending()}
-              >
+              <Button onClick={handleSendRequest} disabled={isSending()}>
                 {isSending() ? "Sending..." : "Send request"}
               </Button>
             </>

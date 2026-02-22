@@ -10,15 +10,10 @@ body {
   .form-control {
     font-size: 13px;
   }
-
 }
 
-
-
-
-
 .theme-dark .form-control:disabled {
-  background-color: rgb(51,48,66) !important;
+  background-color: rgb(51, 48, 66) !important;
 }
 
 .theme-dark body {
@@ -29,7 +24,7 @@ body {
 .btn-default {
   background-color: rgb(207 224 255);
   color: black;
-  border: 1px solid #424652
+  border: 1px solid #424652;
 }
 
 .btn-default:hover {
@@ -37,11 +32,11 @@ body {
   color: black;
 }
 
-.btn-danger:disabled, .btn-default:disabled {
+.btn-danger:disabled,
+.btn-default:disabled {
   background-color: rgb(200, 200, 200);
-  color: rgb(113, 113, 113);;
-  border-color: rgb(113, 113, 113);;
-  
+  color: rgb(113, 113, 113);
+  border-color: rgb(113, 113, 113);
 }
 
 .btn-danger {
@@ -56,8 +51,6 @@ body {
   border: 1px solid rgb(33, 37, 41);
 }
 
-
-
 .theme-dark .btn-default {
   background-color: #51538d;
   color: var(--font-color-dark);
@@ -68,7 +61,6 @@ body {
   background-color: #6c6eb4;
   /* border: 1px solid #51538d */
 }
-
 
 .theme-dark .btn-danger {
   background-color: rgb(154, 61, 61);
@@ -81,7 +73,8 @@ body {
   /* border: 1px solid rgb(33,37,41); */
 }
 
-.theme-dark .btn-danger:disabled, .theme-dark .btn-default:disabled {
+.theme-dark .btn-danger:disabled,
+.theme-dark .btn-default:disabled {
   background-color: gray;
   color: var(--font-color-dark);
   border: 0px solid #51538d;
@@ -97,7 +90,6 @@ body {
   background-position: center;
 }
 
-
 select:focus {
   outline: none;
 }
@@ -106,12 +98,9 @@ select:focus {
   line-height: 1;
 }
 
-
 .theme-dark .maplibregl-ctrl button {
   color: black;
 }
-
-
 
 .theme-dark .card-text {
   color: var(--font-color-dark);
@@ -154,7 +143,6 @@ select:focus {
   border-color: #424652;
 }
 
-
 .theme-dark .table.table-striped td {
   color: var(--font-color-dark);
 }
@@ -183,8 +171,6 @@ select:focus {
   background-color: #3e3e42;
   border: 1px solid white;
 }
-
-
 
 .list-group-item {
   background-color: white;
@@ -293,7 +279,6 @@ html {
   color: var(--font-color-dark) !important;
 }
 
-
 .financials-graph {
   background-color: rgb(35, 35, 45);
   padding: 10px;
@@ -392,12 +377,10 @@ html {
   visibility: visible;
 }
 
-
 .list-group-button {
   margin: 0;
   margin-left: 6px;
   padding: 4px 6px;
-
 }
 
 .btn-dimmed {

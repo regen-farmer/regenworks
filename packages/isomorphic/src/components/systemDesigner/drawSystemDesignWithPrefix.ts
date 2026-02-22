@@ -15,11 +15,11 @@ function drawSystemDesignWithPrefix(
   map: MLMap,
   systemLayout: ISystemBasedLayout,
   show3D: boolean = false,
-  layerPrefix: string = ""
+  layerPrefix: string = "",
 ) {
   // Helper function to add prefix to layer ID
   const prefixId = (id: string) => `${layerPrefix}${id}`;
-  
+
   // Helper function to remove layers with prefix
   const removeLayerWithPrefix = (id: string) => {
     const layerId = prefixId(id);
@@ -30,7 +30,7 @@ function drawSystemDesignWithPrefix(
       map.removeSource(layerId);
     }
   };
-  
+
   // In 3D mode, hide all 2D layers for photorealistic view
   if (show3D) {
     // List of static layers to hide
@@ -42,22 +42,24 @@ function drawSystemDesignWithPrefix(
       "bearing-sides",
       "headland-intersection-points",
       "treeRowLines",
-      "row-labels"
+      "row-labels",
     ];
-    
+
     // Remove all static 2D layers
     for (const layerId of staticLayersToHide) {
       removeLayerWithPrefix(layerId);
     }
-    
+
     // Remove all dynamic species-based layers
     const style = map.getStyle();
     if (style && style.layers) {
       style.layers.forEach((layer: any) => {
         if (layer.id.startsWith(layerPrefix)) {
-          if (layer.id.includes('trees-') || 
-              layer.id.includes('strips-') || 
-              layer.id.includes('strips-border-')) {
+          if (
+            layer.id.includes("trees-") ||
+            layer.id.includes("strips-") ||
+            layer.id.includes("strips-border-")
+          ) {
             if (map.getLayer(layer.id)) {
               map.removeLayer(layer.id);
             }
@@ -68,7 +70,7 @@ function drawSystemDesignWithPrefix(
         }
       });
     }
-    
+
     return; // Exit early - only 3D models should be visible
   }
 
@@ -82,21 +84,13 @@ function drawSystemDesignWithPrefix(
   const showHeadlandPolygonPoints = false;
   const treeRowsVisible = true;
 
-  const treeRowLines = featureCollection(
-    systemLayout.treeRowLines?.map((tree) => tree.line) || []
-  );
-  const groundCoverAreas = turf.featureCollection(
-    systemLayout.groundCoverAreas || []
-  );
+  const treeRowLines = featureCollection(systemLayout.treeRowLines?.map((tree) => tree.line) || []);
+  const groundCoverAreas = turf.featureCollection(systemLayout.groundCoverAreas || []);
   const headlandSides = turf.featureCollection(systemLayout.headlandSides || []);
   const headlandPolygon = systemLayout.headlandPolygon;
   const marginPolygon = systemLayout.marginPolygon;
-  const sidesCloseToBearing = turf.featureCollection(
-    systemLayout.sidesCloseToBearing || []
-  );
-  const intersectionPoints = turf.featureCollection(
-    systemLayout.intersectionPoints || []
-  );
+  const sidesCloseToBearing = turf.featureCollection(systemLayout.sidesCloseToBearing || []);
+  const intersectionPoints = turf.featureCollection(systemLayout.intersectionPoints || []);
 
   const treeMarkerArray = systemLayout.treeMarkerArray;
 
@@ -119,7 +113,7 @@ function drawSystemDesignWithPrefix(
     // Group ground cover areas by species
     const groundCoverBySpecies = new Map<string, any[]>();
     systemLayout.groundCoverAreas?.forEach((area: any) => {
-      const speciesId = area.properties?.speciesId || 'unknown';
+      const speciesId = area.properties?.speciesId || "unknown";
       if (!groundCoverBySpecies.has(speciesId)) {
         groundCoverBySpecies.set(speciesId, []);
       }
@@ -142,7 +136,7 @@ function drawSystemDesignWithPrefix(
       const layerId = prefixId(`strips-${speciesId}`);
       const borderLayerId = prefixId(`strips-border-${speciesId}`);
       const color = getSpeciesColorWithAlpha(speciesId, 0.5);
-      
+
       map.addLayer({
         id: layerId,
         type: "fill",
@@ -303,25 +297,23 @@ function drawSystemDesignWithPrefix(
       },
     });
   }
-  
+
   if (treesVisible) {
     // Remove all existing tree layers
     treesBySpecies.forEach((trees, speciesId) => {
       removeLayerWithPrefix(`trees-${speciesId}`);
     });
-    
+
     // Also remove the old generic trees layer if it exists
     removeLayerWithPrefix("trees");
 
     // Create a layer for each species with unique color
     treesBySpecies.forEach((trees, speciesId) => {
-      const treeCircles = featureCollection(
-        trees.map((tree) => tree.circle)
-      );
-      
+      const treeCircles = featureCollection(trees.map((tree) => tree.circle));
+
       const layerId = prefixId(`trees-${speciesId}`);
       const color = getSpeciesColor(speciesId);
-      
+
       map.addLayer({
         id: layerId,
         type: "fill",
@@ -350,7 +342,7 @@ function drawSystemDesignWithPrefix(
 
     systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
       const patternIndex = rowLine.systemDesignRowIndex;
-      
+
       // Track instance numbers
       if (patternIndex <= lastSeenPatternIndex && lastSeenPatternIndex !== -1) {
         currentInstance++;
@@ -360,13 +352,18 @@ function drawSystemDesignWithPrefix(
       const repLetter = toRepetitionLetter(currentInstance);
 
       // Get the midpoint of the line for label placement
-      if (rowLine.line && rowLine.line.geometry && rowLine.line.geometry.coordinates && rowLine.line.geometry.coordinates.length > 0) {
+      if (
+        rowLine.line &&
+        rowLine.line.geometry &&
+        rowLine.line.geometry.coordinates &&
+        rowLine.line.geometry.coordinates.length > 0
+      ) {
         const coords = rowLine.line.geometry.coordinates;
         const midIndex = Math.floor(coords.length / 2);
         const labelPoint = turfPoint(coords[midIndex], {
           label: `${repLetter}-${patternIndex + 1}`, // RepetitionLetter-RowNumber
           repetition: repLetter,
-          row: patternIndex + 1
+          row: patternIndex + 1,
         });
         rowLabels.push(labelPoint);
       }
@@ -380,7 +377,7 @@ function drawSystemDesignWithPrefix(
     // Add the label layer
     map.addSource(prefixId("row-labels"), {
       type: "geojson",
-      data: labelCollection
+      data: labelCollection,
     });
 
     // Use simpler text settings for better compatibility
@@ -394,14 +391,14 @@ function drawSystemDesignWithPrefix(
         "text-size": 14,
         "text-anchor": "center",
         "text-allow-overlap": true,
-        "symbol-placement": "point"
+        "symbol-placement": "point",
       },
       paint: {
         "text-color": "#FFFFFF",
         "text-halo-color": "#000000",
         "text-halo-width": 2,
-        "text-halo-blur": 0.5
-      }
+        "text-halo-blur": 0.5,
+      },
     });
   }
 }

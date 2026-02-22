@@ -1,23 +1,42 @@
-import { useColorMode } from "@kobalte/core"
- 
+import { useColorMode } from "@kobalte/core";
+
 // import { IconLaptop, IconMoon, IconSun } from "~/components/icons"
-import { Button } from "~/components/ui/button"
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "~/components/ui/dropdown-menu"
- 
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
-const IconSystem = (props: {class: string})=><><div class={`${props.class}`}><i class="fa-solid fa-circle-half-stroke" /></div> Dark</>;
-const IconMoon = (props: {class: string})=><><div class={`${props.class}`}><i class="fa-regular fa-moon" /></div> Dark</>;
-const IconSun = (props: {class: string})=><><div class={`${props.class}`}><i class="fa-regular fa-sun" /></div> Dark</>;
-
+const IconSystem = (props: { class: string }) => (
+  <>
+    <div class={`${props.class}`}>
+      <i class="fa-solid fa-circle-half-stroke" />
+    </div>{" "}
+    Dark
+  </>
+);
+const IconMoon = (props: { class: string }) => (
+  <>
+    <div class={`${props.class}`}>
+      <i class="fa-regular fa-moon" />
+    </div>{" "}
+    Dark
+  </>
+);
+const IconSun = (props: { class: string }) => (
+  <>
+    <div class={`${props.class}`}>
+      <i class="fa-regular fa-sun" />
+    </div>{" "}
+    Dark
+  </>
+);
 
 export function ModeToggle() {
-  const { setColorMode } = useColorMode()
- 
+  const { setColorMode } = useColorMode();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger as={Button<"button">} variant="ghost" size="sm" class="w-9 px-0">
@@ -40,5 +59,5 @@ export function ModeToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
