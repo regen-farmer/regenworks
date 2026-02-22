@@ -15,11 +15,12 @@ const deckOverlay = new MapboxOverlay({
   layers: [],
 });
 
+const TREE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tree-pine"><path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 3l4 4.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.8 1.7H17Z"/><path d="M12 22v-3"/></svg>`;
+
 class Show3DControl implements maplibregl.IControl {
   _map: maplibregl.Map | undefined;
   _container: HTMLElement | undefined;
   _3dModelsButton: HTMLButtonElement | undefined;
-  _3dModelsButtonSpan: HTMLSpanElement | undefined;
   _show3D: () => boolean;
   _setShow3D: (show: boolean) => void;
   _onToggle?: () => void;
@@ -30,22 +31,40 @@ class Show3DControl implements maplibregl.IControl {
     this._onToggle = _onToggle;
   }
 
+  updateIcon() {
+    if (this._3dModelsButton) {
+      const svg = this._3dModelsButton.querySelector("svg");
+      if (this._show3D()) {
+        this._3dModelsButton.style.color = "#3b82f6"; // Tailwind blue-500
+        this._3dModelsButton.title = "3D Visualization";
+        if (svg) svg.setAttribute("fill", "currentcolor");
+      } else {
+        this._3dModelsButton.style.color = "#4b5563"; // Tailwind gray-600
+        this._3dModelsButton.title = "Planting Plan";
+        if (svg) svg.setAttribute("fill", "none");
+      }
+    }
+  }
+
   onAdd(map: maplibregl.Map) {
     this._container = document.createElement("div");
     this._container.className = "maplibregl-ctrl maplibregl-ctrl-group";
 
     this._3dModelsButton = document.createElement("button");
     this._3dModelsButton.id = "MapButton3D";
-    this._3dModelsButton.innerHTML = "3D\n\rOFF";
+    this._3dModelsButton.type = "button";
+    this._3dModelsButton.style.display = "flex";
+    this._3dModelsButton.style.alignItems = "center";
+    this._3dModelsButton.style.justifyContent = "center";
+    this._3dModelsButton.innerHTML = TREE_SVG;
+
+    this.updateIcon();
     this._container.appendChild(this._3dModelsButton);
 
-    this._3dModelsButton.type = "button";
     this._3dModelsButton.addEventListener("click", () => {
       this._setShow3D(!this._show3D());
-      const button = document.getElementById("MapButton3D");
-      if (button) {
-        button.innerHTML = `3D\n\r${this._show3D() ? "ON" : "OFF"}`;
-      }
+      this.updateIcon();
+      
       // Call the callback if provided
       if (this._onToggle) {
         this._onToggle();
@@ -56,7 +75,9 @@ class Show3DControl implements maplibregl.IControl {
   }
 
   onRemove() {
-    // remove(this._container);
+    if (this._container?.parentNode) {
+      this._container.parentNode.removeChild(this._container);
+    }
   }
 }
 

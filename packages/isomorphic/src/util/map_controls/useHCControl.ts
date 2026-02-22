@@ -1,11 +1,12 @@
 import { createSignal } from "solid-js";
 import { createEffect } from "solid-js";
 
+const MTN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`;
+
 class ShowHCControl implements maplibregl.IControl {
   _map: maplibregl.Map | undefined;
   _container: HTMLElement | undefined;
   _hcModelsButton: HTMLButtonElement | undefined;
-  _hcModelsButtonSpan: HTMLSpanElement | undefined;
   _showHC: () => boolean;
   _setShowHC: (show: boolean) => void;
 
@@ -14,29 +15,48 @@ class ShowHCControl implements maplibregl.IControl {
     this._setShowHC = _setShowHC;
   }
 
+  updateIcon() {
+    if (this._hcModelsButton) {
+      const svg = this._hcModelsButton.querySelector("svg");
+      if (this._showHC()) {
+        this._hcModelsButton.style.color = "#3b82f6"; // Tailwind blue-500
+        this._hcModelsButton.title = "Height Curves - ON";
+        if (svg) svg.setAttribute("fill", "currentcolor");
+      } else {
+        this._hcModelsButton.style.color = "#4b5563"; // Tailwind gray-600
+        this._hcModelsButton.title = "Height Curves - OFF";
+        if (svg) svg.setAttribute("fill", "none");
+      }
+    }
+  }
+
   onAdd() {
     this._container = document.createElement("div");
     this._container.className = "maplibregl-ctrl maplibregl-ctrl-group";
 
     this._hcModelsButton = document.createElement("button");
     this._hcModelsButton.id = "MapButtonHC";
-    this._hcModelsButton.innerHTML = "HC\n\rOFF";
+    this._hcModelsButton.type = "button";
+    this._hcModelsButton.style.display = "flex";
+    this._hcModelsButton.style.alignItems = "center";
+    this._hcModelsButton.style.justifyContent = "center";
+    this._hcModelsButton.innerHTML = MTN_SVG;
     this._container.appendChild(this._hcModelsButton);
 
-    this._hcModelsButton.type = "button";
+    this.updateIcon();
+
     this._hcModelsButton.addEventListener("click", () => {
       this._setShowHC(!this._showHC());
-      const button = document.getElementById("MapButtonHC");
-      if (button) {
-        button.innerHTML = `HC\n\r${this._showHC() ? "ON" : "OFF"}`;
-      }
+      this.updateIcon();
     });
 
     return this._container;
   }
 
   onRemove() {
-    // remove(this._container);
+    if (this._container?.parentNode) {
+      this._container.parentNode.removeChild(this._container);
+    }
   }
 }
 

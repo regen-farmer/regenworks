@@ -138,7 +138,6 @@ const RouteDesignPreview: Component = () => {
           map.addLayer({
             id: "fieldPolygon",
             type: "fill",
-            //@ts-expect-error
             source: {
               type: "geojson",
               data: {

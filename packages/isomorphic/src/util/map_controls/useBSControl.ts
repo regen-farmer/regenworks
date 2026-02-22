@@ -1,11 +1,12 @@
 import { createSignal } from "solid-js";
 import { createEffect } from "solid-js";
 
+const DROPS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>`;
+
 class ShowBSControl implements maplibregl.IControl {
   _map: maplibregl.Map | undefined;
   _container: HTMLElement | undefined;
   _bsModelsButton: HTMLButtonElement | undefined;
-  _bsModelsButtonSpan: HTMLSpanElement | undefined;
   _showBS: () => boolean;
   _setShowBS: (show: boolean) => void;
 
@@ -14,30 +15,48 @@ class ShowBSControl implements maplibregl.IControl {
     this._setShowBS = _setShowBS;
   }
 
+  updateIcon() {
+    if (this._bsModelsButton) {
+      const svg = this._bsModelsButton.querySelector("svg");
+      if (this._showBS()) {
+        this._bsModelsButton.style.color = "#3b82f6"; // Tailwind blue-500
+        this._bsModelsButton.title = "Blue Spot (Flooding) - ON";
+        if (svg) svg.setAttribute("fill", "currentcolor");
+      } else {
+        this._bsModelsButton.style.color = "#4b5563"; // Tailwind gray-600
+        this._bsModelsButton.title = "Blue Spot (Flooding) - OFF";
+        if (svg) svg.setAttribute("fill", "none");
+      }
+    }
+  }
+
   onAdd(map: maplibregl.Map) {
     this._container = document.createElement("div");
     this._container.className = "maplibregl-ctrl maplibregl-ctrl-group";
 
     this._bsModelsButton = document.createElement("button");
     this._bsModelsButton.id = "MapButtonBS";
-    this._bsModelsButton.innerHTML = "BS\n\rOFF";
-    // this._3dModelsButton.className = "maplibregl-ctrl-terrain";
+    this._bsModelsButton.type = "button";
+    this._bsModelsButton.style.display = "flex";
+    this._bsModelsButton.style.alignItems = "center";
+    this._bsModelsButton.style.justifyContent = "center";
+    this._bsModelsButton.innerHTML = DROPS_SVG;
     this._container.appendChild(this._bsModelsButton);
 
-    this._bsModelsButton.type = "button";
+    this.updateIcon();
+
     this._bsModelsButton.addEventListener("click", () => {
       this._setShowBS(!this._showBS());
-      const button = document.getElementById("MapButtonBS");
-      if (button) {
-        button.innerHTML = `BS\n\r${this._showBS() ? "ON" : "OFF"}`;
-      }
+      this.updateIcon();
     });
 
     return this._container;
   }
 
   onRemove() {
-    // remove(this._container);
+    if (this._container?.parentNode) {
+      this._container.parentNode.removeChild(this._container);
+    }
   }
 }
 
