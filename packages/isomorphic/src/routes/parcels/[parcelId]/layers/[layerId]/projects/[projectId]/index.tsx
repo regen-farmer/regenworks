@@ -343,6 +343,7 @@ export default function view() {
     onCleanup(() => {
       if (map) {
         map.remove();
+        map = undefined;
       }
     });
   });
