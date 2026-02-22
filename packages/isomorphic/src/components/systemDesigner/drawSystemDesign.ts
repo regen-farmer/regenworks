@@ -412,8 +412,8 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
 		systemLayout.treeRowLines.forEach((rowLine: any, index: number) => {
 			const patternIndex = rowLine.systemDesignRowIndex;
 			
-			// Track repetition transitions (pattern index wraps)
-			if (patternIndex < lastSeenPatternIndex) {
+			// Track repetition transitions (pattern index wraps around to 0, or stays the same if there's only 1 row)
+			if (patternIndex <= lastSeenPatternIndex && lastSeenPatternIndex !== -1) {
 				currentRepetition++;
 			}
 			lastSeenPatternIndex = patternIndex;
