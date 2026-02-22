@@ -279,23 +279,26 @@ fn generate_tree_markers(
             let point = along(&tree_row.line, distance);
             let circle_coords = circle(point, 1.4, 12);
 
-            let species = &sequence[tree_sequence_idx].species;
-            let species_id = species.id().to_string();
+            let species_opt = &sequence[tree_sequence_idx].species;
 
-            tree_markers.push(TreeMarker {
-                species: species.clone(),
-                point: GeoJsonFeature::point(point, None),
-                circle: GeoJsonFeature::polygon(
-                    vec![circle_coords.iter().map(|c| [c[0], c[1]]).collect()],
-                    None,
-                ),
-            });
+            if let Some(species) = species_opt {
+                let species_id = species.id().to_string();
 
-            // Update species count
-            species_count_map
-                .entry(species_id)
-                .and_modify(|(_, count)| *count += 1)
-                .or_insert((species.clone(), 1));
+                tree_markers.push(TreeMarker {
+                    species: species.clone(),
+                    point: GeoJsonFeature::point(point, None),
+                    circle: GeoJsonFeature::polygon(
+                        vec![circle_coords.iter().map(|c| [c[0], c[1]]).collect()],
+                        None,
+                    ),
+                });
+
+                // Update species count
+                species_count_map
+                    .entry(species_id)
+                    .and_modify(|(_, count)| *count += 1)
+                    .or_insert((species.clone(), 1));
+            }
 
             distance += sequence[tree_sequence_idx].spacing_after;
             tree_sequence_idx = (tree_sequence_idx + 1) % sequence.len();

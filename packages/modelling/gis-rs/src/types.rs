@@ -1,5 +1,5 @@
 //! Type definitions for layout modelling
-//! 
+//!
 //! These types mirror the TypeScript interfaces in the original implementation.
 
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,8 @@ pub struct RowOffset {
 #[serde(rename_all = "camelCase")]
 pub struct SequenceEntry {
     /// Species reference (can be full object or just ID)
-    pub species: SpeciesRef,
+    #[serde(default)]
+    pub species: Option<SpeciesRef>,
     /// Spacing to next tree in meters
     pub spacing_after: f64,
 }
