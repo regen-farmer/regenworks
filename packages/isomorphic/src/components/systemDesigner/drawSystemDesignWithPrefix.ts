@@ -2,6 +2,7 @@ import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based
 import { featureCollection, point as turfPoint, helpers as turf } from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";
+import { toRepetitionLetter } from "~/util/repetition";
 
 /**
  * Draw system design with a unique prefix for layer IDs to support multiple fields
@@ -351,18 +352,20 @@ function drawSystemDesignWithPrefix(
       const patternIndex = rowLine.systemDesignRowIndex;
       
       // Track instance numbers
-      if (patternIndex < lastSeenPatternIndex) {
+      if (patternIndex <= lastSeenPatternIndex && lastSeenPatternIndex !== -1) {
         currentInstance++;
       }
       lastSeenPatternIndex = patternIndex;
+
+      const repLetter = toRepetitionLetter(currentInstance);
 
       // Get the midpoint of the line for label placement
       if (rowLine.line && rowLine.line.geometry && rowLine.line.geometry.coordinates && rowLine.line.geometry.coordinates.length > 0) {
         const coords = rowLine.line.geometry.coordinates;
         const midIndex = Math.floor(coords.length / 2);
         const labelPoint = turfPoint(coords[midIndex], {
-          label: `${currentInstance}-${patternIndex + 1}`, // Instance-Row format
-          instance: currentInstance,
+          label: `${repLetter}-${patternIndex + 1}`, // RepetitionLetter-RowNumber
+          repetition: repLetter,
           row: patternIndex + 1
         });
         rowLabels.push(labelPoint);

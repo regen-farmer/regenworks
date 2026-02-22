@@ -8,12 +8,7 @@ import {
 } from "@turf/turf";
 
 export function makeGroundCoverAreas(
-	offsetPolygon: turf.Feature<turf.Polygon, turf.Properties>,
-	lineIntersectingAreaInsideMargin: turf.Feature<
-		turf.LineString,
-		turf.Properties
-	>,
-	widthOfAreaInsideMargin: number,
+	stripPolygons: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[],
 	rows: {
 		sequence: {
 			species: ISpeciesSchema;
@@ -29,65 +24,22 @@ export function makeGroundCoverAreas(
 		};
 		groundcover?: ISpeciesSchema;
 		width: number;
-	}[],
+	}[]
 ): {
-	groundCoverAreas: turf.Feature<turf.Polygon, turf.Properties>[];
+	groundCoverAreas: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[];
 	groundCoverAreasM2: any;
 } {
-	let accumulatingWidth = 0;
-	const groundCoverAreas: turf.Feature<turf.Polygon, turf.Properties>[] = [];
+	const groundCoverAreas: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>[] = [];
 	const groundCoverAreasM2 = {};
-
-	let currentRowIdx = 0;
 
 	if (!(rows.length > 0)) {
 		console.log("No rows in system design");
-		return [];
+		return { groundCoverAreas: [], groundCoverAreasM2: {} };
 	}
 
-	// eslint-disable-next-line no-constant-condition
-	while (true) {
-		// console.log('widthOfAreaInsideMargin', widthOfAreaInsideMargin);
-		// console.log('accumulatingWidth', accumulatingWidth);
-		// console.log('rows[currentRowIdx].width', rows[currentRowIdx].width);
-		// console.log('accumulatingWidth * calibrateDistance', accumulatingWidth * calibrateDistance);
-
-		// Complete if there isn't room for more lines
-		if (accumulatingWidth > widthOfAreaInsideMargin) {
-			// console.log('accumulatingWidth too big - BREAK');
-			break;
-		}
-
-		// Make bounding box of row width in widht, and very large height. THen do the area intersect.
-
-		let elongatedDonutBuffer;
-
-		// This requires two buffers
-		if (accumulatingWidth > 0) {
-			const bufferSmall = buffer(
-				lineIntersectingAreaInsideMargin,
-				accumulatingWidth,
-				{ units: "meters" },
-			);
-			const bufferBig = buffer(
-				lineIntersectingAreaInsideMargin,
-				accumulatingWidth + rows[currentRowIdx].width,
-				{ units: "meters" },
-			);
-			elongatedDonutBuffer = mask(bufferSmall, bufferBig);
-		} else {
-			elongatedDonutBuffer = buffer(
-				lineIntersectingAreaInsideMargin,
-				rows[currentRowIdx].width,
-				{ units: "meters" },
-			);
-		}
-
-		const intersectionAreas = intersect({
-			type: "FeatureCollection",
-			features: [offsetPolygon, elongatedDonutBuffer],
-		});
-		// // Check if turf value is a polygon or a multipolygon
+	for (let i = 0; i < stripPolygons.length; i++) {
+		const intersectionAreas = stripPolygons[i];
+		const currentRowIdx = i % rows.length;
 
 		const groundCoverRaw =
 			rows[currentRowIdx].groundcover?._id ?? rows[currentRowIdx].groundcover;
@@ -97,48 +49,17 @@ export function makeGroundCoverAreas(
 			groundCoverAreasM2[groundCoverId] = 0;
 		}
 
-		if (groundCoverId) {
-			if (intersectionAreas?.geometry.type === "Polygon") {
-				// console.log('Polygon found');
-
-				const area = intersectionAreas as turf.Feature<
-					turf.Polygon,
-					turf.Properties
-				>;
-
-				const newPolygon = turf.polygon(area.geometry.coordinates, {
-					name: `alleypoly${groundCoverAreas.length}`,
-					speciesId: groundCoverId,
-				});
-				groundCoverAreasM2[groundCoverId] += turfArea(newPolygon);
-
-				groundCoverAreas.push(newPolygon);
-			} else if (intersectionAreas?.geometry.type === "MultiPolygon") {
-				// console.log('MultiPolygon found');
-				const area = intersectionAreas as turf.Feature<
-					turf.MultiPolygon,
-					turf.Properties
-				>;
-				for (const polygon of area.geometry.coordinates) {
-					const newPolygon = turf.polygon(polygon, {
-						name: `alleypoly${groundCoverAreas.length}`,
-						speciesId: groundCoverId,
-					});
-
-					groundCoverAreasM2[groundCoverId] += turfArea(newPolygon);
-
-					groundCoverAreas.push(newPolygon);
-				}
-			}
-		}
-
-		// Add row width
-		accumulatingWidth += rows[currentRowIdx].width;
-
-		// Prepare for next row. Cycle through rows in system design
-		currentRowIdx++;
-		if (currentRowIdx === rows.length) {
-			currentRowIdx = 0;
+		if (groundCoverId && intersectionAreas) {
+			// Clone and update the polygon properties
+			const area = JSON.parse(JSON.stringify(intersectionAreas));
+			area.properties = area.properties || {};
+			area.properties.name = `alleypoly${groundCoverAreas.length}`;
+			area.properties.speciesId = groundCoverId;
+			
+			// We already calculated total strip areas in makeAllStripPolygons, but this
+			// aggregates it per-species. We can calculate it directly here via turfArea
+			groundCoverAreasM2[groundCoverId] += turfArea(area);
+			groundCoverAreas.push(area);
 		}
 	}
 

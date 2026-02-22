@@ -280,7 +280,7 @@ export function systemBasedLayoutSync(
 	);
 
 	// ALL STRIP POLYGONS (for accurate area calculations)
-	const { stripPolygons, stripAreasM2 } = makeAllStripPolygons(
+	const { stripPolygons, stripAreasM2, elongatedDonutBuffers } = makeAllStripPolygons(
 		headlandPolygon,
 		lineIntersectingAreaInsideMargin,
 		widthOfAreaInsideMargin,
@@ -289,10 +289,8 @@ export function systemBasedLayoutSync(
 
 	// GROUND COVER AREAS (for display/visualization)
 	const { groundCoverAreas, groundCoverAreasM2 } = makeGroundCoverAreas(
-		headlandPolygon,
-		lineIntersectingAreaInsideMargin,
-		widthOfAreaInsideMargin,
-		systemdesign.rows as any,
+		stripPolygons,
+		systemdesign.rows as any
 	);
 
 	// INDIVIDUAL TREES
@@ -308,12 +306,16 @@ export function systemBasedLayoutSync(
 			const sequence = systemRows[treeRowLine.systemDesignRowIndex].sequence;
 			let treeSequenceIdx = 0;
 			let distance = 0;
-			while (distance < turfLength(treeRowLine.line, { units: "meters" })) {
+			const totalLength = turfLength(treeRowLine.line, { units: "meters" });
+			
+			while (distance < totalLength) {
 				const point = along(treeRowLine.line, distance, { units: "meters" });
 
-				// Reduced radius from 2m to 1.4m (~30% smaller) so later rendering need not rescale
+				// Reduced radius from 2m to 1.4m.
+				// Lower steps to 12 (default 64) for massive speedup without noticeable visual degradation
 				const newCircle = circle(point.geometry.coordinates, 1.4, {
 					units: "meters",
+					steps: 12
 				});
 				treeMarkerArray.push({
 					species: sequence[treeSequenceIdx].species,

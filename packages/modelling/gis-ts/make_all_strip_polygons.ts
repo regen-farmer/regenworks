@@ -44,16 +44,18 @@ export function makeAllStripPolygons(
 ): {
 	stripPolygons: Feature<Polygon | MultiPolygon, Properties>[];
 	stripAreasM2: number[];
+	elongatedDonutBuffers: any[];
 } {
 	let accumulatingWidth = 0;
 	const stripPolygons: Feature<Polygon | MultiPolygon, Properties>[] = [];
 	const stripAreasM2: number[] = [];
+	const elongatedDonutBuffers: any[] = [];
 
 	let currentRowIdx = 0;
 
 	if (!(rows.length > 0)) {
 		console.log("No rows in system design");
-		return { stripPolygons: [], stripAreasM2: [] };
+		return { stripPolygons: [], stripAreasM2: [], elongatedDonutBuffers: [] };
 	}
 
 	// eslint-disable-next-line no-constant-condition
@@ -116,6 +118,7 @@ export function makeAllStripPolygons(
 			stripPolygons.push(null as any);
 			stripAreasM2.push(0);
 		}
+		elongatedDonutBuffers.push(elongatedDonutBuffer);
 
 		// Add row width
 		accumulatingWidth += rows[currentRowIdx].width;
@@ -130,5 +133,5 @@ export function makeAllStripPolygons(
 	console.log("stripPolygons.length", stripPolygons.length);
 	console.log("Total strips area (m²):", stripAreasM2.reduce((a, b) => a + b, 0));
 	
-	return { stripPolygons, stripAreasM2 };
+	return { stripPolygons, stripAreasM2, elongatedDonutBuffers };
 }
