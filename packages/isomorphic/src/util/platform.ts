@@ -117,7 +117,7 @@ export function initTauriTestUtils() {
 			try {
 				const result = await invoke("generate_layout", {
 					systemdesign: systemDesign,
-					field_geometry: fieldGeometry,
+					fieldGeometry: fieldGeometry,
 				});
 
 				const elapsed = performance.now() - startTime;
@@ -142,7 +142,7 @@ export function initTauriTestUtils() {
 			const startTime = performance.now();
 			const result = await invoke("generate_layout", {
 				systemdesign: systemDesign,
-				field_geometry: fieldGeometry,
+				fieldGeometry: fieldGeometry,
 			});
 			const elapsed = performance.now() - startTime;
 

@@ -104,7 +104,7 @@ async function generateLayoutTauri(
 
 	const response = await invoke<LayoutResponse>("generate_layout", {
 		systemdesign: systemDesign,
-		field_geometry: geometryString,
+		fieldGeometry: geometryString,
 	});
 
 	if (!response.success || !response.data) {
