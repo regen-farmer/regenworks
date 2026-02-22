@@ -1,5 +1,4 @@
-import { useLocation } from "@solidjs/router";
-import { useParams } from "@solidjs/router";
+import { useLocation, useParams, useIsRouting } from "@solidjs/router";
 import {
 	createEffect,
 	createMemo,
@@ -37,6 +36,7 @@ export enum modes {
 
 	export default function view() {
 	const params = useParams<{ parcelId: string }>();
+	const isRouting = useIsRouting();
 	const [data, { refetch }] = createResource(
 		() => params.parcelId,
 		async (parcelId) => {
@@ -160,14 +160,21 @@ export enum modes {
 	}
 
 	return (
-		<>
+		<div style="position: relative; width: 100%; height: calc(100vh - 57px);">
 			<div
 				id="map"
 				ref={(r) => {
 					setMapref(r);
 				}}
-				style="border:none; border-radius: unset; width: 100%; height: calc(100vh - 57px);"
+				style="position: absolute; inset: 0; outline: none; border: none;"
 			/>
+			
+			<Show when={data.loading || isRouting()}>
+				<div class="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300">
+					<div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-400 border-t-white"></div>
+				</div>
+			</Show>
+
 			<Show when={data()?.parcel && isMapReady()}>
 				<Switch>
 					<Match when={mode() === modes.default}>
@@ -192,6 +199,6 @@ export enum modes {
 					</Match>
 				</Switch>
 			</Show>
-		</>
+		</div>
 	);
 }
