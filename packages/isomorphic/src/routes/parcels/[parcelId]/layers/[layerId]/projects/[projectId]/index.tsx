@@ -543,19 +543,22 @@ export default function view() {
     }
 
     setSavingPreset(true);
+    let thumbnail = null;
+    
+    // Try to capture a thumbnail from the map if available
+    // Do this outside the main try/catch so toDataURL errors don't cancel the save entirely
     try {
-      // Try to capture a thumbnail from the map if available
-      let thumbnail = null;
       const mapElement = document.getElementById("layerMapShow");
       if (mapElement && map) {
-        try {
-          const canvas = map.getCanvas();
-          thumbnail = canvas.toDataURL("image/png");
-        } catch (err) {
-          console.log("Could not capture map thumbnail:", err);
-        }
+        const canvas = map.getCanvas();
+        thumbnail = canvas.toDataURL("image/png");
       }
+    } catch (err) {
+      console.log("Could not capture map thumbnail safely:", err);
+      // Just proceed without a thumbnail if canvas is tainted by external tiles
+    }
 
+    try {
       // Clean the system design to only include species IDs
       const cleanSystemDesign = {
         ...system,
@@ -589,6 +592,8 @@ export default function view() {
         setPresetName("");
         setPresetDescription("");
       } else {
+        const errorText = await response.text();
+        console.error("Failed to save preset payload:", errorText);
         showToast({ title: "Failed to save preset", variant: "destructive" });
       }
     } catch (err) {
