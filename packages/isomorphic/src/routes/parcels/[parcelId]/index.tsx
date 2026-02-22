@@ -83,10 +83,12 @@ export default function view() {
         )
         .addTo(map);
 
-      if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
-        useHCControl(map);
-        useBSControl(map);
-      }
+      map.on("load", () => {
+        if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
+          useHCControl(map);
+          useBSControl(map);
+        }
+      });
 
       const nav = new maplibregl.NavigationControl({
         showCompass: true,

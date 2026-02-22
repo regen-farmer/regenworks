@@ -24,6 +24,7 @@ import DuplicateScenarioModal from "~/components/DuplicateScenarioModal.tsx";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
+import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import {
   Dialog,
   DialogContent,
@@ -98,8 +99,11 @@ export default function view() {
 
       map.on("load", () => {
         useMeasureControl(map);
-        useHCControl(map);
-        useBSControl(map);
+
+        if (withinDKBBox(areaLng as number, areaLat as number)) {
+          useHCControl(map);
+          useBSControl(map);
+        }
 
         map.addLayer({
           id: "map",
