@@ -256,6 +256,9 @@ importers:
       '@turf/turf':
         specifier: ^7.1.0
         version: 7.3.2
+      '@types/proj4':
+        specifier: ^2.19.0
+        version: 2.19.0
       chart.js:
         specifier: ^4.5.0
         version: 4.5.1
@@ -295,6 +298,9 @@ importers:
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
+      proj4:
+        specifier: ^2.19.10
+        version: 2.20.2
       solid-js:
         specifier: ^1.9.9
         version: 1.9.10
@@ -2732,6 +2738,10 @@ packages:
 
   '@types/pngjs@6.0.5':
     resolution: {integrity: sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ==}
+
+  '@types/proj4@2.19.0':
+    resolution: {integrity: sha512-mirdnXu5sW9+IphQ4r+ZVii2JVLDbXgMp1lxqbiCppdgL22EwMwL4Dy/cyHVaJ2y/mi7LUQHghpILd3w3j2bnA==}
+    deprecated: This is a stub types definition. proj4 provides its own type definitions, so you do not need this installed.
 
   '@types/qs@6.14.0':
     resolution: {integrity: sha512-eOunJqu0K1923aExK6y8p6fsihYEn/BYuQ4g0CxAAgFc4b/ZLN4CrsRZ55srTdqoiLzU2B2evC+apEIxprEzkQ==}
@@ -8243,6 +8253,10 @@ snapshots:
   '@types/pngjs@6.0.5':
     dependencies:
       '@types/node': 24.10.9
+
+  '@types/proj4@2.19.0':
+    dependencies:
+      proj4: 2.20.2
 
   '@types/qs@6.14.0': {}
 

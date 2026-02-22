@@ -1,5 +1,6 @@
-import { createSignal } from "solid-js";
-import { createEffect } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
+import maplibregl from "maplibre-gl";
+import { bluespotProtocol } from "./bluespot-protocol";
 
 const DROPS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>`;
 
@@ -61,6 +62,12 @@ class ShowBSControl implements maplibregl.IControl {
 }
 
 export function useBSControl(map: maplibregl.Map) {
+  try {
+    maplibregl.addProtocol("bluespot", bluespotProtocol as any);
+  } catch (e) {
+    // Protocol is likely already added
+  }
+
   const [showBS, setShowBS] = createSignal(false);
   map.addControl(new ShowBSControl(showBS, setShowBS));
 
@@ -73,8 +80,7 @@ export function useBSControl(map: maplibregl.Map) {
           // use the tiles option to specify a WMS tile source URL
           // https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/
           tiles: [
-            // 'https://api.dataforsyningen.dk/elevation_inspire?service=WMS&request=getmap&version=1.3.0&Width=256&Height=256&Layers=EL.ContourLine&Format=image/png&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&transparent=TRUE'
-            `${import.meta.env.VITE_BACKEND_URL}/api/tiles/bluespot?bbox={bbox-epsg-3857}`,
+            "bluespot://{bbox-epsg-3857}",
           ],
           tileSize: 256,
         });
