@@ -496,12 +496,24 @@ export default function view() {
   async function saveSystem() {
     setSaving(true);
 
-    console.log(system);
+    const cleanSystem = {
+      ...system,
+      rows: system.rows.map((row) => ({
+        ...row,
+        groundcover: (row.groundcover as any) === "" ? undefined : row.groundcover,
+        sequence: row.sequence.map((seq) => ({
+          ...seq,
+          species: (seq.species as any) === "" ? undefined : seq.species,
+        })).filter(seq => seq.species !== undefined),
+      })),
+    };
+
+    console.log(cleanSystem);
 
     const newsystem = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/projects/${params.projectId}/set-systemdesign`,
       {
-        body: JSON.stringify(system),
+        body: JSON.stringify(cleanSystem),
         method: "put",
         ...apiFetchOptions(),
       },
@@ -549,12 +561,12 @@ export default function view() {
         ...system,
         rows: system.rows.map((row: any) => ({
           ...row,
-          groundcover: typeof row.groundcover === "object" ? row.groundcover._id : row.groundcover,
+          groundcover: (row.groundcover === "" || row.groundcover?._id === "") ? undefined : (typeof row.groundcover === "object" ? row.groundcover._id : row.groundcover),
           sequence: row.sequence
             ? row.sequence.map((seq: any) => ({
                 ...seq,
-                species: typeof seq.species === "object" ? seq.species._id : seq.species,
-              }))
+                species: (seq.species === "" || seq.species?._id === "") ? undefined : (typeof seq.species === "object" ? seq.species._id : seq.species),
+              })).filter((seq: any) => seq.species !== undefined)
             : [],
         })),
       };
@@ -1044,14 +1056,22 @@ export default function view() {
                                                       />
 
                                                       <ComboboxRoot<ISpeciesSchema>
-                                                        options={
-                                                          species()?.species.filter(
+                                                        options={[
+                                                          {
+                                                            _id: "",
+                                                            nameCommon: "None (clear selection)",
+                                                            family: "",
+                                                            genus: "",
+                                                            species: "",
+                                                            form: "",
+                                                          } as unknown as ISpeciesSchema,
+                                                          ...(species()?.species.filter(
                                                             (species: ISpeciesSchema) =>
                                                               !["herb", "grass"].includes(
                                                                 species.form,
                                                               ),
-                                                          ) ?? []
-                                                        }
+                                                          ) ?? []),
+                                                        ]}
                                                         disabled={isFreemium()}
                                                         onChange={(e) => {
                                                           setSystem(
@@ -1061,7 +1081,7 @@ export default function view() {
                                                             sequenceIdx(),
                                                             "species",
                                                             () => {
-                                                              return e?._id!;
+                                                              return e?._id === "" ? "" : e?._id!;
                                                             },
                                                           );
                                                         }}
@@ -1070,17 +1090,18 @@ export default function view() {
                                                         )}
                                                         optionValue="_id"
                                                         optionTextValue={(species) =>
-                                                          `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`
+                                                          species._id === ""
+                                                            ? "None (clear selection)"
+                                                            : `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`
                                                         }
                                                         optionLabel="nameCommon"
                                                         placeholder="Search a species…"
                                                         itemComponent={(props) => (
                                                           <ComboboxItem item={props.item}>
                                                             <ComboboxItemLabel>
-                                                              {props.item.rawValue.nameCommon} (
-                                                              {props.item.rawValue.family}{" "}
-                                                              {props.item.rawValue.genus}{" "}
-                                                              {props.item.rawValue.species})
+                                                              {props.item.rawValue._id === ""
+                                                                ? "None (clear selection)"
+                                                                : `${props.item.rawValue.nameCommon} (${props.item.rawValue.family} ${props.item.rawValue.genus} ${props.item.rawValue.species})`}
                                                             </ComboboxItemLabel>
                                                             <ComboboxItemIndicator />
                                                           </ComboboxItem>
@@ -1197,15 +1218,23 @@ export default function view() {
                                       <span>Ground cover</span>
 
                                       <ComboboxRoot<ISpeciesSchema>
-                                        options={
-                                          species()?.species.filter((species: ISpeciesSchema) =>
+                                        options={[
+                                          {
+                                            _id: "",
+                                            nameCommon: "None (clear selection)",
+                                            family: "",
+                                            genus: "",
+                                            species: "",
+                                            form: "",
+                                          } as unknown as ISpeciesSchema,
+                                          ...(species()?.species.filter((species: ISpeciesSchema) =>
                                             ["herb", "grass"].includes(species.form),
-                                          ) ?? []
-                                        }
+                                          ) ?? []),
+                                        ]}
                                         disabled={isFreemium()}
                                         onChange={(e) => {
                                           setSystem("rows", rowIdx(), "groundcover", (gc) => {
-                                            return e?._id!;
+                                            return e?._id === "" ? "" : e?._id!;
                                           });
 
                                           logSystem();
@@ -1215,17 +1244,18 @@ export default function view() {
                                         )}
                                         optionValue="_id"
                                         optionTextValue={(species) =>
-                                          `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`
+                                          species._id === ""
+                                            ? "None (clear selection)"
+                                            : `${species.nameCommon} (${species.family} ${species.genus} ${species.species})`
                                         }
                                         optionLabel={(species) => species.nameCommon}
                                         placeholder="Search a species…"
                                         itemComponent={(props) => (
                                           <ComboboxItem item={props.item}>
                                             <ComboboxItemLabel>
-                                              {props.item.rawValue.nameCommon} (
-                                              {props.item.rawValue.family}{" "}
-                                              {props.item.rawValue.genus}{" "}
-                                              {props.item.rawValue.species})
+                                              {props.item.rawValue._id === ""
+                                                ? "None (clear selection)"
+                                                : `${props.item.rawValue.nameCommon} (${props.item.rawValue.family} ${props.item.rawValue.genus} ${props.item.rawValue.species})`}
                                             </ComboboxItemLabel>
                                             <ComboboxItemIndicator />
                                           </ComboboxItem>
