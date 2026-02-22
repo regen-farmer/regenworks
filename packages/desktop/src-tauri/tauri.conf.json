@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
 	"productName": "RegenWorks",
-	"version": "0.1.0",
+	"version": "2026.1.0-alpha.1",
 	"identifier": "com.regenworks.desktop",
 	"build": {
 		"beforeDevCommand": "cd ../.. && pnpm --filter isomorphic dev",
@@ -47,7 +47,7 @@
 	},
 	"plugins": {
 		"updater": {
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc0NzMzREM2OTVFRTMyQTgKUldTb011NlZ4ajF6ZFBMbGtIeGZITEFHa3FhUTdNMU5sdHpwWjdLZTYrMzFqYllNT1BiRk1SbU8K",
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU2N0E5QUM0Q0I1OEM0MjkKUldRcHhGakx4SnA2VmlwSkxOWE5WVGZ3V3Jmdi9mRGRyS25ySEpGZ3NWbEQzY2JUc2M3dEp3cHQK",
 			"endpoints": [
 				"https://app.regenfarmer.com/api/updater/{{target}}/{{arch}}/{{current_version}}"
 			]
