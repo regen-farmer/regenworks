@@ -136,7 +136,7 @@ router.get(
       await tile_ids.map(async ({ row, col, z }) => {
         // Bluespot
         const z_string = `L${z.toString().padStart(2, "0")}`;
-        const tile_url = `https://api.dataforsyningen.dk/dhm_bluespot_ekstremregn?token=f3ecb52320902f733a433aa9945d8dc8&layer=bluespot_ekstremregn_0_120&tilematrixset=View1&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=${z_string}&TileCol=${col}&TileRow=${row}`;
+        const tile_url = `https://api.dataforsyningen.dk/wmts/dhm_bluespot_ekstremregn?token=f3ecb52320902f733a433aa9945d8dc8&layer=bluespot_ekstremregn_0_120&tilematrixset=View1&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=${z_string}&TileCol=${col}&TileRow=${row}`;
 
         // Skærmkort
         // const z_string = z.toString().padStart(1, '0')
