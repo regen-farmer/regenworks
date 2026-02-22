@@ -6,6 +6,7 @@ import {
 	createResource,
 	createSignal,
 	Show,
+	onCleanup,
 } from "solid-js";
 import maplibregl from "maplibre-gl";
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
@@ -34,40 +35,30 @@ export enum modes {
 	editField = 2,
 }
 
-export default function view() {
+	export default function view() {
 	const params = useParams<{ parcelId: string }>();
-	const [data, { refetch }] = createResource<{
-		parcel: IParcelSchema;
-		collection: FeatureCollection<any, any>;
-		places: FeatureCollection<
-			Point,
-			{
-				description: string;
-			}
-		>;
-	}>(async () => {
-		const response = await fetch(
-			`${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}`,
-			apiFetchOptions(),
-		);
-		return await response.json();
-	});
-
-	createEffect(() => {
-		useLocation().pathname;
-		refetch();
-	});
+	const [data, { refetch }] = createResource(
+		() => params.parcelId,
+		async (parcelId) => {
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/parcels/${parcelId}`,
+				apiFetchOptions(),
+			);
+			return await response.json();
+		}
+	);
 
 	const [mapref, setMapref] = createSignal<HTMLElement>();
-
 	const [mode, setMode] = createSignal<modes>(modes.default);
 	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
 	let farmMarker: maplibregl.Marker | null = null;
+	let mapInitialized = false;
 
 	createEffect(() => {
-		if (mapref() && !styleLoaded()) {
+		if (mapref() && !mapInitialized && data()?.parcel && (data()?.parcel as any)?._id === params.parcelId) {
+			mapInitialized = true;
 			map = new maplibregl.Map({
 				container: mapref()!,
 				attributionControl: false,
@@ -77,50 +68,49 @@ export default function view() {
 				maxZoom: 20,
 			});
 
-			map.on("load", () => {
+			if (withinDKBBox(data()?.parcel.lng as number, data()?.parcel.lat as number)) {
+				useHCControl(map);
+				useBSControl(map);
+			}
+
+			const nav = new maplibregl.NavigationControl({
+				showCompass: true,
+				showZoom: true,
+				visualizePitch: true
+			});
+			map.addControl(nav, "top-left");
+
+			const scale = new maplibregl.ScaleControl({
+				maxWidth: 100,
+				unit: 'metric'
+			});
+			map.addControl(scale, 'bottom-left');
+
+			map.once("load", () => {
 				setStyleLoaded(true);
-
-				if (
-					withinDKBBox(
-						data()?.parcel.lng as number,
-						data()?.parcel.lat as number,
-					)
-				) {
-					useHCControl(map);
-					useBSControl(map);
-				}
-
-				// Add navigation control (compass/north arrow + zoom buttons)
-				const nav = new maplibregl.NavigationControl({
-					showCompass: true,
-					showZoom: true,
-					visualizePitch: true
-				});
-				map.addControl(nav, "top-left");
-
-				// Add scale control
-				const scale = new maplibregl.ScaleControl({
-					maxWidth: 100,
-					unit: 'metric'
-				});
-				map.addControl(scale, 'bottom-left');
-
 			});
 		}
 	});
 
-	// Update map center and marker when parcel data changes (e.g., switching farms)
 	createEffect(() => {
 		const parcel = data()?.parcel;
-		if (styleLoaded() && parcel && map) {
-			// Update map center
-			map.flyTo({
-				center: [parcel.lng as number, parcel.lat as number],
-				zoom: 12,
-				duration: 1000
-			});
+		if (styleLoaded() && parcel && map && (parcel as any)?._id === params.parcelId) {
+			const center = map.getCenter();
+			if (!center) return;
+			
+			const dist = Math.abs(center.lng - (parcel.lng as number)) + Math.abs(center.lat - (parcel.lat as number));
+			
+			if (dist > 0.0001) {
+				setTimeout(() => {
+					map?.resize();
+					map?.flyTo({
+						center: [parcel.lng as number, parcel.lat as number],
+						zoom: 12,
+						duration: 500,
+					});
+				}, 50);
+			}
 
-			// Update or recreate the farm marker
 			if (farmMarker) {
 				farmMarker.remove();
 			}
@@ -131,13 +121,15 @@ export default function view() {
 				.setPopup(
 					new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
 						.setLngLat([parcel.lng as number, parcel.lat as number])
-						.setHTML(
-							`
-            <strong><span style="color: black;">${parcel.name}</span></strong><br/>
-            <span style="color: black;">${parcel.location}</span><br />`,
-						),
+						.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
 				)
 				.addTo(map);
+		}
+	});
+
+	onCleanup(() => {
+		if (map) {
+			map.remove();
 		}
 	});
 

@@ -248,61 +248,73 @@ export default function DefaultMode({
 	};
 
 	function drawFields() {
-		cleanupLayers();
+		const map = getMap();
+		if (!map) return;
+		
+		map.off("click", "field-labels", moveMapToField);
+		map.off("click", "field-fills", navigateToField);
 
-		getMap().addLayer({
-			id: "field-fills",
-			type: "fill",
-			//@ts-expect-error
-			source: {
-				type: "geojson",
-				data: data()?.collection,
-			},
-			layout: {},
-			paint: {
-				"fill-color": "rgba(127,34,192,0.6)",
-			},
-		});
+		const fillSource = map.getSource("field-fills") as maplibregl.GeoJSONSource;
+		
+		if (fillSource) {
+			fillSource.setData(data()?.collection as any);
+			const outlinesSource = map.getSource("field-outlines") as maplibregl.GeoJSONSource;
+			if (outlinesSource) outlinesSource.setData(data()?.collection as any);
+			const labelsSource = map.getSource("field-labels") as maplibregl.GeoJSONSource;
+			if (labelsSource) labelsSource.setData(data()?.places as any);
+		} else {
+			cleanupLayers();
 
-		getMap().addLayer({
-			id: "field-outlines",
-			type: "line",
-			//@ts-expect-error
-			source: {
-				type: "geojson",
-				data: data()?.collection,
-			},
-			layout: {},
-			paint: {
-				"line-color": "rgba(255,255,255,0.5)",
-				"line-width": 1,
-			},
-		});
+			map.addLayer({
+				id: "field-fills",
+				type: "fill",
+				source: {
+					type: "geojson",
+					data: data()?.collection as any,
+				},
+				layout: {},
+				paint: {
+					"fill-color": "rgba(127,34,192,0.6)",
+				},
+			});
 
-		getMap().addLayer({
-			id: "field-labels",
-			type: "symbol",
-			//@ts-expect-error
-			source: {
-				type: "geojson",
-				data: data()?.places,
-			},
-			layout: {
-				"text-field": ["get", "description"],
-				"text-justify": "center",
-				"icon-image": ["concat", ["get", "icon"], "-15"],
-				"text-size": 12,
-			},
-			paint: {
-				"text-color": "white",
-				"text-halo-color": "black",
-				"text-halo-width": 1,
-			},
-		});
+			map.addLayer({
+				id: "field-outlines",
+				type: "line",
+				source: {
+					type: "geojson",
+					data: data()?.collection as any,
+				},
+				layout: {},
+				paint: {
+					"line-color": "rgba(255,255,255,0.5)",
+					"line-width": 1,
+				},
+			});
 
-		getMap().on("click", "field-labels", moveMapToField);
+			map.addLayer({
+				id: "field-labels",
+				type: "symbol",
+				source: {
+					type: "geojson",
+					data: data()?.places as any,
+				},
+				layout: {
+					"text-field": ["get", "description"],
+					"text-justify": "center",
+					"icon-image": ["concat", ["get", "icon"], "-15"],
+					"text-size": 12,
+				},
+				paint: {
+					"text-color": "white",
+					"text-halo-color": "black",
+					"text-halo-width": 1,
+				},
+			});
+		}
 
-		getMap().on("click", "field-fills", navigateToField);
+		map.on("click", "field-labels", moveMapToField);
+		map.on("click", "field-fills", navigateToField);
 	}
 	function navigateToField(e: any) {
 		navigate(
@@ -310,7 +322,6 @@ export default function DefaultMode({
 		);
 	}
 	function moveMapToField(e: any) {
-		// navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
 		e.clickOnLabel = true;
 		getMap().flyTo({
 			speed: 2,
@@ -329,10 +340,9 @@ export default function DefaultMode({
 		}
 	});
 
-	// Redraw fields when parcel data changes (e.g., switching farms via breadcrumbs)
 	createEffect(() => {
-		const parcelData = data();
-		if (parcelData && getMap()?.isStyleLoaded()) {
+		const parcelData = data()?.parcel;
+		if (parcelData && (parcelData as any)?._id === params.parcelId && getMap()?.isStyleLoaded()) {
 			drawFields();
 		}
 	});
