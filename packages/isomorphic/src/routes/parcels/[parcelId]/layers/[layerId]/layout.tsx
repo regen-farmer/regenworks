@@ -4,7 +4,6 @@ import {
 	createSignal,
 	For,
 	Show,
-	Show,
 	onCleanup,
 } from "solid-js";
 import { action } from "@solidjs/router";
