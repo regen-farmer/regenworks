@@ -8,10 +8,8 @@ export async function GET({ params }: APIEvent) {
 	
 	console.log(`Checking for update: ${target}-${arch} v${current_version}`);
 
-	// If no update is available, Tauri expects a 204 No Content response
-	return new Response(null, { status: 204 });
 
-	/*
+
 	// If an update IS available, return a 200 OK JSON response with the update semantics:
 	return new Response(JSON.stringify({
 		version: "0.2.0",
@@ -19,12 +17,11 @@ export async function GET({ params }: APIEvent) {
 		pub_date: new Date().toISOString(),
 		platforms: {
 			[`${target}-${arch}`]: {
-				signature: "YOUR_MINISIGN_SIGNATURE_HERE",
-				url: `https://YOUR_BUCKET_URL_HERE/RegenWorks_0.2.0_${target}_${arch}.zip`
+				signature: "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDAzMUE4NjQxRjAzMkJBQzIKUldUQ3VqTHdRWVlhQTJzQWIzKzE4bnFabXFheGpQMzdKSTdFZjJEWE5KaDdWbG9yUkwxY3VwMmkK",
+				url: `http://localhost:3088/RegenWorks_0.2.0.zip`
 			}
 		}
 	}), {
 		headers: { "Content-Type": "application/json" }
 	});
-	*/
 }
