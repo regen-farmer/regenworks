@@ -63,7 +63,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
           IS_PRERELEASE="false"
-          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]] || [[ "$VERSION" == *".pre"* ]] || [[ "$VERSION" == *"-pre"* ]]; then
             IS_PRERELEASE="true"
           fi
           
