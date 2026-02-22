@@ -54,7 +54,7 @@
 		"google-spreadsheet": "^4.1.5",
 		"jose": "^5.10.0",
 		"lodash": "^4.17.21",
-		"maplibre-gl": "^5.6.2",
+		"maplibre-gl": "^5.18.0",
 		"maplibre-gl-measures": "^0.0.16",
 		"multipart-object": "^1.2.0",
 		"postcss": "^8.5.6",
