@@ -111,12 +111,6 @@ importers:
       pdfkit:
         specifier: ^0.17.1
         version: 0.17.2
-      png-crop:
-        specifier: ^0.0.2
-        version: 0.0.2
-      pngjs:
-        specifier: ^7.0.0
-        version: 7.0.0
       resend:
         specifier: ^6.3.0
         version: 6.8.0
@@ -4353,15 +4347,8 @@ packages:
     resolution: {integrity: sha512-1wrVzJ2STrpmONHKBy228LM1b84msXDUoAzVEl0R8Mz4Ce6EPr+IVtxm8+yvrqLYMHswREkjYFaMxnyGnaY3Ng==}
     hasBin: true
 
-  png-crop@0.0.2:
-    resolution: {integrity: sha512-AEkJ7L51uh0Fw8SkOAwfsPrfTasVQw6gg/8LAPJK0Iu9gj9tchIyndpd8NG68rE0Ywd1U0PIeEVb9VCLviAfxQ==}
-
   png-js@1.0.0:
     resolution: {integrity: sha512-k+YsbhpA9e+EFfKjTCH3VW6aoKlyNYI6NYdTfDL4CIvFnvsuO84ttonmZE7rc+v23SLTH8XX+5w/Ak9v0xGY4g==}
-
-  pngjs@3.4.0:
-    resolution: {integrity: sha512-NCrCHhWmnQklfH4MtJMRjZ2a8c80qXeMlQMv2uVp9ISJMTt562SbGd6n2oq0PaPgKm7Z6pL9E2UlLIhC+SHL3w==}
-    engines: {node: '>=4.0.0'}
 
   pngjs@7.0.0:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
@@ -4769,10 +4756,6 @@ packages:
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
     engines: {node: '>= 0.8'}
-
-  streamifier@0.1.1:
-    resolution: {integrity: sha512-zDgl+muIlWzXNsXeyUfOk9dChMjlpkq0DRsxujtYPgyJ676yQ8jEm6zzaaWHFDg5BNcLuif0eD2MTyJdZqXpdg==}
-    engines: {node: '>=0.10'}
 
   streamsearch@1.1.0:
     resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
@@ -10033,14 +10016,7 @@ snapshots:
     dependencies:
       pngjs: 7.0.0
 
-  png-crop@0.0.2:
-    dependencies:
-      pngjs: 3.4.0
-      streamifier: 0.1.1
-
   png-js@1.0.0: {}
-
-  pngjs@3.4.0: {}
 
   pngjs@7.0.0: {}
 
@@ -10543,8 +10519,6 @@ snapshots:
       set-cookie-parser: 2.7.2
 
   statuses@2.0.2: {}
-
-  streamifier@0.1.1: {}
 
   streamsearch@1.1.0: {}
 

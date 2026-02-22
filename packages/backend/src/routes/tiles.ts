@@ -1,10 +1,6 @@
 import proj4 from "proj4";
 import { joinImages } from "join-images";
 import sharp from "sharp";
-import { PNG } from "pngjs";
-
-// @ts-ignore
-import PNGCrop from "png-crop";
 import express from "express";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
@@ -213,7 +209,7 @@ router.get(
 
     let stitched: sharp.Sharp;
     if (row_buffers.length > 1) {
-      stitched = await await joinImages(row_buffers, {
+      stitched = await joinImages(row_buffers, {
         direction: "vertical",
         color: {
           alpha: 0,
@@ -223,7 +219,7 @@ router.get(
         },
       });
     } else if (row_buffers.length === 1) {
-      stitched = sharp(await rows[0].png().toBuffer());
+      stitched = sharp(row_buffers[0]);
     } else {
       console.log("row_buffers.length", row_buffers.length);
       res.send({ error: "row_buffers.length == 0" });
@@ -280,24 +276,13 @@ router.get(
       top: Math.round(stitched_edge_to_tile_pixels.top),
       left: Math.round(stitched_edge_to_tile_pixels.left),
     };
-    let response_buffer: any;
 
-    // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
-    const crop_promise = new Promise<boolean>(async (resolve, reject) => {
-      // @ts-ignore
-      PNGCrop.cropToStream(
-        await stitched.png().toBuffer(),
-        crop_region,
-        (err: any, output_stream: PNG) => {
-          if (err) throw err;
-          // output_stream.pipe(fs.createWriteStream('pngs/expectedCrop.png'));
-          response_buffer = PNG.sync.write(output_stream, { colorType: 6 });
-          resolve(true);
-        },
-      );
-    });
+    const stitched_buffer = await stitched.png().toBuffer();
 
-    await crop_promise;
+    const response_buffer = await sharp(stitched_buffer)
+      .extract(crop_region)
+      .png()
+      .toBuffer();
     res.set("Content-Type", "image/png");
     res.send(response_buffer);
   },
