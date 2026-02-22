@@ -1,6 +1,6 @@
 // export const [currentLayer, setCurrentLayer] = createSignal('');
 
-export function LayerOutlet(props: any) {
+export default function LayerOutlet(props: any) {
 	// const params = useParams();
 
 	// setBreadcrumb({...breadcrumb(), field: params.layerId});

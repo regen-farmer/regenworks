@@ -161,7 +161,7 @@ export default function view() {
 		try {
 			const result = await generateLayout(
 				system,
-				scenarioData()?.project.layer.geometry,
+				scenarioData()?.project?.layer.geometry,
 			);
 			
 			setSystemLayout({
@@ -197,7 +197,7 @@ export default function view() {
 		);
 		const result = await response.json();
 
-		if (result?.project.systemdesign) {
+		if (result?.project?.systemdesign) {
 			setSavedSystem(JSON.parse(JSON.stringify(result.project.systemdesign!)));
 			setSystem(result.project.systemdesign!);
 		} else {
@@ -241,8 +241,8 @@ export default function view() {
 
 		if (scenarioData()) {
 			if (!map) {
-				const areaLat = scenarioData()?.project.layer.lat;
-				const areaLng = scenarioData()?.project.layer.lng;
+				const areaLat = scenarioData()?.project?.layer.lat;
+				const areaLng = scenarioData()?.project?.layer.lng;
 
 				map = new maplibregl.Map({
 					container: "layerMapShow",
@@ -265,8 +265,8 @@ export default function view() {
 				map.on("load", () => {
 					window.dispatchEvent(new Event("resize"));
 
-					const areaLat = scenarioData()?.project.layer.lat;
-					const areaLng = scenarioData()?.project.layer.lng;
+					const areaLat = scenarioData()?.project?.layer.lat;
+					const areaLng = scenarioData()?.project?.layer.lng;
 
 					// Use the 3D control and link it to our local signal
 					const { show3D: controlShow3D, setShow3D: controlSetShow3D } =
@@ -302,7 +302,7 @@ export default function view() {
 					map!.addControl(scale, "bottom-right");
 
 					const unparsedFieldPolygon: any =
-						scenarioData()?.project.layer.geometry;
+						scenarioData()?.project?.layer.geometry;
 					const fieldPolygon = JSON.parse(
 						unparsedFieldPolygon!.replace(/&#34;/g, '"'),
 					);
@@ -2632,13 +2632,13 @@ const ExportAndShareContent = ({
 }: any) => {
 	const [exportingKML, setExportingKML] = createSignal(false);
 	const [isPublic, setIsPublic] = createSignal(
-		scenarioData()?.project.isPublic || false,
+		scenarioData()?.project?.isPublic || false,
 	);
 	const [exportingImage, setExportingImage] = createSignal(false);
 
 	createEffect(() => {
 		if (scenarioData()) {
-			setIsPublic(scenarioData()?.project.isPublic || false);
+			setIsPublic(scenarioData()?.project?.isPublic || false);
 		}
 	});
 
@@ -2697,7 +2697,7 @@ const ExportAndShareContent = ({
 		);
 		element.setAttribute(
 			"download",
-			`${scenarioData()?.project.layer.name} - ${scenarioData()?.project.name}.kml`,
+			`${scenarioData()?.project?.layer.name} - ${scenarioData()?.project?.name}.kml`,
 		);
 
 		element.style.display = "none";
@@ -2814,7 +2814,7 @@ const ExportAndShareContent = ({
 							.toISOString()
 							.replace(/:/g, "-")
 							.split(".")[0];
-						const filename = `${scenarioData()?.project.layer.name || "map"}_${scenarioData()?.project.name || "export"}_${timestamp}.png`;
+						const filename = `${scenarioData()?.project?.layer.name || "map"}_${scenarioData()?.project?.name || "export"}_${timestamp}.png`;
 
 						element.setAttribute("href", url);
 						element.setAttribute("download", filename);
@@ -2926,9 +2926,9 @@ const ExportAndShareContent = ({
 				<TreeStripsExport
 					systemLayout={systemLayout()}
 					systemDesign={
-						systemLayout() || !scenarioData()?.project.systemdesign
+						systemLayout() || !scenarioData()?.project?.systemdesign
 							? system
-							: scenarioData()?.project.systemdesign
+							: scenarioData()?.project?.systemdesign
 					}
 					species={species}
 					onGeneratePreview={onGeneratePreview}

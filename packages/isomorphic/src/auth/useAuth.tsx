@@ -19,7 +19,7 @@ export const [getMongoDBUser, setMongoDBDBUser]: [any, any] = createSignal();
 export const [getStripeCustomer, setStripeCustomer]: [any, any] =
   createSignal();
 
-export const subscriptions = createMemo(() => {
+export const subscriptions = () => {
   if (getStripeCustomer()?.subscriptions) {
     if (
       getStripeCustomer()?.subscriptions.find((s: any) => s.status === "active")
@@ -29,9 +29,9 @@ export const subscriptions = createMemo(() => {
   } else {
     return [];
   }
-});
+};
 
-export const allowFarmCreation = createMemo<boolean>(() => {
+export const allowFarmCreation = (): boolean => {
   if (getMongoDBUser) {
     return (
       getMongoDBUser()?.isAdmin ||
@@ -44,24 +44,24 @@ export const allowFarmCreation = createMemo<boolean>(() => {
   }
 
   return false;
-});
+};
 
-export const currentSubscriptions = createMemo<any[]>(() => {
+export const currentSubscriptions = (): any[] => {
   return getStripeCustomer()?.subscriptions;
-});
+};
 
-export const isFreemium = createMemo<boolean>(() => {
+export const isFreemium = (): boolean => {
   return !(currentSubscriptions()?.length > 0);
-});
+};
 
-export const isFarmer = createMemo<boolean>(() => {
+export const isFarmer = (): boolean => {
   const isFarmerRole =
     currentSubscriptions()?.filter((sub) => {
       return sub.plan.product === StripeIds.farm.product[getDevProdStatus()];
     })?.length > 0;
 
   return isFarmerRole;
-});
+};
 
 function handleSignOut() {
   localStorage.removeItem("mongodbUser");
