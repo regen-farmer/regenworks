@@ -4,6 +4,8 @@ import {
 	createSignal,
 	For,
 	Show,
+	Show,
+	onCleanup,
 } from "solid-js";
 import { action } from "@solidjs/router";
 import { A, useParams } from "@solidjs/router";
@@ -135,6 +137,7 @@ export default function view() {
 								type: "Polygon",
 								coordinates: correctgeometry.geometry.coordinates,
 							},
+							properties: {},
 						},
 					},
 					layout: {},
@@ -254,6 +257,12 @@ export default function view() {
 						"icon-image": ["concat", ["get", "icon"], "-15"],
 					},
 				});
+			});
+
+			onCleanup(() => {
+				if (map) {
+					map.remove();
+				}
 			});
 		}
 	});

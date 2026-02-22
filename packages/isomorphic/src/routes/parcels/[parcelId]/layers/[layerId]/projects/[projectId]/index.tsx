@@ -14,6 +14,7 @@ import {
 	createSignal,
 	For,
 	Show,
+	onCleanup,
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import { AddRow } from "~/components/systems/add-row.tsx";
@@ -355,6 +356,12 @@ export default function view() {
 				// }
 			}
 		}
+
+		onCleanup(() => {
+			if (map) {
+				map.remove();
+			}
+		});
 	});
 
 	// Helper function to clear all system design layers

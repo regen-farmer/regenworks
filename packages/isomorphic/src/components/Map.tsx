@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Resource } from "solid-js";
 import maplibregl, { type LngLatLike } from "maplibre-gl";
@@ -58,6 +58,12 @@ function MapInstance({
 		map.on("load", () => {
 			setStyleLoaded(true);
 			addMarkers();
+		});
+
+		onCleanup(() => {
+			if (map) {
+				map.remove();
+			}
 		});
 	});
 

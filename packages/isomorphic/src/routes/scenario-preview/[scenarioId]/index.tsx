@@ -12,6 +12,7 @@ import {
 	createResource,
 	createSignal,
 	Show,
+	onCleanup,
 } from "solid-js";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
@@ -168,6 +169,12 @@ const RouteDesignPreview: Component = () => {
 				setMapLoaded(true);
 			});
 		}
+
+		onCleanup(() => {
+			if (map) {
+				map.remove();
+			}
+		});
 	});
 
 	createEffect(() => {

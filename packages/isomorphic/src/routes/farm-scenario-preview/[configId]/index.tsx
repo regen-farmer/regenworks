@@ -15,6 +15,7 @@ import {
 	For,
 	onMount,
 	Show,
+	onCleanup,
 } from "solid-js";
 import { getMongoDBUser } from "~/auth/useAuth";
 import { OfferRequestModal } from "~/components/OfferRequestModal";
@@ -387,6 +388,12 @@ const FarmScenarioPreview: Component = () => {
 				setMapLoaded(true);
 			});
 		}
+
+		onCleanup(() => {
+			if (map) {
+				map.remove();
+			}
+		});
 	});
 
 	// Draw all fields and their system designs

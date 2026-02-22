@@ -4,6 +4,7 @@ import {
 	createEffect,
 	createResource,
 	createSignal,
+	onCleanup,
 } from "solid-js";
 import { action } from "@solidjs/router";
 import { useParams, A, useNavigate } from "@solidjs/router";
@@ -119,6 +120,12 @@ export default function view() {
 				// // Send area to document input
 				// @ts-ignore
 				document.getElementById("layersize").value = shapeArea;
+			});
+
+			onCleanup(() => {
+				if (map) {
+					map.remove();
+				}
 			});
 		}
 	});

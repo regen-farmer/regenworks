@@ -2,7 +2,7 @@ import { A, useParams } from "@solidjs/router";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import type turf from "@turf/turf";
-import { For, createEffect, createResource } from "solid-js";
+import { For, createEffect, createResource, onCleanup } from "solid-js";
 import maplibregl from "maplibre-gl";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
@@ -83,6 +83,12 @@ export default function view() {
 						"fill-color": "#002eff",
 					},
 				});
+			});
+
+			onCleanup(() => {
+				if (map) {
+					map.remove();
+				}
 			});
 		}
 	});
