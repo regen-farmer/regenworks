@@ -50,25 +50,41 @@ export enum modes {
 
 	const [mapref, setMapref] = createSignal<HTMLElement>();
 	const [mode, setMode] = createSignal<modes>(modes.default);
-	const [styleLoaded, setStyleLoaded] = createSignal<boolean>(false);
+	const [isMapReady, setIsMapReady] = createSignal<boolean>(false);
 
 	let map: maplibregl.Map;
 	let farmMarker: maplibregl.Marker | null = null;
 	let mapInitialized = false;
+	let currentParcelId: string | null = null;
 
 	createEffect(() => {
 		if (mapref() && !mapInitialized && data()?.parcel && (data()?.parcel as any)?._id === params.parcelId) {
 			mapInitialized = true;
+			currentParcelId = params.parcelId;
+			const parcel = data()?.parcel!;
+
 			map = new maplibregl.Map({
 				container: mapref()!,
 				attributionControl: false,
 				style: GoogleSatStyle,
-				center: [data()?.parcel.lng as number, data()?.parcel.lat as number],
+				center: [parcel.lng as number, parcel.lat as number],
 				zoom: 12,
 				maxZoom: 20,
 			});
 
-			if (withinDKBBox(data()?.parcel.lng as number, data()?.parcel.lat as number)) {
+			setIsMapReady(true);
+
+			const farmMarkerIcon = createFarmMarkerIcon();
+			farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
+				.setLngLat([parcel.lng as number, parcel.lat as number])
+				.setPopup(
+					new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
+						.setLngLat([parcel.lng as number, parcel.lat as number])
+						.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
+				)
+				.addTo(map);
+
+			if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
 				useHCControl(map);
 				useBSControl(map);
 			}
@@ -85,22 +101,16 @@ export enum modes {
 				unit: 'metric'
 			});
 			map.addControl(scale, 'bottom-left');
-
-			map.once("load", () => {
-				setStyleLoaded(true);
-			});
 		}
 	});
 
 	createEffect(() => {
 		const parcel = data()?.parcel;
-		if (styleLoaded() && parcel && map && (parcel as any)?._id === params.parcelId) {
-			const center = map.getCenter();
-			if (!center) return;
-			
-			const dist = Math.abs(center.lng - (parcel.lng as number)) + Math.abs(center.lat - (parcel.lat as number));
-			
-			if (dist > 0.0001) {
+		const _id = (parcel as any)?._id;
+		if (isMapReady() && parcel && map && _id === params.parcelId) {
+			if (currentParcelId && currentParcelId !== params.parcelId) {
+				currentParcelId = params.parcelId;
+				
 				setTimeout(() => {
 					map?.resize();
 					map?.flyTo({
@@ -109,21 +119,21 @@ export enum modes {
 						duration: 500,
 					});
 				}, 50);
-			}
 
-			if (farmMarker) {
-				farmMarker.remove();
-			}
+				if (farmMarker) {
+					farmMarker.remove();
+				}
 
-			const farmMarkerIcon = createFarmMarkerIcon();
-			farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
-				.setLngLat([parcel.lng as number, parcel.lat as number])
-				.setPopup(
-					new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
-						.setLngLat([parcel.lng as number, parcel.lat as number])
-						.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
-				)
-				.addTo(map);
+				const farmMarkerIcon = createFarmMarkerIcon();
+				farmMarker = new maplibregl.Marker({ element: farmMarkerIcon })
+					.setLngLat([parcel.lng as number, parcel.lat as number])
+					.setPopup(
+						new maplibregl.Popup({ closeOnClick: true, offset: [0, -40] })
+							.setLngLat([parcel.lng as number, parcel.lat as number])
+							.setHTML(`<strong><span style="color: black;">${parcel.name}</span></strong><br/><span style="color: black;">${parcel.location}</span><br />`),
+					)
+					.addTo(map);
+			}
 		}
 	});
 
@@ -149,7 +159,6 @@ export enum modes {
 		setMode(modes.editField)
 	}
 
-
 	return (
 		<>
 			<div
@@ -159,7 +168,7 @@ export enum modes {
 				}}
 				style="border:none; border-radius: unset; width: 100%; height: calc(100vh - 57px);"
 			/>
-			<Show when={data()?.parcel && styleLoaded()}>
+			<Show when={data()?.parcel && isMapReady()}>
 				<Switch>
 					<Match when={mode() === modes.default}>
 						<DefaultMode
