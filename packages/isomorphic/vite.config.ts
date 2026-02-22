@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
 				
 				const allCss = Array.from(new Set(getCssFiles("src/entry-client.tsx")));
 				
-				const htmlBlocks = allCss.map(cssFile => `<link rel="stylesheet" href="/${cssFile}">`).join("\n    ");
+				const htmlBlocks = allCss.map(cssFile => `<link rel="stylesheet" href="./${cssFile}">`).join("\n    ");
 				
 				const html = `<!DOCTYPE html>
 <html lang="en">
@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => {
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/${jsFile}"></script>
+    <script type="module" src="./${jsFile}"></script>
   </body>
 </html>`;
 				
@@ -76,6 +76,7 @@ export default defineConfig(({ mode }) => {
 	};
 
 	return {
+		base: isTauri ? "./" : "/",
 		server: {
 			port: Number(process.env.PORT) || 10000,
 		},

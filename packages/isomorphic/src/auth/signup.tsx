@@ -1,14 +1,20 @@
 import { A } from "@solidjs/router";
 import { NavBar } from "~/components/NavBar.tsx";
 
+import { isTauri } from "~/util/platform.ts";
+
 export default function NewUser() {
+	const authPath = (typeof window !== "undefined" && isTauri()) 
+		? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
+		: "/api/auth/signin";
+
 	return (
 		<>
 			<NavBar />
 			<div class="container" style="text-align: center; margin-top: 80px;">
 				<a
 					rel="external"
-					href="/api/auth/signin"
+					href={authPath}
 					class="rounded-sm p-4 m-1 btn-default text-base inline-block"
 				>
 					Log in or create new user

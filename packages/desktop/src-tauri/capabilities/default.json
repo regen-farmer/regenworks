@@ -1,14 +1,30 @@
 {
-	"$schema": "https://schema.tauri.app/config/2/capability",
-	"identifier": "default",
-	"description": "Default capabilities for RegenWorks desktop",
-	"windows": ["main"],
-	"permissions": [
-		"core:default",
-		"shell:allow-open",
-		"opener:default",
-		"updater:default",
-		"process:allow-restart",
-		"process:allow-exit"
-	]
+  "$schema": "https://schema.tauri.app/config/2/capability",
+  "identifier": "default",
+  "description": "Default capabilities for RegenWorks desktop",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://staging.regenfarmer.com",
+      "https://staging.regenfarmer.com/*",
+      "tauri://localhost",
+      "tauri://localhost/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    "opener:default",
+    "updater:default",
+    "process:allow-restart",
+    "process:allow-exit",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*.regenfarmer.com/*" }
+      ]
+    }
+  ]
 }

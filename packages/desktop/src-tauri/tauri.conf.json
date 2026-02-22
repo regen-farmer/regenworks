@@ -23,7 +23,7 @@
 			}
 		],
 		"security": {
-			"csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.regenworks.com https://*.mapbox.com https://*.maptiler.com https://*.auth0.com wss://*.regenworks.com; font-src 'self' data:; worker-src 'self' blob:;"
+			"csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' ipc: http://ipc.localhost ipc://localhost https://*.regenfarmer.com https://*.mapbox.com https://*.maptiler.com https://*.auth0.com wss://*.regenfarmer.com; font-src 'self' data:; worker-src 'self' blob:;"
 		}
 	},
 	"bundle": {
@@ -50,7 +50,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU2N0E5QUM0Q0I1OEM0MjkKUldRcHhGakx4SnA2VmlwSkxOWE5WVGZ3V3Jmdi9mRGRyS25ySEpGZ3NWbEQzY2JUc2M3dEp3cHQK",
 			"endpoints": [
-				"https://app.regenfarmer.com/api/updater/{{target}}/{{arch}}/{{current_version}}"
+				"https://staging.regenfarmer.com/api/updater/{{target}}/{{arch}}/{{current_version}}"
 			]
 		}
 	}
