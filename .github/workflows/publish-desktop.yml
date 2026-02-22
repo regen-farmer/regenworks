@@ -54,45 +54,60 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install
 
-      - name: Get App Version
-        id: version
+      - name: Parse Version & Strategy
+        id: strategy
         shell: bash
         run: |
           cd packages/desktop/src-tauri
           VERSION=$(grep '"version"' tauri.conf.json | head -1 | awk -F '"' '{print $4}')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Determine Build Flags
-        id: flags
-        shell: bash
-        run: |
+          
+          IS_PRERELEASE="false"
+          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+            IS_PRERELEASE="true"
+          fi
+          
+          SHOULD_BUILD="true"
           if [ "${{ github.ref_name }}" = "dev" ]; then
+            if [ "$IS_PRERELEASE" = "false" ]; then
+              echo "Skipping: Stable versions are not released from the dev branch."
+              SHOULD_BUILD="false"
+            fi
             echo "config=--config src-tauri/tauri.staging.conf.json" >> $GITHUB_OUTPUT
             echo "prerelease=true" >> $GITHUB_OUTPUT
           else
+            # main branch
+            if [ "$IS_PRERELEASE" = "true" ]; then
+              echo "Skipping: Pre-release versions are not released from the main branch."
+              SHOULD_BUILD="false"
+            fi
             echo "config=" >> $GITHUB_OUTPUT
             echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
+          
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 
       - name: Build Tauri App
+        if: steps.strategy.outputs.should_build == 'true'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd packages/desktop
-          pnpm tauri build ${{ steps.flags.outputs.config }} --target ${{ matrix.target }}
+          pnpm tauri build ${{ steps.strategy.outputs.config }} --target ${{ matrix.target }}
 
       - name: Upload to Distribution Repo
+        if: steps.strategy.outputs.should_build == 'true'
         env:
           # You MUST generate a Github Personal Access Token (classic) with "repo" scope
           # and add it to your RegenWorks repository secrets as "DIST_REPO_TOKEN"
           GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }} 
         shell: bash
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${{ steps.strategy.outputs.version }}"
           TAG="v$VERSION"
           PRERELEASE_FLAG=""
-          if [ "${{ steps.flags.outputs.prerelease }}" = "true" ]; then
+          if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
           
