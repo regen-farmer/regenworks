@@ -1,0 +1,105 @@
+name: Publish Desktop Releases
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'packages/desktop/src-tauri/tauri.conf.json'
+
+jobs:
+  publish-tauri:
+    name: Build & Publish Tauri
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install JS dependencies
+        run: pnpm install
+
+      - name: Get App Version
+        id: version
+        shell: bash
+        run: |
+          cd packages/desktop/src-tauri
+          VERSION=$(grep '"version"' tauri.conf.json | head -1 | awk -F '"' '{print $4}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Determine Build Flags
+        id: flags
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "config=--config src-tauri/tauri.staging.conf.json" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "config=" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Tauri App
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          cd packages/desktop
+          pnpm tauri build ${{ steps.flags.outputs.config }} --target ${{ matrix.target }}
+
+      - name: Upload to Distribution Repo
+        env:
+          # You MUST generate a Github Personal Access Token (classic) with "repo" scope
+          # and add it to your RegenWorks repository secrets as "DIST_REPO_TOKEN"
+          GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }} 
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v$VERSION"
+          PRERELEASE_FLAG=""
+          if [ "${{ steps.flags.outputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          
+          # Initialize release on distribution repo if it doesn't exist
+          gh release view $TAG --repo regen-farmer/regenworks-distribution || gh release create $TAG --repo regen-farmer/regenworks-distribution --title $TAG $PRERELEASE_FLAG --notes "Release $TAG"
+          
+          cd packages/desktop/src-tauri/target/${{ matrix.target }}/release/bundle
+          
+          # Upload everything relevant. (bash loops over found files to safely handle globs across OS platforms)
+          find . -type f \( -name "*.dmg" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.sig" -o -name "*.exe" \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;
