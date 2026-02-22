@@ -93,7 +93,6 @@ export function applyHeadland(
       idxOfSidesParallelToBearing.push(idx);
     }
   });
-  console.log("idxOfBearingSides", idxOfSidesParallelToBearing);
 
   let sidesCloseToBearing = idxOfSidesParallelToBearing.map((idx) => headlandPolygonSides[idx]);
 
@@ -105,7 +104,6 @@ export function applyHeadland(
   let headlandPolygonCoords = headlandPolygon.geometry.coordinates[0];
 
   for (const idx of idxOfSidesParallelToBearing) {
-    console.log("IDX", idx);
     // Find the adjecent sides to parallel one that has length > 2 m
 
     let beforeIdx = idx;
@@ -147,9 +145,6 @@ export function applyHeadland(
         break;
       }
     }
-
-    console.log("beforeIdx", beforeIdx);
-    console.log("afterIdx", afterIdx);
 
     const beforeSide = headlandPolygonSides[beforeIdx];
     const afterSide = headlandPolygonSides[afterIdx];
@@ -207,7 +202,6 @@ export function applyHeadland(
     intersectionAfter.features = [intersectionAfter.features];
 
     if (beforeIdx < afterIdx) {
-      console.log("headlandPolygonCoords.length 1: ", headlandPolygonCoords.length);
       headlandPolygonCoords = [
         ..._.slice(headlandPolygonCoords, 0, beforeIdx + 1),
         intersectionBefore.features[0].geometry.coordinates,
@@ -220,11 +214,9 @@ export function applyHeadland(
         intersectionAfter.features[0].geometry.coordinates,
         ..._.slice(headlandPolygonCoords, afterIdx + 1),
       ];
-      console.log("headlandPolygonCoords.length 1: ", headlandPolygonCoords.length);
     }
 
     if (afterIdx < beforeIdx) {
-      console.log("headlandPolygonCoords.length 2: ", headlandPolygonCoords.length);
 
       headlandPolygonCoords = [
         // Add additional points similar to the one below to keep length of headland polygon array
@@ -240,8 +232,6 @@ export function applyHeadland(
         ),
         intersectionAfter.features[0].geometry.coordinates,
       ];
-
-      console.log("headlandPolygonCoords.length 2: ", headlandPolygonCoords.length);
     }
 
     // const polygonSides = polygonCoords.map((coord, i) =>
@@ -275,8 +265,6 @@ export function applyHeadland(
 
     return true;
   });
-
-  console.log("headlandPolygonCoordslength Total", headlandPolygonCoords.length);
 
   headlandPolygon = turf.polygon([headlandPolygonCoords], { name: "poly1" });
 

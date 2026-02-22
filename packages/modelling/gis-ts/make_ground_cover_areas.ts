@@ -28,7 +28,6 @@ export function makeGroundCoverAreas(
   const groundCoverAreasM2 = {};
 
   if (!(rows.length > 0)) {
-    console.log("No rows in system design");
     return { groundCoverAreas: [], groundCoverAreasM2: {} };
   }
 
@@ -65,7 +64,5 @@ export function makeGroundCoverAreas(
     }
   }
 
-  console.log("groundCoverAreas.length", groundCoverAreas.length);
-  console.log("groundCoverAreasM2", groundCoverAreasM2);
   return { groundCoverAreas, groundCoverAreasM2 };
 }

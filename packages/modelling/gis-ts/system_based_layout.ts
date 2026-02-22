@@ -319,10 +319,7 @@ export function systemBasedLayoutSync(systemdesign: ISystemDesignSchema, fieldGe
     {} as Record<string, { species: any; count: number }>,
   );
 
-  console.log("speciesCounts", speciesCounts);
-
   const speciesCountArray = Object.values(speciesCounts);
-  // console.log('speciesCountArray',speciesCountArray)
   // // Edge System
   // const { edgeTreeCanopyArray, edgeRowArray } = createEdge(project, calibrateDistance, polygon);
   // rowArray.concat(edgeRowArray);

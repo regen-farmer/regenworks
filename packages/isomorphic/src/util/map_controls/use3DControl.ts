@@ -131,7 +131,6 @@ export function use3DControl(
     } catch {}
 
     if (show3D()) {
-      console.log("SHOW 3D", layoutData()?.treeMarkerArray);
 
       type TreeAsset = {
         species: any;
@@ -143,24 +142,17 @@ export function use3DControl(
 
       const correctTreeAssetArray: TreeAsset[] = layoutData()?.treeMarkerArray!.filter(
         (entry: TreeAsset) => {
-          // console.log('entry.species', entry.species)
 
           if (entry.species) {
-            // console.log('entry.species', entry.species)
             const speciesKey =
               typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
             const cultivar = species()?.speciesById.get(speciesKey);
-
-            // console.log("cultivar", cultivar)
             return cultivar.form !== undefined;
           }
 
           return false;
         },
       );
-      // const trees = [...correctTreeAssetArray, ...correctTreeAssetArray, ...correctTreeAssetArray, ...correctTreeAssetArray, ...correctTreeAssetArray];
-      // console.log(trees.length)
-      console.log("correctTreeAssetArray", correctTreeAssetArray);
 
       const assetFormArrays = _.groupBy(correctTreeAssetArray, (entry) => {
         const speciesKey2 =
@@ -172,9 +164,6 @@ export function use3DControl(
         }
         return cultivar?.form ?? "palm";
       });
-
-      console.log("assetFormArrays", assetFormArrays);
-      // console.log("assetFormArrays", assetFormArrays);
 
       const models: any = {
         giantherb: {
@@ -203,16 +192,11 @@ export function use3DControl(
         },
       };
 
-      console.log("assetFormArrays", assetFormArrays);
-
       const Layers3D: any[] = [];
 
       _.forEach(assetFormArrays, (value, key) => {
-        // console.log("At map render phase", show3D(), models[key]);
-
         let newKey = key;
 
-        console.log("Key", newKey);
         if (!newKey || newKey === "grass") {
           newKey = "tree";
         }

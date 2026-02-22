@@ -11,11 +11,8 @@ import type { Map as MLMap } from "maplibre-gl";
 import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors";
 
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?: boolean) {
-  console.log("Draw layers! show3D:", show3D);
-
   // In 3D mode, hide all 2D layers for photorealistic view
   if (show3D) {
-    console.log("3D mode active - hiding all 2D layers for photorealistic view");
 
     // List of static layers to hide
     const staticLayersToHide = [
@@ -99,9 +96,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
     }
     treesBySpecies.get(speciesId)!.push(tree);
   });
-
-  console.log("speciesCountArray", systemLayout.speciesCountArray);
-  console.log("treesBySpecies", treesBySpecies);
 
   // console.log("treeMarkerArray", treeMarkerArray);
 
@@ -316,7 +310,6 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
       map.removeSource("headland-intersection-points");
     }
 
-    console.log(intersectionPoints);
     map.addLayer({
       id: "headland-intersection-points",
       type: "circle",

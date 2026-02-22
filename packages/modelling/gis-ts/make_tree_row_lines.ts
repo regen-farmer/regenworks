@@ -65,7 +65,6 @@ export function makeTreeRowLines(
   let currentRowIdx = 0;
 
   if (!(rows.length > 0)) {
-    console.log("No rows in system design");
     return [];
   }
 
@@ -138,7 +137,6 @@ export function makeTreeRowLines(
       const { before, after } = calculateHeadlandOffset(rows[currentRowIdx].offset);
 
       if (before + after >= length(treeRow, { units: "meters" })) {
-        console.log("offset are longer than tree row line. Skipping");
         // eslint-disable-next-line no-continue
         continue;
       }

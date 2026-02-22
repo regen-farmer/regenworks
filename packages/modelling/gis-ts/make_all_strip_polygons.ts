@@ -54,7 +54,6 @@ export function makeAllStripPolygons(
   let currentRowIdx = 0;
 
   if (!(rows.length > 0)) {
-    console.log("No rows in system design");
     return { stripPolygons: [], stripAreasM2: [], elongatedDonutBuffers: [] };
   }
 
@@ -125,12 +124,6 @@ export function makeAllStripPolygons(
       currentRowIdx = 0;
     }
   }
-
-  console.log("stripPolygons.length", stripPolygons.length);
-  console.log(
-    "Total strips area (m²):",
-    stripAreasM2.reduce((a, b) => a + b, 0),
-  );
 
   return { stripPolygons, stripAreasM2, elongatedDonutBuffers };
 }
