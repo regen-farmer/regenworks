@@ -26,10 +26,12 @@ export async function checkForUpdates(): Promise<boolean> {
 			console.log(`[Updater] Release notes: ${update.body}`);
 
 			// Prompt user to install
-			const shouldInstall = window.confirm(
+			const { ask } = await import("@tauri-apps/plugin-dialog");
+			const shouldInstall = await ask(
 				`A new version (${update.version}) is available!\n\n` +
 					`${update.body || "No release notes available."}\n\n` +
 					`Would you like to download and install it now?`,
+				{ title: "Update Available", kind: "info" }
 			);
 
 			if (shouldInstall) {

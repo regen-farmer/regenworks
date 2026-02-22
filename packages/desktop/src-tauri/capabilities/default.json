@@ -23,10 +23,17 @@
       "allow": [
         {
           "url": "https://*.regenfarmer.com/*"
+        },
+        {
+          "url": "http://127.0.0.1:*"
+        },
+        {
+          "url": "http://localhost:*"
         }
       ]
     },
     "core:app:allow-version",
-    "core:app:allow-tauri-version"
+    "core:app:allow-tauri-version",
+    "dialog:default"
   ]
 }
