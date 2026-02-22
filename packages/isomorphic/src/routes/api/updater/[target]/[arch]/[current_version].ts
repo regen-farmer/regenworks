@@ -27,14 +27,15 @@ export async function GET({ request, params }: APIEvent) {
 		let release;
 
 		if (isStaging) {
-			// In Staging, fetch all releases and pull the very first one (might be a pre-release or recent stable)
+			// In Staging, fetch all releases and pull the very first pre-release
 			const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases`, {
 				headers: { 'User-Agent': 'RegenWorks-Updater' }
 			});
 			if (!res.ok) throw new Error('Failed to fetch staging releases');
 			const releases = await res.json();
-			if (releases.length === 0) return new Response(null, { status: 204 });
-			release = releases[0];
+			const preReleases = releases.filter((r: any) => r.prerelease === true);
+			if (preReleases.length === 0) return new Response(null, { status: 204 });
+			release = preReleases[0];
 		} else {
 			// In Production, strict fetch only the latest non-prerelease stable channel
 			const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
