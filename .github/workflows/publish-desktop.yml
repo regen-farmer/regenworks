@@ -45,11 +45,15 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install MacOS dependencies
+        if: startsWith(matrix.platform, 'macos')
+        run: brew install geos
+
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgeos-dev
 
       - name: Install JS dependencies
         run: pnpm install
