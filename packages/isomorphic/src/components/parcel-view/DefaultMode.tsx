@@ -688,7 +688,8 @@ export default function DefaultMode({
           </Show>
 
           {/* Financial Models Section - only show when there are planting plans */}
-          <Show when={farmConfigs() && farmConfigs()!.length > 0}>
+          {/* TEMPORARILY HIDDEN 
+          <Show when={false && farmConfigs() && farmConfigs()!.length > 0}>
             <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
               <button
                 type="button"
@@ -773,6 +774,7 @@ export default function DefaultMode({
               </div>
             </div>
           </Show>
+          */}
         </div>
       </div>
 
