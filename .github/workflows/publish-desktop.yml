@@ -45,6 +45,18 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop/src-tauri -> target
+
+      - name: Cache vcpkg packages
+        if: matrix.platform == 'windows-latest'
+        uses: actions/cache@v4
+        with:
+          path: C:\vcpkg\installed
+          key: vcpkg-x64-windows-geos
+
       - name: Install MacOS dependencies
         if: startsWith(matrix.platform, 'macos')
         run: brew install geos
