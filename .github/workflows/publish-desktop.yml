@@ -55,6 +55,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgeos-dev
 
+      - name: Install Windows dependencies
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Install GEOS and pkgconf via vcpkg (pre-installed on GH runners at C:\vcpkg)
+          vcpkg install geos:x64-windows
+          vcpkg install pkgconf:x64-windows
+
+          # Get installed GEOS version dynamically
+          $geosVersion = (vcpkg list geos) | Where-Object { $_ -match "geos:x64-windows" } | ForEach-Object { ($_ -split "\s+")[1] }
+          echo "GEOS_VERSION=$geosVersion" >> $env:GITHUB_ENV
+
+          # Point geos-sys to vcpkg-installed GEOS
+          echo "GEOS_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
+          echo "GEOS_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_PATH=C:\vcpkg\installed\x64-windows\lib\pkgconfig" >> $env:GITHUB_ENV
+
+          # Add GEOS and pkgconf binaries to PATH
+          echo "C:\vcpkg\installed\x64-windows\bin" >> $env:GITHUB_PATH
+          echo "C:\vcpkg\installed\x64-windows\tools\pkgconf" >> $env:GITHUB_PATH
+
+          # Add LLVM/clang to PATH (required by ring crate)
+          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+
       - name: Install JS dependencies
         run: pnpm install
 

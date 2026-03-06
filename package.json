@@ -5,10 +5,10 @@
   "scripts": {
     "update-deps": "bunx --bun taze major --interactive --recursive --install --update false --write",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "pnpm --filter '*' dev",
-    "build": "pnpm --filter '*' build",
-    "start": "pnpm --filter '*' start",
-    "start-local": "pnpm --filter '*' start-local"
+    "dev": "pnpm --filter * dev",
+    "build": "pnpm --filter * build",
+    "start": "pnpm --filter * start",
+    "start-local": "pnpm --filter * start-local"
   },
   "keywords": [],
   "author": "",
