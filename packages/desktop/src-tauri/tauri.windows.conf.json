@@ -3,6 +3,9 @@
 		"resources": {
 			"geos_c.dll": ".",
 			"geos.dll": "."
+		},
+		"nsis": {
+			"installMode": "currentUser"
 		}
 	}
 }
