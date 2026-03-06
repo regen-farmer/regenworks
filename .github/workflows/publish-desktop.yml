@@ -177,31 +177,30 @@ jobs:
 
           # Determine human-readable platform label for asset naming
           case "${{ matrix.platform }}" in
-            macos-26)        PLATFORM_LABEL="macos-arm64" ;;
-            macos-26-intel)  PLATFORM_LABEL="macos-x86_64" ;;
-            windows-latest)  PLATFORM_LABEL="windows" ;;
-            ubuntu-22.04)    PLATFORM_LABEL="linux" ;;
+            macos-26)        PLATFORM_LABEL="macos_arm64" ;;
+            macos-26-intel)  PLATFORM_LABEL="macos_x86_64" ;;
+            windows-latest)  PLATFORM_LABEL="windows_x86_64" ;;
+            ubuntu-22.04)    PLATFORM_LABEL="linux_x86_64" ;;
             *)               PLATFORM_LABEL="${{ matrix.platform }}" ;;
           esac
 
-          # Rename .app.tar.gz bundles: insert target + platform label before .app.tar.gz
-          for f in $(find . -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig"); do
-            dir=$(dirname "$f")
-            base=$(basename "$f")
-            newbase="${base/.app.tar.gz/-${PLATFORM_LABEL}.app.tar.gz}"
-            mv "$f" "$dir/$newbase"
-          done
+          # Rename all bundles to consistent format: RegenWorks_version_os_arch.extension
+          TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
 
-          # Rename platform-specific installers to include platform label before extension
           for ext in dmg AppImage deb rpm exe zip; do
             for f in $(find . -name "*.$ext" ! -name "*.sig"); do
-              dir=$(dirname "$f"); base=$(basename "$f" ".$ext")
-              mv "$f" "$dir/${base}-${PLATFORM_LABEL}.$ext"
+              mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext"
             done
             for f in $(find . -name "*.$ext.sig"); do
-              dir=$(dirname "$f"); base=$(basename "$f" ".$ext.sig")
-              mv "$f" "$dir/${base}-${PLATFORM_LABEL}.$ext.sig"
+              mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext.sig"
             done
+          done
+
+          for f in $(find . -name "*.app.tar.gz" ! -name "*.sig"); do
+            mv "$f" "$(dirname "$f")/${TARGET_BASE}.app.tar.gz"
+          done
+          for f in $(find . -name "*.app.tar.gz.sig"); do
+            mv "$f" "$(dirname "$f")/${TARGET_BASE}.app.tar.gz.sig"
           done
 
           # Upload everything relevant
