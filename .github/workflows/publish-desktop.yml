@@ -108,14 +108,7 @@ jobs:
           if [[ "$VERSION" == *"-"* ]]; then
             IS_PRERELEASE="true"
             PRE_NUM=$(echo "$VERSION" | grep -oE '\-[0-9]+$' | tr -d '-')
-            if [[ -n "$PRE_NUM" ]]; then
-              N=$((10#$PRE_NUM))
-              if   (( N >= 300 )); then STAGE_LABEL="rc.$((N - 300))"
-              elif (( N >= 200 )); then STAGE_LABEL="beta.$((N - 200))"
-              elif (( N >= 100 )); then STAGE_LABEL="alpha.$((N - 100))"
-              else                      STAGE_LABEL="pre.$N"
-              fi
-            fi
+            [[ -n "$PRE_NUM" ]] && STAGE_LABEL="pre.$((10#$PRE_NUM))"
           fi
           echo "stage_label=$STAGE_LABEL" >> $GITHUB_OUTPUT
 
