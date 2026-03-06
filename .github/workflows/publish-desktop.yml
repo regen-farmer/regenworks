@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'packages/desktop/src-tauri/tauri.conf.json'
+  workflow_dispatch:
 
 jobs:
   publish-tauri:
