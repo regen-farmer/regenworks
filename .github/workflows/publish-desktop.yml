@@ -155,6 +155,14 @@ jobs:
           gh release view $TAG --repo regen-farmer/regenworks-distribution || gh release create $TAG --repo regen-farmer/regenworks-distribution --title $TAG $PRERELEASE_FLAG --notes "Release $TAG"
           
           cd packages/desktop/src-tauri/target/${{ matrix.target }}/release/bundle
-          
+
+          # Rename .app.tar.gz bundles to include target architecture to avoid clobbering between arm64/x86_64 macOS builds
+          for f in $(find . -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig"); do
+            dir=$(dirname "$f")
+            base=$(basename "$f")
+            newbase="${base/.app.tar.gz/_${{ matrix.target }}.app.tar.gz}"
+            mv "$f" "$dir/$newbase"
+          done
+
           # Upload everything relevant. (bash loops over found files to safely handle globs across OS platforms)
           find . -type f \( -name "*.dmg" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.sig" -o -name "*.exe" \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;
