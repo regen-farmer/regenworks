@@ -160,7 +160,7 @@ jobs:
         env:
           # You MUST generate a Github Personal Access Token (classic) with "repo" scope
           # and add it to your RegenWorks repository secrets as "DIST_REPO_TOKEN"
-          GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
         shell: bash
         run: |
           VERSION="${{ steps.strategy.outputs.version }}"
@@ -169,21 +169,42 @@ jobs:
           if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-          
+
           # Initialize release on distribution repo if it doesn't exist
           gh release view $TAG --repo regen-farmer/regenworks-distribution || gh release create $TAG --repo regen-farmer/regenworks-distribution --title $TAG $PRERELEASE_FLAG --notes "Release $TAG"
-          
+
           cd packages/desktop/src-tauri/target/${{ matrix.target }}/release/bundle
 
-          # Rename .app.tar.gz bundles to include target architecture to avoid clobbering between arm64/x86_64 macOS builds
+          # Determine human-readable platform label for asset naming
+          case "${{ matrix.platform }}" in
+            macos-26)        PLATFORM_LABEL="macos-arm64" ;;
+            macos-26-intel)  PLATFORM_LABEL="macos-x86_64" ;;
+            windows-latest)  PLATFORM_LABEL="windows" ;;
+            ubuntu-22.04)    PLATFORM_LABEL="linux" ;;
+            *)               PLATFORM_LABEL="${{ matrix.platform }}" ;;
+          esac
+
+          # Rename .app.tar.gz bundles: insert target + platform label before .app.tar.gz
           for f in $(find . -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig"); do
             dir=$(dirname "$f")
             base=$(basename "$f")
-            newbase="${base/.app.tar.gz/_${{ matrix.target }}.app.tar.gz}"
+            newbase="${base/.app.tar.gz/-${PLATFORM_LABEL}.app.tar.gz}"
             mv "$f" "$dir/$newbase"
           done
 
-          # Upload everything relevant, excluding internal Debian package components
+          # Rename platform-specific installers to include platform label before extension
+          for ext in dmg AppImage deb rpm exe zip; do
+            for f in $(find . -name "*.$ext" ! -name "*.sig"); do
+              dir=$(dirname "$f"); base=$(basename "$f" ".$ext")
+              mv "$f" "$dir/${base}-${PLATFORM_LABEL}.$ext"
+            done
+            for f in $(find . -name "*.$ext.sig"); do
+              dir=$(dirname "$f"); base=$(basename "$f" ".$ext.sig")
+              mv "$f" "$dir/${base}-${PLATFORM_LABEL}.$ext.sig"
+            done
+          done
+
+          # Upload everything relevant
           find . -type f \( \
             -name "*.dmg" \
             -o -name "*.AppImage" \
