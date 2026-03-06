@@ -136,6 +136,11 @@ jobs:
           
           echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 
+      - name: Copy GEOS DLL for bundling (Windows only)
+        if: steps.strategy.outputs.should_build == 'true' && matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos_c.dll" "packages\desktop\src-tauri\geos_c.dll"
+
       - name: Build Tauri App
         id: build
         if: steps.strategy.outputs.should_build == 'true'
@@ -144,7 +149,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           cd packages/desktop
-          pnpm tauri build ${{ steps.strategy.outputs.config }} --target ${{ matrix.target }}
+          EXTRA_CONFIG=""
+          if [ "${{ matrix.platform }}" = "windows-latest" ]; then
+            EXTRA_CONFIG="--config src-tauri/tauri.windows.conf.json"
+          fi
+          pnpm tauri build ${{ steps.strategy.outputs.config }} $EXTRA_CONFIG --target ${{ matrix.target }}
 
       - name: Upload to Distribution Repo
         if: steps.strategy.outputs.should_build == 'true' && steps.build.outcome == 'success'

@@ -1,0 +1,7 @@
+{
+	"bundle": {
+		"resources": {
+			"geos_c.dll": "."
+		}
+	}
+}
