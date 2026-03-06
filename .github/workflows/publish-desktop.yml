@@ -129,6 +129,7 @@ jobs:
           echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
 
       - name: Build Tauri App
+        id: build
         if: steps.strategy.outputs.should_build == 'true'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -138,7 +139,7 @@ jobs:
           pnpm tauri build ${{ steps.strategy.outputs.config }} --target ${{ matrix.target }}
 
       - name: Upload to Distribution Repo
-        if: steps.strategy.outputs.should_build == 'true'
+        if: steps.strategy.outputs.should_build == 'true' && steps.build.outcome == 'success'
         env:
           # You MUST generate a Github Personal Access Token (classic) with "repo" scope
           # and add it to your RegenWorks repository secrets as "DIST_REPO_TOKEN"
