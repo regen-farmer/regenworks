@@ -102,13 +102,21 @@ jobs:
           cd packages/desktop/src-tauri
           VERSION=$(grep '"version"' tauri.conf.json | head -1 | awk -F '"' '{print $4}')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           IS_PRERELEASE="false"
           if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]] || [[ "$VERSION" == *".pre"* ]] || [[ "$VERSION" == *"-pre"* ]]; then
             IS_PRERELEASE="true"
           fi
-          
+
           SHOULD_BUILD="true"
+          # Skip if version hasn't changed vs previous commit (e.g. formatter touched the file)
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            PREV_VERSION=$(git show HEAD~1:packages/desktop/src-tauri/tauri.conf.json 2>/dev/null | grep '"version"' | head -1 | awk -F '"' '{print $4}' || echo "")
+            if [ "$VERSION" = "$PREV_VERSION" ]; then
+              echo "Version unchanged ($VERSION), skipping build."
+              SHOULD_BUILD="false"
+            fi
+          fi
           if [ "${{ github.ref_name }}" = "dev" ]; then
             if [ "$IS_PRERELEASE" = "false" ]; then
               echo "Skipping: Stable versions are not released from the dev branch."
