@@ -1,6 +1,6 @@
 {
 	"name": "@rw/desktop",
-	"version": "2026.1.0-pre.2",
+	"version": "2026.1.0-9",
 	"description": "RegenWorks Desktop - Fast agroforestry planning application",
 	"type": "module",
 	"scripts": {

@@ -1,7 +1,6 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
 	"productName": "RegenWorks",
-	"version": "2026.1.0-pre.8",
 	"identifier": "com.regenworks.desktop",
 	"build": {
 		"beforeDevCommand": "cd ../.. && pnpm --filter isomorphic dev",
