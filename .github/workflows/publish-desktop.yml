@@ -143,7 +143,9 @@ jobs:
       - name: Copy GEOS DLL for bundling (Windows only)
         if: steps.strategy.outputs.should_build == 'true' && matrix.platform == 'windows-latest'
         shell: pwsh
-        run: Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos_c.dll" "packages\desktop\src-tauri\geos_c.dll"
+        run: |
+          Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos_c.dll" "packages\desktop\src-tauri\geos_c.dll"
+          Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos.dll" "packages\desktop\src-tauri\geos.dll"
 
       - name: Build Tauri App
         id: build
