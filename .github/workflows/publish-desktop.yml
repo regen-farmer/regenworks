@@ -183,5 +183,18 @@ jobs:
             mv "$f" "$dir/$newbase"
           done
 
-          # Upload everything relevant. (bash loops over found files to safely handle globs across OS platforms)
-          find . -type f \( -name "*.dmg" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.sig" -o -name "*.exe" \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;
+          # Upload everything relevant, excluding internal Debian package components
+          find . -type f \( \
+            -name "*.dmg" \
+            -o -name "*.AppImage" \
+            -o -name "*.deb" \
+            -o -name "*.rpm" \
+            -o -name "*.exe" \
+            -o -name "*.zip" \
+            -o -name "*.app.tar.gz" \
+            -o -name "*.app.tar.gz.sig" \
+            -o -name "*.AppImage.sig" \
+            -o -name "*.deb.sig" \
+            -o -name "*.rpm.sig" \
+            -o -name "*.exe.sig" \
+          \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;
