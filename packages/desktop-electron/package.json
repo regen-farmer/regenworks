@@ -13,8 +13,8 @@
 		"postinstall": "node scripts/patch-electron-dev.js",
 		"dev": "tsc && electron .",
 		"build": "tsc",
-		"package": "pnpm build && electron-builder",
-		"package:staging": "pnpm build && electron-builder --config electron-builder.staging.yml"
+		"package": "pnpm build && electron-builder --publish never",
+		"package:staging": "pnpm build && electron-builder --config electron-builder.staging.yml --publish never"
 	},
 	"dependencies": {
 		"electron-updater": "^6",
