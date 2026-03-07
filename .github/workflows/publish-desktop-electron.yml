@@ -176,9 +176,9 @@ jobs:
             ARCH_FLAG="--${{ matrix.electron_arch }}"
           fi
           if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
-            pnpm build && electron-builder --config electron-builder.staging.yml --publish never $ARCH_FLAG
+            pnpm build && pnpm exec electron-builder --config electron-builder.staging.yml --publish never $ARCH_FLAG
           else
-            pnpm build && electron-builder --publish never $ARCH_FLAG
+            pnpm build && pnpm exec electron-builder --publish never $ARCH_FLAG
           fi
 
       - name: Upload to Distribution Repo
