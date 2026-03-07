@@ -1,5 +1,6 @@
 appId: com.regenworks.desktop
 productName: RegenWorks
+artifactName: "${productName}-${version}-${arch}.${ext}"
 
 directories:
   output: dist-electron
