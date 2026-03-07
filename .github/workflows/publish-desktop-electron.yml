@@ -185,6 +185,9 @@ jobs:
 
           TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
 
+          # Remove NSIS uninstaller stub so it doesn't collide with the real installer
+          find . -name "__uninstaller-*" -delete
+
           for ext in dmg AppImage deb rpm exe; do
             find . -name "*.$ext" ! -name "*.blockmap" -print0 | while IFS= read -r -d '' f; do
               mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext"
