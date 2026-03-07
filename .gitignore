@@ -3,3 +3,9 @@ target/
 .env
 .DS_Store
 dist-electron/
+
+# Native build artifacts (built in CI per-platform)
+*.node
+*.dll
+*.so
+*.dylib
