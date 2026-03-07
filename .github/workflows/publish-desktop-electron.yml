@@ -22,6 +22,12 @@ jobs:
             target: x86_64-apple-darwin
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
+            vcpkg_triplet: x64-windows
+            electron_arch: x64
+          - platform: windows-latest
+            target: aarch64-pc-windows-msvc
+            vcpkg_triplet: arm64-windows
+            electron_arch: arm64
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
 
@@ -56,7 +62,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: C:\vcpkg\installed
-          key: vcpkg-x64-windows-geos
+          key: vcpkg-${{ matrix.vcpkg_triplet }}-geos
 
       - name: Install macOS dependencies
         if: startsWith(matrix.platform, 'macos')
@@ -72,16 +78,17 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          vcpkg install geos:x64-windows
-          vcpkg install pkgconf:x64-windows
+          $triplet = "${{ matrix.vcpkg_triplet }}"
+          vcpkg install "geos:$triplet"
+          vcpkg install "pkgconf:x64-windows"
 
-          $geosVersion = (vcpkg list geos) | Where-Object { $_ -match "geos:x64-windows" } | ForEach-Object { ($_ -split "\s+")[1] }
+          $geosVersion = (vcpkg list geos) | Where-Object { $_ -match "geos:$triplet" } | ForEach-Object { ($_ -split "\s+")[1] }
           echo "GEOS_VERSION=$geosVersion" >> $env:GITHUB_ENV
 
-          echo "GEOS_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
-          echo "GEOS_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" >> $env:GITHUB_ENV
-          echo "PKG_CONFIG_PATH=C:\vcpkg\installed\x64-windows\lib\pkgconfig" >> $env:GITHUB_ENV
-          echo "C:\vcpkg\installed\x64-windows\bin" >> $env:GITHUB_PATH
+          echo "GEOS_LIB_DIR=C:\vcpkg\installed\$triplet\lib" >> $env:GITHUB_ENV
+          echo "GEOS_INCLUDE_DIR=C:\vcpkg\installed\$triplet\include" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_PATH=C:\vcpkg\installed\$triplet\lib\pkgconfig" >> $env:GITHUB_ENV
+          echo "C:\vcpkg\installed\$triplet\bin" >> $env:GITHUB_PATH
           echo "C:\vcpkg\installed\x64-windows\tools\pkgconf" >> $env:GITHUB_PATH
           echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
 
@@ -134,11 +141,17 @@ jobs:
         shell: bash
         run: |
           cd packages/gis-napi
-          pnpm run build
+          # Cross-compile when target differs from host
+          if [ "${{ matrix.target }}" = "aarch64-pc-windows-msvc" ]; then
+            pnpm napi build --platform --release --target aarch64-pc-windows-msvc
+          else
+            pnpm run build
+          fi
           # Copy platform GEOS shared libraries into the package so they get bundled
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp "C:/vcpkg/installed/x64-windows/bin/geos.dll" .
-            cp "C:/vcpkg/installed/x64-windows/bin/geos_c.dll" .
+            TRIPLET="${{ matrix.vcpkg_triplet }}"
+            cp "C:/vcpkg/installed/$TRIPLET/bin/geos.dll" .
+            cp "C:/vcpkg/installed/$TRIPLET/bin/geos_c.dll" .
           elif [ "${{ runner.os }}" = "Linux" ]; then
             cp /usr/lib/x86_64-linux-gnu/libgeos.so* . 2>/dev/null || cp /usr/lib/libgeos.so* . 2>/dev/null || true
             cp /usr/lib/x86_64-linux-gnu/libgeos_c.so* . 2>/dev/null || cp /usr/lib/libgeos_c.so* . 2>/dev/null || true
@@ -158,10 +171,14 @@ jobs:
         shell: bash
         run: |
           cd packages/desktop-electron
+          ARCH_FLAG=""
+          if [ -n "${{ matrix.electron_arch }}" ]; then
+            ARCH_FLAG="--${{ matrix.electron_arch }}"
+          fi
           if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
-            pnpm run package:staging
+            pnpm build && electron-builder --config electron-builder.staging.yml --publish never $ARCH_FLAG
           else
-            pnpm run package
+            pnpm build && electron-builder --publish never $ARCH_FLAG
           fi
 
       - name: Upload to Distribution Repo
@@ -183,12 +200,13 @@ jobs:
 
           cd packages/desktop-electron/dist-electron
 
-          case "${{ matrix.platform }}" in
-            macos-26)        PLATFORM_LABEL="macos_arm64" ;;
-            macos-26-intel)  PLATFORM_LABEL="macos_x86_64" ;;
-            windows-latest)  PLATFORM_LABEL="windows_x86_64" ;;
-            ubuntu-22.04)    PLATFORM_LABEL="linux_x86_64" ;;
-            *)               PLATFORM_LABEL="${{ matrix.platform }}" ;;
+          case "${{ matrix.target }}" in
+            aarch64-apple-darwin)       PLATFORM_LABEL="macos_arm64" ;;
+            x86_64-apple-darwin)        PLATFORM_LABEL="macos_x86_64" ;;
+            x86_64-pc-windows-msvc)     PLATFORM_LABEL="windows_x86_64" ;;
+            aarch64-pc-windows-msvc)    PLATFORM_LABEL="windows_arm64" ;;
+            x86_64-unknown-linux-gnu)   PLATFORM_LABEL="linux_x86_64" ;;
+            *)                          PLATFORM_LABEL="${{ matrix.target }}" ;;
           esac
 
           TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
