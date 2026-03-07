@@ -8,19 +8,17 @@ files:
   - dist/**
   - node_modules/**
   - package.json
-  # Exclude Rust/Cargo artifacts from workspace-linked native packages
-  - "!**/Cargo.lock"
-  - "!**/Cargo.toml"
-  - "!**/target/**"
-  - "!**/*.rs"
 
 # Unpack native .node files from the asar archive so Node can load them
 asarUnpack:
   - "**/*.node"
 
+# Replace pnpm workspace symlinks with real copies before packaging
+beforePack: scripts/before-pack.js
+
 # Bundle the pre-built isomorphic frontend
 extraResources:
-  - from: ../../isomorphic/dist/client
+  - from: ../isomorphic/dist/client
     to: client
     filter:
       - "**/*"
