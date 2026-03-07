@@ -1,4 +1,4 @@
-name: Publish Desktop Releases
+name: Publish Desktop Releases (Tauri)
 
 on:
   # push:  # disabled temporarily
