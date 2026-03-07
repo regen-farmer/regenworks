@@ -22,7 +22,6 @@ export default defineConfig(({ mode }) => {
 			if (!isTauri && id.startsWith("@tauri-apps/")) return "\0stub-server-module";
 		},
 		load(id: string) {
-			// Export a default and allow any named import via Proxy so consumers don't crash
 			if (id === "\0stub-server-module") return "export default {}; export {};";
 		},
 	});
