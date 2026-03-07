@@ -8,6 +8,11 @@ files:
   - dist/**
   - node_modules/**
   - package.json
+  # Exclude Rust/Cargo artifacts from workspace-linked native packages
+  - "!**/Cargo.lock"
+  - "!**/Cargo.toml"
+  - "!**/target/**"
+  - "!**/*.rs"
 
 # Unpack native .node files from the asar archive so Node can load them
 asarUnpack:
