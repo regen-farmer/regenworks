@@ -1,4 +1,4 @@
-appId: com.regenworks.desktop
+appId: com.regenfarmer.regenworks.desktop
 productName: RegenWorks
 artifactName: "${productName}-${version}-${arch}.${ext}"
 
