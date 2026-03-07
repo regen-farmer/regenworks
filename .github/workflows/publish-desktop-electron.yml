@@ -135,6 +135,14 @@ jobs:
         run: |
           cd packages/gis-napi
           pnpm run build
+          # Copy platform GEOS shared libraries into the package so they get bundled
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "C:/vcpkg/installed/x64-windows/bin/geos.dll" .
+            cp "C:/vcpkg/installed/x64-windows/bin/geos_c.dll" .
+          elif [ "${{ runner.os }}" = "Linux" ]; then
+            cp /usr/lib/x86_64-linux-gnu/libgeos.so* . 2>/dev/null || cp /usr/lib/libgeos.so* . 2>/dev/null || true
+            cp /usr/lib/x86_64-linux-gnu/libgeos_c.so* . 2>/dev/null || cp /usr/lib/libgeos_c.so* . 2>/dev/null || true
+          fi
 
       - name: Build isomorphic frontend
         if: steps.strategy.outputs.should_build == 'true'
