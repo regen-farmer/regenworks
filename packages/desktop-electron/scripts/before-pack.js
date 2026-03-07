@@ -42,7 +42,7 @@ module.exports = async function beforePack(context) {
     // Copy JS files in root
     for (const file of fs.readdirSync(realPath)) {
       const src = path.join(realPath, file);
-      if (fs.statSync(src).isFile() && (file.endsWith(".js") || file.endsWith(".node"))) {
+      if (fs.statSync(src).isFile() && (file.endsWith(".js") || file.endsWith(".node") || file.endsWith(".dll"))) {
         fs.copyFileSync(src, path.join(linkPath, file));
       }
     }

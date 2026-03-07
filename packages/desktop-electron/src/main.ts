@@ -1,12 +1,20 @@
-import { app, BrowserWindow, ipcMain, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, protocol, net, session } from "electron";
 import { autoUpdater } from "electron-updater";
 import path from "path";
+import fs from "fs";
+
+const API_URL = "https://staging.regenfarmer.com";
 
 // Load the native GIS addon — must use require() for native modules
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const gisNapi = require("@rw/gis-napi");
 
 app.setName("RegenWorks");
+
+// Register custom protocol for serving client files with proper URL routing
+protocol.registerSchemesAsPrivileged([
+  { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true } },
+]);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -34,10 +42,46 @@ function createWindow() {
   mainWindow.webContents.setUserAgent(ua);
 
   if (app.isPackaged) {
-    mainWindow.loadFile(path.join(process.resourcesPath, "client", "index.html"));
+    mainWindow.loadURL("app://localhost/");
   } else {
     mainWindow.loadURL("http://localhost:10000");
     mainWindow.webContents.openDevTools();
+  }
+
+  // After Auth0 login, the staging server redirects to its own origin.
+  // Intercept navigations to the API server that aren't part of the auth flow,
+  // copy auth cookies to app://, and redirect back to the local app.
+  if (app.isPackaged) {
+    let authInProgress = false;
+
+    mainWindow.webContents.on("will-navigate", (_event, url) => {
+      if (url.includes("/api/auth/")) {
+        authInProgress = true;
+      }
+    });
+
+    mainWindow.webContents.on("did-navigate", async (_event, url) => {
+      // After auth completes, the server redirects to its root.
+      // Catch any navigation to the API server that isn't an auth endpoint.
+      if (url.startsWith(API_URL) && !url.includes("/api/auth/")) {
+        if (authInProgress) {
+          authInProgress = false;
+          // Copy auth cookies from the API domain to app://
+          const cookies = await session.defaultSession.cookies.get({ url: API_URL });
+          for (const cookie of cookies) {
+            if (cookie.name.startsWith("auth0") || cookie.name === "appSession") {
+              await session.defaultSession.cookies.set({
+                url: "app://localhost",
+                name: cookie.name,
+                value: cookie.value,
+                path: "/",
+              });
+            }
+          }
+        }
+        mainWindow?.loadURL("app://localhost/");
+      }
+    });
   }
 
   mainWindow.on("closed", () => {
@@ -63,6 +107,17 @@ ipcMain.handle("get_engine_version", () => {
 
 ipcMain.handle("health_check", () => {
   return gisNapi.healthCheck() as boolean;
+});
+
+// Proxy fetch requests from renderer to bypass CORS (like Tauri's native HTTP plugin)
+ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: string; headers?: Record<string, string>; body?: string }) => {
+  const resp = await net.fetch(url, {
+    method: options?.method || "GET",
+    headers: options?.headers,
+    body: options?.body,
+  });
+  const body = await resp.text();
+  return { status: resp.status, statusText: resp.statusText, body };
 });
 
 // --- Auto-updater ---
@@ -91,6 +146,20 @@ ipcMain.on("install-update", () => {
 // --- App lifecycle ---
 
 app.whenReady().then(() => {
+  // Serve client files via app:// protocol so the SPA router gets proper URLs
+  const clientDir = path.join(process.resourcesPath, "client");
+  protocol.handle("app", (request) => {
+    const url = new URL(request.url);
+    let filePath = path.join(clientDir, decodeURIComponent(url.pathname));
+
+    // SPA fallback: serve index.html for routes that don't map to a file
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      filePath = path.join(clientDir, "index.html");
+    }
+
+    return net.fetch(`file://${filePath}`);
+  });
+
   // Set dock icon on macOS (BrowserWindow.icon doesn't affect the dock)
   if (process.platform === "darwin" && app.dock) {
     const dockIcon = nativeImage.createFromPath(

@@ -4,14 +4,15 @@ productName: RegenWorks
 directories:
   output: dist-electron
 
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "**/*.dll"
+
 files:
   - dist/**
   - node_modules/**
   - package.json
-
-# Unpack native .node files from the asar archive so Node can load them
-asarUnpack:
-  - "**/*.node"
 
 # Replace pnpm workspace symlinks with real copies before packaging
 beforePack: scripts/before-pack.js

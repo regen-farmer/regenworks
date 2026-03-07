@@ -7,15 +7,24 @@ const electron_1 = require("electron");
 const electron_updater_1 = require("electron-updater");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
-const API_URL = "https://staging.regenfarmer.com";
+const _logPath = path_1.default.join(electron_1.app.getPath("userData"), "debug.log");
+const log = (m) => { try {
+    fs_1.default.appendFileSync(_logPath, `${Date.now()} ${m}\n`);
+}
+catch { } };
+log(`start isPackaged=${electron_1.app.isPackaged} platform=${process.platform}-${process.arch}`);
+log(`resourcesPath=${process.resourcesPath} __dirname=${__dirname}`);
 // Load the native GIS addon — must use require() for native modules
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const gisNapi = require("@rw/gis-napi");
+let gisNapi;
+try {
+    gisNapi = require("@rw/gis-napi");
+    log("gis-napi loaded OK");
+}
+catch (err) {
+    log(`gis-napi FAILED: ${err.message}`);
+}
 electron_1.app.setName("RegenWorks");
-// Register custom protocol for serving client files with proper URL routing
-electron_1.protocol.registerSchemesAsPrivileged([
-    { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true } },
-]);
 let mainWindow = null;
 function createWindow() {
     const iconPath = path_1.default.join(__dirname, "..", "icons", process.platform === "darwin" ? "icon.icns" : process.platform === "win32" ? "icon.ico" : "icon.png");
@@ -38,45 +47,20 @@ function createWindow() {
     const ua = mainWindow.webContents.getUserAgent().replace(/\s*Electron\/\S+/, "");
     mainWindow.webContents.setUserAgent(ua);
     if (electron_1.app.isPackaged) {
-        mainWindow.loadURL("app://localhost/");
+        const htmlPath = path_1.default.join(process.resourcesPath, "client", "index.html");
+        log(`loadFile: ${htmlPath} exists=${fs_1.default.existsSync(htmlPath)}`);
+        mainWindow.loadFile(htmlPath);
     }
     else {
         mainWindow.loadURL("http://localhost:10000");
         mainWindow.webContents.openDevTools();
     }
-    // After Auth0 login, the staging server redirects to its own origin.
-    // Intercept navigations to the API server that aren't part of the auth flow,
-    // copy auth cookies to app://, and redirect back to the local app.
-    if (electron_1.app.isPackaged) {
-        let authInProgress = false;
-        mainWindow.webContents.on("will-navigate", (_event, url) => {
-            if (url.includes("/api/auth/")) {
-                authInProgress = true;
-            }
-        });
-        mainWindow.webContents.on("did-navigate", async (_event, url) => {
-            // After auth completes, the server redirects to its root.
-            // Catch any navigation to the API server that isn't an auth endpoint.
-            if (url.startsWith(API_URL) && !url.includes("/api/auth/")) {
-                if (authInProgress) {
-                    authInProgress = false;
-                    // Copy auth cookies from the API domain to app://
-                    const cookies = await electron_1.session.defaultSession.cookies.get({ url: API_URL });
-                    for (const cookie of cookies) {
-                        if (cookie.name.startsWith("auth0") || cookie.name === "appSession") {
-                            await electron_1.session.defaultSession.cookies.set({
-                                url: "app://localhost",
-                                name: cookie.name,
-                                value: cookie.value,
-                                path: "/",
-                            });
-                        }
-                    }
-                }
-                mainWindow?.loadURL("app://localhost/");
-            }
-        });
-    }
+    mainWindow.webContents.on("did-fail-load", (_e, code, desc) => {
+        log(`did-fail-load: ${code} ${desc}`);
+    });
+    mainWindow.webContents.on("did-finish-load", () => {
+        log("did-finish-load");
+    });
     mainWindow.on("closed", () => {
         mainWindow = null;
     });
@@ -93,16 +77,6 @@ electron_1.ipcMain.handle("get_engine_version", () => {
 });
 electron_1.ipcMain.handle("health_check", () => {
     return gisNapi.healthCheck();
-});
-// Proxy fetch requests from renderer to bypass CORS (like Tauri's native HTTP plugin)
-electron_1.ipcMain.handle("native_fetch", async (_event, url, options) => {
-    const resp = await electron_1.net.fetch(url, {
-        method: options?.method || "GET",
-        headers: options?.headers,
-        body: options?.body,
-    });
-    const body = await resp.text();
-    return { status: resp.status, statusText: resp.statusText, body };
 });
 // --- Auto-updater ---
 function initUpdater() {
@@ -124,17 +98,7 @@ electron_1.ipcMain.on("install-update", () => {
 });
 // --- App lifecycle ---
 electron_1.app.whenReady().then(() => {
-    // Serve client files via app:// protocol so the SPA router gets proper URLs
-    const clientDir = path_1.default.join(process.resourcesPath, "client");
-    electron_1.protocol.handle("app", (request) => {
-        const url = new URL(request.url);
-        let filePath = path_1.default.join(clientDir, decodeURIComponent(url.pathname));
-        // SPA fallback: serve index.html for routes that don't map to a file
-        if (!fs_1.default.existsSync(filePath) || fs_1.default.statSync(filePath).isDirectory()) {
-            filePath = path_1.default.join(clientDir, "index.html");
-        }
-        return electron_1.net.fetch(`file://${filePath}`);
-    });
+    log("app ready");
     // Set dock icon on macOS (BrowserWindow.icon doesn't affect the dock)
     if (process.platform === "darwin" && electron_1.app.dock) {
         const dockIcon = electron_1.nativeImage.createFromPath(path_1.default.join(__dirname, "..", "icons", "icon.png"));
