@@ -125,7 +125,7 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
 function initUpdater() {
   if (!app.isPackaged) return;
 
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.checkForUpdatesAndNotify().catch(() => {});
 
   autoUpdater.on("update-available", (info) => {
     mainWindow?.webContents.send("update-available", {
