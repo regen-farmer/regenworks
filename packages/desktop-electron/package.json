@@ -3,6 +3,11 @@
 	"productName": "RegenWorks",
 	"version": "2026.1.0-11",
 	"description": "RegenWorks Desktop (Electron) - Fast agroforestry planning application",
+	"homepage": "https://regenworks.com",
+	"author": {
+		"name": "RegenWorks",
+		"email": "hello@regenworks.com"
+	},
 	"main": "dist/main.js",
 	"scripts": {
 		"postinstall": "node scripts/patch-electron-dev.js",
