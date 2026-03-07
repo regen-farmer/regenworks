@@ -185,16 +185,15 @@ jobs:
 
           TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
 
-          # Remove NSIS uninstaller stub so it doesn't collide with the real installer
-          find . -name "__uninstaller-*" -delete
-
+          # Rename top-level distributable artifacts to include platform label
+          # Use -maxdepth 1 to avoid picking up files inside win-unpacked/ or linux-unpacked/
           for ext in dmg AppImage deb rpm exe; do
-            find . -name "*.$ext" ! -name "*.blockmap" -print0 | while IFS= read -r -d '' f; do
+            find . -maxdepth 1 -name "*.$ext" ! -name "*.blockmap" ! -name "__uninstaller-*" -print0 | while IFS= read -r -d '' f; do
               mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext"
             done
           done
 
-          find . -type f \( \
+          find . -maxdepth 1 -type f \( \
             -name "*.dmg" \
             -o -name "*.AppImage" \
             -o -name "*.deb" \
