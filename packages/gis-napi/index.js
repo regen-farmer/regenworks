@@ -8,6 +8,7 @@ const platformBinaries = {
   'darwin-arm64': 'gis-napi.darwin-arm64.node',
   'darwin-x64':   'gis-napi.darwin-x64.node',
   'win32-x64':    'gis-napi.win32-x64-msvc.node',
+  'win32-arm64':  'gis-napi.win32-arm64-msvc.node',
   'linux-x64':    'gis-napi.linux-x64-gnu.node',
 }
 
