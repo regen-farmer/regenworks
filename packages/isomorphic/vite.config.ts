@@ -36,8 +36,10 @@ export default defineConfig(({ mode }) => {
 			name: "tauri-index-html",
 			apply: "build" as const,
 			async closeBundle() {
-				// Generate a static index.html for desktop shells (Tauri + Electron)
-				
+				// Generate a static index.html for desktop shells (Tauri + Electron) only.
+				// For web builds (SSR), srvx must route through entry-server.js, not a static index.html.
+				if (!isDesktop) return;
+
 				const fs = await import("fs");
 				const path = await import("path");
 				
