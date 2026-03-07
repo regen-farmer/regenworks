@@ -153,12 +153,12 @@ export default function view() {
   });
 
   async function getSystemDesign() {
-    const start = Date.now();
-
     setPreviewing(true);
+    const start = performance.now();
 
     try {
       const result = await generateLayout(system, scenarioData()?.project?.layer.geometry);
+      console.log(`Layout generated in: ${(performance.now() - start).toFixed(1)}ms`);
 
       setSystemLayout({
         treeRowLines: result.treeRowLines,
@@ -182,8 +182,6 @@ export default function view() {
     window.dispatchEvent(new Event("resize"));
 
     setPreviewing(false);
-    const timeTaken = Date.now() - start;
-    console.log(`Rendering in: ${timeTaken} milliseconds`);
   }
 
   // Use createResource for project data to get refetch capability

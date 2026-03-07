@@ -351,45 +351,62 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
     });
   }
   if (treesVisible) {
-    // Remove all existing tree layers
-    treesBySpecies.forEach((trees, speciesId) => {
-      const layerId = `trees-${speciesId}`;
-      if (map.getLayer(layerId)) {
-        map.removeLayer(layerId);
-      }
-      if (map.getSource(layerId)) {
-        map.removeSource(layerId);
-      }
+    // Remove all existing tree layers (per-species and generic)
+    const style = map.getStyle();
+    if (style?.layers) {
+      style.layers.forEach((layer: any) => {
+        if (layer.id.startsWith("trees-")) {
+          if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+          if (map.getSource(layer.id)) map.removeSource(layer.id);
+        }
+      });
+    }
+    if (map.getLayer("trees")) map.removeLayer("trees");
+    if (map.getSource("trees")) map.removeSource("trees");
+
+    // Collect all tree center points with speciesId as a property.
+    // Using a single source + circle layer instead of per-species fill polygon layers:
+    // - Much smaller GeoJSON (points vs 12-vertex polygon circles)
+    // - MapLibre GPU-native circle rendering is significantly faster
+    const allTreePoints = treeMarkerArray
+      ?.filter((tree: any) => tree.species?._id || tree.species)
+      .map((tree: any) => ({
+        ...tree.point,
+        properties: {
+          ...tree.point?.properties,
+          speciesId: tree.species?._id || tree.species,
+        },
+      })) ?? [];
+
+    // Build a data-driven color match expression
+    const colorExpr: any[] = ["match", ["get", "speciesId"]];
+    treesBySpecies.forEach((_, speciesId) => {
+      colorExpr.push(speciesId, getSpeciesColor(speciesId));
+    });
+    colorExpr.push("#888888"); // fallback
+
+    map.addSource("trees", {
+      type: "geojson",
+      //@ts-ignore
+      data: featureCollection(allTreePoints),
     });
 
-    // Also remove the old generic trees layer if it exists
-    if (map.getSource("trees")) {
-      map.removeLayer("trees");
-      map.removeSource("trees");
-    }
-
-    // Create a layer for each species with unique color
-    treesBySpecies.forEach((trees, speciesId) => {
-      const treeCircles = featureCollection(trees.map((tree) => tree.circle));
-
-      const layerId = `trees-${speciesId}`;
-      const color = getSpeciesColor(speciesId);
-
-      map.addLayer({
-        id: layerId,
-        type: "fill",
+    map.addLayer({
+      id: "trees",
+      type: "circle",
+      source: "trees",
+      paint: {
         //@ts-ignore
-        source: {
-          type: "geojson",
-          data: treeCircles,
-        },
-        layout: {},
-        paint: {
-          "fill-color": color,
-          "fill-opacity": 0.8,
-          "fill-outline-color": "#FFFFFF",
-        },
-      });
+        "circle-color": colorExpr,
+        "circle-opacity": 0.8,
+        "circle-stroke-color": "#FFFFFF",
+        "circle-stroke-width": 1,
+        // 1.4m canopy radius in world space.
+        // Calibrated for ~45° lat: 0.5px at zoom 14 ≈ 1.7m, doubles every zoom level.
+        // circle-pitch-alignment:"map" keeps circles flush with the ground plane.
+        "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 14, 0.5, 20, 32],
+        "circle-pitch-alignment": "map",
+      },
     });
   }
 

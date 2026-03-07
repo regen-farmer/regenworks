@@ -13,6 +13,21 @@ export function isTauri(): boolean {
 }
 
 /**
+ * Check if we're running inside an Electron desktop application
+ */
+export function isElectron(): boolean {
+  if (typeof window === "undefined") return false;
+  return "electronAPI" in window;
+}
+
+/**
+ * Check if we're running in any native desktop environment (Tauri or Electron)
+ */
+export function isDesktop(): boolean {
+  return isTauri() || isElectron();
+}
+
+/**
  * Check if we're running in a browser environment
  */
 export function isBrowser(): boolean {
@@ -29,9 +44,10 @@ export function isServer(): boolean {
 /**
  * Get the current platform name
  */
-export function getPlatform(): "tauri" | "browser" | "server" {
+export function getPlatform(): "tauri" | "electron" | "browser" | "server" {
   if (isServer()) return "server";
   if (isTauri()) return "tauri";
+  if (isElectron()) return "electron";
   return "browser";
 }
 
@@ -40,7 +56,7 @@ export function getPlatform(): "tauri" | "browser" | "server" {
  * Call these from DevTools console: window.testTauri.testLayout()
  */
 export function initTauriTestUtils() {
-  if (!isBrowser() || !isTauri()) return;
+  if (!isBrowser() || (!isTauri() && !isElectron())) return;
 
   const testUtils = {
     // Simple health check

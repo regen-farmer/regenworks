@@ -7,7 +7,26 @@ export default defineConfig(({ mode }) => {
 
 	const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.TAURI_PLATFORM !== undefined || process.env.TAURI_ENV_ARCH !== undefined;
 
-	// A plugin that dynamically crafts a static index.html file loading the SPA entrypoint 
+	// Stub out server-only @rw/db/* modules for the browser bundle.
+	// app.tsx imports mongoose schemas at the top level (side effects to register models).
+	// These use Node.js APIs and cannot be transformed for the browser — Vite returns 500.
+	// In browser context (options.ssr falsy) we return an empty module instead.
+	const stubServerModulesPlugin = () => ({
+		name: "stub-server-only-modules",
+		enforce: "pre" as const,
+		resolveId(id: string, _importer: string | undefined, options: { ssr?: boolean }) {
+			if (options?.ssr) return null;
+			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
+			// @rw/desktop-tauri is only available when running under Tauri
+			if (!isTauri && id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
+		},
+		load(id: string) {
+			// Export a default and allow any named import via Proxy so consumers don't crash
+			if (id === "\0stub-server-module") return "export default {}; export {};";
+		},
+	});
+
+	// A plugin that dynamically crafts a static index.html file loading the SPA entrypoint
 	// out of the vite manifest bundle, primarily because SolidStart v2 SSR doesn't emit one natively
 	const tauriIndexHtmlPlugin = () => {
 		return {
@@ -81,6 +100,7 @@ export default defineConfig(({ mode }) => {
 			port: Number(process.env.PORT) || 10000,
 		},
 		plugins: [
+			stubServerModulesPlugin(),
 			solidStart({ ssr: !isTauri }),
 			tauriIndexHtmlPlugin()
 		],

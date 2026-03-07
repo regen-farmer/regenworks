@@ -1,0 +1,7 @@
+extends: ./electron-builder.yml
+
+publish:
+  provider: github
+  owner: regen-farmer
+  repo: regenworks-distribution
+  private: false

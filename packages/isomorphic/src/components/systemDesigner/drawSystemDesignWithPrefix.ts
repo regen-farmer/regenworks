@@ -299,36 +299,50 @@ function drawSystemDesignWithPrefix(
   }
 
   if (treesVisible) {
-    // Remove all existing tree layers
-    treesBySpecies.forEach((trees, speciesId) => {
-      removeLayerWithPrefix(`trees-${speciesId}`);
-    });
-
-    // Also remove the old generic trees layer if it exists
+    // Remove all existing tree layers (old per-species fill layers + new unified circle layer)
+    const style = map.getStyle();
+    if (style?.layers) {
+      style.layers.forEach((layer: any) => {
+        if (layer.id.startsWith(layerPrefix) && layer.id.includes("trees")) {
+          if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+          if (map.getSource(layer.id)) map.removeSource(layer.id);
+        }
+      });
+    }
     removeLayerWithPrefix("trees");
 
-    // Create a layer for each species with unique color
-    treesBySpecies.forEach((trees, speciesId) => {
-      const treeCircles = featureCollection(trees.map((tree) => tree.circle));
+    // Collect all tree points with species ID for color coding
+    const allTreePoints = treeMarkerArray
+      ?.filter((tree: any) => tree.species?._id || tree.species)
+      .map((tree: any) => ({
+        ...tree.point,
+        properties: { ...tree.point?.properties, speciesId: tree.species?._id || tree.species },
+      })) ?? [];
 
-      const layerId = prefixId(`trees-${speciesId}`);
-      const color = getSpeciesColor(speciesId);
+    // Build a match expression for per-species colors
+    const colorExpr: any[] = ["match", ["get", "speciesId"]];
+    treesBySpecies.forEach((_, speciesId) => {
+      colorExpr.push(speciesId, getSpeciesColor(speciesId));
+    });
+    colorExpr.push("#888888"); // fallback
 
-      map.addLayer({
-        id: layerId,
-        type: "fill",
-        //@ts-ignore
-        source: {
-          type: "geojson",
-          data: treeCircles,
-        },
-        layout: {},
-        paint: {
-          "fill-color": color,
-          "fill-opacity": 0.8,
-          "fill-outline-color": "#FFFFFF",
-        },
-      });
+    const treesLayerId = prefixId("trees");
+    map.addSource(treesLayerId, {
+      type: "geojson",
+      data: featureCollection(allTreePoints),
+    });
+    map.addLayer({
+      id: treesLayerId,
+      type: "circle",
+      source: treesLayerId,
+      paint: {
+        "circle-color": colorExpr as any,
+        "circle-opacity": 0.8,
+        "circle-stroke-color": "#FFFFFF",
+        "circle-stroke-width": 1,
+        "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 14, 0.5, 20, 32],
+        "circle-pitch-alignment": "map",
+      },
     });
   }
 

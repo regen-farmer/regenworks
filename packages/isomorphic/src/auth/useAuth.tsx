@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 import NewUser from "~/auth/signup.tsx";
 import { NavBar } from "~/components/NavBar.tsx";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
@@ -121,7 +121,7 @@ export const ShowAfterAuth = (props: any) => {
       }
     >
       <Show
-        when={getAuth0User()?.email_verified}
+        when={getAuth0User()?.email_verified !== false}
         fallback={
           <>
             <br />

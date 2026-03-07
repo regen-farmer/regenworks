@@ -1,0 +1,23 @@
+{
+	"name": "@rw/desktop-electron",
+	"productName": "RegenWorks",
+	"version": "2026.1.0-9",
+	"description": "RegenWorks Desktop (Electron) - Fast agroforestry planning application",
+	"main": "dist/main.js",
+	"scripts": {
+		"postinstall": "node scripts/patch-electron-dev.js",
+		"dev": "tsc && ELECTRON_RUN_AS_NODE= electron .",
+		"build": "tsc",
+		"package": "pnpm build && electron-builder",
+		"package:staging": "pnpm build && electron-builder --config electron-builder.staging.yml"
+	},
+	"dependencies": {
+		"electron-updater": "^6",
+		"@rw/gis-napi": "workspace:*"
+	},
+	"devDependencies": {
+		"electron": "^40",
+		"electron-builder": "^25",
+		"typescript": "^5"
+	}
+}

@@ -177,8 +177,9 @@ pub struct TreeMarker {
     pub species: SpeciesRef,
     /// Point location
     pub point: GeoJsonFeature,
-    /// Circle polygon for visualization
-    pub circle: GeoJsonFeature,
+    /// Circle polygon for visualization (omitted when not needed to reduce payload size)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub circle: Option<GeoJsonFeature>,
 }
 
 /// GeoJSON Feature wrapper

@@ -1,0 +1,57 @@
+appId: com.regenworks.desktop
+productName: RegenWorks
+
+directories:
+  output: dist-electron
+
+files:
+  - dist/**
+  - node_modules/**
+  - package.json
+
+# Unpack native .node files from the asar archive so Node can load them
+asarUnpack:
+  - "**/*.node"
+
+# Bundle the pre-built isomorphic frontend
+extraResources:
+  - from: ../../isomorphic/dist/client
+    to: client
+    filter:
+      - "**/*"
+
+# macOS
+mac:
+  target:
+    - dmg
+  icon: icons/icon.icns
+  minimumSystemVersion: "10.15"
+  category: public.app-category.productivity
+
+dmg:
+  sign: false
+
+# Windows
+win:
+  target:
+    - nsis
+  icon: icons/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+# Linux
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: icons/icon.png
+  category: Office
+
+# Auto-updater publishing (GitHub Releases on the distribution repo)
+publish:
+  provider: github
+  owner: regen-farmer
+  repo: regenworks-distribution
+  private: false

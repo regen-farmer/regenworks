@@ -21,6 +21,23 @@ export const authConfig: StartAuthJSConfig = {
       },
     }),
   ],
+  callbacks: {
+    // Persist email_verified and sub through the JWT so session.user has them.
+    // On initial sign-in both `user` (profile() return) and `profile` (raw OAuth) are available.
+    jwt: async ({ token, user, profile }) => {
+      const source = profile ?? user;
+      if (source) {
+        token.email_verified = (source as any).email_verified ?? token.email_verified;
+        token.sub = (source as any).sub ?? token.sub;
+      }
+      return token;
+    },
+    session: async ({ session, token }) => {
+      (session.user as any).email_verified = token.email_verified as boolean | undefined;
+      (session.user as any).sub = token.sub;
+      return session;
+    },
+  },
 };
 
 // Server-side session getter

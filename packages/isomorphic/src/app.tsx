@@ -59,7 +59,7 @@ export default function App() {
         onMount(async () => {
           if (typeof window !== "undefined" && isTauri()) {
             console.log("Initializing Tauri update check...");
-            const { initUpdater } = await import("@rw/desktop/src/updater.ts");
+            const { initUpdater } = await import("@rw/desktop-tauri/src/updater.ts");
             initUpdater();
           }
         });

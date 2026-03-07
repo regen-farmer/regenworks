@@ -1,0 +1,229 @@
+name: Publish Desktop Releases
+
+on:
+  # push:  # disabled temporarily
+  #   branches:
+  #     - dev
+  #     - main
+  #   paths:
+  #     - 'packages/desktop-tauri/package.json'
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    name: Build & Publish Tauri
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-26
+            target: aarch64-apple-darwin
+          - platform: macos-26-intel
+            target: x86_64-apple-darwin
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.platform }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop-tauri/src-tauri -> target
+
+      - name: Cache vcpkg packages
+        if: matrix.platform == 'windows-latest'
+        uses: actions/cache@v4
+        with:
+          path: C:\vcpkg\installed
+          key: vcpkg-x64-windows-geos
+
+      - name: Install MacOS dependencies
+        if: startsWith(matrix.platform, 'macos')
+        run: brew install geos
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgeos-dev
+
+      - name: Install Windows dependencies
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Install GEOS and pkgconf via vcpkg (pre-installed on GH runners at C:\vcpkg)
+          vcpkg install geos:x64-windows
+          vcpkg install pkgconf:x64-windows
+
+          # Get installed GEOS version dynamically
+          $geosVersion = (vcpkg list geos) | Where-Object { $_ -match "geos:x64-windows" } | ForEach-Object { ($_ -split "\s+")[1] }
+          echo "GEOS_VERSION=$geosVersion" >> $env:GITHUB_ENV
+
+          # Point geos-sys to vcpkg-installed GEOS
+          echo "GEOS_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
+          echo "GEOS_INCLUDE_DIR=C:\vcpkg\installed\x64-windows\include" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_PATH=C:\vcpkg\installed\x64-windows\lib\pkgconfig" >> $env:GITHUB_ENV
+
+          # Add GEOS and pkgconf binaries to PATH
+          echo "C:\vcpkg\installed\x64-windows\bin" >> $env:GITHUB_PATH
+          echo "C:\vcpkg\installed\x64-windows\tools\pkgconf" >> $env:GITHUB_PATH
+
+          # Add LLVM/clang to PATH (required by ring crate)
+          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+
+      - name: Install JS dependencies
+        run: pnpm install
+
+      - name: Parse Version & Strategy
+        id: strategy
+        shell: bash
+        run: |
+          cd packages/desktop-tauri
+          VERSION=$(grep '"version"' package.json | head -1 | awk -F '"' '{print $4}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          IS_PRERELEASE="false"
+          STAGE_LABEL=""
+          if [[ "$VERSION" == *"-"* ]]; then
+            IS_PRERELEASE="true"
+            PRE_NUM=$(echo "$VERSION" | grep -oE '\-[0-9]+$' | tr -d '-')
+            [[ -n "$PRE_NUM" ]] && STAGE_LABEL="pre.$((10#$PRE_NUM))"
+          fi
+          echo "stage_label=$STAGE_LABEL" >> $GITHUB_OUTPUT
+
+          SHOULD_BUILD="true"
+          # Skip if version hasn't changed vs previous commit (e.g. formatter touched the file)
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            PREV_VERSION=$(git show HEAD~1:packages/desktop-tauri/package.json 2>/dev/null | grep '"version"' | head -1 | awk -F '"' '{print $4}' || echo "")
+            if [ "$VERSION" = "$PREV_VERSION" ]; then
+              echo "Version unchanged ($VERSION), skipping build."
+              SHOULD_BUILD="false"
+            fi
+          fi
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            if [ "$IS_PRERELEASE" = "false" ]; then
+              echo "Skipping: Stable versions are not released from the dev branch."
+              SHOULD_BUILD="false"
+            fi
+            echo "config=--config src-tauri/tauri.staging.conf.json" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            # main branch
+            if [ "$IS_PRERELEASE" = "true" ]; then
+              echo "Skipping: Pre-release versions are not released from the main branch."
+              SHOULD_BUILD="false"
+            fi
+            echo "config=" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+
+      - name: Copy GEOS DLL for bundling (Windows only)
+        if: steps.strategy.outputs.should_build == 'true' && matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos_c.dll" "packages\desktop\src-tauri\geos_c.dll"
+          Copy-Item "C:\vcpkg\installed\x64-windows\bin\geos.dll" "packages\desktop\src-tauri\geos.dll"
+
+      - name: Build Tauri App
+        id: build
+        if: steps.strategy.outputs.should_build == 'true'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          cd packages/desktop-tauri
+          EXTRA_CONFIG=""
+          if [ "${{ matrix.platform }}" = "windows-latest" ]; then
+            EXTRA_CONFIG="--config src-tauri/tauri.windows.conf.json"
+          fi
+          pnpm tauri build ${{ steps.strategy.outputs.config }} $EXTRA_CONFIG --target ${{ matrix.target }}
+
+      - name: Upload to Distribution Repo
+        if: steps.strategy.outputs.should_build == 'true' && steps.build.outcome == 'success'
+        env:
+          # You MUST generate a Github Personal Access Token (classic) with "repo" scope
+          # and add it to your RegenWorks repository secrets as "DIST_REPO_TOKEN"
+          GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
+        shell: bash
+        run: |
+          VERSION="${{ steps.strategy.outputs.version }}"
+          TAG="v$VERSION"
+          PRERELEASE_FLAG=""
+          if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          # Initialize release on distribution repo if it doesn't exist
+          STAGE_LABEL="${{ steps.strategy.outputs.stage_label }}"
+          RELEASE_TITLE="$TAG${STAGE_LABEL:+ ($STAGE_LABEL)}"
+          gh release view $TAG --repo regen-farmer/regenworks-distribution || gh release create $TAG --repo regen-farmer/regenworks-distribution --title "$RELEASE_TITLE" $PRERELEASE_FLAG --notes "Release $TAG"
+
+          cd packages/desktop-tauri/src-tauri/target/${{ matrix.target }}/release/bundle
+
+          # Determine human-readable platform label for asset naming
+          case "${{ matrix.platform }}" in
+            macos-26)        PLATFORM_LABEL="macos_arm64" ;;
+            macos-26-intel)  PLATFORM_LABEL="macos_x86_64" ;;
+            windows-latest)  PLATFORM_LABEL="windows_x86_64" ;;
+            ubuntu-22.04)    PLATFORM_LABEL="linux_x86_64" ;;
+            *)               PLATFORM_LABEL="${{ matrix.platform }}" ;;
+          esac
+
+          # Rename all bundles to consistent format: RegenWorks_version_os_arch.extension
+          TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
+
+          for ext in dmg AppImage deb rpm exe zip; do
+            for f in $(find . -name "*.$ext" ! -name "*.sig"); do
+              mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext"
+            done
+            for f in $(find . -name "*.$ext.sig"); do
+              mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext.sig"
+            done
+          done
+
+          for f in $(find . -name "*.app.tar.gz" ! -name "*.sig"); do
+            mv "$f" "$(dirname "$f")/${TARGET_BASE}.app.tar.gz"
+          done
+          for f in $(find . -name "*.app.tar.gz.sig"); do
+            mv "$f" "$(dirname "$f")/${TARGET_BASE}.app.tar.gz.sig"
+          done
+
+          # Upload everything relevant
+          find . -type f \( \
+            -name "*.dmg" \
+            -o -name "*.AppImage" \
+            -o -name "*.deb" \
+            -o -name "*.rpm" \
+            -o -name "*.exe" \
+            -o -name "*.zip" \
+            -o -name "*.app.tar.gz" \
+            -o -name "*.app.tar.gz.sig" \
+            -o -name "*.AppImage.sig" \
+            -o -name "*.deb.sig" \
+            -o -name "*.rpm.sig" \
+            -o -name "*.exe.sig" \
+          \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;

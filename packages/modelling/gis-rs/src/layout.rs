@@ -7,7 +7,7 @@ use geos::Geom;
 use std::collections::HashMap;
 
 use crate::geometry::{
-    along, circle, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
+    along, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
     local_meters_to_wgs84, wgs84_to_local_meters,
 };
 use crate::ground_cover::make_ground_cover_areas;
@@ -277,7 +277,6 @@ fn generate_tree_markers(
 
         while distance < line_len {
             let point = along(&tree_row.line, distance);
-            let circle_coords = circle(point, 1.4, 12);
 
             let species_opt = &sequence[tree_sequence_idx].species;
 
@@ -287,10 +286,7 @@ fn generate_tree_markers(
                 tree_markers.push(TreeMarker {
                     species: species.clone(),
                     point: GeoJsonFeature::point(point, None),
-                    circle: GeoJsonFeature::polygon(
-                        vec![circle_coords.iter().map(|c| [c[0], c[1]]).collect()],
-                        None,
-                    ),
+                    circle: None,
                 });
 
                 // Update species count

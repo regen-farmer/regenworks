@@ -1,13 +1,16 @@
 import { A } from "@solidjs/router";
 import { NavBar } from "~/components/NavBar.tsx";
 
-import { isTauri } from "~/util/platform.ts";
+import { isElectron, isTauri } from "~/util/platform.ts";
 
 export default function NewUser() {
-  const authPath =
-    typeof window !== "undefined" && isTauri()
-      ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
-      : "/api/auth/signin";
+  // In packaged desktop apps (Tauri or Electron), the app loads from a local file/custom scheme
+  // so auth must go through the deployed server. In browser or Electron dev (localhost), use local route.
+  const needsRemoteAuth =
+    typeof window !== "undefined" && (isTauri() || (isElectron() && !window.location.href.startsWith("http")));
+  const authPath = needsRemoteAuth
+    ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
+    : "/api/auth/signin";
 
   return (
     <>

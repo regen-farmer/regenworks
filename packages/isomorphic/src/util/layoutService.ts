@@ -4,11 +4,12 @@
  * This service provides a single interface for layout generation that
  * automatically uses the best available backend:
  *
- * 1. Tauri (desktop): Native Rust + GEOS (~20-50ms)
- * 2. API (web): Backend server (~200-500ms with network latency)
+ * 1. Electron (desktop): Native Rust + GEOS via napi-rs (~163ms release)
+ * 2. Tauri (desktop): Native Rust + GEOS (~494ms debug, ~300ms release est.)
+ * 3. Browser (web): TypeScript fallback
  */
 
-import { isTauri } from "./platform";
+import { isTauri, isElectron } from "./platform";
 import { systemBasedLayoutAsync } from "@rw/modelling/gis-ts/system_based_layout.ts";
 
 // Types that match the layout response structure
@@ -78,6 +79,9 @@ interface LayoutResponse {
  * @returns Layout result
  */
 export async function generateLayout(systemDesign: any, fieldGeometry: any): Promise<any> {
+  if (isElectron()) {
+    return generateLayoutElectron(systemDesign, fieldGeometry);
+  }
   if (isTauri()) {
     return generateLayoutTauri(systemDesign, fieldGeometry);
   }
@@ -85,26 +89,66 @@ export async function generateLayout(systemDesign: any, fieldGeometry: any): Pro
 }
 
 /**
- * Generate layout using Tauri (native Rust + GEOS)
+ * Generate layout using Electron (native Rust + GEOS via napi-rs)
  */
-async function generateLayoutTauri(systemDesign: any, fieldGeometry: any): Promise<any> {
-  // Dynamic import to avoid bundling Tauri API in web builds
-  const { invoke } = await import("@tauri-apps/api/core");
-
-  // Ensure fieldGeometry is a string, as Rust expects a String
+async function generateLayoutElectron(systemDesign: any, fieldGeometry: any): Promise<any> {
   const geometryString =
     typeof fieldGeometry === "string" ? fieldGeometry : JSON.stringify(fieldGeometry);
 
-  const response = await invoke<LayoutResponse>("generate_layout", {
-    systemdesign: systemDesign,
+  const electronAPI = (window as unknown as { electronAPI: { invoke: (c: string, a: unknown) => Promise<string> } }).electronAPI;
+
+  // Serialize to JSON string before IPC — strips reactive proxies / Mongoose docs.
+  const systemDesignJson = JSON.stringify(systemDesign);
+
+  const resultJson = await electronAPI.invoke("generate_layout", {
+    systemdesign: systemDesignJson,
     fieldGeometry: geometryString,
   });
+
+  const response: LayoutResponse = JSON.parse(resultJson);
 
   if (!response.success || !response.data) {
     throw new Error(response.error || "Layout generation failed");
   }
 
-  console.log(`[Tauri] Layout generated in ${response.timingMs?.toFixed(1)}ms`);
+  return response.data;
+}
+
+/**
+ * Generate layout using Tauri (native Rust + GEOS)
+ */
+// Cached Tauri invoke — loaded once on first use to avoid bundling in web builds
+let _tauriInvoke: ((cmd: string, args: unknown) => Promise<unknown>) | null = null;
+async function getTauriInvoke(): Promise<(cmd: string, args: unknown) => Promise<unknown>> {
+  if (!_tauriInvoke) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    _tauriInvoke = invoke;
+  }
+  return _tauriInvoke!;
+}
+
+async function generateLayoutTauri(systemDesign: any, fieldGeometry: any): Promise<any> {
+  const invoke = await getTauriInvoke();
+
+  const geometryString =
+    typeof fieldGeometry === "string" ? fieldGeometry : JSON.stringify(fieldGeometry);
+
+  // Step 1: compute (invoke returns nothing — tiny IPC round-trip)
+  await invoke("generate_layout", {
+    systemdesign: systemDesign,
+    fieldGeometry: geometryString,
+  });
+
+  // Step 2: fetch result via OS URL loading (not WKWebView IPC bridge) — ~10ms for 9.47MB
+  const res = await fetch("rwlayout://localhost/layout");
+  const resultJson = await res.text();
+
+  const response: LayoutResponse = JSON.parse(resultJson);
+
+  if (!response.success || !response.data) {
+    throw new Error(response.error || "Layout generation failed");
+  }
+
   return response.data;
 }
 
@@ -127,5 +171,5 @@ async function generateLayoutBrowser(systemDesign: any, fieldGeometry: any): Pro
  * Check if fast native layout is available
  */
 export function hasNativeLayout(): boolean {
-  return isTauri();
+  return isElectron() || isTauri();
 }
