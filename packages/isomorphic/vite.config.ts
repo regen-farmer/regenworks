@@ -17,8 +17,9 @@ export default defineConfig(({ mode }) => {
 		resolveId(id: string, _importer: string | undefined, options: { ssr?: boolean }) {
 			if (options?.ssr) return null;
 			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
-			// @rw/desktop-tauri is only available when running under Tauri
+			// @rw/desktop-tauri and @tauri-apps/* are only available when running under Tauri
 			if (!isTauri && id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
+			if (!isTauri && id.startsWith("@tauri-apps/")) return "\0stub-server-module";
 		},
 		load(id: string) {
 			// Export a default and allow any named import via Proxy so consumers don't crash
