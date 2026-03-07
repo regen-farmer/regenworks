@@ -138,6 +138,8 @@ jobs:
 
       - name: Build isomorphic frontend
         if: steps.strategy.outputs.should_build == 'true'
+        env:
+          ELECTRON_BUILD: "1"
         run: pnpm --filter isomorphic build
 
       - name: Build & Package Electron App

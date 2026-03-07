@@ -6,6 +6,8 @@ export default defineConfig(({ mode }) => {
 	Object.assign(process.env, env);
 
 	const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined || process.env.TAURI_PLATFORM !== undefined || process.env.TAURI_ENV_ARCH !== undefined;
+	const isElectron = process.env.ELECTRON_BUILD === "1";
+	const isDesktop = isTauri || isElectron;
 
 	// Stub out server-only @rw/db/* modules for the browser bundle.
 	// app.tsx imports mongoose schemas at the top level (side effects to register models).
@@ -34,7 +36,7 @@ export default defineConfig(({ mode }) => {
 			name: "tauri-index-html",
 			apply: "build" as const,
 			async closeBundle() {
-				if (!isTauri) return; // Only execute when bundling for the Tauri desktop shell
+				// Generate a static index.html for desktop shells (Tauri + Electron)
 				
 				const fs = await import("fs");
 				const path = await import("path");
@@ -96,13 +98,13 @@ export default defineConfig(({ mode }) => {
 	};
 
 	return {
-		base: isTauri ? "./" : "/",
+		base: isDesktop ? "./" : "/",
 		server: {
 			port: Number(process.env.PORT) || 10000,
 		},
 		plugins: [
 			stubServerModulesPlugin(),
-			solidStart({ ssr: !isTauri }),
+			solidStart({ ssr: !isDesktop }),
 			tauriIndexHtmlPlugin()
 		],
 	};
