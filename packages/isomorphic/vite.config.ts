@@ -15,11 +15,12 @@ export default defineConfig(({ mode }) => {
 		name: "stub-server-only-modules",
 		enforce: "pre" as const,
 		resolveId(id: string, _importer: string | undefined, options: { ssr?: boolean }) {
+			// @tauri-apps/* and @rw/desktop-tauri are only available under Tauri — stub in both client and SSR
+			if (!isTauri && id.startsWith("@tauri-apps/")) return "\0stub-server-module";
+			if (!isTauri && id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
+			// @rw/db/* is server-only — only stub in client builds
 			if (options?.ssr) return null;
 			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
-			// @rw/desktop-tauri and @tauri-apps/* are only available when running under Tauri
-			if (!isTauri && id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
-			if (!isTauri && id.startsWith("@tauri-apps/")) return "\0stub-server-module";
 		},
 		load(id: string) {
 			if (id === "\0stub-server-module") return "export default {}; export {};";
