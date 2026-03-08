@@ -193,4 +193,4 @@ jobs:
           VERSION=$(grep '"version"' packages/desktop-electron/package.json | head -1 | awk -F '"' '{print $4}')
           TAG="v$VERSION"
           echo "Publishing release $TAG..."
-          gh release edit $TAG --repo regen-farmer/regenworks-distribution --draft=false
+          gh release edit $TAG --repo regen-farmer/regenworks-distribution --draft=false --title "$TAG"
