@@ -33,6 +33,7 @@ extraResources:
 mac:
   target:
     - dmg
+    - zip
   icon: icons/icon.icns
   minimumSystemVersion: "10.15"
   category: public.app-category.productivity
