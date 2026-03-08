@@ -104,13 +104,9 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
           IS_PRERELEASE="false"
-          STAGE_LABEL=""
           if [[ "$VERSION" == *"-"* ]]; then
             IS_PRERELEASE="true"
-            PRE_NUM=$(echo "$VERSION" | grep -oE '\-[0-9]+$' | tr -d '-')
-            [[ -n "$PRE_NUM" ]] && STAGE_LABEL="pre.$((10#$PRE_NUM))"
           fi
-          echo "stage_label=$STAGE_LABEL" >> $GITHUB_OUTPUT
 
           SHOULD_BUILD="true"
           if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
@@ -163,8 +159,7 @@ jobs:
           ELECTRON_BUILD: "1"
         run: pnpm --filter isomorphic build
 
-      - name: Build & Package Electron App
-        id: build
+      - name: Build & Publish Electron App
         if: steps.strategy.outputs.should_build == 'true'
         env:
           GH_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
@@ -175,64 +170,27 @@ jobs:
           if [ -n "${{ matrix.electron_arch }}" ]; then
             ARCH_FLAG="--${{ matrix.electron_arch }}"
           fi
+          # electron-builder creates a draft release, uploads artifacts + latest*.yml
           if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
-            pnpm build && pnpm exec electron-builder --config electron-builder.staging.yml --publish never $ARCH_FLAG
+            pnpm build && pnpm exec electron-builder --config electron-builder.staging.yml --publish always $ARCH_FLAG
           else
-            pnpm build && pnpm exec electron-builder --publish never $ARCH_FLAG
+            pnpm build && pnpm exec electron-builder --publish always $ARCH_FLAG
           fi
 
-      - name: Upload to Distribution Repo
-        if: steps.strategy.outputs.should_build == 'true' && steps.build.outcome == 'success'
+  # Publish the draft release after all platform builds succeed
+  publish-release:
+    name: Publish Release
+    needs: publish-electron
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish draft release
         env:
           GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
         shell: bash
         run: |
-          VERSION="${{ steps.strategy.outputs.version }}"
+          VERSION=$(grep '"version"' packages/desktop-electron/package.json | head -1 | awk -F '"' '{print $4}')
           TAG="v$VERSION"
-          PRERELEASE_FLAG=""
-          if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
-            PRERELEASE_FLAG="--prerelease"
-          fi
-
-          STAGE_LABEL="${{ steps.strategy.outputs.stage_label }}"
-          RELEASE_TITLE="$TAG${STAGE_LABEL:+ ($STAGE_LABEL)}"
-          gh release view $TAG --repo regen-farmer/regenworks-distribution || gh release create $TAG --repo regen-farmer/regenworks-distribution --title "$RELEASE_TITLE" $PRERELEASE_FLAG --notes "Release $TAG"
-
-          cd packages/desktop-electron/dist-electron
-
-          case "${{ matrix.target }}" in
-            aarch64-apple-darwin)       PLATFORM_LABEL="macos_arm64" ;;
-            x86_64-apple-darwin)        PLATFORM_LABEL="macos_x86_64" ;;
-            x86_64-pc-windows-msvc)     PLATFORM_LABEL="windows_x86_64" ;;
-            aarch64-pc-windows-msvc)    PLATFORM_LABEL="windows_arm64" ;;
-            x86_64-unknown-linux-gnu)   PLATFORM_LABEL="linux_x86_64" ;;
-            *)                          PLATFORM_LABEL="${{ matrix.target }}" ;;
-          esac
-
-          TARGET_BASE="RegenWorks_${VERSION}_${PLATFORM_LABEL}"
-
-          # Rename top-level distributable artifacts to include platform label
-          # Use -maxdepth 1 to avoid picking up files inside win-unpacked/ or linux-unpacked/
-          for ext in dmg AppImage deb rpm exe; do
-            find . -maxdepth 1 -name "*.$ext" ! -name "*.blockmap" ! -name "__uninstaller-*" -print0 | while IFS= read -r -d '' f; do
-              OLD_NAME="$(basename "$f")"
-              NEW_NAME="${TARGET_BASE}.$ext"
-              mv "$f" "$(dirname "$f")/$NEW_NAME"
-              # Update latest*.yml references to match the renamed artifact
-              for yml in latest*.yml; do
-                [ -f "$yml" ] && sed -i.bak "s|$OLD_NAME|$NEW_NAME|g" "$yml"
-              done
-            done
-          done
-          # Clean up sed backup files
-          rm -f latest*.yml.bak
-
-          find . -maxdepth 1 -type f \( \
-            -name "*.dmg" \
-            -o -name "*.AppImage" \
-            -o -name "*.deb" \
-            -o -name "*.rpm" \
-            -o -name "*.exe" \
-            -o -name "*.blockmap" \
-            -o -name "latest*.yml" \
-          \) -exec gh release upload $TAG "{}" --repo regen-farmer/regenworks-distribution --clobber \;
+          echo "Publishing release $TAG..."
+          gh release edit $TAG --repo regen-farmer/regenworks-distribution --draft=false
