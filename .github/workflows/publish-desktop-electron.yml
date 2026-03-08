@@ -10,8 +10,68 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Pre-create the draft release so parallel platform builds don't race
+  create-release:
+    name: Create Draft Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should_build: ${{ steps.version.outputs.should_build }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse Version & Strategy
+        id: version
+        shell: bash
+        run: |
+          cd packages/desktop-electron
+          VERSION=$(grep '"version"' package.json | head -1 | awk -F '"' '{print $4}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          IS_PRERELEASE="false"
+          if [[ "$VERSION" == *"-"* ]]; then
+            IS_PRERELEASE="true"
+          fi
+
+          SHOULD_BUILD="true"
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            PREV_VERSION=$(git show HEAD~1:packages/desktop-electron/package.json 2>/dev/null | grep '"version"' | head -1 | awk -F '"' '{print $4}' || echo "")
+            if [ "$VERSION" = "$PREV_VERSION" ]; then
+              echo "Version unchanged ($VERSION), skipping build."
+              SHOULD_BUILD="false"
+            fi
+          fi
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            if [ "$IS_PRERELEASE" = "false" ]; then
+              echo "Skipping: Stable versions are not released from the dev branch."
+              SHOULD_BUILD="false"
+            fi
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            if [ "$IS_PRERELEASE" = "true" ]; then
+              echo "Skipping: Pre-release versions are not released from the main branch."
+              SHOULD_BUILD="false"
+            fi
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
+
+      - name: Create draft release
+        if: steps.version.outputs.should_build == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          REPO="regen-farmer/regenworks-distribution"
+          # Create draft release (ignore error if it already exists)
+          gh release create "$TAG" --repo "$REPO" --draft --title "$TAG" --notes "" 2>/dev/null || echo "Release $TAG already exists"
+
   publish-electron:
     name: Build & Publish Electron
+    needs: create-release
+    if: needs.create-release.outputs.should_build == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -95,45 +155,7 @@ jobs:
       - name: Install JS dependencies
         run: pnpm install
 
-      - name: Parse Version & Strategy
-        id: strategy
-        shell: bash
-        run: |
-          cd packages/desktop-electron
-          VERSION=$(grep '"version"' package.json | head -1 | awk -F '"' '{print $4}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-          IS_PRERELEASE="false"
-          if [[ "$VERSION" == *"-"* ]]; then
-            IS_PRERELEASE="true"
-          fi
-
-          SHOULD_BUILD="true"
-          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            PREV_VERSION=$(git show HEAD~1:packages/desktop-electron/package.json 2>/dev/null | grep '"version"' | head -1 | awk -F '"' '{print $4}' || echo "")
-            if [ "$VERSION" = "$PREV_VERSION" ]; then
-              echo "Version unchanged ($VERSION), skipping build."
-              SHOULD_BUILD="false"
-            fi
-          fi
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            if [ "$IS_PRERELEASE" = "false" ]; then
-              echo "Skipping: Stable versions are not released from the dev branch."
-              SHOULD_BUILD="false"
-            fi
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          else
-            if [ "$IS_PRERELEASE" = "true" ]; then
-              echo "Skipping: Pre-release versions are not released from the main branch."
-              SHOULD_BUILD="false"
-            fi
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          fi
-
-          echo "should_build=$SHOULD_BUILD" >> $GITHUB_OUTPUT
-
       - name: Build gis-napi native addon
-        if: steps.strategy.outputs.should_build == 'true'
         shell: bash
         run: |
           cd packages/gis-napi
@@ -154,13 +176,11 @@ jobs:
           fi
 
       - name: Build isomorphic frontend
-        if: steps.strategy.outputs.should_build == 'true'
         env:
           ELECTRON_BUILD: "1"
         run: pnpm --filter isomorphic build
 
       - name: Build & Publish Electron App
-        if: steps.strategy.outputs.should_build == 'true'
         env:
           GH_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
         shell: bash
@@ -171,14 +191,14 @@ jobs:
             ARCH_FLAG="--${{ matrix.electron_arch }}"
           fi
           # electron-builder creates a draft release, uploads artifacts + latest*.yml
-          if [ "${{ steps.strategy.outputs.prerelease }}" = "true" ]; then
+          if [ "${{ needs.create-release.outputs.prerelease }}" = "true" ]; then
             pnpm build && pnpm exec electron-builder --config electron-builder.staging.yml --publish always $ARCH_FLAG
           else
             pnpm build && pnpm exec electron-builder --publish always $ARCH_FLAG
           fi
 
           # Upload a per-target copy of latest*.yml so the publish job can merge them
-          VERSION="${{ steps.strategy.outputs.version }}"
+          VERSION="${{ needs.create-release.outputs.version }}"
           TAG="v$VERSION"
           cd dist-electron
           for yml in latest*.yml; do
@@ -191,7 +211,7 @@ jobs:
   # Publish the draft release after all platform builds succeed
   publish-release:
     name: Publish Release
-    needs: publish-electron
+    needs: [create-release, publish-electron]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
