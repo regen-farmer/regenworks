@@ -138,17 +138,34 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
 function initUpdater() {
   if (!app.isPackaged) return;
 
-  autoUpdater.checkForUpdatesAndNotify().catch(() => {});
+  console.log("[Updater] Checking for updates...");
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    console.error("[Updater] Check failed:", err);
+  });
 
   autoUpdater.on("update-available", (info) => {
+    console.log(`[Updater] Update available: ${info.version}`);
     mainWindow?.webContents.send("update-available", {
       version: info.version,
-      notes: info.releaseNotes ?? "",
+      notes: typeof info.releaseNotes === "string" ? info.releaseNotes : "",
     });
   });
 
+  autoUpdater.on("update-not-available", (info) => {
+    console.log(`[Updater] App is up to date (${info.version})`);
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    console.log(`[Updater] Download: ${progress.percent.toFixed(1)}%`);
+  });
+
   autoUpdater.on("update-downloaded", (info) => {
+    console.log(`[Updater] Update downloaded: ${info.version}`);
     mainWindow?.webContents.send("update-downloaded", { version: info.version });
+  });
+
+  autoUpdater.on("error", (err) => {
+    console.error("[Updater] Error:", err);
   });
 }
 

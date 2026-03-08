@@ -45,6 +45,7 @@ import "@rw/db/schemas/variety.ts";
 import "@rw/db/schemas/well.ts";
 
 import { ThemeToggler } from "./theme.tsx";
+import ElectronUpdater from "./components/ElectronUpdater.tsx";
 
 // Query the session data for SSR hydration
 export const getSessionData = query(async () => {
@@ -70,6 +71,7 @@ export default function App() {
               <SessionProvider>
                 <div class="d-flex flex-column" style={{ height: "100%" }}>
                   {props.children}
+                  <ElectronUpdater />
                 </div>
               </SessionProvider>
             </Suspense>
