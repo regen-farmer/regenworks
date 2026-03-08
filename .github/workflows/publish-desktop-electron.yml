@@ -215,9 +215,17 @@ jobs:
           # Use -maxdepth 1 to avoid picking up files inside win-unpacked/ or linux-unpacked/
           for ext in dmg AppImage deb rpm exe; do
             find . -maxdepth 1 -name "*.$ext" ! -name "*.blockmap" ! -name "__uninstaller-*" -print0 | while IFS= read -r -d '' f; do
-              mv "$f" "$(dirname "$f")/${TARGET_BASE}.$ext"
+              OLD_NAME="$(basename "$f")"
+              NEW_NAME="${TARGET_BASE}.$ext"
+              mv "$f" "$(dirname "$f")/$NEW_NAME"
+              # Update latest*.yml references to match the renamed artifact
+              for yml in latest*.yml; do
+                [ -f "$yml" ] && sed -i.bak "s|$OLD_NAME|$NEW_NAME|g" "$yml"
+              done
             done
           done
+          # Clean up sed backup files
+          rm -f latest*.yml.bak
 
           find . -maxdepth 1 -type f \( \
             -name "*.dmg" \

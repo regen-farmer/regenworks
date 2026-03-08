@@ -138,6 +138,10 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
 function initUpdater() {
   if (!app.isPackaged) return;
 
+  // Allow pre-release updates only when running a pre-release version
+  const currentVersion = app.getVersion();
+  autoUpdater.allowPrerelease = currentVersion.includes("-");
+
   console.log("[Updater] Checking for updates...");
   autoUpdater.checkForUpdatesAndNotify().catch((err) => {
     console.error("[Updater] Check failed:", err);
