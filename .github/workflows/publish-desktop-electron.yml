@@ -177,6 +177,17 @@ jobs:
             pnpm build && pnpm exec electron-builder --publish always $ARCH_FLAG
           fi
 
+          # Upload a per-target copy of latest*.yml so the publish job can merge them
+          VERSION="${{ steps.strategy.outputs.version }}"
+          TAG="v$VERSION"
+          cd dist-electron
+          for yml in latest*.yml; do
+            [ -f "$yml" ] || continue
+            BASE="${yml%.yml}"
+            cp "$yml" "${BASE}-${{ matrix.target }}.yml"
+            gh release upload $TAG "${BASE}-${{ matrix.target }}.yml" --repo regen-farmer/regenworks-distribution --clobber
+          done
+
   # Publish the draft release after all platform builds succeed
   publish-release:
     name: Publish Release
@@ -185,12 +196,78 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Publish draft release
+      - name: Merge latest*.yml and publish release
         env:
           GITHUB_TOKEN: ${{ secrets.DIST_REPO_TOKEN }}
         shell: bash
         run: |
           VERSION=$(grep '"version"' packages/desktop-electron/package.json | head -1 | awk -F '"' '{print $4}')
           TAG="v$VERSION"
-          echo "Publishing release $TAG..."
-          gh release edit $TAG --repo regen-farmer/regenworks-distribution --draft=false --title "$TAG"
+          REPO="regen-farmer/regenworks-distribution"
+          WORKDIR="$(mktemp -d)"
+          cd "$WORKDIR"
+
+          # Download all yml files from the release (per-target + electron-builder originals)
+          gh release download $TAG --repo $REPO --pattern "*.yml" --dir . 2>/dev/null || true
+          echo "Downloaded yml files:"
+          ls -la *.yml 2>/dev/null || echo "  (none)"
+
+          # Merge function: combine file entries from per-target ymls into one
+          merge_ymls() {
+            local OUTPUT="$1"
+            local PREFIX="$2"
+            shift 2
+            local TARGETS=("$@")
+
+            echo "version: $VERSION" > "$OUTPUT"
+            echo "files:" >> "$OUTPUT"
+            local FIRST_PATH="" FIRST_SHA=""
+
+            for target in "${TARGETS[@]}"; do
+              local SRC="${PREFIX}-${target}.yml"
+              [ -f "$SRC" ] || continue
+              echo "  Merging $SRC into $OUTPUT"
+              # Extract file entries (lines starting with "  - url:" and following indented lines)
+              awk '/^  - url:/{found=1} found && /^  [^ ]/{print} found && /^    /{print} found && /^[^ ]/{found=0}' "$SRC" >> "$OUTPUT"
+              # Grab first path/sha for top-level fields
+              if [ -z "$FIRST_PATH" ]; then
+                FIRST_PATH=$(awk '/^path:/{print $2}' "$SRC")
+                FIRST_SHA=$(awk '/^sha512:/{print $2}' "$SRC")
+              fi
+            done
+
+            echo "path: $FIRST_PATH" >> "$OUTPUT"
+            echo "sha512: $FIRST_SHA" >> "$OUTPUT"
+            echo "releaseDate: '$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'" >> "$OUTPUT"
+          }
+
+          # Merge macOS (arm64 + x64)
+          merge_ymls "latest-mac.yml" "latest-mac" \
+            "aarch64-apple-darwin" "x86_64-apple-darwin"
+
+          # Merge Windows (arm64 + x64)
+          merge_ymls "latest.yml" "latest" \
+            "x86_64-pc-windows-msvc" "aarch64-pc-windows-msvc"
+
+          # Linux (single arch, just copy)
+          if [ -f "latest-linux-x86_64-unknown-linux-gnu.yml" ]; then
+            cp "latest-linux-x86_64-unknown-linux-gnu.yml" "latest-linux.yml"
+          fi
+
+          echo "=== latest-mac.yml ==="
+          cat latest-mac.yml
+          echo "=== latest.yml ==="
+          cat latest.yml
+          echo "=== latest-linux.yml ==="
+          cat latest-linux.yml
+
+          # Upload merged yml files and publish
+          gh release upload $TAG latest-mac.yml latest.yml latest-linux.yml --repo $REPO --clobber
+
+          # Clean up per-target yml files from the release
+          for f in latest-*-*-*.yml; do
+            [ -f "$f" ] && gh release delete-asset $TAG "$(basename "$f")" --repo $REPO --yes 2>/dev/null || true
+          done
+
+          gh release edit $TAG --repo $REPO --draft=false --title "$TAG"
+          echo "Published release $TAG"
