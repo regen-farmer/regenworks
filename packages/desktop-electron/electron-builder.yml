@@ -9,6 +9,7 @@ asar: true
 asarUnpack:
   - "**/*.node"
   - "**/*.dll"
+  - "**/*.dylib"
 
 files:
   - dist/**
@@ -17,6 +18,9 @@ files:
 
 # Replace pnpm workspace symlinks with real copies before packaging
 beforePack: scripts/before-pack.js
+
+# Bundle dylibs and rewrite paths in the unpacked native modules
+afterPack: scripts/after-pack.js
 
 # Bundle the pre-built isomorphic frontend
 extraResources:

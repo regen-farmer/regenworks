@@ -6,7 +6,7 @@
  * rejects files that resolve outside the package directory.
  *
  * This script replaces workspace symlinks with real copies of only the
- * files needed at runtime (JS + native .node binaries).
+ * files needed at runtime (JS + native .node binaries + dylibs).
  */
 const fs = require("fs");
 const path = require("path");
@@ -39,10 +39,17 @@ module.exports = async function beforePack(context) {
       fs.copyFileSync(pkgJson, path.join(linkPath, "package.json"));
     }
 
-    // Copy JS files in root
+    // Copy JS, native, and dylib files from root
     for (const file of fs.readdirSync(realPath)) {
       const src = path.join(realPath, file);
-      if (fs.statSync(src).isFile() && (file.endsWith(".js") || file.endsWith(".node") || file.endsWith(".dll"))) {
+      if (
+        fs.statSync(src).isFile() &&
+        (file.endsWith(".js") ||
+          file.endsWith(".node") ||
+          file.endsWith(".dll") ||
+          file.endsWith(".dylib") ||
+          file.endsWith(".so"))
+      ) {
         fs.copyFileSync(src, path.join(linkPath, file));
       }
     }

@@ -5,9 +5,15 @@ import fs from "fs";
 
 const API_URL = "https://staging.regenfarmer.com";
 
-// Load the native GIS addon — must use require() for native modules
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const gisNapi = require("@rw/gis-napi");
+// Load the native GIS addon lazily — may fail in packaged builds
+let gisNapi: any = null;
+function loadGisNapi() {
+  if (!gisNapi) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    gisNapi = require("@rw/gis-napi");
+  }
+  return gisNapi;
+}
 
 app.setName("RegenWorks");
 
@@ -41,12 +47,19 @@ function createWindow() {
   const ua = mainWindow.webContents.getUserAgent().replace(/\s*Electron\/\S+/, "");
   mainWindow.webContents.setUserAgent(ua);
 
+  // Log page load errors
+  mainWindow.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    console.error(`Failed to load ${url}: ${desc} (${code})`);
+  });
+
   if (app.isPackaged) {
     mainWindow.loadURL("app://localhost/");
   } else {
     mainWindow.loadURL("http://localhost:10000");
     mainWindow.webContents.openDevTools();
   }
+
+  mainWindow.show();
 
   // After Auth0 login, the staging server redirects to its own origin.
   // Intercept navigations to the API server that aren't part of the auth flow,
@@ -97,16 +110,16 @@ ipcMain.handle("generate_layout", async (_event, { systemdesign, fieldGeometry }
   const geometryString =
     typeof fieldGeometry === "string" ? fieldGeometry : JSON.stringify(fieldGeometry);
 
-  const resultJson: string = gisNapi.generateLayout(systemdesignJson, geometryString);
+  const resultJson: string = loadGisNapi().generateLayout(systemdesignJson, geometryString);
   return resultJson;
 });
 
 ipcMain.handle("get_engine_version", () => {
-  return gisNapi.getEngineVersion() as string;
+  return loadGisNapi().getEngineVersion() as string;
 });
 
 ipcMain.handle("health_check", () => {
-  return gisNapi.healthCheck() as boolean;
+  return loadGisNapi().healthCheck() as boolean;
 });
 
 // Proxy fetch requests from renderer to bypass CORS (like Tauri's native HTTP plugin)
