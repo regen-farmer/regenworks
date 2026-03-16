@@ -11,7 +11,7 @@
 	"main": "dist/main.js",
 	"scripts": {
 		"postinstall": "node scripts/patch-electron-dev.js",
-		"dev": "tsc && electron .",
+		"dev": "tsc && node scripts/electron-dev.js",
 		"build": "tsc",
 		"package": "pnpm build && electron-builder --publish never",
 		"package:staging": "pnpm build && electron-builder --config electron-builder.staging.yml --publish never"
