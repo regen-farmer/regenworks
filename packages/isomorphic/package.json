@@ -11,6 +11,7 @@
 	},
 	"type": "module",
 	"devDependencies": {
+		"@tailwindcss/vite": "^4.2.1",
 		"@types/geojson": "^7946.0.14",
 		"@types/lodash": "^4.17.20",
 		"@types/mailchimp__mailchimp_marketing": "^3.0.21",
@@ -18,9 +19,8 @@
 		"@types/mapbox__mapbox-gl-draw": "^1.4.9",
 		"@xmldom/xmldom": "^0.9.5",
 		"puppeteer": "^24.37.5",
-		"vite": "^7.0.0",
-		"vite-plugin-solid": "^2.11.10",
-		"vite-tsconfig-paths": "^5.1.4"
+		"vite": "^8.0.0",
+		"vite-plugin-solid": "^2.11.11"
 	},
 	"dependencies": {
 		"@auth/core": "^0.41.1",
@@ -40,7 +40,6 @@
 		"@rw/db": "workspace:*",
 		"@rw/modelling": "workspace:*",
 		"@solid-primitives/media": "^2.3.3",
-		"@tailwindcss/postcss": "^4.1.12",
 		"@tanstack/solid-router": "^1.167.3",
 		"@tanstack/solid-start": "^1.166.14",
 		"@tauri-apps/plugin-http": "~2",

@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
-import tsConfigPaths from "vite-tsconfig-paths";
+import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/solid-start/plugin/vite";
 import viteSolid from "vite-plugin-solid";
 
@@ -104,8 +104,11 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: Number(process.env.PORT) || 10000,
 		},
+		resolve: {
+			tsconfigPaths: true,
+		},
 		plugins: [
-			tsConfigPaths({ projects: ["./tsconfig.json"] }),
+			tailwindcss(),
 			stubServerModulesPlugin(),
 			tanstackStart({ spa: isDesktop ? { enabled: true, maskPath: "/" } : undefined }),
 			viteSolid({ ssr: true }),
