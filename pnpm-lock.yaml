@@ -335,6 +335,9 @@ importers:
       source-map-js:
         specifier: 1.2.1
         version: 1.2.1
+      srvx:
+        specifier: ^0.11.12
+        version: 0.11.12
       start-authjs:
         specifier: ^1.0.0
         version: 1.0.2(@auth/core@0.41.1)
