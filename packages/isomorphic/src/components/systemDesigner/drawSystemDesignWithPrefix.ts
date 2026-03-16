@@ -312,12 +312,13 @@ function drawSystemDesignWithPrefix(
     removeLayerWithPrefix("trees");
 
     // Collect all tree points with species ID for color coding
-    const allTreePoints = treeMarkerArray
-      ?.filter((tree: any) => tree.species?._id || tree.species)
-      .map((tree: any) => ({
-        ...tree.point,
-        properties: { ...tree.point?.properties, speciesId: tree.species?._id || tree.species },
-      })) ?? [];
+    const allTreePoints =
+      treeMarkerArray
+        ?.filter((tree: any) => tree.species?._id || tree.species)
+        .map((tree: any) => ({
+          ...tree.point,
+          properties: { ...tree.point?.properties, speciesId: tree.species?._id || tree.species },
+        })) ?? [];
 
     // Build a match expression for per-species colors
     const colorExpr: any[] = ["match", ["get", "speciesId"]];

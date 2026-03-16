@@ -1,6 +1,5 @@
 import type { Component } from "solid-js";
-import { action, useNavigate } from "@solidjs/router";
-import { useParams } from "@solidjs/router";
+import { useParams } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import {
   Dialog,
@@ -23,7 +22,7 @@ import type { GeoJsonProperties, FeatureCollection, Polygon, MultiPolygon, Featu
 
 import { updateArea, useDrawControl } from "~/util/map_controls/useDrawControl.ts";
 import type { IControl } from "maplibre-gl";
-import { modes } from "~/routes/parcels/[parcelId]/index.tsx";
+import { modes } from "~/routes/parcels/$parcelId/index.tsx";
 import { removeLayers } from "~/util/removeLayers.ts";
 import type { ILayerSchema } from "@rw/db/schemas/layer.ts";
 import { getMongoDBUser } from "~/auth/useAuth";
@@ -73,9 +72,11 @@ export const EditFieldMode: Component<{
   }
 
   const [submitDisabled, setSubmitDisabled] = createSignal<boolean>(false);
-  const params = useParams<{ parcelId: string }>();
+  const params = useParams({ strict: false });
 
-  const addFieldFormAction = action(async (formData: FormData) => {
+  async function handleAddFieldSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     setSubmitDisabled(true);
 
     const payload = {
@@ -94,7 +95,7 @@ export const EditFieldMode: Component<{
           ...apiFetchOptions(),
         });
       } else {
-        await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/${params.parcelId}/layers`, {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/${params().parcelId}/layers`, {
           body: JSON.stringify(payload),
           method: "post",
           ...apiFetchOptions(),
@@ -108,7 +109,7 @@ export const EditFieldMode: Component<{
     } else {
       setSubmitDisabled(false);
     }
-  });
+  }
 
   function drawFields() {
     const collectionClone = {
@@ -180,7 +181,7 @@ export const EditFieldMode: Component<{
   }
 
   function moveMapToField(e: any) {
-    // navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
+    // navigate(`/parcels/${params().parcelId}/layers/${e.features[0].properties.id}`);
     e.clickOnLabel = true;
     getMap().flyTo({
       speed: 2,
@@ -587,7 +588,7 @@ export const EditFieldMode: Component<{
   return (
     <>
       <div>
-        <form method="post" action={addFieldFormAction}>
+        <form onSubmit={handleAddFieldSubmit}>
           <div
             class="bg-customdark1 "
             style={{

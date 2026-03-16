@@ -1,5 +1,5 @@
-import { createAsync, useLocation } from "@solidjs/router";
-import { createMemo, Show } from "solid-js";
+import { useLocation } from "@tanstack/solid-router";
+import { createMemo, createResource, Show } from "solid-js";
 import NewUser from "~/auth/signup.tsx";
 import { ShowAfterAuth } from "./useAuth.tsx";
 import { getSessionData } from "~/app.tsx";
@@ -9,11 +9,11 @@ const PUBLIC_ROUTES = ["/scenario-preview/", "/farm-scenario-preview/", "/privac
 
 const SessionProvider = (props: any) => {
   const location = useLocation();
-  const session = createAsync(() => getSessionData());
+  const [session] = createResource(() => getSessionData());
 
   // Check if current route is a public route
   const isPublicRoute = createMemo(() => {
-    const path = location.pathname;
+    const path = location().pathname;
     return PUBLIC_ROUTES.some((route) => path.startsWith(route));
   });
 

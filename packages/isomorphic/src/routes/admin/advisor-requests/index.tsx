@@ -1,4 +1,5 @@
 import { createEffect, createResource, createSignal, For, Show } from "solid-js";
+import { createFileRoute } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 import { IUserSchema } from "@rw/db/schemas/user";
@@ -14,7 +15,7 @@ interface AdvisorRequest {
   phoneNumber?: string;
 }
 
-export default function AdvisorRequests() {
+function AdvisorRequests() {
   const [requests, setRequest] = createSignal<AdvisorRequest[]>([]);
   const [loading, setLoading] = createSignal<boolean>(true);
 
@@ -131,3 +132,5 @@ export default function AdvisorRequests() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/admin/advisor-requests/")({ component: AdvisorRequests });

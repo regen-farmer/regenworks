@@ -95,7 +95,9 @@ async function generateLayoutElectron(systemDesign: any, fieldGeometry: any): Pr
   const geometryString =
     typeof fieldGeometry === "string" ? fieldGeometry : JSON.stringify(fieldGeometry);
 
-  const electronAPI = (window as unknown as { electronAPI: { invoke: (c: string, a: unknown) => Promise<string> } }).electronAPI;
+  const electronAPI = (
+    window as unknown as { electronAPI: { invoke: (c: string, a: unknown) => Promise<string> } }
+  ).electronAPI;
 
   // Serialize to JSON string before IPC — strips reactive proxies / Mongoose docs.
   const systemDesignJson = JSON.stringify(systemDesign);

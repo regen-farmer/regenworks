@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Show, createEffect, createMemo, createResource, createSignal } from "solid-js";
-import { useLocation, useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@tanstack/solid-router";
 import type { ParcelDocument } from "@rw/db/schemas/parcel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
@@ -41,7 +41,7 @@ export function FarmSelect() {
   const location = useLocation();
 
   const getParcelId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const parcelsIndex = pathSections.findIndex((value) => value === "parcels");
 
     const parcelId: string = pathSections[parcelsIndex + 1];
@@ -49,7 +49,7 @@ export function FarmSelect() {
   });
 
   createEffect(() => {
-    // console.log('params', location.pathname)
+    // console.log('params', location().pathname)
 
     if (
       getParcelId() &&
@@ -73,7 +73,7 @@ export function FarmSelect() {
         value={getParcelId()}
         onChange={(val) => {
           if (val) {
-            navigate(`/parcels/${val}`);
+            navigate({ to: `/parcels/${val}` });
           }
         }}
         options={farms()}

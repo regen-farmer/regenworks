@@ -9,12 +9,11 @@ import {
 } from "~/components/ui/dialog";
 import { Show, createResource, createSignal } from "solid-js";
 
-import { action } from "@solidjs/router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { Row } from "~/components/row/Row";
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
-import { useParams } from "@solidjs/router";
+import { useParams } from "@tanstack/solid-router";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 type DuplicateScenarioModalProps = {
@@ -32,7 +31,7 @@ export function DuplicateScenarioModal({
 }: DuplicateScenarioModalProps) {
   const [error, setError] = createSignal<string>("");
   const [submitDisabled, setSubmitDisabled] = createSignal(false);
-  const params = useParams();
+  const params = useParams({ strict: false });
 
   function cancel() {
     setModalOpen(false);
@@ -43,14 +42,16 @@ export function DuplicateScenarioModal({
     system: SystemDocument;
   }>(async () => {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/new-project`,
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params().layerId}/new-project`,
       apiFetchOptions(),
     );
     const result = await response.json();
     return result;
   });
 
-  const routeAction = action(async (formData: FormData) => {
+  async function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     setSubmitDisabled(true);
 
     const payload = {
@@ -63,7 +64,7 @@ export function DuplicateScenarioModal({
     console.log(payload);
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/layers/${params.layerId}/projects/duplicate`,
+      `${import.meta.env.VITE_BACKEND_URL}/layers/${params().layerId}/projects/duplicate`,
       {
         body: JSON.stringify(payload),
         method: "post",
@@ -74,7 +75,7 @@ export function DuplicateScenarioModal({
     const project: ProjectDocument = await response.json();
     refetchScenarios();
     setModalOpen(false);
-  });
+  }
 
   return (
     <div>
@@ -88,7 +89,7 @@ export function DuplicateScenarioModal({
               <Show when={data()}>
                 <Row>
                   <div>
-                    <form method="post" action={routeAction}>
+                    <form onSubmit={handleSubmit}>
                       <div class="form-group">
                         <label for="project[name]">Scenario title</label>
                         <input

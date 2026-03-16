@@ -25,7 +25,7 @@ import {
 
 import { type Component, createEffect, createSignal, Show } from "solid-js";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { action } from "@solidjs/router";
+import { createFileRoute } from "@tanstack/solid-router";
 import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { countries } from "../util/countries.ts";
@@ -215,7 +215,9 @@ const RouteViewAccount: Component = () => {
     document.location.reload();
   }
 
-  const CreateSubscriptionForm = action(async (formData: FormData) => {
+  async function handleCreateSubscription(e: SubmitEvent) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     const payload: any = {
       priceId: formData.get("priceId")?.toString()!,
       email: formData.get("email")?.toString()!,
@@ -236,7 +238,7 @@ const RouteViewAccount: Component = () => {
     const checkoutUrl = (await checkoutUrlRes.json()).checkoutUrl;
 
     location.href = checkoutUrl;
-  });
+  }
 
   const [countryCode, setCountryCode] = createSignal<string>("");
 
@@ -404,7 +406,7 @@ const RouteViewAccount: Component = () => {
                         <CardDescription>Manage a single farm</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <form method="post" action={CreateSubscriptionForm}>
+                        <form onSubmit={handleCreateSubscription}>
                           <input
                             type="hidden"
                             name="priceId"
@@ -417,7 +419,7 @@ const RouteViewAccount: Component = () => {
                           </button>
                         </form>
 
-                        <form method="post" action={CreateSubscriptionForm}>
+                        <form onSubmit={handleCreateSubscription}>
                           <input
                             type="hidden"
                             name="priceId"
@@ -439,7 +441,7 @@ const RouteViewAccount: Component = () => {
                         <CardDescription>Manage up to 10 farms</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <form method="post" action={CreateSubscriptionForm}>
+                        <form onSubmit={handleCreateSubscription}>
                           <input
                             type="hidden"
                             name="priceId"
@@ -453,7 +455,7 @@ const RouteViewAccount: Component = () => {
                           </button>
                         </form>
 
-                        <form method="post" action={CreateSubscriptionForm}>
+                        <form onSubmit={handleCreateSubscription}>
                           <input
                             type="hidden"
                             name="priceId"
@@ -478,6 +480,6 @@ const RouteViewAccount: Component = () => {
   );
 };
 
-export default function () {
-  return <RouteViewAccount />;
-}
+export const Route = createFileRoute("/settings")({
+  component: RouteViewAccount,
+});

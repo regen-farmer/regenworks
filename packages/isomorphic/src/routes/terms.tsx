@@ -1,5 +1,5 @@
 import type { Component } from "solid-js";
-
+import { createFileRoute } from "@tanstack/solid-router";
 import { NavBar } from "~/components/NavBar.tsx";
 import Paper from "~/components/ui/paper";
 
@@ -835,4 +835,6 @@ const RouteViewTerms: Component = () => {
   );
 };
 
-export default RouteViewTerms;
+export const Route = createFileRoute("/terms")({
+  component: RouteViewTerms,
+});

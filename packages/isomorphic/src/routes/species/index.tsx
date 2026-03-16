@@ -1,9 +1,9 @@
 import { For, createResource } from "solid-js";
-import { A } from "@solidjs/router";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
-export default function view() {
+function SpeciesIndex() {
   const [data, { refetch }] = createResource<{
     species: SpeciesDocument[];
   }>(async () => {
@@ -14,12 +14,12 @@ export default function view() {
   return (
     <div class="container mx-auto p-4">
       <h1 class="text-3xl font-bold mb-4">Species</h1>
-      <A
-        href="/species/new"
+      <Link
+        to="/species/new"
         class="rounded-sm py-1 px-2 my-2 bg-blue-500 text-white hover:bg-blue-600"
       >
         Add new species
-      </A>
+      </Link>
 
       <p class="mb-4 mt-4">Count: {data()?.species?.length}</p>
       {/* Header Row */}
@@ -65,12 +65,12 @@ export default function view() {
             </div>
             <div class="flex-1">{species.price ? `${species.price} $` : "no age data"}</div>
             <div class="flex-1">
-              <A
-                href={`/species/${species._id}`}
+              <Link
+                to={`/species/${species._id}`}
                 class="rounded-sm py-1 px-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-500"
               >
                 Show more
-              </A>
+              </Link>
             </div>
           </div>
         )}
@@ -78,3 +78,5 @@ export default function view() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/species/")({ component: SpeciesIndex });

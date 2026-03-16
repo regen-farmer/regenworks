@@ -1,8 +1,7 @@
 import Auth0 from "@auth/core/providers/auth0";
-import { setCookie } from "@solidjs/start/http";
+import { setCookie, getRequest } from "@tanstack/solid-start/server";
 import { getSession as getAuthSession } from "start-authjs";
 import type { StartAuthJSConfig } from "start-authjs";
-import { getRequestEvent } from "solid-js/web";
 
 export const authConfig: StartAuthJSConfig = {
   secret: process.env.AUTH_SECRET,
@@ -23,7 +22,6 @@ export const authConfig: StartAuthJSConfig = {
   ],
   callbacks: {
     // Persist email_verified and sub through the JWT so session.user has them.
-    // On initial sign-in both `user` (profile() return) and `profile` (raw OAuth) are available.
     jwt: async ({ token, user, profile }) => {
       const source = profile ?? user;
       if (source) {
@@ -40,10 +38,9 @@ export const authConfig: StartAuthJSConfig = {
   },
 };
 
-// Server-side session getter
+// Server-side session getter — plain function, only called from server context
 export async function getSession() {
-  "use server";
-  const event = getRequestEvent();
-  if (!event) return null;
-  return await getAuthSession(event.request, authConfig);
+  const request = getRequest();
+  if (!request) return null;
+  return await getAuthSession(request, authConfig);
 }

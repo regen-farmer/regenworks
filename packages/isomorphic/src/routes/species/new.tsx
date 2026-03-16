@@ -1,14 +1,16 @@
-import { useNavigate, useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@tanstack/solid-router";
 import MPObj from "multipart-object";
-import { action } from "@solidjs/router";
+import { createFileRoute } from "@tanstack/solid-router";
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
-export default function view() {
+function SpeciesNew() {
   const navigate = useNavigate();
-  const params = useParams();
+  const params = useParams({ strict: false });
 
-  const Form = action(async (formData: FormData) => {
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     //
     // console.log('formdata: ', formData)
     const formDataObj = {};
@@ -35,8 +37,8 @@ export default function view() {
 
     const species: SpeciesDocument = await response.json();
 
-    navigate(`/species/${species._id}`);
-  });
+    navigate({ to: `/species/${species._id}` });
+  };
 
   return (
     <div class="container">
@@ -44,7 +46,7 @@ export default function view() {
         <div class="col-lg-3" />
         <div class="col-lg-6">
           <h1 class="h1">Create new species</h1>
-          <form method="post" action={Form}>
+          <form onSubmit={handleSubmit}>
             <div class="form-group">
               <label for="species[nameCommon]">Species common name</label>
               <input
@@ -341,3 +343,5 @@ export default function view() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/species/new")({ component: SpeciesNew });

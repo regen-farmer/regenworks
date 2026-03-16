@@ -1,7 +1,7 @@
-import { A, useParams } from "@solidjs/router";
+import { Link, useParams } from "@tanstack/solid-router";
 
 export function ScenarioSideBar(props: any) {
-  const params = useParams();
+  const params = useParams({ strict: false });
 
   // const navigate = useNavigate()
 
@@ -24,33 +24,33 @@ export function ScenarioSideBar(props: any) {
           <ul class="navbar-nav sidebar">
             <li class="nav-item">
               {/* <A class='nav-link' href={`/users/${ currentUser._id }`}> */}
-              <A
+              <Link
                 class="nav-link"
-                end={true}
-                href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}`}
+                activeOptions={{ exact: true }}
+                to={`/parcels/${params().parcelId}/layers/${params().layerId}/projects/${params().projectId}`}
               >
                 Info
-              </A>
+              </Link>
             </li>
 
             <li class="nav-item">
               {/* <A class='nav-link' href={`/users/${ currentUser._id }`}> */}
-              <A
+              <Link
                 class="nav-link"
-                href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/financials`}
+                to={`/parcels/${params().parcelId}/layers/${params().layerId}/projects/${params().projectId}/financials`}
               >
                 Financials
-              </A>
+              </Link>
             </li>
 
             <li class="nav-item">
               {/* <A class='nav-link' href={`/users/${ currentUser._id }`}> */}
-              <A
+              <Link
                 class="nav-link"
-                href={`/parcels/${params.parcelId}/layers/${params.layerId}/projects/${params.projectId}/layout`}
+                to={`/parcels/${params().parcelId}/layers/${params().layerId}/projects/${params().projectId}/layout`}
               >
                 Layout
-              </A>
+              </Link>
             </li>
           </ul>
         </div>

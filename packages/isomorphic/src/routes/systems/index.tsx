@@ -1,8 +1,9 @@
 import { For, createResource } from "solid-js";
+import { createFileRoute } from "@tanstack/solid-router";
 import type { SystemDocument } from "@rw/db/schemas/system.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
-export default function view() {
+function SystemsIndex() {
   const [data, { refetch }] = createResource<{
     systems: SystemDocument[];
   }>(async () => {
@@ -49,3 +50,5 @@ export default function view() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/systems/")({ component: SystemsIndex });

@@ -64,7 +64,7 @@ class Show3DControl implements maplibregl.IControl {
     this._3dModelsButton.addEventListener("click", () => {
       this._setShow3D(!this._show3D());
       this.updateIcon();
-      
+
       // Call the callback if provided
       if (this._onToggle) {
         this._onToggle();
@@ -131,7 +131,6 @@ export function use3DControl(
     } catch {}
 
     if (show3D()) {
-
       type TreeAsset = {
         species: any;
         point: Feature<Point, GeoJsonProperties>;
@@ -142,7 +141,6 @@ export function use3DControl(
 
       const correctTreeAssetArray: TreeAsset[] = layoutData()?.treeMarkerArray!.filter(
         (entry: TreeAsset) => {
-
           if (entry.species) {
             const speciesKey =
               typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
@@ -154,20 +152,23 @@ export function use3DControl(
         },
       );
 
-      const assetFormArrays = correctTreeAssetArray.reduce((acc: Record<string, TreeAsset[]>, entry) => {
-        const speciesKey2 =
-          typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
-        const cultivar = species()?.speciesById.get(speciesKey2);
+      const assetFormArrays = correctTreeAssetArray.reduce(
+        (acc: Record<string, TreeAsset[]>, entry) => {
+          const speciesKey2 =
+            typeof entry.species === "object" ? (entry.species as any)._id : entry.species;
+          const cultivar = species()?.speciesById.get(speciesKey2);
 
-        let groupKey = cultivar?.form ?? "palm";
-        if (cultivar?.family === "pinaceae") {
-          groupKey = "conifer";
-        }
-        
-        if (!acc[groupKey]) acc[groupKey] = [];
-        acc[groupKey].push(entry);
-        return acc;
-      }, {});
+          let groupKey = cultivar?.form ?? "palm";
+          if (cultivar?.family === "pinaceae") {
+            groupKey = "conifer";
+          }
+
+          if (!acc[groupKey]) acc[groupKey] = [];
+          acc[groupKey].push(entry);
+          return acc;
+        },
+        {},
+      );
 
       const models: any = {
         giantherb: {

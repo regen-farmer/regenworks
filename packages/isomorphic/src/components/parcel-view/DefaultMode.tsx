@@ -1,5 +1,5 @@
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
-import { A, action, useNavigate, useParams } from "@solidjs/router";
+import { Link, useNavigate, useParams } from "@tanstack/solid-router";
 import type * as turf from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 import {
@@ -73,7 +73,7 @@ export default function DefaultMode({
 
   // Fetch existing farm planting plan configurations
   const [farmConfigs, { refetch: refetchFarmConfigs }] = createResource(
-    () => params.parcelId,
+    () => params().parcelId,
     async (parcelId) => {
       try {
         return await getFarmScenarioConfigs(parcelId);
@@ -143,7 +143,7 @@ export default function DefaultMode({
 
   const handleModelCreated = async (modelId: string) => {
     await refetchModels();
-    navigate(`/parcels/${params.parcelId}/models/${modelId}`);
+    navigate({ to: `/parcels/${params().parcelId}/models/${modelId}` });
   };
 
   const openCreateScenarioModal = () => {
@@ -177,7 +177,7 @@ export default function DefaultMode({
       }));
 
       const created = await createFarmScenarioConfig({
-        parcel: params.parcelId,
+        parcel: params().parcelId,
         name: trimmedName,
         description: newScenarioDescription().trim() || undefined,
         fieldScenarios,
@@ -193,7 +193,7 @@ export default function DefaultMode({
       setNewScenarioName("");
       setNewScenarioDescription("");
       await refetchFarmConfigs();
-      navigate(`/parcels/${params.parcelId}/farm-scenario/${created._id}`);
+      navigate({ to: `/parcels/${params().parcelId}/farm-scenario/${created._id}` });
     } catch (error) {
       console.error("Failed to create farm planting plan config:", error);
       showToast({
@@ -308,7 +308,7 @@ export default function DefaultMode({
     map.on("click", "field-fills", navigateToField);
   }
   function navigateToField(e: any) {
-    navigate(`/parcels/${params.parcelId}/layers/${e.features[0].properties.id}`);
+    navigate({ to: `/parcels/${params().parcelId}/layers/${e.features[0].properties.id}` });
   }
   function moveMapToField(e: any) {
     e.clickOnLabel = true;
@@ -331,12 +331,13 @@ export default function DefaultMode({
 
   createEffect(() => {
     const parcelData = data()?.parcel;
-    if (parcelData && (parcelData as any)?._id === params.parcelId && getMap()?.isStyleLoaded()) {
+    if (parcelData && (parcelData as any)?._id === params().parcelId && getMap()?.isStyleLoaded()) {
       drawFields();
     }
   });
 
-  const deleteForm = action(async (formData: FormData) => {
+  async function handleDeleteField(e: SubmitEvent) {
+    e.preventDefault();
     await fetch(`${import.meta.env.VITE_BACKEND_URL}/layers/${activeField()}`, {
       body: "",
       method: "delete",
@@ -346,7 +347,7 @@ export default function DefaultMode({
     setActiveField(undefined);
     await refetch();
     drawFields();
-  });
+  }
 
   const [deleteFieldModalOpen, setDeleteFieldModalOpen] = createSignal(false);
 
@@ -367,7 +368,7 @@ export default function DefaultMode({
             </p>
           </DialogDescription>
           <DialogFooter>
-            <form action={deleteForm} method="post" class="delete-form">
+            <form onSubmit={handleDeleteField} class="delete-form">
               <button
                 class="rounded-sm p-1 my-1 btn-danger"
                 onClick={() => setDeleteFieldModalOpen(false)}
@@ -526,12 +527,12 @@ export default function DefaultMode({
                   <For each={data()?.parcel.layers}>
                     {(layer) => (
                       <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                        <A
+                        <Link
                           class="overlay-list-link"
-                          href={`/parcels/${params.parcelId}/layers/${layer._id}`}
+                          to={`/parcels/${params().parcelId}/layers/${layer._id}`}
                         >
                           {layer.name}
-                        </A>
+                        </Link>
                         <div>
                           <button
                             title="Edit field"
@@ -647,20 +648,20 @@ export default function DefaultMode({
                         <For each={farmConfigs()}>
                           {(config: any) => (
                             <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                              <A
+                              <Link
                                 class="overlay-list-link"
-                                href={`/parcels/${params.parcelId}/farm-scenario/${config._id}`}
+                                to={`/parcels/${params().parcelId}/farm-scenario/${config._id}`}
                               >
                                 {config.name || "Unnamed scenario"}
-                              </A>
+                              </Link>
                               <div>
                                 <button
                                   title="Edit scenario"
                                   class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
                                   onClick={() =>
-                                    navigate(
-                                      `/parcels/${params.parcelId}/farm-scenario/${config._id}`,
-                                    )
+                                    navigate({
+                                      to: `/parcels/${params().parcelId}/farm-scenario/${config._id}`,
+                                    })
                                   }
                                 >
                                   <i class="fa-solid fa-pen" />
@@ -688,7 +689,7 @@ export default function DefaultMode({
           </Show>
 
           {/* Financial Models Section - only show when there are planting plans */}
-          {/* TEMPORARILY HIDDEN 
+          {/* TEMPORARILY HIDDEN
           <Show when={false && farmConfigs() && farmConfigs()!.length > 0}>
             <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
               <button
@@ -739,19 +740,19 @@ export default function DefaultMode({
                         <For each={financialModels()}>
                           {(model: any) => (
                             <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                              <A
+                              <Link
                                 class="overlay-list-link"
-                                href={`/parcels/${params.parcelId}/models/${model._id}`}
+                                to={`/parcels/${params().parcelId}/models/${model._id}`}
                               >
                                 <div>{model.name}</div>
                                 <div class="text-xs text-gray-400">{model.planName}</div>
-                              </A>
+                              </Link>
                               <div class="flex gap-1">
                                 <button
                                   title="Open model"
                                   class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
                                   onClick={() =>
-                                    navigate(`/parcels/${params.parcelId}/models/${model._id}`)
+                                    navigate({ to: `/parcels/${params().parcelId}/models/${model._id}` })
                                   }
                                 >
                                   <i class="fa-solid fa-chart-line" />

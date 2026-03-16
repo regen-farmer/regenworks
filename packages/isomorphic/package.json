@@ -3,11 +3,11 @@
 	"scripts": {
 		"dev": "vite dev --port 10000",
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
-		"format": "oxfmt --write ./src",
+		"format": "oxfmt --write --ignore-path=.oxfmtignore ./src",
 		"build": "vite build",
 		"preview": "vite preview",
-		"start": "srvx --prod --static ../client dist/server/entry-server.js",
-		"start-local": "PORT=10000 NODE_OPTIONS=\"--env-file=.env\" srvx --prod --static ../client dist/server/entry-server.js"
+		"start": "srvx --prod --static ../client dist/server/server.js",
+		"start-local": "set -a && source .env && set +a && PORT=10000 srvx --prod --static ../client dist/server/server.js"
 	},
 	"type": "module",
 	"devDependencies": {
@@ -18,10 +18,12 @@
 		"@types/mapbox__mapbox-gl-draw": "^1.4.9",
 		"@xmldom/xmldom": "^0.9.5",
 		"puppeteer": "^24.37.5",
-		"vite": "^7.0.0"
+		"vite": "^7.0.0",
+		"vite-plugin-solid": "^2.11.10",
+		"vite-tsconfig-paths": "^5.1.4"
 	},
 	"dependencies": {
-		"@auth/core": "^0.38.0",
+		"@auth/core": "^0.41.1",
 		"@corvu/resizable": "^0.2.5",
 		"@corvu/tooltip": "^0.2.2",
 		"@deck.gl/core": "^9.1.14",
@@ -38,8 +40,8 @@
 		"@rw/db": "workspace:*",
 		"@rw/modelling": "workspace:*",
 		"@solid-primitives/media": "^2.3.3",
-		"@solidjs/router": "^0.15.4",
-		"@solidjs/start": "^2.0.0-alpha.2",
+		"@tanstack/solid-router": "^1.167.3",
+		"@tanstack/solid-start": "^1.166.14",
 		"@tailwindcss/postcss": "^4.1.12",
 		"@tauri-apps/plugin-http": "~2",
 		"@tmcw/togeojson": "^7.1.2",
