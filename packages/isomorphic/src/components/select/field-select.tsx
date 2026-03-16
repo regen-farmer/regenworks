@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Show, createMemo, createResource, createSignal } from "solid-js";
-import { useLocation, useNavigate, useParams } from "@solidjs/router";
+import { useLocation, useNavigate, useParams } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 import type { LayerDocument } from "@rw/db/schemas/layer.ts";
@@ -16,17 +16,17 @@ export const [reloadSignal, setReloadSignal] = createSignal(1);
 
 export function FieldSelect() {
   const location = useLocation();
-  const params = useParams();
+  const params = useParams({ strict: false });
 
   const getParcelId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const parcelsIndex = pathSections.findIndex((value) => value === "parcels");
     const parcelId: string = pathSections[parcelsIndex + 1];
     return parcelId;
   });
 
   const getLayerId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const layersIndex = pathSections.findIndex((value) => value === "layers");
     const layerId: string = pathSections[layersIndex + 1];
     return layerId;
@@ -67,8 +67,8 @@ export function FieldSelect() {
       <Select
         value={getLayerId()}
         onChange={(val) => {
-          if (val && val !== params.layerId) {
-            navigate(`/parcels/${getParcelId()}/layers/${val}`);
+          if (val && val !== params().layerId) {
+            navigate({ to: `/parcels/${getParcelId()}/layers/${val}` });
           }
         }}
         options={fields()}

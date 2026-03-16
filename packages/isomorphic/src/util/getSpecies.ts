@@ -1,9 +1,9 @@
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
-import { createAsync } from "@solidjs/router";
+import { createResource } from "solid-js";
 import { apiFetchOptions } from "./apiFetchOptions.ts";
 
 export function getSpecies() {
-  return createAsync<{
+  const [data] = createResource<{
     species: SpeciesDocument[];
     speciesById: Map<string, SpeciesDocument>;
   }>(async () => {
@@ -12,9 +12,10 @@ export function getSpecies() {
     const result = await response.json();
 
     result.speciesById = new Map<string, any>(
-      result.species.map((species) => [species._id, species]),
+      result.species.map((species: SpeciesDocument) => [species._id, species]),
     );
 
     return result;
   });
+  return data;
 }

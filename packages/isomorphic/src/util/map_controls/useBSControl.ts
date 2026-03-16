@@ -79,9 +79,7 @@ export function useBSControl(map: maplibregl.Map) {
           type: "raster",
           // use the tiles option to specify a WMS tile source URL
           // https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/
-          tiles: [
-            "bluespot://{bbox-epsg-3857}",
-          ],
+          tiles: ["bluespot://{bbox-epsg-3857}"],
           tileSize: 256,
         });
       }

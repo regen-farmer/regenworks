@@ -1,4 +1,5 @@
-import { mount, StartClient } from "@solidjs/start/client";
+import { hydrate } from "solid-js/web";
+import { StartClient, hydrateStart } from "@tanstack/solid-start/client";
 import { isElectron, isTauri } from "~/util/platform.ts";
 
 if (typeof window !== "undefined" && (isTauri() || isElectron())) {
@@ -53,4 +54,6 @@ if (typeof window !== "undefined" && (isTauri() || isElectron())) {
   }
 }
 
-mount(() => <StartClient />, document.getElementById("app")!);
+hydrateStart().then((router) => {
+  hydrate(() => <StartClient router={router} />, document);
+});

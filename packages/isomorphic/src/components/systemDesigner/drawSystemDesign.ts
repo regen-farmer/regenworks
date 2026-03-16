@@ -13,7 +13,6 @@ import { getSpeciesColor, getSpeciesColorWithAlpha } from "~/util/speciesColors"
 function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?: boolean) {
   // In 3D mode, hide all 2D layers for photorealistic view
   if (show3D) {
-
     // List of static layers to hide
     const staticLayersToHide = [
       "strips-points",
@@ -368,15 +367,16 @@ function drawSystemDesign(map: MLMap, systemLayout: ISystemBasedLayout, show3D?:
     // Using a single source + circle layer instead of per-species fill polygon layers:
     // - Much smaller GeoJSON (points vs 12-vertex polygon circles)
     // - MapLibre GPU-native circle rendering is significantly faster
-    const allTreePoints = treeMarkerArray
-      ?.filter((tree: any) => tree.species?._id || tree.species)
-      .map((tree: any) => ({
-        ...tree.point,
-        properties: {
-          ...tree.point?.properties,
-          speciesId: tree.species?._id || tree.species,
-        },
-      })) ?? [];
+    const allTreePoints =
+      treeMarkerArray
+        ?.filter((tree: any) => tree.species?._id || tree.species)
+        .map((tree: any) => ({
+          ...tree.point,
+          properties: {
+            ...tree.point?.properties,
+            speciesId: tree.species?._id || tree.species,
+          },
+        })) ?? [];
 
     // Build a data-driven color match expression
     const colorExpr: any[] = ["match", ["get", "speciesId"]];

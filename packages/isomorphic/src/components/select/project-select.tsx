@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Show, createMemo, createResource, createSignal } from "solid-js";
-import { useLocation, useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
@@ -18,21 +18,21 @@ export function ProjectSelect() {
   const location = useLocation();
 
   const getParcelId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const parcelsIndex = pathSections.findIndex((value) => value === "parcels");
     const parcelId: string = pathSections[parcelsIndex + 1];
     return parcelId;
   });
 
   const getLayerId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const layersIndex = pathSections.findIndex((value) => value === "layers");
     const layerId: string = pathSections[layersIndex + 1];
     return layerId;
   });
 
   const getProjectId = createMemo(() => {
-    const pathSections = location.pathname.split("/");
+    const pathSections = location().pathname.split("/");
     const projectsIndex = pathSections.findIndex((value) => value === "projects");
     const projectId: string = pathSections[projectsIndex + 1];
     return projectId;
@@ -71,7 +71,7 @@ export function ProjectSelect() {
         value={getProjectId()}
         onChange={(val) => {
           if (val) {
-            navigate(`/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${val}`);
+            navigate({ to: `/parcels/${getParcelId()}/layers/${getLayerId()}/projects/${val}` });
           }
         }}
         options={projects()}

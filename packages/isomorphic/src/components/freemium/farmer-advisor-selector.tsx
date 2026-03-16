@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { createEffect, createSignal } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { useNavigate } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 import { getMongoDBUser } from "~/auth/useAuth";
 
@@ -85,7 +85,7 @@ export function FarmerAdvisorSelector({ isOpen, onSelect, onClose }: FarmerAdvis
             onClick={async () => {
               setSelectedAction("farmer_buy-plan");
               await saveLog();
-              navigate("/settings");
+              navigate({ to: "/settings" });
             }}
             class="p-4 border rounded-lg cursor-pointer hover:border-primary"
           >
@@ -103,7 +103,7 @@ export function FarmerAdvisorSelector({ isOpen, onSelect, onClose }: FarmerAdvis
         onClick={async () => {
           setSelectedAction("advisor_buy-plan");
           await saveLog();
-          navigate("/settings");
+          navigate({ to: "/settings" });
         }}
         class="p-4 border rounded-lg cursor-pointer hover:border-primary"
       >

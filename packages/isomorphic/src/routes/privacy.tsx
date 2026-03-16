@@ -1,4 +1,5 @@
 import type { Component } from "solid-js";
+import { createFileRoute } from "@tanstack/solid-router";
 import { NavBar } from "~/components/NavBar.tsx";
 import Paper from "~/components/ui/paper";
 
@@ -145,4 +146,6 @@ const RouteViewPrivacy: Component = () => {
   );
 };
 
-export default RouteViewPrivacy;
+export const Route = createFileRoute("/privacy")({
+  component: RouteViewPrivacy,
+});

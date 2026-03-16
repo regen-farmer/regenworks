@@ -2,11 +2,11 @@ import proj4 from "proj4";
 
 proj4.defs(
   "EPSG:3857",
-  "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
+  "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs",
 );
 proj4.defs(
   "EPSG:25832",
-  "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+  "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
 );
 
 export const bluespotProtocol = async (params: { url: string }) => {
@@ -14,22 +14,10 @@ export const bluespotProtocol = async (params: { url: string }) => {
   const tile_bbox_wgs84 = bboxString.split(",").map(Number);
 
   // Translate bounds from Web Mercator to ETRS89
-  const left_bottom = proj4("EPSG:3857", "EPSG:25832", [
-    tile_bbox_wgs84[0],
-    tile_bbox_wgs84[1],
-  ]);
-  const right_top = proj4("EPSG:3857", "EPSG:25832", [
-    tile_bbox_wgs84[2],
-    tile_bbox_wgs84[3],
-  ]);
-  const left_top = proj4("EPSG:3857", "EPSG:25832", [
-    tile_bbox_wgs84[0],
-    tile_bbox_wgs84[3],
-  ]);
-  const right_bottom = proj4("EPSG:3857", "EPSG:25832", [
-    tile_bbox_wgs84[2],
-    tile_bbox_wgs84[1],
-  ]);
+  const left_bottom = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[0], tile_bbox_wgs84[1]]);
+  const right_top = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[2], tile_bbox_wgs84[3]]);
+  const left_top = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[0], tile_bbox_wgs84[3]]);
+  const right_bottom = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[2], tile_bbox_wgs84[1]]);
 
   const tile_bbox_etrs89 = [
     (left_bottom[0] + left_top[0]) / 2,
@@ -49,10 +37,7 @@ export const bluespotProtocol = async (params: { url: string }) => {
   }
 
   const zoom_level = meters_per_tile_at_z.findIndex((meters, index) => {
-    return (
-      Math.max(tile_size_etrs89.width, tile_size_etrs89.height) > meters / 2 ||
-      index === 9
-    );
+    return Math.max(tile_size_etrs89.width, tile_size_etrs89.height) > meters / 2 || index === 9;
   });
 
   const tile_size_to_download = meters_per_tile_at_z[zoom_level];
@@ -100,7 +85,7 @@ export const bluespotProtocol = async (params: { url: string }) => {
       } catch (err) {
         return { row, col, z, img: null };
       }
-    })
+    }),
   );
 
   const stitched_bbox_etrs89 = [
@@ -144,20 +129,13 @@ export const bluespotProtocol = async (params: { url: string }) => {
   };
 
   const stitched_edge_to_tile_pixels = {
-    left:
-      (stitched_edge_to_tile_etrs89.left / stitched_size_etrs89.width) *
-      stitched_width_px,
-    top:
-      (stitched_edge_to_tile_etrs89.top / stitched_size_etrs89.height) *
-      stitched_height_px,
+    left: (stitched_edge_to_tile_etrs89.left / stitched_size_etrs89.width) * stitched_width_px,
+    top: (stitched_edge_to_tile_etrs89.top / stitched_size_etrs89.height) * stitched_height_px,
   };
 
   const final_tile_size_pixels = {
-    width:
-      (tile_size_etrs89.width / stitched_size_etrs89.width) * stitched_width_px,
-    height:
-      (tile_size_etrs89.height / stitched_size_etrs89.height) *
-      stitched_height_px,
+    width: (tile_size_etrs89.width / stitched_size_etrs89.width) * stitched_width_px,
+    height: (tile_size_etrs89.height / stitched_size_etrs89.height) * stitched_height_px,
   };
 
   const finalCanvas = document.createElement("canvas");
@@ -178,7 +156,7 @@ export const bluespotProtocol = async (params: { url: string }) => {
       0, // dx
       0, // dy
       256, // dWidth
-      256 // dHeight
+      256, // dHeight
     );
   }
 

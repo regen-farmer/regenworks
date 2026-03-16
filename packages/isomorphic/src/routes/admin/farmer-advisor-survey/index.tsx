@@ -1,5 +1,6 @@
 import { IUserSchema } from "@rw/db/schemas/user";
 import { createEffect, createSignal, For, Show } from "solid-js";
+import { createFileRoute } from "@tanstack/solid-router";
 import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 interface AdvisorRequest {
@@ -12,7 +13,7 @@ interface AdvisorRequest {
   layerCount: number;
 }
 
-export default function FarmerAdvisorSurvey() {
+function FarmerAdvisorSurvey() {
   const [entries, setEntries] = createSignal<AdvisorRequest[]>([]);
   const [loading, setLoading] = createSignal<boolean>(true);
 
@@ -80,3 +81,7 @@ export default function FarmerAdvisorSurvey() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/admin/farmer-advisor-survey/")({
+  component: FarmerAdvisorSurvey,
+});

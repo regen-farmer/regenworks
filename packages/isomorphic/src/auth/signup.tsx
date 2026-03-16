@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { Link } from "@tanstack/solid-router";
 import { NavBar } from "~/components/NavBar.tsx";
 
 import { isElectron, isTauri } from "~/util/platform.ts";
@@ -7,7 +7,8 @@ export default function NewUser() {
   // In packaged desktop apps (Tauri or Electron), the app loads from a local file/custom scheme
   // so auth must go through the deployed server. In browser or Electron dev (localhost), use local route.
   const needsRemoteAuth =
-    typeof window !== "undefined" && (isTauri() || (isElectron() && !window.location.href.startsWith("http")));
+    typeof window !== "undefined" &&
+    (isTauri() || (isElectron() && !window.location.href.startsWith("http")));
   const authPath = needsRemoteAuth
     ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
     : "/api/auth/signin";
@@ -25,13 +26,13 @@ export default function NewUser() {
         </a>
         <p class="mt-4 dark:text-zinc-200 text-xs leading-4">
           By creating a user you agree to our <br />
-          <A class="underline-offset-2 underline" href="/terms">
+          <Link class="underline-offset-2 underline" to="/terms">
             Terms of Service
-          </A>{" "}
+          </Link>{" "}
           and{" "}
-          <A class="underline-offset-2 underline" href="/privacy">
+          <Link class="underline-offset-2 underline" to="/privacy">
             Privacy Policy
-          </A>
+          </Link>
           .
         </p>
       </div>

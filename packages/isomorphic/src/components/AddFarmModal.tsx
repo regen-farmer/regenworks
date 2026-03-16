@@ -12,7 +12,7 @@ import { createEffect } from "solid-js";
 
 import { modes } from "~/routes/index.tsx";
 
-import { useNavigate } from "@solidjs/router";
+import { useNavigate } from "@tanstack/solid-router";
 import { allowFarmCreation } from "~/auth/useAuth.tsx";
 import type { parcelPayload } from "~/routes/index.tsx";
 
@@ -66,7 +66,7 @@ export function AddFarmModal({
   const navigate = useNavigate();
 
   if (!allowFarmCreation()) {
-    navigate("/");
+    navigate({ to: "/" });
   }
 
   function submit() {

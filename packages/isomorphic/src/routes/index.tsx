@@ -1,5 +1,5 @@
 import { type Component, For, Match, Show, Switch, createResource } from "solid-js";
-import { A, useNavigate } from "@solidjs/router";
+import { Link, useNavigate, createFileRoute } from "@tanstack/solid-router";
 import { allowFarmCreation } from "~/auth/useAuth.tsx";
 import type { ParcelDocument } from "@rw/db/schemas/parcel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
@@ -7,6 +7,10 @@ import { createSignal } from "solid-js";
 import { AddFarmModal } from "~/components/AddFarmModal.tsx";
 import MLMap from "~/components/Map.tsx";
 import { createStore } from "solid-js/store";
+
+export const Route = createFileRoute("/")({
+  component: RouteComponent,
+});
 
 async function postParcel(payload: parcelPayload) {
   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels`, {
@@ -56,7 +60,7 @@ export type parcelPayload = {
   id?: string;
 };
 
-const RouteViewHome: Component = () => {
+function RouteComponent() {
   const [data, { refetch }] = createResource<{
     parcels: ParcelDocument[];
   }>(async () => {
@@ -80,7 +84,6 @@ const RouteViewHome: Component = () => {
 
   async function enterDefaultMode() {
     if (parcelPayload.name && parcelPayload.location && parcelPayload.lng && parcelPayload.lat) {
-      // await postParcel(parcelPayload);
       await refetch();
     }
     setMode(modes.default);
@@ -139,7 +142,7 @@ const RouteViewHome: Component = () => {
       setIsEditing(false);
     } else {
       const newParcel = await postParcel(parcelPayload);
-      navigate(`/parcels/${newParcel._id}`);
+      navigate({ to: `/parcels/${newParcel._id}` });
     }
 
     setParcelPayload({
@@ -167,8 +170,6 @@ const RouteViewHome: Component = () => {
         setIsEditing={setIsEditing}
       />
       <Show when={data() && !data.loading} fallback={<p>no data</p>}>
-        {/* <p>Doneloading: {JSON.stringify(data())} </p> */}
-
         <MLMap
           enterDefaultMode={enterDefaultMode}
           data={data}
@@ -206,9 +207,9 @@ const RouteViewHome: Component = () => {
                     <For each={data()?.parcels}>
                       {(parcel) => (
                         <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                          <A href={`/parcels/${parcel._id}`} class="overlay-list-link">
+                          <Link to={`/parcels/${parcel._id}`} class="overlay-list-link">
                             {parcel.name}
-                          </A>
+                          </Link>
                           <div>
                             <button
                               title="Edit farm"
@@ -228,7 +229,6 @@ const RouteViewHome: Component = () => {
                                 "rounded-sm p-1 my-2 btn-default menu-btn list-group-button rounded-sm"
                               }
                               onClick={() => {
-                                // Go to location of parcel
                                 setCoordinates([Number(parcel.lng), Number(parcel.lat)]);
                               }}
                             >
@@ -256,7 +256,7 @@ const RouteViewHome: Component = () => {
                   title={"Upgrade plan to add more farms"}
                   type="button"
                   class={"rounded-sm p-1 mt-3 btn-default w-full"}
-                  onClick={() => navigate("/settings")}
+                  onClick={() => navigate({ to: "/settings" })}
                 >
                   Upgrade plan to add more farms
                 </button>
@@ -328,8 +328,4 @@ const RouteViewHome: Component = () => {
       </Show>
     </>
   );
-};
-
-export default function () {
-  return <RouteViewHome />;
 }

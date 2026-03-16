@@ -1,15 +1,17 @@
-import { A } from "@solidjs/router";
+import { Link, createFileRoute } from "@tanstack/solid-router";
 
-export default function AdminView() {
+function AdminView() {
   return (
     <div class="p-6">
-      <A class="  hover:text-blue-400 underline" href="./advisor-requests">
+      <Link class="  hover:text-blue-400 underline" to="./advisor-requests">
         Advisor Requests
-      </A>
+      </Link>
       <br />
-      <A class=" hover:text-blue-400 underline" href="./farmer-advisor-survey">
+      <Link class=" hover:text-blue-400 underline" to="./farmer-advisor-survey">
         Farmer/Advisor Survey
-      </A>
+      </Link>
     </div>
   );
 }
+
+export const Route = createFileRoute("/admin/")({ component: AdminView });
