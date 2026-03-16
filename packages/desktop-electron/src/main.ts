@@ -67,9 +67,23 @@ function createWindow() {
   if (app.isPackaged) {
     let authInProgress = false;
 
-    mainWindow.webContents.on("will-navigate", (_event, url) => {
+    mainWindow.webContents.on("will-navigate", (event, url) => {
       if (url.includes("/api/auth/")) {
         authInProgress = true;
+        if (url.startsWith("app://")) {
+          event.preventDefault();
+          const authPath = new URL(url).pathname;
+          mainWindow?.loadURL(`${API_URL}${authPath}`);
+        }
+      }
+    });
+
+    // Catch SPA (pushState) navigations to auth routes
+    mainWindow.webContents.on("did-navigate-in-page", (_event, url) => {
+      if (url.includes("/api/auth/")) {
+        authInProgress = true;
+        const authPath = new URL(url).pathname;
+        mainWindow?.loadURL(`${API_URL}${authPath}`);
       }
     });
 
@@ -184,7 +198,14 @@ app.whenReady().then(() => {
   const clientDir = path.join(process.resourcesPath, "client");
   protocol.handle("app", (request) => {
     const url = new URL(request.url);
-    let filePath = path.join(clientDir, decodeURIComponent(url.pathname));
+    const pathname = decodeURIComponent(url.pathname);
+
+    // Redirect auth requests to the staging server
+    if (pathname.startsWith("/api/auth/")) {
+      return Response.redirect(`${API_URL}${pathname}${url.search}`, 302);
+    }
+
+    let filePath = path.join(clientDir, pathname);
 
     // SPA fallback: serve _shell.html for routes that don't map to a file
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {

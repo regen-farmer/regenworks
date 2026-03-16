@@ -100,7 +100,7 @@ export default defineConfig(({ mode }) => {
 	};
 
 	return {
-		base: isDesktop ? "./" : "/",
+		base: "/",
 		server: {
 			port: Number(process.env.PORT) || 10000,
 		},

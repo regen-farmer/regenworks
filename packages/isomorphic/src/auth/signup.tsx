@@ -13,6 +13,11 @@ export default function NewUser() {
     ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
     : "/api/auth/signin";
 
+  const handleLogin = (e: MouseEvent) => {
+    e.preventDefault();
+    window.location.href = authPath;
+  };
+
   return (
     <>
       <NavBar />
@@ -20,6 +25,7 @@ export default function NewUser() {
         <a
           rel="external"
           href={authPath}
+          onclick={handleLogin}
           class="rounded-sm p-4 m-1 btn-default text-base inline-block"
         >
           Log in or create new user
