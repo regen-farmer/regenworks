@@ -186,9 +186,9 @@ app.whenReady().then(() => {
     const url = new URL(request.url);
     let filePath = path.join(clientDir, decodeURIComponent(url.pathname));
 
-    // SPA fallback: serve index.html for routes that don't map to a file
+    // SPA fallback: serve _shell.html for routes that don't map to a file
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-      filePath = path.join(clientDir, "index.html");
+      filePath = path.join(clientDir, "_shell.html");
     }
 
     return net.fetch(`file://${filePath}`);

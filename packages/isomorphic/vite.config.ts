@@ -108,8 +108,7 @@ export default defineConfig(({ mode }) => {
 			tsConfigPaths({ projects: ["./tsconfig.json"] }),
 			stubServerModulesPlugin(),
 			tanstackStart({ spa: isDesktop ? { enabled: true, maskPath: "/" } : undefined }),
-			viteSolid({ ssr: !isDesktop }),
-			...(isDesktop ? [tauriIndexHtmlPlugin()] : []),
+			viteSolid({ ssr: true }),
 		],
 	};
 });
