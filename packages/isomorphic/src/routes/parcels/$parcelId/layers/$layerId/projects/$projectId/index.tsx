@@ -173,6 +173,8 @@ function ProjectIndexView() {
         intersectionPoints: result.intersectionPoints?.features || result.intersectionPoints || [],
         headlandSides: result.headlandSides?.features || result.headlandSides || [],
         treeMarkerArray: result.treeMarkerArray,
+        stripPolygons: result.stripPolygons,
+        stripAreasM2: result.stripAreasM2,
       } as ISystemBasedLayout);
     } catch (error) {
       console.error("Layout generation failed:", error);
