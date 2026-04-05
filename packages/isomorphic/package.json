@@ -20,7 +20,7 @@
 		"@xmldom/xmldom": "^0.9.5",
 		"puppeteer": "^24.37.5",
 		"vite": "^8.0.0",
-		"vite-plugin-solid": "^2.11.11"
+		"vite-plugin-solid": "^2.11.12"
 	},
 	"dependencies": {
 		"@auth/core": "^0.41.1",
