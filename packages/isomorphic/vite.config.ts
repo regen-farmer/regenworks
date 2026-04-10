@@ -31,73 +31,55 @@ export default defineConfig(({ mode }) => {
 		},
 	});
 
-	// A plugin that dynamically crafts a static index.html file loading the SPA entrypoint
-	// out of the vite manifest bundle, for desktop shells (Tauri + Electron)
-	const tauriIndexHtmlPlugin = () => {
-		return {
-			name: "tauri-index-html",
-			apply: "build" as const,
-			async closeBundle() {
-				// Generate a static index.html for desktop shells (Tauri + Electron) only.
-				if (!isDesktop) return;
+	// Generate a static _shell.html for desktop SPA shells (Tauri + Electron).
+	// TanStack Start doesn't produce one, so we scan the build output for the
+	// main entry JS and all CSS files.
+	const desktopShellHtmlPlugin = () => ({
+		name: "desktop-shell-html",
+		apply: "build" as const,
+		async closeBundle() {
+			if (!isDesktop) return;
 
-				const fs = await import("fs");
-				const path = await import("path");
+			const fs = await import("fs");
+			const path = await import("path");
 
-				console.log("Generating static index.html for desktop bundle...");
+			const outDir = path.resolve(process.cwd(), "dist/client");
+			const assetsDir = path.join(outDir, "assets");
 
-				const outDir = path.resolve(process.cwd(), "dist/client");
-				const manifestPath = path.join(outDir, ".vite/manifest.json");
+			if (!fs.existsSync(assetsDir)) {
+				console.error("desktop-shell-html: dist/client/assets/ not found");
+				return;
+			}
 
-				if (!fs.existsSync(manifestPath)) {
-					console.error("Vite manifest not found, cannot generate index.html");
-					return;
-				}
+			const files = fs.readdirSync(assetsDir);
+			const mainJs = files.find((f: string) => f.startsWith("main-") && f.endsWith(".js"));
+			const cssFiles = files.filter((f: string) => f.endsWith(".css"));
 
-				const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
-				const entryChunk = manifest["src/entry-client.tsx"];
+			if (!mainJs) {
+				console.error("desktop-shell-html: no main-*.js entry found in assets/");
+				return;
+			}
 
-				if (!entryChunk) {
-					console.error("entry-client.tsx missing from Vite manifest");
-					return;
-				}
+			const cssLinks = cssFiles.map((f: string) => `<link rel="stylesheet" href="./assets/${f}">`).join("\n    ");
 
-				const jsFile = entryChunk.file;
-				const getCssFiles = (chunkId: string, visited = new Set<string>()): string[] => {
-					if (visited.has(chunkId)) return [];
-					visited.add(chunkId);
-
-					const chunk = manifest[chunkId];
-					if (!chunk) return [];
-
-					const css = chunk.css || [];
-					const importedCss = (chunk.imports || []).flatMap((imp: string) => getCssFiles(imp, visited));
-					return [...css, ...importedCss];
-				};
-
-				const allCss = Array.from(new Set(getCssFiles("src/entry-client.tsx")));
-
-				const htmlBlocks = allCss.map(cssFile => `<link rel="stylesheet" href="./${cssFile}">`).join("\n    ");
-
-				const html = `<!DOCTYPE html>
+			const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RegenWorks</title>
-    ${htmlBlocks}
+    ${cssLinks}
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="./${jsFile}"></script>
+    <script type="module" src="./assets/${mainJs}"></script>
   </body>
 </html>`;
 
-				fs.writeFileSync(path.join(outDir, "index.html"), html);
-				console.log("Successfully wrote dist/client/index.html");
-			}
-		};
-	};
+			fs.writeFileSync(path.join(outDir, "_shell.html"), html);
+			console.log("desktop-shell-html: wrote dist/client/_shell.html");
+		},
+	});
 
 	return {
 		base: "/",
@@ -112,6 +94,7 @@ export default defineConfig(({ mode }) => {
 			stubServerModulesPlugin(),
 			tanstackStart({ spa: isDesktop ? { enabled: true, maskPath: "/" } : undefined }),
 			viteSolid({ ssr: true }),
+			desktopShellHtmlPlugin(),
 		],
 	};
 });
