@@ -31,9 +31,10 @@ export default defineConfig(({ mode }) => {
 		},
 	});
 
-	// Generate a static _shell.html for desktop SPA shells (Tauri + Electron).
-	// TanStack Start doesn't produce one, so we scan the build output for the
-	// main entry JS and all CSS files.
+	// Fallback: generate a minimal _shell.html for desktop SPA shells if TanStack
+	// Start's prerender didn't already produce one. The prerendered shell is
+	// preferred because it includes the Solid `_$HY` hydration bootstrap; this
+	// fallback is only here so the build doesn't ship a missing file.
 	const desktopShellHtmlPlugin = () => ({
 		name: "desktop-shell-html",
 		apply: "build" as const,
@@ -44,8 +45,14 @@ export default defineConfig(({ mode }) => {
 			const path = await import("path");
 
 			const outDir = path.resolve(process.cwd(), "dist/client");
-			const assetsDir = path.join(outDir, "assets");
+			const shellPath = path.join(outDir, "_shell.html");
 
+			if (fs.existsSync(shellPath)) {
+				console.log("desktop-shell-html: _shell.html already exists (from prerender), skipping");
+				return;
+			}
+
+			const assetsDir = path.join(outDir, "assets");
 			if (!fs.existsSync(assetsDir)) {
 				console.error("desktop-shell-html: dist/client/assets/ not found");
 				return;
@@ -60,24 +67,27 @@ export default defineConfig(({ mode }) => {
 				return;
 			}
 
-			const cssLinks = cssFiles.map((f: string) => `<link rel="stylesheet" href="./assets/${f}">`).join("\n    ");
+			const cssLinks = cssFiles.map((f: string) => `<link rel="stylesheet" href="/assets/${f}">`).join("\n    ");
 
+			// Include Solid's _$HY hydration bootstrap so client-side hydration works
+			// even when the prerendered shell is unavailable.
 			const html = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RegenWorks</title>
+    <script>window._$HY||(e=>{let t=e=>e&&e.hasAttribute&&(e.hasAttribute("data-hk")?e:t(e.host&&e.host.nodeType?e.host:e.parentNode));["click","input"].forEach((o=>document.addEventListener(o,(o=>{if(!e.events)return;let s=t(o.composedPath&&o.composedPath()[0]||o.target);s&&!e.completed.has(s)&&e.events.push([s,o])}))))})(_$HY={events:[],completed:new WeakSet,r:{},fe(){}});</script>
     ${cssLinks}
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="./assets/${mainJs}"></script>
+    <script type="module" src="/assets/${mainJs}"></script>
   </body>
 </html>`;
 
-			fs.writeFileSync(path.join(outDir, "_shell.html"), html);
-			console.log("desktop-shell-html: wrote dist/client/_shell.html");
+			fs.writeFileSync(shellPath, html);
+			console.log("desktop-shell-html: wrote fallback dist/client/_shell.html");
 		},
 	});
 
