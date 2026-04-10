@@ -204,6 +204,10 @@ jobs:
       - name: Build isomorphic frontend
         env:
           ELECTRON_BUILD: "1"
+          # Dummy AUTH_SECRET for the prerender pass — the Electron app uses
+          # staging.regenfarmer.com for real auth at runtime, but TanStack Start's
+          # prerender invokes getSession() during build and fails without this.
+          AUTH_SECRET: "build-time-placeholder-not-used-at-runtime"
         run: pnpm --filter isomorphic build
 
       - name: Build & Publish Electron App
