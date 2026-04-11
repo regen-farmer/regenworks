@@ -156,10 +156,16 @@ function initUpdater() {
   const currentVersion = app.getVersion();
   autoUpdater.allowPrerelease = currentVersion.includes("-");
 
-  console.log("[Updater] Checking for updates...");
-  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-    console.error("[Updater] Check failed:", err);
-  });
+  const checkForUpdates = () => {
+    console.log("[Updater] Checking for updates...");
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+      console.error("[Updater] Check failed:", err);
+    });
+  };
+
+  checkForUpdates();
+  // Re-check hourly so long-running sessions pick up new releases.
+  setInterval(checkForUpdates, 60 * 60 * 1000);
 
   autoUpdater.on("update-available", (info) => {
     console.log(`[Updater] Update available: ${info.version}`);
