@@ -5,6 +5,10 @@ import { Button } from "~/components/ui/button";
 type ElectronAPI = {
   onUpdateAvailable: (cb: (info: { version: string; notes: string }) => void) => void;
   onUpdateDownloaded: (cb: (info: { version: string }) => void) => void;
+  getUpdateState: () => Promise<{
+    available: { version: string; notes: string } | null;
+    downloaded: { version: string } | null;
+  }>;
   installUpdate: () => void;
 };
 
@@ -22,6 +26,18 @@ export default function ElectronUpdater() {
     if (!isElectron()) return;
     const api = getElectronAPI();
     if (!api) return;
+
+    // Pull any update state that fired before this component mounted.
+    api.getUpdateState().then((state) => {
+      if (state.available) {
+        console.log("[Updater] Update available (from cache):", state.available.version);
+        setUpdateInfo(state.available);
+      }
+      if (state.downloaded) {
+        console.log("[Updater] Update downloaded (from cache):", state.downloaded.version);
+        setDownloaded(true);
+      }
+    });
 
     api.onUpdateAvailable((info) => {
       console.log("[Updater] Update available:", info.version);

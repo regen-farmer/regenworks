@@ -149,6 +149,12 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
 
 // --- Auto-updater ---
 
+// Latest update state, kept so the renderer can query it after it mounts
+// (the main process may fire update-available/downloaded before the renderer
+// has registered its IPC listener).
+let latestUpdateAvailable: { version: string; notes: string } | null = null;
+let latestUpdateDownloaded: { version: string } | null = null;
+
 function initUpdater() {
   if (!app.isPackaged) return;
 
@@ -169,10 +175,11 @@ function initUpdater() {
 
   autoUpdater.on("update-available", (info) => {
     console.log(`[Updater] Update available: ${info.version}`);
-    mainWindow?.webContents.send("update-available", {
+    latestUpdateAvailable = {
       version: info.version,
       notes: typeof info.releaseNotes === "string" ? info.releaseNotes : "",
-    });
+    };
+    mainWindow?.webContents.send("update-available", latestUpdateAvailable);
   });
 
   autoUpdater.on("update-not-available", (info) => {
@@ -185,13 +192,19 @@ function initUpdater() {
 
   autoUpdater.on("update-downloaded", (info) => {
     console.log(`[Updater] Update downloaded: ${info.version}`);
-    mainWindow?.webContents.send("update-downloaded", { version: info.version });
+    latestUpdateDownloaded = { version: info.version };
+    mainWindow?.webContents.send("update-downloaded", latestUpdateDownloaded);
   });
 
   autoUpdater.on("error", (err) => {
     console.error("[Updater] Error:", err);
   });
 }
+
+ipcMain.handle("get-update-state", () => ({
+  available: latestUpdateAvailable,
+  downloaded: latestUpdateDownloaded,
+}));
 
 ipcMain.on("install-update", () => {
   autoUpdater.quitAndInstall();

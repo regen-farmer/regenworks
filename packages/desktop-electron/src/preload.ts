@@ -10,5 +10,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onUpdateDownloaded: (cb: (info: { version: string }) => void) =>
     ipcRenderer.on("update-downloaded", (_e, info) => cb(info)),
 
+  getUpdateState: (): Promise<{
+    available: { version: string; notes: string } | null;
+    downloaded: { version: string } | null;
+  }> => ipcRenderer.invoke("get-update-state"),
+
   installUpdate: () => ipcRenderer.send("install-update"),
 });
