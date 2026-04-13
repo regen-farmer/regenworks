@@ -101,10 +101,10 @@ function RootComponent() {
         <SessionProvider>
           <div class="d-flex flex-column" style={{ height: "100%" }}>
             <Outlet />
-            <ElectronUpdater />
           </div>
         </SessionProvider>
       </Suspense>
+      <ElectronUpdater />
     </ThemeToggler>
   );
 }
