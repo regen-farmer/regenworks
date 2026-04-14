@@ -17,6 +17,17 @@ function loadGisNapi() {
 
 app.setName("RegenWorks");
 
+// Customize the "About RegenWorks" menu entry (macOS / Linux).
+// Windows' built-in About dialog is minimal; we surface the same info in the UI
+// via the update banner instead.
+app.setAboutPanelOptions({
+  applicationName: "RegenWorks",
+  applicationVersion: app.getVersion(),
+  version: app.getVersion(),
+  copyright: `Copyright © ${new Date().getFullYear()} Regen Farmer ApS`,
+  website: "https://regenworks.com",
+});
+
 // Register custom protocol for serving client files with proper URL routing
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true } },
