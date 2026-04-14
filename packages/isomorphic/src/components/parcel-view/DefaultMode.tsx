@@ -482,30 +482,29 @@ export default function DefaultMode({
         </DialogContent>
       </Dialog>
 
-      <div class="fixed right-2.5 bottom-2.5 z-10 w-[300px] rounded-[10px] bg-black/85 p-2.5 text-white">
-        <div class="space-y-2">
-          <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
-            <button
-              type="button"
-              class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-              onClick={() =>
-                setActiveListingPanel((current) => (current === "fields" ? null : "fields"))
-              }
-              aria-expanded={activeListingPanel() === "fields"}
-            >
-              <span>Fields</span>
-              <i
-                class="fa-solid fa-chevron-down transition-transform"
-                classList={{ "rotate-180": activeListingPanel() === "fields" }}
-              />
-            </button>
-            <div
-              class="accordion-section"
-              classList={{
-                "accordion-open": activeListingPanel() === "fields",
-              }}
-            >
-              <div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
+      <div class="fixed right-2.5 bottom-2.5 z-10 flex w-[300px] flex-col gap-2 text-white">
+        <div class="rounded-[10px] bg-black/70 p-2.5">
+          <button
+            type="button"
+            class="flex w-full items-center justify-between py-1 text-sm font-semibold hover:opacity-80"
+            onClick={() =>
+              setActiveListingPanel((current) => (current === "fields" ? null : "fields"))
+            }
+            aria-expanded={activeListingPanel() === "fields"}
+          >
+            <span>Fields</span>
+            <i
+              class="fa-solid fa-chevron-right transition-transform"
+              classList={{ "rotate-90": activeListingPanel() === "fields" }}
+            />
+          </button>
+          <div
+            class="accordion-section"
+            classList={{
+              "accordion-open": activeListingPanel() === "fields",
+            }}
+          >
+            <div class="space-y-3 pt-2">
                 <div
                   class="list-group rounded-md"
                   style={{
@@ -578,8 +577,9 @@ export default function DefaultMode({
                   </For>
                 </div>
                 <button
+                  title="Add new field"
                   type="button"
-                  class="w-full rounded-sm bg-blue-600 p-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  class="rounded-sm p-1 btn-default w-full"
                   onClick={() => addField()}
                 >
                   Add new field
@@ -587,46 +587,47 @@ export default function DefaultMode({
               </div>
             </div>
           </div>
-          <Show when={data()?.parcel.layers && data()!.parcel.layers.length > 0}>
-            <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
-              <button
-                type="button"
-                class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                onClick={() =>
-                  setActiveListingPanel((current) => (current === "scenarios" ? null : "scenarios"))
-                }
-                aria-expanded={activeListingPanel() === "scenarios"}
-              >
-                <span>Farm Planting Plan</span>
-                <i
-                  class="fa-solid fa-chevron-down transition-transform"
-                  classList={{
-                    "rotate-180": activeListingPanel() === "scenarios",
-                  }}
-                />
-              </button>
-              <div
-                class="accordion-section"
+        <Show when={data()?.parcel.layers && data()!.parcel.layers.length > 0}>
+          <div class="rounded-[10px] bg-black/70 p-2.5">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between py-1 text-sm font-semibold hover:opacity-80"
+              onClick={() =>
+                setActiveListingPanel((current) => (current === "scenarios" ? null : "scenarios"))
+              }
+              aria-expanded={activeListingPanel() === "scenarios"}
+            >
+              <span>Farm Planting Plan</span>
+              <i
+                class="fa-solid fa-chevron-right transition-transform"
                 classList={{
-                  "accordion-open": activeListingPanel() === "scenarios",
+                  "rotate-90": activeListingPanel() === "scenarios",
                 }}
-              >
-                <div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
-                  <button
-                    type="button"
-                    class="w-full rounded-sm bg-blue-600 p-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                    onClick={openCreateScenarioModal}
-                  >
-                    <i class="fa-solid fa-plus mr-1" /> Create scenario
-                  </button>
+              />
+            </button>
+            <div
+              class="accordion-section"
+              classList={{
+                "accordion-open": activeListingPanel() === "scenarios",
+              }}
+            >
+              <div class="space-y-3 pt-2">
+                <button
+                  title="Create scenario"
+                  type="button"
+                  class="rounded-sm p-1 btn-default w-full"
+                  onClick={openCreateScenarioModal}
+                >
+                  <i class="fa-solid fa-plus mr-1" /> Create scenario
+                </button>
+                <Show
+                  when={!farmConfigs.loading}
+                  fallback={<div class="text-sm text-white/70">Loading scenarios...</div>}
+                >
                   <Show
-                    when={!farmConfigs.loading}
-                    fallback={<div class="text-sm text-gray-300">Loading scenarios...</div>}
+                    when={farmConfigs() && farmConfigs()!.length > 0}
+                    fallback={<div class="text-sm text-white/70">No scenarios yet.</div>}
                   >
-                    <Show
-                      when={farmConfigs() && farmConfigs()!.length > 0}
-                      fallback={<div class="text-sm text-gray-300">No scenarios yet.</div>}
-                    >
                       <div
                         class="list-group rounded-md"
                         style={{
@@ -765,7 +766,6 @@ export default function DefaultMode({
             </div>
           </Show>
           */}
-        </div>
       </div>
 
       {/* Create Financial Model Modal */}

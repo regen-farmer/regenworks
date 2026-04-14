@@ -1,7 +1,7 @@
 {
 	"name": "@rw/desktop-electron",
 	"productName": "RegenWorks",
-	"version": "2026.1.0-pre.47",
+	"version": "2026.1.0-pre.48",
 	"description": "RegenWorks Desktop (Electron) - Fast agroforestry planning application",
 	"homepage": "https://regenworks.com",
 	"author": {
