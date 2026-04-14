@@ -38,7 +38,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    titleBarStyle: "default",
+    titleBarStyle: "hiddenInset",
     title: `RegenWorks v${app.getVersion()}`,
   });
 

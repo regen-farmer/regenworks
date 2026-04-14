@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/breadcrumb";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
+import { isElectron } from "~/util/platform.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -84,7 +85,11 @@ export function NavBar() {
   });
 
   return (
-    <nav class="flex items-center h-14 border-b border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1">
+    <nav
+      class="flex items-center h-14 border-b border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1"
+      classList={{ "pl-19.5": isElectron() }}
+      style={isElectron() ? { "-webkit-app-region": "drag" } : undefined}
+    >
       <div
         id="logotype"
         class="mx-3 cursor-pointer"
