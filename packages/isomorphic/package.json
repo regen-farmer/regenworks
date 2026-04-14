@@ -5,6 +5,8 @@
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
 		"format": "oxfmt --write --ignore-path=.oxfmtignore ./src",
 		"build": "vite build",
+		"build:spa": "ELECTRON_BUILD=1 vite build",
+		"build:spa:watch": "ELECTRON_BUILD=1 vite build --watch",
 		"preview": "vite preview",
 		"start": "srvx --prod --static ../client dist/server/server.js",
 		"start-local": "set -a && source .env && set +a && PORT=10000 srvx --prod --static ../client dist/server/server.js"

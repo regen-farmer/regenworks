@@ -79,10 +79,8 @@ function createWindow() {
     console.error(`Failed to load ${url}: ${desc} (${code})`);
   });
 
-  if (app.isPackaged) {
-    mainWindow.loadURL("app://localhost/");
-  } else {
-    mainWindow.loadURL("http://localhost:10000");
+  mainWindow.loadURL("app://localhost/");
+  if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -362,8 +360,12 @@ async function runStartupUpdateCheck(splash: BrowserWindow): Promise<boolean> {
 // --- App lifecycle ---
 
 app.whenReady().then(async () => {
-  // Serve client files via app:// protocol so the SPA router gets proper URLs
-  const clientDir = path.join(process.resourcesPath, "client");
+  // Serve client files via app:// protocol so the SPA router gets proper URLs.
+  // Packaged: files live under Resources/client/ (see electron-builder.yml extraResources).
+  // Dev: files come from isomorphic's build:spa:watch output.
+  const clientDir = app.isPackaged
+    ? path.join(process.resourcesPath, "client")
+    : path.resolve(__dirname, "..", "..", "isomorphic", "dist", "client");
   protocol.handle("app", (request) => {
     const url = new URL(request.url);
     const pathname = decodeURIComponent(url.pathname);
