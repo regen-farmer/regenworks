@@ -3,11 +3,14 @@
  * Launch Electron for dev.
  *
  * Orchestrates:
- *   1. Isomorphic SPA watcher (vite build --watch with ELECTRON_BUILD=1) in
- *      ../isomorphic. Its output lives in ../isomorphic/dist/client/ and is
- *      what main.ts serves via the app:// protocol in dev.
- *   2. Electron itself, launched once ../isomorphic/dist/client/_shell.html
- *      exists (avoids a race where Electron opens before the first build).
+ *   1. An initial isomorphic SPA build (`pnpm --filter isomorphic build:spa`).
+ *      Once that's done ../isomorphic/dist/client/ contains `_shell.html` + the
+ *      JS/CSS bundles that main.ts serves via the `app://` protocol.
+ *   2. Launch Electron.
+ *   3. A debounced rebuild loop: watch ../isomorphic/src/ and re-run the full
+ *      build on change. Sequential full builds avoid the parallel-env race in
+ *      `vite build --watch` that leaves the `tanstack-start:start-manifest-plugin`
+ *      without a client bundle to read.
  *
  * Env quirks: VS Code / Claude Desktop terminals set ELECTRON_RUN_AS_NODE=1,
  * which makes Electron run as plain Node.js. pnpm bin shims set NODE_PATH
@@ -20,14 +23,17 @@ const fs = require("fs");
 const electronPath = require("electron"); // binary path
 const pkgRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(pkgRoot, "..", "..");
-const isoShell = path.resolve(pkgRoot, "..", "isomorphic", "dist", "client", "_shell.html");
+const isoRoot = path.resolve(pkgRoot, "..", "isomorphic");
+const isoSrc = path.join(isoRoot, "src");
+const isoShell = path.join(isoRoot, "dist", "client", "_shell.html");
 
 const env = { ...process.env };
 delete env.NODE_PATH;
 delete env.ELECTRON_RUN_AS_NODE;
 
 let electronChild = null;
-let viteChild = null;
+let buildChild = null;
+let watcher = null;
 let shuttingDown = false;
 
 function shutdown(signal) {
@@ -35,56 +41,95 @@ function shutdown(signal) {
   shuttingDown = true;
   const sig = signal || "SIGTERM";
   if (electronChild && !electronChild.killed) electronChild.kill(sig);
-  if (viteChild && !viteChild.killed) viteChild.kill(sig);
+  if (buildChild && !buildChild.killed) buildChild.kill(sig);
+  if (watcher) watcher.close();
 }
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-// 1. Start the isomorphic SPA watcher. pnpm in a workspace is resolved via
-// repo root.
-console.log("[electron-dev] starting isomorphic SPA watcher…");
-viteChild = proc.spawn(
-  "pnpm",
-  ["--filter", "isomorphic", "build:spa:watch"],
-  { cwd: repoRoot, stdio: "inherit", env },
-);
-viteChild.on("error", (err) => {
-  console.error("[electron-dev] vite watcher spawn error:", err);
-  shutdown("SIGTERM");
-  process.exit(1);
-});
-viteChild.on("close", (code) => {
-  if (!shuttingDown) {
-    console.error(`[electron-dev] vite watcher exited (${code}); shutting down`);
-    shutdown("SIGTERM");
-    process.exit(code ?? 1);
-  }
-});
-
-// 2. Wait for _shell.html to appear, then launch Electron.
-const POLL_INTERVAL_MS = 250;
-const TIMEOUT_MS = 120_000;
-const startedAt = Date.now();
-
-function waitForShell() {
-  if (shuttingDown) return;
-  if (fs.existsSync(isoShell)) {
-    console.log("[electron-dev] shell ready; launching Electron");
-    electronChild = proc.spawn(electronPath, ["."], { cwd: pkgRoot, stdio: "inherit", env });
-    electronChild.on("error", (err) => console.error("[electron-dev] electron spawn error:", err));
-    electronChild.on("close", (code) => {
-      shutdown("SIGTERM");
-      process.exit(code ?? 0);
+function runBuild(label) {
+  return new Promise((resolve) => {
+    if (shuttingDown) return resolve(1);
+    console.log(`[electron-dev] ${label}`);
+    const startedAt = Date.now();
+    buildChild = proc.spawn(
+      "pnpm",
+      ["--filter", "isomorphic", "build:spa"],
+      { cwd: repoRoot, stdio: "inherit", env },
+    );
+    buildChild.on("error", (err) => {
+      console.error("[electron-dev] build spawn error:", err);
+      resolve(1);
     });
-    return;
-  }
-  if (Date.now() - startedAt > TIMEOUT_MS) {
-    console.error(`[electron-dev] timed out waiting for ${isoShell}`);
-    shutdown("SIGTERM");
-    process.exit(1);
-  }
-  setTimeout(waitForShell, POLL_INTERVAL_MS);
+    buildChild.on("close", (code) => {
+      buildChild = null;
+      if (code === 0) {
+        console.log(`[electron-dev] build ok in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
+      } else {
+        console.error(`[electron-dev] build exited with ${code}`);
+      }
+      resolve(code ?? 0);
+    });
+  });
 }
 
-waitForShell();
+function launchElectron() {
+  console.log("[electron-dev] launching Electron");
+  electronChild = proc.spawn(electronPath, ["."], { cwd: pkgRoot, stdio: "inherit", env });
+  electronChild.on("error", (err) => console.error("[electron-dev] electron spawn error:", err));
+  electronChild.on("close", (code) => {
+    shutdown("SIGTERM");
+    process.exit(code ?? 0);
+  });
+}
+
+const REBUILD_DEBOUNCE_MS = 200;
+let rebuildTimer = null;
+let rebuildInFlight = false;
+let rebuildQueued = false;
+
+function scheduleRebuild() {
+  if (shuttingDown) return;
+  if (rebuildTimer) clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(async () => {
+    rebuildTimer = null;
+    if (rebuildInFlight) {
+      rebuildQueued = true;
+      return;
+    }
+    rebuildInFlight = true;
+    await runBuild("rebuilding on change…");
+    rebuildInFlight = false;
+    if (rebuildQueued) {
+      rebuildQueued = false;
+      scheduleRebuild();
+    }
+  }, REBUILD_DEBOUNCE_MS);
+}
+
+function startWatcher() {
+  if (!fs.existsSync(isoSrc)) {
+    console.warn(`[electron-dev] ${isoSrc} not found; no rebuild on change`);
+    return;
+  }
+  watcher = fs.watch(isoSrc, { recursive: true }, (_eventType, filename) => {
+    if (!filename) return;
+    // Ignore editor noise and generated files.
+    if (filename.endsWith("~") || filename.startsWith(".")) return;
+    if (filename === "routeTree.gen.ts") return;
+    scheduleRebuild();
+  });
+  console.log(`[electron-dev] watching ${isoSrc}`);
+}
+
+(async () => {
+  const initialCode = await runBuild("initial SPA build…");
+  if (initialCode !== 0 || !fs.existsSync(isoShell)) {
+    console.error(`[electron-dev] initial build failed; expected ${isoShell}`);
+    shutdown("SIGTERM");
+    process.exit(initialCode || 1);
+  }
+  launchElectron();
+  startWatcher();
+})();

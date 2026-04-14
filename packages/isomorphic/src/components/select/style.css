@@ -1,8 +1,8 @@
-button {
+.select__trigger {
   color: black;
 }
 
-.theme-dark button {
+.theme-dark .select__trigger {
   color: var(--font-color-dark);
 }
 

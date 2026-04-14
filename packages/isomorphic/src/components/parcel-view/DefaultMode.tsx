@@ -482,18 +482,7 @@ export default function DefaultMode({
         </DialogContent>
       </Dialog>
 
-      <div
-        class="bg-customdark1"
-        style={{
-          "border-radius": "10px",
-          position: "fixed",
-          "z-index": 10,
-          right: "10px",
-          bottom: "10px",
-          padding: "10px",
-          width: "300px",
-        }}
-      >
+      <div class="fixed right-2.5 bottom-2.5 z-10 w-[300px] rounded-[10px] bg-black/85 p-2.5 text-white">
         <div class="space-y-2">
           <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
             <button
@@ -590,7 +579,7 @@ export default function DefaultMode({
                 </div>
                 <button
                   type="button"
-                  class="w-full rounded-sm bg-white/10 p-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                  class="w-full rounded-sm bg-blue-600 p-2 text-sm font-semibold text-white transition hover:bg-blue-700"
                   onClick={() => addField()}
                 >
                   Add new field
