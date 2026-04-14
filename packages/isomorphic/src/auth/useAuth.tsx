@@ -3,6 +3,20 @@ import NewUser from "~/auth/signup.tsx";
 import { NavBar } from "~/components/NavBar.tsx";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, paymentPlan, StripeIds } from "~/util/paymentPlan.ts";
+import { isElectron } from "~/util/platform.ts";
+
+type ElectronSession = { auth0Token: string; auth0User: Record<string, unknown> } | null;
+type ElectronAuth = {
+  getSession: () => Promise<ElectronSession>;
+  login: () => Promise<ElectronSession>;
+  logout: () => Promise<void>;
+  onSessionChanged: (cb: (session: ElectronSession) => void) => void;
+};
+function getElectronAuth(): ElectronAuth | null {
+  if (typeof window === "undefined") return null;
+  const api = (window as unknown as { electronAPI?: { auth?: ElectronAuth } }).electronAPI;
+  return api?.auth ?? null;
+}
 
 export const [getAuth0User, setAuth0User]: [any, any] = createSignal();
 export const [getAuth0Token, setAuth0Token]: [any, any] = createSignal();
@@ -48,66 +62,92 @@ export const isFarmer = (): boolean => {
   return isFarmerRole;
 };
 
-function handleSignOut() {
+export function handleSignOut() {
   localStorage.removeItem("mongodbUser");
   localStorage.removeItem("stripeCustomer");
+  const electronAuth = getElectronAuth();
+  if (electronAuth) {
+    electronAuth.logout();
+    setAuth0Token(undefined);
+    setAuth0User(undefined);
+    setMongoDBDBUser(undefined);
+    setStripeCustomer(undefined);
+    return;
+  }
   window.location.href = "/api/auth/signout";
+}
+
+async function hydrateMongoAndStripe() {
+  // Get MongoDB user from localStorage (populated once, then reused across launches)
+  let mongodbUser = localStorage.getItem("mongodbUser");
+  if (!mongodbUser) {
+    const mongodbuserResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/myuser`, {
+      method: "get",
+      ...apiFetchOptions(),
+    });
+    const responsejson = await mongodbuserResponse.json();
+    mongodbUser = JSON.stringify(responsejson.user);
+    localStorage.setItem("mongodbUser", mongodbUser);
+  }
+  setMongoDBDBUser(JSON.parse(mongodbUser));
+
+  // Get Stripe customer from localStorage
+  let stripeCustomer = localStorage.getItem("stripeCustomer");
+  if (!stripeCustomer) {
+    const customerResponse = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/stripe/get_subscriptions`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user: mongodbUser }),
+        ...apiFetchOptions(),
+      },
+    );
+    const customerData = await customerResponse.json();
+    stripeCustomer = JSON.stringify(customerData);
+    localStorage.setItem("stripeCustomer", stripeCustomer);
+  }
+  setStripeCustomer(JSON.parse(stripeCustomer));
 }
 
 export const ShowAfterAuth = (props: any) => {
   onMount(async () => {
-    // Get token cookie
+    // Electron path: the main process holds the token (PKCE flow, no cookies).
+    const electronAuth = getElectronAuth();
+    if (electronAuth) {
+      const applySession = async (session: { auth0Token: string; auth0User: Record<string, unknown> } | null) => {
+        if (!session) {
+          setAuth0Token(undefined);
+          setAuth0User(undefined);
+          setMongoDBDBUser(undefined);
+          setStripeCustomer(undefined);
+          return;
+        }
+        setAuth0Token(session.auth0Token);
+        setAuth0User(session.auth0User);
+        await hydrateMongoAndStripe();
+      };
+
+      electronAuth.onSessionChanged(applySession);
+      const current = await electronAuth.getSession();
+      await applySession(current);
+      return;
+    }
+
+    // Web path: the server sets auth0Token / auth0User cookies during Auth.js signin.
     let auth0Token = document.cookie.split("; ").find((row) => row.startsWith("auth0Token="));
-    // Get value of cookie
     auth0Token = auth0Token?.split("=")[1];
     auth0Token = decodeURIComponent(decodeURIComponent(auth0Token ?? ""));
 
     if (auth0Token) {
-      // Trim double quotes;
       setAuth0Token(auth0Token);
 
-      // Get token cookie
       let auth0User = document.cookie.split("; ").find((row) => row.startsWith("auth0User="));
-      // Get value of cookie
       auth0User = auth0User?.split("=")[1];
-
       auth0User = decodeURIComponent(decodeURIComponent(auth0User ?? ""));
-
       auth0User = JSON.parse(auth0User ?? "{}");
-
       setAuth0User(auth0User);
 
-      // Get MongoDB user from localStorage
-      let mongodbUser = localStorage.getItem("mongodbUser");
-      if (!mongodbUser) {
-        const mongodbuserResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/myuser`, {
-          method: "get",
-          ...apiFetchOptions(),
-        });
-        const responsejson = await mongodbuserResponse.json();
-        mongodbUser = JSON.stringify(responsejson.user);
-        localStorage.setItem("mongodbUser", mongodbUser);
-      }
-
-      setMongoDBDBUser(JSON.parse(mongodbUser));
-
-      // Get Stripe customer from localStorage
-      let stripeCustomer = localStorage.getItem("stripeCustomer");
-      if (!stripeCustomer) {
-        const customerResponse = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/stripe/get_subscriptions`,
-          {
-            method: "POST",
-            body: JSON.stringify({ user: mongodbUser }),
-            ...apiFetchOptions(),
-          },
-        );
-        const customerData = await customerResponse.json();
-        stripeCustomer = JSON.stringify(customerData);
-        localStorage.setItem("stripeCustomer", stripeCustomer);
-      }
-
-      setStripeCustomer(JSON.parse(stripeCustomer));
+      await hydrateMongoAndStripe();
     }
   });
 

@@ -4,17 +4,29 @@ import { NavBar } from "~/components/NavBar.tsx";
 import { isElectron, isTauri } from "~/util/platform.ts";
 
 export default function NewUser() {
-  // In packaged desktop apps (Tauri or Electron), the app loads from a local file/custom scheme
-  // so auth must go through the deployed server. In browser or Electron dev (localhost), use local route.
+  // Electron: delegate to the main process's PKCE flow (opens system browser,
+  // catches the regenworks:// callback). Web: hit the server auth endpoint.
+  // Tauri: same remote-auth pattern as before.
+  const electronAuth =
+    typeof window !== "undefined"
+      ? (window as unknown as { electronAPI?: { auth?: { login: () => Promise<unknown> } } })
+          .electronAPI?.auth
+      : undefined;
+
   const needsRemoteAuth =
-    typeof window !== "undefined" &&
-    (isTauri() || (isElectron() && !window.location.href.startsWith("http")));
+    typeof window !== "undefined" && isTauri() && !window.location.href.startsWith("http");
   const authPath = needsRemoteAuth
     ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
     : "/api/auth/signin";
 
   const handleLogin = (e: MouseEvent) => {
     e.preventDefault();
+    if (isElectron() && electronAuth) {
+      // Main process resolves after the callback arrives. The session change
+      // broadcast drives the UI — no need to reload.
+      electronAuth.login().catch((err) => console.error("Login failed:", err));
+      return;
+    }
     window.location.href = authPath;
   };
 

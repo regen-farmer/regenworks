@@ -1,9 +1,14 @@
-import { app, BrowserWindow, ipcMain, nativeImage, protocol, net, session } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, protocol, net } from "electron";
 import { autoUpdater } from "electron-updater";
 import path from "path";
 import fs from "fs";
-
-const API_URL = "https://staging.regenfarmer.com";
+import {
+  getRendererSession,
+  handleCallbackUrl,
+  logout as authLogout,
+  restoreSession,
+  startLogin,
+} from "./auth.js";
 
 // Load the native GIS addon lazily — may fail in packaged builds
 let gisNapi: any = null;
@@ -28,10 +33,21 @@ app.setAboutPanelOptions({
   website: "https://regenworks.com",
 });
 
-// Register custom protocol for serving client files with proper URL routing
+// Register custom protocols. `app://` serves bundled client files; `regenworks://`
+// receives the Auth0 PKCE callback via the OS.
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true } },
 ]);
+// In packaged builds, the OS registers the scheme from Info.plist / registry.
+// In dev (running from `electron` CLI), we must tell the OS how to re-launch
+// this specific process tree with the callback URL as an argv entry.
+if (app.isPackaged) {
+  app.setAsDefaultProtocolClient("regenworks");
+} else if (process.defaultApp && process.argv.length >= 2) {
+  app.setAsDefaultProtocolClient("regenworks", process.execPath, [
+    path.resolve(process.argv[1]!),
+  ]);
+}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -72,56 +88,6 @@ function createWindow() {
 
   mainWindow.show();
 
-  // After Auth0 login, the staging server redirects to its own origin.
-  // Intercept navigations to the API server that aren't part of the auth flow,
-  // copy auth cookies to app://, and redirect back to the local app.
-  if (app.isPackaged) {
-    let authInProgress = false;
-
-    mainWindow.webContents.on("will-navigate", (event, url) => {
-      if (url.includes("/api/auth/")) {
-        authInProgress = true;
-        if (url.startsWith("app://")) {
-          event.preventDefault();
-          const authPath = new URL(url).pathname;
-          mainWindow?.loadURL(`${API_URL}${authPath}`);
-        }
-      }
-    });
-
-    // Catch SPA (pushState) navigations to auth routes
-    mainWindow.webContents.on("did-navigate-in-page", (_event, url) => {
-      if (url.includes("/api/auth/")) {
-        authInProgress = true;
-        const authPath = new URL(url).pathname;
-        mainWindow?.loadURL(`${API_URL}${authPath}`);
-      }
-    });
-
-    mainWindow.webContents.on("did-navigate", async (_event, url) => {
-      // After auth completes, the server redirects to its root.
-      // Catch any navigation to the API server that isn't an auth endpoint.
-      if (url.startsWith(API_URL) && !url.includes("/api/auth/")) {
-        if (authInProgress) {
-          authInProgress = false;
-          // Copy auth cookies from the API domain to app://
-          const cookies = await session.defaultSession.cookies.get({ url: API_URL });
-          for (const cookie of cookies) {
-            if (cookie.name.startsWith("auth0") || cookie.name === "appSession") {
-              await session.defaultSession.cookies.set({
-                url: "app://localhost",
-                name: cookie.name,
-                value: cookie.value,
-                path: "/",
-              });
-            }
-          }
-        }
-        mainWindow?.loadURL("app://localhost/");
-      }
-    });
-  }
-
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
@@ -157,6 +123,39 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
   const body = await resp.text();
   return { status: resp.status, statusText: resp.statusText, body };
 });
+
+// --- Auth (PKCE in system browser) ---
+
+ipcMain.handle("auth:get-session", () => getRendererSession());
+ipcMain.handle("auth:login", () => startLogin());
+ipcMain.handle("auth:logout", () => authLogout());
+
+// The Auth0 callback arrives as a `regenworks://callback?code=...` URL. macOS
+// delivers it via `open-url`; Windows/Linux via the second-instance event with
+// the URL as a CLI arg.
+app.on("open-url", (event, url) => {
+  console.log("[Auth] open-url event fired:", url);
+  event.preventDefault();
+  if (url.startsWith("regenworks://")) handleCallbackUrl(url);
+});
+
+// Enforce single-instance so Windows/Linux protocol handoffs work correctly.
+// Without this, the OS would spawn a second copy for the callback, which never
+// reaches our running process.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, argv) => {
+    console.log("[Auth] second-instance event fired, argv:", argv);
+    const callback = argv.find((a) => a.startsWith("regenworks://"));
+    if (callback) handleCallbackUrl(callback);
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
 
 // --- Auto-updater ---
 
@@ -369,11 +368,6 @@ app.whenReady().then(async () => {
     const url = new URL(request.url);
     const pathname = decodeURIComponent(url.pathname);
 
-    // Redirect auth requests to the staging server
-    if (pathname.startsWith("/api/auth/")) {
-      return Response.redirect(`${API_URL}${pathname}${url.search}`, 302);
-    }
-
     let filePath = path.join(clientDir, pathname);
 
     // SPA fallback: serve _shell.html for routes that don't map to a file
@@ -383,6 +377,11 @@ app.whenReady().then(async () => {
 
     return net.fetch(`file://${filePath}`);
   });
+
+  // Try to restore a previous session from the encrypted refresh token. If it
+  // succeeds, the renderer will see the session via the `auth:session-changed`
+  // event it subscribes to on mount.
+  restoreSession().catch((err) => console.error("[Auth] Restore failed:", err));
 
   // Set dock icon on macOS (BrowserWindow.icon doesn't affect the dock)
   if (process.platform === "darwin" && app.dock) {

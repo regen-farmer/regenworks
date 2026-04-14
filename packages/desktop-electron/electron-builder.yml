@@ -42,6 +42,11 @@ mac:
 dmg:
   sign: false
 
+protocols:
+  - name: RegenWorks
+    schemes:
+      - regenworks
+
 # Windows
 win:
   target:

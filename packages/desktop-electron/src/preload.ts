@@ -16,4 +16,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
   }> => ipcRenderer.invoke("get-update-state"),
 
   installUpdate: () => ipcRenderer.send("install-update"),
+
+  auth: {
+    getSession: (): Promise<{
+      auth0Token: string;
+      auth0User: Record<string, unknown>;
+    } | null> => ipcRenderer.invoke("auth:get-session"),
+    login: (): Promise<{
+      auth0Token: string;
+      auth0User: Record<string, unknown>;
+    }> => ipcRenderer.invoke("auth:login"),
+    logout: (): Promise<void> => ipcRenderer.invoke("auth:logout"),
+    onSessionChanged: (
+      cb: (session: { auth0Token: string; auth0User: Record<string, unknown> } | null) => void,
+    ) => ipcRenderer.on("auth:session-changed", (_e, session) => cb(session)),
+  },
 });

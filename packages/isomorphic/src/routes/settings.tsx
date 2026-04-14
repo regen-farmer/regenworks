@@ -9,6 +9,7 @@ import {
   currentSubscriptions,
   getMongoDBUser,
   getStripeCustomer,
+  handleSignOut,
   setMongoDBDBUser,
   setStripeCustomer,
   subscriptions,
@@ -30,12 +31,6 @@ import { format, fromUnixTime } from "date-fns";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { countries } from "../util/countries.ts";
 import Paper from "~/components/ui/paper.tsx";
-
-function handleSignOut() {
-  localStorage.removeItem("mongodbUser");
-  localStorage.removeItem("stripeCustomer");
-  window.location.href = "/api/auth/signout";
-}
 
 async function updateStripeData() {
   const customerResponse = await fetch(
