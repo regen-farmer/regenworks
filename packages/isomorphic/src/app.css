@@ -273,3 +273,21 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Electron: draggable top nav. The whole bar drags the window, except for
+ * interactive children which opt back out. */
+.electron-drag {
+  -webkit-app-region: drag;
+}
+.electron-drag a,
+.electron-drag button,
+.electron-drag input,
+.electron-drag select,
+.electron-drag [role="button"],
+.electron-drag [role="listbox"],
+.electron-drag [role="combobox"],
+.electron-drag [role="menuitem"],
+.electron-drag [role="group"],
+.electron-drag #logotype {
+  -webkit-app-region: no-drag;
+}

@@ -87,8 +87,7 @@ export function NavBar() {
   return (
     <nav
       class="flex items-center h-14 border-b border-zinc-300 dark:border-slate-600 bg-white dark:bg-customdark1"
-      classList={{ "pl-19.5": isElectron() }}
-      style={isElectron() ? { "-webkit-app-region": "drag" } : undefined}
+      classList={{ "pl-19.5": isElectron(), "electron-drag": isElectron() }}
     >
       <div
         id="logotype"
