@@ -249,6 +249,10 @@
       "rlig" 1,
       "calt" 1;
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
 
 @media (max-width: 640px) {
