@@ -10,3 +10,4 @@ dist-electron/
 *.dll
 *.so
 *.dylib
+*.p12
