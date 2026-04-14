@@ -151,26 +151,27 @@ ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: 
 
 // Latest update state, kept so the renderer can query it after it mounts
 // (the main process may fire update-available/downloaded before the renderer
-// has registered its IPC listener).
+// has registered its IPC listener). Only used for the background hourly check —
+// the blocking startup check handles its own state via the splash window.
 let latestUpdateAvailable: { version: string; notes: string } | null = null;
 let latestUpdateDownloaded: { version: string } | null = null;
 
-function initUpdater() {
+// Hourly re-check after the app is running, so long sessions still pick up new
+// releases via the in-app toast. The initial blocking check at launch handles
+// the common case.
+function initBackgroundUpdater() {
   if (!app.isPackaged) return;
 
-  // Allow pre-release updates only when running a pre-release version
   const currentVersion = app.getVersion();
   autoUpdater.allowPrerelease = currentVersion.includes("-");
 
   const checkForUpdates = () => {
-    console.log("[Updater] Checking for updates...");
+    console.log("[Updater] Hourly check...");
     autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-      console.error("[Updater] Check failed:", err);
+      console.error("[Updater] Hourly check failed:", err);
     });
   };
 
-  checkForUpdates();
-  // Re-check hourly so long-running sessions pick up new releases.
   setInterval(checkForUpdates, 60 * 60 * 1000);
 
   autoUpdater.on("update-available", (info) => {
@@ -180,14 +181,6 @@ function initUpdater() {
       notes: typeof info.releaseNotes === "string" ? info.releaseNotes : "",
     };
     mainWindow?.webContents.send("update-available", latestUpdateAvailable);
-  });
-
-  autoUpdater.on("update-not-available", (info) => {
-    console.log(`[Updater] App is up to date (${info.version})`);
-  });
-
-  autoUpdater.on("download-progress", (progress) => {
-    console.log(`[Updater] Download: ${progress.percent.toFixed(1)}%`);
   });
 
   autoUpdater.on("update-downloaded", (info) => {
@@ -210,9 +203,155 @@ ipcMain.on("install-update", () => {
   autoUpdater.quitAndInstall();
 });
 
+// --- Blocking startup updater (Discord-style) ---
+//
+// Shows a splash window while checking for and downloading updates. If an update
+// is installed, the app relaunches automatically. If no update is found or the
+// check times out / errors out, the main window opens normally.
+
+const STARTUP_UPDATE_TIMEOUT_MS = 10_000;
+
+function createSplashWindow(): BrowserWindow {
+  const splash = new BrowserWindow({
+    width: 380,
+    height: 200,
+    frame: false,
+    resizable: false,
+    alwaysOnTop: true,
+    center: true,
+    show: false,
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+
+  const version = app.getVersion();
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #18181b; color: #fafafa;
+    display: flex; flex-direction: column; justify-content: center; height: 100vh;
+    -webkit-app-region: drag; user-select: none;
+  }
+  h1 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+  p  { font-size: 12px; color: #a1a1aa; margin: 0 0 16px; }
+  #status { font-size: 12px; color: #a1a1aa; margin-top: 8px; }
+  .bar {
+    height: 6px; width: 100%; background: #27272a; border-radius: 3px; overflow: hidden;
+  }
+  .bar > span {
+    display: block; height: 100%; width: 0%; background: #22c55e;
+    transition: width .2s ease-out;
+  }
+</style>
+</head>
+<body>
+  <h1>RegenWorks</h1>
+  <p>Version ${version}</p>
+  <div class="bar"><span id="fill"></span></div>
+  <div id="status">Checking for updates…</div>
+  <script>
+    window.addEventListener("message", (e) => {
+      const { status, percent } = e.data || {};
+      if (status) document.getElementById("status").textContent = status;
+      if (typeof percent === "number") document.getElementById("fill").style.width = percent + "%";
+    });
+  </script>
+</body>
+</html>`;
+
+  splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  return splash;
+}
+
+function sendSplash(splash: BrowserWindow, payload: { status?: string; percent?: number }) {
+  if (splash.isDestroyed()) return;
+  splash.webContents.send("__splash", payload);
+  // Using a script directly since we don't have a preload for the splash
+  splash.webContents.executeJavaScript(
+    `window.postMessage(${JSON.stringify(payload)}, "*")`,
+  ).catch(() => {});
+}
+
+async function runStartupUpdateCheck(splash: BrowserWindow): Promise<boolean> {
+  // Returns true if the app is about to quit-and-install; false if we should
+  // continue launching the main window.
+
+  const currentVersion = app.getVersion();
+  autoUpdater.allowPrerelease = currentVersion.includes("-");
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  return await new Promise<boolean>((resolve) => {
+    let settled = false;
+    const settle = (willInstall: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      cleanup();
+      resolve(willInstall);
+    };
+
+    const onUpdateAvailable = (info: { version: string }) => {
+      console.log(`[Updater] Startup: update available ${info.version}`);
+      sendSplash(splash, { status: `Downloading ${info.version}…`, percent: 0 });
+    };
+
+    const onNotAvailable = () => {
+      console.log("[Updater] Startup: app is up to date");
+      settle(false);
+    };
+
+    const onProgress = (p: { percent: number }) => {
+      sendSplash(splash, { percent: Math.round(p.percent) });
+    };
+
+    const onDownloaded = (info: { version: string }) => {
+      console.log(`[Updater] Startup: downloaded ${info.version}, installing…`);
+      sendSplash(splash, { status: "Installing update…", percent: 100 });
+      // Give the splash a moment to paint the final state, then quit & install
+      setTimeout(() => {
+        settle(true);
+        autoUpdater.quitAndInstall();
+      }, 500);
+    };
+
+    const onError = (err: Error) => {
+      console.error("[Updater] Startup check error:", err);
+      settle(false);
+    };
+
+    const cleanup = () => {
+      autoUpdater.removeListener("update-available", onUpdateAvailable);
+      autoUpdater.removeListener("update-not-available", onNotAvailable);
+      autoUpdater.removeListener("download-progress", onProgress);
+      autoUpdater.removeListener("update-downloaded", onDownloaded);
+      autoUpdater.removeListener("error", onError);
+    };
+
+    autoUpdater.on("update-available", onUpdateAvailable);
+    autoUpdater.on("update-not-available", onNotAvailable);
+    autoUpdater.on("download-progress", onProgress);
+    autoUpdater.on("update-downloaded", onDownloaded);
+    autoUpdater.on("error", onError);
+
+    const timeoutHandle = setTimeout(() => {
+      console.warn("[Updater] Startup check timed out, launching anyway");
+      settle(false);
+    }, STARTUP_UPDATE_TIMEOUT_MS);
+
+    console.log("[Updater] Startup: checking for updates…");
+    autoUpdater.checkForUpdates().catch(onError);
+  });
+}
+
 // --- App lifecycle ---
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Serve client files via app:// protocol so the SPA router gets proper URLs
   const clientDir = path.join(process.resourcesPath, "client");
   protocol.handle("app", (request) => {
@@ -242,9 +381,29 @@ app.whenReady().then(() => {
     app.dock.setIcon(dockIcon);
   }
 
-  createWindow();
+  // Dev mode: skip the splash/update dance, just open the main window.
+  if (!app.isPackaged) {
+    createWindow();
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+    return;
+  }
 
-  setTimeout(initUpdater, 5000);
+  // Packaged mode: show splash, check for updates, then open main window (or
+  // relaunch if an update was installed).
+  const splash = createSplashWindow();
+  splash.once("ready-to-show", () => splash.show());
+
+  const willInstall = await runStartupUpdateCheck(splash);
+  if (willInstall) {
+    // autoUpdater.quitAndInstall() is in flight; don't create the main window.
+    return;
+  }
+
+  splash.destroy();
+  createWindow();
+  initBackgroundUpdater();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
