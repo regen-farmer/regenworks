@@ -204,6 +204,8 @@ jobs:
       - name: Build isomorphic frontend
         env:
           ELECTRON_BUILD: "1"
+          # dev branch → dev backend on Render; main branch → prod backend on Render.
+          VITE_BACKEND_URL: ${{ github.ref_name == 'main' && 'https://regenworks-prod-backend.onrender.com' || 'https://regenworks-dev-backend.onrender.com' }}
           # Dummy auth env vars for the prerender pass — the Electron app uses
           # staging.regenfarmer.com for real auth at runtime, but TanStack Start's
           # prerender invokes getSession() during build and Auth.js validates its
