@@ -38,6 +38,10 @@ export default defineConfig(({ mode }) => {
 		// so the SPA dev server can serve them directly. Point isomorphic's
 		// vite at that same directory so SSR dev/prod gets the same files.
 		publicDir: "../frontend/public",
+		// Nitro defaults `copyPublicDir: false` for the client build (it has
+		// its own publicAssets mechanism). We opt back in so `publicDir` flows
+		// into `.output/public/` and `/images/*` etc. are served in prod.
+		build: { copyPublicDir: true },
 		server: {
 			port: Number(process.env.PORT) || 10000,
 		},
