@@ -22,9 +22,9 @@ beforePack: scripts/before-pack.js
 # Bundle dylibs and rewrite paths in the unpacked native modules
 afterPack: scripts/after-pack.js
 
-# Bundle the pre-built isomorphic frontend
+# Bundle the pre-built frontend SPA
 extraResources:
-  - from: ../isomorphic/dist/client
+  - from: ../frontend/dist
     to: client
     filter:
       - "**/*"

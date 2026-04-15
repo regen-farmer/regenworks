@@ -3,133 +3,118 @@
  * Launch Electron for dev.
  *
  * Orchestrates:
- *   1. An initial isomorphic SPA build (`pnpm --filter isomorphic build:spa`).
- *      Once that's done ../isomorphic/dist/client/ contains `_shell.html` + the
- *      JS/CSS bundles that main.ts serves via the `app://` protocol.
- *   2. Launch Electron.
- *   3. A debounced rebuild loop: watch ../isomorphic/src/ and re-run the full
- *      build on change. Sequential full builds avoid the parallel-env race in
- *      `vite build --watch` that leaves the `tanstack-start:start-manifest-plugin`
- *      without a client bundle to read.
+ *   1. `@rw/frontend` vite dev server (HMR). Runs on port 10100 by default.
+ *   2. Electron, launched once the dev server answers. Points at the dev URL.
  *
- * Env quirks: VS Code / Claude Desktop terminals set ELECTRON_RUN_AS_NODE=1,
+ * Electron's renderer now loads directly from vite dev over HTTP — no SSR,
+ * no bundle rebuild loop, full HMR when you edit files in packages/frontend/src.
+ * Packaged builds still use the `app://` protocol and consume the built SPA
+ * from extraResources (see main.ts).
+ *
+ * Env quirks: Terminals set ELECTRON_RUN_AS_NODE=1
  * which makes Electron run as plain Node.js. pnpm bin shims set NODE_PATH
  * which shadows Electron's module resolution. Both are stripped below.
  */
 const proc = require("child_process");
 const path = require("path");
-const fs = require("fs");
+const net = require("node:net");
 
 const electronPath = require("electron"); // binary path
 const pkgRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(pkgRoot, "..", "..");
-const isoRoot = path.resolve(pkgRoot, "..", "isomorphic");
-const isoSrc = path.join(isoRoot, "src");
-const isoShell = path.join(isoRoot, "dist", "client", "_shell.html");
 
-const env = { ...process.env };
+const DEV_PORT = Number(process.env.FRONTEND_DEV_PORT || 10100);
+const DEV_URL = process.env.FRONTEND_DEV_URL || `http://localhost:${DEV_PORT}`;
+
+const env = { ...process.env, FRONTEND_DEV_URL: DEV_URL };
 delete env.NODE_PATH;
 delete env.ELECTRON_RUN_AS_NODE;
 
 let electronChild = null;
-let buildChild = null;
-let watcher = null;
+let viteChild = null;
 let shuttingDown = false;
 
 function shutdown(signal) {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  const sig = signal || "SIGTERM";
-  if (electronChild && !electronChild.killed) electronChild.kill(sig);
-  if (buildChild && !buildChild.killed) buildChild.kill(sig);
-  if (watcher) watcher.close();
+	if (shuttingDown) return;
+	shuttingDown = true;
+	const sig = signal || "SIGTERM";
+	if (electronChild && !electronChild.killed) electronChild.kill(sig);
+	if (viteChild && !viteChild.killed) viteChild.kill(sig);
 }
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-function runBuild(label) {
-  return new Promise((resolve) => {
-    if (shuttingDown) return resolve(1);
-    console.log(`[electron-dev] ${label}`);
-    const startedAt = Date.now();
-    buildChild = proc.spawn(
-      "pnpm",
-      ["--filter", "isomorphic", "build:spa"],
-      { cwd: repoRoot, stdio: "inherit", env },
-    );
-    buildChild.on("error", (err) => {
-      console.error("[electron-dev] build spawn error:", err);
-      resolve(1);
-    });
-    buildChild.on("close", (code) => {
-      buildChild = null;
-      if (code === 0) {
-        console.log(`[electron-dev] build ok in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
-      } else {
-        console.error(`[electron-dev] build exited with ${code}`);
-      }
-      resolve(code ?? 0);
-    });
-  });
-}
+// 1. Start the @rw/frontend dev server.
+console.log(`[electron-dev] starting @rw/frontend dev on :${DEV_PORT}…`);
+viteChild = proc.spawn(
+	"pnpm",
+	["--filter", "@rw/frontend", "dev"],
+	{ cwd: repoRoot, stdio: "inherit", env },
+);
+viteChild.on("error", (err) => {
+	console.error("[electron-dev] vite dev spawn error:", err);
+	shutdown("SIGTERM");
+	process.exit(1);
+});
+viteChild.on("close", (code) => {
+	if (!shuttingDown) {
+		console.error(`[electron-dev] vite dev exited (${code}); shutting down`);
+		shutdown("SIGTERM");
+		process.exit(code ?? 1);
+	}
+});
 
-function launchElectron() {
-  console.log("[electron-dev] launching Electron");
-  electronChild = proc.spawn(electronPath, ["."], { cwd: pkgRoot, stdio: "inherit", env });
-  electronChild.on("error", (err) => console.error("[electron-dev] electron spawn error:", err));
-  electronChild.on("close", (code) => {
-    shutdown("SIGTERM");
-    process.exit(code ?? 0);
-  });
-}
-
-const REBUILD_DEBOUNCE_MS = 200;
-let rebuildTimer = null;
-let rebuildInFlight = false;
-let rebuildQueued = false;
-
-function scheduleRebuild() {
-  if (shuttingDown) return;
-  if (rebuildTimer) clearTimeout(rebuildTimer);
-  rebuildTimer = setTimeout(async () => {
-    rebuildTimer = null;
-    if (rebuildInFlight) {
-      rebuildQueued = true;
-      return;
-    }
-    rebuildInFlight = true;
-    await runBuild("rebuilding on change…");
-    rebuildInFlight = false;
-    if (rebuildQueued) {
-      rebuildQueued = false;
-      scheduleRebuild();
-    }
-  }, REBUILD_DEBOUNCE_MS);
-}
-
-function startWatcher() {
-  if (!fs.existsSync(isoSrc)) {
-    console.warn(`[electron-dev] ${isoSrc} not found; no rebuild on change`);
-    return;
-  }
-  watcher = fs.watch(isoSrc, { recursive: true }, (_eventType, filename) => {
-    if (!filename) return;
-    // Ignore editor noise and generated files.
-    if (filename.endsWith("~") || filename.startsWith(".")) return;
-    if (filename === "routeTree.gen.ts") return;
-    scheduleRebuild();
-  });
-  console.log(`[electron-dev] watching ${isoSrc}`);
+// 2. Wait for the dev server to accept connections, then launch Electron.
+// Use `localhost` so the socket probe follows Node's DNS resolution — vite 8
+// often binds IPv6 only on macOS, and a hardcoded 127.0.0.1 probe would hang.
+function waitForPort(port, host = "localhost", timeoutMs = 120_000) {
+	return new Promise((resolve, reject) => {
+		const startedAt = Date.now();
+		const tryConnect = () => {
+			if (shuttingDown) return;
+			const sock = new net.Socket();
+			sock.setTimeout(500);
+			sock.once("connect", () => {
+				sock.destroy();
+				resolve();
+			});
+			sock.once("error", () => {
+				sock.destroy();
+				retry();
+			});
+			sock.once("timeout", () => {
+				sock.destroy();
+				retry();
+			});
+			sock.connect(port, host);
+		};
+		const retry = () => {
+			if (Date.now() - startedAt > timeoutMs) {
+				reject(new Error(`timed out waiting for ${host}:${port}`));
+				return;
+			}
+			setTimeout(tryConnect, 200);
+		};
+		tryConnect();
+	});
 }
 
 (async () => {
-  const initialCode = await runBuild("initial SPA build…");
-  if (initialCode !== 0 || !fs.existsSync(isoShell)) {
-    console.error(`[electron-dev] initial build failed; expected ${isoShell}`);
-    shutdown("SIGTERM");
-    process.exit(initialCode || 1);
-  }
-  launchElectron();
-  startWatcher();
+	try {
+		await waitForPort(DEV_PORT);
+	} catch (err) {
+		console.error("[electron-dev]", err);
+		shutdown("SIGTERM");
+		process.exit(1);
+	}
+	if (shuttingDown) return;
+
+	console.log(`[electron-dev] launching Electron against ${DEV_URL}`);
+	electronChild = proc.spawn(electronPath, ["."], { cwd: pkgRoot, stdio: "inherit", env });
+	electronChild.on("error", (err) => console.error("[electron-dev] electron spawn error:", err));
+	electronChild.on("close", (code) => {
+		shutdown("SIGTERM");
+		process.exit(code ?? 0);
+	});
 })();

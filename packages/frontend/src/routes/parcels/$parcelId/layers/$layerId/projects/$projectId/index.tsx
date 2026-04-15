@@ -987,7 +987,7 @@ function ProjectIndexView() {
                                                 // <div class='card'>
                                                 //   <div class='card-body'>
 
-                                                <div
+                                                (<div
                                                   style={{
                                                     display: "flex",
                                                     "align-items": "center",
@@ -1025,7 +1025,6 @@ function ProjectIndexView() {
                                                     }}
                                                   />
                                                   {/* </button> */}
-
                                                   <div>
                                                     <div
                                                       style={{
@@ -1148,7 +1147,7 @@ function ProjectIndexView() {
                                                       </ComboboxRoot>
                                                     </div>
                                                   </div>
-                                                </div>
+                                                </div>)
                                               )}
                                             </For>
 
@@ -1491,7 +1490,7 @@ function ProjectIndexView() {
                           params={params}
                           deleteModalOpen={deleteModalOpen}
                           setDeleteModalOpen={setDeleteModalOpen}
-                          deleteProjectAction={deleteProjectAction}
+                          handleDeleteProject={handleDeleteProject}
                         />
                       </TabsContent>
                     </Tabs>
@@ -1535,7 +1534,6 @@ function ProjectIndexView() {
           </div>
         </ResizablePanel>
       </Resizable>
-
       <OfferRequestModal
         isOpen={isOfferModalOpen()}
         onOpenChange={setOfferModalOpen}
@@ -1544,7 +1542,7 @@ function ProjectIndexView() {
         userEmail={userEmail()}
       />
     </>
-  );
+  )
 }
 
 export { drawSystemDesign };
@@ -2792,7 +2790,7 @@ const InfoContent = ({
   params,
   deleteModalOpen,
   setDeleteModalOpen,
-  deleteProjectAction,
+  handleDeleteProject,
 }: any) => {
   const [scenarioName, setScenarioName] = createSignal("");
   const [scenarioDescription, setScenarioDescription] = createSignal("");

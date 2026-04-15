@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/solid-router";
 import Project from "@rw/db/schemas/project.ts";
-import { apiResponseOptions } from "~/util/apiFetchOptions.ts";
+import { apiResponseOptions } from "@rw/frontend/src/util/apiFetchOptions.ts";
 
 export const Route = createFileRoute("/api/projects/$projectId/financials/activities")({
   server: {

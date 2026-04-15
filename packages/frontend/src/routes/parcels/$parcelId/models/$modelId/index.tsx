@@ -3,10 +3,6 @@ import { type Component, createResource, Show } from "solid-js";
 import { FarmFinancialsTab } from "~/components/farm-financials/FarmFinancialsTab";
 import { getFinancialModel } from "~/util/api/financialModel";
 
-export const Route = createFileRoute("/parcels/$parcelId/models/$modelId/")({
-  component: ModelDetail,
-});
-
 const ModelDetail: Component = () => {
   const params = useParams({ strict: false });
 
@@ -53,3 +49,7 @@ const ModelDetail: Component = () => {
     </div>
   );
 };
+
+export const Route = createFileRoute("/parcels/$parcelId/models/$modelId/")({
+  component: ModelDetail,
+});

@@ -2,17 +2,28 @@ import { useLocation } from "@tanstack/solid-router";
 import { createMemo, createResource, createSignal, onMount, Show } from "solid-js";
 import NewUser from "~/auth/signup.tsx";
 import { ShowAfterAuth } from "./useAuth.tsx";
-import { getSessionData } from "~/app.tsx";
 import { isElectron } from "~/util/platform.ts";
 
 // Routes that should be accessible without authentication
 const PUBLIC_ROUTES = ["/scenario-preview/", "/farm-scenario-preview/", "/privacy", "/terms"];
 
 type ElectronSession = { auth0Token: string; auth0User: Record<string, unknown> } | null;
+type WebSession = Record<string, unknown> | null;
+
+// Injection seam: `@rw/isomorphic` calls `setWebSessionResolver(getSessionData)`
+// at startup so the SSR path can reach its `createServerFn`-wrapped session
+// loader. In pure-client consumers (Electron SPA) the resolver stays undefined
+// and session comes from the Electron main process over IPC.
+let webSessionResolver: (() => Promise<WebSession>) | undefined;
+export function setWebSessionResolver(fn: () => Promise<WebSession>) {
+	webSessionResolver = fn;
+}
 
 const SessionProvider = (props: any) => {
   const location = useLocation();
-  const [session] = createResource(() => (isElectron() ? null : getSessionData()));
+  const [session] = createResource(() =>
+    isElectron() ? null : webSessionResolver ? webSessionResolver() : null,
+  );
 
   // Electron: session lives in the main process, not on a server. Subscribe to
   // session changes and drive the same `hasSession` toggle.

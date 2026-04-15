@@ -7,7 +7,6 @@ import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based
 import { useParams, createFileRoute } from "@tanstack/solid-router";
 import { bbox, helpers as turf } from "@turf/turf";
 import {
-  type Component,
   createEffect,
   createMemo,
   createResource,
@@ -44,7 +43,7 @@ export const Route = createFileRoute("/parcels/$parcelId/farm-scenario/$farmScen
   component: FarmScenarioPreview,
 });
 
-const FarmScenarioPreview: Component = () => {
+function FarmScenarioPreview() {
   const params = useParams({ strict: false });
   const species = getSpecies();
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
@@ -1426,4 +1425,4 @@ const FarmScenarioPreview: Component = () => {
       />
     </div>
   );
-};
+}

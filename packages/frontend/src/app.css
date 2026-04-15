@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Explicit source scanning — when `@rw/isomorphic` compiles this stylesheet
+ * via its own vite instance, the Tailwind auto-detection starts from
+ * isomorphic's cwd and misses `@rw/frontend`'s own files. Point at them. */
+@source "./**/*.{ts,tsx}";
+@source "../index.html";
+
 @plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.theme-dark *));

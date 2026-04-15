@@ -1,45 +1,28 @@
 /// <reference types="vite/client" />
-import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/solid-router";
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/solid-router";
 import { HydrationScript } from "solid-js/web";
-import { Suspense } from "solid-js";
 import type * as Solid from "solid-js";
-import { SessionProvider } from "~/auth/SessionProvider.tsx";
-import { ThemeToggler } from "~/theme.tsx";
-import ElectronUpdater from "~/components/ElectronUpdater.tsx";
-import { isTauri } from "~/util/platform.ts";
-import { onMount } from "solid-js";
-import appCss from "~/app.css?url";
-import styleCss from "~/style.css?url";
+import { RootComponent } from "@rw/frontend/src/routes/__root.tsx";
+// Note: CSS is imported as a side effect inside `RootComponent`'s module graph
+// (see `@rw/frontend/src/routes/__root.tsx`). TanStack Start auto-collects
+// those imports for SSR via its `/@tanstack-start/styles.css` endpoint.
 
-// Import mongoose models (side-effect imports for model registration)
-import "@rw/db/schemas/activity.ts";
-import "@rw/db/schemas/animal.ts";
-import "@rw/db/schemas/area.ts";
-import "@rw/db/schemas/asset.ts";
-import "@rw/db/schemas/budget.ts";
-import "@rw/db/schemas/farmflow.ts";
-import "@rw/db/schemas/flow.ts";
-import "@rw/db/schemas/layer.ts";
-import "@rw/db/schemas/log.ts";
-import "@rw/db/schemas/note.ts";
-import "@rw/db/schemas/nursery.ts";
-import "@rw/db/schemas/nurseryproduct.ts";
-import "@rw/db/schemas/parcel.ts";
-import "@rw/db/schemas/posting.ts";
-import "@rw/db/schemas/practice.ts";
-import "@rw/db/schemas/project.ts";
-import "@rw/db/schemas/rateLimiterIP.ts";
-import "@rw/db/schemas/rotation.ts";
-import "@rw/db/schemas/row.ts";
-import "@rw/db/schemas/saptest.ts";
-import "@rw/db/schemas/sequence.ts";
-import "@rw/db/schemas/soiltest.ts";
-import "@rw/db/schemas/species.ts";
-import "@rw/db/schemas/system.ts";
-import "@rw/db/schemas/systemflow.ts";
-import "@rw/db/schemas/user.ts";
-import "@rw/db/schemas/variety.ts";
-import "@rw/db/schemas/well.ts";
+// Web SSR root. Pulls the layout (`RootComponent`) from `@rw/frontend` and adds
+// the SSR-only HTML shell + head metadata.
+function RootDocument({ children }: { children: Solid.JSX.Element }) {
+  return (
+    <html lang="en">
+      <head>
+        <HydrationScript />
+        <HeadContent />
+      </head>
+      <body>
+        <div id="app">{children}</div>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -58,8 +41,6 @@ export const Route = createRootRoute({
       },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "stylesheet", href: styleCss },
       { rel: "icon", href: "/favicon.ico" },
       { rel: "shortcut icon", type: "image/png", href: "/images/icon.png" },
       {
@@ -85,41 +66,3 @@ export const Route = createRootRoute({
     </main>
   ),
 });
-
-function RootComponent() {
-  onMount(async () => {
-    if (typeof window !== "undefined" && isTauri()) {
-      console.log("Initializing Tauri update check...");
-      const { initUpdater } = await import("@rw/desktop-tauri/src/updater.ts");
-      initUpdater();
-    }
-  });
-
-  return (
-    <ThemeToggler>
-      <Suspense>
-        <SessionProvider>
-          <div class="d-flex flex-column" style={{ height: "100%" }}>
-            <Outlet />
-          </div>
-        </SessionProvider>
-      </Suspense>
-      <ElectronUpdater />
-    </ThemeToggler>
-  );
-}
-
-function RootDocument({ children }: { children: Solid.JSX.Element }) {
-  return (
-    <html lang="en">
-      <head>
-        <HydrationScript />
-        <HeadContent />
-      </head>
-      <body>
-        <div id="app">{children}</div>
-        <Scripts />
-      </body>
-    </html>
-  );
-}

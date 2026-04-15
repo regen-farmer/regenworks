@@ -11,3 +11,5 @@ dist-electron/
 *.so
 *.dylib
 *.p12
+packages/isomorphic/src/routes/_pages/
+/packages/frontend/dist/
