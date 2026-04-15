@@ -48,14 +48,15 @@ function shutdown(signal) {
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-function runBuild(label) {
+function runBuild(label, variant = "full") {
   return new Promise((resolve) => {
     if (shuttingDown) return resolve(1);
     console.log(`[electron-dev] ${label}`);
     const startedAt = Date.now();
+    const script = variant === "client" ? "build:spa:client" : "build:spa";
     buildChild = proc.spawn(
       "pnpm",
-      ["--filter", "isomorphic", "build:spa"],
+      ["--filter", "isomorphic", script],
       { cwd: repoRoot, stdio: "inherit", env },
     );
     buildChild.on("error", (err) => {
@@ -99,7 +100,7 @@ function scheduleRebuild() {
       return;
     }
     rebuildInFlight = true;
-    await runBuild("rebuilding on change…");
+    await runBuild("rebuilding client on change…", "client");
     rebuildInFlight = false;
     if (rebuildQueued) {
       rebuildQueued = false;

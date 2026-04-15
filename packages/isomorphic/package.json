@@ -7,6 +7,7 @@
 		"build": "vite build",
 		"build:spa": "ELECTRON_BUILD=1 vite build",
 		"build:spa:watch": "ELECTRON_BUILD=1 vite build --watch",
+		"build:spa:client": "node scripts/build-spa-client-only.mjs",
 		"preview": "vite preview",
 		"start": "srvx --prod --static ../client dist/server/server.js",
 		"start-local": "set -a && source .env && set +a && PORT=10000 srvx --prod --static ../client dist/server/server.js"

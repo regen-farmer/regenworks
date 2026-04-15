@@ -39,6 +39,23 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			tsconfigPaths: true,
 		},
+		// For desktop builds, keep the client entry filename stable (unhashed).
+		// This lets us rebuild ONLY the client env on watch without regenerating
+		// `_shell.html` — the shell's <script src="/assets/main.js"> keeps pointing
+		// at the same file. Code-split chunks are still content-hashed.
+		environments: isDesktop
+			? {
+					client: {
+						build: {
+							rollupOptions: {
+								output: {
+									entryFileNames: "assets/main.js",
+								},
+							},
+						},
+					},
+				}
+			: undefined,
 		plugins: [
 			tailwindcss(),
 			stubServerModulesPlugin(),
