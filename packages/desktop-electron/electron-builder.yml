@@ -15,6 +15,11 @@ files:
   - dist/**
   - node_modules/**
   - package.json
+  # texture-compressor ships a pre-built x86_64 PVRTexToolCLI that's linked
+  # against a pre-10.9 SDK. It's a build-time tool only (converts textures to
+  # PVR format), never loaded at runtime, but Apple notarization rejects the
+  # archive if it's present. Exclude its bin folder entirely.
+  - "!**/node_modules/texture-compressor/bin/**"
 
 # Replace pnpm workspace symlinks with real copies before packaging
 beforePack: scripts/before-pack.js
