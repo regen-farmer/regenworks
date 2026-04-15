@@ -11,7 +11,7 @@
  * Packaged builds still use the `app://` protocol and consume the built SPA
  * from extraResources (see main.ts).
  *
- * Env quirks: VS Code / Claude Desktop terminals set ELECTRON_RUN_AS_NODE=1
+ * Env quirks: Terminals set ELECTRON_RUN_AS_NODE=1
  * which makes Electron run as plain Node.js. pnpm bin shims set NODE_PATH
  * which shadows Electron's module resolution. Both are stripped below.
  */
