@@ -201,21 +201,11 @@ jobs:
             cp /usr/lib/x86_64-linux-gnu/libgeos_c.so* . 2>/dev/null || cp /usr/lib/libgeos_c.so* . 2>/dev/null || true
           fi
 
-      - name: Build isomorphic frontend
+      - name: Build frontend SPA
         env:
-          ELECTRON_BUILD: "1"
           # dev branch → dev backend on Render; main branch → prod backend on Render.
           VITE_BACKEND_URL: ${{ github.ref_name == 'main' && 'https://regenworks-prod-backend.onrender.com' || 'https://regenworks-dev-backend.onrender.com' }}
-          # Dummy auth env vars for the prerender pass — the Electron app uses
-          # staging.regenfarmer.com for real auth at runtime, but TanStack Start's
-          # prerender invokes getSession() during build and Auth.js validates its
-          # config eagerly, so we need just enough to pass those checks.
-          AUTH_SECRET: "build-time-placeholder-not-used-at-runtime"
-          AUTH_TRUST_HOST: "true"
-          AUTH_AUTH0_ID: "build-time-placeholder"
-          AUTH_AUTH0_SECRET: "build-time-placeholder"
-          AUTH_AUTH0_ISSUER: "https://example.auth0.com"
-        run: pnpm --filter isomorphic build
+        run: pnpm --filter @rw/desktop-electron build:frontend
 
       - name: Build & Publish Electron App
         timeout-minutes: 30
