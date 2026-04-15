@@ -534,7 +534,7 @@ function BackupView() {
                                 </p>
                                 {/* {data()?.project.status === "planning" ? (
 															<A
-																class='btn btn-default'
+																class="btn btn-default"
 																href={`/systems/${data()?.project.system._id
 																	}/edit`}
 															>
@@ -576,7 +576,7 @@ function BackupView() {
 																						</div>
 																				</div>
 																		<% } }--> */
-                            <></>
+                            (<></>)
                           )}
                         </Row>
                         <hr />
@@ -811,18 +811,18 @@ function BackupView() {
                 {/* {data()?.project.systemdesign?(
 <TabsContent value="financials" title='Financials'> */}
                 {/* <div class='card'>
-									<div class='card-body'>
+									<div class="card-body">
 										<h2 class='card-title'>Project budgets</h2>
 										<Row>
-											<div class='col-md-6'>
-												<div class='card'>
-													<div class='card-body'>
+											<div class="col-md-6">
+												<div class="card">
+													<div class="card-body">
 														<p class='card-text'>Establishment budget</p>
 														{data()?.project.budgets?.establishment ? (
 															<A
 																href={`/budgets/${data()?.project.budgets.establishment._id
 																	}`}
-																class='btn btn-default'
+																class="btn btn-default"
 															>
 																Show establishment budget
 															</A>
@@ -830,7 +830,7 @@ function BackupView() {
 															<A
 																href={`/parcels/${params().parcelId}/layers/${params().layerId}/projects/${data()?.project._id
 																	}/generateestablishment`}
-																class='btn btn-default'
+																class="btn btn-default"
 															>
 																Generate establishment budget
 															</A>
@@ -838,17 +838,17 @@ function BackupView() {
 													</div>
 												</div>
 											</div>
-											<div class='col-md-6'>
-												<div class='card'>
-													<div class='card-body'>
-														<p class='card-text'>
+											<div class="col-md-6">
+												<div class="card">
+													<div class="card-body">
+														<p class="card-text">
 															Management and cash-flow budget
 														</p>
 														{data()?.project.budgets?.management ? (
 															<A
 																href={`/budgets/${data()?.project.budgets?.management._id
 																	}`}
-																class='btn btn-default'
+																class="btn btn-default"
 															>
 																Show management budget
 															</A>
@@ -856,7 +856,7 @@ function BackupView() {
 															<A
 																href={`/parcels/${params().parcelId}/layers/${params().layerId}/projects/${data()?.project._id
 																	}/generatemanagement`}
-																class='btn btn-default'
+																class="btn btn-default"
 															>
 																Generate cash-flow budget
 															</A>
@@ -883,10 +883,10 @@ function BackupView() {
                 {/* {data()?.project.budgets?.management &&
 										data()?.project.budgets?.establishment ? (
 											<Row>
-												<div class='col-sm-8'>
-													<canvas id='lineChart' />
+												<div class="col-sm-8">
+													<canvas id="lineChart" />
 												</div>
-												<div class='col-sm-4'>
+												<div class="col-sm-4">
 													<p>
 														<strong>IRR: {data()?.irr}</strong>
 													</p>
@@ -996,9 +996,9 @@ function BackupView() {
                           </Link>
 
                           {/* {data()?.project.assets.map((asset) => (
-													<div class='card bg-light'>
-														<div class='card-body'>
-															<p class='card-text'>
+													<div class="card bg-light">
+														<div class="card-body">
+															<p class="card-text">
 																<strong>Name:</strong> {asset.name},{" "}
 																<strong>Georef:</strong> {asset.lat},{" "}
 																{asset.lng}, <strong>id:</strong> {asset.id}
@@ -1213,26 +1213,26 @@ function BackupView() {
               {/* <div class='tab-content' id='myTabContent'>
 							<div
 								class='tab-pane fade show active'
-								id='layout'
-								role='tabpanel'
+								id="layout"
+								role="tabpanel"
 								aria-labelledby='layout-tab'
 							></div>
 							<div
-								class='tab-pane fade'
-								id='financials'
-								role='tabpanel'
+								class="tab-pane fade"
+								id="financials"
+								role="tabpanel"
 								aria-labelledby='financials-tab'
 							></div>
 							<div
-								class='tab-pane fade'
-								id='assets'
-								role='tabpanel'
+								class="tab-pane fade"
+								id="assets"
+								role="tabpanel"
 								aria-labelledby='assets-tab'
 							></div>
 							<div
-								class='tab-pane fade'
-								id='implementation'
-								role='tabpanel'
+								class="tab-pane fade"
+								id="implementation"
+								role="tabpanel"
 								aria-labelledby='implementation-tab'
 							></div>
 						</div> */}
@@ -1265,5 +1265,5 @@ function BackupView() {
       </div>
       {/* </ScenarioSideBar> */}
     </>
-  );
+  )
 }

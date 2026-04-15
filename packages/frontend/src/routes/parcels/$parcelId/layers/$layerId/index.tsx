@@ -259,7 +259,7 @@ function LayerIndexView() {
 																	}}
 																>
 																	<span
-																		class={`badge ${status[2]} rounded-pill`}
+																		class={"badge ${status[2]} rounded-pill"}
 																	>
 																		{status[1]}
 																	</span>

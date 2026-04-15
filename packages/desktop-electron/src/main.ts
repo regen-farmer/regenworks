@@ -79,8 +79,13 @@ function createWindow() {
     console.error(`Failed to load ${url}: ${desc} (${code})`);
   });
 
-  mainWindow.loadURL("app://localhost/");
-  if (!app.isPackaged) {
+  // Dev: load the @rw/frontend vite dev server (HMR). Packaged: serve the
+  // pre-built SPA from extraResources via the `app://` protocol handler below.
+  const devUrl = process.env.FRONTEND_DEV_URL || "http://localhost:10100";
+  if (app.isPackaged) {
+    mainWindow.loadURL("app://localhost/");
+  } else {
+    mainWindow.loadURL(devUrl);
     mainWindow.webContents.openDevTools();
   }
 
@@ -361,20 +366,19 @@ async function runStartupUpdateCheck(splash: BrowserWindow): Promise<boolean> {
 
 app.whenReady().then(async () => {
   // Serve client files via app:// protocol so the SPA router gets proper URLs.
-  // Packaged: files live under Resources/client/ (see electron-builder.yml extraResources).
-  // Dev: files come from isomorphic's build:spa:watch output.
-  const clientDir = app.isPackaged
-    ? path.join(process.resourcesPath, "client")
-    : path.resolve(__dirname, "..", "..", "isomorphic", "dist", "client");
+  // Only used in packaged mode now — dev loads directly from the `@rw/frontend`
+  // vite dev server (see createWindow). Packaged files live under
+  // Resources/client/ via electron-builder.yml extraResources.
+  const clientDir = path.join(process.resourcesPath, "client");
   protocol.handle("app", (request) => {
     const url = new URL(request.url);
     const pathname = decodeURIComponent(url.pathname);
 
     let filePath = path.join(clientDir, pathname);
 
-    // SPA fallback: serve _shell.html for routes that don't map to a file
+    // SPA fallback: serve index.html for routes that don't map to a file.
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-      filePath = path.join(clientDir, "_shell.html");
+      filePath = path.join(clientDir, "index.html");
     }
 
     return net.fetch(`file://${filePath}`);
