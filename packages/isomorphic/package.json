@@ -7,8 +7,8 @@
 		"format": "oxfmt --write --ignore-path=.oxfmtignore ./src",
 		"build": "vite build",
 		"preview": "vite preview",
-		"start": "srvx --prod --static ../client dist/server/server.js",
-		"start-local": "set -a && source .env && set +a && PORT=10000 srvx --prod --static ../client dist/server/server.js"
+		"start": "PORT=${PORT:-10000} node .output/server/index.mjs",
+		"start-local": "PORT=${PORT:-10000} node --env-file=.env .output/server/index.mjs"
 	},
 	"type": "module",
 	"devDependencies": {
@@ -67,7 +67,7 @@
 		"solid-js": "^1.9.9",
 		"solid-sonner": "^0.2.8",
 		"source-map-js": "1.2.1",
-		"srvx": "^0.11.12",
+		"nitro": "3.0.260415-beta",
 		"start-authjs": "^1.0.0",
 		"tailwind-merge": "^3.3.1",
 		"tailwindcss": "^4.1.12",
