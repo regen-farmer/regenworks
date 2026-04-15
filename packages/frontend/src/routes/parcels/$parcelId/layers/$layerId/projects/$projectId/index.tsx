@@ -1490,7 +1490,7 @@ function ProjectIndexView() {
                           params={params}
                           deleteModalOpen={deleteModalOpen}
                           setDeleteModalOpen={setDeleteModalOpen}
-                          deleteProjectAction={deleteProjectAction}
+                          handleDeleteProject={handleDeleteProject}
                         />
                       </TabsContent>
                     </Tabs>
@@ -2790,7 +2790,7 @@ const InfoContent = ({
   params,
   deleteModalOpen,
   setDeleteModalOpen,
-  deleteProjectAction,
+  handleDeleteProject,
 }: any) => {
   const [scenarioName, setScenarioName] = createSignal("");
   const [scenarioDescription, setScenarioDescription] = createSignal("");
