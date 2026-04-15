@@ -223,12 +223,27 @@ jobs:
           if [ -n "${{ matrix.electron_arch }}" ]; then
             ARCH_FLAG="--${{ matrix.electron_arch }}"
           fi
-          # electron-builder creates a draft release, uploads artifacts + latest*.yml
+
+          CONFIG_FLAG=""
           if [ "${{ needs.create-release.outputs.prerelease }}" = "true" ]; then
-            pnpm build && pnpm exec electron-builder --config electron-builder.staging.yml --publish always $ARCH_FLAG
-          else
-            pnpm build && pnpm exec electron-builder --publish always $ARCH_FLAG
+            CONFIG_FLAG="--config electron-builder.staging.yml"
           fi
+
+          pnpm build
+
+          # electron-builder creates a draft release, uploads artifacts + latest*.yml.
+          # Retry on transient Apple notarytool network errors (seen as
+          # NSURLErrorDomain -1009 mid-submission). Three attempts with backoff.
+          for attempt in 1 2 3; do
+            if pnpm exec electron-builder $CONFIG_FLAG --publish always $ARCH_FLAG; then
+              break
+            fi
+            if [ $attempt -eq 3 ]; then
+              echo "electron-builder failed after 3 attempts"
+              exit 1
+            fi
+            sleep $((attempt * 30))
+          done
 
           # Upload a per-target copy of latest*.yml so the publish job can merge them
           VERSION="${{ needs.create-release.outputs.version }}"
