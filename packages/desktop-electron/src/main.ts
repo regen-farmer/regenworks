@@ -312,6 +312,10 @@ async function runStartupUpdateCheck(splash: BrowserWindow): Promise<boolean> {
     const onUpdateAvailable = (info: { version: string }) => {
       console.log(`[Updater] Startup: update available ${info.version}`);
       sendSplash(splash, { status: `Downloading ${info.version}…`, percent: 0 });
+      // Download has started — cancel the startup timeout so we don't open
+      // the old version while a download is in flight. The download will
+      // eventually resolve via onDownloaded or reject via onError.
+      clearTimeout(timeoutHandle);
     };
 
     const onNotAvailable = () => {
