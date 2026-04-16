@@ -165,9 +165,6 @@ importers:
 
   packages/desktop-electron:
     dependencies:
-      '@rw/frontend':
-        specifier: workspace:*
-        version: link:../frontend
       '@rw/gis-napi':
         specifier: workspace:*
         version: link:../gis-napi
@@ -175,6 +172,9 @@ importers:
         specifier: ^6
         version: 6.8.3
     devDependencies:
+      '@rw/frontend':
+        specifier: workspace:*
+        version: link:../frontend
       electron:
         specifier: ^41
         version: 41.2.0

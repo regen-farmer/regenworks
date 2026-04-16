@@ -1,7 +1,7 @@
 {
 	"name": "@rw/desktop-electron",
 	"productName": "RegenWorks",
-	"version": "2026.1.0-pre.54",
+	"version": "2026.1.0-pre.55",
 	"description": "RegenWorks Desktop - Fast agroforestry planning application",
 	"homepage": "https://regenworks.com",
 	"author": {
@@ -19,12 +19,12 @@
 	},
 	"dependencies": {
 		"electron-updater": "^6",
-		"@rw/frontend": "workspace:*",
 		"@rw/gis-napi": "workspace:*"
 	},
 	"devDependencies": {
 		"electron": "^41",
 		"electron-builder": "^26",
-		"typescript": "^6"
+		"typescript": "^6",
+		"@rw/frontend": "workspace:*"
 	}
 }

@@ -20,6 +20,20 @@ files:
   # PVR format), never loaded at runtime, but Apple notarization rejects the
   # archive if it's present. Exclude its bin folder entirely.
   - "!**/node_modules/texture-compressor/bin/**"
+  # Rust build artifacts (@rw/modelling/gis-rs/target) are ~850MB of local
+  # compile output; only the napi-rs binary from @rw/gis-napi ships. Drop
+  # the entire gis-rs/ folder — only the TS side of @rw/modelling is needed.
+  - "!**/node_modules/@rw/modelling/gis-rs/**"
+  # Cargo build caches anywhere else under workspace packages.
+  - "!**/target/**"
+  # @rw/frontend is only used to produce the built SPA, which ships via
+  # `extraResources: ../frontend/dist → client/`. Nothing in the Electron
+  # main process imports from @rw/frontend directly, so its source tree and
+  # transitive deps don't need to be in node_modules/.
+  - "!**/node_modules/@rw/frontend/**"
+  # @rw/modelling is also only consumed by the SPA. The main process uses
+  # @rw/gis-napi directly for layout generation.
+  - "!**/node_modules/@rw/modelling/**"
 
 # Replace pnpm workspace symlinks with real copies before packaging
 beforePack: scripts/before-pack.js
