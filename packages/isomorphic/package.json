@@ -48,7 +48,7 @@
 		"@rw/db": "workspace:*",
 		"@rw/frontend": "workspace:*",
 		"@rw/modelling": "workspace:*",
-		"@solid-primitives/media": "^2.3.3",
+		"@solid-primitives/media": "^2.3.5",
 		"@tanstack/solid-router": "^1.168.19",
 		"@tanstack/solid-start": "^1.167.36",
 		"@tauri-apps/plugin-http": "~2",
