@@ -43,7 +43,7 @@
 		"convert-units": "3.0.0-beta.6",
 		"date-fns": "^4.1.0",
 		"lodash": "^4.17.21",
-		"maplibre-gl": "^5.18.0",
+		"maplibre-gl": "^5.24.0",
 		"maplibre-gl-measures": "^0.0.16",
 		"multipart-object": "^1.2.0",
 		"postcss": "^8.5.6",
