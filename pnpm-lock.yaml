@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  maplibre-gl: 5.21.1
+
 importers:
 
   .:
@@ -257,11 +260,11 @@ importers:
         specifier: ^4.17.21
         version: 4.18.1
       maplibre-gl:
-        specifier: ^5.18.0
-        version: 5.24.0
+        specifier: 5.21.1
+        version: 5.21.1
       maplibre-gl-measures:
         specifier: ^0.0.16
-        version: 0.0.16(maplibre-gl@5.24.0)
+        version: 0.0.16(maplibre-gl@5.21.1)
       multipart-object:
         specifier: ^1.2.0
         version: 1.2.0
@@ -423,11 +426,11 @@ importers:
         specifier: ^4.17.21
         version: 4.18.1
       maplibre-gl:
-        specifier: ^5.18.0
-        version: 5.24.0
+        specifier: 5.21.1
+        version: 5.21.1
       maplibre-gl-measures:
         specifier: ^0.0.16
-        version: 0.0.16(maplibre-gl@5.24.0)
+        version: 0.0.16(maplibre-gl@5.21.1)
       multipart-object:
         specifier: ^1.2.0
         version: 1.2.0
@@ -5448,14 +5451,10 @@ packages:
   maplibre-gl-measures@0.0.16:
     resolution: {integrity: sha512-F6t8Hykux7kx5icc1tTsMEKzTqH11tjNQEPpFeNMxqAfaCDOEq1UjY773aT9dCekemEl4umGz3wI8v1Ycs0cmA==}
     peerDependencies:
-      maplibre-gl: '>=2.1.6'
+      maplibre-gl: 5.21.1
 
   maplibre-gl@5.21.1:
     resolution: {integrity: sha512-zto1RTnFkOpOO1bm93ElCXF1huey2N4LvXaGLMFcYAu9txh0OhGIdX1q3LZLkrMKgMxMeYduaQo+DVNzg098fg==}
-    engines: {node: '>=16.14.0', npm: '>=8.1.0'}
-
-  maplibre-gl@5.24.0:
-    resolution: {integrity: sha512-ALyFxgtd5R+65UqZ/++lOqwWcC0SNho9c27fYSyLmG7AfnAul2o46F05aDJGPbFU57wos9dgcIySHs0Xe6ia3A==}
     engines: {node: '>=16.14.0', npm: '>=8.1.0'}
 
   martinez-polygon-clipping@0.8.1:
@@ -12642,36 +12641,14 @@ snapshots:
       supercluster: 8.0.1
       tinyqueue: 3.0.0
 
-  maplibre-gl-measures@0.0.16(maplibre-gl@5.24.0):
+  maplibre-gl-measures@0.0.16(maplibre-gl@5.21.1):
     dependencies:
       '@mapbox/mapbox-gl-draw': 1.5.1
       '@turf/turf': 7.3.5
       convert-units: 2.3.4
-      maplibre-gl: 5.24.0
+      maplibre-gl: 5.21.1
 
   maplibre-gl@5.21.1:
-    dependencies:
-      '@mapbox/jsonlint-lines-primitives': 2.0.2
-      '@mapbox/point-geometry': 1.1.0
-      '@mapbox/tiny-sdf': 2.2.0
-      '@mapbox/unitbezier': 0.0.1
-      '@mapbox/vector-tile': 2.0.5
-      '@mapbox/whoots-js': 3.1.0
-      '@maplibre/geojson-vt': 6.1.0
-      '@maplibre/maplibre-gl-style-spec': 24.8.5
-      '@maplibre/mlt': 1.1.11
-      '@maplibre/vt-pbf': 4.3.1
-      '@types/geojson': 7946.0.16
-      earcut: 3.0.2
-      gl-matrix: 3.4.4
-      kdbush: 4.1.0
-      murmurhash-js: 1.0.0
-      pbf: 4.0.2
-      potpack: 2.1.0
-      quickselect: 3.0.0
-      tinyqueue: 3.0.0
-
-  maplibre-gl@5.24.0:
     dependencies:
       '@mapbox/jsonlint-lines-primitives': 2.0.2
       '@mapbox/point-geometry': 1.1.0

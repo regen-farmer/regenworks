@@ -20,3 +20,9 @@ onlyBuiltDependencies:
 # Explicit so local, CI, and the Render deploy enforce the same supply-chain
 # policy instead of relying on pnpm 11's silent default.
 minimumReleaseAge: 1440
+
+# @maptiler/sdk pins its own maplibre-gl; pin the direct dep to the same exact
+# version so there is ONE maplibre instance (two instances break the worker:
+# "Bc is not defined" via _dispatchWorkerUpdate). Bump this when @maptiler/sdk does.
+overrides:
+  maplibre-gl: 5.21.1
