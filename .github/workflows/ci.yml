@@ -90,3 +90,50 @@ jobs:
           name: playwright-report
           path: packages/isomorphic/playwright-report/
           retention-days: 7
+
+  backend:
+    name: Backend build & boot
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build backend
+        run: pnpm --filter backend build
+
+      # Boot the built server against a throwaway Mongo to catch startup crashes
+      # (e.g. an Express 5 route that only fails at runtime, not at build).
+      - name: Boot backend (startup smoke)
+        env:
+          DATABASEURL: mongodb://localhost:27017/ci
+          BACKEND_IP: 127.0.0.1
+          BACKEND_PORT: 3001
+        run: |
+          node packages/backend/build/app.js > /tmp/backend.log 2>&1 &
+          PID=$!
+          for i in $(seq 1 30); do
+            if ! kill -0 "$PID" 2>/dev/null; then
+              echo "Backend crashed on startup:"; cat /tmp/backend.log; exit 1
+            fi
+            if grep -q "has started on" /tmp/backend.log; then
+              echo "Backend booted OK:"; cat /tmp/backend.log; kill "$PID"; exit 0
+            fi
+            sleep 1
+          done
+          echo "Backend did not start within 30s:"; cat /tmp/backend.log; kill "$PID" 2>/dev/null; exit 1
