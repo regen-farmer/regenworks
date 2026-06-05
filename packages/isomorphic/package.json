@@ -68,7 +68,7 @@
 		"maplibre-gl-measures": "^0.0.16",
 		"multipart-object": "^1.2.0",
 		"postcss": "^8.5.6",
-		"proj4": "^2.19.10",
+		"proj4": "^2.20.8",
 		"solid-js": "^1.9.9",
 		"solid-sonner": "^0.2.8",
 		"source-map-js": "1.2.1",
