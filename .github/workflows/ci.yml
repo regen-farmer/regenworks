@@ -1,0 +1,130 @@
+name: CI
+
+# Runs on every PR to dev and pushes to dev (staging). Dependabot targets dev,
+# so its dependency-bump PRs are gated here. main/prod is intentionally excluded.
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to save minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Layer 1: static checks. No auth, no native build. Catches the large
+  # majority of "a dependency bump broke compilation/build" cases.
+  # ---------------------------------------------------------------------------
+  static:
+    name: Typecheck, lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Non-blocking: the repo currently has a pre-existing baseline of ~30 tsc
+      # errors (symlinked _pages path resolution, vite.config typings). Reported
+      # for visibility without failing the gate. Flip to a hard gate by removing
+      # continue-on-error once the baseline reaches zero.
+      - name: Typecheck (informational)
+        continue-on-error: true
+        run: pnpm --filter isomorphic typecheck
+
+      - name: Lint
+        run: pnpm --filter isomorphic lint
+
+      - name: Build (web)
+        run: pnpm --filter isomorphic build
+        env:
+          # Build-time public vars baked into the client bundle.
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
+          VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+          VITE_GEOCODER_API_KEY: ${{ secrets.VITE_GEOCODER_API_KEY }}
+          VITE_STRIPE_MODE: ${{ vars.VITE_STRIPE_MODE }}
+
+  # ---------------------------------------------------------------------------
+  # Layers 2 & 3: Playwright smoke + authenticated E2E against a freshly built
+  # SSR server, connected to the staging backend. Configure the secrets/vars
+  # listed in packages/isomorphic/tests/e2e/README.md on the `staging`
+  # environment.
+  # ---------------------------------------------------------------------------
+  e2e:
+    name: End-to-end tests
+    needs: static
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      # Runtime (server) auth config.
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      AUTH_AUTH0_ID: ${{ secrets.AUTH_AUTH0_ID }}
+      AUTH_AUTH0_SECRET: ${{ secrets.AUTH_AUTH0_SECRET }}
+      AUTH_AUTH0_ISSUER: ${{ secrets.AUTH_AUTH0_ISSUER }}
+      # The server must redirect the Auth0 callback back to the CI-served build.
+      AUTH_URL: http://localhost:10000
+      # Connect the built app to the staging backend so authed pages (e.g. the
+      # home farms map) render against real data.
+      VITE_BACKEND_URL: https://regenworks-dev-backend.onrender.com
+      VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+      VITE_GEOCODER_API_KEY: ${{ secrets.VITE_GEOCODER_API_KEY }}
+      VITE_STRIPE_MODE: ${{ vars.VITE_STRIPE_MODE }}
+      # Test user used by auth.setup.ts to log in through Auth0.
+      E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm --filter isomorphic exec playwright install --with-deps chromium
+
+      - name: Build (web, connected to staging backend)
+        run: pnpm --filter isomorphic build:e2e
+
+      - name: Run E2E tests
+        # Skip the authenticated flow if no test user is configured (e.g. forks),
+        # but always run the unauthenticated smoke project.
+        run: |
+          if [ -n "$E2E_TEST_USER_EMAIL" ]; then
+            pnpm --filter isomorphic test:e2e
+          else
+            echo "No E2E test user configured; running smoke project only."
+            pnpm --filter isomorphic test:e2e --project=smoke
+          fi
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/isomorphic/playwright-report/
+          retention-days: 7

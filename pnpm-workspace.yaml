@@ -4,6 +4,12 @@ packages:
   # Re-enable by removing the negation when ready.
   - "!packages/desktop-tauri"
 
+allowBuilds:
+  electron: set this to true or false
+  esbuild: set this to true or false
+  puppeteer: set this to true or false
+  sharp: set this to true or false
+
 onlyBuiltDependencies:
   - esbuild
   - sharp
