@@ -18,8 +18,8 @@ importers:
         specifier: ^2.19.10
         version: 2.20.2
       stripe:
-        specifier: ^18.4.0
-        version: 18.5.0(@types/node@24.10.9)
+        specifier: ^22.2.0
+        version: 22.2.0(@types/node@24.10.9)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.2.0
@@ -6744,11 +6744,11 @@ packages:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
 
-  stripe@18.5.0:
-    resolution: {integrity: sha512-Hp+wFiEQtCB0LlNgcFh5uVyKznpDjzyUZ+CNVEf+I3fhlYvh7rZruIg+jOwzJRCpy0ZTPMjlzm7J2/M2N6d+DA==}
-    engines: {node: '>=12.*'}
+  stripe@22.2.0:
+    resolution: {integrity: sha512-WFGpMOom9QZqso1kcnSwJsCdC1QHDlMoCOxBZRf3JraMzhkfw7dgSdD2a1CFZrqC+mzAfqeEtYILrZhWKIDruA==}
+    engines: {node: '>=18'}
     peerDependencies:
-      '@types/node': '>=12.x.x'
+      '@types/node': '>=18'
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -14843,9 +14843,7 @@ snapshots:
     dependencies:
       ansi-regex: 6.2.2
 
-  stripe@18.5.0(@types/node@24.10.9):
-    dependencies:
-      qs: 6.14.1
+  stripe@22.2.0(@types/node@24.10.9):
     optionalDependencies:
       '@types/node': 24.10.9
 
