@@ -263,8 +263,8 @@ importers:
         specifier: 5.21.1
         version: 5.21.1
       maplibre-gl-measures:
-        specifier: ^0.0.16
-        version: 0.0.16(maplibre-gl@5.21.1)
+        specifier: ^0.0.20
+        version: 0.0.20(maplibre-gl@5.21.1)
       multipart-object:
         specifier: ^1.2.0
         version: 1.2.0
@@ -429,8 +429,8 @@ importers:
         specifier: 5.21.1
         version: 5.21.1
       maplibre-gl-measures:
-        specifier: ^0.0.16
-        version: 0.0.16(maplibre-gl@5.21.1)
+        specifier: ^0.0.20
+        version: 0.0.20(maplibre-gl@5.21.1)
       multipart-object:
         specifier: ^1.2.0
         version: 1.2.0
@@ -4214,9 +4214,6 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  convert-units@2.3.4:
-    resolution: {integrity: sha512-ERHfdA0UhHJp1IpwE6PnFJx8LqG7B1ZjJ20UvVCmopEnVCfER68Tbe3kvN63dLbYXDA2xFWRE6zd4Wsf0w7POg==}
-
   convert-units@3.0.0-beta.8:
     resolution: {integrity: sha512-P6QkFbVXIb798vkX4nhjYiz5DUfHpI8EngjTHzINYfMKn5O+EM9wkIrfuxjyJbK3g/Ei8m4vJNGQLWRz71lgIQ==}
 
@@ -5323,53 +5320,11 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
-  lodash._basebind@2.3.0:
-    resolution: {integrity: sha512-SHqM7YCuJ+BeGTs7lqpWnmdHEeF4MWxS3dksJctHFNxR81FXPOzA4bS5Vs5CpcGTkBpM8FCl+YEbQEblRw8ABg==}
-
-  lodash._basecreate@2.3.0:
-    resolution: {integrity: sha512-vwZaWldZwS2y9b99D8i9+WtgiZXbHKsBsMrpxJEqTsNW20NhJo5W8PBQkeQO9CmxuqEYn8UkMnfEM2MMT4cVrw==}
-
-  lodash._basecreatecallback@2.3.0:
-    resolution: {integrity: sha512-Ev+pDzzfVfgbiucpXijconLGRBar7/+KNCf05kSnk4CmdDVhAy1RdbU9efCJ/o9GXI08JdUGwZ+5QJ3QX3kj0g==}
-
-  lodash._basecreatewrapper@2.3.0:
-    resolution: {integrity: sha512-YLycQ7k8AB9Wc1EOvLNxuRWcqipDkMXq2GCgnLWQR6qtgTb3gY3LELzEpnFshrEO4LOLs+R2EpcY+uCOZaLQ8Q==}
-
-  lodash._createwrapper@2.3.0:
-    resolution: {integrity: sha512-XjaI/rzg9W+WO4WJDQ+PRlHD5sAMJ1RhJLuT65cBxLCb1kIYs4U20jqvTDGAWyVT3c34GYiLd9AreHYuB/8yJA==}
-
-  lodash._objecttypes@2.3.0:
-    resolution: {integrity: sha512-jbA6QyHt9cw3BzvbWzIcnU3Z12jSneT6xBgz3Y782CJsN1tV5aTBKrFo2B4AkeHBNaxSrbPYZZpi1Lwj3xjdtg==}
-
-  lodash._renative@2.3.0:
-    resolution: {integrity: sha512-v44MRirqYqZGK/h5UKoVqXWF2L+LUiLTU+Ogu5rHRVWJUA1uWIlHaMpG8f/OA8j++BzPMQij9+erXHtgFcbuwg==}
-
-  lodash._setbinddata@2.3.0:
-    resolution: {integrity: sha512-xMFfbF7dL+sFtrdE49uHFmfpBAEwlFtfgMp86nQRlAF6aizYL+3MTbnYMKJSkP1W501PhsgiBED5kBbZd8kR2g==}
-
-  lodash._shimkeys@2.3.0:
-    resolution: {integrity: sha512-9Iuyi7TiWMGa/9+2rqEE+Zwye4b/U2w7Saw6UX1h6Xs88mEER+uz9FZcEBPKMVKsad9Pw5GNAcIBRnW2jNpneQ==}
-
-  lodash._slice@2.3.0:
-    resolution: {integrity: sha512-7C61GhzRUv36gTafr+RIb+AomCAYsSATEoK4OP0VkNBcwvsM022Z22AVgqjjzikeNO1U29LzsJZDvLbiNPUYvA==}
-
-  lodash.bind@2.3.0:
-    resolution: {integrity: sha512-goakyOo+FMN8lttMPnZ0UNlr5RlzX4IrUXyTJPT2A0tGCMXySupond9wzvDqTvVmYTcQjIKGrj8naJDS2xWAlQ==}
-
   lodash.camelcase@4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
 
   lodash.escaperegexp@4.1.2:
     resolution: {integrity: sha512-TM9YBvyC84ZxE3rgfefxUWiQKLilstD6k7PTGt6wfbtXF8ixIJLOL3VYyV/z+ZiPLsVxAsKAFVwWlWeb2Y8Yyw==}
-
-  lodash.foreach@2.3.0:
-    resolution: {integrity: sha512-yLnyptVRJd0//AbGp480grgQG9iaDIV5uOgSbpurRy1dYybPbjNTLQ3FyLEQ84buVLPG7jyaiyvpzgfOutRB3Q==}
-
-  lodash.forown@2.3.0:
-    resolution: {integrity: sha512-dUnCsuQTtq3Y7bxPNoEEqjJjPL2ftLtcz2PTeRKvhbpdM514AvnqCjewHGsm/W+dwspIwa14KoWEZeizJ7smxA==}
-
-  lodash.identity@2.3.0:
-    resolution: {integrity: sha512-NYJ2r2cwy3tkx/saqbIZEX6oQUzjWTnGRu7d/zmBjMCZos3eHBxCpbvWFWSetv8jFVrptsp6EbWjzNgBKhUoOA==}
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -5381,17 +5336,11 @@ packages:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
     deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
-  lodash.isfunction@2.3.0:
-    resolution: {integrity: sha512-X5lteBYlCrVO7Qc00fxP8W90fzRp6Ax9XcHANmU3OsZHdSyIVZ9ZlX5QTTpRq8aGY+9I5Rmd0UTzTIIyWPugEQ==}
-
   lodash.isinteger@4.0.4:
     resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
 
   lodash.isnumber@3.0.3:
     resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==}
-
-  lodash.isobject@2.3.0:
-    resolution: {integrity: sha512-jo1pfV61C4TE8BfEzqaHj6EIKiSkFANJrB6yscwuCJMSRw5tbqjk4Gv7nJzk4Z6nFKobZjGZ8Qd41vmnwgeQqQ==}
 
   lodash.isplainobject@4.0.6:
     resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
@@ -5399,20 +5348,11 @@ packages:
   lodash.isstring@4.0.1:
     resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
-  lodash.keys@2.3.0:
-    resolution: {integrity: sha512-c0UW0ffqMxSCtoVbmVt2lERJLkEqgoOn2ejPsWXzr0ZrqRbl3uruGgwHzhtqXxi6K/ei3Ey7zimOqSwXgzazPg==}
-
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
 
-  lodash.noop@2.3.0:
-    resolution: {integrity: sha512-NpSm8HRm1WkBBWHUveDukLF4Kfb5P5E3fjHc9Qre9A11nNubozLWD2wH3UBTZbu+KSuX8aSUvy9b+PUyEceJ8g==}
-
   lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
-
-  lodash.support@2.3.0:
-    resolution: {integrity: sha512-etc7VWbB0U3Iya8ixj2xy4sDBN3jvPX7ODi8iXtn4KkkjNpdngrdc7Vlt5jub/Vgqx6/dWtp7Ml9awhCQPYKGQ==}
 
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
@@ -5448,8 +5388,8 @@ packages:
   mapbox-gl@3.24.0:
     resolution: {integrity: sha512-R+FdFUB3DnoE5FYASV7lGSiRyMkSblcZ2UEy7b2pt7s5ZbCxFIUPXd0E6iAFd8OdvdA2VtbvZZVylzAZNaurjA==}
 
-  maplibre-gl-measures@0.0.16:
-    resolution: {integrity: sha512-F6t8Hykux7kx5icc1tTsMEKzTqH11tjNQEPpFeNMxqAfaCDOEq1UjY773aT9dCekemEl4umGz3wI8v1Ycs0cmA==}
+  maplibre-gl-measures@0.0.20:
+    resolution: {integrity: sha512-I+aHzjz6Dnv9kEV5vVXzBQiqF1tAO9fbqQM54tDy+FJi5N2sPWaIDSwETCKp453/ZPkLy0H6g1ycDxBymI/5Fg==}
     peerDependencies:
       maplibre-gl: 5.21.1
 
@@ -11276,11 +11216,6 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  convert-units@2.3.4:
-    dependencies:
-      lodash.foreach: 2.3.0
-      lodash.keys: 2.3.0
-
   convert-units@3.0.0-beta.8: {}
 
   cookie-es@3.1.1: {}
@@ -12478,75 +12413,9 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash._basebind@2.3.0:
-    dependencies:
-      lodash._basecreate: 2.3.0
-      lodash._setbinddata: 2.3.0
-      lodash.isobject: 2.3.0
-
-  lodash._basecreate@2.3.0:
-    dependencies:
-      lodash._renative: 2.3.0
-      lodash.isobject: 2.3.0
-      lodash.noop: 2.3.0
-
-  lodash._basecreatecallback@2.3.0:
-    dependencies:
-      lodash._setbinddata: 2.3.0
-      lodash.bind: 2.3.0
-      lodash.identity: 2.3.0
-      lodash.support: 2.3.0
-
-  lodash._basecreatewrapper@2.3.0:
-    dependencies:
-      lodash._basecreate: 2.3.0
-      lodash._setbinddata: 2.3.0
-      lodash._slice: 2.3.0
-      lodash.isobject: 2.3.0
-
-  lodash._createwrapper@2.3.0:
-    dependencies:
-      lodash._basebind: 2.3.0
-      lodash._basecreatewrapper: 2.3.0
-      lodash.isfunction: 2.3.0
-
-  lodash._objecttypes@2.3.0: {}
-
-  lodash._renative@2.3.0: {}
-
-  lodash._setbinddata@2.3.0:
-    dependencies:
-      lodash._renative: 2.3.0
-      lodash.noop: 2.3.0
-
-  lodash._shimkeys@2.3.0:
-    dependencies:
-      lodash._objecttypes: 2.3.0
-
-  lodash._slice@2.3.0: {}
-
-  lodash.bind@2.3.0:
-    dependencies:
-      lodash._createwrapper: 2.3.0
-      lodash._renative: 2.3.0
-      lodash._slice: 2.3.0
-
   lodash.camelcase@4.3.0: {}
 
   lodash.escaperegexp@4.1.2: {}
-
-  lodash.foreach@2.3.0:
-    dependencies:
-      lodash._basecreatecallback: 2.3.0
-      lodash.forown: 2.3.0
-
-  lodash.forown@2.3.0:
-    dependencies:
-      lodash._basecreatecallback: 2.3.0
-      lodash._objecttypes: 2.3.0
-      lodash.keys: 2.3.0
-
-  lodash.identity@2.3.0: {}
 
   lodash.includes@4.3.0: {}
 
@@ -12554,35 +12423,17 @@ snapshots:
 
   lodash.isequal@4.5.0: {}
 
-  lodash.isfunction@2.3.0: {}
-
   lodash.isinteger@4.0.4: {}
 
   lodash.isnumber@3.0.3: {}
-
-  lodash.isobject@2.3.0:
-    dependencies:
-      lodash._objecttypes: 2.3.0
 
   lodash.isplainobject@4.0.6: {}
 
   lodash.isstring@4.0.1: {}
 
-  lodash.keys@2.3.0:
-    dependencies:
-      lodash._renative: 2.3.0
-      lodash._shimkeys: 2.3.0
-      lodash.isobject: 2.3.0
-
   lodash.memoize@4.1.2: {}
 
-  lodash.noop@2.3.0: {}
-
   lodash.once@4.1.1: {}
-
-  lodash.support@2.3.0:
-    dependencies:
-      lodash._renative: 2.3.0
 
   lodash@4.18.1: {}
 
@@ -12641,11 +12492,10 @@ snapshots:
       supercluster: 8.0.1
       tinyqueue: 3.0.0
 
-  maplibre-gl-measures@0.0.16(maplibre-gl@5.21.1):
+  maplibre-gl-measures@0.0.20(maplibre-gl@5.21.1):
     dependencies:
       '@mapbox/mapbox-gl-draw': 1.5.1
       '@turf/turf': 7.3.5
-      convert-units: 2.3.4
       maplibre-gl: 5.21.1
 
   maplibre-gl@5.21.1:
