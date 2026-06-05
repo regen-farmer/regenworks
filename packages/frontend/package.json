@@ -41,7 +41,7 @@
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"convert-units": "3.0.0-beta.6",
-		"date-fns": "^4.1.0",
+		"date-fns": "^4.4.0",
 		"lodash": "^4.17.21",
 		"maplibre-gl": "^5.18.0",
 		"maplibre-gl-measures": "^0.0.16",
