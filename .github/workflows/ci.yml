@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter isomorphic lint
+
+      - name: Build (web)
+        run: pnpm --filter isomorphic build
+
+  e2e:
+    name: End-to-end tests
+    needs: static
+    runs-on: ubuntu-latest
+    env:
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      AUTH_AUTH0_ID: ${{ secrets.AUTH_AUTH0_ID }}
+      AUTH_AUTH0_SECRET: ${{ secrets.AUTH_AUTH0_SECRET }}
+      AUTH_AUTH0_ISSUER: ${{ secrets.AUTH_AUTH0_ISSUER }}
+      # /api/auth path is required by Auth.js for action routing and the callback.
+      AUTH_URL: http://localhost:10000/api/auth
+      VITE_BACKEND_URL: https://regenworks-dev-backend.onrender.com
+      VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
+      VITE_GEOCODER_API_KEY: ${{ secrets.VITE_GEOCODER_API_KEY }}
+      VITE_STRIPE_MODE: ${{ secrets.VITE_STRIPE_MODE }}
+      E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm --filter isomorphic exec playwright install --with-deps chromium
+
+      - name: Build (web)
+        run: pnpm --filter isomorphic build:e2e
+
+      - name: Run E2E tests
+        run: |
+          if [ -n "$E2E_TEST_USER_EMAIL" ]; then
+            pnpm --filter isomorphic test:e2e
+          else
+            echo "No E2E test user configured; running smoke project only."
+            pnpm --filter isomorphic test:e2e --project=smoke
+          fi
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/isomorphic/playwright-report/
+          retention-days: 7

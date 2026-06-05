@@ -5,13 +5,18 @@
 		"dev": "concurrently --kill-others-on-fail --names \"routes,vite\" -c \"blue,magenta\" \"node scripts/sync-routes.mjs --watch\" \"vite dev --port 10000\"",
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
 		"format": "oxfmt --write --ignore-path=.oxfmtignore ./src",
+		"typecheck": "tsc --noEmit",
 		"build": "vite build",
+		"build:e2e": "node scripts/sync-routes.mjs && VITE_BACKEND_URL=${VITE_BACKEND_URL:-https://regenworks-dev-backend.onrender.com} vite build",
 		"preview": "vite preview",
 		"start": "PORT=${PORT:-10000} node .output/server/index.mjs",
-		"start-local": "PORT=${PORT:-10000} node --env-file=.env .output/server/index.mjs"
+		"start-local": "PORT=${PORT:-10000} node --env-file=.env .output/server/index.mjs",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui"
 	},
 	"type": "module",
 	"devDependencies": {
+		"@playwright/test": "^1.50.0",
 		"@tailwindcss/vite": "^4.2.1",
 		"@tanstack/virtual-file-routes": "^1.161.6",
 		"@types/geojson": "^7946.0.14",
