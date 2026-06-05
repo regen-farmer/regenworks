@@ -6,17 +6,15 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    groups:
-      all-deps:
-        patterns:
-          - "*"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
 
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    groups:
-      all-actions:
-        patterns:
-          - "*"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
