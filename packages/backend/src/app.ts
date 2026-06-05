@@ -237,8 +237,8 @@ app.use("", farmScenarioConfigRoutes);
 app.use("", plantOfferRequestRoutes);
 app.use("", financialModelsRoutes);
 
-// 404 ROUTE
-app.get("*", async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
+// 404 ROUTE (Express 5 requires a named wildcard; bare "*" throws under path-to-regexp 8)
+app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
   res.status(404).send("404");
 });
 app.set("trust proxy", true);
