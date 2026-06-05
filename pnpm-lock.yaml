@@ -1726,8 +1726,8 @@ packages:
   '@maplibre/mlt@1.1.11':
     resolution: {integrity: sha512-dKvjKdITw9d0y3ndGkSqLUEpWCizMtdq8NB06cHohH/JZ2sJoM7dClR9wzJLUWykjbw9RXDFmhjjNBnNW27mzw==}
 
-  '@maplibre/vt-pbf@4.3.1':
-    resolution: {integrity: sha512-a2Bui0JaasBMiejgY2xMmsHHQFICOggd8R0mxUc7LdruNPEuD9vOuiNZ0kSZEsIud/+5zmtyzxg0toK2HBmcqw==}
+  '@maplibre/vt-pbf@4.3.2':
+    resolution: {integrity: sha512-j6p0AdjvAR19Z3XaCysle7A4ZSo08tYOzxD0Y9NQylwPAkwJJeYub5b2eVucdeDh7erhv69DahoLOevDRERRUw==}
 
   '@maptiler/client@3.0.2':
     resolution: {integrity: sha512-zSM5kC/CX02kgpRHQxxKOzjaQjNBs8hqQueIJqwT9pzB2vsP9FTFHfnVrGCfUwM+s1n2bdGla+2hibPkVUf0fw==}
@@ -8232,7 +8232,7 @@ snapshots:
     dependencies:
       '@mapbox/point-geometry': 1.1.0
 
-  '@maplibre/vt-pbf@4.3.1':
+  '@maplibre/vt-pbf@4.3.2':
     dependencies:
       '@mapbox/point-geometry': 1.1.0
       '@types/geojson': 7946.0.16
@@ -12659,7 +12659,7 @@ snapshots:
       '@maplibre/geojson-vt': 6.1.0
       '@maplibre/maplibre-gl-style-spec': 24.8.5
       '@maplibre/mlt': 1.1.11
-      '@maplibre/vt-pbf': 4.3.1
+      '@maplibre/vt-pbf': 4.3.2
       '@types/geojson': 7946.0.16
       earcut: 3.0.2
       gl-matrix: 3.4.4
