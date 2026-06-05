@@ -19,7 +19,7 @@ jobs:
       should_build: ${{ steps.version.outputs.should_build }}
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Parse Version & Strategy
         id: version
@@ -94,15 +94,15 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -119,7 +119,7 @@ jobs:
 
       - name: Cache vcpkg packages
         if: matrix.platform == 'windows-latest'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: C:\vcpkg\installed
           key: vcpkg-${{ matrix.vcpkg_triplet }}-geos
@@ -262,7 +262,7 @@ jobs:
     needs: [create-release, publish-electron]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Merge latest*.yml and publish release
         env:
