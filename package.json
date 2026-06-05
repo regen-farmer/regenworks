@@ -8,23 +8,23 @@
   "keywords": [],
   "author": "",
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
+    "@biomejs/biome": "^2.2.0",
     "@resvg/resvg-js": "^2.6.2",
-    "@types/lodash": "^4.17.24",
-    "@types/node": "^25.9.1",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "^24.2.1",
     "@types/pngjs": "^6.0.5",
-    "oxfmt": "^0.53.0",
-    "oxlint": "^1.68.0",
-    "pixelmatch": "^7.2.0",
+    "oxfmt": "^0.34.0",
+    "oxlint": "^1.49.0",
+    "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0",
-    "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
-    "lodash": "^4.18.1",
-    "mongoose": "^9.6.3",
-    "proj4": "^2.20.8",
-    "stripe": "^22.2.0"
+    "lodash": "^4.17.21",
+    "mongoose": "^8.17.1",
+    "proj4": "^2.19.10",
+    "stripe": "^18.4.0"
   },
   "workspaces": [
     "packages/*"

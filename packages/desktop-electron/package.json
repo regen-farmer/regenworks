@@ -22,7 +22,7 @@
 		"@rw/gis-napi": "workspace:*"
 	},
 	"devDependencies": {
-		"electron": "^42",
+		"electron": "^41",
 		"electron-builder": "^26",
 		"typescript": "^6",
 		"@rw/frontend": "workspace:*"
