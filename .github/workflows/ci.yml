@@ -50,26 +50,19 @@ jobs:
       - name: Lint
         run: pnpm --filter isomorphic lint
 
+      # Compile/bundle check only; runtime VITE_* values are not needed here.
       - name: Build (web)
         run: pnpm --filter isomorphic build
-        env:
-          # Build-time public vars baked into the client bundle.
-          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
-          VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
-          VITE_GEOCODER_API_KEY: ${{ secrets.VITE_GEOCODER_API_KEY }}
-          VITE_STRIPE_MODE: ${{ vars.VITE_STRIPE_MODE }}
 
   # ---------------------------------------------------------------------------
   # Layers 2 & 3: Playwright smoke + authenticated E2E against a freshly built
-  # SSR server, connected to the staging backend. Configure the secrets/vars
-  # listed in packages/isomorphic/tests/e2e/README.md on the `staging`
-  # environment.
+  # SSR server, connected to the staging backend. Reads its config from repo
+  # secrets (see packages/isomorphic/tests/e2e/README.md).
   # ---------------------------------------------------------------------------
   e2e:
     name: End-to-end tests
     needs: static
     runs-on: ubuntu-latest
-    environment: staging
     env:
       # Runtime (server) auth config.
       AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
@@ -81,9 +74,9 @@ jobs:
       # Connect the built app to the staging backend so authed pages (e.g. the
       # home farms map) render against real data.
       VITE_BACKEND_URL: https://regenworks-dev-backend.onrender.com
-      VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+      VITE_BASE_URL: ${{ secrets.VITE_BASE_URL }}
       VITE_GEOCODER_API_KEY: ${{ secrets.VITE_GEOCODER_API_KEY }}
-      VITE_STRIPE_MODE: ${{ vars.VITE_STRIPE_MODE }}
+      VITE_STRIPE_MODE: ${{ secrets.VITE_STRIPE_MODE }}
       # Test user used by auth.setup.ts to log in through Auth0.
       E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
       E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
