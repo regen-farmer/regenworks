@@ -124,6 +124,10 @@ jobs:
           DATABASEURL: mongodb://localhost:27017/ci
           BACKEND_IP: 127.0.0.1
           BACKEND_PORT: 3001
+          # Dummy keys so startup-time constructors (Resend/Stripe/geocoder) don't throw.
+          RESEND_API_KEY: re_dummy
+          STRIPE_SECRET_KEY: sk_test_dummy
+          GEOCODER_API_KEY: dummy
         run: |
           node packages/backend/build/app.js > /tmp/backend.log 2>&1 &
           PID=$!
