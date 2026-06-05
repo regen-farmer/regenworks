@@ -251,8 +251,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       convert-units:
-        specifier: 3.0.0-beta.6
-        version: 3.0.0-beta.6
+        specifier: 3.0.0-beta.8
+        version: 3.0.0-beta.8
       date-fns:
         specifier: ^4.1.0
         version: 4.4.0
@@ -408,8 +408,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       convert-units:
-        specifier: 3.0.0-beta.6
-        version: 3.0.0-beta.6
+        specifier: 3.0.0-beta.8
+        version: 3.0.0-beta.8
       date-fns:
         specifier: ^4.1.0
         version: 4.4.0
@@ -4217,8 +4217,8 @@ packages:
   convert-units@2.3.4:
     resolution: {integrity: sha512-ERHfdA0UhHJp1IpwE6PnFJx8LqG7B1ZjJ20UvVCmopEnVCfER68Tbe3kvN63dLbYXDA2xFWRE6zd4Wsf0w7POg==}
 
-  convert-units@3.0.0-beta.6:
-    resolution: {integrity: sha512-KTWaWzdnadB/tulZ9QfP63hMXdyXLl/XEZhYVMdLqlgwdgNxxslbtZ4It8/u1Jzty90Pmylvpje4y8Xa2Smrpg==}
+  convert-units@3.0.0-beta.8:
+    resolution: {integrity: sha512-P6QkFbVXIb798vkX4nhjYiz5DUfHpI8EngjTHzINYfMKn5O+EM9wkIrfuxjyJbK3g/Ei8m4vJNGQLWRz71lgIQ==}
 
   cookie-es@3.1.1:
     resolution: {integrity: sha512-UaXxwISYJPTr9hwQxMFYZ7kNhSXboMXP+Z3TRX6f1/NyaGPfuNUZOWP1pUEb75B2HjfklIYLVRfWiFZJyC6Npg==}
@@ -11281,7 +11281,7 @@ snapshots:
       lodash.foreach: 2.3.0
       lodash.keys: 2.3.0
 
-  convert-units@3.0.0-beta.6: {}
+  convert-units@3.0.0-beta.8: {}
 
   cookie-es@3.1.1: {}
 
