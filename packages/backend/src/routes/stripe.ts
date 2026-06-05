@@ -52,7 +52,9 @@ export const StripeIds = {
 };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-09-30.acacia",
+  // Pinned to the tested API contract; cast because the SDK's apiVersion type
+  // only allows its own latest version (stripe@22's LatestApiVersion).
+  apiVersion: "2024-09-30.acacia" as Stripe.LatestApiVersion,
   maxNetworkRetries: 2,
 });
 
