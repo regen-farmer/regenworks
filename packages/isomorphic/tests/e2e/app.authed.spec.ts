@@ -1,9 +1,7 @@
+// Authenticated tests: gated routes mount, home farms map renders.
 import { test, expect } from "@playwright/test";
 
 const LOGIN_GATE = /log in or create new user/i;
-
-// Tolerated only for onrender cold-start / transient backend blips; a broken
-// dependency throws something else and still fails the sweep.
 const BACKEND_TRANSIENT = /failed to fetch|networkerror|load failed|err_connection|fetch failed/i;
 
 const AUTHED_ROUTES = ["/", "/parcels", "/systems", "/species", "/settings", "/admin"];

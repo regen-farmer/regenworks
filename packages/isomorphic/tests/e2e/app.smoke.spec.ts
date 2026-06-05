@@ -1,7 +1,5 @@
+// Unauthenticated smoke tests: app boots, public routes render, auth gate shows.
 import { test, expect } from "@playwright/test";
-
-// Unauthenticated smoke tests: app boots, public routes render, the auth gate
-// shows. No Auth0 needed.
 
 test("home renders the auth gate (login screen)", async ({ page }) => {
   await page.goto("/");

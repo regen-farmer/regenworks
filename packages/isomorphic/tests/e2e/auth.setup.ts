@@ -1,8 +1,7 @@
+// Logs in via real Auth0 and saves the session for the authed project.
 import { test as setup, expect } from "@playwright/test";
 import { STORAGE_STATE } from "../../playwright.config.ts";
 
-// Logs in through the real Auth0 Universal Login flow and saves the session for
-// the `authed` project. Needs E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD.
 const EMAIL = process.env.E2E_TEST_USER_EMAIL;
 const PASSWORD = process.env.E2E_TEST_USER_PASSWORD;
 

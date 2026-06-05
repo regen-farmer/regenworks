@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
-// Load .env into the test runner; does not override vars already set in CI.
 if (existsSync(".env")) process.loadEnvFile(".env");
 
 const PORT = Number(process.env.ISOMORPHIC_PORT ?? process.env.PORT ?? 10000);
@@ -40,7 +39,6 @@ export default defineConfig({
     },
   ],
 
-  // Starts the already-built SSR server directly (not the Render-owned `start`).
   webServer: {
     command: "node --env-file-if-exists=.env .output/server/index.mjs",
     url: baseURL,
