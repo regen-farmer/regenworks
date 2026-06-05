@@ -230,8 +230,8 @@ importers:
         specifier: ^2.3.5
         version: 2.3.5(solid-js@1.9.10)
       '@tanstack/solid-router':
-        specifier: ^1.168.19
-        version: 1.168.19(solid-js@1.9.10)
+        specifier: ^1.170.10
+        version: 1.170.10(solid-js@1.9.10)
       '@tmcw/togeojson':
         specifier: ^7.1.2
         version: 7.1.2
@@ -378,8 +378,8 @@ importers:
         specifier: ^2.3.5
         version: 2.3.5(solid-js@1.9.10)
       '@tanstack/solid-router':
-        specifier: ^1.168.19
-        version: 1.168.19(solid-js@1.9.10)
+        specifier: ^1.170.10
+        version: 1.170.10(solid-js@1.9.10)
       '@tanstack/solid-start':
         specifier: ^1.167.36
         version: 1.167.36(crossws@0.4.5(srvx@0.11.15))(solid-js@1.9.10)(vite-plugin-solid@2.11.12(solid-js@1.9.10)(vite@8.0.0(@types/node@24.13.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(vite@8.0.0(@types/node@24.13.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0))
@@ -2738,8 +2738,8 @@ packages:
     peerDependencies:
       solid-js: ^1.6.12
 
-  '@solid-primitives/refs@1.1.2':
-    resolution: {integrity: sha512-K7tf2thy7L+YJjdqXspXOg5xvNEOH8tgEWsp0+1mQk3obHBRD6hEjYZk7p7FlJphSZImS35je3UfmWuD7MhDfg==}
+  '@solid-primitives/refs@1.1.3':
+    resolution: {integrity: sha512-aam02fjNKpBteewF/UliPSQCVJsIIGOLEWQOh+ll6R/QePzBOOBMcC4G+5jTaO75JuUS1d/14Q1YXT3X0Ow6iA==}
     peerDependencies:
       solid-js: ^1.6.12
 
@@ -2895,10 +2895,18 @@ packages:
     resolution: {integrity: sha512-NaOGLRrddszbQj9upGat6HG/4TKvXLvu+osAIgfxPYA+eIvYKv8GKDJOrY2D3/U9MRnKfMWD7bU4jeD4xmqyIg==}
     engines: {node: '>=20.19'}
 
+  '@tanstack/history@1.162.0':
+    resolution: {integrity: sha512-79pf/RkhteYZTRgcR4F9kbk84P2N8rugQJswxfIqovlbRiT3yI7eBE+5QorIrZaOKktsgzRlXh1l/du/xpl4iA==}
+    engines: {node: '>=20.19'}
+
   '@tanstack/router-core@1.168.15':
     resolution: {integrity: sha512-Wr0424NDtD8fT/uALobMZ9DdcfsTyXtW5IPR++7zvW8/7RaIOeaqXpVDId8ywaGtqPWLWOfaUg2zUtYtukoXYA==}
     engines: {node: '>=20.19'}
     hasBin: true
+
+  '@tanstack/router-core@1.171.8':
+    resolution: {integrity: sha512-PbrTBbofFcacrH3RLgHYILRqTFnAGq+gXrXoA/vo7qUSkJpSO4GWfLtrtCahD4VayzRm19IPwcjPPLEugag6pw==}
+    engines: {node: '>=20.19'}
 
   '@tanstack/router-generator@1.166.32':
     resolution: {integrity: sha512-VuusKwEXcgKq+myq1JQfZogY8scTXIIeFls50dJ/UXgCXWp5n14iFreYNlg41wURcak2oA3M+t2TVfD0xUUD6g==}
@@ -2934,6 +2942,12 @@ packages:
     resolution: {integrity: sha512-SynrrJWV7T/eidgWAzud2Qv4FPeicX2lMSTVvoaz1jf9BdGdZa5maqctMues4XAKl30+fqVmLSvhdehcZCVw1w==}
     engines: {node: '>=20.19'}
     hasBin: true
+    peerDependencies:
+      solid-js: ^1.9.10
+
+  '@tanstack/solid-router@1.170.10':
+    resolution: {integrity: sha512-PAy9+N8vUc5U0zcY887s9X5ls+ndrBvH0yLdbHpKJEnaUpr8i0wCT6Pki5LBv1BB8rIWx4OXgHMBs4W7KNlodA==}
+    engines: {node: '>=20.19'}
     peerDependencies:
       solid-js: ^1.9.10
 
@@ -5147,8 +5161,8 @@ packages:
     resolution: {integrity: sha512-gnWD14Jh3FzS3CPhF0AxNOJ8CxqeblPTADzI38r0wt8ZyQl5edpy75myt08EG2oKvpyiqSqsx+Wkz9vtkbTqYQ==}
     engines: {node: '>= 18.0.0'}
 
-  isbot@5.1.36:
-    resolution: {integrity: sha512-C/ZtXyJqDPZ7G7JPr06ApWyYoHjYexQbS6hPYD4WYCzpv2Qes6Z+CCEfTX4Owzf+1EJ933PoI2p+B9v7wpGZBQ==}
+  isbot@5.1.40:
+    resolution: {integrity: sha512-yNeeynhhtIVRBk12tBV4eHNxwB42HzR4Q3Ea7vCOiJhImGaAIdIMrbJtacQlBizGLjUPw+akkFI5Dn9T70XoVQ==}
     engines: {node: '>=18'}
 
   isexe@2.0.0:
@@ -6498,12 +6512,22 @@ packages:
     peerDependencies:
       seroval: ^1.0
 
+  seroval-plugins@1.5.4:
+    resolution: {integrity: sha512-S0xQPhUTefAhNvNWFg0c1J8qJArHt5KdtJ/cFAofo06KD1MVSeFWyl4iiu+ApDIuw0WhjpOfCdgConOfAnLgkw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      seroval: ^1.0
+
   seroval@1.3.2:
     resolution: {integrity: sha512-RbcPH1n5cfwKrru7v7+zrZvjLurgHhGyso3HTyGtRivGWgYjbOmGuivCQaORNELjNONoK35nj28EoWul9sb1zQ==}
     engines: {node: '>=10'}
 
   seroval@1.5.2:
     resolution: {integrity: sha512-xcRN39BdsnO9Tf+VzsE7b3JyTJASItIV1FVFewJKCFcW4s4haIKS3e6vj8PGB9qBwC7tnuOywQMdv5N4qkzi7Q==}
+    engines: {node: '>=10'}
+
+  seroval@1.5.4:
+    resolution: {integrity: sha512-46uFvgrXTVxZcUorgSSRZ4y+ieqLLQRMlG4bnCZKW3qI6BZm7Rg4ntMW4p1mILEEBZWrFlcpp0AyIIlM6jD9iw==}
     engines: {node: '>=10'}
 
   serve-static@1.16.3:
@@ -8225,7 +8249,7 @@ snapshots:
       '@solid-primitives/map': 0.4.13(solid-js@1.9.10)
       '@solid-primitives/media': 2.3.5(solid-js@1.9.10)
       '@solid-primitives/props': 3.2.2(solid-js@1.9.10)
-      '@solid-primitives/refs': 1.1.2(solid-js@1.9.10)
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.10)
       '@solid-primitives/utils': 6.4.0(solid-js@1.9.10)
       solid-js: 1.9.10
 
@@ -9425,7 +9449,7 @@ snapshots:
       '@nothing-but/utils': 0.17.0
       '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.10)
       '@solid-primitives/media': 2.3.5(solid-js@1.9.10)
-      '@solid-primitives/refs': 1.1.2(solid-js@1.9.10)
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.10)
       '@solid-primitives/rootless': 1.5.3(solid-js@1.9.10)
       '@solid-primitives/scheduled': 1.5.3(solid-js@1.9.10)
       '@solid-primitives/static-store': 0.1.3(solid-js@1.9.10)
@@ -9475,7 +9499,7 @@ snapshots:
       '@solid-primitives/utils': 6.4.0(solid-js@1.9.10)
       solid-js: 1.9.10
 
-  '@solid-primitives/refs@1.1.2(solid-js@1.9.10)':
+  '@solid-primitives/refs@1.1.3(solid-js@1.9.10)':
     dependencies:
       '@solid-primitives/utils': 6.4.0(solid-js@1.9.10)
       solid-js: 1.9.10
@@ -9613,12 +9637,21 @@ snapshots:
 
   '@tanstack/history@1.161.6': {}
 
+  '@tanstack/history@1.162.0': {}
+
   '@tanstack/router-core@1.168.15':
     dependencies:
       '@tanstack/history': 1.161.6
       cookie-es: 3.1.1
       seroval: 1.5.2
       seroval-plugins: 1.5.2(seroval@1.5.2)
+
+  '@tanstack/router-core@1.171.8':
+    dependencies:
+      '@tanstack/history': 1.162.0
+      cookie-es: 3.1.1
+      seroval: 1.5.4
+      seroval-plugins: 1.5.4(seroval@1.5.4)
 
   '@tanstack/router-generator@1.166.32':
     dependencies:
@@ -9671,11 +9704,21 @@ snapshots:
   '@tanstack/solid-router@1.168.19(solid-js@1.9.10)':
     dependencies:
       '@solid-devtools/logger': 0.9.11(solid-js@1.9.10)
-      '@solid-primitives/refs': 1.1.2(solid-js@1.9.10)
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.10)
       '@solidjs/meta': 0.29.4(solid-js@1.9.10)
       '@tanstack/history': 1.161.6
       '@tanstack/router-core': 1.168.15
-      isbot: 5.1.36
+      isbot: 5.1.40
+      solid-js: 1.9.10
+
+  '@tanstack/solid-router@1.170.10(solid-js@1.9.10)':
+    dependencies:
+      '@solid-devtools/logger': 0.9.11(solid-js@1.9.10)
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.10)
+      '@solidjs/meta': 0.29.4(solid-js@1.9.10)
+      '@tanstack/history': 1.162.0
+      '@tanstack/router-core': 1.171.8
+      isbot: 5.1.40
       solid-js: 1.9.10
 
   '@tanstack/solid-start-client@1.166.35(solid-js@1.9.10)':
@@ -12995,7 +13038,7 @@ snapshots:
 
   isbinaryfile@5.0.7: {}
 
-  isbot@5.1.36: {}
+  isbot@5.1.40: {}
 
   isexe@2.0.0: {}
 
@@ -14562,9 +14605,15 @@ snapshots:
     dependencies:
       seroval: 1.5.2
 
+  seroval-plugins@1.5.4(seroval@1.5.4):
+    dependencies:
+      seroval: 1.5.4
+
   seroval@1.3.2: {}
 
   seroval@1.5.2: {}
+
+  seroval@1.5.4: {}
 
   serve-static@1.16.3:
     dependencies:
