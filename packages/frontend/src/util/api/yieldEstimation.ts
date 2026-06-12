@@ -2,10 +2,6 @@ import { apiFetchOptions } from "~/util/apiFetchOptions";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
-// --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
-
 export type SpeciesUnitType = "tree" | "m2";
 
 export interface YieldSpeciesSummary {
@@ -70,14 +66,6 @@ export interface YieldEstimationResult {
   };
 }
 
-// --------------------------------------------------------------------------
-// API functions
-// --------------------------------------------------------------------------
-
-/**
- * Get yield estimation for a farm scenario config.
- * This is a pure computation — no DB model, computed on every request.
- */
 export async function getYieldEstimation(
   configId: string,
   period: number = 30,
@@ -92,4 +80,20 @@ export async function getYieldEstimation(
   }
 
   return response.json();
+}
+
+export async function exportYieldEstimationCSV(
+  configId: string,
+  period: number = 30,
+): Promise<Blob> {
+  const response = await fetch(
+    `${BACKEND_URL}/farm-scenario-configs/${configId}/yield-estimation/export/csv?period=${period}`,
+    apiFetchOptions(),
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to export yield estimation: ${response.statusText}`);
+  }
+
+  return response.blob();
 }
