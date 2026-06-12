@@ -69,3 +69,27 @@ export interface YieldEstimationResult {
     firstYieldYear: number | null;
   };
 }
+
+// --------------------------------------------------------------------------
+// API functions
+// --------------------------------------------------------------------------
+
+/**
+ * Get yield estimation for a farm scenario config.
+ * This is a pure computation — no DB model, computed on every request.
+ */
+export async function getYieldEstimation(
+  configId: string,
+  period: number = 30,
+): Promise<YieldEstimationResult> {
+  const response = await fetch(
+    `${BACKEND_URL}/farm-scenario-configs/${configId}/yield-estimation?period=${period}`,
+    apiFetchOptions(),
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch yield estimation: ${response.statusText}`);
+  }
+
+  return response.json();
+}
