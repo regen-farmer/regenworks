@@ -121,3 +121,47 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
       showToast({ title: "Export failed", description: error.message || "An error occurred.", variant: "error" });
     }
   };
+
+  const handleCopyTable = async () => {
+    const species = displaySpecies();
+    const p = latestData()?.period ?? period();
+    if (species.length === 0) return;
+
+    const years = Array.from({ length: p }, (_, i) => i + 1);
+
+    // Header row: Species \t Count \t 1 \t 2 \t ... \t N
+    const header = ["Species", "Count", ...years].join("\t");
+
+    // Data rows. Species without yield data get blank cells: pasted zeros
+    // would read as real measured yields in the sheet.
+    const rows = species.map((entry) => {
+      const cells = years.map((year) => {
+        if (!hasYieldData(entry)) return "";
+        const v = getYieldForYear(entry.yieldCurve, year) ?? 0;
+        return v % 1 === 0 ? String(v) : v.toFixed(1);
+      });
+      return [entry.species.nameCommon, entry.count, ...cells].join("\t");
+    });
+
+    const tsv = [header, ...rows].join("\n");
+
+    // Use Electron's clipboard API if available, otherwise fallback
+    if ((window as any).electronAPI?.copyToClipboard) {
+      (window as any).electronAPI.copyToClipboard(tsv);
+    } else {
+      await navigator.clipboard.writeText(tsv);
+    }
+
+    showToast({
+      title: "Copied",
+      description: "Table copied to clipboard. Paste into Excel.",
+      variant: "success",
+    });
+  };
+
+  const selectedFieldName = createMemo(() => {
+    const data = latestData();
+    const id = selectedFieldId();
+    if (!id || !data) return null;
+    return data.fieldSummary.find((f: any) => f.field._id === id)?.field.name ?? null;
+  });
