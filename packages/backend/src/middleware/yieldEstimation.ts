@@ -308,3 +308,52 @@ export function calculateYieldEstimation(
       });
     }
   }
+
+  // Year-by-year production
+  const yearByYear: YieldYearEntry[] = [];
+  for (let year = 1; year <= period; year++) {
+    const bySpecies: Record<string, number> = {};
+    let total = 0;
+
+    for (const summary of speciesSummaries) {
+      const yieldKg = getYieldForYear(summary.yieldCurve, year);
+      const production = summary.count * yieldKg;
+      bySpecies[summary.species._id] = production;
+      total += production;
+    }
+
+    yearByYear.push({ year, totalProductionKg: total, bySpecies });
+  }
+
+  // Totals
+  const totalTrees = speciesSummaries
+    .filter((s) => s.unitType === "tree")
+    .reduce((sum, s) => sum + s.count, 0);
+  const annualProductionAtMaturityKg = speciesSummaries.reduce(
+    (sum, s) => sum + s.annualProductionAtMaturity,
+    0,
+  );
+  const totalProductionOverPeriodKg = speciesSummaries.reduce(
+    (sum, s) => sum + s.totalProductionOverPeriod,
+    0,
+  );
+  const firstYieldYear =
+    speciesSummaries
+      .filter((s) => s.yearsToFirstYield > 0)
+      .reduce((min, s) => Math.min(min, s.yearsToFirstYield), Infinity) || null;
+
+  return {
+    period,
+    speciesSummary: speciesSummaries,
+    fieldSummary: fieldSummaries,
+    yearByYear,
+    totals: {
+      totalTrees,
+      totalSpecies: speciesSummaries.length,
+      speciesWithoutYieldData: speciesSummaries.filter((s) => !s.hasYieldData).length,
+      annualProductionAtMaturityKg,
+      totalProductionOverPeriodKg,
+      firstYieldYear: firstYieldYear === Infinity ? null : firstYieldYear,
+    },
+  };
+}
