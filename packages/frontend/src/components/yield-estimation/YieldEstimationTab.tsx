@@ -265,3 +265,18 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
           No species found. Add species to your system design to see yield data.
         </div>
       </Show>
+
+      {/* Main content — always in DOM, hidden via CSS */}
+      <div class="space-y-6" classList={{ hidden: displaySpecies().length === 0 }}>
+        {/* Missing yield data warning */}
+        <Show when={speciesWithoutData().length > 0}>
+          <div class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+            <span class="font-semibold">
+              No yield data for {speciesWithoutData().length} species:
+            </span>{" "}
+            {speciesWithoutData()
+              .map((s) => s.species.nameCommon)
+              .join(", ")}
+            . These rows show no values and contribute nothing to production totals.
+          </div>
+        </Show>
