@@ -208,3 +208,43 @@ export function calculateYieldEstimation(
       agg.count += count;
       agg.fieldContributions.set(fieldId, (agg.fieldContributions.get(fieldId) || 0) + count);
     }
+
+    // Ground cover species
+    if (layout.groundCoverAreasM2) {
+      for (const [gcSpeciesId, areaM2] of Object.entries(
+        layout.groundCoverAreasM2 as Record<string, number>,
+      )) {
+        if (!gcSpeciesId || !areaM2) continue;
+        const speciesId = gcSpeciesId.toString();
+
+        let agg = aggregatedSpecies.get(speciesId);
+        if (!agg) {
+          const speciesDoc =
+            speciesMap.get(speciesId) ||
+            ({ nameCommon: "Unknown species" } as unknown as ISpeciesSchema);
+
+          agg = {
+            speciesId,
+            speciesDoc: speciesDoc as ISpeciesSchema,
+            unitType: "m2",
+            count: 0,
+            fieldContributions: new Map(),
+          };
+          aggregatedSpecies.set(speciesId, agg);
+        }
+
+        agg.count += areaM2 as number;
+        agg.fieldContributions.set(
+          fieldId,
+          (agg.fieldContributions.get(fieldId) || 0) + (areaM2 as number),
+        );
+      }
+    }
+
+    fieldSummaries.push({
+      field: { _id: fieldId, name: fieldName },
+      area: fieldArea,
+      treeCount: fieldTreeCount,
+      species: [], // filled below
+    });
+  }
