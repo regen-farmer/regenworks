@@ -68,6 +68,14 @@ interface StripePrice {
   };
 }
 
+function getStripeCallbackUrl() {
+  if (typeof window !== "undefined") {
+    return new URL("/settings", window.location.href).toString();
+  }
+
+  return `${import.meta.env.VITE_BASE_URL}/settings`;
+}
+
 const RouteViewAccount: Component = () => {
   updateStripeData();
 
@@ -217,7 +225,7 @@ const RouteViewAccount: Component = () => {
       priceId: formData.get("priceId")?.toString()!,
       email: formData.get("email")?.toString()!,
       currency: formData.get("currency")?.toString()!,
-      callbackUrl: `${import.meta.env.VITE_BASE_URL}/settings`,
+      callbackUrl: getStripeCallbackUrl(),
       customer: getMongoDBUser().stripeCustomerId,
     };
 
