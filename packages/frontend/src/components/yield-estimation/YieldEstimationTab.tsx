@@ -226,3 +226,42 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
           </Show>
         </div>
       </div>
+
+      {/* Scope indicator when a field is selected */}
+      <Show when={selectedFieldName()}>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            Showing yield for field:
+          </span>
+          <span class="text-sm font-medium text-white bg-green-600 rounded-full px-3 py-0.5">
+            {selectedFieldName()}
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedFieldId(null)}
+            class="text-xs text-gray-400 hover:text-gray-200 underline"
+          >
+            show all fields
+          </button>
+        </div>
+      </Show>
+
+      {/* Initial loading (no previous data) */}
+      <Show when={query.isPending}>
+        <div class="flex items-center justify-center py-12 text-gray-500">
+          Computing yield estimation...
+        </div>
+      </Show>
+
+      <Show when={query.isError && !latestData()}>
+        <div class="rounded-lg bg-red-900/20 border border-red-500/30 p-4 text-sm text-red-400">
+          <div class="font-semibold mb-1">Failed to load yield estimation</div>
+          <div>{String(query.error)}</div>
+        </div>
+      </Show>
+
+      <Show when={latestData() && displaySpecies().length === 0 && !query.isFetching}>
+        <div class="flex items-center justify-center py-12 text-gray-500">
+          No species found. Add species to your system design to see yield data.
+        </div>
+      </Show>
