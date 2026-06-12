@@ -81,3 +81,43 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
   const speciesWithoutData = createMemo(() => displaySpecies().filter((s) => !hasYieldData(s)));
 
 
+  const handleExportCSV = async () => {
+    const species = displaySpecies();
+    const p = latestData()?.period ?? period();
+    if (species.length === 0) return;
+
+    const years = Array.from({ length: p }, (_, i) => i + 1);
+    const header = ["Species", "Count", ...years].join(",");
+    const rows = species.map((entry) => {
+      const cells = years.map((year) => {
+        if (!hasYieldData(entry)) return "";
+        const v = getYieldForYear(entry.yieldCurve, year) ?? 0;
+        return v % 1 === 0 ? String(v) : v.toFixed(1);
+      });
+      return [`"${entry.species.nameCommon}"`, entry.count, ...cells].join(",");
+    });
+    const csv = [header, ...rows].join("\n");
+
+    try {
+      if ((window as any).electronAPI?.saveFile) {
+        const saved = await (window as any).electronAPI.saveFile("yield-estimation.csv", csv);
+        if (saved) {
+          showToast({ title: "Exported", description: "CSV saved.", variant: "success" });
+        }
+      } else {
+        // Browser fallback
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "yield-estimation.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast({ title: "Exported", description: "CSV downloaded.", variant: "success" });
+      }
+    } catch (error: any) {
+      showToast({ title: "Export failed", description: error.message || "An error occurred.", variant: "error" });
+    }
+  };
