@@ -172,3 +172,39 @@ export function calculateYieldEstimation(
     }
 
     let fieldTreeCount = 0;
+
+    // Tree species
+    for (const speciesCount of layout.speciesCountArray) {
+      const speciesEntry = speciesCount.species;
+      const speciesId =
+        typeof speciesEntry === "object" && (speciesEntry?._id || speciesEntry?.id)
+          ? (speciesEntry._id || speciesEntry.id).toString()
+          : speciesEntry?.toString();
+      if (!speciesId) continue;
+
+      const count = speciesCount.count || 0;
+      fieldTreeCount += count;
+
+      let agg = aggregatedSpecies.get(speciesId);
+      if (!agg) {
+        const speciesDoc = speciesMap.get(speciesId);
+        // Placeholder doc when the id resolves to nothing: the count is already
+        // in the field treeCount, so the species table must list it too.
+        const doc =
+          speciesDoc ||
+          (typeof speciesEntry === "object" ? speciesEntry : null) ||
+          ({ nameCommon: "Unknown species" } as unknown as ISpeciesSchema);
+
+        agg = {
+          speciesId,
+          speciesDoc: doc as ISpeciesSchema,
+          unitType: "tree",
+          count: 0,
+          fieldContributions: new Map(),
+        };
+        aggregatedSpecies.set(speciesId, agg);
+      }
+
+      agg.count += count;
+      agg.fieldContributions.set(fieldId, (agg.fieldContributions.get(fieldId) || 0) + count);
+    }
