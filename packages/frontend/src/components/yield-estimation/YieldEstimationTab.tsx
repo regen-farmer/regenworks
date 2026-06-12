@@ -32,17 +32,15 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
   const [period, setPeriod] = createSignal(30);
   const [selectedFieldId, setSelectedFieldId] = createSignal<string | null>(null);
 
-  // TanStack Query — keeps previous data visible during refetch automatically
   const query = createQuery(() => ({
     queryKey: ["yield-estimation", props.configId, period()],
     queryFn: () => getYieldEstimation(props.configId, period()),
-    placeholderData: (prev: any) => prev, // keep previous data while fetching new
+    placeholderData: (prev: any) => prev,
     staleTime: 60_000,
   }));
 
   const latestData = () => query.data ?? null;
 
-  // Derive display data based on selected field
   const displaySpecies = createMemo((): YieldSpeciesSummary[] => {
     const data = latestData();
     if (!data) return [];
@@ -105,7 +103,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
           showToast({ title: "Exported", description: "CSV saved.", variant: "success" });
         }
       } else {
-        // Browser fallback
         const blob = new Blob([csv], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -129,11 +126,9 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
 
     const years = Array.from({ length: p }, (_, i) => i + 1);
 
-    // Header row: Species \t Count \t 1 \t 2 \t ... \t N
     const header = ["Species", "Count", ...years].join("\t");
 
-    // Data rows. Species without yield data get blank cells: pasted zeros
-    // would read as real measured yields in the sheet.
+    // Blank cells keep missing yield data distinct from real zero-yield values.
     const rows = species.map((entry) => {
       const cells = years.map((year) => {
         if (!hasYieldData(entry)) return "";
@@ -145,7 +140,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
 
     const tsv = [header, ...rows].join("\n");
 
-    // Use Electron's clipboard API if available, otherwise fallback
     if ((window as any).electronAPI?.copyToClipboard) {
       (window as any).electronAPI.copyToClipboard(tsv);
     } else {
@@ -168,14 +162,12 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
 
   return (
     <div class="h-full overflow-y-auto p-4 space-y-6">
-      {/* Title */}
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
           Yield Estimation{props.configName ? `: ${props.configName}` : ""}
         </h2>
       </div>
 
-      {/* Parameters + field selector */}
       <div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
         <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Parameters</h3>
         <div class="flex flex-wrap items-center gap-4">
@@ -193,7 +185,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
             <span class="text-sm text-gray-500">years</span>
           </div>
 
-          {/* Field selector */}
           <Show when={latestData()?.fieldSummary && latestData()!.fieldSummary.length > 1}>
             <div class="flex items-center gap-2">
               <span class="text-xs text-gray-500 dark:text-gray-400">Field</span>
@@ -217,7 +208,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
             </div>
           </Show>
 
-          {/* Refetch indicator — inline next to parameters */}
           <Show when={query.isFetching && latestData()}>
             <div class="flex items-center gap-2 text-sm text-gray-400">
               <div class="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
@@ -227,7 +217,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
         </div>
       </div>
 
-      {/* Scope indicator when a field is selected */}
       <Show when={selectedFieldName()}>
         <div class="flex items-center gap-2">
           <span class="text-sm text-gray-500 dark:text-gray-400">
@@ -246,7 +235,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
         </div>
       </Show>
 
-      {/* Initial loading (no previous data) */}
       <Show when={query.isPending}>
         <div class="flex items-center justify-center py-12 text-gray-500">
           Computing yield estimation...
@@ -266,9 +254,7 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
         </div>
       </Show>
 
-      {/* Main content — always in DOM, hidden via CSS */}
       <div class="space-y-6" classList={{ hidden: displaySpecies().length === 0 }}>
-        {/* Missing yield data warning */}
         <Show when={speciesWithoutData().length > 0}>
           <div class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
             <span class="font-semibold">
@@ -281,7 +267,6 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
           </div>
         </Show>
 
-        {/* Year × Species production table */}
         <div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
           <div class="flex items-center justify-between mb-3">
             <h3 class="font-semibold text-gray-700 dark:text-gray-300">
@@ -378,3 +363,20 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
             </table>
           </div>
         </div>
+
+        <div class="flex justify-end">
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            class="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
+          >
+            <i class="fa-solid fa-download" />
+            Export CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default YieldEstimationTab;
