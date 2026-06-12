@@ -280,3 +280,101 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
             . These rows show no values and contribute nothing to production totals.
           </div>
         </Show>
+
+        {/* Year × Species production table */}
+        <div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-gray-700 dark:text-gray-300">
+              Annual Yield by Species
+              <span class="ml-2 text-xs font-normal text-gray-500">(kg per tree per year)</span>
+            </h3>
+            <button
+              type="button"
+              onClick={handleCopyTable}
+              class="flex items-center gap-1.5 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2.5 py-1 text-xs text-gray-600 dark:text-gray-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
+              title="Copy table as tab-separated values (paste into Excel)"
+            >
+              <i class="fa-solid fa-copy" />
+              Copy
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="text-sm border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-300 dark:border-neutral-600">
+                  <th class="sticky left-0 z-10 bg-neutral-100 dark:bg-neutral-800 text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400 min-w-[160px]">
+                    Species
+                  </th>
+                  <th class="sticky left-[160px] z-10 bg-neutral-100 dark:bg-neutral-800 text-right py-2 px-2 font-medium text-gray-600 dark:text-gray-400 min-w-[60px] border-r border-neutral-300 dark:border-neutral-600">
+                    Count
+                  </th>
+                  <For each={Array.from({ length: latestData()?.period ?? period() }, (_, i) => i + 1)}>
+                    {(year) => (
+                      <th class="text-right py-2 px-2 font-medium text-gray-500 dark:text-gray-400 min-w-[50px]">
+                        {year}
+                      </th>
+                    )}
+                  </For>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={displaySpecies()}>
+                  {(entry) => {
+                    const hasYield = hasYieldData(entry);
+                    const unitLabel = entry.unitType === "m2" ? "m\u00B2" : "trees";
+                    const p = latestData()?.period ?? period();
+
+                    return (
+                      <tr class="border-b border-neutral-200 dark:border-neutral-700">
+                        <td class="sticky left-0 z-10 bg-neutral-100 dark:bg-neutral-800 py-2 px-3 text-gray-900 dark:text-gray-100">
+                          <div class="font-medium">{entry.species.nameCommon || "Unknown"}</div>
+                          <div class="text-[10px] text-gray-500 italic">
+                            {entry.species.genus} {entry.species.species}
+                          </div>
+                        </td>
+                        <td class="sticky left-[160px] z-10 bg-neutral-100 dark:bg-neutral-800 py-2 px-2 text-right text-gray-600 dark:text-gray-400 border-r border-neutral-300 dark:border-neutral-600">
+                          <div>{entry.count.toLocaleString()}</div>
+                          <div class="text-[10px] text-gray-400">{unitLabel}</div>
+                        </td>
+                        <Show
+                          when={hasYield}
+                          fallback={
+                            <td
+                              colspan={p}
+                              class="py-2 px-3 text-left text-xs italic text-amber-600 dark:text-amber-500"
+                            >
+                              no yield data
+                            </td>
+                          }
+                        >
+                          <For each={Array.from({ length: p }, (_, i) => i + 1)}>
+                            {(year) => {
+                              const yieldKg = getYieldForYear(entry.yieldCurve, year);
+                              const totalKg = entry.count * yieldKg;
+                              const isZero = yieldKg === 0;
+                              const isMaturity = yieldKg === entry.yieldAtMaturity && yieldKg > 0;
+
+                              return (
+                                <td
+                                  class="py-2 px-2 text-right tabular-nums"
+                                  classList={{
+                                    "text-gray-300 dark:text-gray-700": isZero,
+                                    "text-gray-700 dark:text-gray-300": !isZero && !isMaturity,
+                                    "text-green-600 dark:text-green-400 font-medium": isMaturity,
+                                  }}
+                                  title={totalKg > 0 ? `${totalKg.toLocaleString()} kg total (${entry.count} × ${yieldKg} kg)` : ""}
+                                >
+                                  {yieldKg % 1 === 0 ? yieldKg : yieldKg.toFixed(1)}
+                                </td>
+                              );
+                            }}
+                          </For>
+                        </Show>
+                      </tr>
+                    );
+                  }}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </div>
