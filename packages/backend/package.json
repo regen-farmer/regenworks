@@ -55,6 +55,6 @@
     "@types/xml2js": "^0.4.14",
     "nodemon": "^3.1.10",
     "vite": "^8.0.0",
-    "vite-node": "^5.2.0"
+    "vite-node": "^6.0.0"
   }
 }

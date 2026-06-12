@@ -34,6 +34,7 @@
 		"@rw/db": "workspace:*",
 		"@rw/modelling": "workspace:*",
 		"@solid-primitives/media": "^2.3.5",
+		"@tanstack/solid-query": "^5.75.5",
 		"@tanstack/solid-router": "^1.168.19",
 		"@tmcw/togeojson": "^7.1.2",
 		"@turf/turf": "^7.1.0",
