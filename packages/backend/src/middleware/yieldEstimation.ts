@@ -1,22 +1,7 @@
-/**
- * Yield estimation — pure computation, no DB model needed.
- *
- * Takes a farm scenario config's field scenarios + species data and produces
- * a year-by-year production forecast per species and for the whole farm.
- *
- * All yield data comes from the species' Flow documents (unit === "food" or
- * type === "yield"). The `data` array on a flow is kg-per-unit-per-year
- * (where "unit" is one tree or one m2 of ground cover).
- */
-
 import type { IFlowSchema } from "@rw/db/schemas/flow.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
 import area from "@turf/area";
-
-// --------------------------------------------------------------------------
-// Public types
-// --------------------------------------------------------------------------
 
 export type SpeciesUnitType = "tree" | "m2";
 
@@ -28,19 +13,15 @@ export interface YieldSpeciesSummary {
     species?: string;
   };
   unitType: SpeciesUnitType;
-  count: number; // number of trees or m2
-  hasYieldData: boolean; // false: species has no yield flow, all production fields read 0
-
-  // Yield curve
-  yieldCurve: number[]; // kg per unit per year (from species flows)
-  yieldUnit: string; // e.g. "kg"
-  yieldAtMaturity: number; // plateau value (max of curve)
-  yearsToFirstYield: number; // first year with yield > 0 (1-indexed), 0 if none
-  yearsToMaturity: number; // first year at plateau value (1-indexed), 0 if none
-
-  // Aggregated production
-  annualProductionAtMaturity: number; // count × yieldAtMaturity (kg)
-  totalProductionOverPeriod: number; // sum over all years in period (kg)
+  count: number;
+  hasYieldData: boolean;
+  yieldCurve: number[];
+  yieldUnit: string;
+  yieldAtMaturity: number;
+  yearsToFirstYield: number;
+  yearsToMaturity: number;
+  annualProductionAtMaturity: number;
+  totalProductionOverPeriod: number;
 }
 
 export interface YieldFieldSpeciesEntry {
@@ -49,8 +30,8 @@ export interface YieldFieldSpeciesEntry {
   count: number;
   unitType: SpeciesUnitType;
   hasYieldData: boolean;
-  yieldAtMaturity: number; // kg per unit
-  annualProductionAtMaturity: number; // count × yieldAtMaturity
+  yieldAtMaturity: number;
+  annualProductionAtMaturity: number;
 }
 
 export interface YieldFieldSummary {
@@ -58,15 +39,15 @@ export interface YieldFieldSummary {
     _id: string;
     name: string;
   };
-  area: number; // hectares
+  area: number;
   treeCount: number;
-  species: YieldFieldSpeciesEntry[]; // per-species breakdown
+  species: YieldFieldSpeciesEntry[];
 }
 
 export interface YieldYearEntry {
   year: number;
   totalProductionKg: number;
-  bySpecies: Record<string, number>; // speciesId → kg
+  bySpecies: Record<string, number>;
 }
 
 export interface YieldEstimationResult {
@@ -80,13 +61,9 @@ export interface YieldEstimationResult {
     speciesWithoutYieldData: number;
     annualProductionAtMaturityKg: number;
     totalProductionOverPeriodKg: number;
-    firstYieldYear: number | null; // earliest year any species yields
+    firstYieldYear: number | null;
   };
 }
-
-// --------------------------------------------------------------------------
-// Internal types
-// --------------------------------------------------------------------------
 
 interface FieldScenarioData {
   layer: {
@@ -109,16 +86,10 @@ interface AggregatedSpecies {
   fieldContributions: Map<string, number>;
 }
 
-// --------------------------------------------------------------------------
-// Helpers
-// --------------------------------------------------------------------------
-
 function getYieldCurve(species: ISpeciesSchema): number[] {
   const flows = (species.flows ?? []) as unknown as IFlowSchema[];
   if (flows.length === 0) return [];
 
-  // Only explicit yield flows qualify. Falling back to other flow types
-  // (carbon, biomass, ...) would silently misread their data as food yield.
   const flow = flows.find((f) => f.unit === "food" || f.type === "yield");
 
   if (!flow || !flow.data || flow.data.length === 0) return [];
@@ -129,19 +100,14 @@ function getYieldForYear(yieldCurve: number[], year: number): number {
   if (yieldCurve.length === 0) return 0;
   const index = year - 1;
   if (index < yieldCurve.length) return yieldCurve[index];
-  return yieldCurve[yieldCurve.length - 1]; // plateau
+  return yieldCurve[yieldCurve.length - 1];
 }
-
-// --------------------------------------------------------------------------
-// Main computation
-// --------------------------------------------------------------------------
 
 export function calculateYieldEstimation(
   fieldScenarios: FieldScenarioData[],
   speciesMap: Map<string, ISpeciesSchema>,
   period: number = 30,
 ): YieldEstimationResult {
-  // Aggregate species across all fields
   const aggregatedSpecies = new Map<string, AggregatedSpecies>();
   const fieldSummaries: YieldFieldSummary[] = [];
 
@@ -162,7 +128,6 @@ export function calculateYieldEstimation(
 
     if (!layout || !layout.speciesCountArray) continue;
 
-    // Field area
     let fieldArea = 0;
     try {
       const geometry = JSON.parse(fieldScenario.layer.geometry.replace(/&#34;/g, '"'));
@@ -173,7 +138,6 @@ export function calculateYieldEstimation(
 
     let fieldTreeCount = 0;
 
-    // Tree species
     for (const speciesCount of layout.speciesCountArray) {
       const speciesEntry = speciesCount.species;
       const speciesId =
@@ -188,8 +152,6 @@ export function calculateYieldEstimation(
       let agg = aggregatedSpecies.get(speciesId);
       if (!agg) {
         const speciesDoc = speciesMap.get(speciesId);
-        // Placeholder doc when the id resolves to nothing: the count is already
-        // in the field treeCount, so the species table must list it too.
         const doc =
           speciesDoc ||
           (typeof speciesEntry === "object" ? speciesEntry : null) ||
@@ -209,7 +171,6 @@ export function calculateYieldEstimation(
       agg.fieldContributions.set(fieldId, (agg.fieldContributions.get(fieldId) || 0) + count);
     }
 
-    // Ground cover species
     if (layout.groundCoverAreasM2) {
       for (const [gcSpeciesId, areaM2] of Object.entries(
         layout.groundCoverAreasM2 as Record<string, number>,
@@ -245,11 +206,10 @@ export function calculateYieldEstimation(
       field: { _id: fieldId, name: fieldName },
       area: fieldArea,
       treeCount: fieldTreeCount,
-      species: [], // filled below
+      species: [],
     });
   }
 
-  // Build species summaries
   const speciesSummaries: YieldSpeciesSummary[] = [];
 
   for (const [speciesId, agg] of aggregatedSpecies) {
@@ -290,7 +250,6 @@ export function calculateYieldEstimation(
     });
   }
 
-  // Fill field-level per-species breakdown
   for (const fieldSummary of fieldSummaries) {
     for (const [speciesId, agg] of aggregatedSpecies) {
       const fieldCount = agg.fieldContributions.get(fieldSummary.field._id) || 0;
@@ -309,7 +268,6 @@ export function calculateYieldEstimation(
     }
   }
 
-  // Year-by-year production
   const yearByYear: YieldYearEntry[] = [];
   for (let year = 1; year <= period; year++) {
     const bySpecies: Record<string, number> = {};
@@ -325,7 +283,6 @@ export function calculateYieldEstimation(
     yearByYear.push({ year, totalProductionKg: total, bySpecies });
   }
 
-  // Totals
   const totalTrees = speciesSummaries
     .filter((s) => s.unitType === "tree")
     .reduce((sum, s) => sum + s.count, 0);
@@ -357,3 +314,81 @@ export function calculateYieldEstimation(
     },
   };
 }
+
+export function generateYieldCSV(result: YieldEstimationResult): string {
+  const lines: string[] = [];
+
+  lines.push("Yield Estimation Export");
+  lines.push(`Period,${result.period} years`);
+  lines.push("");
+
+  lines.push("Summary");
+  lines.push(`Total Trees,${result.totals.totalTrees}`);
+  lines.push(`Species Count,${result.totals.totalSpecies}`);
+  lines.push(`Species Without Yield Data,${result.totals.speciesWithoutYieldData}`);
+  lines.push(
+    `Annual Production at Maturity,${result.totals.annualProductionAtMaturityKg.toFixed(1)} kg`,
+  );
+  lines.push(
+    `Total Production (${result.period} years),${result.totals.totalProductionOverPeriodKg.toFixed(1)} kg`,
+  );
+  lines.push(
+    `First Yield Year,${result.totals.firstYieldYear ?? "N/A"}`,
+  );
+  lines.push("");
+
+  lines.push("Species Summary");
+  lines.push(
+    "Species,Latin Name,Unit Type,Count,Yield at Maturity (kg/unit),First Yield (year),Maturity (year),Annual Production (kg),Total Production (kg)",
+  );
+  for (const s of result.speciesSummary) {
+    lines.push(
+      [
+        s.species.nameCommon,
+        `${s.species.genus || ""} ${s.species.species || ""}`.trim(),
+        s.unitType === "m2" ? "m2" : "trees",
+        s.count,
+        s.hasYieldData ? s.yieldAtMaturity.toFixed(1) : "no data",
+        s.yearsToFirstYield || "N/A",
+        s.yearsToMaturity || "N/A",
+        s.hasYieldData ? s.annualProductionAtMaturity.toFixed(1) : "no data",
+        s.hasYieldData ? s.totalProductionOverPeriod.toFixed(1) : "no data",
+      ].join(","),
+    );
+  }
+  lines.push("");
+
+  lines.push("Yield Curves (kg per unit per year)");
+  const maxYears = Math.max(...result.speciesSummary.map((s) => s.yieldCurve.length), 0);
+  if (maxYears > 0) {
+    const header = ["Species", ...Array.from({ length: maxYears }, (_, i) => `Year ${i + 1}`)];
+    lines.push(header.join(","));
+    for (const s of result.speciesSummary) {
+      if (s.yieldCurve.length === 0) {
+        lines.push([s.species.nameCommon, "no data"].join(","));
+        continue;
+      }
+      lines.push([s.species.nameCommon, ...s.yieldCurve.map((v) => v.toFixed(1))].join(","));
+    }
+    lines.push("");
+  }
+
+  lines.push("Year-by-Year Production (kg)");
+  const speciesNames = result.speciesSummary.map((s) => s.species.nameCommon);
+  lines.push(["Year", "Total", ...speciesNames].join(","));
+  for (const entry of result.yearByYear) {
+    const speciesValues = result.speciesSummary.map((s) =>
+      s.hasYieldData ? (entry.bySpecies[s.species._id] ?? 0).toFixed(1) : "",
+    );
+    lines.push(
+      [entry.year, entry.totalProductionKg.toFixed(1), ...speciesValues].join(","),
+    );
+  }
+
+  return lines.join("\n");
+}
+
+export default {
+  calculateYieldEstimation,
+  generateYieldCSV,
+};
