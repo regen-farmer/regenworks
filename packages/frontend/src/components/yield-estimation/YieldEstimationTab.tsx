@@ -165,3 +165,64 @@ export const YieldEstimationTab: Component<YieldEstimationTabProps> = (props) =>
     if (!id || !data) return null;
     return data.fieldSummary.find((f: any) => f.field._id === id)?.field.name ?? null;
   });
+
+  return (
+    <div class="h-full overflow-y-auto p-4 space-y-6">
+      {/* Title */}
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Yield Estimation{props.configName ? `: ${props.configName}` : ""}
+        </h2>
+      </div>
+
+      {/* Parameters + field selector */}
+      <div class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4">
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Parameters</h3>
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Period</span>
+            <input
+              type="number"
+              value={period()}
+              onInput={(e) => setPeriod(parseInt(e.currentTarget.value) || 30)}
+              class="w-20 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+              min="1"
+              max="100"
+              aria-label="Period in years"
+            />
+            <span class="text-sm text-gray-500">years</span>
+          </div>
+
+          {/* Field selector */}
+          <Show when={latestData()?.fieldSummary && latestData()!.fieldSummary.length > 1}>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500 dark:text-gray-400">Field</span>
+              <select
+                value={selectedFieldId() ?? ""}
+                onChange={(e) =>
+                  setSelectedFieldId(e.currentTarget.value === "" ? null : e.currentTarget.value)
+                }
+                class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                aria-label="Field filter"
+              >
+                <option value="">All Fields</option>
+                <For each={latestData()?.fieldSummary}>
+                  {(field: any) => (
+                    <option value={field.field._id}>
+                      {field.field.name} ({field.area.toFixed(2)} ha)
+                    </option>
+                  )}
+                </For>
+              </select>
+            </div>
+          </Show>
+
+          {/* Refetch indicator — inline next to parameters */}
+          <Show when={query.isFetching && latestData()}>
+            <div class="flex items-center gap-2 text-sm text-gray-400">
+              <div class="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              Updating...
+            </div>
+          </Show>
+        </div>
+      </div>
