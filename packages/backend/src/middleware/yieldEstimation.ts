@@ -108,3 +108,26 @@ interface AggregatedSpecies {
   count: number;
   fieldContributions: Map<string, number>;
 }
+
+// --------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------
+
+function getYieldCurve(species: ISpeciesSchema): number[] {
+  const flows = (species.flows ?? []) as unknown as IFlowSchema[];
+  if (flows.length === 0) return [];
+
+  // Only explicit yield flows qualify. Falling back to other flow types
+  // (carbon, biomass, ...) would silently misread their data as food yield.
+  const flow = flows.find((f) => f.unit === "food" || f.type === "yield");
+
+  if (!flow || !flow.data || flow.data.length === 0) return [];
+  return flow.data;
+}
+
+function getYieldForYear(yieldCurve: number[], year: number): number {
+  if (yieldCurve.length === 0) return 0;
+  const index = year - 1;
+  if (index < yieldCurve.length) return yieldCurve[index];
+  return yieldCurve[yieldCurve.length - 1]; // plateau
+}
