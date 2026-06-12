@@ -248,3 +248,44 @@ export function calculateYieldEstimation(
       species: [], // filled below
     });
   }
+
+  // Build species summaries
+  const speciesSummaries: YieldSpeciesSummary[] = [];
+
+  for (const [speciesId, agg] of aggregatedSpecies) {
+    const yieldCurve = getYieldCurve(agg.speciesDoc);
+    const hasYieldData = yieldCurve.length > 0;
+    const yieldAtMaturity = hasYieldData ? Math.max(...yieldCurve) : 0;
+
+    const firstYieldIndex = yieldCurve.findIndex((v) => v > 0);
+    const yearsToFirstYield = firstYieldIndex >= 0 ? firstYieldIndex + 1 : 0;
+
+    const maturityIndex = yieldCurve.indexOf(yieldAtMaturity);
+    const yearsToMaturity = maturityIndex >= 0 ? maturityIndex + 1 : 0;
+
+    const annualProductionAtMaturity = agg.count * yieldAtMaturity;
+
+    let totalProduction = 0;
+    for (let year = 1; year <= period; year++) {
+      totalProduction += agg.count * getYieldForYear(yieldCurve, year);
+    }
+
+    speciesSummaries.push({
+      species: {
+        _id: speciesId,
+        nameCommon: agg.speciesDoc.nameCommon || "Unknown",
+        genus: agg.speciesDoc.genus,
+        species: agg.speciesDoc.species,
+      },
+      unitType: agg.unitType,
+      count: agg.count,
+      hasYieldData,
+      yieldCurve,
+      yieldUnit: "kg",
+      yieldAtMaturity,
+      yearsToFirstYield,
+      yearsToMaturity,
+      annualProductionAtMaturity,
+      totalProductionOverPeriod: totalProduction,
+    });
+  }
