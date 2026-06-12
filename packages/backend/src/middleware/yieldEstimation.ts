@@ -131,3 +131,44 @@ function getYieldForYear(yieldCurve: number[], year: number): number {
   if (index < yieldCurve.length) return yieldCurve[index];
   return yieldCurve[yieldCurve.length - 1]; // plateau
 }
+
+// --------------------------------------------------------------------------
+// Main computation
+// --------------------------------------------------------------------------
+
+export function calculateYieldEstimation(
+  fieldScenarios: FieldScenarioData[],
+  speciesMap: Map<string, ISpeciesSchema>,
+  period: number = 30,
+): YieldEstimationResult {
+  // Aggregate species across all fields
+  const aggregatedSpecies = new Map<string, AggregatedSpecies>();
+  const fieldSummaries: YieldFieldSummary[] = [];
+
+  for (const fieldScenario of fieldScenarios) {
+    if (!fieldScenario.project?.systemdesign || !fieldScenario.layer?.geometry) continue;
+
+    const fieldId = fieldScenario.layer._id.toString();
+    const fieldName = fieldScenario.layer.name || "Unnamed Field";
+
+    let layout: any;
+    try {
+      const geometryString = fieldScenario.layer.geometry.replace(/&#34;/g, '"');
+      layout = systemBasedLayout(fieldScenario.project.systemdesign, geometryString);
+    } catch (e) {
+      console.error(`Failed to calculate layout for field ${fieldId}:`, e);
+      continue;
+    }
+
+    if (!layout || !layout.speciesCountArray) continue;
+
+    // Field area
+    let fieldArea = 0;
+    try {
+      const geometry = JSON.parse(fieldScenario.layer.geometry.replace(/&#34;/g, '"'));
+      fieldArea = area(geometry) / 10000;
+    } catch (e) {
+      console.error(`Failed to calculate area for field ${fieldId}:`, e);
+    }
+
+    let fieldTreeCount = 0;
