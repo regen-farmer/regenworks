@@ -10,6 +10,10 @@ import {
   generateFinancialsCSV,
 } from "../middleware/farmFinancials.ts";
 import middleware from "../middleware/index.ts";
+import {
+  calculateYieldEstimation,
+  generateYieldCSV,
+} from "../middleware/yieldEstimation.ts";
 
 const router = express.Router();
 
@@ -447,6 +451,128 @@ router.get(
       // eslint-disable-next-line no-console
       console.error("Error fetching aggregated species:", error);
       res.status(500).send({ error: "Failed to fetch aggregated species" });
+    }
+  },
+);
+
+async function buildYieldData(configId: string) {
+  const config = await FarmScenarioConfig.findById(configId)
+    .populate({
+      path: "fieldScenarios.layer",
+      select: "name geometry lat lng",
+    })
+    .populate({
+      path: "fieldScenarios.project",
+      select: "name systemdesign",
+      populate: {
+        path: "systemdesign",
+        populate: [
+          { path: "rows.sequence.species", model: "Species" },
+          { path: "rows.groundcover", model: "Species" },
+        ],
+      },
+    });
+
+  if (!config) return null;
+
+  const fieldScenarios = config.fieldScenarios
+    .filter((fs: any) => fs.enabled && fs.layer && fs.project)
+    .map((fs: any) => ({
+      layer: {
+        _id: fs.layer._id.toString(),
+        name: fs.layer.name || "Unnamed Field",
+        geometry: fs.layer.geometry,
+      },
+      project: fs.project
+        ? {
+            _id: fs.project._id.toString(),
+            name: fs.project.name,
+            systemdesign: fs.project.systemdesign,
+          }
+        : undefined,
+    }));
+
+  const speciesIds = new Set<string>();
+  for (const fs of fieldScenarios) {
+    if (fs.project?.systemdesign?.rows) {
+      for (const row of fs.project.systemdesign.rows) {
+        if (row.sequence) {
+          for (const entry of row.sequence) {
+            const id = entry.species?._id || entry.species?.id;
+            if (id) speciesIds.add(id.toString());
+            else if (typeof entry.species === "string") speciesIds.add(entry.species);
+          }
+        }
+        if (row.groundcover) {
+          const id = row.groundcover?._id || row.groundcover?.id;
+          if (id) speciesIds.add(id.toString());
+          else if (typeof row.groundcover === "string") speciesIds.add(row.groundcover);
+        }
+      }
+    }
+  }
+
+  const speciesDocs = await Species.find({
+    _id: { $in: Array.from(speciesIds) },
+  }).populate("flows");
+
+  const speciesMap = new Map<string, any>();
+  for (const s of speciesDocs) {
+    speciesMap.set(s._id.toString(), s.toObject());
+  }
+
+  return { config, fieldScenarios, speciesMap };
+}
+
+router.get(
+  "/farm-scenario-configs/:configId/yield-estimation",
+  middleware.isLoggedIn,
+  async (req: AuthRequest, res) => {
+    try {
+      const data = await buildYieldData(req.params.configId);
+      if (!data) {
+        return res.status(404).send({ error: "Farm scenario config not found" });
+      }
+
+      if (data.config.user.toString() !== req.user!._id.toString()) {
+        return res.status(403).send({ error: "Unauthorized" });
+      }
+
+      const period = parseInt(req.query.period as string) || 30;
+      const result = calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
+
+      res.send(result);
+    } catch (error) {
+      console.error("Error computing yield estimation:", error);
+      res.status(500).send({ error: "Failed to compute yield estimation" });
+    }
+  },
+);
+
+router.get(
+  "/farm-scenario-configs/:configId/yield-estimation/export/csv",
+  middleware.isLoggedIn,
+  async (req: AuthRequest, res) => {
+    try {
+      const data = await buildYieldData(req.params.configId);
+      if (!data) {
+        return res.status(404).send({ error: "Farm scenario config not found" });
+      }
+
+      if (data.config.user.toString() !== req.user!._id.toString()) {
+        return res.status(403).send({ error: "Unauthorized" });
+      }
+
+      const period = parseInt(req.query.period as string) || 30;
+      const result = calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
+      const csv = generateYieldCSV(result);
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="yield-estimation.csv"`);
+      res.send(csv);
+    } catch (error) {
+      console.error("Error exporting yield estimation:", error);
+      res.status(500).send({ error: "Failed to export yield estimation" });
     }
   },
 );

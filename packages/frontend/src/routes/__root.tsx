@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { HeadContent, Outlet, createRootRoute } from "@tanstack/solid-router";
 import { Suspense } from "solid-js";
 import { SessionProvider } from "~/auth/SessionProvider.tsx";
@@ -5,6 +6,15 @@ import { ThemeToggler } from "~/theme.tsx";
 import ElectronUpdater from "~/components/ElectronUpdater.tsx";
 // Side-effect: point maplibre at a real worker file before any map is created.
 import "~/util/maplibre-worker.ts";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000, // 30s before refetch
+      retry: 1,
+    },
+  },
+});
 // Side-effect CSS imports — kept in the route module graph so TanStack Start
 // auto-collects them for SSR's `/@tanstack-start/styles.css` endpoint, and so
 // vite injects them via JS with HMR in the SPA dev build.
@@ -16,17 +26,19 @@ import "~/style.css";
 // `__root.tsx` for web SSR.
 export function RootComponent() {
   return (
-    <ThemeToggler>
-      <Suspense>
-        <SessionProvider>
-          <div class="d-flex flex-column" style={{ height: "100%" }}>
-            <HeadContent />
-            <Outlet />
-          </div>
-        </SessionProvider>
-      </Suspense>
-      <ElectronUpdater />
-    </ThemeToggler>
+    <QueryClientProvider client={queryClient}>
+      <ThemeToggler>
+        <Suspense>
+          <SessionProvider>
+            <div class="d-flex flex-column" style={{ height: "100%" }}>
+              <HeadContent />
+              <Outlet />
+            </div>
+          </SessionProvider>
+        </Suspense>
+        <ElectronUpdater />
+      </ThemeToggler>
+    </QueryClientProvider>
   );
 }
 

@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  copyToClipboard: (text: string) => ipcRenderer.invoke("clipboard:write", text),
+  saveFile: (defaultName: string, content: string): Promise<boolean> =>
+    ipcRenderer.invoke("file:save-dialog", { defaultName, content }),
+
   invoke: (channel: string, ...args: unknown[]) =>
     ipcRenderer.invoke(channel, ...args),
 

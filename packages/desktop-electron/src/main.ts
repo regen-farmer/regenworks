@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, protocol, net } from "electron";
+import { app, BrowserWindow, clipboard, ipcMain, nativeImage, protocol, net } from "electron";
 import { autoUpdater } from "electron-updater";
 import path from "path";
 import fs from "fs";
@@ -86,7 +86,6 @@ function createWindow() {
     mainWindow.loadURL("app://localhost/");
   } else {
     mainWindow.loadURL(devUrl);
-    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.show();
@@ -114,6 +113,22 @@ ipcMain.handle("get_engine_version", () => {
 
 ipcMain.handle("health_check", () => {
   return loadGisNapi().healthCheck() as boolean;
+});
+
+ipcMain.handle("clipboard:write", (_event, text: string) => {
+  clipboard.writeText(text);
+});
+
+ipcMain.handle("file:save-dialog", async (_event, options: { defaultName: string; content: string }) => {
+  const { dialog } = await import("electron");
+  const fs = await import("fs/promises");
+  const result = await dialog.showSaveDialog({
+    defaultPath: options.defaultName,
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  });
+  if (result.canceled || !result.filePath) return false;
+  await fs.writeFile(result.filePath, options.content, "utf-8");
+  return true;
 });
 
 // Proxy fetch requests from renderer to bypass CORS (like Tauri's native HTTP plugin)

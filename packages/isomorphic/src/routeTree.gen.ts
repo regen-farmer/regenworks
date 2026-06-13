@@ -34,6 +34,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as SpeciesSpeciesIdNutrientsNewRouteImport } from './routes/_pages/species/$speciesId/nutrients/new'
 import { Route as SpeciesSpeciesIdActivitiesNewRouteImport } from './routes/_pages/species/$speciesId/activities/new'
 import { Route as SpeciesSpeciesIdActivitiesEditRouteImport } from './routes/_pages/species/$speciesId/activities/edit'
+import { Route as ParcelsParcelIdYieldConfigIdIndexRouteImport } from './routes/_pages/parcels/$parcelId/yield/$configId/index'
 import { Route as ParcelsParcelIdModelsModelIdIndexRouteImport } from './routes/_pages/parcels/$parcelId/models/$modelId/index'
 import { Route as ParcelsParcelIdLayersLayerIdIndexRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/index'
 import { Route as ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport } from './routes/_pages/parcels/$parcelId/farm-scenario/$farmScenarioId/index'
@@ -193,6 +194,12 @@ const SpeciesSpeciesIdActivitiesEditRoute =
     id: '/$speciesId/activities/edit',
     path: '/$speciesId/activities/edit',
     getParentRoute: () => SpeciesRouteRoute,
+  } as any)
+const ParcelsParcelIdYieldConfigIdIndexRoute =
+  ParcelsParcelIdYieldConfigIdIndexRouteImport.update({
+    id: '/$parcelId/yield/$configId/',
+    path: '/$parcelId/yield/$configId/',
+    getParentRoute: () => ParcelsRouteRoute,
   } as any)
 const ParcelsParcelIdModelsModelIdIndexRoute =
   ParcelsParcelIdModelsModelIdIndexRouteImport.update({
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/parcels/$parcelId/farm-scenario/$farmScenarioId/': typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute
   '/parcels/$parcelId/layers/$layerId/': typeof ParcelsParcelIdLayersLayerIdIndexRoute
   '/parcels/$parcelId/models/$modelId/': typeof ParcelsParcelIdModelsModelIdIndexRoute
+  '/parcels/$parcelId/yield/$configId/': typeof ParcelsParcelIdYieldConfigIdIndexRoute
   '/parcels/$parcelId/layers/$layerId/sequences/new': typeof ParcelsParcelIdLayersLayerIdSequencesNewRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRoute
@@ -455,6 +463,7 @@ export interface FileRoutesByTo {
   '/parcels/$parcelId/farm-scenario/$farmScenarioId': typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute
   '/parcels/$parcelId/layers/$layerId': typeof ParcelsParcelIdLayersLayerIdIndexRoute
   '/parcels/$parcelId/models/$modelId': typeof ParcelsParcelIdModelsModelIdIndexRoute
+  '/parcels/$parcelId/yield/$configId': typeof ParcelsParcelIdYieldConfigIdIndexRoute
   '/parcels/$parcelId/layers/$layerId/sequences/new': typeof ParcelsParcelIdLayersLayerIdSequencesNewRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRoute
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/parcels/$parcelId/farm-scenario/$farmScenarioId/': typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute
   '/parcels/$parcelId/layers/$layerId/': typeof ParcelsParcelIdLayersLayerIdIndexRoute
   '/parcels/$parcelId/models/$modelId/': typeof ParcelsParcelIdModelsModelIdIndexRoute
+  '/parcels/$parcelId/yield/$configId/': typeof ParcelsParcelIdYieldConfigIdIndexRoute
   '/parcels/$parcelId/layers/$layerId/sequences/new': typeof ParcelsParcelIdLayersLayerIdSequencesNewRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRoute
   '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup': typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRoute
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
     | '/parcels/$parcelId/layers/$layerId/'
     | '/parcels/$parcelId/models/$modelId/'
+    | '/parcels/$parcelId/yield/$configId/'
     | '/parcels/$parcelId/layers/$layerId/sequences/new'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup'
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/parcels/$parcelId/farm-scenario/$farmScenarioId'
     | '/parcels/$parcelId/layers/$layerId'
     | '/parcels/$parcelId/models/$modelId'
+    | '/parcels/$parcelId/yield/$configId'
     | '/parcels/$parcelId/layers/$layerId/sequences/new'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup'
@@ -672,6 +684,7 @@ export interface FileRouteTypes {
     | '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
     | '/parcels/$parcelId/layers/$layerId/'
     | '/parcels/$parcelId/models/$modelId/'
+    | '/parcels/$parcelId/yield/$configId/'
     | '/parcels/$parcelId/layers/$layerId/sequences/new'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
     | '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup'
@@ -887,6 +900,13 @@ declare module '@tanstack/solid-router' {
       fullPath: '/species/$speciesId/activities/edit'
       preLoaderRoute: typeof SpeciesSpeciesIdActivitiesEditRouteImport
       parentRoute: typeof SpeciesRouteRoute
+    }
+    '/parcels/$parcelId/yield/$configId/': {
+      id: '/parcels/$parcelId/yield/$configId/'
+      path: '/$parcelId/yield/$configId'
+      fullPath: '/parcels/$parcelId/yield/$configId/'
+      preLoaderRoute: typeof ParcelsParcelIdYieldConfigIdIndexRouteImport
+      parentRoute: typeof ParcelsRouteRoute
     }
     '/parcels/$parcelId/models/$modelId/': {
       id: '/parcels/$parcelId/models/$modelId/'
@@ -1176,6 +1196,7 @@ interface ParcelsRouteRouteChildren {
   ParcelsParcelIdIndexRoute: typeof ParcelsParcelIdIndexRoute
   ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute: typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute
   ParcelsParcelIdModelsModelIdIndexRoute: typeof ParcelsParcelIdModelsModelIdIndexRoute
+  ParcelsParcelIdYieldConfigIdIndexRoute: typeof ParcelsParcelIdYieldConfigIdIndexRoute
 }
 
 const ParcelsRouteRouteChildren: ParcelsRouteRouteChildren = {
@@ -1185,6 +1206,8 @@ const ParcelsRouteRouteChildren: ParcelsRouteRouteChildren = {
     ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute,
   ParcelsParcelIdModelsModelIdIndexRoute:
     ParcelsParcelIdModelsModelIdIndexRoute,
+  ParcelsParcelIdYieldConfigIdIndexRoute:
+    ParcelsParcelIdYieldConfigIdIndexRoute,
 }
 
 const ParcelsRouteRouteWithChildren = ParcelsRouteRoute._addFileChildren(

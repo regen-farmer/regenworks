@@ -19,6 +19,7 @@ import {
 } from "~/util/api/farmScenarioConfig.ts";
 import { deleteFinancialModel, getFinancialModels } from "~/util/api/financialModel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { isElectron } from "~/util/platform.ts";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { CreateFinancialModelModal } from "../CreateFinancialModelModal";
 import {
@@ -112,7 +113,7 @@ export default function DefaultMode({
   const [newScenarioDescription, setNewScenarioDescription] = createSignal("");
   const [isCreatingScenario, setIsCreatingScenario] = createSignal(false);
   const [activeListingPanel, setActiveListingPanel] = createSignal<
-    "fields" | "scenarios" | "models" | null
+    "fields" | "scenarios" | "models" | "yield" | null
   >("fields");
   const [deleteScenarioModalOpen, setDeleteScenarioModalOpen] = createSignal(false);
   const [scenarioToDelete, setScenarioToDelete] = createSignal<string | undefined>(undefined);
@@ -678,97 +679,69 @@ export default function DefaultMode({
             </div>
           </Show>
 
-          {/* Financial Models Section - only show when there are planting plans */}
-          {/* TEMPORARILY HIDDEN
-          <Show when={false && farmConfigs() && farmConfigs()!.length > 0}>
-            <div class="overflow-hidden rounded-lg border border-white/10 bg-white/5">
+          <Show when={isElectron() && farmConfigs() && farmConfigs()!.length > 0}>
+            <div class="rounded-[10px] bg-black/70 p-2.5">
               <button
                 type="button"
-                class="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                class="flex w-full items-center justify-between py-1 text-sm font-semibold hover:opacity-80"
                 onClick={() =>
-                  setActiveListingPanel((current) => (current === "models" ? null : "models"))
+                  setActiveListingPanel((current) => (current === "yield" ? null : "yield"))
                 }
-                aria-expanded={activeListingPanel() === "models"}
+                aria-expanded={activeListingPanel() === "yield"}
               >
-                <span>Financial Models</span>
+                <span>Yield Estimation</span>
                 <i
-                  class="fa-solid fa-chevron-down transition-transform"
+                  class="fa-solid fa-chevron-right transition-transform"
                   classList={{
-                    "rotate-180": activeListingPanel() === "models",
+                    "rotate-90": activeListingPanel() === "yield",
                   }}
                 />
               </button>
               <div
                 class="accordion-section"
                 classList={{
-                  "accordion-open": activeListingPanel() === "models",
+                  "accordion-open": activeListingPanel() === "yield",
                 }}
               >
-                <div class="space-y-3 border-t border-white/10 bg-black/20 p-3">
-                  <button
-                    type="button"
-                    onClick={() => setCreateModelModalOpen(true)}
-                    class="block w-full rounded-sm bg-green-600 p-2 text-center text-sm font-semibold text-white transition hover:bg-green-700"
+                <div class="space-y-2 pt-2">
+                  <div class="text-xs text-gray-400 px-1">
+                    View yield forecasts for each planting plan.
+                  </div>
+                  <div
+                    class="list-group rounded-md"
+                    style={{
+                      "max-height": "30vh",
+                      "overflow-y": "auto",
+                    }}
                   >
-                    <i class="fa-solid fa-plus mr-1" /> Create Model
-                  </button>
-                  <Show
-                    when={!financialModels.loading}
-                    fallback={<div class="text-sm text-gray-300">Loading models...</div>}
-                  >
-                    <Show
-                      when={financialModels() && financialModels()!.length > 0}
-                      fallback={<div class="text-sm text-gray-300">No financial models yet.</div>}
-                    >
-                      <div
-                        class="list-group rounded-md"
-                        style={{
-                          "max-height": "30vh",
-                          "overflow-y": "auto",
-                        }}
-                      >
-                        <For each={financialModels()}>
-                          {(model: any) => (
-                            <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                              <Link
-                                class="overlay-list-link"
-                                to={`/parcels/${params().parcelId}/models/${model._id}`}
-                              >
-                                <div>{model.name}</div>
-                                <div class="text-xs text-gray-400">{model.planName}</div>
-                              </Link>
-                              <div class="flex gap-1">
-                                <button
-                                  title="Open model"
-                                  class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
-                                  onClick={() =>
-                                    navigate({ to: `/parcels/${params().parcelId}/models/${model._id}` })
-                                  }
-                                >
-                                  <i class="fa-solid fa-chart-line" />
-                                </button>
-                                <button
-                                  title="Delete model"
-                                  class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button text-red-400 hover:text-red-300"
-                                  onClick={() => handleDeleteFinancialModel(model._id)}
-                                >
-                                  <i class="fa-solid fa-trash" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    </Show>
-                  </Show>
+                    <For each={farmConfigs()}>
+                      {(config: any) => (
+                        <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
+                          <Link
+                            class="overlay-list-link"
+                            to={`/parcels/${params().parcelId}/yield/${config._id}`}
+                          >
+                            <div>{config.name}</div>
+                          </Link>
+                          <button
+                            title="View yield estimation"
+                            class="rounded-sm p-1 my-2 btn-default menu-btn list-group-button"
+                            onClick={() =>
+                              navigate({ to: `/parcels/${params().parcelId}/yield/${config._id}` })
+                            }
+                          >
+                            <i class="fa-solid fa-seedling" />
+                          </button>
+                        </div>
+                      )}
+                    </For>
+                  </div>
                 </div>
               </div>
             </div>
           </Show>
-          */}
       </div>
 
-      {/* Create Financial Model Modal */}
       <CreateFinancialModelModal
         isOpen={() => createModelModalOpen()}
         onOpenChange={setCreateModelModalOpen}
