@@ -7,7 +7,7 @@ use geos::Geom;
 use std::collections::HashMap;
 
 use crate::geometry::{
-    along, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
+    along, bearing, coords_to_geos_polygon, destination, geos_polygon_to_coords, line_length,
     local_meters_to_wgs84, wgs84_to_local_meters,
 };
 use crate::ground_cover::make_ground_cover_areas;
@@ -274,9 +274,17 @@ fn generate_tree_markers(
         let sequence = &row_def.sequence;
         let mut tree_sequence_idx = 0;
         let mut distance = 0.0;
+        let direct_line_bearing = if tree_row.line.len() == 2 {
+            Some(bearing(tree_row.line[0], tree_row.line[1]))
+        } else {
+            None
+        };
 
         while distance < line_len {
-            let point = along(&tree_row.line, distance);
+            let point = match direct_line_bearing {
+                Some(row_bearing) => destination(tree_row.line[0], distance, row_bearing),
+                None => along(&tree_row.line, distance),
+            };
 
             let species_opt = &sequence[tree_sequence_idx].species;
 

@@ -78,6 +78,7 @@ pub fn make_tree_row_lines(
         .map(|c| wgs84_to_local_meters(*c, center))
         .collect()];
     let polygon_geom = coords_to_geos_polygon(&local_polygon)?;
+    let polygon_boundary = polygon_geom.boundary()?;
 
     // Project reference line to local meters
     let local_line: Vec<[f64; 2]> = line_intersecting_area
@@ -113,7 +114,6 @@ pub fn make_tree_row_lines(
         // Find intersection points between buffer boundary and polygon boundary
         // (all in local meter coordinates)
         let buffer_boundary = buffer_geom.boundary()?;
-        let polygon_boundary = polygon_geom.boundary()?;
 
         // Get the intersection of boundaries - should be Points where they cross
         let boundary_intersection = buffer_boundary.intersection(&polygon_boundary)?;
