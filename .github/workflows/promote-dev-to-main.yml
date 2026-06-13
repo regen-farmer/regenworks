@@ -1,0 +1,99 @@
+name: Promote dev to main
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_dev_sha:
+        description: Optional dev commit SHA to promote. Leave empty to promote current dev.
+        required: false
+        type: string
+      tag_name:
+        description: Optional tag to create after promotion, for example v2026.1.0.
+        required: false
+        type: string
+      dry_run:
+        description: Check whether promotion is possible without pushing.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-dev-to-main
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Fast-forward main to dev
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.PROMOTE_MAIN_TOKEN || github.token }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Validate promotion
+        id: validate
+        shell: bash
+        run: |
+          git fetch origin \
+            +refs/heads/main:refs/remotes/origin/main \
+            +refs/heads/dev:refs/remotes/origin/dev
+
+          MAIN_SHA="$(git rev-parse origin/main)"
+          DEV_SHA="$(git rev-parse origin/dev)"
+          EXPECTED_DEV_SHA="${{ inputs.expected_dev_sha }}"
+
+          echo "main: $MAIN_SHA"
+          echo "dev:  $DEV_SHA"
+
+          if [ -n "$EXPECTED_DEV_SHA" ] && [ "$EXPECTED_DEV_SHA" != "$DEV_SHA" ]; then
+            echo "Expected dev SHA $EXPECTED_DEV_SHA, but origin/dev is $DEV_SHA."
+            exit 1
+          fi
+
+          if git merge-base --is-ancestor origin/dev origin/main; then
+            echo "main already contains dev; nothing to promote."
+            echo "promote=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! git merge-base --is-ancestor origin/main origin/dev; then
+            echo "main and dev have diverged. Refusing to create a merge commit."
+            echo "Resolve by making main an ancestor of dev before promoting."
+            exit 1
+          fi
+
+          echo "Commits to promote:"
+          git log --oneline --decorate origin/main..origin/dev
+          echo "promote=true" >> "$GITHUB_OUTPUT"
+
+      - name: Fast-forward local main
+        if: steps.validate.outputs.promote == 'true'
+        run: |
+          git switch main
+          git reset --hard origin/main
+          git merge --ff-only origin/dev
+
+      - name: Push main
+        if: steps.validate.outputs.promote == 'true' && inputs.dry_run == false
+        run: git push origin HEAD:main
+
+      - name: Create release tag
+        if: steps.validate.outputs.promote == 'true' && inputs.dry_run == false && inputs.tag_name != ''
+        run: |
+          git tag -a "${{ inputs.tag_name }}" -m "${{ inputs.tag_name }}"
+          git push origin "${{ inputs.tag_name }}"
+
+      - name: Dry run result
+        if: inputs.dry_run == true
+        run: echo "Dry run complete. main can be fast-forwarded to dev."
