@@ -7,10 +7,6 @@ on:
         description: Optional dev commit SHA to promote. Leave empty to promote current dev.
         required: false
         type: string
-      tag_name:
-        description: Optional tag to create after promotion, for example v2026.1.0.
-        required: false
-        type: string
       dry_run:
         description: Check whether promotion is possible without pushing.
         required: true
@@ -87,12 +83,6 @@ jobs:
       - name: Push main
         if: steps.validate.outputs.promote == 'true' && inputs.dry_run == false
         run: git push origin HEAD:main
-
-      - name: Create release tag
-        if: steps.validate.outputs.promote == 'true' && inputs.dry_run == false && inputs.tag_name != ''
-        run: |
-          git tag -a "${{ inputs.tag_name }}" -m "${{ inputs.tag_name }}"
-          git push origin "${{ inputs.tag_name }}"
 
       - name: Dry run result
         if: inputs.dry_run == true
