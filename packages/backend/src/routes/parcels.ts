@@ -61,6 +61,8 @@ async function createParcel({
         await foundUser.save();
         await newlyCreated.save();
         res.send(newlyCreated);
+      } else {
+        res.status(404).send({ error: "Parcel owner not found" });
       }
     } catch (err) {
       console.log(err);
@@ -86,6 +88,7 @@ router.get(
       res.send({ parcels: allUserParcels, currentUser: req.user });
     } catch (err) {
       console.log(err);
+      res.status(500).send({ error: "Failed to load parcels" });
     }
   },
 );
@@ -390,7 +393,7 @@ router.put(
     res: express.Response,
   ) => {
     // UPDATE PARCEL – ensure we only respond **once**
-    const parcelUpdates = { ...(req.body.parcel || {}) };
+    const parcelUpdates = { ...req.body.parcel };
 
     try {
       // First, geocode (if we have a location string)
@@ -410,6 +413,10 @@ router.put(
       const updatedParcel = await Parcel.findByIdAndUpdate(req.params.id, parcelUpdates, {
         new: true,
       });
+
+      if (!updatedParcel) {
+        return res.status(404).send({ error: "Parcel not found" });
+      }
 
       res.send(updatedParcel);
     } catch (err) {

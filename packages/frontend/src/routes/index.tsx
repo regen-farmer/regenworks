@@ -1,8 +1,8 @@
-import { type Component, For, Match, Show, Switch, createResource } from "solid-js";
+import { For, Match, Show, Switch, createResource } from "solid-js";
 import { Link, useNavigate, createFileRoute } from "@tanstack/solid-router";
 import { allowFarmCreation } from "~/auth/useAuth.tsx";
 import type { ParcelDocument } from "@rw/db/schemas/parcel.ts";
-import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { apiFetch } from "~/util/apiFetch.ts";
 import { createSignal } from "solid-js";
 import { AddFarmModal } from "~/components/AddFarmModal.tsx";
 import MLMap from "~/components/Map.tsx";
@@ -13,37 +13,30 @@ export const Route = createFileRoute("/")({
 });
 
 async function postParcel(payload: parcelPayload) {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels`, {
+  return apiFetch<ParcelDocument>("/parcels", {
     body: JSON.stringify({ parcel: payload }),
     method: "post",
-    ...apiFetchOptions(),
   });
-  return await response.json();
 }
 
 async function updateParcel(payload: parcelPayload) {
   const id = payload.id;
-  payload.id = undefined;
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels/${id}`, {
-    body: JSON.stringify({ parcel: payload }),
+  const parcel = { ...payload };
+  delete parcel.id;
+
+  return apiFetch<ParcelDocument>(`/parcels/${id}`, {
+    body: JSON.stringify({ parcel }),
     method: "put",
-    ...apiFetchOptions(),
   });
-  return await response.json();
 }
 
 async function getGeoCodeFromLocation(location: string): Promise<[number, number]> {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/geocoding`, {
+  const response = await apiFetch<{ lat: number; lng: number }>("/geocoding", {
     body: JSON.stringify({ address: location }),
     method: "post",
-    ...apiFetchOptions(),
   });
 
-  if (response.status == 500) {
-    throw "Error while geocoding";
-  }
-
-  return await response.json();
+  return [response.lng, response.lat];
 }
 
 export enum modes {
@@ -63,11 +56,7 @@ export type parcelPayload = {
 function RouteComponent() {
   const [data, { refetch }] = createResource<{
     parcels: ParcelDocument[];
-  }>(async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/parcels`, apiFetchOptions());
-
-    return await response.json();
-  });
+  }>(() => apiFetch<{ parcels: ParcelDocument[] }>("/parcels"));
 
   const navigate = useNavigate();
 
@@ -81,6 +70,8 @@ function RouteComponent() {
   });
   const [coordinates, setCoordinates] = createSignal<[number, number]>();
   const [geocodingFailed, setGeocodingFailed] = createSignal<boolean>(false);
+  const [submitError, setSubmitError] = createSignal<string>();
+  const [isSubmitting, setIsSubmitting] = createSignal<boolean>(false);
 
   async function enterDefaultMode() {
     if (parcelPayload.name && parcelPayload.location && parcelPayload.lng && parcelPayload.lat) {
@@ -95,6 +86,7 @@ function RouteComponent() {
 
   async function enterDragMode() {
     setGeocodingFailed(false);
+    setSubmitError(undefined);
     if (parcelPayload.location && !isEditing()) {
       try {
         const result = await getGeoCodeFromLocation(parcelPayload.location);
@@ -137,24 +129,34 @@ function RouteComponent() {
   }
 
   async function submitAndGoToDefaultMode() {
-    if (isEditing()) {
-      await updateParcel(parcelPayload);
-      setIsEditing(false);
-    } else {
-      const newParcel = await postParcel(parcelPayload);
-      navigate({ to: `/parcels/${newParcel._id}` });
+    setSubmitError(undefined);
+    setIsSubmitting(true);
+
+    try {
+      if (isEditing()) {
+        await updateParcel(parcelPayload);
+        setIsEditing(false);
+      } else {
+        const newParcel = await postParcel(parcelPayload);
+        navigate({ to: `/parcels/${newParcel._id}` });
+      }
+
+      setParcelPayload({
+        name: "",
+        location: "",
+        lng: undefined,
+        lat: undefined,
+        id: undefined,
+      });
+
+      setMode(modes.default);
+      await refetch();
+    } catch (error) {
+      console.error("Unable to save farm", error);
+      setSubmitError(error instanceof Error ? error.message : "Unable to save farm");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setParcelPayload({
-      name: "",
-      location: "",
-      lng: undefined,
-      lat: undefined,
-      id: undefined,
-    });
-
-    setMode(modes.default);
-    refetch();
   }
 
   return (
@@ -169,7 +171,34 @@ function RouteComponent() {
         isEditing={isEditing}
         setIsEditing={setIsEditing}
       />
-      <Show when={data() && !data.loading} fallback={<p>no data</p>}>
+      <Show
+        when={!data.loading && !data.error}
+        fallback={
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+              height: "calc(100vh - 57px)",
+              padding: "1rem",
+              "text-align": "center",
+            }}
+          >
+            <Show when={data.error} fallback={<p>Loading farms...</p>}>
+              <div>
+                <p>Unable to load farms.</p>
+                <button
+                  type="button"
+                  class="rounded-sm p-1 mt-3 btn-default"
+                  onClick={() => refetch()}
+                >
+                  Retry
+                </button>
+              </div>
+            </Show>
+          </div>
+        }
+      >
         <MLMap
           enterDefaultMode={enterDefaultMode}
           data={data}
@@ -207,7 +236,11 @@ function RouteComponent() {
                     <For each={data()?.parcels}>
                       {(parcel) => (
                         <div class="list-group-item list-group-item-action list-group-item-primary overlay-list-div">
-                          <Link to={`/parcels/${parcel._id}`} class="overlay-list-link">
+                          <Link
+                            to="/parcels/$parcelId"
+                            params={{ parcelId: parcel._id }}
+                            class="overlay-list-link"
+                          >
                             {parcel.name}
                           </Link>
                           <div>
@@ -308,10 +341,16 @@ function RouteComponent() {
                 type="button"
                 class={"rounded-sm p-1 my-2 btn-default"}
                 onClick={() => submitAndGoToDefaultMode()}
+                disabled={isSubmitting()}
                 style={{ width: "100%" }}
               >
-                Set location
+                <Show when={!isSubmitting()} fallback={"Saving..."}>
+                  Set location
+                </Show>
               </button>
+              <Show when={submitError()}>
+                <p style={{ color: "#ffcccc", margin: "0.5rem 0 0" }}>{submitError()}</p>
+              </Show>
               <button
                 type="button"
                 class={"rounded-sm p-1 my-1 btn-danger"}
