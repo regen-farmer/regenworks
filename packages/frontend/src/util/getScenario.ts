@@ -1,17 +1,12 @@
 import { createResource } from "solid-js";
-import { apiFetchOptions } from "./apiFetchOptions.ts";
+import { apiFetch } from "~/util/apiFetch.ts";
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 
 export function getScenario(projectId: any, callback?: any) {
   const [data] = createResource(async () => {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}/layout`,
-      apiFetchOptions(),
-    );
-
     const result: {
       project: ProjectDocument;
-    } = await response.json();
+    } = await apiFetch(`/projects/${projectId}/layout`);
 
     if (callback) callback(result);
 

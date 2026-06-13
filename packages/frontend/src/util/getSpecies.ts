@@ -1,21 +1,19 @@
 import type { SpeciesDocument } from "@rw/db/schemas/species.ts";
 import { createResource } from "solid-js";
-import { apiFetchOptions } from "./apiFetchOptions.ts";
+import { apiFetch } from "~/util/apiFetch.ts";
 
 export function getSpecies() {
   const [data] = createResource<{
     species: SpeciesDocument[];
     speciesById: Map<string, SpeciesDocument>;
   }>(async () => {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/species`, apiFetchOptions());
+    const response = await apiFetch<{ species: SpeciesDocument[] }>("/species");
 
-    const result = await response.json();
-
-    result.speciesById = new Map<string, any>(
-      result.species.map((species: SpeciesDocument) => [species._id, species]),
+    const speciesById = new Map<string, SpeciesDocument>(
+      response.species.map((species) => [species._id, species]),
     );
 
-    return result;
+    return { ...response, speciesById };
   });
   return data;
 }
