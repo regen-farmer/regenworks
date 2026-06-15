@@ -33,7 +33,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack --locked --version 0.13.1
+        run: cargo install wasm-pack --locked --version 0.15.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -79,7 +79,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack --locked --version 0.13.1
+        run: cargo install wasm-pack --locked --version 0.15.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
