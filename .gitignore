@@ -13,3 +13,9 @@ dist-electron/
 *.p12
 packages/isomorphic/src/routes/_pages/
 /packages/frontend/dist/
+
+# Generated visual comparison artifacts
+packages/modelling/tests/fixtures/**/output*.svg
+packages/modelling/tests/fixtures/**/output*.png
+packages/modelling/tests/fixtures/**/debug*.svg
+packages/modelling/tests/fixtures/**/debug*.png
