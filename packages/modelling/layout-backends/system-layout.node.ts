@@ -56,13 +56,24 @@ function shouldLogLayoutBackend(): boolean {
   return process.env.LOG_LAYOUT_BACKEND === "1" || process.env.LOG_LAYOUT_BACKEND === "true";
 }
 
+function plainLayoutInput<T>(value: T): T {
+  if (value && typeof (value as any).toObject === "function") {
+    return (value as any).toObject();
+  }
+
+  return value;
+}
+
 async function runSelectedLayoutBackend(
   backendName: LayoutBackendName,
   systemDesign: any,
   fieldGeometry: any,
 ): Promise<LayoutBackendRun> {
   const runner = await layoutBackendRunner(backendName);
-  return runner({ systemDesign, fieldGeometry });
+  return runner({
+    systemDesign: plainLayoutInput(systemDesign),
+    fieldGeometry: plainLayoutInput(fieldGeometry),
+  });
 }
 
 export function getSystemLayoutBackendName(): LayoutBackendName {
