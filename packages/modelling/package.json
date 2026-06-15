@@ -6,13 +6,15 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build:wasm": "cd gis-rs && wasm-pack build --target web --out-dir ../gis-wasm/pkg",
-		"lint": "oxlint --import-plugin --jsdoc-plugin ./gis-ts",
-		"format": "oxfmt --write ./gis-ts"
+		"build:wasm": "pnpm build:wasm:geometry-kernel",
+		"build:wasm:geometry-kernel": "cd layout-geometry-kernel && wasm-pack build --target web --out-dir pkg -- --no-default-features --features wasm",
+		"build:wasm:geos-wasm-geo": "cd layout-geos-native && wasm-pack build --target web --out-dir ../layout-geos-wasm-geo/pkg -- --no-default-features --features wasm",
+		"lint": "oxlint --import-plugin --jsdoc-plugin ./layout-turf-js",
+		"format": "oxfmt --write ./layout-turf-js"
 	},
 	"dependencies": {
 		"@rw/db": "workspace:*",
-		"@turf/turf": "^7.1.0",
+		"@turf/turf": "^7.3.5",
 		"geos-wasm": "^3.1.1",
 		"lodash": "^4.17.21"
 	},

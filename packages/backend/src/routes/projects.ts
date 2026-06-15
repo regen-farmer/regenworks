@@ -12,11 +12,9 @@ import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
-import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
-import {
-  systemBasedLayout,
-  systemBasedLayoutAsync,
-} from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { rowBasedLayout } from "@rw/modelling/layout-turf-js/row_based_layout.ts";
+import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
+import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_layout.ts";
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";
@@ -50,7 +48,6 @@ import middleware from "../middleware/index.ts";
 // import Area from "collections/area";
 // var geodist = require("geodist"); // TO CALCULATE DISTANCE BETWEEN COORDINATES
 // var middleware = require("../middleware");
-// var gisObj = require("@rw/modelling/gis");
 // var dyFiMo = require("../middleware/financials")
 // var bbox = require("@turf/bbox");
 // var bboxPolygon = require("@turf/bbox-polygon");
@@ -223,7 +220,7 @@ router.post(
     const payload: { geometry; systemdesign } = req.body;
 
     try {
-      const layout = await systemBasedLayoutAsync(payload.systemdesign, payload.geometry);
+      const layout = await runSystemBasedLayout(payload.systemdesign, payload.geometry);
 
       res.send({
         treeRowLines: layout.treeRowLines,
@@ -322,7 +319,7 @@ router.get(
 
       if (foundProject?.isPublic || (req.user && foundProject?.owner?.id.equals(req.user._id))) {
         console.time("systemBasedLayout");
-        const layout = await systemBasedLayoutAsync(
+        const layout = await runSystemBasedLayout(
           foundProject.systemdesign,
           foundProject.layer.geometry,
         );

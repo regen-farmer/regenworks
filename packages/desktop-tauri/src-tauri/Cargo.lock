@@ -6,7 +6,7 @@ version = 4
 name = "RegenWorks"
 version = "0.1.0"
 dependencies = [
- "gis-rs",
+ "layout-geos-native",
  "serde",
  "serde_json",
  "tauri",
@@ -1530,25 +1530,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gis-rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "geojson",
- "geos",
- "instant",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tower 0.4.13",
- "tower-http 0.5.2",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "glib"
 version = "0.18.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2229,6 +2210,25 @@ dependencies = [
  "html5ever",
  "indexmap 2.13.0",
  "selectors",
+]
+
+[[package]]
+name = "layout-geos-native"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "geojson",
+ "geos",
+ "instant",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tower 0.4.13",
+ "tower-http 0.5.2",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev --port 10100",
+		"prebuild": "pnpm --filter @rw/modelling build:wasm",
 		"build": "vite build",
 		"preview": "vite preview --port 10100",
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
@@ -37,7 +38,7 @@
 		"@tanstack/solid-query": "^5.75.5",
 		"@tanstack/solid-router": "^1.168.19",
 		"@tmcw/togeojson": "^7.1.2",
-		"@turf/turf": "^7.1.0",
+		"@turf/turf": "^7.3.5",
 		"chart.js": "^4.5.0",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",

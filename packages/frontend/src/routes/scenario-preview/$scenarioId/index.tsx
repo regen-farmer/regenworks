@@ -3,7 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import type { ProjectDocument } from "@rw/db/schemas/project.ts";
 import { generateLayout } from "~/util/layoutService.ts";
-import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/layout-turf-js/types/system-based-layout.ts";
 import { useParams, createFileRoute } from "@tanstack/solid-router";
 import {
   type Component,

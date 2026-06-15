@@ -7,11 +7,11 @@ import System from "@rw/db/schemas/system.ts";
 import Posting, { type IPostingSchema } from "@rw/db/schemas/posting.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import middleware from "../middleware/index.ts";
-import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import type { Auth0IDToken } from "../app.ts";
-import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
+import { rowBasedLayout } from "@rw/modelling/layout-turf-js/row_based_layout.ts";
 
 const router = express.Router();
 
@@ -350,7 +350,7 @@ router.post(
               layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+              layout = await runSystemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
             }
 
             let uniqueSpeciesCount: {
@@ -663,7 +663,7 @@ router.post(
               layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = systemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+              layout = await runSystemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
             }
             let uniqueSpeciesCount: {
               id: string;

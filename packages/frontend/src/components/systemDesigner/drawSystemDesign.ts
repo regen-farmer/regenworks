@@ -1,4 +1,4 @@
-import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/layout-turf-js/types/system-based-layout.ts";
 import {
   featureCollection,
   point as turfPoint,

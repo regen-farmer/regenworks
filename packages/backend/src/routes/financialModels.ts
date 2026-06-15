@@ -398,15 +398,16 @@ router.get(
 
         if (!systemdesign?.rows) continue;
 
-        // Use the layout calculation to get accurate counts
-        const { systemBasedLayout } = await import("@rw/modelling/gis-ts/system_based_layout.ts");
+        const { runSystemBasedLayout } = await import(
+          "@rw/modelling/layout-backends/system-layout.node.ts"
+        );
 
         const layer = fs.layer as any;
         if (!layer?.geometry) continue;
 
         try {
           const geometryString = layer.geometry.replace(/&#34;/g, '"');
-          const layout = systemBasedLayout(systemdesign, geometryString);
+          const layout = await runSystemBasedLayout(systemdesign, geometryString);
 
           if (layout?.speciesCountArray) {
             for (const entry of layout.speciesCountArray) {
@@ -539,7 +540,7 @@ router.get(
       }
 
       const period = parseInt(req.query.period as string) || 30;
-      const result = calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
+      const result = await calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
 
       res.send(result);
     } catch (error) {
@@ -564,7 +565,7 @@ router.get(
       }
 
       const period = parseInt(req.query.period as string) || 30;
-      const result = calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
+      const result = await calculateYieldEstimation(data.fieldScenarios, data.speciesMap, period);
       const csv = generateYieldCSV(result);
 
       res.setHeader("Content-Type", "text/csv");

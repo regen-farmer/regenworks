@@ -21,8 +21,8 @@ tauri-plugin-opener = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 
-# Our layout engine with native GEOS
-gis-rs = { path = "../../modelling/gis-rs", default-features = true }
+# Native GEOS layout backend. Keep the dependency alias for existing Rust imports.
+gis-rs = { package = "layout-geos-native", path = "../../modelling/layout-geos-native", default-features = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
