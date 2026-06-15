@@ -1,7 +1,7 @@
 {
 	"name": "@rw/gis-napi",
 	"version": "0.1.0",
-	"description": "Native Node.js addon for the GIS layout engine",
+	"description": "Native Node.js addon for the geometry-kernel layout engine",
 	"main": "index.js",
 	"napi": {
 		"binaryName": "gis-napi",

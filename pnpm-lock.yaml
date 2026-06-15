@@ -67,10 +67,10 @@ importers:
         specifier: workspace:*
         version: link:../modelling
       '@turf/area':
-        specifier: ^7.1.0
+        specifier: ^7.3.5
         version: 7.3.5
       '@turf/turf':
-        specifier: ^7.1.0
+        specifier: ^7.3.5
         version: 7.3.5
       '@types/lodash':
         specifier: ^4.17.20
@@ -242,7 +242,7 @@ importers:
         specifier: ^7.1.2
         version: 7.1.2
       '@turf/turf':
-        specifier: ^7.1.0
+        specifier: ^7.3.5
         version: 7.3.5
       chart.js:
         specifier: ^4.5.0
@@ -396,7 +396,7 @@ importers:
         specifier: ^7.1.2
         version: 7.1.2
       '@turf/turf':
-        specifier: ^7.1.0
+        specifier: ^7.3.5
         version: 7.3.5
       '@types/proj4':
         specifier: ^2.19.0
@@ -514,7 +514,7 @@ importers:
         specifier: workspace:*
         version: link:../db
       '@turf/turf':
-        specifier: ^7.1.0
+        specifier: ^7.3.5
         version: 7.3.5
       geos-wasm:
         specifier: ^3.1.1

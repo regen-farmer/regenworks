@@ -6,7 +6,7 @@
 
 import type { IFinancialModelSchema } from "@rw/db/schemas/financialModel.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import area from "@turf/area";
 
 // Types for financial calculations
@@ -151,11 +151,11 @@ function getAnnualManagementCostPerUnit(species: ISpeciesSchema): number {
 /**
  * Main function to calculate farm-level financials
  */
-export function calculateFarmFinancials(
+export async function calculateFarmFinancials(
   financialModel: IFinancialModelSchema,
   fieldScenarios: FieldScenarioData[],
   speciesMap: Map<string, ISpeciesSchema>,
-): FarmFinancialsResult {
+): Promise<FarmFinancialsResult> {
   const { period, currency } = financialModel.parameters;
 
   // Build species pricing lookups (income and cost overrides)
@@ -194,7 +194,7 @@ export function calculateFarmFinancials(
     let layout: any;
     try {
       const geometryString = fieldScenario.layer.geometry.replace(/&#34;/g, '"');
-      layout = systemBasedLayout(fieldScenario.project.systemdesign, geometryString);
+      layout = await runSystemBasedLayout(fieldScenario.project.systemdesign, geometryString);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(`Failed to calculate layout for field ${fieldId}:`, e);

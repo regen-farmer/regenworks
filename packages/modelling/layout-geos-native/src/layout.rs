@@ -7,7 +7,7 @@ use geos::Geom;
 use std::collections::HashMap;
 
 use crate::geometry::{
-    along, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
+    along, centroid, coords_to_geos_polygon, geos_polygon_to_coords, line_length,
     local_meters_to_wgs84, wgs84_to_local_meters,
 };
 use crate::ground_cover::make_ground_cover_areas;
@@ -208,12 +208,8 @@ fn apply_margin(
         return Ok(polygon_coords.to_vec());
     }
 
-    // Calculate centroid as projection center
     let exterior = &polygon_coords[0];
-    let n = exterior.len() as f64;
-    let center_lon: f64 = exterior.iter().map(|c| c[0]).sum::<f64>() / n;
-    let center_lat: f64 = exterior.iter().map(|c| c[1]).sum::<f64>() / n;
-    let center = [center_lon, center_lat];
+    let center = centroid(exterior);
 
     // Project exterior ring to local meters (ignore holes - trees/groundcover run over them)
     let local_coords: Vec<Vec<[f64; 2]>> = vec![polygon_coords[0]

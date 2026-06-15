@@ -1,5 +1,5 @@
 [package]
-name = "gis-rs"
+name = "layout-geos-native"
 version = "0.1.0"
 edition = "2021"
 description = "Rust implementation of RegenWorks layout modelling"
@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["native"]
 native = ["geos", "axum", "tokio", "tower", "tower-http", "tracing-subscriber"]
-wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook", "getrandom/js"]
+wasm = ["geo", "wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook", "getrandom/js"]
 
 [dependencies]
 # Serialization
@@ -54,6 +54,7 @@ console_error_panic_hook = { version = "0.1", optional = true }
 
 # Cross-platform timing (works in both native and WASM)
 instant = { version = "0.1", features = ["wasm-bindgen"] }
+geo = { version = "0.33.1", features = ["use-serde"], optional = true }
 
 [dev-dependencies]
 approx = "0.5"

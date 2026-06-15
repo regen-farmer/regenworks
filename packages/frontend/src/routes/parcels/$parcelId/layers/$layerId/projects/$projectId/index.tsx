@@ -44,7 +44,7 @@ import { MaptilerNavigationControl } from "@maptiler/sdk";
 import type { ISystemDesignSchema, SystemDesignDocument } from "@rw/db/schemas/systemdesign.ts";
 
 import { generateLayout } from "~/util/layoutService.ts";
-import type { ISystemBasedLayout } from "@rw/modelling/gis-ts/types/system-based-layout.ts";
+import type { ISystemBasedLayout } from "@rw/modelling/layout-turf-js/types/system-based-layout.ts";
 import { OfferRequestModal } from "~/components/OfferRequestModal";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";

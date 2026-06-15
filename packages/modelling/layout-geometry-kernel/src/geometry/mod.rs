@@ -3,11 +3,14 @@
 //! Rust implementations of Turf.js geometry helpers like `along`, `circle`,
 //! `bearing`, `destination`, etc.
 
-use geos::{Geom, Geometry};
 use std::f64::consts::PI;
 
-/// Earth's radius in meters (WGS84 semi-major axis)
-pub const EARTH_RADIUS: f64 = 6_378_137.0;
+/// Turf.js' spherical Earth radius in meters.
+///
+/// Layout parity depends on matching Turf's meter-to-degree conversions. Using
+/// the WGS84 semi-major radius makes repeated row widths drift against the
+/// TypeScript source of truth.
+pub const EARTH_RADIUS: f64 = 6_371_008.8;
 
 /// Convert degrees to radians
 #[inline]
@@ -55,11 +58,73 @@ pub fn distance(start: [f64; 2], end: [f64; 2]) -> f64 {
     let delta_lat = to_radians(end[1] - start[1]);
     let delta_lon = to_radians(end[0] - start[0]);
 
-    let a = (delta_lat / 2.0).sin().powi(2)
-        + lat1.cos() * lat2.cos() * (delta_lon / 2.0).sin().powi(2);
+    let a =
+        (delta_lat / 2.0).sin().powi(2) + lat1.cos() * lat2.cos() * (delta_lon / 2.0).sin().powi(2);
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
     EARTH_RADIUS * c
+}
+
+pub fn rhumb_distance(start: [f64; 2], end: [f64; 2]) -> f64 {
+    let phi1 = to_radians(start[1]);
+    let phi2 = to_radians(end[1]);
+    let delta_phi = phi2 - phi1;
+    let mut delta_lambda = (to_radians(end[0]) - to_radians(start[0])).abs();
+
+    if delta_lambda > PI {
+        delta_lambda -= 2.0 * PI;
+    }
+
+    let delta_psi = ((phi2 / 2.0 + PI / 4.0).tan() / (phi1 / 2.0 + PI / 4.0).tan()).ln();
+    let q = if delta_psi.abs() > 1.0e-11 {
+        delta_phi / delta_psi
+    } else {
+        phi1.cos()
+    };
+    let delta = (delta_phi * delta_phi + q * q * delta_lambda * delta_lambda).sqrt();
+
+    delta * EARTH_RADIUS
+}
+
+pub fn rhumb_bearing(start: [f64; 2], end: [f64; 2]) -> f64 {
+    let phi1 = to_radians(start[1]);
+    let phi2 = to_radians(end[1]);
+    let mut delta_lambda = to_radians(end[0] - start[0]);
+
+    if delta_lambda > PI {
+        delta_lambda -= 2.0 * PI;
+    }
+    if delta_lambda < -PI {
+        delta_lambda += 2.0 * PI;
+    }
+
+    let delta_psi = ((phi2 / 2.0 + PI / 4.0).tan() / (phi1 / 2.0 + PI / 4.0).tan()).ln();
+    to_degrees(delta_lambda.atan2(delta_psi))
+}
+
+pub fn rhumb_destination(origin: [f64; 2], distance_m: f64, bearing_deg: f64) -> [f64; 2] {
+    let delta = distance_m / EARTH_RADIUS;
+    let lambda1 = to_radians(origin[0]);
+    let phi1 = to_radians(origin[1]);
+    let theta = to_radians(bearing_deg);
+
+    let delta_phi = delta * theta.cos();
+    let mut phi2 = phi1 + delta_phi;
+
+    if phi2.abs() > PI / 2.0 {
+        phi2 = if phi2 > 0.0 { PI - phi2 } else { -PI - phi2 };
+    }
+
+    let delta_psi = ((phi2 / 2.0 + PI / 4.0).tan() / (phi1 / 2.0 + PI / 4.0).tan()).ln();
+    let q = if delta_psi.abs() > 1.0e-11 {
+        delta_phi / delta_psi
+    } else {
+        phi1.cos()
+    };
+    let delta_lambda = delta * theta.sin() / q;
+    let lambda2 = lambda1 + delta_lambda;
+
+    [wrap_longitude(to_degrees(lambda2)), to_degrees(phi2)]
 }
 
 /// Calculate the destination point given a starting point, distance, and bearing.
@@ -173,6 +238,18 @@ pub fn centroid(coords: &[[f64; 2]]) -> [f64; 2] {
         return [0.0, 0.0];
     }
 
+    let coords = if coords.len() > 1 {
+        let first = coords[0];
+        let last = coords[coords.len() - 1];
+        if (first[0] - last[0]).abs() <= 1e-10 && (first[1] - last[1]).abs() <= 1e-10 {
+            &coords[..coords.len() - 1]
+        } else {
+            coords
+        }
+    } else {
+        coords
+    };
+
     let n = coords.len() as f64;
     let sum_lng: f64 = coords.iter().map(|c| c[0]).sum();
     let sum_lat: f64 = coords.iter().map(|c| c[1]).sum();
@@ -215,19 +292,29 @@ pub fn rotate_point(point: [f64; 2], pivot: [f64; 2], angle_deg: f64) -> [f64; 2
     if (point[0] - pivot[0]).abs() < 1e-12 && (point[1] - pivot[1]).abs() < 1e-12 {
         return point;
     }
-    
+
     // Geodesic rotation:
     // 1. Calculate distance from pivot to point
     let dist = distance(pivot, point);
-    
+
     // 2. Calculate current bearing from pivot to point
     let current_bearing = bearing(pivot, point);
-    
+
     // 3. New bearing = current + rotation angle
     let new_bearing = current_bearing + angle_deg;
-    
+
     // 4. Calculate destination point at same distance but new bearing
     destination(pivot, dist, new_bearing)
+}
+
+pub fn rotate_point_rhumb(point: [f64; 2], pivot: [f64; 2], angle_deg: f64) -> [f64; 2] {
+    if (point[0] - pivot[0]).abs() < 1e-12 && (point[1] - pivot[1]).abs() < 1e-12 {
+        return point;
+    }
+
+    let dist = rhumb_distance(pivot, point);
+    let new_bearing = rhumb_bearing(pivot, point) + angle_deg;
+    rhumb_destination(pivot, dist, new_bearing)
 }
 
 /// Rotate all coordinates in a polygon around a pivot point.
@@ -236,7 +323,11 @@ pub fn rotate_point(point: [f64; 2], pivot: [f64; 2], angle_deg: f64) -> [f64; 2
 /// * `coords` - Polygon rings coordinates
 /// * `pivot` - The pivot point [lng, lat]
 /// * `angle_deg` - Rotation angle in degrees
-pub fn rotate_polygon(coords: &[Vec<[f64; 2]>], pivot: [f64; 2], angle_deg: f64) -> Vec<Vec<[f64; 2]>> {
+pub fn rotate_polygon(
+    coords: &[Vec<[f64; 2]>],
+    pivot: [f64; 2],
+    angle_deg: f64,
+) -> Vec<Vec<[f64; 2]>> {
     coords
         .iter()
         .map(|ring| {
@@ -258,6 +349,17 @@ pub fn rotate_line(coords: &[[f64; 2]], pivot: [f64; 2], angle_deg: f64) -> Vec<
         .iter()
         .map(|point| rotate_point(*point, pivot, angle_deg))
         .collect()
+}
+
+pub fn rotate_line_rhumb(coords: &[[f64; 2]], pivot: [f64; 2], angle_deg: f64) -> Vec<[f64; 2]> {
+    coords
+        .iter()
+        .map(|point| rotate_point_rhumb(*point, pivot, angle_deg))
+        .collect()
+}
+
+fn wrap_longitude(longitude: f64) -> f64 {
+    (longitude + 540.0).rem_euclid(360.0) - 180.0
 }
 
 /// Calculate a bounding box for a set of coordinates.
@@ -299,112 +401,6 @@ pub fn bbox_polygon(coords: &[[f64; 2]]) -> Vec<[f64; 2]> {
     ]
 }
 
-/// Convert coordinates to a GEOS Geometry LineString.
-pub fn coords_to_geos_line(coords: &[[f64; 2]]) -> Result<Geometry, geos::Error> {
-    let wkt = format!(
-        "LINESTRING({})",
-        coords
-            .iter()
-            .map(|c| format!("{} {}", c[0], c[1]))
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
-    Geometry::new_from_wkt(&wkt)
-}
-
-/// Convert coordinates to a GEOS Geometry Polygon.
-pub fn coords_to_geos_polygon(rings: &[Vec<[f64; 2]>]) -> Result<Geometry, geos::Error> {
-    if rings.is_empty() {
-        return Err(geos::Error::GenericError("Empty polygon".to_string()));
-    }
-
-    let exterior = &rings[0];
-    let exterior_wkt = exterior
-        .iter()
-        .map(|c| format!("{} {}", c[0], c[1]))
-        .collect::<Vec<_>>()
-        .join(", ");
-
-    let wkt = if rings.len() == 1 {
-        format!("POLYGON(({}))", exterior_wkt)
-    } else {
-        let holes: Vec<String> = rings[1..]
-            .iter()
-            .map(|ring| {
-                format!(
-                    "({})",
-                    ring.iter()
-                        .map(|c| format!("{} {}", c[0], c[1]))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )
-            })
-            .collect();
-        format!("POLYGON(({}), {})", exterior_wkt, holes.join(", "))
-    };
-
-    Geometry::new_from_wkt(&wkt)
-}
-
-/// Convert a GEOS Geometry to coordinate arrays.
-pub fn geos_polygon_to_coords<G: Geom>(geom: &G) -> Result<Vec<Vec<[f64; 2]>>, geos::Error> {
-    let geom_type = geom.geometry_type();
-    
-    match geom_type {
-        geos::GeometryTypes::Polygon => {
-            let exterior = geom.get_exterior_ring()?;
-            let coord_seq = exterior.get_coord_seq()?;
-            let num_coords = coord_seq.size()?;
-            
-            let mut ring = Vec::with_capacity(num_coords as usize);
-            for i in 0..num_coords {
-                let x = coord_seq.get_x(i)?;
-                let y = coord_seq.get_y(i)?;
-                ring.push([x, y]);
-            }
-            
-            let mut rings = vec![ring];
-            
-            // Get holes
-            let num_holes = geom.get_num_interior_rings()?;
-            for i in 0..num_holes {
-                let hole = geom.get_interior_ring_n(i as u32)?;
-                let coord_seq = hole.get_coord_seq()?;
-                let num_coords = coord_seq.size()?;
-                
-                let mut hole_ring = Vec::with_capacity(num_coords as usize);
-                for j in 0..num_coords {
-                    let x = coord_seq.get_x(j)?;
-                    let y = coord_seq.get_y(j)?;
-                    hole_ring.push([x, y]);
-                }
-                rings.push(hole_ring);
-            }
-            
-            Ok(rings)
-        }
-        _ => Err(geos::Error::GenericError(format!(
-            "Expected Polygon, got {:?}",
-            geom_type
-        ))),
-    }
-}
-
-/// Convert a GEOS LineString to coordinate array.
-pub fn geos_line_to_coords(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error> {
-    let coord_seq = geom.get_coord_seq()?;
-    let num_coords = coord_seq.size()?;
-    
-    let mut coords = Vec::with_capacity(num_coords as usize);
-    for i in 0..num_coords {
-        let x = coord_seq.get_x(i)?;
-        let y = coord_seq.get_y(i)?;
-        coords.push([x, y]);
-    }
-    
-    Ok(coords)
-}
-
 /// Project a WGS84 coordinate to local meters using Azimuthal Equidistant projection
 /// centered on a reference point. This preserves distances from the center point.
 ///
@@ -417,12 +413,12 @@ pub fn geos_line_to_coords(geom: &Geometry) -> Result<Vec<[f64; 2]>, geos::Error
 pub fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
     let dist = distance(center, coord);
     let brng = bearing(center, coord).to_radians();
-    
+
     // Convert polar (distance, bearing) to cartesian (x, y) in meters
     // x = east, y = north
     let x = dist * brng.sin();
     let y = dist * brng.cos();
-    
+
     [x, y]
 }
 
@@ -437,12 +433,160 @@ pub fn wgs84_to_local_meters(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
 pub fn local_meters_to_wgs84(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
     let x = coord[0];
     let y = coord[1];
-    
+
     // Convert cartesian to polar
     let dist = (x * x + y * y).sqrt();
     let brng = x.atan2(y).to_degrees(); // atan2(x, y) for bearing from north
-    
+
     destination(center, dist, brng)
+}
+
+fn acos_clamped(value: f64) -> f64 {
+    if value > 1.0 {
+        0.0
+    } else if value < -1.0 {
+        PI
+    } else {
+        value.acos()
+    }
+}
+
+fn asin_clamped(value: f64) -> f64 {
+    if value > 1.0 {
+        PI / 2.0
+    } else if value < -1.0 {
+        -PI / 2.0
+    } else {
+        value.asin()
+    }
+}
+
+fn d3_wrap_radians(lambda: f64) -> f64 {
+    let tau = 2.0 * PI;
+    if lambda > PI {
+        lambda - tau
+    } else if lambda < -PI {
+        lambda + tau
+    } else {
+        lambda
+    }
+}
+
+fn d3_rotation_lambda_forward(lambda: f64, phi: f64, delta_lambda: f64) -> [f64; 2] {
+    [d3_wrap_radians(lambda + delta_lambda), phi]
+}
+
+fn d3_rotation_lambda_invert(lambda: f64, phi: f64, delta_lambda: f64) -> [f64; 2] {
+    [d3_wrap_radians(lambda - delta_lambda), phi]
+}
+
+fn d3_rotation_phi_forward(lambda: f64, phi: f64, delta_phi: f64) -> [f64; 2] {
+    let cos_delta_phi = delta_phi.cos();
+    let sin_delta_phi = delta_phi.sin();
+    let cos_phi = phi.cos();
+    let x = lambda.cos() * cos_phi;
+    let y = lambda.sin() * cos_phi;
+    let z = phi.sin();
+    let k = z * cos_delta_phi + x * sin_delta_phi;
+
+    [
+        y.atan2(x * cos_delta_phi - z * sin_delta_phi),
+        asin_clamped(k),
+    ]
+}
+
+fn d3_rotation_phi_invert(lambda: f64, phi: f64, delta_phi: f64) -> [f64; 2] {
+    let cos_delta_phi = delta_phi.cos();
+    let sin_delta_phi = delta_phi.sin();
+    let cos_phi = phi.cos();
+    let x = lambda.cos() * cos_phi;
+    let y = lambda.sin() * cos_phi;
+    let z = phi.sin();
+
+    [
+        y.atan2(x * cos_delta_phi + z * sin_delta_phi),
+        asin_clamped(z * cos_delta_phi - x * sin_delta_phi),
+    ]
+}
+
+fn d3_rotate_forward(lambda: f64, phi: f64, delta_lambda: f64, delta_phi: f64) -> [f64; 2] {
+    let rotated = if delta_lambda != 0.0 {
+        d3_rotation_lambda_forward(lambda, phi, delta_lambda)
+    } else {
+        [d3_wrap_radians(lambda), phi]
+    };
+
+    if delta_phi != 0.0 {
+        d3_rotation_phi_forward(rotated[0], rotated[1], delta_phi)
+    } else {
+        rotated
+    }
+}
+
+fn d3_rotate_invert(lambda: f64, phi: f64, delta_lambda: f64, delta_phi: f64) -> [f64; 2] {
+    let rotated = if delta_phi != 0.0 {
+        d3_rotation_phi_invert(lambda, phi, delta_phi)
+    } else {
+        [lambda, phi]
+    };
+
+    if delta_lambda != 0.0 {
+        d3_rotation_lambda_invert(rotated[0], rotated[1], delta_lambda)
+    } else {
+        [d3_wrap_radians(rotated[0]), rotated[1]]
+    }
+}
+
+fn d3_azimuthal_equidistant_raw(lambda: f64, phi: f64) -> [f64; 2] {
+    let cos_lambda = lambda.cos();
+    let cos_phi = phi.cos();
+    let c = acos_clamped(cos_lambda * cos_phi);
+    let k = if c != 0.0 { c / c.sin() } else { 0.0 };
+
+    [k * cos_phi * lambda.sin(), k * phi.sin()]
+}
+
+fn d3_azimuthal_equidistant_raw_invert(x: f64, y: f64) -> [f64; 2] {
+    let z = (x * x + y * y).sqrt();
+    let sc = z.sin();
+    let cc = z.cos();
+
+    [
+        (x * sc).atan2(z * cc),
+        asin_clamped(if z != 0.0 { y * sc / z } else { 0.0 }),
+    ]
+}
+
+/// Project a coordinate the same way Turf 7.x prepares geometries for buffer().
+///
+/// Turf's buffer implementation uses @turf/center to choose a bbox center, then
+/// d3-geo's azimuthal equidistant projection with Turf's spherical earth radius.
+/// Matching that projection is important for row clipping parity with Turf/JSTS.
+pub fn turf_buffer_project(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let delta_lambda = to_radians((-center[0]) % 360.0);
+    let delta_phi = to_radians((-center[1]) % 360.0);
+    let rotated = d3_rotate_forward(
+        to_radians(coord[0]),
+        to_radians(coord[1]),
+        delta_lambda,
+        delta_phi,
+    );
+    let raw = d3_azimuthal_equidistant_raw(rotated[0], rotated[1]);
+
+    [raw[0] * EARTH_RADIUS + 480.0, 250.0 - raw[1] * EARTH_RADIUS]
+}
+
+/// Inverse of turf_buffer_project().
+pub fn turf_buffer_unproject(coord: [f64; 2], center: [f64; 2]) -> [f64; 2] {
+    let delta_lambda = to_radians((-center[0]) % 360.0);
+    let delta_phi = to_radians((-center[1]) % 360.0);
+    let raw = d3_azimuthal_equidistant_raw_invert(
+        (coord[0] - 480.0) / EARTH_RADIUS,
+        (250.0 - coord[1]) / EARTH_RADIUS,
+    );
+    let rotated = d3_rotate_invert(raw[0], raw[1], delta_lambda, delta_phi);
+
+    [to_degrees(rotated[0]), to_degrees(rotated[1])]
 }
 
 /// Project a polygon from WGS84 to local meters
@@ -552,31 +696,31 @@ mod tests {
 #[cfg(test)]
 mod rotation_tests {
     use super::*;
-    
+
     #[test]
     fn test_rotate_point_zero() {
         // Rotating by 0 should return the same point
         let point = [12.068532, 57.774809];
         let pivot = [12.069111625, 57.77518975];
-        
+
         let rotated = rotate_point(point, pivot, 0.0);
-        
+
         assert!((rotated[0] - point[0]).abs() < 1e-6, "X should match");
         assert!((rotated[1] - point[1]).abs() < 1e-6, "Y should match");
     }
-    
+
     #[test]
     fn test_destination_roundtrip() {
         let origin = [12.069111625, 57.77518975];
         let target = [12.068532, 57.774809];
-        
+
         // Get distance and bearing from origin to target
         let dist = distance(origin, target);
         let brng = bearing(origin, target);
-        
+
         // Use destination to get back to target
         let result = destination(origin, dist, brng);
-        
+
         assert!((result[0] - target[0]).abs() < 1e-6, "Longitude mismatch");
         assert!((result[1] - target[1]).abs() < 1e-6, "Latitude mismatch");
     }

@@ -1,5 +1,5 @@
 import type { IParcelSchema } from "@rw/db/schemas/parcel.ts";
-import { Link, useNavigate, useParams } from "@tanstack/solid-router";
+import { Link, useNavigate } from "@tanstack/solid-router";
 import type * as turf from "@turf/turf";
 import type { Map as MLMap } from "maplibre-gl";
 import {
@@ -19,7 +19,6 @@ import {
 } from "~/util/api/farmScenarioConfig.ts";
 import { deleteFinancialModel, getFinancialModels } from "~/util/api/financialModel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
-import { isElectron } from "~/util/platform.ts";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { CreateFinancialModelModal } from "../CreateFinancialModelModal";
 import {
@@ -679,7 +678,7 @@ export default function DefaultMode({
             </div>
           </Show>
 
-          <Show when={isElectron() && farmConfigs() && farmConfigs()!.length > 0}>
+          <Show when={farmConfigs() && farmConfigs()!.length > 0}>
             <div class="rounded-[10px] bg-black/70 p-2.5">
               <button
                 type="button"

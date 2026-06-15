@@ -3,9 +3,7 @@
 //! Equivalent to make_line.ts - creates the initial reference line
 //! that intersects the polygon at the specified bearing.
 
-use crate::geometry::{
-    bbox_polygon, bearing, centroid, line_length, normalize_bearing, rotate_line,
-};
+use crate::geometry::{bbox_polygon, bearing, centroid, line_length, rotate_line_rhumb};
 use crate::types::GeoJsonFeature;
 
 /// Result of makeInitialLine
@@ -30,13 +28,17 @@ pub struct InitialLineResult {
 /// * `polygon_coords` - The polygon exterior ring coordinates
 pub fn make_initial_line(bearing_deg: f64, polygon_coords: &[[f64; 2]]) -> InitialLineResult {
     // Ensure bearing is valid
-    let bearing_deg = if bearing_deg.is_nan() { 0.0 } else { bearing_deg };
+    let bearing_deg = if bearing_deg.is_nan() {
+        0.0
+    } else {
+        bearing_deg
+    };
 
     // Get the centroid as the pivot point
     let pivot = centroid(polygon_coords);
 
     // Rotate polygon by -bearing so we can work axis-aligned
-    let rotated_coords = rotate_line(polygon_coords, pivot, -bearing_deg);
+    let rotated_coords = rotate_line_rhumb(polygon_coords, pivot, -bearing_deg);
 
     // Get bounding box of rotated polygon
     let box_coords = bbox_polygon(&rotated_coords);
@@ -53,20 +55,16 @@ pub fn make_initial_line(bearing_deg: f64, polygon_coords: &[[f64; 2]]) -> Initi
     let rotated_line = vec![box_coords[3], box_coords[0]];
 
     // Rotate the line back by +bearing
-    let mut line_intersecting_polygon = rotate_line(&rotated_line, pivot, bearing_deg);
+    let mut line_intersecting_polygon = rotate_line_rhumb(&rotated_line, pivot, bearing_deg);
 
     // Check if the line bearing matches the desired bearing
-    let line_bearing = bearing(
-        line_intersecting_polygon[0],
-        line_intersecting_polygon[1],
-    );
-    let normalized_line_bearing = normalize_bearing(line_bearing);
-    let normalized_target_bearing = normalize_bearing(bearing_deg);
+    let mut line_bearing = bearing(line_intersecting_polygon[0], line_intersecting_polygon[1]);
+    if line_bearing < 0.0 {
+        line_bearing += 360.0;
+    }
 
     // If bearings differ by more than 1 degree, flip the line
-    if (normalized_line_bearing - normalized_target_bearing).abs() > 1.0
-        && (normalized_line_bearing - normalized_target_bearing).abs() < 359.0
-    {
+    if (line_bearing - bearing_deg).abs() > 1.0 {
         line_intersecting_polygon.reverse();
     }
 

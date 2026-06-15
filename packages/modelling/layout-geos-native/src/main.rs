@@ -23,13 +23,11 @@ async fn health() -> &'static str {
 }
 
 /// Layout generation endpoint
-async fn generate_layout(
-    Json(request): Json<LayoutRequest>,
-) -> (StatusCode, Json<LayoutResponse>) {
+async fn generate_layout(Json(request): Json<LayoutRequest>) -> (StatusCode, Json<LayoutResponse>) {
     info!("Received layout request");
-    
+
     let response = process_layout_request(&request);
-    
+
     if response.success {
         info!(
             "Layout generated successfully in {:.2}ms",
@@ -48,8 +46,7 @@ async fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("Failed to set tracing subscriber");
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to set tracing subscriber");
 
     // Configure CORS
     let cors = CorsLayer::new()
@@ -66,7 +63,7 @@ async fn main() {
     // Run the server
     let addr = "0.0.0.0:3002";
     info!("Starting GIS layout server on {}", addr);
-    
+
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

@@ -14,8 +14,8 @@ napi-build = "2"
 napi = { version = "2", default-features = false, features = ["napi8"] }
 napi-derive = "2"
 
-# Core GIS library with native GEOS
-gis-rs = { path = "../modelling/gis-rs", default-features = false, features = ["native"] }
+# Native geometry-kernel layout backend used by Electron.
+geometry-kernel = { path = "../../../geometry-kernel", default-features = false, features = ["model"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

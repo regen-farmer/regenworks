@@ -4,7 +4,8 @@
 //! within the headland polygon.
 
 use crate::geometry::{
-    along, bearing, coords_to_geos_line, coords_to_geos_polygon, line_length, local_meters_to_wgs84,
+    along, bearing, centroid, coords_to_geos_line, coords_to_geos_polygon, line_length,
+    local_meters_to_wgs84,
 };
 use crate::types::{GeoJsonFeature, RowDefinition};
 use geos::{Geom, Geometry};
@@ -59,14 +60,8 @@ pub fn make_tree_row_lines(
         return Ok(vec![]);
     }
 
-    // Calculate center for local projection (use polygon centroid)
     let center = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
-        let exterior = &offset_polygon[0];
-        let n = exterior.len() as f64;
-        [
-            exterior.iter().map(|c| c[0]).sum::<f64>() / n,
-            exterior.iter().map(|c| c[1]).sum::<f64>() / n,
-        ]
+        centroid(&offset_polygon[0])
     } else {
         [0.0, 0.0]
     };

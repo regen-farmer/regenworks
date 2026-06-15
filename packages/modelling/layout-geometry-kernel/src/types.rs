@@ -93,7 +93,7 @@ impl SpeciesRef {
 #[serde(rename_all = "camelCase")]
 pub struct SpeciesObject {
     /// MongoDB ObjectId (can be _id or id)
-    #[serde(alias = "_id", default)]
+    #[serde(rename = "_id", alias = "id", default)]
     pub id: Option<String>,
     /// Common name
     #[serde(default)]
@@ -231,6 +231,20 @@ impl GeoJsonFeature {
             serde_json::json!({
                 "type": "Polygon",
                 "coordinates": rings
+            }),
+            properties,
+        )
+    }
+
+    /// Create a MultiPolygon feature
+    pub fn multi_polygon(
+        polygons: Vec<Vec<Vec<[f64; 2]>>>,
+        properties: Option<serde_json::Value>,
+    ) -> Self {
+        Self::new(
+            serde_json::json!({
+                "type": "MultiPolygon",
+                "coordinates": polygons
             }),
             properties,
         )

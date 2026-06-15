@@ -6,8 +6,8 @@
   "dependencies": {
     "@rw/db": "workspace:*",
     "@rw/modelling": "workspace:*",
-    "@turf/area": "^7.1.0",
-    "@turf/turf": "^7.1.0",
+    "@turf/area": "^7.3.5",
+    "@turf/turf": "^7.3.5",
     "@types/lodash": "^4.17.20",
     "array-unique": "^0.3.2",
     "body-parser": "^2.2.0",

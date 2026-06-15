@@ -11,7 +11,10 @@ import {
 } from "@turf/turf";
 import proj4 from "proj4";
 
+const mercator = proj4("EPSG:4326", "EPSG:3857");
+const COORDINATE_TOLERANCE = 1e-12;
 
+type Coordinate = [number, number];
 
 function clampNumberToBetween0And180Degrees(bearing: number) {
   while (bearing < 0) {
@@ -31,6 +34,64 @@ function getAllSides(polygon: turf.Feature<turf.Polygon, turf.Properties>) {
     lineString([coord, polygonCoords[(i + 1) % polygonCoords.length]]),
   );
   return polygonSides;
+}
+
+function sameCoordinate(a: number[], b: number[]) {
+  return (
+    Math.abs(a[0] - b[0]) <= COORDINATE_TOLERANCE &&
+    Math.abs(a[1] - b[1]) <= COORDINATE_TOLERANCE
+  );
+}
+
+function sharedEndpoint(line1: turf.Feature<turf.LineString>, line2: turf.Feature<turf.LineString>) {
+  for (const firstCoord of line1.geometry.coordinates) {
+    for (const secondCoord of line2.geometry.coordinates) {
+      if (sameCoordinate(firstCoord, secondCoord)) {
+        return firstCoord as Coordinate;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function mercatorLineIntersect(
+  line1: turf.Feature<turf.LineString>,
+  line2: turf.Feature<turf.LineString>,
+) {
+  const line1Mercator = line1.geometry.coordinates.map((coord) =>
+    mercator.forward(coord),
+  ) as [Coordinate, Coordinate];
+  const line2Mercator = line2.geometry.coordinates.map((coord) =>
+    mercator.forward(coord),
+  ) as [Coordinate, Coordinate];
+
+  const [[x1, y1], [x2, y2]] = line1Mercator;
+  const [[x3, y3], [x4, y4]] = line2Mercator;
+  const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+  if (Math.abs(denominator) <= COORDINATE_TOLERANCE) {
+    const endpoint = sharedEndpoint(line1, line2);
+    if (endpoint) {
+      return point(endpoint);
+    }
+
+    throw new Error("Cannot compute headland intersection for parallel line segments");
+  }
+
+  const line1Determinant = x1 * y2 - y1 * x2;
+  const line2Determinant = x3 * y4 - y3 * x4;
+  const x =
+    (line1Determinant * (x3 - x4) - (x1 - x2) * line2Determinant) / denominator;
+  const y =
+    (line1Determinant * (y3 - y4) - (y1 - y2) * line2Determinant) / denominator;
+
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    throw new Error("Cannot compute finite headland intersection");
+  }
+
+  const intersection = mercator.inverse([x, y]) as Coordinate;
+  return point(intersection);
 }
 
 export function applyHeadland(
@@ -165,32 +226,6 @@ export function applyHeadland(
       extendedAfterSide,
       extendedBearingSide,
     ];
-
-    const mercator = proj4("EPSG:4326", "EPSG:3857");
-
-    function mercatorLineIntersect(line1, line2) {
-      // Convert the lines to Mercator coordinates
-      const line1Mercator = line1.geometry.coordinates.map((coord) => mercator.forward(coord));
-      const line2Mercator = line2.geometry.coordinates.map((coord) => mercator.forward(coord));
-
-      // Define the lines in the form y = mx + b
-      const m1 =
-        (line1Mercator[1][1] - line1Mercator[0][1]) / (line1Mercator[1][0] - line1Mercator[0][0]);
-      const b1 = line1Mercator[0][1] - m1 * line1Mercator[0][0];
-
-      const m2 =
-        (line2Mercator[1][1] - line2Mercator[0][1]) / (line2Mercator[1][0] - line2Mercator[0][0]);
-      const b2 = line2Mercator[0][1] - m2 * line2Mercator[0][0];
-
-      // Find the intersection point
-      const x = (b2 - b1) / (m1 - m2);
-      const y = m1 * x + b1;
-
-      // Convert the intersection point back to geographic coordinates
-      const intersection = mercator.inverse([x, y]);
-
-      return point(intersection);
-    }
 
     let intersectionBefore = mercatorLineIntersect(beforeSide, headlandPolygonSides[idx]);
 

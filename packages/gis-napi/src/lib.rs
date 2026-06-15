@@ -1,11 +1,11 @@
 #![deny(clippy::all)]
 
+use geometry_kernel::layout_types::{LayoutRequest, SystemDesign};
 use napi_derive::napi;
-use gis_rs::{LayoutRequest, SystemDesign};
 use std::fs::File;
 use std::io::BufWriter;
 
-/// Generate a layout using the native GEOS engine.
+/// Generate a layout using the native geometry-kernel engine.
 /// Both arguments are JSON strings; returns a JSON string.
 #[napi]
 pub fn generate_layout(systemdesign_json: String, field_geometry: String) -> napi::Result<String> {
@@ -17,7 +17,7 @@ pub fn generate_layout(systemdesign_json: String, field_geometry: String) -> nap
         field_geometry,
     };
 
-    let response = gis_rs::process_layout_request(&request);
+    let response = geometry_kernel::model::process_layout_request(&request);
 
     serde_json::to_string(&response)
         .map_err(|e| napi::Error::from_reason(format!("Serialization error: {e}")))
@@ -40,7 +40,7 @@ pub fn generate_layout_to_file(
         field_geometry,
     };
 
-    let response = gis_rs::process_layout_request(&request);
+    let response = geometry_kernel::model::process_layout_request(&request);
 
     // Write directly to file without allocating a large intermediate buffer.
     let file = File::create(&output_path)
@@ -52,7 +52,7 @@ pub fn generate_layout_to_file(
     Ok(0)
 }
 
-/// Return the version of the underlying gis-rs crate.
+/// Return the version of the native geometry-kernel layout backend.
 #[napi]
 pub fn get_engine_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()

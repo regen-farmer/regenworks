@@ -4,8 +4,8 @@
 //! with accurate area calculations.
 
 use crate::geometry::{
-    coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords, project_line_to_local,
-    project_polygon_to_local, project_polygon_to_wgs84,
+    centroid, coords_to_geos_line, coords_to_geos_polygon, geos_polygon_to_coords,
+    project_line_to_local, project_polygon_to_local, project_polygon_to_wgs84,
 };
 use crate::types::{GeoJsonFeature, RowDefinition};
 use geos::Geom;
@@ -45,12 +45,8 @@ pub fn make_all_strip_polygons(
         return Ok(vec![]);
     }
 
-    // Calculate centroid as projection center
     let center = if !offset_polygon.is_empty() && !offset_polygon[0].is_empty() {
-        let n = offset_polygon[0].len() as f64;
-        let sum_lon: f64 = offset_polygon[0].iter().map(|c| c[0]).sum();
-        let sum_lat: f64 = offset_polygon[0].iter().map(|c| c[1]).sum();
-        [sum_lon / n, sum_lat / n]
+        centroid(&offset_polygon[0])
     } else {
         [0.0, 0.0]
     };

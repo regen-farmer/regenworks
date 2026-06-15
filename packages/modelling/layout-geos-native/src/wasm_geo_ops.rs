@@ -5,7 +5,6 @@
 
 #![cfg(feature = "wasm")]
 
-use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 /// Error type for WASM geometry operations
@@ -21,7 +20,7 @@ impl std::fmt::Display for GeoError {
 impl std::error::Error for GeoError {}
 
 // Import JavaScript functions from the geos-bridge module
-#[wasm_bindgen(module = "/gis-wasm/geos-bridge.js")]
+#[wasm_bindgen(module = "/geos-bridge.js")]
 extern "C" {
     /// Buffer a polygon by a distance
     /// Takes JSON string of rings, returns JSON string of result rings or null
@@ -51,18 +50,28 @@ extern "C" {
     /// Calculate polygon area
     #[wasm_bindgen(js_name = "polygonAreaJson")]
     fn polygon_area_json(rings_json: &str) -> Option<f64>;
+
+    /// Create the initial row reference line using Turf-compatible primitives
+    #[wasm_bindgen(js_name = "makeInitialLineJson")]
+    fn make_initial_line_json(bearing: f64, polygon_json: &str) -> Option<String>;
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct InitialLineBridgeResult {
+    line: Vec<[f64; 2]>,
+    width: f64,
 }
 
 /// Buffer a polygon by a distance
 pub fn buffer_polygon(
     rings: &[Vec<[f64; 2]>],
     distance: f64,
-    _tolerance: f64, // ignored, using quad_segs instead
+    quad_segs: i32,
 ) -> Result<Vec<Vec<[f64; 2]>>, GeoError> {
     let rings_json = serde_json::to_string(rings)
         .map_err(|e| GeoError(format!("Serialization error: {}", e)))?;
 
-    let result_json = buffer_polygon_json(&rings_json, distance, 8)
+    let result_json = buffer_polygon_json(&rings_json, distance, quad_segs)
         .ok_or_else(|| GeoError("Buffer operation failed".into()))?;
 
     let result: Vec<Vec<[f64; 2]>> = serde_json::from_str(&result_json)
@@ -75,12 +84,12 @@ pub fn buffer_polygon(
 pub fn buffer_line(
     coords: &[[f64; 2]],
     distance: f64,
-    _tolerance: f64,
+    quad_segs: f64,
 ) -> Result<Vec<Vec<[f64; 2]>>, GeoError> {
     let coords_json = serde_json::to_string(coords)
         .map_err(|e| GeoError(format!("Serialization error: {}", e)))?;
 
-    let result_json = buffer_line_json(&coords_json, distance, 8)
+    let result_json = buffer_line_json(&coords_json, distance, quad_segs.round() as i32)
         .ok_or_else(|| GeoError("Buffer line operation failed".into()))?;
 
     let result: Vec<Vec<[f64; 2]>> = serde_json::from_str(&result_json)
@@ -155,6 +164,23 @@ pub fn polygon_area(rings: &[Vec<[f64; 2]>]) -> Result<f64, GeoError> {
         .map_err(|e| GeoError(format!("Serialization error: {}", e)))?;
 
     polygon_area_json(&rings_json).ok_or_else(|| GeoError("Area calculation failed".into()))
+}
+
+/// Create the initial reference line matching the TypeScript/Turf implementation
+pub fn make_initial_line(
+    bearing: f64,
+    polygon_rings: &[Vec<[f64; 2]>],
+) -> Result<(Vec<[f64; 2]>, f64), GeoError> {
+    let polygon_json = serde_json::to_string(polygon_rings)
+        .map_err(|e| GeoError(format!("Serialization error: {}", e)))?;
+
+    let result_json = make_initial_line_json(bearing, &polygon_json)
+        .ok_or_else(|| GeoError("Initial line calculation failed".into()))?;
+
+    let result: InitialLineBridgeResult = serde_json::from_str(&result_json)
+        .map_err(|e| GeoError(format!("Deserialization error: {}", e)))?;
+
+    Ok((result.line, result.width))
 }
 
 /// Get the largest polygon from a list by area

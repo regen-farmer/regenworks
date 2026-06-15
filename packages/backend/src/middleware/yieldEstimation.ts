@@ -1,6 +1,6 @@
 import type { IFlowSchema } from "@rw/db/schemas/flow.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import area from "@turf/area";
 
 export type SpeciesUnitType = "tree" | "m2";
@@ -103,11 +103,11 @@ function getYieldForYear(yieldCurve: number[], year: number): number {
   return yieldCurve[yieldCurve.length - 1];
 }
 
-export function calculateYieldEstimation(
+export async function calculateYieldEstimation(
   fieldScenarios: FieldScenarioData[],
   speciesMap: Map<string, ISpeciesSchema>,
   period: number = 30,
-): YieldEstimationResult {
+): Promise<YieldEstimationResult> {
   const aggregatedSpecies = new Map<string, AggregatedSpecies>();
   const fieldSummaries: YieldFieldSummary[] = [];
 
@@ -120,7 +120,7 @@ export function calculateYieldEstimation(
     let layout: any;
     try {
       const geometryString = fieldScenario.layer.geometry.replace(/&#34;/g, '"');
-      layout = systemBasedLayout(fieldScenario.project.systemdesign, geometryString);
+      layout = await runSystemBasedLayout(fieldScenario.project.systemdesign, geometryString);
     } catch (e) {
       console.error(`Failed to calculate layout for field ${fieldId}:`, e);
       continue;

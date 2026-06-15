@@ -3,8 +3,8 @@
 import area from "@turf/area";
 import _ from "lodash";
 import type { IProjectSchema } from "@rw/db/schemas/project.ts";
-import { rowBasedLayout } from "@rw/modelling/gis-ts/row_based_layout.ts";
-import { systemBasedLayout } from "@rw/modelling/gis-ts/system_based_layout.ts";
+import { rowBasedLayout } from "@rw/modelling/layout-turf-js/row_based_layout.ts";
+import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_layout.ts";
 
 // DYNAMIC ESTABLISHMENT BUDGET
 export function establishment(project: IProjectSchema) {
