@@ -40,12 +40,11 @@ async function layoutBackendRunner(name: LayoutBackendName): Promise<LayoutBacke
   switch (name) {
     case "turf-js":
       return runTurfJsLayout;
-    case "geometry-kernel":
-      return (await import("./geometry-kernel.node.ts")).runGeometryKernelLayout;
-    case "geos-wasm-geo":
-      return (await import("./geos-wasm-geo.node.ts")).runGeosWasmGeoLayout;
     case "native-geos":
       return (await import("./native-geos.node.ts")).runNativeGeosLayout;
+    case "geometry-kernel":
+    case "geos-wasm-geo":
+      throw new Error(`${name} is only available in the browser and comparison tooling`);
   }
 }
 

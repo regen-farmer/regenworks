@@ -27,6 +27,14 @@ jobs:
           node-version: 24
           cache: 'pnpm'
 
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked --version 0.13.1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -64,6 +72,14 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked --version 0.13.1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
