@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev --port 10100",
+		"prebuild": "pnpm --filter @rw/modelling build:wasm",
 		"build": "vite build",
 		"preview": "vite preview --port 10100",
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",

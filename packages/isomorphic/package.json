@@ -1,13 +1,13 @@
 {
 	"name": "isomorphic",
 	"scripts": {
-		"prebuild": "node scripts/sync-routes.mjs",
-		"dev": "concurrently --kill-others-on-fail --names \"routes,vite\" -c \"blue,magenta\" \"node scripts/sync-routes.mjs --watch\" \"vite dev --port 10000\"",
+		"prebuild": "pnpm --filter @rw/modelling build:wasm && node scripts/sync-routes.mjs",
+		"dev": "pnpm --filter @rw/modelling build:wasm && concurrently --kill-others-on-fail --names \"routes,vite\" -c \"blue,magenta\" \"node scripts/sync-routes.mjs --watch\" \"vite dev --port 10000\"",
 		"lint": "oxlint --import-plugin --jsdoc-plugin ./src",
 		"format": "oxfmt --write --ignore-path=.oxfmtignore ./src",
 		"typecheck": "tsc --noEmit",
 		"build": "vite build",
-		"build:e2e": "node scripts/sync-routes.mjs && VITE_BACKEND_URL=${VITE_BACKEND_URL:-https://regenworks-dev-backend.onrender.com} vite build",
+		"build:e2e": "pnpm --filter @rw/modelling build:wasm && node scripts/sync-routes.mjs && VITE_BACKEND_URL=${VITE_BACKEND_URL:-https://regenworks-dev-backend.onrender.com} vite build",
 		"preview": "vite preview",
 		"start": "PORT=${PORT:-10000} node .output/server/index.mjs",
 		"start-local": "PORT=${PORT:-10000} node --env-file=.env .output/server/index.mjs",
