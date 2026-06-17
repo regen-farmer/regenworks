@@ -62,7 +62,7 @@
 		"date-fns": "^4.1.0",
 		"google-auth-library": "^9.15.1",
 		"google-spreadsheet": "^4.1.5",
-		"jose": "^5.10.0",
+		"jose": "^6.2.3",
 		"lodash": "^4.17.21",
 		"maplibre-gl": "^5.24.0",
 		"maplibre-gl-measures": "^0.0.20",
