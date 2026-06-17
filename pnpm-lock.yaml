@@ -420,8 +420,8 @@ importers:
         specifier: ^9.15.1
         version: 9.15.1
       google-spreadsheet:
-        specifier: ^4.1.5
-        version: 4.1.5(google-auth-library@9.15.1)
+        specifier: ^5.3.0
+        version: 5.3.0(google-auth-library@9.15.1)
       jose:
         specifier: ^5.10.0
         version: 5.10.0
@@ -4275,6 +4275,9 @@ packages:
   es-toolkit@1.47.0:
     resolution: {integrity: sha512-n1GuoD0WEQZMBk5tttoZSqwgyLx01oqa5XsBmCHwPyNe1S9jPBEmtR2pSgp2kJuWE3ciFZ6yRHmY4pM4C3OOkw==}
 
+  es-toolkit@1.47.1:
+    resolution: {integrity: sha512-5RAqEwf4P4E17p+W75KLOWw/nOvKZzSQpxM32IpI2KZLaVonjTrZ0Ai5ghMaVI9eKC2p8eoQgcBdkEDgzFk6+Q==}
+
   es6-error@4.1.1:
     resolution: {integrity: sha512-Um/+FxMr9CISWh0bi5Zv0iOD+4cFh5qLeks1qhAopKVAJw3drgKbKySikp7wGhDL0HPeaja0P5ULZrxLkniUVg==}
 
@@ -4616,8 +4619,8 @@ packages:
     resolution: {integrity: sha512-NEgUnEcBiP5HrPzufUkBzJOD/Sxsco3rLNo1F1TNf7ieU8ryUzBhqba8r756CjLX7rn3fHl6iLEwPYuqpoKgQQ==}
     engines: {node: '>=14'}
 
-  google-spreadsheet@4.1.5:
-    resolution: {integrity: sha512-6xx2yuo5LRHtpFdkluaOIpKSn5awGZa+uCDwgPMuMGnBi1bAoJHz5h5naGU7NoEEWzAdb0Pqlfv/J8KXQvkasQ==}
+  google-spreadsheet@5.3.0:
+    resolution: {integrity: sha512-hsMI2hc1aqDgZsfOEvJ+M4vwH6h8OuXKdxwKPPQq/OKs2dYnuaD8qx3GtiPyYcXRSN60j7EHbaHBPihOhzwY/A==}
     peerDependencies:
       google-auth-library: '>=8.8.0'
     peerDependenciesMeta:
@@ -4960,6 +4963,10 @@ packages:
 
   kuler@2.0.0:
     resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
+
+  ky@2.0.2:
+    resolution: {integrity: sha512-/GmXpo9F9W+f8n4Ivr2iH+7h7wL7jLbLKWkMlpflcCRb6kGjBfTlASEXaZ9qUgNTn4VgS0P2pwxxzQ4EM6Ulgg==}
+    engines: {node: '>=22'}
 
   lazy-val@1.0.5:
     resolution: {integrity: sha512-0/BnGCCfyUMkBpeDgWihanIAF9JmZhHBgUhEqzvf+adhNGLoP6TaiI5oF8oyb3I45P+PcnrqihSf01M0l0G5+Q==}
@@ -11111,6 +11118,8 @@ snapshots:
 
   es-toolkit@1.47.0: {}
 
+  es-toolkit@1.47.1: {}
+
   es6-error@4.1.1:
     optional: true
 
@@ -11573,15 +11582,12 @@ snapshots:
 
   google-logging-utils@0.0.2: {}
 
-  google-spreadsheet@4.1.5(google-auth-library@9.15.1):
+  google-spreadsheet@5.3.0(google-auth-library@9.15.1):
     dependencies:
-      axios: 1.17.0
-      lodash: 4.18.1
+      es-toolkit: 1.47.1
+      ky: 2.0.2
     optionalDependencies:
       google-auth-library: 9.15.1
-    transitivePeerDependencies:
-      - debug
-      - supports-color
 
   gopd@1.2.0: {}
 
@@ -11906,6 +11912,8 @@ snapshots:
   ktx-parse@0.7.1: {}
 
   kuler@2.0.0: {}
+
+  ky@2.0.2: {}
 
   lazy-val@1.0.5: {}
 
