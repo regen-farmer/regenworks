@@ -102,14 +102,10 @@ router.post(
       length?: unknown;
     };
 
-    const isPrimitiveTextOrNumber = (value: unknown): value is string | number =>
+    const isStringOrNumber = (value: unknown): value is string | number =>
       typeof value === "string" || typeof value === "number";
 
-    if (
-      !isPrimitiveTextOrNumber(rows) ||
-      !isPrimitiveTextOrNumber(distance) ||
-      !isPrimitiveTextOrNumber(length)
-    ) {
+    if (typeof rows !== "string" || !isStringOrNumber(distance) || !isStringOrNumber(length)) {
       return res.status(400).send({ error: "Invalid request body." });
     }
 
