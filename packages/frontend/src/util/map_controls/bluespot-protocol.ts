@@ -1,30 +1,8 @@
-import proj4 from "proj4";
-
-proj4.defs(
-  "EPSG:3857",
-  "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs",
-);
-proj4.defs(
-  "EPSG:25832",
-  "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
-);
+import { getEtrs89BboxFromWebMercatorBbox } from "./danish-projections";
 
 export const bluespotProtocol = async (params: { url: string }) => {
   const bboxString = params.url.replace("bluespot://", "");
-  const tile_bbox_wgs84 = bboxString.split(",").map(Number);
-
-  // Translate bounds from Web Mercator to ETRS89
-  const left_bottom = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[0], tile_bbox_wgs84[1]]);
-  const right_top = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[2], tile_bbox_wgs84[3]]);
-  const left_top = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[0], tile_bbox_wgs84[3]]);
-  const right_bottom = proj4("EPSG:3857", "EPSG:25832", [tile_bbox_wgs84[2], tile_bbox_wgs84[1]]);
-
-  const tile_bbox_etrs89 = [
-    (left_bottom[0] + left_top[0]) / 2,
-    (left_bottom[1] + right_bottom[1]) / 2,
-    (right_bottom[0] + right_top[0]) / 2,
-    (right_top[1] + left_top[1]) / 2,
-  ];
+  const tile_bbox_etrs89 = getEtrs89BboxFromWebMercatorBbox(bboxString);
 
   const tile_size_etrs89 = {
     width: tile_bbox_etrs89[2] - tile_bbox_etrs89[0],
@@ -82,7 +60,7 @@ export const bluespotProtocol = async (params: { url: string }) => {
       try {
         const img = await loadImg(tile_url);
         return { row, col, z, img };
-      } catch (err) {
+      } catch {
         return { row, col, z, img: null };
       }
     }),
