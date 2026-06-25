@@ -22,7 +22,9 @@ import DuplicateScenarioModal from "~/components/DuplicateScenarioModal.tsx";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
+import { useJordartControl } from "~/util/map_controls/useJordartControl.ts";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
+import { JordartLegend } from "~/components/JordartLegend.tsx";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +70,8 @@ function LayerIndexView() {
   const [modalOpen, setModalOpen] = createSignal(false);
   const [modal2Open, setModal2Open] = createSignal(false);
   const [activeScenario, setActiveScenario] = createSignal(undefined);
+  const [showJordartLegend, setShowJordartLegend] = createSignal(false);
+  const [jordartLegendCollapsed, setJordartLegendCollapsed] = createSignal(false);
 
   const handleDeleteField = async (e: SubmitEvent) => {
     e.preventDefault();
@@ -105,6 +109,7 @@ function LayerIndexView() {
         if (withinDKBBox(areaLng as number, areaLat as number)) {
           useHCControl(map);
           useBSControl(map);
+          useJordartControl(map, setShowJordartLegend);
         }
 
         map.addLayer({
@@ -132,6 +137,7 @@ function LayerIndexView() {
       });
 
       onCleanup(() => {
+        setShowJordartLegend(false);
         if (map) {
           map.remove();
         }
@@ -219,6 +225,13 @@ function LayerIndexView() {
       <div>
         <Show when={data()}>
           <div id="layerMapShow" ref={setMapContainer} />
+
+          <Show when={showJordartLegend()}>
+            <JordartLegend
+              collapsed={jordartLegendCollapsed()}
+              onToggleCollapsed={() => setJordartLegendCollapsed(!jordartLegendCollapsed())}
+            />
+          </Show>
 
           <div
             style={{
