@@ -398,9 +398,6 @@ importers:
       '@tanstack/solid-start':
         specifier: ^1.167.36
         version: 1.168.19(crossws@0.4.6(srvx@0.11.16))(solid-js@1.9.13)(vite-plugin-solid@2.11.12(solid-js@1.9.13)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4))
-      '@tauri-apps/plugin-http':
-        specifier: ~2
-        version: 2.5.9
       '@tmcw/togeojson':
         specifier: ^7.1.2
         version: 7.1.2
@@ -2955,12 +2952,6 @@ packages:
   '@tanstack/virtual-file-routes@1.162.0':
     resolution: {integrity: sha512-uhOeFyxLcU41HzvrxsGpiWdcMbScY1EDgbZ5K7DVRMYInbLYWAC0EA/kx9wXAoSM8q82bUG2hRl8+EAjE6XAbA==}
     engines: {node: '>=20.19'}
-
-  '@tauri-apps/api@2.11.0':
-    resolution: {integrity: sha512-7CinYODhky9lmO23xHnUFv0Xt43fbtWMyxZcLcRBlFkcgXKuEirBvHpmtJ89YMhyeGcq20Wuc47Fa4XjyniywA==}
-
-  '@tauri-apps/plugin-http@2.5.9':
-    resolution: {integrity: sha512-lCiY0+vs4HvIUSvZrBs8TC3TiCB0MOPRmiUjTq4prW7SlcJE2jdLeT6KBsJrT9Tlplufl7W1pY6SFAO3gCWxDA==}
 
   '@tmcw/togeojson@7.1.2':
     resolution: {integrity: sha512-QKnFs9DAuqqBVj4d6c69tV1Dj2TspSBTqffivoN0YoBCVdP/JY1+WaYCJbzU49RkoU5NOSOJ3jtFHCdEUVh21A==}
@@ -8957,12 +8948,6 @@ snapshots:
       '@tanstack/router-core': 1.171.9
 
   '@tanstack/virtual-file-routes@1.162.0': {}
-
-  '@tauri-apps/api@2.11.0': {}
-
-  '@tauri-apps/plugin-http@2.5.9':
-    dependencies:
-      '@tauri-apps/api': 2.11.0
 
   '@tmcw/togeojson@7.1.2': {}
 

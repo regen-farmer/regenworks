@@ -1,13 +1,9 @@
 import { Link } from "@tanstack/solid-router";
 import { NavBar } from "~/components/NavBar.tsx";
 
-import { isElectron, isTauri } from "~/util/platform.ts";
-
 export default function NewUser() {
   // Electron: delegate to the main process's PKCE flow (opens system browser,
   // catches the regenworks:// callback). Web: hit the server auth endpoint.
-  // Tauri: same remote-auth pattern as before. Lookup happens at click time
-  // so it survives any SSR-hydration gotchas.
   const handleLogin = () => {
     const electronAuth =
       typeof window !== "undefined"
@@ -18,12 +14,7 @@ export default function NewUser() {
       electronAuth.login().catch((err) => console.error("Login failed:", err));
       return;
     }
-    const needsRemoteAuth =
-      typeof window !== "undefined" && isTauri() && !window.location.href.startsWith("http");
-    const authPath = needsRemoteAuth
-      ? `${import.meta.env.VITE_API_URL || "https://staging.regenfarmer.com"}/api/auth/signin`
-      : "/api/auth/signin";
-    window.location.href = authPath;
+    window.location.href = "/api/auth/signin";
   };
 
   return (

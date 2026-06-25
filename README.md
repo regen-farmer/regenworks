@@ -11,7 +11,6 @@ RegenWorks is an agroforestry design and management platform. This repository co
 - `packages/modelling` - agroforestry layout and geometry modelling.
 - `packages/gis-napi` - native geometry addon.
 - `packages/desktop-electron` - Electron desktop package.
-- `packages/desktop-tauri` - Tauri desktop package.
 
 ## Requirements
 

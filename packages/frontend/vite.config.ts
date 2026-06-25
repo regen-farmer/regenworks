@@ -12,14 +12,11 @@ export default defineConfig(({ mode }) => {
 	Object.assign(process.env, env);
 
 	// Stub out server-only modules for the client bundle. Some components import
-	// `@rw/db/*` types as side effects or pull in `@tauri-apps/*`. Without tauri
-	// installed anywhere in the workspace right now, we always stub it.
+	// `@rw/db/*` types as side effects.
 	const stubServerModulesPlugin = () => ({
 		name: "stub-server-only-modules",
 		enforce: "pre" as const,
 		resolveId(id: string) {
-			if (id.startsWith("@tauri-apps/")) return "\0stub-server-module";
-			if (id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
 			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
 		},
 		load(id: string) {

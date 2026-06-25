@@ -1,8 +1,5 @@
 packages:
   - packages/*
-  # desktop-tauri is currently disabled while the frontend split lands.
-  # Re-enable by removing the negation when ready.
-  - "!packages/desktop-tauri"
 
 allowBuilds:
   electron: true

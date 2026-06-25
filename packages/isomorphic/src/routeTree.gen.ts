@@ -41,7 +41,6 @@ import { Route as ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport } fr
 import { Route as ParcelsParcelIdLayersLayerIdProjectsRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/projects'
 import { Route as ParcelsParcelIdLayersLayerIdLayoutRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/layout'
 import { Route as ParcelsParcelIdLayersLayerIdEditRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/edit'
-import { Route as ApiUpdaterTargetArchCurrent_versionRouteImport } from './routes/api/updater/$target/$arch/$current_version'
 import { Route as ApiProjectsProjectIdFinancialsActivitiesRouteImport } from './routes/api/projects/$projectId/financials/activities'
 import { Route as ParcelsParcelIdLayersLayerIdSequencesNewRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/sequences/new'
 import { Route as ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport } from './routes/_pages/parcels/$parcelId/layers/$layerId/row/new/index'
@@ -237,12 +236,6 @@ const ParcelsParcelIdLayersLayerIdEditRoute =
     path: '/$layerId/edit',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
-const ApiUpdaterTargetArchCurrent_versionRoute =
-  ApiUpdaterTargetArchCurrent_versionRouteImport.update({
-    id: '/api/updater/$target/$arch/$current_version',
-    path: '/api/updater/$target/$arch/$current_version',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiProjectsProjectIdFinancialsActivitiesRoute =
   ApiProjectsProjectIdFinancialsActivitiesRouteImport.update({
     id: '/api/projects/$projectId/financials/activities',
@@ -403,7 +396,6 @@ export interface FileRoutesByFullPath {
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
   '/api/projects/$projectId/financials/activities': typeof ApiProjectsProjectIdFinancialsActivitiesRoute
-  '/api/updater/$target/$arch/$current_version': typeof ApiUpdaterTargetArchCurrent_versionRoute
   '/parcels/$parcelId/layers/$layerId/edit': typeof ParcelsParcelIdLayersLayerIdEditRoute
   '/parcels/$parcelId/layers/$layerId/layout': typeof ParcelsParcelIdLayersLayerIdLayoutRoute
   '/parcels/$parcelId/layers/$layerId/projects': typeof ParcelsParcelIdLayersLayerIdProjectsRouteWithChildren
@@ -456,7 +448,6 @@ export interface FileRoutesByTo {
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
   '/api/projects/$projectId/financials/activities': typeof ApiProjectsProjectIdFinancialsActivitiesRoute
-  '/api/updater/$target/$arch/$current_version': typeof ApiUpdaterTargetArchCurrent_versionRoute
   '/parcels/$parcelId/layers/$layerId/edit': typeof ParcelsParcelIdLayersLayerIdEditRoute
   '/parcels/$parcelId/layers/$layerId/layout': typeof ParcelsParcelIdLayersLayerIdLayoutRoute
   '/parcels/$parcelId/layers/$layerId/projects': typeof ParcelsParcelIdLayersLayerIdProjectsRouteWithChildren
@@ -512,7 +503,6 @@ export interface FileRoutesById {
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
   '/api/projects/$projectId/financials/activities': typeof ApiProjectsProjectIdFinancialsActivitiesRoute
-  '/api/updater/$target/$arch/$current_version': typeof ApiUpdaterTargetArchCurrent_versionRoute
   '/parcels/$parcelId/layers/$layerId/edit': typeof ParcelsParcelIdLayersLayerIdEditRoute
   '/parcels/$parcelId/layers/$layerId/layout': typeof ParcelsParcelIdLayersLayerIdLayoutRoute
   '/parcels/$parcelId/layers/$layerId/projects': typeof ParcelsParcelIdLayersLayerIdProjectsRouteWithChildren
@@ -569,7 +559,6 @@ export interface FileRouteTypes {
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
     | '/api/projects/$projectId/financials/activities'
-    | '/api/updater/$target/$arch/$current_version'
     | '/parcels/$parcelId/layers/$layerId/edit'
     | '/parcels/$parcelId/layers/$layerId/layout'
     | '/parcels/$parcelId/layers/$layerId/projects'
@@ -622,7 +611,6 @@ export interface FileRouteTypes {
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
     | '/api/projects/$projectId/financials/activities'
-    | '/api/updater/$target/$arch/$current_version'
     | '/parcels/$parcelId/layers/$layerId/edit'
     | '/parcels/$parcelId/layers/$layerId/layout'
     | '/parcels/$parcelId/layers/$layerId/projects'
@@ -677,7 +665,6 @@ export interface FileRouteTypes {
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
     | '/api/projects/$projectId/financials/activities'
-    | '/api/updater/$target/$arch/$current_version'
     | '/parcels/$parcelId/layers/$layerId/edit'
     | '/parcels/$parcelId/layers/$layerId/layout'
     | '/parcels/$parcelId/layers/$layerId/projects'
@@ -721,7 +708,6 @@ export interface RootRouteChildren {
   FarmScenarioPreviewConfigIdIndexRoute: typeof FarmScenarioPreviewConfigIdIndexRoute
   ScenarioPreviewScenarioIdIndexRoute: typeof ScenarioPreviewScenarioIdIndexRoute
   ApiProjectsProjectIdFinancialsActivitiesRoute: typeof ApiProjectsProjectIdFinancialsActivitiesRoute
-  ApiUpdaterTargetArchCurrent_versionRoute: typeof ApiUpdaterTargetArchCurrent_versionRoute
 }
 
 declare module '@tanstack/solid-router' {
@@ -949,13 +935,6 @@ declare module '@tanstack/solid-router' {
       fullPath: '/parcels/$parcelId/layers/$layerId/edit'
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdEditRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
-    }
-    '/api/updater/$target/$arch/$current_version': {
-      id: '/api/updater/$target/$arch/$current_version'
-      path: '/api/updater/$target/$arch/$current_version'
-      fullPath: '/api/updater/$target/$arch/$current_version'
-      preLoaderRoute: typeof ApiUpdaterTargetArchCurrent_versionRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/projects/$projectId/financials/activities': {
       id: '/api/projects/$projectId/financials/activities'
@@ -1270,8 +1249,6 @@ const rootRouteChildren: RootRouteChildren = {
   ScenarioPreviewScenarioIdIndexRoute: ScenarioPreviewScenarioIdIndexRoute,
   ApiProjectsProjectIdFinancialsActivitiesRoute:
     ApiProjectsProjectIdFinancialsActivitiesRoute,
-  ApiUpdaterTargetArchCurrent_versionRoute:
-    ApiUpdaterTargetArchCurrent_versionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

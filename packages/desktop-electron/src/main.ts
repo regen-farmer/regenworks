@@ -95,7 +95,7 @@ function createWindow() {
   });
 }
 
-// --- IPC handlers (mirror the Tauri commands) ---
+// --- IPC handlers ---
 
 ipcMain.handle("generate_layout", async (_event, { systemdesign, fieldGeometry }) => {
   const systemdesignJson =
@@ -131,7 +131,7 @@ ipcMain.handle("file:save-dialog", async (_event, options: { defaultName: string
   return true;
 });
 
-// Proxy fetch requests from renderer to bypass CORS (like Tauri's native HTTP plugin)
+// Proxy fetch requests from renderer to bypass CORS.
 ipcMain.handle("native_fetch", async (_event, url: string, options?: { method?: string; headers?: Record<string, string>; body?: string }) => {
   const resp = await net.fetch(url, {
     method: options?.method || "GET",

@@ -22,8 +22,6 @@ export default defineConfig(({ mode }) => {
 		name: "stub-server-only-modules",
 		enforce: "pre" as const,
 		resolveId(id: string, _importer: string | undefined, options: { ssr?: boolean }) {
-			if (id.startsWith("@tauri-apps/")) return "\0stub-server-module";
-			if (id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
 			if (options?.ssr) return null;
 			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
 		},

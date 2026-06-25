@@ -5,11 +5,10 @@
  * automatically uses the best available backend:
  *
  * 1. Electron desktop: private native layout through the native addon
- * 2. Tauri desktop: native-geos
- * 3. Browser web: private Rust WASM layout by default, with selectable alternatives
+ * 2. Browser web: private Rust WASM layout by default, with selectable alternatives
  */
 
-import { isTauri, isElectron } from "./platform";
+import { isElectron } from "./platform";
 
 // Types that match the layout response structure
 export interface LayoutResult {
@@ -151,9 +150,6 @@ export async function generateLayout(systemDesign: any, fieldGeometry: any): Pro
   if (isElectron() && !forceBrowserLayoutBackend) {
     return generateLayoutElectron(systemDesign, fieldGeometry);
   }
-  if (isTauri() && !forceBrowserLayoutBackend) {
-    return generateLayoutTauri(systemDesign, fieldGeometry);
-  }
   return generateLayoutBrowser(systemDesign, fieldGeometry);
 }
 
@@ -175,44 +171,6 @@ async function generateLayoutElectron(systemDesign: any, fieldGeometry: any): Pr
     systemdesign: systemDesignJson,
     fieldGeometry: geometryString,
   });
-
-  const response: LayoutResponse = JSON.parse(resultJson);
-
-  if (!response.success || !response.data) {
-    throw new Error(response.error || "Layout generation failed");
-  }
-
-  return response.data;
-}
-
-/**
- * Generate layout using Tauri (native-geos)
- */
-// Cached Tauri invoke — loaded once on first use to avoid bundling in web builds
-let _tauriInvoke: ((cmd: string, args: unknown) => Promise<unknown>) | null = null;
-async function getTauriInvoke(): Promise<(cmd: string, args: unknown) => Promise<unknown>> {
-  if (!_tauriInvoke) {
-    const { invoke } = await import("@tauri-apps/api/core");
-    _tauriInvoke = invoke;
-  }
-  return _tauriInvoke!;
-}
-
-async function generateLayoutTauri(systemDesign: any, fieldGeometry: any): Promise<any> {
-  const invoke = await getTauriInvoke();
-
-  const geometryString =
-    typeof fieldGeometry === "string" ? fieldGeometry : JSON.stringify(fieldGeometry);
-
-  // Step 1: compute (invoke returns nothing — tiny IPC round-trip)
-  await invoke("generate_layout", {
-    systemdesign: systemDesign,
-    fieldGeometry: geometryString,
-  });
-
-  // Step 2: fetch result via OS URL loading (not WKWebView IPC bridge) — ~10ms for 9.47MB
-  const res = await fetch("rwlayout://localhost/layout");
-  const resultJson = await res.text();
 
   const response: LayoutResponse = JSON.parse(resultJson);
 
@@ -326,5 +284,5 @@ async function generateLayoutBrowserGeometryKernel(
  * Check if fast native layout is available
  */
 export function hasNativeLayout(): boolean {
-  return isElectron() || isTauri();
+  return isElectron();
 }

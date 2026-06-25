@@ -1,9 +1,0 @@
-{
-	"plugins": {
-		"updater": {
-			"endpoints": [
-				"https://staging.regenfarmer.com/api/updater/{{target}}/{{arch}}/{{current_version}}"
-			]
-		}
-	}
-}
