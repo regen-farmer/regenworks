@@ -994,7 +994,7 @@ function ProjectIndexView() {
                                                 // <div class='card'>
                                                 //   <div class='card-body'>
 
-                                                <div
+                                                (<div
                                                   style={{
                                                     display: "flex",
                                                     "align-items": "center",
@@ -1154,7 +1154,7 @@ function ProjectIndexView() {
                                                       </ComboboxRoot>
                                                     </div>
                                                   </div>
-                                                </div>
+                                                </div>)
                                               )}
                                             </For>
 
@@ -1557,7 +1557,7 @@ function ProjectIndexView() {
         userEmail={userEmail()}
       />
     </>
-  );
+  )
 }
 
 export { drawSystemDesign };

@@ -6,7 +6,6 @@ import { identifyJordartAtPoint, type JordartIdentifyResult } from "./jordart-id
 const JORDART_LAYER_ID = "jordart-layer";
 const JORDART_SOURCE_ID = "jordart-source";
 
-// SVG Repo shovel, CC0: https://www.svgrepo.com/svg/456645/shovel
 const SHOVEL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="1.91" aria-hidden="true"><path d="M4.24 22.5A2.74 2.74 0 0 1 1.5 19.76a7.22 7.22 0 0 1 2.11-5.1l3.62-3.61L13 16.77l-3.66 3.62a7.22 7.22 0 0 1-5.1 2.11Z"/><line x1="6.27" y1="17.73" x2="19.64" y2="4.36"/><line x1="16.77" y1="1.5" x2="22.5" y2="7.23"/></svg>`;
 
 class ShowJordartControl implements maplibregl.IControl {
@@ -137,9 +136,7 @@ export function useJordartControl(
 ) {
   try {
     maplibregl.addProtocol("jordart", jordartProtocol as any);
-  } catch {
-    // Protocol is likely already added
-  }
+  } catch {}
 
   const [showJordart, setShowJordart] = createSignal(false);
   map.addControl(new ShowJordartControl(showJordart, setShowJordart));
