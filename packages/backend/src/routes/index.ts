@@ -3,6 +3,7 @@ import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Activity from "@rw/db/schemas/activity.ts";
 import middleware from "../middleware/index.ts"; // Will automatically require the middleware "index" file as the standard
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { Auth0IDToken } from "../app.ts";
 
 // import logger from '../middleware/logger';
@@ -237,7 +238,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      await User.findByIdAndUpdate(req.params.id, req.body.user);
+      const user = await User.findById(req.params.id);
+      user?.set(sanitizeMongoDocument(req.body.user));
+      await user?.save();
       res.send(`/users/${req.params.id}`);
     } catch (err) {
       console.log(err);
@@ -269,13 +272,14 @@ router.put(
     res: express.Response,
   ) => {
     // const foundUser = await User.findById(req.user?.id);
-    if (!(req.body.countryCode.length === 2)) {
-      res.status(400);
+    const { countryCode } = req.body;
+    if (typeof countryCode !== "string" || !/^[A-Z]{2}$/i.test(countryCode)) {
+      return res.status(400).send({ error: "Invalid country code" });
     }
-    console.log("cc body ", req.body.countryCode as string);
+    console.log("cc body ", countryCode);
     const updateUser = await User.findByIdAndUpdate(
       req.user?.id,
-      { countryCode: req.body.countryCode },
+      { countryCode: countryCode.toUpperCase() },
       { new: true },
     );
     console.log("cc", updateUser?.countryCode);

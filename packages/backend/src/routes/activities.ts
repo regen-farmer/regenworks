@@ -8,6 +8,7 @@ import Project from "@rw/db/schemas/project.ts";
 import Row from "@rw/db/schemas/row.ts";
 import Area from "@rw/db/schemas/area.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import type { Auth0IDToken } from "../app.ts";
@@ -170,7 +171,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      const updatedActivity = await Activity.findByIdAndUpdate(req.params.id, req.body.activity);
+      const updatedActivity = await Activity.findById(req.params.id);
+      updatedActivity?.set(sanitizeMongoDocument(req.body.activity));
+      await updatedActivity?.save();
       console.log(updatedActivity);
       res.send(`/activities/${req.params.id}`);
     } catch (err) {
@@ -416,7 +419,9 @@ router.put(
   ) => {
     // FIND ACTIVITY AND UPDATE
     try {
-      await Activity.findByIdAndUpdate(req.params.pid, req.body.activity);
+      const activity = await Activity.findById(req.params.pid);
+      activity?.set(sanitizeMongoDocument(req.body.activity));
+      await activity?.save();
       res.send(`/projects/${req.params.id}`);
     } catch (err) {
       console.log(err);

@@ -4,6 +4,7 @@ import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -211,7 +212,9 @@ router.put(
     try {
       const foundLayer = await Layer.findById(req.params.layerid);
       try {
-        await Sequence.findByIdAndUpdate(req.params.sequenceid, req.body.sequence);
+        const sequence = await Sequence.findById(req.params.sequenceid);
+        sequence?.set(sanitizeMongoDocument(req.body.sequence));
+        await sequence?.save();
         if (foundLayer) {
           res.send({});
         }
@@ -404,7 +407,9 @@ router.put(
       const foundProject = await Project.findById(req.params.id);
       console.log("FP", foundProject);
       try {
-        await Sequence.findByIdAndUpdate(req.params.pid, req.body.sequence);
+        const sequence = await Sequence.findById(req.params.pid);
+        sequence?.set(sanitizeMongoDocument(req.body.sequence));
+        await sequence?.save();
         if (foundProject) {
           res.send();
         }

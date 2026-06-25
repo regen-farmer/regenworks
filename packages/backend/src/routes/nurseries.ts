@@ -3,6 +3,7 @@ import NodeGeocoder from "node-geocoder";
 import Nursery from "@rw/db/schemas/nursery.ts";
 import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { Auth0IDToken } from "../app.ts";
 
 // NODE GEOCODER CODE
@@ -160,7 +161,9 @@ router.put(
       newNursery.lng = data[0].longitude;
       newNursery.location = data[0].formattedAddress;
       try {
-        const updateNursery = await Nursery.findByIdAndUpdate(req.params.id, newNursery);
+        const updateNursery = await Nursery.findById(req.params.id);
+        updateNursery?.set(sanitizeMongoDocument(newNursery));
+        await updateNursery?.save();
         // REDIRECT
         if (updateNursery) {
           console.log(`Nursery update: ${updateNursery}`);

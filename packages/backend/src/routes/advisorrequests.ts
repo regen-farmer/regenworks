@@ -92,9 +92,14 @@ router.put(
     res: express.Response,
   ) => {
     try {
+      const { status } = req.body;
+      if (typeof status !== "string" || (status !== "pending" && status !== "resolved")) {
+        return res.status(400).json({ message: "Invalid advisor request status" });
+      }
+
       const advisorRequest = await AdvisorRequestDocument.findByIdAndUpdate(
         req.params.id,
-        { status: req.body.status },
+        { status },
         { new: true },
       ).populate("user");
       if (!advisorRequest) {

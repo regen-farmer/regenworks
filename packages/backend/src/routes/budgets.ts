@@ -7,6 +7,7 @@ import System from "@rw/db/schemas/system.ts";
 import Posting, { type IPostingSchema } from "@rw/db/schemas/posting.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
@@ -120,7 +121,9 @@ router.post(
     res: express.Response,
   ) => {
     try {
-      const updatedBudget = await Budget.findByIdAndUpdate(req.params.id, req.body.budget);
+      const updatedBudget = await Budget.findById(req.params.id);
+      updatedBudget?.set(sanitizeMongoDocument(req.body.budget));
+      await updatedBudget?.save();
       if (updatedBudget) {
         res.send(`/budgets/${updatedBudget._id}`);
       } else {
@@ -350,7 +353,10 @@ router.post(
               layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = await runSystemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+              layout = await runSystemBasedLayout(
+                foundProject.systemdesign,
+                foundProject.layer.geometry,
+              );
             }
 
             let uniqueSpeciesCount: {
@@ -663,7 +669,10 @@ router.post(
               layout = rowBasedLayout(foundProject);
             } else {
               // DO PARAMETRIC LAYOUT
-              layout = await runSystemBasedLayout(foundProject.systemdesign, foundProject.layer.geometry);
+              layout = await runSystemBasedLayout(
+                foundProject.systemdesign,
+                foundProject.layer.geometry,
+              );
             }
             let uniqueSpeciesCount: {
               id: string;

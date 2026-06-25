@@ -1,6 +1,7 @@
 import express from "express";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -118,7 +119,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, req.body.species);
+      const updatedSpecies = await Species.findById(req.params.id);
+      updatedSpecies?.set(sanitizeMongoDocument(req.body.species));
+      await updatedSpecies?.save();
       console.log(updatedSpecies);
       res.send(`/species/${req.params.id}`);
     } catch (err) {
@@ -269,9 +272,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      const updatedSpecies = await Species.findByIdAndUpdate(req.params.id, {
-        $set: { nutrients: req.body.nutrients },
-      });
+      const updatedSpecies = await Species.findById(req.params.id);
+      updatedSpecies?.set({ nutrients: sanitizeMongoValue(req.body.nutrients) });
+      await updatedSpecies?.save();
       if (updatedSpecies) {
         res.send(`/species/${updatedSpecies._id}`);
       }

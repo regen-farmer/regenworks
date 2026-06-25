@@ -40,6 +40,7 @@ import stripeRoutes from "./routes/stripe.ts";
 import systemdesignRoutes from "./routes/systemdesigns.ts";
 import systemflowRoutes from "./routes/systemflows.ts";
 import systemRoutes from "./routes/systems.ts";
+import { isPlainObject } from "./utils/mongoSafety.ts";
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
@@ -78,6 +79,7 @@ app.use(
 );
 
 // APP SETUP
+mongoose.set("sanitizeFilter", true);
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
@@ -152,7 +154,10 @@ app.use(
     if (jwt && jwt !== "" && jwt !== "undefined" && typeof jwt === "string") {
       // idToken = parseJwt(jwt);
       // console.log('jwt:', jwt)
-      idToken = JSON.parse(jwt) as unknown as Auth0IDToken;
+      const parsedToken = JSON.parse(jwt) as unknown;
+      if (isPlainObject(parsedToken)) {
+        idToken = parsedToken as unknown as Auth0IDToken;
+      }
       // console.log('idToken:', idToken)
       // if (!idToken) {
       //   // console.log("no id token");
@@ -163,24 +168,27 @@ app.use(
       console.log("no jwt");
     }
 
-    if (idToken?.sub) {
-      const user = await User.findOne({ externalId: idToken.sub }).exec();
+    const externalId = idToken?.sub;
+    const email = idToken?.email;
+
+    if (typeof externalId === "string" && externalId !== "") {
+      const user = await User.findOne({ externalId: { $eq: externalId } }).exec();
       if (user) {
         req.user = user;
-      } else if (idToken?.email) {
+      } else if (typeof email === "string" && email !== "") {
         console.log("idToken", idToken);
         // Find any existing user
-        const user = await User.findOne({ email: idToken.email }).exec();
+        const user = await User.findOne({ email: { $eq: email } }).exec();
 
         if (user) {
-          user.externalId = idToken?.sub;
+          user.externalId = externalId;
           await user.save();
           req.user = user;
         } else {
           // Create a new user if none exist
           const newUser = await User.create({
-            externalId: idToken.sub,
-            email: idToken.email,
+            externalId,
+            email,
             registrationDate: Date.now(),
             isProject: true,
           });
@@ -192,7 +200,7 @@ app.use(
       } else {
         // Create a new user if none exist
         const newUser = await User.create({
-          externalId: idToken.sub,
+          externalId,
           registrationDate: Date.now(),
           isProject: true,
         });

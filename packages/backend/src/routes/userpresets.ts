@@ -1,9 +1,9 @@
 import express from "express";
-import mongoose from "mongoose";
 import UserPreset from "@rw/db/schemas/userpreset.ts";
 import middleware from "../middleware/index.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 
 const router = express.Router();
 
@@ -116,20 +116,21 @@ router.put(
     try {
       const { name, description, systemDesign, thumbnail, isPublic } = req.body;
 
-      const preset = await UserPreset.findOneAndUpdate(
-        {
-          _id: req.params.presetId,
-          owner: req.user?._id, // Ensure user owns the preset
-        },
-        {
+      const preset = await UserPreset.findOne({
+        _id: req.params.presetId,
+        owner: req.user?._id, // Ensure user owns the preset
+      });
+
+      preset?.set(
+        sanitizeMongoDocument({
           name,
           description,
           systemDesign,
           thumbnail,
           isPublic,
-        },
-        { new: true },
+        }),
       );
+      await preset?.save();
       // Don't populate to keep only IDs
 
       if (!preset) {
