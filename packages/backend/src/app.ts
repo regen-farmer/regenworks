@@ -7,6 +7,7 @@ import User, { type IUserSchema, type UserDocument } from "@rw/db/schemas/user.t
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 import methodOverride from "method-override"; // USED FOR PUT AND DELETE REQUESTS
 import mongoose from "mongoose";
 import activityRoutes from "./routes/activities.ts";
@@ -60,7 +61,21 @@ export type Auth0IDToken = {
 };
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(cors());
+
+const rateLimitWindowMs = Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? "900000", 10);
+const rateLimitMax = Number.parseInt(process.env.RATE_LIMIT_MAX ?? "1000", 10);
+
+app.use(
+  rateLimit({
+    windowMs: Number.isFinite(rateLimitWindowMs) ? rateLimitWindowMs : 15 * 60 * 1000,
+    limit: Number.isFinite(rateLimitMax) ? rateLimitMax : 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many requests, please try again later.",
+  }),
+);
 
 // APP SETUP
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
@@ -241,7 +256,6 @@ app.use("", financialModelsRoutes);
 app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
   res.status(404).send("404");
 });
-app.set("trust proxy", true);
 
 const PORT = process.env.BACKEND_PORT ? Number.parseInt(process.env.BACKEND_PORT) : 3001;
 const IP = process.env.BACKEND_IP ?? "127.0.0.1";

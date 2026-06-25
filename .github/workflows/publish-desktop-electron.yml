@@ -9,6 +9,9 @@ on:
       - 'packages/desktop-electron/package.json'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # Pre-create the draft release so parallel platform builds don't race
   create-release:

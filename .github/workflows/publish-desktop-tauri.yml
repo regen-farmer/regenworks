@@ -9,6 +9,9 @@ on:
   #     - 'packages/desktop-tauri/package.json'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   publish-tauri:
     name: Build & Publish Tauri

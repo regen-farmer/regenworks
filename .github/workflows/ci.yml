@@ -11,6 +11,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   static:
     name: Lint & build
@@ -142,7 +145,7 @@ jobs:
           BACKEND_PORT: 3001
           # Dummy keys so startup-time constructors (Resend/Stripe/geocoder) don't throw.
           RESEND_API_KEY: re_dummy
-          STRIPE_SECRET_KEY: sk_test_dummy
+          STRIPE_SECRET_KEY: dummy
           GEOCODER_API_KEY: dummy
         run: |
           node packages/backend/build/app.js > /tmp/backend.log 2>&1 &

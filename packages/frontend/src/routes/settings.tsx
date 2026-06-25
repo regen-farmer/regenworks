@@ -90,12 +90,6 @@ const RouteViewAccount: Component = () => {
   createEffect(async () => {
     // currentSubscription();
 
-    // const ipdataResult = await fetch(
-    // 	"https://geo.ipify.org/api/v2/country?apiKey=at_NNVBzRJyrUs0ZbdpNDDNPEJoFmnwq",
-    // );
-    // const ipdata = await ipdataResult.json();
-    // const countryCode = ipdata.location.country;
-
     if (getMongoDBUser().countryCode) {
       let currency: string;
 
