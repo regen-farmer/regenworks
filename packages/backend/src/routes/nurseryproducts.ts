@@ -1,8 +1,10 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import NurseryProduct from "@rw/db/schemas/nurseryproduct.ts";
 import Nursery from "@rw/db/schemas/nursery.ts";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -221,7 +223,9 @@ router.put(
     console.log(req.body.product.availability);
     console.log(typeof req.body.product.availability);
     try {
-      const updatedProduct = await NurseryProduct.findByIdAndUpdate(req.params.pid, product);
+      const updatedProduct = await NurseryProduct.findById(req.params.pid);
+      updatedProduct?.set(sanitizeMongoDocument(product));
+      await updatedProduct?.save();
       // REDIRECT TO PRODUCT
       /* if(req.body.product.hybrid === ""){
                 updatedProduct.hybrid = {};
@@ -232,7 +236,11 @@ router.put(
                 updatedProduct.save();
             } */
       if (updatedProduct) {
-        res.send(`/nurseries/${req.params.id}/nurseryproducts/${updatedProduct._id}`);
+        res.send(
+          `/nurseries/${escapeHtml(req.params.id)}/nurseryproducts/${escapeHtml(
+            updatedProduct._id.toString(),
+          )}`,
+        );
       } else {
         console.log("No updatedProduct");
       }

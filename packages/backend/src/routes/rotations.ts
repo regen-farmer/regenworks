@@ -1,9 +1,11 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Rotation from "@rw/db/schemas/rotation.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -35,15 +37,36 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const body: unknown = req.body;
+
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return res.status(400).send({ error: "Invalid request body." });
+    }
+
+    const rawDistance = Object.getOwnPropertyDescriptor(body, "distance")?.value;
+    const rawLength = Object.getOwnPropertyDescriptor(body, "length")?.value;
+
+    const isStringOrNumber = (value: unknown): value is string | number =>
+      typeof value === "string" || typeof value === "number";
+
+    if (!isStringOrNumber(rawDistance) || !isStringOrNumber(rawLength)) {
+      return res.status(400).send({ error: "Invalid distance/length format." });
+    }
+
+    const distance = Number(rawDistance);
+    const length = Number(rawLength);
+
+    if (!Number.isFinite(distance) || !Number.isFinite(length) || distance <= 0 || length <= 0) {
+      return res.status(400).send({ error: "Invalid distance or length." });
+    }
+
     // CHECK LENGTH IS DIVISIBLE
-    if ((req.body.length / req.body.distance) % 1 === 0) {
+    if ((length / distance) % 1 === 0) {
       // FIND LAYER
       try {
         const foundLayer = await Layer.findById(req.params.id);
         if (foundLayer) {
-          res.send(
-            `/layers/${foundLayer._id}/rotations/new?distance=${req.body.distance}&length=${req.body.length}`,
-          );
+          res.send(`/layers/${foundLayer._id}/rotations/new?distance=${distance}&length=${length}`);
         }
       } catch (err) {
         console.log(err);
@@ -129,7 +152,11 @@ router.post(
     try {
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
-        res.send(`/projects/${foundProject._id}/rotations/new?steps=${req.body.steps}`);
+        res.send(
+          `/projects/${escapeHtml(foundProject._id.toString())}/rotations/new?steps=${escapeHtml(
+            encodeURIComponent(String(req.body.steps)),
+          )}`,
+        );
       }
     } catch (err) {
       console.log(err);
@@ -281,12 +308,13 @@ router.put(
     res: express.Response,
   ) => {
     // FIND LAYER
-    const rotation = req.body.rotation;
     try {
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
         try {
-          await Rotation.findByIdAndUpdate(req.params.pid, rotation);
+          const rotation = await Rotation.findById(req.params.pid);
+          rotation?.set(sanitizeMongoDocument(req.body.rotation));
+          await rotation?.save();
           res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);

@@ -1,9 +1,11 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Posting from "@rw/db/schemas/posting.ts";
 import Budget from "@rw/db/schemas/budget.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -97,8 +99,10 @@ router.put(
   ) => {
     // FIND POSTING AND UPDATE
     try {
-      await Posting.findByIdAndUpdate(req.params.postid, req.body.posting);
-      res.send(`/budgets/${req.params.id}`);
+      const posting = await Posting.findById(req.params.postid);
+      posting?.set(sanitizeMongoDocument(req.body.posting));
+      await posting?.save();
+      res.send(`/budgets/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -155,7 +159,7 @@ router.post(
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);
               await foundBudget.save();
-              res.send(`/parcels/${req.params.id}/accounts`);
+              res.send(`/parcels/${escapeHtml(req.params.id)}/accounts`);
             } catch (err) {
               console.log(err);
             }

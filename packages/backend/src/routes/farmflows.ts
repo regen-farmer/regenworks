@@ -1,5 +1,7 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import unique from "array-unique";
+import { Types } from "mongoose";
 import { length as turfLength, helpers as turf, along } from "@turf/turf";
 import Farmflow from "@rw/db/schemas/farmflow.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -8,6 +10,7 @@ import Row from "@rw/db/schemas/row.ts";
 import Area from "@rw/db/schemas/area.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -89,9 +92,14 @@ router.post(
   ) => {
     // FIND SPECIES
     try {
-      const foundSpecies = await Species.findById(req.body.species);
+      const rawSpeciesId = req.body.species;
+      if (typeof rawSpeciesId !== "string" || !Types.ObjectId.isValid(rawSpeciesId)) {
+        return res.status(400).send({ error: "Invalid species id" });
+      }
+
+      const foundSpecies = await Species.findById(new Types.ObjectId(rawSpeciesId));
       // CREATE ACTIVITY
-      const newFarmFlow = req.body.farmflow;
+      const newFarmFlow = sanitizeMongoDocument(req.body.farmflow);
       newFarmFlow.species = foundSpecies;
       const createdFarmflow = await Farmflow.create(newFarmFlow);
 
@@ -99,7 +107,7 @@ router.post(
         await Row.findByIdAndUpdate(req.params.rid, {
           $push: { farmflows: createdFarmflow },
         });
-        res.send(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -159,9 +167,14 @@ router.post(
   ) => {
     // FIND SPECIES
     try {
-      const foundSpecies = await Species.findById(req.body.species);
+      const rawSpeciesId = req.body.species;
+      if (typeof rawSpeciesId !== "string" || !Types.ObjectId.isValid(rawSpeciesId)) {
+        return res.status(400).send({ error: "Invalid species id" });
+      }
+
+      const foundSpecies = await Species.findById(new Types.ObjectId(rawSpeciesId));
       // CREATE ACTIVITY
-      const newFarmFlow = req.body.farmflow;
+      const newFarmFlow = sanitizeMongoDocument(req.body.farmflow);
       newFarmFlow.species = foundSpecies;
       const createdFarmflow = await Farmflow.create(newFarmFlow);
 
@@ -169,7 +182,7 @@ router.post(
         await Area.findByIdAndUpdate(req.params.rid, {
           $push: { farmflows: createdFarmflow },
         });
-        res.send(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -320,7 +333,7 @@ router.get(
       }
       console.log(`max: ${max}`);
       console.log(`min: ${min}`);
-      res.send(`/parcels/${req.params.id}/farmflows`);
+      res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       /*
             res.send("farmflows/viz");
 */

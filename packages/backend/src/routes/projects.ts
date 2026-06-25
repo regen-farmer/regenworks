@@ -18,6 +18,7 @@ import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_lay
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";
+import escapeHtml from "escape-html";
 import _ from "lodash";
 import mongoose from "mongoose";
 import NodeGeocoder from "node-geocoder";
@@ -25,6 +26,7 @@ import PDFDocument from "pdfkit";
 import type { Auth0IDToken } from "../app.ts";
 import dyFiMo from "../middleware/financials.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
 
 // import SystemDesign from 'collections/systemdesign.js';
 
@@ -355,9 +357,11 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      await Project.findByIdAndUpdate(req.params.id, req.body.project);
+      const project = await Project.findById(req.params.id);
+      project?.set(sanitizeMongoDocument(req.body.project));
+      await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -374,9 +378,11 @@ router.put(
   ) => {
     console.log("Here");
     try {
-      await Project.findByIdAndUpdate(req.params.id, req.body.project);
+      const project = await Project.findById(req.params.id);
+      project?.set(sanitizeMongoDocument(req.body.project));
+      await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}/layout`);
+      res.send(`/projects/${escapeHtml(req.params.id)}/layout`);
     } catch (err) {
       console.log(err);
     }
@@ -407,7 +413,7 @@ router.put(
       await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: "Implementation" },
       });
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -426,7 +432,7 @@ router.put(
       await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: "Retired" },
       });
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -467,7 +473,7 @@ router.put(
             // SAVE AREA
             await projectArea.save();
             // REDIRECT
-            res.send(`/projects/${req.params.id}`);
+            res.send(`/projects/${escapeHtml(req.params.id)}`);
           } else {
             console.log("No projectArea");
           }
@@ -526,7 +532,12 @@ router.post(
   ) => {
     // FIND SYSTEM
     try {
-      const foundSystem = await System.findById(req.body.systemid);
+      const rawSystemId = req.body.systemid;
+      if (typeof rawSystemId !== "string" || !mongoose.Types.ObjectId.isValid(rawSystemId)) {
+        return res.status(400).send({ error: "Invalid system id" });
+      }
+
+      const foundSystem = await System.findById(new mongoose.Types.ObjectId(rawSystemId));
 
       // FIND PROJECT
       try {
@@ -630,7 +641,7 @@ router.put(
                     await foundRows[i].save();
                   }
                   console.log("Assets added to project");
-                  res.send(`/projects/${req.params.id}`);
+                  res.send(`/projects/${escapeHtml(req.params.id)}`);
                 } catch (err) {
                   console.log(err);
                 }
@@ -1032,7 +1043,7 @@ router.post(
       res.send(createdProject);
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1117,7 +1128,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1185,7 +1196,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1355,7 +1366,13 @@ router.put(
       name: req.body.row.name,
     };
     if (!(req.body.sequenceid === "none") && req.body.sequenceid) {
-      row.sequence = req.body.sequenceid;
+      if (
+        typeof req.body.sequenceid !== "string" ||
+        !mongoose.Types.ObjectId.isValid(req.body.sequenceid)
+      ) {
+        return res.status(400).send({ error: "Invalid sequence id" });
+      }
+      row.sequence = new mongoose.Types.ObjectId(req.body.sequenceid);
     }
     // FIND PROJECT
     try {
@@ -1363,7 +1380,9 @@ router.put(
       // FIND AND UPDATE ROW
       if (foundProject) {
         try {
-          await Row.findByIdAndUpdate(req.params.pid, row);
+          const foundRow = await Row.findById(req.params.pid);
+          foundRow?.set(sanitizeMongoDocument(row));
+          await foundRow?.save();
           res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);
@@ -1465,7 +1484,13 @@ router.put(
     };
 
     if (!(req.body.rotationid === "none") && req.body.rotationid) {
-      area.rotation = req.body.rotationid;
+      if (
+        typeof req.body.rotationid !== "string" ||
+        !mongoose.Types.ObjectId.isValid(req.body.rotationid)
+      ) {
+        return res.status(400).send({ error: "Invalid rotation id" });
+      }
+      area.rotation = new mongoose.Types.ObjectId(req.body.rotationid);
     }
     // FIND PROJECT
     try {
@@ -1473,7 +1498,9 @@ router.put(
       // FIND AND UPDATE AREA
       if (foundProject) {
         try {
-          const updatedArea = await Area.findByIdAndUpdate(req.params.pid, area);
+          const updatedArea = await Area.findById(req.params.pid);
+          updatedArea?.set(sanitizeMongoDocument(area));
+          await updatedArea?.save();
           console.log(`Updated area: ${updatedArea}`);
           res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
@@ -1691,12 +1718,14 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      await Project.findByIdAndUpdate(req.params.id, {
+      const project = await Project.findById(req.params.id);
+      project?.set({
         alignment: "bearing",
-        bearingline: req.body.geometry,
+        bearingline: sanitizeMongoValue(req.body.geometry),
       });
+      await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}/layout`);
+      res.send(`/projects/${escapeHtml(req.params.id)}/layout`);
     } catch (err) {
       console.log(err);
     }

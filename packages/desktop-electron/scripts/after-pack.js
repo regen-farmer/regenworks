@@ -13,7 +13,7 @@
  */
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 module.exports = async function afterPack(context) {
   const appOutDir = context.appOutDir;
@@ -112,9 +112,12 @@ function bundleDylibsMac(dir) {
         !dep.startsWith("/usr/lib/") &&
         !dep.startsWith("/System/")
       ) {
-        execSync(
-          `install_name_tool -change "${dep}" "@loader_path/${basename}" "${binary}"`,
-        );
+        execFileSync("install_name_tool", [
+          "-change",
+          dep,
+          `@loader_path/${basename}`,
+          binary,
+        ]);
         console.log(
           `  afterPack: rewrite ${path.basename(binary)}: ${basename} → @loader_path`,
         );
@@ -123,12 +126,12 @@ function bundleDylibsMac(dir) {
 
     // Fix install names for shared libraries (.dylib and .node are both Mach-O dylibs)
     const bn = path.basename(binary);
-    execSync(`install_name_tool -id "@loader_path/${bn}" "${binary}"`);
+    execFileSync("install_name_tool", ["-id", `@loader_path/${bn}`, binary]);
   }
 
   // Re-sign all modified binaries (install_name_tool invalidates signatures)
   for (const binary of allBinaries) {
-    execSync(`codesign --force --sign - "${binary}"`);
+    execFileSync("codesign", ["--force", "--sign", "-", binary]);
     console.log(`  afterPack: re-signed ${path.basename(binary)}`);
   }
 }
@@ -138,7 +141,7 @@ function bundleDylibsMac(dir) {
  */
 function patchElfLinux(nodeFile) {
   try {
-    execSync(`patchelf --set-rpath '$ORIGIN' "${nodeFile}"`);
+    execFileSync("patchelf", ["--set-rpath", "$ORIGIN", nodeFile]);
     console.log(`  afterPack: set rpath for ${path.basename(nodeFile)}`);
   } catch (e) {
     console.log(`  afterPack: patchelf not available or failed for ${path.basename(nodeFile)}`);
@@ -190,7 +193,7 @@ function getNonSystemDeps(binaryPath) {
  */
 function getRpaths(binaryPath) {
   try {
-    const output = execSync(`otool -l "${binaryPath}"`, { encoding: "utf-8" });
+    const output = execFileSync("otool", ["-l", binaryPath], { encoding: "utf-8" });
     const rpaths = [];
     const lines = output.split("\n");
     for (let i = 0; i < lines.length; i++) {
@@ -216,7 +219,7 @@ function getRpaths(binaryPath) {
  */
 function getOtoolDeps(binaryPath) {
   try {
-    const output = execSync(`otool -L "${binaryPath}"`, { encoding: "utf-8" });
+    const output = execFileSync("otool", ["-L", binaryPath], { encoding: "utf-8" });
     return output
       .split("\n")
       .slice(1)
