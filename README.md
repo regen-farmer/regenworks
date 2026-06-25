@@ -22,16 +22,46 @@ RegenWorks is an agroforestry design and management platform. This repository co
 
 ## Getting Started
 
+### Docker Local Development
+
+This is the easiest path for a fresh clone. It starts MongoDB locally in Docker
+and runs the backend plus web dev server without requiring staging or production
+database credentials.
+
+```bash
+docker compose up --build
+```
+
+Open the web app at `http://localhost:10000`. The backend is available at
+`http://localhost:3001`, and MongoDB is available at `mongodb://localhost:27017`.
+Application data is stored in the `mongo-data` Docker volume.
+
+The default Docker setup intentionally leaves third-party service keys blank.
+Features backed by Auth0, Google Maps/geocoding, Resend, or Stripe may be limited
+until local development keys are provided. To provide optional local keys, copy
+`.env.docker.example` to `.env.docker`, fill in only development credentials,
+then run:
+
+```bash
+docker compose --env-file .env.docker up --build
+```
+
+Stop the stack with `docker compose down`. To also delete the local MongoDB
+volume, run `docker compose down -v`.
+
+### Native Local Development
+
 Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-Create local environment files from examples where available:
+Create local environment files from examples:
 
 ```bash
 cp packages/backend/.env.example packages/backend/.env
+cp packages/isomorphic/.env.example packages/isomorphic/.env
 ```
 
 Run the web app:

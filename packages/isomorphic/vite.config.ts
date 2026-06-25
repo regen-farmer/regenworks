@@ -43,6 +43,7 @@ export default defineConfig(({ mode }) => {
 		// into `.output/public/` and `/images/*` etc. are served in prod.
 		build: { copyPublicDir: true },
 		server: {
+			host: process.env.VITE_DEV_HOST || undefined,
 			port: Number(process.env.PORT) || 10000,
 		},
 		resolve: {

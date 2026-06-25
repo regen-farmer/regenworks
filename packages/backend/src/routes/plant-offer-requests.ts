@@ -7,9 +7,17 @@ const router = express.Router();
 
 const PLANT_OFFER_RECIPIENT = process.env.PLANT_OFFER_RECIPIENT;
 
-// Initialize Resend with API key
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const resend = new Resend(RESEND_API_KEY);
+let resend: Resend | undefined;
+
+const getResendClient = () => {
+  if (!RESEND_API_KEY || !PLANT_OFFER_RECIPIENT) {
+    return;
+  }
+
+  resend ??= new Resend(RESEND_API_KEY);
+  return resend;
+};
 
 interface SpeciesBreakdownEntry {
   id: string;
@@ -41,6 +49,11 @@ router.post(
 
     if (!resolvedSenderEmail) {
       return res.status(400).json({ message: "An email address is required to send the request." });
+    }
+
+    const resendClient = getResendClient();
+    if (!resendClient || !PLANT_OFFER_RECIPIENT) {
+      return res.status(503).json({ message: "Plant offer email is not configured." });
     }
 
     const total = Number(totalTrees);
@@ -105,9 +118,9 @@ router.post(
       const htmlBody = emailLines.join("\n");
 
       // Send email to nursery team using Resend
-      await resend.emails.send({
+      await resendClient.emails.send({
         from: "RegenWorks <mail@noreply.regenfarmer.com>",
-        to: [PLANT_OFFER_RECIPIENT!],
+        to: [PLANT_OFFER_RECIPIENT],
         replyTo: resolvedSenderEmail,
         subject: subjectParts.join(" - "),
         html: htmlBody,
@@ -148,7 +161,7 @@ router.post(
 
       const receiptHtml = receiptLines.join("\n");
 
-      await resend.emails.send({
+      await resendClient.emails.send({
         from: "RegenWorks <mail@noreply.regenfarmer.com>",
         to: [resolvedSenderEmail],
         subject: "Plant Offer Request Received - RegenWorks",
