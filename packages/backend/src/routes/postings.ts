@@ -4,6 +4,7 @@ import Budget from "@rw/db/schemas/budget.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -97,7 +98,9 @@ router.put(
   ) => {
     // FIND POSTING AND UPDATE
     try {
-      await Posting.findByIdAndUpdate(req.params.postid, req.body.posting);
+      const posting = await Posting.findById(req.params.postid);
+      posting?.set(sanitizeMongoDocument(req.body.posting));
+      await posting?.save();
       res.send(`/budgets/${req.params.id}`);
     } catch (err) {
       console.log(err);

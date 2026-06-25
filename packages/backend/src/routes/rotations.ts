@@ -4,6 +4,7 @@ import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -302,12 +303,13 @@ router.put(
     res: express.Response,
   ) => {
     // FIND LAYER
-    const rotation = req.body.rotation;
     try {
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
         try {
-          await Rotation.findByIdAndUpdate(req.params.pid, rotation);
+          const rotation = await Rotation.findById(req.params.pid);
+          rotation?.set(sanitizeMongoDocument(req.body.rotation));
+          await rotation?.save();
           res.send(`/projects/${foundProject._id}/layout`);
         } catch (err) {
           console.log(err);

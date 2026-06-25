@@ -5,6 +5,7 @@ import middleware from "../middleware/index.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 
 const router = express.Router();
 
@@ -58,7 +59,8 @@ router.put(
       if (foundProject.systemdesign) {
         console.log("##### found system design #####");
 
-        await foundProject.systemdesign.replaceOne(req.body);
+        foundProject.systemdesign.set(sanitizeMongoDocument(req.body));
+        await foundProject.systemdesign.save();
 
         const foundSystemDesign = await SystemDesign.findById(foundProject.systemdesign._id);
 
@@ -66,7 +68,7 @@ router.put(
       } else {
         console.log("##### didnt find system design #####");
 
-        const newSystemDesign = await new SystemDesign(req.body);
+        const newSystemDesign = await new SystemDesign(sanitizeMongoDocument(req.body));
         await newSystemDesign.save();
         foundProject.systemdesign = newSystemDesign;
         await foundProject.save();

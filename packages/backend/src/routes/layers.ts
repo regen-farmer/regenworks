@@ -1,5 +1,6 @@
 import express from "express";
 import unique from "array-unique";
+import { Types } from "mongoose";
 import {
   centroid,
   helpers as turf,
@@ -19,6 +20,7 @@ import Animal from "@rw/db/schemas/animal.ts";
 import Sequence from "@rw/db/schemas/sequence.ts";
 import Row from "@rw/db/schemas/row.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -305,12 +307,13 @@ router.post(
                 if (createdLayer.type === "agroforestry") {
                   res.send(`/layers/${createdLayer._id}/systems/new`);
                 } else {
-                  let tempspecies = req.body.maincrop;
-                  if (req.body.maincrop === "") {
-                    tempspecies = "5e665452cccc150b186d4cd1";
+                  const rawMainCrop = req.body.maincrop;
+                  const mainCropId = rawMainCrop === "" ? "5e665452cccc150b186d4cd1" : rawMainCrop;
+                  if (typeof mainCropId !== "string" || !Types.ObjectId.isValid(mainCropId)) {
+                    return res.status(400).send({ error: "Invalid main crop id" });
                   }
                   try {
-                    const foundSpecies = await Species.findById(tempspecies);
+                    const foundSpecies = await Species.findById(new Types.ObjectId(mainCropId));
                     if (foundSpecies) {
                       // DEFINE SYSTEM WITH ONE ROW AND ONE SPECIES
                       const presentsystem: any = {
@@ -331,8 +334,17 @@ router.post(
                       };
                       // FIND ANIMAL AND PUSH TO SYSTEM
                       if (!(req.body.animal === "")) {
+                        const rawAnimalId = req.body.animal;
+                        if (
+                          typeof rawAnimalId !== "string" ||
+                          !Types.ObjectId.isValid(rawAnimalId)
+                        ) {
+                          return res.status(400).send({ error: "Invalid animal id" });
+                        }
                         try {
-                          const foundAnimal = await Animal.findById(req.body.animal);
+                          const foundAnimal = await Animal.findById(
+                            new Types.ObjectId(rawAnimalId),
+                          );
                           presentsystem.animals.push(foundAnimal);
                           // CREATE SYSTEM
                           try {
@@ -518,7 +530,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      const updatedLayer = await Layer.findByIdAndUpdate(req.params.id, req.body.layer);
+      const updatedLayer = await Layer.findById(req.params.id);
+      updatedLayer?.set(sanitizeMongoDocument(req.body.layer));
+      await updatedLayer?.save();
       console.log(updatedLayer);
       res.send(`/layers/${req.params.id}`);
     } catch (err) {
@@ -593,7 +607,12 @@ router.post(
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
-        const foundSystem = await System.findById(req.body.systemid);
+        const rawSystemId = req.body.systemid;
+        if (typeof rawSystemId !== "string" || !Types.ObjectId.isValid(rawSystemId)) {
+          return res.status(400).send({ error: "Invalid system id" });
+        }
+
+        const foundSystem = await System.findById(new Types.ObjectId(rawSystemId));
         // PUSH CURRENT SYSTEM TO PAST
         if (foundLayer && foundSystem) {
           if (foundLayer.systems.present) {
@@ -633,7 +652,12 @@ router.post(
     try {
       const foundLayer = await Layer.findById(req.params.id);
       try {
-        const foundSystem = await System.findById(req.body.systemid);
+        const rawSystemId = req.body.systemid;
+        if (typeof rawSystemId !== "string" || !Types.ObjectId.isValid(rawSystemId)) {
+          return res.status(400).send({ error: "Invalid system id" });
+        }
+
+        const foundSystem = await System.findById(new Types.ObjectId(rawSystemId));
         if (foundLayer && foundSystem) {
           foundLayer.systems.future.push(foundSystem);
           await foundLayer.save();
@@ -1221,7 +1245,9 @@ router.put(
       const foundLayer = await Layer.findById(req.params.id);
       // FIND AND UPDATE ROW
       try {
-        await Row.findByIdAndUpdate(req.params.pid, row);
+        const foundRow = await Row.findById(req.params.pid);
+        foundRow?.set(sanitizeMongoDocument(row));
+        await foundRow?.save();
         if (foundLayer) {
           res.send(`/layers/${foundLayer._id}/layout`);
         }

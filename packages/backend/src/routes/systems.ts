@@ -7,6 +7,7 @@ import Parcel from "@rw/db/schemas/parcel.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -116,7 +117,11 @@ router.post(
     const numericDistance = Number(distance);
     const numericLength = Number(length);
 
-    if (!Number.isFinite(numericDistance) || !Number.isFinite(numericLength) || numericDistance === 0) {
+    if (
+      !Number.isFinite(numericDistance) ||
+      !Number.isFinite(numericLength) ||
+      numericDistance === 0
+    ) {
       return res.status(400).send({ error: "Invalid distance or length." });
     }
 
@@ -813,7 +818,8 @@ router.put(
 
           console.log("OWNER");
           try {
-            const updatedSystem = await System.findByIdAndUpdate(req.params.id, system);
+            foundSystem.set(sanitizeMongoDocument(system));
+            const updatedSystem = await foundSystem.save();
             if (updatedSystem) {
               res.send({
                 updatedSystem,
@@ -1312,9 +1318,9 @@ router.put(
     res: express.Response,
   ) => {
     try {
-      const updatedSystem = await System.findByIdAndUpdate(req.params.id, {
-        $addToSet: { occurrences: req.body.occurrence },
-      });
+      const updatedSystem = await System.findById(req.params.id);
+      updatedSystem?.occurrences.addToSet(sanitizeMongoValue(req.body.occurrence));
+      await updatedSystem?.save();
       if (updatedSystem) {
         console.log(`${req.body.occurrence} has been added to the system`);
         res.send(`/systems/${updatedSystem._id}`);

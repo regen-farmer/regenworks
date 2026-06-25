@@ -9,6 +9,7 @@ import Parcel from "@rw/db/schemas/parcel.ts";
 import Practice from "@rw/db/schemas/practice.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import middleware from "../middleware/index.ts"; // Will automatically require the middleware "index" file as the standard
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -410,9 +411,9 @@ router.put(
       }
 
       // Now persist changes and return the updated document
-      const updatedParcel = await Parcel.findByIdAndUpdate(req.params.id, parcelUpdates, {
-        new: true,
-      });
+      const updatedParcel = await Parcel.findById(req.params.id);
+      updatedParcel?.set(sanitizeMongoDocument(parcelUpdates));
+      await updatedParcel?.save();
 
       if (!updatedParcel) {
         return res.status(404).send({ error: "Parcel not found" });

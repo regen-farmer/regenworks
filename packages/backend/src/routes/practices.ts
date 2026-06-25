@@ -1,4 +1,5 @@
 import express from "express";
+import { Types } from "mongoose";
 import Practice from "@rw/db/schemas/practice.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import middleware from "../middleware/index.ts";
@@ -24,7 +25,12 @@ router.get(
     try {
       const foundPractice = await Practice.findById(req.params.id);
       try {
-        const foundParcel = await Parcel.findById(req.query.parcelid);
+        const { parcelid } = req.query;
+        if (typeof parcelid !== "string" || !Types.ObjectId.isValid(parcelid)) {
+          return res.status(400).send({ error: "Invalid parcel id" });
+        }
+
+        const foundParcel = await Parcel.findById(new Types.ObjectId(parcelid));
         if (foundParcel && foundParcel.owner.id.toString() === req.user?._id.toString()) {
           // REFACTOR OWNERSHIP MIDDLEWARE?!?! WORKS FOR NOW
           console.log(foundParcel);

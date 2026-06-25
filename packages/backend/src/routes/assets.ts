@@ -4,6 +4,7 @@ import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
+import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -129,7 +130,9 @@ router.put(
   ) => {
     // UPDATE ASSET
     try {
-      const updatedAsset = await Asset.findByIdAndUpdate(req.params.id, req.body.asset);
+      const updatedAsset = await Asset.findById(req.params.id);
+      updatedAsset?.set(sanitizeMongoDocument(req.body.asset));
+      await updatedAsset?.save();
       if (updatedAsset) {
         res.send(`/assets/${updatedAsset._id}`);
       } else {

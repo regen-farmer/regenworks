@@ -8,6 +8,7 @@ import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import { type UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
+import { isPlainObject, sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 
 const router = express.Router();
 
@@ -98,7 +99,12 @@ router.post("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthReque
     console.log("Creating farm planting plan config with body:", JSON.stringify(req.body, null, 2));
 
     // Verify parcel ownership
-    const parcel = await Parcel.findById(req.body.parcel);
+    const rawParcelId = req.body.parcel;
+    if (typeof rawParcelId !== "string" || !Types.ObjectId.isValid(rawParcelId)) {
+      return res.status(400).send({ error: "Invalid parcel id" });
+    }
+
+    const parcel = await Parcel.findById(new Types.ObjectId(rawParcelId));
     if (!parcel) {
       return res.status(404).send({ error: "Parcel not found" });
     }
@@ -107,23 +113,36 @@ router.post("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthReque
     }
 
     // Verify layer ownership for all field scenarios
-    if (req.body.fieldScenarios && req.body.fieldScenarios.length > 0) {
-      for (const fieldScenario of req.body.fieldScenarios) {
+    const fieldScenariosInput = Array.isArray(req.body.fieldScenarios)
+      ? req.body.fieldScenarios
+      : [];
+
+    if (fieldScenariosInput.length > 0) {
+      for (const fieldScenario of fieldScenariosInput) {
+        if (!isPlainObject(fieldScenario)) {
+          return res.status(400).send({ error: "Invalid field scenario" });
+        }
+
         // Skip if layer is not provided (might happen for disabled fields)
         if (!fieldScenario.layer) {
           continue;
         }
 
-        const layer = await Layer.findById(fieldScenario.layer);
+        const rawLayerId = fieldScenario.layer;
+        if (typeof rawLayerId !== "string" || !Types.ObjectId.isValid(rawLayerId)) {
+          return res.status(400).send({ error: "Invalid layer id" });
+        }
+
+        const layer = await Layer.findById(new Types.ObjectId(rawLayerId));
         if (!layer) {
-          return res.status(404).send({ error: `Layer ${fieldScenario.layer} not found` });
+          return res.status(404).send({ error: `Layer ${rawLayerId} not found` });
         }
 
         // Check if the layer belongs to this parcel by checking if it's in the parcel's layers array
         // The parcel.layers array contains ObjectIds, not populated documents
         const layerBelongsToParcel = parcel.layers.some((layerId: any) => {
           // Convert both to strings for comparison
-          return layerId.toString() === fieldScenario.layer.toString();
+          return layerId.toString() === rawLayerId;
         });
 
         if (!layerBelongsToParcel) {
@@ -135,17 +154,22 @@ router.post("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthReque
           );
           console.log("Requested layer:", fieldScenario.layer);
           return res.status(400).send({
-            error: `Layer ${fieldScenario.layer} does not belong to the specified parcel`,
+            error: `Layer ${rawLayerId} does not belong to the specified parcel`,
           });
         }
 
         // Verify project if specified
         if (fieldScenario.project) {
-          const project = await Project.findById(fieldScenario.project);
-          if (!project) {
-            return res.status(404).send({ error: `Project ${fieldScenario.project} not found` });
+          const rawProjectId = fieldScenario.project;
+          if (typeof rawProjectId !== "string" || !Types.ObjectId.isValid(rawProjectId)) {
+            return res.status(400).send({ error: "Invalid project id" });
           }
-          if (project.layer.toString() !== fieldScenario.layer) {
+
+          const project = await Project.findById(new Types.ObjectId(rawProjectId));
+          if (!project) {
+            return res.status(404).send({ error: `Project ${rawProjectId} not found` });
+          }
+          if (project.layer.toString() !== rawLayerId) {
             return res
               .status(400)
               .send({ error: "Project does not belong to the specified layer" });
@@ -155,13 +179,16 @@ router.post("/farmscenarioconfigs", middleware.isLoggedIn, async (req: AuthReque
     }
 
     // Filter out field scenarios without layers
-    const validFieldScenarios = (req.body.fieldScenarios || []).filter(
-      (fs: any) => fs.layer && fs.enabled !== false,
+    const validFieldScenarios = fieldScenariosInput.filter(
+      (fs: unknown) => isPlainObject(fs) && fs.layer && fs.enabled !== false,
     );
 
     const config = new FarmScenarioConfig({
-      ...req.body,
-      fieldScenarios: validFieldScenarios,
+      ...sanitizeMongoDocument(req.body),
+      parcel: new Types.ObjectId(rawParcelId),
+      fieldScenarios: validFieldScenarios.map((fieldScenario) =>
+        sanitizeMongoDocument(fieldScenario),
+      ),
       user: req.user!._id,
     });
 
@@ -193,7 +220,11 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
     delete req.body.parcel;
 
     // Verify layer and project ownership if updating field scenarios
-    if (req.body.fieldScenarios && req.body.fieldScenarios.length > 0) {
+    const updateFieldScenariosInput = Array.isArray(req.body.fieldScenarios)
+      ? req.body.fieldScenarios
+      : [];
+
+    if (updateFieldScenariosInput.length > 0) {
       // Fetch the parcel to check layer ownership
       const parcel = await Parcel.findById(config.parcel).populate("layers");
       if (!parcel) {
@@ -204,17 +235,26 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
 
       // console.log(layerId.toString())
 
-      for (const fieldScenario of req.body.fieldScenarios) {
-        const layer = await Layer.findById(fieldScenario.layer);
+      for (const fieldScenario of updateFieldScenariosInput) {
+        if (!isPlainObject(fieldScenario)) {
+          return res.status(400).send({ error: "Invalid field scenario" });
+        }
+
+        const rawLayerId = fieldScenario.layer;
+        if (typeof rawLayerId !== "string" || !Types.ObjectId.isValid(rawLayerId)) {
+          return res.status(400).send({ error: "Invalid layer id" });
+        }
+
+        const layer = await Layer.findById(new Types.ObjectId(rawLayerId));
         if (!layer) {
-          return res.status(404).send({ error: `Layer ${fieldScenario.layer} not found` });
+          return res.status(404).send({ error: `Layer ${rawLayerId} not found` });
         }
 
         fieldScenario.toString();
 
         // Check if the layer belongs to this parcel
         const layerBelongsToParcel = parcel.layers.some(
-          (layer: any) => layer._id.toString() === fieldScenario.layer.toString(),
+          (layer: any) => layer._id.toString() === rawLayerId,
         );
 
         if (!layerBelongsToParcel) {
@@ -222,11 +262,16 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
         }
 
         if (fieldScenario.project) {
-          const project = await Project.findById(fieldScenario.project);
-          if (!project) {
-            return res.status(404).send({ error: `Project ${fieldScenario.project} not found` });
+          const rawProjectId = fieldScenario.project;
+          if (typeof rawProjectId !== "string" || !Types.ObjectId.isValid(rawProjectId)) {
+            return res.status(400).send({ error: "Invalid project id" });
           }
-          if (project.layer.toString() !== fieldScenario.layer) {
+
+          const project = await Project.findById(new Types.ObjectId(rawProjectId));
+          if (!project) {
+            return res.status(404).send({ error: `Project ${rawProjectId} not found` });
+          }
+          if (project.layer.toString() !== rawLayerId) {
             return res
               .status(400)
               .send({ error: "Project does not belong to the specified layer" });
@@ -245,11 +290,11 @@ router.put("/farmscenarioconfigs/:id", middleware.isLoggedIn, async (req: AuthRe
       updatePayload.description = req.body.description.trim();
     }
 
-    if (req.body.displaySettings && typeof req.body.displaySettings === "object") {
+    if (isPlainObject(req.body.displaySettings)) {
       const existingSettings = config.displaySettings || {};
       updatePayload.displaySettings = {
         ...existingSettings,
-        ...req.body.displaySettings,
+        ...sanitizeMongoDocument(req.body.displaySettings),
       } as typeof config.displaySettings;
     }
 
