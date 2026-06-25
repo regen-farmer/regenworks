@@ -96,11 +96,15 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    const { rows, distance, length } = req.body as {
-      rows?: unknown;
-      distance?: unknown;
-      length?: unknown;
-    };
+    const body: unknown = req.body;
+
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return res.status(400).send({ error: "Invalid request body." });
+    }
+
+    const rows = Object.getOwnPropertyDescriptor(body, "rows")?.value;
+    const distance = Object.getOwnPropertyDescriptor(body, "distance")?.value;
+    const length = Object.getOwnPropertyDescriptor(body, "length")?.value;
 
     const isStringOrNumber = (value: unknown): value is string | number =>
       typeof value === "string" || typeof value === "number";
