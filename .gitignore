@@ -2,6 +2,7 @@ node_modules/
 target/
 .env
 .env.backup
+.env.docker
 .DS_Store
 dist-electron/
 

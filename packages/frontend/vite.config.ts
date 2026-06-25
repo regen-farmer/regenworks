@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
 	return {
 		base: "/",
 		server: {
+			host: process.env.VITE_DEV_HOST || undefined,
 			port: Number(process.env.PORT) || 10100,
 			strictPort: true,
 		},

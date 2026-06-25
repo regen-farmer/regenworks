@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Stripe from "stripe";
 import express from "express";
-import { format, getUnixTime, parse } from "date-fns";
 import dotenv from "dotenv";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
@@ -51,12 +50,34 @@ export const StripeIds = {
   },
 };
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripeOptions = {
   // Pinned to the tested API contract; cast because the SDK's apiVersion type
   // only allows its own latest version (stripe@22's LatestApiVersion).
   apiVersion: "2024-09-30.acacia" as Stripe.LatestApiVersion,
   maxNetworkRetries: 2,
-});
+};
+
+let stripeClient: Stripe | undefined;
+
+const getStripeClient = () => {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    return;
+  }
+
+  stripeClient ??= new Stripe(stripeSecretKey, stripeOptions);
+  return stripeClient;
+};
+
+const requireStripeClient = (res: express.Response) => {
+  const stripe = getStripeClient();
+  if (!stripe) {
+    res.status(503).send("Stripe is not configured.");
+    return;
+  }
+
+  return stripe;
+};
 
 // router.put(
 //   '/stripe/stripe_sid',
@@ -86,6 +107,9 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+
     const { email, priceId, currency, callbackUrl, customer } = req.body;
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
@@ -138,6 +162,9 @@ router.get(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+
     const farmMonth = await stripe.prices.retrieve(
       StripeIds.farm.prices.month[getDevProdStatus()],
       {
@@ -185,6 +212,9 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+
     const payload = req.body;
     if (req.user.get("stripeCustomerId")) {
       const subscriptions = await stripe.subscriptions.list({
@@ -224,6 +254,9 @@ router.put(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+
     if (req.params.subscriptionId) {
       if (req.params.cancelAtPeriodEnd === "false") {
         await stripe.subscriptions.cancel(req.params.subscriptionId);
@@ -246,6 +279,9 @@ router.put(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+
     console.log("DELETE here");
     console.log("reqbody, ", req.params.subscriptionId);
     const payload = req.body;

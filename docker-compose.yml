@@ -1,0 +1,82 @@
+services:
+  app:
+    build:
+      context: .
+    working_dir: /workspace
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      AUTH_AUTH0_ID: ${RW_DOCKER_AUTH0_ID:-}
+      AUTH_AUTH0_ISSUER: ${RW_DOCKER_AUTH0_ISSUER:-}
+      AUTH_AUTH0_SECRET: ${RW_DOCKER_AUTH0_SECRET:-}
+      AUTH_SECRET: local-docker-auth-secret-change-if-you-use-real-auth
+      BACKEND_IP: 0.0.0.0
+      BACKEND_PORT: 3001
+      CHOKIDAR_USEPOLLING: "true"
+      DATABASEURL: mongodb://mongo:27017/regenworks
+      GEOCODER_API_KEY: ${RW_DOCKER_GEOCODER_API_KEY:-}
+      GMAILPW: ""
+      PLANT_OFFER_RECIPIENT: ${RW_DOCKER_PLANT_OFFER_RECIPIENT:-}
+      PORT: 10000
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+      RATE_LIMIT_MAX: 1000
+      RATE_LIMIT_WINDOW_MS: 900000
+      RESEND_API_KEY: ${RW_DOCKER_RESEND_API_KEY:-}
+      RUSTUP_TOOLCHAIN: 1.96.0
+      STRIPE_MODE: DEV
+      STRIPE_SECRET_KEY: ${RW_DOCKER_STRIPE_SECRET_KEY:-}
+      VITE_BACKEND_URL: http://localhost:3001
+      VITE_BASE_URL: http://localhost:10000
+      VITE_DEV_HOST: 0.0.0.0
+      VITE_GEOCODER_API_KEY: ${RW_DOCKER_VITE_GEOCODER_API_KEY:-}
+      VITE_STRIPE_MODE: DEV
+    ports:
+      - "10000:10000"
+      - "3001:3001"
+    volumes:
+      - .:/workspace
+      - pnpm-store:/pnpm/store
+      - root-node-modules:/workspace/node_modules
+      - backend-node-modules:/workspace/packages/backend/node_modules
+      - db-node-modules:/workspace/packages/db/node_modules
+      - frontend-node-modules:/workspace/packages/frontend/node_modules
+      - isomorphic-node-modules:/workspace/packages/isomorphic/node_modules
+      - modelling-node-modules:/workspace/packages/modelling/node_modules
+      - cargo-registry:/root/.cargo/registry
+      - cargo-git:/root/.cargo/git
+      - geometry-kernel-target:/workspace/packages/modelling/layout-geometry-kernel/target
+    command:
+      - bash
+      - -lc
+      - |
+        pnpm config set store-dir /pnpm/store
+        pnpm install --frozen-lockfile --filter backend... --filter isomorphic...
+        pnpm --filter isomorphic exec concurrently --kill-others-on-fail --names "backend,web" -c "green,magenta" \
+          "pnpm --filter backend dev" \
+          "pnpm --filter isomorphic dev"
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  backend-node-modules:
+  cargo-git:
+  cargo-registry:
+  db-node-modules:
+  frontend-node-modules:
+  geometry-kernel-target:
+  isomorphic-node-modules:
+  modelling-node-modules:
+  mongo-data:
+  pnpm-store:
+  root-node-modules:
