@@ -25,6 +25,7 @@ type ArcGisLegendResponse = {
 type JordartLegendProps = {
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  placement?: "left" | "right";
 };
 
 export function JordartLegend(props: JordartLegendProps) {
@@ -43,7 +44,13 @@ export function JordartLegend(props: JordartLegendProps) {
   );
 
   return (
-    <aside class="jordart-legend" classList={{ "jordart-legend--collapsed": props.collapsed }}>
+    <aside
+      class="jordart-legend"
+      classList={{
+        "jordart-legend--collapsed": props.collapsed,
+        "jordart-legend--right": props.placement === "right",
+      }}
+    >
       <div class="jordart-legend__header">
         <div>
           <strong>Jordart</strong>

@@ -35,8 +35,10 @@ import {
 } from "~/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { JordartLegend } from "~/components/JordartLegend.tsx";
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
+import { useJordartControl } from "~/util/map_controls/useJordartControl.ts";
 
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -232,6 +234,8 @@ function ProjectIndexView() {
 
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
   const [mapContainerRef, setMapContainerRef] = createSignal<HTMLElement>();
+  const [showJordartLegend, setShowJordartLegend] = createSignal(false);
+  const [jordartLegendCollapsed, setJordartLegendCollapsed] = createSignal(false);
 
   // const [mapCameraState, setMapCameraState] = createSignal({})
   const mapCameraState = {};
@@ -289,6 +293,7 @@ function ProjectIndexView() {
           if (withinDKBBox(areaLng!, areaLat!)) {
             useHCControl(map);
             useBSControl(map);
+            useJordartControl(map, setShowJordartLegend);
           }
 
           // Add navigation control (compass/north arrow + zoom buttons)
@@ -359,6 +364,7 @@ function ProjectIndexView() {
     }
 
     onCleanup(() => {
+      setShowJordartLegend(false);
       if (map) {
         map.remove();
         map = undefined;
@@ -368,6 +374,7 @@ function ProjectIndexView() {
 
   // Clean up map when component unmounts
   onCleanup(() => {
+    setShowJordartLegend(false);
     if (map) {
       map.remove();
       map = undefined;
@@ -987,7 +994,7 @@ function ProjectIndexView() {
                                                 // <div class='card'>
                                                 //   <div class='card-body'>
 
-                                                (<div
+                                                <div
                                                   style={{
                                                     display: "flex",
                                                     "align-items": "center",
@@ -1147,7 +1154,7 @@ function ProjectIndexView() {
                                                       </ComboboxRoot>
                                                     </div>
                                                   </div>
-                                                </div>)
+                                                </div>
                                               )}
                                             </For>
 
@@ -1514,6 +1521,14 @@ function ProjectIndexView() {
                 style={{ height: "100%", width: "100%" }}
               />
 
+              <Show when={showJordartLegend()}>
+                <JordartLegend
+                  collapsed={jordartLegendCollapsed()}
+                  onToggleCollapsed={() => setJordartLegendCollapsed((collapsed) => !collapsed)}
+                  placement="right"
+                />
+              </Show>
+
               <Show when={systemLayout() && species()}>
                 <SystemInfoBox
                   systemLayout={systemLayout()!}
@@ -1542,7 +1557,7 @@ function ProjectIndexView() {
         userEmail={userEmail()}
       />
     </>
-  )
+  );
 }
 
 export { drawSystemDesign };

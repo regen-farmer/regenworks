@@ -405,6 +405,12 @@ html {
   backdrop-filter: blur(7px);
 }
 
+.jordart-legend--right {
+  right: 76px;
+  left: auto;
+  width: min(320px, calc(100vw - 96px));
+}
+
 .theme-dark .jordart-legend {
   border-color: rgb(70, 75, 88);
   background: rgba(32, 33, 39, 0.96);
@@ -582,5 +588,11 @@ html {
   .jordart-legend {
     top: calc(var(--app-nav-height) + 102px);
     max-height: min(420px, calc(100vh - var(--app-nav-height) - 122px));
+  }
+
+  .jordart-legend--right {
+    right: 10px;
+    top: calc(var(--app-nav-height) + 156px);
+    width: min(320px, calc(100vw - 20px));
   }
 }

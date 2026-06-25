@@ -113,6 +113,24 @@ function getPopupContent(result?: JordartIdentifyResult, loading = false) {
   return container;
 }
 
+function isAppOverlayLayer(layerId: string) {
+  return (
+    layerId === "map" ||
+    layerId === "fieldPolygon" ||
+    layerId === "treeRowLines" ||
+    layerId === "row-labels" ||
+    layerId === "headland-sides" ||
+    layerId === "headland-polygon" ||
+    layerId === "headland-intersection-points" ||
+    layerId.startsWith("strips-") ||
+    layerId.startsWith("trees-")
+  );
+}
+
+function getJordartBeforeLayerId(map: maplibregl.Map) {
+  return map.getStyle().layers?.find((layer) => isAppOverlayLayer(layer.id))?.id;
+}
+
 export function useJordartControl(
   map: maplibregl.Map,
   onVisibilityChange?: (show: boolean) => void,
@@ -179,7 +197,7 @@ export function useJordartControl(
             minzoom: 6,
             maxzoom: 21,
           },
-          map.getLayer("map") ? "map" : undefined,
+          getJordartBeforeLayerId(map),
         );
       }
 
