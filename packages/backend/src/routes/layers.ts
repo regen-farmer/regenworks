@@ -29,10 +29,26 @@ import type { Auth0IDToken } from "../app.ts";
 // XML2JS
 
 const router = express.Router();
+const MAX_KML_COORDINATES = 10000;
+const MAX_KML_UPLOAD_BYTES = 2 * 1024 * 1024;
 const storage = multer.memoryStorage();
-const uploadMem = multer({ storage });
+const uploadMem = multer({ storage, limits: { fileSize: MAX_KML_UPLOAD_BYTES } });
 
 const parser = new xml2js.Parser();
+
+function parseKmlCoordinate(coordinateText: string) {
+  const coordinate = coordinateText.split(",").map((value) => Number(value));
+
+  if (
+    coordinate.length < 2 ||
+    coordinate.length > 3 ||
+    coordinate.some((value) => !Number.isFinite(value))
+  ) {
+    return;
+  }
+
+  return coordinate;
+}
 
 // LAYER INDEX ROUTE
 
@@ -269,17 +285,31 @@ router.post(
           const string =
             result.kml.Document[0].Placemark[0].Polygon[0].outerBoundaryIs[0].LinearRing[0]
               .coordinates[0];
-          const splitString = string.split(" ");
+          const splitString = string.trim().split(/\s+/).filter(Boolean);
+          if (splitString.length === 0 || splitString.length > MAX_KML_COORDINATES) {
+            return res.status(400).send({ error: "KML contains too many coordinates" });
+          }
+
           // CREATE NEW ARRAY HERE? OR IS THIS OBSOLETE?
-          const array: any[] = [];
-          for (let i = 0; i < splitString.length; i++) {
-            const apples = JSON.parse(`[${splitString[i]}]`);
-            array.push(apples);
+          const array: number[][] = [];
+          for (let i = 0; i < MAX_KML_COORDINATES; i++) {
+            const coordinateText = splitString[i];
+            if (coordinateText === undefined) break;
+
+            const coordinate = parseKmlCoordinate(coordinateText);
+            if (!coordinate) {
+              return res.status(400).send({ error: "KML contains invalid coordinates" });
+            }
+
+            array.push(coordinate);
           }
           // CHECK IF LAST ARRAY IS EMPTY?
-          if (array[array.length - 1].length === 0) {
+          if (array.length > 0 && array[array.length - 1].length === 0) {
             console.log("last is empty array");
             array.pop();
+          }
+          if (array.length < 4) {
+            return res.status(400).send({ error: "KML polygon has too few coordinates" });
           }
           // THEN ADD HERE?!
           const polygon = turf.polygon([array]);
