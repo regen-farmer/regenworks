@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Posting from "@rw/db/schemas/posting.ts";
 import Budget from "@rw/db/schemas/budget.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -101,7 +102,7 @@ router.put(
       const posting = await Posting.findById(req.params.postid);
       posting?.set(sanitizeMongoDocument(req.body.posting));
       await posting?.save();
-      res.send(`/budgets/${req.params.id}`);
+      res.send(`/budgets/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -158,7 +159,7 @@ router.post(
               // SAVE POSTING ON BUDGET
               foundBudget.postings.push(createdPosting);
               await foundBudget.save();
-              res.send(`/parcels/${req.params.id}/accounts`);
+              res.send(`/parcels/${escapeHtml(req.params.id)}/accounts`);
             } catch (err) {
               console.log(err);
             }

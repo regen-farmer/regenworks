@@ -18,6 +18,7 @@ import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_lay
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";
+import escapeHtml from "escape-html";
 import _ from "lodash";
 import mongoose from "mongoose";
 import NodeGeocoder from "node-geocoder";
@@ -360,7 +361,7 @@ router.put(
       project?.set(sanitizeMongoDocument(req.body.project));
       await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -381,7 +382,7 @@ router.put(
       project?.set(sanitizeMongoDocument(req.body.project));
       await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}/layout`);
+      res.send(`/projects/${escapeHtml(req.params.id)}/layout`);
     } catch (err) {
       console.log(err);
     }
@@ -412,7 +413,7 @@ router.put(
       await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: "Implementation" },
       });
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -431,7 +432,7 @@ router.put(
       await Project.findByIdAndUpdate(req.params.id, {
         $set: { status: "Retired" },
       });
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -472,7 +473,7 @@ router.put(
             // SAVE AREA
             await projectArea.save();
             // REDIRECT
-            res.send(`/projects/${req.params.id}`);
+            res.send(`/projects/${escapeHtml(req.params.id)}`);
           } else {
             console.log("No projectArea");
           }
@@ -640,7 +641,7 @@ router.put(
                     await foundRows[i].save();
                   }
                   console.log("Assets added to project");
-                  res.send(`/projects/${req.params.id}`);
+                  res.send(`/projects/${escapeHtml(req.params.id)}`);
                 } catch (err) {
                   console.log(err);
                 }
@@ -1042,7 +1043,7 @@ router.post(
       res.send(createdProject);
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1127,7 +1128,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1195,7 +1196,7 @@ router.post(
       }
     } catch (err) {
       console.log(err);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     }
   },
 );
@@ -1724,7 +1725,7 @@ router.put(
       });
       await project?.save();
       // req.flash("success", "Successfully added service");
-      res.send(`/projects/${req.params.id}/layout`);
+      res.send(`/projects/${escapeHtml(req.params.id)}/layout`);
     } catch (err) {
       console.log(err);
     }

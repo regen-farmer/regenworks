@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import unique from "array-unique";
 import { Types } from "mongoose";
 import {
@@ -534,7 +535,7 @@ router.put(
       updatedLayer?.set(sanitizeMongoDocument(req.body.layer));
       await updatedLayer?.save();
       console.log(updatedLayer);
-      res.send(`/layers/${req.params.id}`);
+      res.send(`/layers/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }

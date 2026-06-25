@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import { centroid, helpers as turf } from "@turf/turf";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -60,7 +61,7 @@ router.post(
           $push: { soiltests: createdSoiltest },
         });
         // RENDER PARCEL LAYER SOIL TEST PAGE
-        res.send(`/parcels/${req.params.id}/status`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/status`);
       } catch (err) {
         console.log(err);
       }

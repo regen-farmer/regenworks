@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Activity from "@rw/db/schemas/activity.ts";
@@ -241,7 +242,7 @@ router.put(
       const user = await User.findById(req.params.id);
       user?.set(sanitizeMongoDocument(req.body.user));
       await user?.save();
-      res.send(`/users/${req.params.id}`);
+      res.send(`/users/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }

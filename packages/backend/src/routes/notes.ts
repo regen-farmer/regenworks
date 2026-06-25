@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Note from "@rw/db/schemas/note.ts";
 import Row from "@rw/db/schemas/row.ts";
@@ -70,7 +71,7 @@ router.post(
         await Row.findByIdAndUpdate(req.params.rid, {
           $push: { notes: createdNote },
         });
-        res.send(`/parcels/${req.params.id}/notes`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/notes`);
       } catch (err) {
         console.log(err);
       }
@@ -113,7 +114,7 @@ router.post(
       await Area.findByIdAndUpdate(req.params.rid, {
         $push: { notes: createdNote },
       });
-      res.send(`/parcels/${req.params.id}/notes`);
+      res.send(`/parcels/${escapeHtml(req.params.id)}/notes`);
     } catch (err) {
       console.log(err);
     }

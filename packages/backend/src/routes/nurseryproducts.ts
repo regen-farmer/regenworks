@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import NurseryProduct from "@rw/db/schemas/nurseryproduct.ts";
 import Nursery from "@rw/db/schemas/nursery.ts";
 import Species from "@rw/db/schemas/species.ts";
@@ -235,7 +236,11 @@ router.put(
                 updatedProduct.save();
             } */
       if (updatedProduct) {
-        res.send(`/nurseries/${req.params.id}/nurseryproducts/${updatedProduct._id}`);
+        res.send(
+          `/nurseries/${escapeHtml(req.params.id)}/nurseryproducts/${escapeHtml(
+            updatedProduct._id.toString(),
+          )}`,
+        );
       } else {
         console.log("No updatedProduct");
       }

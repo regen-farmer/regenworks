@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import unique from "array-unique";
 import { Types } from "mongoose";
 import { length as turfLength, helpers as turf, along } from "@turf/turf";
@@ -106,7 +107,7 @@ router.post(
         await Row.findByIdAndUpdate(req.params.rid, {
           $push: { farmflows: createdFarmflow },
         });
-        res.send(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -181,7 +182,7 @@ router.post(
         await Area.findByIdAndUpdate(req.params.rid, {
           $push: { farmflows: createdFarmflow },
         });
-        res.send(`/parcels/${req.params.id}/farmflows`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       } catch (err) {
         console.log(err);
       }
@@ -332,7 +333,7 @@ router.get(
       }
       console.log(`max: ${max}`);
       console.log(`min: ${min}`);
-      res.send(`/parcels/${req.params.id}/farmflows`);
+      res.send(`/parcels/${escapeHtml(req.params.id)}/farmflows`);
       /*
             res.send("farmflows/viz");
 */
