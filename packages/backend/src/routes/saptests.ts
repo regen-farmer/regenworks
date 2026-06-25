@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Saptest from "@rw/db/schemas/saptest.ts";
@@ -57,7 +58,7 @@ router.post(
           $push: { saptests: createdSaptest },
         });
         // RENDER PARCEL LAYER SAP TEST PAGE
-        res.send(`/parcels/${req.params.id}/status`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/status`);
       } catch (err) {
         console.log(err);
       }

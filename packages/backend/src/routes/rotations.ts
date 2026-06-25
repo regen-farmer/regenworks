@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 import Rotation from "@rw/db/schemas/rotation.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
@@ -151,7 +152,11 @@ router.post(
     try {
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
-        res.send(`/projects/${foundProject._id}/rotations/new?steps=${req.body.steps}`);
+        res.send(
+          `/projects/${escapeHtml(foundProject._id.toString())}/rotations/new?steps=${escapeHtml(
+            encodeURIComponent(String(req.body.steps)),
+          )}`,
+        );
       }
     } catch (err) {
       console.log(err);

@@ -1,4 +1,5 @@
 import express from "express";
+import escapeHtml from "escape-html";
 // import NodeGeocoder from 'node-geocoder';
 import unique from "array-unique";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -175,7 +176,7 @@ router.put(
       updatedActivity?.set(sanitizeMongoDocument(req.body.activity));
       await updatedActivity?.save();
       console.log(updatedActivity);
-      res.send(`/activities/${req.params.id}`);
+      res.send(`/activities/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -422,7 +423,7 @@ router.put(
       const activity = await Activity.findById(req.params.pid);
       activity?.set(sanitizeMongoDocument(req.body.activity));
       await activity?.save();
-      res.send(`/projects/${req.params.id}`);
+      res.send(`/projects/${escapeHtml(req.params.id)}`);
     } catch (err) {
       console.log(err);
     }
@@ -535,7 +536,7 @@ router.post(
         await Row.findByIdAndUpdate(req.params.rid, {
           $push: { activities: createdActivity },
         });
-        res.send(`/parcels/${req.params.id}/activities`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/activities`);
       } catch (err) {
         console.log(err);
       }
@@ -615,7 +616,7 @@ router.post(
         await Area.findByIdAndUpdate(req.params.rid, {
           $push: { activities: createdActivity },
         });
-        res.send(`/parcels/${req.params.id}/activities`);
+        res.send(`/parcels/${escapeHtml(req.params.id)}/activities`);
       } catch (err) {
         console.log(err);
       }
