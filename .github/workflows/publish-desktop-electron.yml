@@ -22,7 +22,7 @@ jobs:
       should_build: ${{ steps.version.outputs.should_build }}
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Parse Version & Strategy
         id: version
@@ -97,7 +97,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -263,7 +263,7 @@ jobs:
     needs: [create-release, publish-electron]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Merge latest*.yml and publish release
         env:
