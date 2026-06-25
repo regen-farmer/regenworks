@@ -96,13 +96,37 @@ router.post(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
+    const { rows, distance, length } = req.body as {
+      rows?: unknown;
+      distance?: unknown;
+      length?: unknown;
+    };
+
+    if (
+      Array.isArray(rows) ||
+      Array.isArray(distance) ||
+      Array.isArray(length) ||
+      rows === undefined ||
+      distance === undefined ||
+      length === undefined
+    ) {
+      return res.status(400).send({ error: "Invalid request body." });
+    }
+
+    const numericDistance = Number(distance);
+    const numericLength = Number(length);
+
+    if (!Number.isFinite(numericDistance) || !Number.isFinite(numericLength) || numericDistance === 0) {
+      return res.status(400).send({ error: "Invalid distance or length." });
+    }
+
     // CHECK LENGTH IS DIVISIBLE
-    if ((req.body.length / req.body.distance) % 1 === 0) {
+    if ((numericLength / numericDistance) % 1 === 0) {
       // FIND LAYER
       try {
         const foundLayer = await Layer.findById(req.params.id);
         res.send(
-          `/layers/${foundLayer?._id}/systems/new?rows=${req.body.rows}&distance=${req.body.distance}&length=${req.body.length}`,
+          `/layers/${foundLayer?._id}/systems/new?rows=${encodeURIComponent(String(rows))}&distance=${numericDistance}&length=${numericLength}`,
         );
       } catch (err) {
         console.log(err);
