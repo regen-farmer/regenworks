@@ -15,6 +15,7 @@ import { Show, createEffect, createSignal, on, onMount } from "solid-js";
 import maplibregl from "maplibre-gl";
 
 import * as togeojson from "@tmcw/togeojson";
+import { DOMParser as XmlDomParser } from "@xmldom/xmldom";
 
 // @ts-ignore
 import * as turf from "@turf/turf";
@@ -272,13 +273,25 @@ export const EditFieldMode: Component<{
 
     // Parse KML file
     if (file) {
-      const kmlContent = await file?.text();
+      const kmlContent = await file.text();
       if (!kmlContent) {
         invalidFile();
         return;
       }
-      const kml = new DOMParser().parseFromString(kmlContent, "text/xml");
+
+      let kml;
+      try {
+        kml = new XmlDomParser().parseFromString(kmlContent, "text/xml");
+      } catch {
+        invalidFile();
+        return;
+      }
+
       if (!kml) {
+        invalidFile();
+        return;
+      }
+      if (!kml.documentElement) {
         invalidFile();
         return;
       }
