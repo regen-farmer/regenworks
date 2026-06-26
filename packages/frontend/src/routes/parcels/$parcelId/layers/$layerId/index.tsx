@@ -85,17 +85,41 @@ function LayerIndexView() {
 
   const [mapContainer, setMapContainer] = createSignal<HTMLDivElement>();
 
-  createEffect(() => {
-    // console.log('mapcontainer', mapContainer(), 'data', data())
-    if (data() && mapContainer()) {
-      const areaLat = data()?.layer.lat;
-      const areaLng = data()?.layer.lng;
-      const escapedGeometry = data()?.layer.geometry;
+  let map: maplibregl.Map | undefined;
+  let mapInitFrame: number | undefined;
+  let mapResizeObserver: ResizeObserver | undefined;
 
-      const correctgeometry = JSON.parse(escapedGeometry!);
+  const restoreMapInteractions = () => {
+    if (!map) return;
 
-      const map = new maplibregl.Map({
-        container: mapContainer()!,
+    map.resize();
+    map.dragPan.enable();
+    map.getCanvas().style.cursor = "";
+  };
+
+  const initializeMap = () => {
+    if (map || mapInitFrame !== undefined) return;
+
+    mapInitFrame = requestAnimationFrame(() => {
+      mapInitFrame = undefined;
+      if (map) return;
+
+      const container = mapContainer();
+      const layerData = data();
+      if (!container || !layerData) return;
+
+      const containerRect = container.getBoundingClientRect();
+      if (containerRect.width === 0 || containerRect.height === 0) {
+        initializeMap();
+        return;
+      }
+
+      const areaLat = layerData.layer.lat;
+      const areaLng = layerData.layer.lng;
+      const correctgeometry = JSON.parse(layerData.layer.geometry);
+
+      map = new maplibregl.Map({
+        container,
         attributionControl: false,
         style: GoogleSatStyle,
         center: [areaLng!, areaLat!],
@@ -103,16 +127,22 @@ function LayerIndexView() {
         maxZoom: 20,
       });
 
+      mapResizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(restoreMapInteractions);
+      });
+
+      mapResizeObserver.observe(container);
+
       map.on("load", () => {
-        useMeasureControl(map);
+        useMeasureControl(map!);
 
         if (withinDKBBox(areaLng as number, areaLat as number)) {
-          useHCControl(map);
-          useBSControl(map);
-          useJordartControl(map, setShowJordartLegend);
+          useHCControl(map!);
+          useBSControl(map!);
+          useJordartControl(map!, setShowJordartLegend);
         }
 
-        map.addLayer({
+        map!.addLayer({
           id: "map",
           type: "fill",
           // @ts-ignore
@@ -134,14 +164,31 @@ function LayerIndexView() {
             "fill-outline-color": "#F0F8FF",
           },
         });
-      });
 
-      onCleanup(() => {
-        setShowJordartLegend(false);
-        if (map) {
-          map.remove();
-        }
+        restoreMapInteractions();
+        requestAnimationFrame(restoreMapInteractions);
+        map!.once("idle", restoreMapInteractions);
       });
+    });
+  };
+
+  createEffect(() => {
+    if (data() && mapContainer()) {
+      initializeMap();
+    }
+  });
+
+  onCleanup(() => {
+    setShowJordartLegend(false);
+    if (mapInitFrame !== undefined) {
+      cancelAnimationFrame(mapInitFrame);
+      mapInitFrame = undefined;
+    }
+    mapResizeObserver?.disconnect();
+    mapResizeObserver = undefined;
+    if (map) {
+      map.remove();
+      map = undefined;
     }
   });
 

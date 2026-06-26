@@ -242,113 +242,153 @@ function ProjectIndexView() {
 
   let map: maplibregl.Map | undefined;
 
-  createEffect(() => {
-    // console.log('Updateing map', rebuildMap())
+  const restoreMapInteractions = () => {
+    if (!map) return;
 
-    if (scenarioData() && mapContainerRef()) {
-      if (!map) {
+    map.resize();
+    map.dragPan.enable();
+    map.getCanvas().style.cursor = "";
+  };
+
+  let mapInitFrame: number | undefined;
+  let mapResizeObserver: ResizeObserver | undefined;
+
+  const initializeMap = () => {
+    if (map || mapInitFrame !== undefined) return;
+
+    mapInitFrame = requestAnimationFrame(() => {
+      mapInitFrame = undefined;
+      if (map) return;
+
+      const container = mapContainerRef();
+      const data = scenarioData();
+      if (!container || !data) return;
+
+      const containerRect = container.getBoundingClientRect();
+      if (containerRect.width === 0 || containerRect.height === 0) {
+        initializeMap();
+        return;
+      }
+
+      const areaLat = data.project?.layer.lat;
+      const areaLng = data.project?.layer.lng;
+
+      map = new maplibregl.Map({
+        container,
+        attributionControl: false,
+        style: GoogleSatStyle,
+        center: [areaLng!, areaLat!],
+        zoom: 16,
+        maxZoom: 20,
+        pitch: 0,
+        // @ts-expect-error - preserveDrawingBuffer is needed for canvas export
+        preserveDrawingBuffer: true, // Enable canvas export capability
+
+        ...mapCameraState,
+        // bearing: 40,
+        // maxPitch: 85,
+      });
+
+      mapResizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(restoreMapInteractions);
+      });
+      mapResizeObserver.observe(container);
+
+      map.on("load", () => {
+        window.dispatchEvent(new Event("resize"));
+
         const areaLat = scenarioData()?.project?.layer.lat;
         const areaLng = scenarioData()?.project?.layer.lng;
 
-        map = new maplibregl.Map({
-          container: mapContainerRef()!,
-          attributionControl: false,
-          style: GoogleSatStyle,
-          center: [areaLng!, areaLat!],
-          zoom: 16,
-          maxZoom: 20,
-          pitch: 0,
-          // @ts-expect-error - preserveDrawingBuffer is needed for canvas export
-          preserveDrawingBuffer: true, // Enable canvas export capability
+        // Use the 3D control and link it to our local signal
+        const { show3D: controlShow3D } = use3DControl(
+          map,
+          systemLayout,
+          species,
+        );
 
-          ...mapCameraState,
-          // bearing: 40,
-          // maxPitch: 85,
+        // Create an effect to sync the control's signal with our local one
+        createEffect(() => {
+          const is3D = controlShow3D();
+          setShow3D(is3D);
+          // The global effect will handle the redraw
         });
 
-        setMapInstance(map); // Store the map instance
+        useMeasureControl(map);
 
-        map.on("load", () => {
-          window.dispatchEvent(new Event("resize"));
+        if (withinDKBBox(areaLng!, areaLat!)) {
+          useHCControl(map);
+          useBSControl(map);
+          useJordartControl(map, setShowJordartLegend);
+        }
 
-          const areaLat = scenarioData()?.project?.layer.lat;
-          const areaLng = scenarioData()?.project?.layer.lng;
+        // Add navigation control (compass/north arrow + zoom buttons)
+        const nav = new maplibregl.NavigationControl({
+          showCompass: true,
+          showZoom: true,
+          visualizePitch: true,
+        });
+        map!.addControl(nav, "top-right");
 
-          // Use the 3D control and link it to our local signal
-          const { show3D: controlShow3D, setShow3D: controlSetShow3D } = use3DControl(
-            map,
-            systemLayout,
-            species,
-          );
+        // Add scale control
+        const scale = new maplibregl.ScaleControl({
+          maxWidth: 100,
+          unit: "metric",
+        });
+        map!.addControl(scale, "bottom-right");
 
-          // Create an effect to sync the control's signal with our local one
-          createEffect(() => {
-            const is3D = controlShow3D();
-            setShow3D(is3D);
-            // The global effect will handle the redraw
-          });
+        const unparsedFieldPolygon: any = scenarioData()?.project?.layer.geometry;
+        const fieldPolygon = JSON.parse(unparsedFieldPolygon!.replace(/&#34;/g, '"'));
 
-          useMeasureControl(map);
+        // var offset = layoutData()?.offset
 
-          if (withinDKBBox(areaLng!, areaLat!)) {
-            useHCControl(map);
-            useBSControl(map);
-            useJordartControl(map, setShowJordartLegend);
+        const fieldPolygonVisible = true;
+        if (fieldPolygonVisible) {
+          if (map!.getSource("fieldPolygon")) {
+            map!.removeLayer("fieldPolygon");
+            map!.removeSource("fieldPolygon");
           }
 
-          // Add navigation control (compass/north arrow + zoom buttons)
-          const nav = new maplibregl.NavigationControl({
-            showCompass: true,
-            showZoom: true,
-            visualizePitch: true,
-          });
-          map!.addControl(nav, "top-right");
-
-          // Add scale control
-          const scale = new maplibregl.ScaleControl({
-            maxWidth: 100,
-            unit: "metric",
-          });
-          map!.addControl(scale, "bottom-right");
-
-          const unparsedFieldPolygon: any = scenarioData()?.project?.layer.geometry;
-          const fieldPolygon = JSON.parse(unparsedFieldPolygon!.replace(/&#34;/g, '"'));
-
-          // var offset = layoutData()?.offset
-
-          const fieldPolygonVisible = true;
-          if (fieldPolygonVisible) {
-            if (map!.getSource("fieldPolygon")) {
-              map!.removeLayer("fieldPolygon");
-              map!.removeSource("fieldPolygon");
-            }
-
-            map!.addLayer({
-              id: "fieldPolygon",
-              type: "fill",
-              //@ts-expect-error
-              source: {
-                type: "geojson",
-                data: {
-                  type: "Feature",
-                  geometry: {
-                    type: "Polygon",
-                    coordinates: fieldPolygon.geometry.coordinates,
-                  },
-                  properties: {},
+          map!.addLayer({
+            id: "fieldPolygon",
+            type: "fill",
+            //@ts-expect-error
+            source: {
+              type: "geojson",
+              data: {
+                type: "Feature",
+                geometry: {
+                  type: "Polygon",
+                  coordinates: fieldPolygon.geometry.coordinates,
                 },
+                properties: {},
               },
-              layout: {},
-              paint: {
-                "fill-color": "#b4aab4",
-                "fill-opacity": 0.5,
-                "fill-outline-color": "#F0F8FF",
-              },
-            });
-          }
+            },
+            layout: {},
+            paint: {
+              "fill-color": "#b4aab4",
+              "fill-opacity": 0.5,
+              "fill-outline-color": "#F0F8FF",
+            },
+          });
+        }
 
-          setMapLoaded(true);
+        restoreMapInteractions();
+        setMapInstance(map);
+        setMapLoaded(true);
+
+        requestAnimationFrame(() => {
+          restoreMapInteractions();
         });
+
+        map.once("idle", restoreMapInteractions);
+      });
+    });
+  };
+
+  createEffect(() => {
+    if (scenarioData() && mapContainerRef()) {
+      initializeMap();
 
         // map.transformCameraUpdate = ({ center, zoom }) => {
         //   mapCameraState = {
@@ -360,21 +400,20 @@ function ProjectIndexView() {
 
         //   return {}
         // }
-      }
     }
-
-    onCleanup(() => {
-      setShowJordartLegend(false);
-      if (map) {
-        map.remove();
-        map = undefined;
-      }
-    });
   });
 
   // Clean up map when component unmounts
   onCleanup(() => {
     setShowJordartLegend(false);
+    setMapLoaded(false);
+    setMapInstance(undefined);
+    if (mapInitFrame !== undefined) {
+      cancelAnimationFrame(mapInitFrame);
+      mapInitFrame = undefined;
+    }
+    mapResizeObserver?.disconnect();
+    mapResizeObserver = undefined;
     if (map) {
       map.remove();
       map = undefined;
@@ -1518,8 +1557,17 @@ function ProjectIndexView() {
               <div
                 id="layerMapShow"
                 ref={setMapContainerRef}
-                style={{ height: "100%", width: "100%" }}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                }}
               />
+
+              <Show when={!mapLoaded()}>
+                <div class="absolute inset-0 z-10 flex items-center justify-center bg-black/20 pointer-events-none">
+                  <div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-400 border-t-white"></div>
+                </div>
+              </Show>
 
               <Show when={showJordartLegend()}>
                 <JordartLegend
