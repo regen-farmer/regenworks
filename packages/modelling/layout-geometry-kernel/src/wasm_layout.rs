@@ -23,6 +23,7 @@ use crate::types::{
 use crate::wasm_geo_ops;
 const POINT_TOLERANCE_M: f64 = 1e-6;
 const INTERSECTION_DEDUP_TOLERANCE_M: f64 = 1e-10;
+const WGS84_BOUNDARY_TOLERANCE_DEGREES: f64 = 1e-7;
 const KERNEL_BUFFER_QUADRANT_SEGMENTS: f64 = 8.0;
 const TURF_HEADLAND_BUFFER_STEPS: f64 = 20.0;
 
@@ -478,17 +479,13 @@ fn strip_band_intersection(
     start_m: f64,
     end_m: f64,
 ) -> Result<Vec<OverlayShape>, String> {
-    if line.len() < 2 || end_m <= start_m {
+    if field_rings.is_empty() || line.len() < 2 || end_m <= start_m {
         return Ok(vec![]);
     }
 
-    let center = [
-        (line[0][0] + line[1][0]) / 2.0,
-        (line[0][1] + line[1][1]) / 2.0,
-    ];
+    let center = projection_center(field_rings);
     let local_line = project_line_to_local(line, center);
     let local_field = project_polygon_to_local(field_rings, center);
-
     let start = local_line[0];
     let end = local_line[1];
     let line_vec = [end[0] - start[0], end[1] - start[1]];
@@ -526,16 +523,22 @@ fn strip_band_intersection(
             start[1] - direction[1] * extend_m + normal[1] * end_m,
         ],
     ])];
-    let band_wgs84 = project_polygon_to_wgs84(&band, center);
 
-    wasm_geo_ops::intersection(field_rings, &band_wgs84)
-        .map_err(|error| error.to_string())
-        .map(|polygons| {
-            polygons
-                .into_iter()
-                .filter_map(|shape| overlay_shape_to_polygon(&shape))
-                .collect()
-        })
+    let mut intersections = Vec::new();
+    let local_intersections = wasm_geo_ops::intersection(&local_field, &band)
+        .map_err(|error| format!("strip intersection {start_m}m..{end_m}m failed: {error}"))?;
+
+    for local_intersection in local_intersections {
+        let wgs84_intersection = project_polygon_to_wgs84(&local_intersection, center);
+        if let Some(polygon) = overlay_shape_to_polygon(&wgs84_intersection) {
+            if polygon_samples_inside_field(&polygon, field_rings, WGS84_BOUNDARY_TOLERANCE_DEGREES)
+            {
+                intersections.push(polygon);
+            }
+        }
+    }
+
+    Ok(intersections)
 }
 
 fn overlay_shape_to_polygon(shape: &[Vec<[f64; 2]>]) -> Option<OverlayShape> {
@@ -550,6 +553,119 @@ fn overlay_shape_to_polygon(shape: &[Vec<[f64; 2]>]) -> Option<OverlayShape> {
     } else {
         Some(rings)
     }
+}
+
+fn polygon_samples_inside_field(
+    polygon: &[Vec<[f64; 2]>],
+    field_rings: &[Vec<[f64; 2]>],
+    boundary_tolerance: f64,
+) -> bool {
+    polygon.iter().all(|ring| {
+        ring.windows(2).all(|segment| {
+            sampled_segment_points(segment[0], segment[1])
+                .into_iter()
+                .all(|point| {
+                    point_in_polygon_or_boundary_with_tolerance(
+                        point,
+                        field_rings,
+                        boundary_tolerance,
+                    )
+                })
+        })
+    })
+}
+
+fn sampled_segment_points(start: [f64; 2], end: [f64; 2]) -> [[f64; 2]; 5] {
+    [
+        start,
+        interpolate_point(start, end, 0.25),
+        interpolate_point(start, end, 0.5),
+        interpolate_point(start, end, 0.75),
+        end,
+    ]
+}
+
+fn interpolate_point(start: [f64; 2], end: [f64; 2], fraction: f64) -> [f64; 2] {
+    [
+        start[0] + (end[0] - start[0]) * fraction,
+        start[1] + (end[1] - start[1]) * fraction,
+    ]
+}
+
+fn point_in_polygon_or_boundary_with_tolerance(
+    point: [f64; 2],
+    rings: &[Vec<[f64; 2]>],
+    boundary_tolerance: f64,
+) -> bool {
+    let Some(exterior) = rings.first() else {
+        return false;
+    };
+
+    if point_on_ring_boundary(point, exterior, boundary_tolerance) {
+        return true;
+    }
+
+    if !point_in_ring(point, exterior) {
+        return false;
+    }
+
+    for hole in rings.iter().skip(1) {
+        if point_on_ring_boundary(point, hole, boundary_tolerance) || point_in_ring(point, hole) {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn point_on_ring_boundary(point: [f64; 2], ring: &[[f64; 2]], boundary_tolerance: f64) -> bool {
+    ring.windows(2)
+        .any(|segment| point_on_segment_coords(point, segment[0], segment[1], boundary_tolerance))
+}
+
+fn point_on_segment_coords(
+    point: [f64; 2],
+    start: [f64; 2],
+    end: [f64; 2],
+    boundary_tolerance: f64,
+) -> bool {
+    let dx = end[0] - start[0];
+    let dy = end[1] - start[1];
+    let length_squared = dx * dx + dy * dy;
+    if length_squared <= f64::EPSILON {
+        return false;
+    }
+
+    let t = (((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / length_squared)
+        .clamp(0.0, 1.0);
+    let closest = [start[0] + t * dx, start[1] + t * dy];
+    let distance_squared = (point[0] - closest[0]).powi(2) + (point[1] - closest[1]).powi(2);
+
+    distance_squared <= boundary_tolerance.powi(2)
+        && point[0] >= start[0].min(end[0]) - boundary_tolerance
+        && point[0] <= start[0].max(end[0]) + boundary_tolerance
+        && point[1] >= start[1].min(end[1]) - boundary_tolerance
+        && point[1] <= start[1].max(end[1]) + boundary_tolerance
+}
+
+fn point_in_ring(point: [f64; 2], ring: &[[f64; 2]]) -> bool {
+    let mut inside = false;
+    let mut previous = ring[ring.len() - 1];
+
+    for current in ring {
+        let crosses_ray = (current[1] > point[1]) != (previous[1] > point[1]);
+        if crosses_ray {
+            let intersect_x = (previous[0] - current[0]) * (point[1] - current[1])
+                / (previous[1] - current[1])
+                + current[0];
+            if point[0] < intersect_x {
+                inside = !inside;
+            }
+        }
+        previous = *current;
+    }
+
+    inside
 }
 
 fn local_polygon_center(rings: &[Vec<[f64; 2]>]) -> [f64; 2] {
@@ -1303,7 +1419,7 @@ impl GroundCoverResult {
 mod tests {
     use super::*;
 
-    const POINT_IN_POLYGON_EPSILON: f64 = 1e-10;
+    const POINT_IN_POLYGON_EPSILON: f64 = WGS84_BOUNDARY_TOLERANCE_DEGREES;
 
     #[derive(Debug, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
@@ -1365,9 +1481,68 @@ mod tests {
         for (area_index, area) in result.ground_cover_areas.iter().enumerate() {
             for (polygon_index, polygon) in feature_polygons(area).iter().enumerate() {
                 assert_polygon_samples_inside_field(
+                    "ground cover area",
                     &field_rings,
                     polygon,
                     area_index,
+                    polygon_index,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn project_69041c6f_strip_polygons_stay_inside_field() {
+        let fixture: LayoutFixture = serde_json::from_str(include_str!(
+            "../../tests/fixtures/project-69041c6f-layout-strips-outside-field/input.json"
+        ))
+        .unwrap();
+        let field_rings = parse_geojson_polygon(&fixture.field_geometry).unwrap();
+        let result = system_based_layout(&fixture.system_design, &fixture.field_geometry).unwrap();
+
+        assert!(
+            !result.strip_polygons.is_empty(),
+            "fixture should produce strip polygons"
+        );
+        assert_eq!(
+            result.strip_areas_m2.len(),
+            50,
+            "fixture should match the Turf strip count"
+        );
+        for strip_index in [38, 39, 40] {
+            assert!(
+                result.strip_areas_m2[strip_index] > 1000.0,
+                "strip {strip_index} should not be dropped"
+            );
+        }
+        assert_eq!(
+            result.ground_cover_areas.len(),
+            25,
+            "fixture should keep all repeated ground cover strips"
+        );
+        let groundcover_id = fixture.system_design.rows[1]
+            .groundcover
+            .as_ref()
+            .unwrap()
+            .id()
+            .to_string();
+        let ground_cover_area_m2 = result
+            .ground_cover_areas_m2
+            .get(&groundcover_id)
+            .copied()
+            .unwrap_or(0.0);
+        assert!(
+            (295_000.0..=305_000.0).contains(&ground_cover_area_m2),
+            "ground cover area should stay close to Turf output, got {ground_cover_area_m2}"
+        );
+
+        for (strip_index, strip) in result.strip_polygons.iter().enumerate() {
+            for (polygon_index, polygon) in feature_polygons(strip).iter().enumerate() {
+                assert_polygon_samples_inside_field(
+                    "strip polygon",
+                    &field_rings,
+                    polygon,
+                    strip_index,
                     polygon_index,
                 );
             }
@@ -1445,6 +1620,7 @@ mod tests {
     }
 
     fn assert_polygon_samples_inside_field(
+        geometry_name: &str,
         field_rings: &[Vec<[f64; 2]>],
         polygon: &[Vec<[f64; 2]>],
         area_index: usize,
@@ -1455,7 +1631,7 @@ mod tests {
                 for point in sampled_segment_points(segment[0], segment[1]) {
                     assert!(
                         point_in_polygon_or_boundary(point, field_rings),
-                        "ground cover area {area_index}, polygon {polygon_index}, ring {ring_index} has point [{}, {}] outside field",
+                        "{geometry_name} {area_index}, polygon {polygon_index}, ring {ring_index} has point [{}, {}] outside field",
                         point[0],
                         point[1]
                     );

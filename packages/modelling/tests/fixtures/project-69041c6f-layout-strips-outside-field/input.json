@@ -1,0 +1,44 @@
+{
+  "name": "Project 69041c6f layout strips outside field",
+  "projectId": "69041c6f1c1262d53ea07254",
+  "fieldGeometry": "{\"id\":\"156219268c94373079195ac04ba11e21\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.751955959619664,56.085127009801795],[9.751955959619664,56.07995452769114],[9.741141292871191,56.0800503207077],[9.741141292871191,56.08589324438756],[9.750754329980566,56.08589324438756],[9.751955959619664,56.085127009801795]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e6639548add4f22f08201ff",
+              "nameCommon": "Apple",
+              "genus": "malus",
+              "species": "domestica"
+            },
+            "spacingAfter": 3
+          }
+        ],
+        "width": 6,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      },
+      {
+        "sequence": [],
+        "groundcover": {
+          "_id": "5e6619b4c0c63516dc441d2a",
+          "nameCommon": "Wheat",
+          "genus": "triticum",
+          "species": "aestivum"
+        },
+        "width": 24,
+        "offset": {
+          "before": 0,
+          "after": 0
+        }
+      }
+    ],
+    "bearing": 11,
+    "margin": 24,
+    "headland": 0
+  }
+}
