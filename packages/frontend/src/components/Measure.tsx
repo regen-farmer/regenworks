@@ -17,8 +17,14 @@ export default class MeasuresControl implements IControl {
       maximumFractionDigits: 2,
       useGrouping: "always",
     };
+    this._drawControlAdded = false;
+    this._eventsRegistered = false;
+    this._boundRecreateSourceAndLayers = this._recreateSourceAndLayers.bind(this);
+    this._boundUpdateLabels = this._updateLabels.bind(this);
     this._drawCtrl = new MapboxDraw({
+      boxSelect: false,
       displayControlsDefault: false,
+      keybindings: false,
       styles: [
         // ACTIVE (being drawn)
         // line stroke
@@ -151,10 +157,18 @@ export default class MeasuresControl implements IControl {
 
   onAdd(map) {
     this._map = map;
-    this._map.addControl(this._drawCtrl, "top-left");
     this._initControl();
-    this._registerEvents();
     return this._container;
+  }
+
+  _ensureDrawControl() {
+    if (!this._map || this._drawControlAdded) return;
+
+    this._map.addControl(this._drawCtrl, "top-left");
+    this._drawControlAdded = true;
+    this._registerEvents();
+    this._recreateSourceAndLayers();
+    this._map.dragPan.enable();
   }
 
   _initControl() {
@@ -274,6 +288,7 @@ export default class MeasuresControl implements IControl {
         break;
     }
     btn.addEventListener("click", () => {
+      this._ensureDrawControl();
       this._drawCtrl.changeMode(mode);
     });
     this._container.appendChild(btn);
@@ -304,6 +319,7 @@ export default class MeasuresControl implements IControl {
                             </g>
                             </svg>`;
     btn.addEventListener("click", () => {
+      if (!this._drawControlAdded) return;
       this._drawCtrl.deleteAll();
       this._updateLabels();
     });
@@ -311,14 +327,24 @@ export default class MeasuresControl implements IControl {
   }
 
   _registerEvents() {
-    if (this._map) {
-      this._map.on("load", () => {
-        this._recreateSourceAndLayers();
-      });
-      this._map.on("draw.create", this._updateLabels.bind(this));
-      this._map.on("draw.update", this._updateLabels.bind(this));
-      this._map.on("draw.delete", this._updateLabels.bind(this));
-      this._map.on("draw.render", this._updateLabels.bind(this));
+    if (this._map && !this._eventsRegistered) {
+      this._map.on("load", this._boundRecreateSourceAndLayers);
+      this._map.on("draw.create", this._boundUpdateLabels);
+      this._map.on("draw.update", this._boundUpdateLabels);
+      this._map.on("draw.delete", this._boundUpdateLabels);
+      this._map.on("draw.render", this._boundUpdateLabels);
+      this._eventsRegistered = true;
+    }
+  }
+
+  _unregisterEvents() {
+    if (this._map && this._eventsRegistered) {
+      this._map.off("load", this._boundRecreateSourceAndLayers);
+      this._map.off("draw.create", this._boundUpdateLabels);
+      this._map.off("draw.update", this._boundUpdateLabels);
+      this._map.off("draw.delete", this._boundUpdateLabels);
+      this._map.off("draw.render", this._boundUpdateLabels);
+      this._eventsRegistered = false;
     }
   }
 
@@ -445,8 +471,20 @@ export default class MeasuresControl implements IControl {
   }
 
   onRemove() {
-    this._container.parentNode.removeChild(this._container);
-    this._map.removeLayer(DRAW_LABELS_LAYER_ID);
+    if (this._container?.parentNode) {
+      this._container.parentNode.removeChild(this._container);
+    }
+    this._unregisterEvents();
+    if (this._map?.getLayer(DRAW_LABELS_LAYER_ID)) {
+      this._map.removeLayer(DRAW_LABELS_LAYER_ID);
+    }
+    if (this._map?.getSource(DRAW_LABELS_SOURCE_ID)) {
+      this._map.removeSource(DRAW_LABELS_SOURCE_ID);
+    }
+    if (this._map && this._drawControlAdded) {
+      this._map.removeControl(this._drawCtrl);
+    }
     this._map = undefined;
+    this._drawControlAdded = false;
   }
 }

@@ -242,6 +242,14 @@ function ProjectIndexView() {
 
   let map: maplibregl.Map | undefined;
 
+  const restoreMapInteractions = () => {
+    if (!map) return;
+
+    map.resize();
+    map.dragPan.enable();
+    map.getCanvas().style.cursor = "";
+  };
+
   createEffect(() => {
     // console.log('Updateing map', rebuildMap())
 
@@ -345,15 +353,15 @@ function ProjectIndexView() {
             });
           }
 
-          map.resize();
-          map.dragPan.enable();
+          restoreMapInteractions();
           setMapInstance(map);
           setMapLoaded(true);
 
           requestAnimationFrame(() => {
-            map?.resize();
-            map?.dragPan.enable();
+            restoreMapInteractions();
           });
+
+          map.once("idle", restoreMapInteractions);
         });
 
         // map.transformCameraUpdate = ({ center, zoom }) => {
@@ -368,16 +376,6 @@ function ProjectIndexView() {
         // }
       }
     }
-
-    onCleanup(() => {
-      setShowJordartLegend(false);
-      setMapLoaded(false);
-      setMapInstance(undefined);
-      if (map) {
-        map.remove();
-        map = undefined;
-      }
-    });
   });
 
   // Clean up map when component unmounts
