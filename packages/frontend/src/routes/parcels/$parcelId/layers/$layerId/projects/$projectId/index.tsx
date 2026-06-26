@@ -266,8 +266,6 @@ function ProjectIndexView() {
           // maxPitch: 85,
         });
 
-        setMapInstance(map); // Store the map instance
-
         map.on("load", () => {
           window.dispatchEvent(new Event("resize"));
 
@@ -347,7 +345,15 @@ function ProjectIndexView() {
             });
           }
 
+          map.resize();
+          map.dragPan.enable();
+          setMapInstance(map);
           setMapLoaded(true);
+
+          requestAnimationFrame(() => {
+            map?.resize();
+            map?.dragPan.enable();
+          });
         });
 
         // map.transformCameraUpdate = ({ center, zoom }) => {
@@ -365,6 +371,8 @@ function ProjectIndexView() {
 
     onCleanup(() => {
       setShowJordartLegend(false);
+      setMapLoaded(false);
+      setMapInstance(undefined);
       if (map) {
         map.remove();
         map = undefined;
@@ -375,6 +383,8 @@ function ProjectIndexView() {
   // Clean up map when component unmounts
   onCleanup(() => {
     setShowJordartLegend(false);
+    setMapLoaded(false);
+    setMapInstance(undefined);
     if (map) {
       map.remove();
       map = undefined;
@@ -1518,8 +1528,18 @@ function ProjectIndexView() {
               <div
                 id="layerMapShow"
                 ref={setMapContainerRef}
-                style={{ height: "100%", width: "100%" }}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  "pointer-events": mapLoaded() ? "auto" : "none",
+                }}
               />
+
+              <Show when={!mapLoaded()}>
+                <div class="absolute inset-0 z-10 flex items-center justify-center bg-black/20 pointer-events-auto">
+                  <div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-400 border-t-white"></div>
+                </div>
+              </Show>
 
               <Show when={showJordartLegend()}>
                 <JordartLegend
