@@ -9,11 +9,13 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { withinDKBBox } from "~/util/map_controls/within-dk-bbox.ts";
 import { useHCControl } from "~/util/map_controls/useHCControl.ts";
+import { useJordartControl } from "~/util/map_controls/useJordartControl.ts";
 
 import { useBSControl } from "~/util/map_controls/useBSControl.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import { Switch, Match } from "solid-js";
 import DefaultMode from "~/components/parcel-view/DefaultMode.tsx";
+import { JordartLegend } from "~/components/JordartLegend.tsx";
 
 import { createFarmMarkerIcon } from "~/components/Map.tsx";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
@@ -49,6 +51,8 @@ function ParcelView() {
   const [mapref, setMapref] = createSignal<HTMLElement>();
   const [mode, setMode] = createSignal<modes>(modes.default);
   const [isMapReady, setIsMapReady] = createSignal<boolean>(false);
+  const [showJordartLegend, setShowJordartLegend] = createSignal(false);
+  const [jordartLegendCollapsed, setJordartLegendCollapsed] = createSignal(false);
 
   let map: maplibregl.Map;
   let farmMarker: maplibregl.Marker | null = null;
@@ -93,6 +97,7 @@ function ParcelView() {
         if (withinDKBBox(parcel.lng as number, parcel.lat as number)) {
           useHCControl(map);
           useBSControl(map);
+          useJordartControl(map, setShowJordartLegend);
         }
       });
 
@@ -147,6 +152,7 @@ function ParcelView() {
   });
 
   onCleanup(() => {
+    setShowJordartLegend(false);
     if (map) {
       map.remove();
     }
@@ -177,6 +183,13 @@ function ParcelView() {
         }}
         style="position: absolute; inset: 0; outline: none; border: none;"
       />
+
+      <Show when={showJordartLegend()}>
+        <JordartLegend
+          collapsed={jordartLegendCollapsed()}
+          onToggleCollapsed={() => setJordartLegendCollapsed((collapsed) => !collapsed)}
+        />
+      </Show>
 
       <Show when={data.loading || isRouting()}>
         <div class="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity duration-300">
