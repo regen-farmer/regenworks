@@ -1254,6 +1254,15 @@ impl GroundCoverResult {
 mod tests {
     use super::*;
 
+    const POINT_IN_POLYGON_EPSILON: f64 = 1e-10;
+
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct LayoutFixture {
+        field_geometry: String,
+        system_design: SystemDesign,
+    }
+
     #[test]
     fn test_parse_geojson_polygon() {
         let geojson = r#"{
@@ -1288,5 +1297,156 @@ mod tests {
 
         let result = system_based_layout(&design, geojson).unwrap();
         assert!(result.tree_marker_array.is_empty());
+    }
+
+    #[test]
+    fn spiral_groundcover_areas_stay_inside_field() {
+        let fixture: LayoutFixture = serde_json::from_str(include_str!(
+            "../../tests/fixtures/spiral-groundcover-outside-field/input.json"
+        ))
+        .unwrap();
+        let field_rings = parse_geojson_polygon(&fixture.field_geometry).unwrap();
+        let result = system_based_layout(&fixture.system_design, &fixture.field_geometry).unwrap();
+
+        assert!(
+            !result.ground_cover_areas.is_empty(),
+            "fixture should produce ground cover areas"
+        );
+
+        for (area_index, area) in result.ground_cover_areas.iter().enumerate() {
+            for (polygon_index, polygon) in feature_polygons(area).iter().enumerate() {
+                assert_polygon_samples_inside_field(
+                    &field_rings,
+                    polygon,
+                    area_index,
+                    polygon_index,
+                );
+            }
+        }
+    }
+
+    fn feature_polygons(feature: &GeoJsonFeature) -> Vec<Vec<Vec<[f64; 2]>>> {
+        let geometry_type = feature
+            .geometry
+            .get("type")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+
+        match geometry_type {
+            "Polygon" => vec![serde_json::from_value(
+                feature
+                    .geometry
+                    .get("coordinates")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null),
+            )
+            .unwrap()],
+            "MultiPolygon" => serde_json::from_value(
+                feature
+                    .geometry
+                    .get("coordinates")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null),
+            )
+            .unwrap(),
+            other => panic!("expected Polygon or MultiPolygon, got {other}"),
+        }
+    }
+
+    fn assert_polygon_samples_inside_field(
+        field_rings: &[Vec<[f64; 2]>],
+        polygon: &[Vec<[f64; 2]>],
+        area_index: usize,
+        polygon_index: usize,
+    ) {
+        for (ring_index, ring) in polygon.iter().enumerate() {
+            for segment in ring.windows(2) {
+                for point in sampled_segment_points(segment[0], segment[1]) {
+                    assert!(
+                        point_in_polygon_or_boundary(point, field_rings),
+                        "ground cover area {area_index}, polygon {polygon_index}, ring {ring_index} has point [{}, {}] outside field",
+                        point[0],
+                        point[1]
+                    );
+                }
+            }
+        }
+    }
+
+    fn sampled_segment_points(start: [f64; 2], end: [f64; 2]) -> [[f64; 2]; 5] {
+        [
+            start,
+            interpolate_point(start, end, 0.25),
+            interpolate_point(start, end, 0.5),
+            interpolate_point(start, end, 0.75),
+            end,
+        ]
+    }
+
+    fn interpolate_point(start: [f64; 2], end: [f64; 2], fraction: f64) -> [f64; 2] {
+        [
+            start[0] + (end[0] - start[0]) * fraction,
+            start[1] + (end[1] - start[1]) * fraction,
+        ]
+    }
+
+    fn point_in_polygon_or_boundary(point: [f64; 2], rings: &[Vec<[f64; 2]>]) -> bool {
+        let Some(exterior) = rings.first() else {
+            return false;
+        };
+
+        if point_on_ring_boundary(point, exterior) {
+            return true;
+        }
+
+        if !point_in_ring(point, exterior) {
+            return false;
+        }
+
+        for hole in rings.iter().skip(1) {
+            if point_on_ring_boundary(point, hole) || point_in_ring(point, hole) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn point_on_ring_boundary(point: [f64; 2], ring: &[[f64; 2]]) -> bool {
+        ring.windows(2)
+            .any(|segment| point_on_segment(point, segment[0], segment[1]))
+    }
+
+    fn point_on_segment(point: [f64; 2], start: [f64; 2], end: [f64; 2]) -> bool {
+        let cross = (point[1] - start[1]) * (end[0] - start[0])
+            - (point[0] - start[0]) * (end[1] - start[1]);
+        if cross.abs() > POINT_IN_POLYGON_EPSILON {
+            return false;
+        }
+
+        point[0] >= start[0].min(end[0]) - POINT_IN_POLYGON_EPSILON
+            && point[0] <= start[0].max(end[0]) + POINT_IN_POLYGON_EPSILON
+            && point[1] >= start[1].min(end[1]) - POINT_IN_POLYGON_EPSILON
+            && point[1] <= start[1].max(end[1]) + POINT_IN_POLYGON_EPSILON
+    }
+
+    fn point_in_ring(point: [f64; 2], ring: &[[f64; 2]]) -> bool {
+        let mut inside = false;
+        let mut previous = ring[ring.len() - 1];
+
+        for current in ring {
+            let crosses_ray = (current[1] > point[1]) != (previous[1] > point[1]);
+            if crosses_ray {
+                let intersect_x = (previous[0] - current[0]) * (point[1] - current[1])
+                    / (previous[1] - current[1])
+                    + current[0];
+                if point[0] < intersect_x {
+                    inside = !inside;
+                }
+            }
+            previous = *current;
+        }
+
+        inside
     }
 }
