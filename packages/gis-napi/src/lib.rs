@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-use geometry_kernel::layout_types::{LayoutRequest, SystemDesign};
+use geometry_kernel_layout::{LayoutRequest, SystemDesign};
 use napi_derive::napi;
 use std::fs::File;
 use std::io::BufWriter;
@@ -17,7 +17,7 @@ pub fn generate_layout(systemdesign_json: String, field_geometry: String) -> nap
         field_geometry,
     };
 
-    let response = geometry_kernel::model::process_layout_request(&request);
+    let response = geometry_kernel_layout::process_layout_request(&request);
 
     serde_json::to_string(&response)
         .map_err(|e| napi::Error::from_reason(format!("Serialization error: {e}")))
@@ -40,7 +40,7 @@ pub fn generate_layout_to_file(
         field_geometry,
     };
 
-    let response = geometry_kernel::model::process_layout_request(&request);
+    let response = geometry_kernel_layout::process_layout_request(&request);
 
     // Write directly to file without allocating a large intermediate buffer.
     let file = File::create(&output_path)

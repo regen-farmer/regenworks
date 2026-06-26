@@ -2,7 +2,7 @@
 //!
 //! This mirrors the TypeScript Turf/JSTS layout flow using browser-compatible Rust geometry.
 
-#![cfg(feature = "wasm")]
+#![cfg(any(feature = "native", feature = "wasm"))]
 
 #[cfg(target_arch = "wasm32")]
 use instant::Instant;
