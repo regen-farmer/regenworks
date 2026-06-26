@@ -301,7 +301,7 @@ function ProjectIndexView() {
         const areaLng = scenarioData()?.project?.layer.lng;
 
         // Use the 3D control and link it to our local signal
-        const { show3D: controlShow3D, setShow3D: controlSetShow3D } = use3DControl(
+        const { show3D: controlShow3D } = use3DControl(
           map,
           systemLayout,
           species,

@@ -16,6 +16,7 @@ import { nitro } from "nitro/vite";
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	Object.assign(process.env, env);
+	const frontendPublicDir = "../frontend/public";
 
 	// Stub server-only modules out of the browser bundle.
 	const stubServerModulesPlugin = () => ({
@@ -35,12 +36,11 @@ export default defineConfig(({ mode }) => {
 	return {
 		base: "/",
 		// Static assets (images, 3D models, marker icons) live in `@rw/frontend`
-		// so the SPA dev server can serve them directly. Point isomorphic's
-		// vite at that same directory so SSR dev/prod gets the same files.
-		publicDir: "../frontend/public",
-		// Nitro defaults `copyPublicDir: false` for the client build (it has
-		// its own publicAssets mechanism). We opt back in so `publicDir` flows
-		// into `.output/public/` and `/images/*` etc. are served in prod.
+		// so the SPA dev server can serve them directly. Point isomorphic's Vite
+		// and Nitro static asset handling at that same directory.
+		publicDir: frontendPublicDir,
+		// Nitro defaults `copyPublicDir: false` for the client build. We opt back
+		// in so Vite also copies `publicDir` into `.output/public/` for prod.
 		build: { copyPublicDir: true },
 		server: {
 			host: process.env.VITE_DEV_HOST || undefined,
@@ -69,7 +69,9 @@ export default defineConfig(({ mode }) => {
 			// Nitro wraps the SSR server produced by `tanstackStart` into a
 			// runtime bundle at `.output/` (preset: node-server by default).
 			// Deploy with `node .output/server/index.mjs`.
-			nitro(),
+			nitro({
+				publicAssets: [{ dir: frontendPublicDir, baseURL: "/" }],
+			}),
 		],
 	};
 });
