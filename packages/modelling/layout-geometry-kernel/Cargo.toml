@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = []
+native = ["geometry-kernel"]
 wasm = [
     "geometry-kernel",
     "wasm-bindgen",

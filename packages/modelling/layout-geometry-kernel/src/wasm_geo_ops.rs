@@ -1,6 +1,6 @@
 //! Geometry operations backed by the published `geometry-kernel` crate.
 
-#![cfg(feature = "wasm")]
+#![cfg(any(feature = "native", feature = "wasm"))]
 
 use crate::geometry::{project_line_to_local, project_polygon_to_wgs84};
 use crate::make_line;
