@@ -130,6 +130,10 @@ function getJordartBeforeLayerId(map: maplibregl.Map) {
   return map.getStyle().layers?.find((layer) => isAppOverlayLayer(layer.id))?.id;
 }
 
+export function isJordartLayerVisible(map: maplibregl.Map | undefined) {
+  return Boolean(map?.getLayer(JORDART_LAYER_ID));
+}
+
 export function useJordartControl(
   map: maplibregl.Map,
   onVisibilityChange?: (show: boolean) => void,

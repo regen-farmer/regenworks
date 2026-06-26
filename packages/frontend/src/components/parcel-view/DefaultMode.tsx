@@ -19,6 +19,7 @@ import {
 } from "~/util/api/farmScenarioConfig.ts";
 import { deleteFinancialModel, getFinancialModels } from "~/util/api/financialModel.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
+import { isJordartLayerVisible } from "~/util/map_controls/useJordartControl.ts";
 import { removeLayers } from "~/util/removeLayers.ts";
 import { CreateFinancialModelModal } from "../CreateFinancialModelModal";
 import {
@@ -308,9 +309,17 @@ export default function DefaultMode({
     map.on("click", "field-fills", navigateToField);
   }
   function navigateToField(e: any) {
+    if (isJordartLayerVisible(getMap())) {
+      return;
+    }
+
     navigate({ to: `/parcels/${params().parcelId}/layers/${e.features[0].properties.id}` });
   }
   function moveMapToField(e: any) {
+    if (isJordartLayerVisible(getMap())) {
+      return;
+    }
+
     e.clickOnLabel = true;
     getMap().flyTo({
       speed: 2,
