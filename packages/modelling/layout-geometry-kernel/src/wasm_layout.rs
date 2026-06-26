@@ -115,8 +115,14 @@ pub fn system_based_layout(
         &system_design.rows,
     )?;
 
-    let (ground_cover_results, ground_cover_areas_m2) =
-        make_ground_cover_areas(&strip_results, &system_design.rows);
+    // When all repeated row strips share one ground cover species, their union is the planting area.
+    let (ground_cover_results, ground_cover_areas_m2) = if let Some(groundcover) =
+        single_groundcover_for_all_positive_width_rows(&system_design.rows)
+    {
+        make_full_field_ground_cover(&headland_polygon, groundcover)
+    } else {
+        make_ground_cover_areas(&strip_results, &system_design.rows)
+    };
     let (tree_markers, species_counts) =
         generate_tree_markers(&tree_row_results, &system_design.rows);
 
@@ -693,6 +699,49 @@ fn make_ground_cover_areas(
     }
 
     (ground_cover_areas, ground_cover_areas_m2)
+}
+
+fn single_groundcover_for_all_positive_width_rows(rows: &[RowDefinition]) -> Option<&SpeciesRef> {
+    let mut groundcover: Option<&SpeciesRef> = None;
+
+    for row in rows.iter().filter(|row| row.width > 0.0) {
+        let row_groundcover = row.groundcover.as_ref()?;
+        if row_groundcover.id().is_empty() {
+            return None;
+        }
+
+        match groundcover {
+            Some(existing) if existing.id() != row_groundcover.id() => return None,
+            Some(_) => {}
+            None => groundcover = Some(row_groundcover),
+        }
+    }
+
+    groundcover
+}
+
+fn make_full_field_ground_cover(
+    headland_polygon: &[Vec<[f64; 2]>],
+    groundcover: &SpeciesRef,
+) -> (Vec<GroundCoverResult>, HashMap<String, f64>) {
+    let species_id = groundcover.id().to_string();
+    if species_id.is_empty() || headland_polygon.is_empty() {
+        return (Vec::new(), HashMap::new());
+    }
+
+    let area_m2 = turf_polygon_area(headland_polygon);
+    if area_m2 <= 0.0 {
+        return (Vec::new(), HashMap::new());
+    }
+
+    (
+        vec![GroundCoverResult {
+            polygon: headland_polygon.to_vec(),
+            species_id: species_id.clone(),
+            area_m2,
+        }],
+        HashMap::from([(species_id, area_m2)]),
+    )
 }
 
 fn generate_tree_markers(
@@ -1325,6 +1374,41 @@ mod tests {
         }
     }
 
+    #[test]
+    fn star_field_single_groundcover_covers_planting_area() {
+        let fixture: LayoutFixture = serde_json::from_str(include_str!(
+            "../../tests/fixtures/star-groundcover-multipolygon-strips/input.json"
+        ))
+        .unwrap();
+        let result = system_based_layout(&fixture.system_design, &fixture.field_geometry).unwrap();
+        let groundcover_id = fixture.system_design.rows[0]
+            .groundcover
+            .as_ref()
+            .unwrap()
+            .id()
+            .to_string();
+        let headland_area_m2 = feature_area_m2(&result.headland_polygon);
+        let ground_cover_area_m2 = result
+            .ground_cover_areas_m2
+            .get(&groundcover_id)
+            .copied()
+            .unwrap_or(0.0);
+
+        assert_eq!(
+            result.ground_cover_areas.len(),
+            1,
+            "single-row ground cover should be returned as one planting-area polygon"
+        );
+        assert!(
+            ground_cover_area_m2 > 15_000.0,
+            "ground cover area should cover the star field, got {ground_cover_area_m2}"
+        );
+        assert!(
+            ((ground_cover_area_m2 - headland_area_m2) / headland_area_m2).abs() < 0.001,
+            "ground cover area {ground_cover_area_m2} should match headland area {headland_area_m2}"
+        );
+    }
+
     fn feature_polygons(feature: &GeoJsonFeature) -> Vec<Vec<Vec<[f64; 2]>>> {
         let geometry_type = feature
             .geometry
@@ -1351,6 +1435,13 @@ mod tests {
             .unwrap(),
             other => panic!("expected Polygon or MultiPolygon, got {other}"),
         }
+    }
+
+    fn feature_area_m2(feature: &GeoJsonFeature) -> f64 {
+        feature_polygons(feature)
+            .iter()
+            .map(|polygon| turf_polygon_area(polygon))
+            .sum()
     }
 
     fn assert_polygon_samples_inside_field(

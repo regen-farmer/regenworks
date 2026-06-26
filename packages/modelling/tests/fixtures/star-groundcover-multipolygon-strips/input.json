@@ -1,0 +1,41 @@
+{
+  "name": "Star field ground cover strips",
+  "projectId": "651b2a99da48c69fa87f08ec",
+  "fieldGeometry": "{\"id\":\"2e264b9fe96467de590708f66a78ddef\",\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"coordinates\":[[[9.772905433496561,56.09369070859799],[9.772905433496561,56.093122069385714],[9.771470781722996,56.092764032981705],[9.77305644947242,56.092553421776984],[9.772905433496561,56.09206901163594],[9.77369826737069,56.09244811574291],[9.774755379203981,56.092047950187464],[9.774340085268904,56.092764032981705],[9.774868641186231,56.093606466281386],[9.773773775359217,56.09322737357695],[9.772905433496561,56.09369070859799]]],\"type\":\"Polygon\"}}",
+  "systemDesign": {
+    "rows": [
+      {
+        "sequence": [
+          {
+            "species": {
+              "_id": "5e4aeb73d065f91444f58e2f",
+              "nameCommon": "Banana",
+              "genus": "musa",
+              "species": "acuminata"
+            },
+            "spacingAfter": 8
+          },
+          {
+            "species": {
+              "_id": "5f9de8c42df6cc19c4d61732",
+              "nameCommon": "African Breadfruit",
+              "genus": "treculia",
+              "species": "africana"
+            },
+            "spacingAfter": 8
+          }
+        ],
+        "groundcover": {
+          "_id": "5e665452cccc150b186d4cd1",
+          "nameCommon": "Ryegrass",
+          "genus": "lolium",
+          "species": "perenne"
+        },
+        "width": 4
+      }
+    ],
+    "bearing": 70,
+    "margin": 0,
+    "headland": 0
+  }
+}
