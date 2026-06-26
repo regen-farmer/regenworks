@@ -65,9 +65,9 @@ dependencies = [
 
 [[package]]
 name = "geometry-kernel"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f51afbffc6adf28f9fb5230de6ba122ea37456d2633c45533e275d4cdb95d21"
+checksum = "0c6d9962298581868ab4452a1d802699f18704026834e35d4dec0892d3930e83"
 dependencies = [
  "robust",
  "serde",
