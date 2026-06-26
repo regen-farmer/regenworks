@@ -524,8 +524,9 @@ fn strip_buffer_polygons(
     let inner_buffer = buffer_local_line_rings(local_line, start_m)
         .map_err(|error| format!("strip inner buffer {start_m}m failed: {error}"))?;
 
-    wasm_geo_ops::difference(&outer_buffer, &inner_buffer)
-        .map_err(|error| format!("strip mask {start_m}m..{end_m}m failed: {error}"))
+    let mut strip_mask = outer_buffer;
+    strip_mask.extend(inner_buffer);
+    Ok(vec![strip_mask])
 }
 
 fn overlay_shape_to_polygon(shape: &[Vec<[f64; 2]>]) -> Option<OverlayShape> {
