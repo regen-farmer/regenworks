@@ -24,7 +24,7 @@
 	"devDependencies": {
 		"electron": "^42",
 		"electron-builder": "^26",
-		"typescript": "^6",
+		"typescript": "7.0.1-rc",
 		"@rw/frontend": "workspace:*"
 	}
 }
