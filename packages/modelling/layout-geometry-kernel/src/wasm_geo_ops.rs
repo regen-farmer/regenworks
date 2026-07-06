@@ -10,7 +10,8 @@ use geometry_kernel::{
     MultiPolygon as KernelMultiPolygon, Polygon as KernelPolygon, PrecisionModel, PureRustKernel,
 };
 
-const POINT_DEDUP_TOLERANCE_M: f64 = 1e-10;
+const POINT_DEDUP_TOLERANCE_M: f64 = 2e-7;
+const OVERLAY_GRID_SIZE: f64 = 1e-11;
 
 type Segment = ([f64; 2], [f64; 2]);
 
@@ -84,7 +85,7 @@ pub fn difference(
     polygon1: &[Vec<[f64; 2]>],
     polygon2: &[Vec<[f64; 2]>],
 ) -> Result<Vec<Vec<Vec<[f64; 2]>>>, GeoError> {
-    let kernel = PureRustKernel::new(PrecisionModel::floating());
+    let kernel = overlay_kernel();
     let subject = KernelMultiPolygon::new(vec![kernel_polygon_from_rings(polygon1)?]);
     let clip = KernelMultiPolygon::new(vec![kernel_polygon_from_rings(polygon2)?]);
     let result = kernel
@@ -163,6 +164,10 @@ pub fn get_largest_polygon(polygons: &[Vec<Vec<[f64; 2]>>]) -> Option<Vec<Vec<[f
                 .unwrap_or(std::cmp::Ordering::Equal)
         })
         .cloned()
+}
+
+fn overlay_kernel() -> PureRustKernel {
+    PureRustKernel::new(PrecisionModel::fixed(OVERLAY_GRID_SIZE))
 }
 
 fn coords_center(coords: &[[f64; 2]]) -> [f64; 2] {

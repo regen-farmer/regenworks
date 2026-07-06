@@ -279,10 +279,11 @@ fn apply_headland(
             .map_err(|error| format!("headland buffer {buffer_distance}m failed: {error}"))?;
         headland_sides_coords.push(buffer_polygon.clone());
 
-        match wasm_geo_ops::difference(&headland_polygon_raw, &buffer_polygon) {
-            Ok(difference) if !difference.is_empty() && !difference[0].is_empty() => {
-                headland_polygon_raw = difference[0].clone();
-            }
+        match wasm_geo_ops::difference(&headland_polygon_raw, &buffer_polygon)
+            .ok()
+            .and_then(|polygons| wasm_geo_ops::get_largest_polygon(&polygons))
+        {
+            Some(difference) if !difference.is_empty() => headland_polygon_raw = difference,
             _ => {}
         }
     }
@@ -486,59 +487,46 @@ fn strip_band_intersection(
     let center = projection_center(field_rings);
     let local_line = project_line_to_local(line, center);
     let local_field = project_polygon_to_local(field_rings, center);
-    let start = local_line[0];
-    let end = local_line[1];
-    let line_vec = [end[0] - start[0], end[1] - start[1]];
-    let line_len = (line_vec[0] * line_vec[0] + line_vec[1] * line_vec[1]).sqrt();
-    if line_len <= POINT_TOLERANCE_M {
-        return Ok(vec![]);
-    }
-
-    let direction = [line_vec[0] / line_len, line_vec[1] / line_len];
-    let mut normal = [-direction[1], direction[0]];
-    let midpoint = [(start[0] + end[0]) / 2.0, (start[1] + end[1]) / 2.0];
-    let field_center = local_polygon_center(&local_field);
-    let center_side =
-        (field_center[0] - midpoint[0]) * normal[0] + (field_center[1] - midpoint[1]) * normal[1];
-    if center_side < 0.0 {
-        normal = [-normal[0], -normal[1]];
-    }
-
-    let extend_m = local_polygon_extent(&local_field) + end_m + 100.0;
-    let band = vec![close_ring(vec![
-        [
-            start[0] - direction[0] * extend_m + normal[0] * start_m,
-            start[1] - direction[1] * extend_m + normal[1] * start_m,
-        ],
-        [
-            end[0] + direction[0] * extend_m + normal[0] * start_m,
-            end[1] + direction[1] * extend_m + normal[1] * start_m,
-        ],
-        [
-            end[0] + direction[0] * extend_m + normal[0] * end_m,
-            end[1] + direction[1] * extend_m + normal[1] * end_m,
-        ],
-        [
-            start[0] - direction[0] * extend_m + normal[0] * end_m,
-            start[1] - direction[1] * extend_m + normal[1] * end_m,
-        ],
-    ])];
-
     let mut intersections = Vec::new();
-    let local_intersections = wasm_geo_ops::intersection(&local_field, &band)
-        .map_err(|error| format!("strip intersection {start_m}m..{end_m}m failed: {error}"))?;
+    for strip_polygon in strip_buffer_polygons(&local_line, start_m, end_m)? {
+        let local_intersections = wasm_geo_ops::intersection(&local_field, &strip_polygon)
+            .map_err(|error| format!("strip intersection {start_m}m..{end_m}m failed: {error}"))?;
 
-    for local_intersection in local_intersections {
-        let wgs84_intersection = project_polygon_to_wgs84(&local_intersection, center);
-        if let Some(polygon) = overlay_shape_to_polygon(&wgs84_intersection) {
-            if polygon_samples_inside_field(&polygon, field_rings, WGS84_BOUNDARY_TOLERANCE_DEGREES)
-            {
-                intersections.push(polygon);
+        for local_intersection in local_intersections {
+            let wgs84_intersection = project_polygon_to_wgs84(&local_intersection, center);
+            if let Some(polygon) = overlay_shape_to_polygon(&wgs84_intersection) {
+                if polygon_samples_inside_field(
+                    &polygon,
+                    field_rings,
+                    WGS84_BOUNDARY_TOLERANCE_DEGREES,
+                ) {
+                    intersections.push(polygon);
+                }
             }
         }
     }
 
     Ok(intersections)
+}
+
+fn strip_buffer_polygons(
+    local_line: &[[f64; 2]],
+    start_m: f64,
+    end_m: f64,
+) -> Result<Vec<OverlayShape>, String> {
+    let outer_buffer = buffer_local_line_rings(local_line, end_m)
+        .map_err(|error| format!("strip outer buffer {end_m}m failed: {error}"))?;
+
+    if start_m <= POINT_TOLERANCE_M {
+        return Ok(vec![outer_buffer]);
+    }
+
+    let inner_buffer = buffer_local_line_rings(local_line, start_m)
+        .map_err(|error| format!("strip inner buffer {start_m}m failed: {error}"))?;
+
+    let mut strip_mask = outer_buffer;
+    strip_mask.extend(inner_buffer);
+    Ok(vec![strip_mask])
 }
 
 fn overlay_shape_to_polygon(shape: &[Vec<[f64; 2]>]) -> Option<OverlayShape> {
@@ -666,45 +654,6 @@ fn point_in_ring(point: [f64; 2], ring: &[[f64; 2]]) -> bool {
     }
 
     inside
-}
-
-fn local_polygon_center(rings: &[Vec<[f64; 2]>]) -> [f64; 2] {
-    let Some(exterior) = rings.first() else {
-        return [0.0, 0.0];
-    };
-    if exterior.is_empty() {
-        return [0.0, 0.0];
-    }
-
-    let (sum_x, sum_y) = exterior.iter().fold((0.0, 0.0), |(sum_x, sum_y), coord| {
-        (sum_x + coord[0], sum_y + coord[1])
-    });
-    let count = exterior.len() as f64;
-    [sum_x / count, sum_y / count]
-}
-
-fn local_polygon_extent(rings: &[Vec<[f64; 2]>]) -> f64 {
-    let mut min_x = f64::INFINITY;
-    let mut min_y = f64::INFINITY;
-    let mut max_x = f64::NEG_INFINITY;
-    let mut max_y = f64::NEG_INFINITY;
-
-    for ring in rings {
-        for coord in ring {
-            min_x = min_x.min(coord[0]);
-            min_y = min_y.min(coord[1]);
-            max_x = max_x.max(coord[0]);
-            max_y = max_y.max(coord[1]);
-        }
-    }
-
-    if !min_x.is_finite() {
-        return 0.0;
-    }
-
-    let width = max_x - min_x;
-    let height = max_y - min_y;
-    (width * width + height * height).sqrt()
 }
 
 fn buffer_local_line_rings(
@@ -1097,10 +1046,6 @@ fn line_intersection_local(
     let p2 = wgs84_to_web_mercator(line1[1]);
     let p3 = wgs84_to_web_mercator(line2[0]);
     let p4 = wgs84_to_web_mercator(line2[1]);
-
-    if (p4[0] - p3[0]).abs() <= f64::EPSILON {
-        return None;
-    }
 
     let denominator = (p1[0] - p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (p3[0] - p4[0]);
     if denominator.abs() <= f64::EPSILON {
