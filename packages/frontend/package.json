@@ -34,7 +34,7 @@
 		"@popperjs/core": "^2.11.8",
 		"@rw/db": "workspace:*",
 		"@rw/modelling": "workspace:*",
-		"@solid-primitives/media": "^2.3.5",
+		"@solid-primitives/media": "^2.3.6",
 		"@tanstack/solid-query": "^5.75.5",
 		"@tanstack/solid-router": "^1.168.19",
 		"@tmcw/togeojson": "^7.1.2",
