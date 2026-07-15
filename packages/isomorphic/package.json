@@ -38,7 +38,7 @@
 		"@deck.gl/geo-layers": "^9.1.14",
 		"@deck.gl/mapbox": "^9.3.4",
 		"@deck.gl/mesh-layers": "^9.1.14",
-		"@kobalte/core": "^0.13.11",
+		"@kobalte/core": "^0.13.12",
 		"@mailchimp/mailchimp_marketing": "^3.0.80",
 		"@mailchimp/mailchimp_transactional": "^1.0.59",
 		"@mapbox/geojson-area": "^0.2.2",
