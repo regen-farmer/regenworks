@@ -27,7 +27,7 @@
 		"@deck.gl/geo-layers": "^9.1.14",
 		"@deck.gl/mapbox": "^9.3.4",
 		"@deck.gl/mesh-layers": "^9.1.14",
-		"@kobalte/core": "^0.13.11",
+		"@kobalte/core": "^0.13.12",
 		"@mapbox/geojson-area": "^0.2.2",
 		"@mapbox/mapbox-gl-draw": "^1.4.3",
 		"@maptiler/sdk": "^4.0.2",
