@@ -17,7 +17,7 @@
 	"type": "module",
 	"devDependencies": {
 		"@playwright/test": "^1.61.1",
-		"@tailwindcss/vite": "^4.2.1",
+		"@tailwindcss/vite": "^4.3.3",
 		"@tanstack/virtual-file-routes": "^1.161.6",
 		"@types/geojson": "^7946.0.14",
 		"@types/lodash": "^4.17.20",
