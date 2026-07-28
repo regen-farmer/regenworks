@@ -88,3 +88,7 @@ pnpm --filter backend build
 ## Security And Secrets
 
 Do not commit `.env` files, private certificates, signing keys, API keys, database dumps, or generated build output. Before publishing this repository publicly, scan both the working tree and the full Git history with a history-aware scanner such as `gitleaks` or `trufflehog`, then rotate any credential that was ever committed.
+
+## License
+
+RegenWorks is available under the [MIT License](LICENSE).
