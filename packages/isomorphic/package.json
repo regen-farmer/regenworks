@@ -50,7 +50,7 @@
 		"@rw/modelling": "workspace:*",
 		"@solid-primitives/media": "^2.3.6",
 		"@tanstack/solid-router": "^1.168.19",
-		"@tanstack/solid-start": "^1.167.36",
+		"@tanstack/solid-start": "^1.168.32",
 		"@tauri-apps/plugin-http": "~2",
 		"@tmcw/togeojson": "^7.1.2",
 		"@turf/turf": "^7.3.5",
