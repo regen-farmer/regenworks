@@ -24,7 +24,7 @@
 		"@corvu/resizable": "^0.2.5",
 		"@corvu/tooltip": "^0.2.2",
 		"@deck.gl/core": "^9.1.14",
-		"@deck.gl/geo-layers": "^9.1.14",
+		"@deck.gl/geo-layers": "^9.3.7",
 		"@deck.gl/mapbox": "^9.3.7",
 		"@deck.gl/mesh-layers": "^9.1.14",
 		"@kobalte/core": "^0.13.12",
