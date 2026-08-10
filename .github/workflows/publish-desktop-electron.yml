@@ -120,7 +120,7 @@ jobs:
 
       - name: Cache vcpkg packages
         if: matrix.platform == 'windows-latest'
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: C:\vcpkg\installed
           key: vcpkg-${{ matrix.vcpkg_triplet }}-geos
