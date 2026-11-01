@@ -48,9 +48,13 @@ function run(user: unknown, role: Parameters<typeof requireRole>[0]) {
       return this;
     },
   };
-  requireRole(role)({ user } as any, res, () => {
-    nextCalled = true;
-  });
+  requireRole(role)(
+    { user, idToken: user ? { email_verified: true } : undefined } as any,
+    res,
+    () => {
+      nextCalled = true;
+    },
+  );
   return { status, nextCalled };
 }
 
@@ -71,4 +75,27 @@ test("requireRole: team and admin pass team routes", () => {
   assert.equal(run(team, "grove-team").nextCalled, true);
   assert.equal(run(admin, "grove-team").nextCalled, true);
   assert.equal(run(legacyAdmin, "grove-team").nextCalled, true);
+});
+
+test("requireRole: unverified email → 401 even with a role", () => {
+  let status = 200;
+  const res: any = {
+    status(code: number) {
+      status = code;
+      return this;
+    },
+    send() {
+      return this;
+    },
+  };
+  let nextCalled = false;
+  requireRole("grove-field")(
+    { user: admin, idToken: { email_verified: false } } as any,
+    res,
+    () => {
+      nextCalled = true;
+    },
+  );
+  assert.equal(status, 401);
+  assert.equal(nextCalled, false);
 });

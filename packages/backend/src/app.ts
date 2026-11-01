@@ -41,7 +41,8 @@ import stripeRoutes from "./routes/stripe.ts";
 import systemdesignRoutes from "./routes/systemdesigns.ts";
 import systemflowRoutes from "./routes/systemflows.ts";
 import systemRoutes from "./routes/systems.ts";
-import { isPlainObject } from "./utils/mongoSafety.ts";
+import { checkAuthConfig, identify, IdentityUnavailableError } from "./auth/identify.ts";
+import { resolveUser } from "./auth/resolveUser.ts";
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
@@ -81,6 +82,7 @@ app.use(
 
 // APP SETUP
 mongoose.set("sanitizeFilter", true);
+checkAuthConfig(); // fail fast on bad Auth0 settings, before serving anything
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
@@ -135,84 +137,31 @@ app.use(
   ) => {
     res.locals.currentUser = undefined;
 
-    const jwt = req.headers.authorization;
-
-    function parseJwt(token) {
-      // eslint-disable-next-line no-unneeded-ternary
-      // console.log("token in place", token === "undefined" ? false : true);
-
-      if (token === "undefined") {
+    // Identity comes only from Auth0 (see auth/identify.ts); the account rules
+    // are in auth/resolveUser.ts. Never trust the request body or an unsigned header.
+    let identity: Awaited<ReturnType<typeof identify>>;
+    try {
+      identity = await identify(req.headers.authorization);
+    } catch (err) {
+      if (err instanceof IdentityUnavailableError) {
+        console.error(err.message);
+        res
+          .status(503)
+          .send({ error: "Login check is temporarily unavailable. Please try again." });
         return;
       }
-
-      return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+      throw err;
     }
+    const idToken: Auth0IDToken | undefined = identity
+      ? ({
+          sub: identity.sub,
+          email: identity.email,
+          email_verified: identity.email_verified,
+        } as Auth0IDToken)
+      : undefined;
 
-    let idToken: Auth0IDToken | undefined;
-
-    // console.log('jwt in place', jwt);
-
-    if (jwt && jwt !== "" && jwt !== "undefined" && typeof jwt === "string") {
-      // idToken = parseJwt(jwt);
-      // console.log('jwt:', jwt)
-      const parsedToken = JSON.parse(jwt) as unknown;
-      if (isPlainObject(parsedToken)) {
-        idToken = parsedToken as unknown as Auth0IDToken;
-      }
-      // console.log('idToken:', idToken)
-      // if (!idToken) {
-      //   // console.log("no id token");
-      //   res.status(404).send("Invalid token");
-      //   return;
-      // }
-    } else {
-      console.log("no jwt");
-    }
-
-    const externalId = idToken?.sub;
-    const email = idToken?.email;
-
-    if (typeof externalId === "string" && externalId !== "") {
-      const user = await User.findOne({ externalId: { $eq: externalId } }).exec();
-      if (user) {
-        req.user = user;
-      } else if (typeof email === "string" && email !== "") {
-        console.log("idToken", idToken);
-        // Find any existing user
-        const user = await User.findOne({ email: { $eq: email } }).exec();
-
-        if (user) {
-          user.externalId = externalId;
-          await user.save();
-          req.user = user;
-        } else {
-          // Create a new user if none exist
-          const newUser = await User.create({
-            externalId,
-            email,
-            registrationDate: Date.now(),
-            isProject: true,
-          });
-
-          const savedUser = await newUser.save();
-
-          req.user = savedUser;
-        }
-      } else {
-        // Create a new user if none exist
-        const newUser = await User.create({
-          externalId,
-          registrationDate: Date.now(),
-          isProject: true,
-        });
-
-        const savedUser = await newUser.save();
-
-        req.user = savedUser;
-      }
-    } else {
-      console.log("No oidc user");
-    }
+    const user = await resolveUser(identity, User);
+    if (user) req.user = user;
 
     if (idToken) {
       req.idToken = idToken;
