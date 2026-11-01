@@ -22,33 +22,64 @@ export type VerifiedIdentity = {
   source: "auth0" | "legacy";
 };
 
+/** Auth0 couldn't answer (rate limit, outage, timeout). Not the same as "not logged in". */
+export class IdentityUnavailableError extends Error {}
+
 const CACHE_MS = 10 * 60 * 1000;
+const REJECT_CACHE_MS = 30 * 1000;
 const MAX_CACHE = 5000;
 const cache = new Map<string, { identity: VerifiedIdentity | null; expires: number }>();
 const inFlight = new Map<string, Promise<VerifiedIdentity | null>>();
 
-function issuerBaseUrl(): string | undefined {
-  const raw = process.env.AUTH0_ISSUER_BASE_URL || process.env.AUTH_AUTH0_ISSUER;
-  return raw ? raw.replace(/\/+$/, "") : undefined;
+/** Auth0 tenant URL, e.g. https://grove.eu.auth0.com (scheme added, trailing slash removed). */
+export function issuerBaseUrl(): string | undefined {
+  const raw = (process.env.AUTH0_ISSUER_BASE_URL || process.env.AUTH_AUTH0_ISSUER || "").trim();
+  if (!raw) return undefined;
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  return withScheme.replace(/\/+$/, "");
+}
+
+/** Check the auth settings once at startup. Throws if the backend would let nobody in. */
+export function checkAuthConfig(): void {
+  const issuer = issuerBaseUrl();
+  if (!issuer) {
+    if (legacyAuthHeaderPolicy() === "refuse") {
+      throw new Error("AUTH0_ISSUER_BASE_URL must be set when LEGACY_AUTH_HEADER=refuse");
+    }
+    console.warn("AUTH0_ISSUER_BASE_URL is not set: Bearer tokens can't be checked yet");
+    return;
+  }
+  try {
+    new URL(issuer);
+  } catch {
+    throw new Error(`AUTH0_ISSUER_BASE_URL is not a valid URL: ${issuer}`);
+  }
 }
 
 function cacheKey(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-/** Ask Auth0 who owns this access token. Null if Auth0 says no or can't be reached. */
+/**
+ * Ask Auth0 who owns this access token.
+ * Null when Auth0 says the token is not valid (401/403).
+ * Throws IdentityUnavailableError when Auth0 can't answer right now.
+ */
 async function askAuth0(token: string): Promise<VerifiedIdentity | null> {
   const issuer = issuerBaseUrl();
-  if (!issuer) {
-    console.error("AUTH0_ISSUER_BASE_URL is not set: nobody can log in to the backend");
-    return null;
-  }
+  if (!issuer) return null; // reported once at startup by checkAuthConfig
+  let res: Response;
   try {
-    const res = await fetch(`${issuer}/userinfo`, {
+    res = await fetch(`${issuer}/userinfo`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) return null;
+  } catch (err) {
+    throw new IdentityUnavailableError(`Auth0 /userinfo unreachable: ${(err as Error).message}`);
+  }
+  if (res.status === 401 || res.status === 403) return null;
+  if (!res.ok) throw new IdentityUnavailableError(`Auth0 /userinfo answered ${res.status}`);
+  try {
     const info = (await res.json()) as Record<string, unknown>;
     if (typeof info.sub !== "string" || !info.sub) return null;
     return {
@@ -57,9 +88,8 @@ async function askAuth0(token: string): Promise<VerifiedIdentity | null> {
       email_verified: info.email_verified === true,
       source: "auth0",
     };
-  } catch (err) {
-    console.error("Auth0 /userinfo failed:", (err as Error).message);
-    return null;
+  } catch {
+    throw new IdentityUnavailableError("Auth0 /userinfo returned something unreadable");
   }
 }
 
@@ -73,10 +103,13 @@ export async function verifyAccessToken(token: string): Promise<VerifiedIdentity
     pending = askAuth0(token).finally(() => inFlight.delete(key));
     inFlight.set(key, pending);
   }
-  const identity = await pending;
-  // Cache failures briefly too, so a bad token can't make us hammer Auth0.
-  if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value as string);
-  cache.set(key, { identity, expires: Date.now() + (identity ? CACHE_MS : 30_000) });
+  const identity = await pending; // throws IdentityUnavailableError: nothing cached
+  // Remember answers: valid tokens for 10 min, rejected ones for 30 s so a bad
+  // token can't make us hammer Auth0.
+  if (!cache.has(key)) {
+    if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value as string);
+    cache.set(key, { identity, expires: Date.now() + (identity ? CACHE_MS : REJECT_CACHE_MS) });
+  }
   return identity;
 }
 
