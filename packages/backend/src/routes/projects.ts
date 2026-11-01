@@ -1066,7 +1066,9 @@ router.post(
 
       const createdProject = await Project.create({
         ...source,
-        owner: { id: req.user?._id },
+        // The copy belongs to the field's owner (e.g. the client when a Grove
+        // admin duplicates in a client's field), not to whoever clicked.
+        owner: { id: (await dbOwnerLookup("layer", req.params.id))?.ownerId ?? req.user?._id },
         layer: req.params.id,
         isPublic: false,
         // Not shared with the source: deleting the copy deleted these too.

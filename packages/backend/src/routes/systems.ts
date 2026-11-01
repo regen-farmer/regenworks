@@ -4,7 +4,6 @@ import unique from "array-unique";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import Parcel from "@rw/db/schemas/parcel.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
