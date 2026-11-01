@@ -5,6 +5,7 @@ dotenv.config();
 
 import User, { type IUserSchema, type UserDocument } from "@rw/db/schemas/user.ts";
 import bodyParser from "body-parser";
+import { randomUUID } from "node:crypto";
 import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
@@ -217,6 +218,24 @@ app.use("", financialModelsRoutes);
 app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
   res.status(404).send("404");
 });
+
+// ERRORS: one JSON answer and one log line with a short id, so a message on
+// screen ("error a1b2c3d4") can be found in the Render logs.
+app.use(
+  (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const errorId = randomUUID().slice(0, 8);
+    console.error("[error %s] %s %s", errorId, req.method, req.originalUrl, err);
+    // Response already started: let Express close the connection.
+    if (res.headersSent) return next(err);
+    const raw = Number(err?.status ?? err?.statusCode);
+    const status = Number.isInteger(raw) && raw >= 400 && raw <= 599 ? raw : 500;
+    res.status(status).send({
+      // Never show server-side details for 5xx.
+      error: status >= 500 ? "Something went wrong on the server" : String(err?.message ?? "Error"),
+      errorId,
+    });
+  },
+);
 
 const PORT = process.env.BACKEND_PORT ? Number.parseInt(process.env.BACKEND_PORT) : 3001;
 const IP = process.env.BACKEND_IP ?? "127.0.0.1";

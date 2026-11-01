@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const BLOCKED_MONGO_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 export const isPlainObject = (value: unknown): value is Record<string, unknown> => {
@@ -40,3 +42,14 @@ export const sanitizeMongoDocument = (value: unknown): Record<string, unknown> =
 
   return sanitized;
 };
+
+/**
+ * `{ $in: ids }` that survives mongoose's sanitizeFilter (set globally in
+ * app.ts). Without `trusted`, sanitizeFilter rewrites it to
+ * `{ $eq: { $in: ... } }`, which fails or matches nothing. Only use with ids
+ * the server has checked or read from the database, never raw request input.
+ */
+export const inIds = (ids: readonly unknown[]) => mongoose.trusted({ $in: [...ids] });
+
+/** `{ $exists: true, $ne: null }` that survives sanitizeFilter. */
+export const isSet = () => mongoose.trusted({ $exists: true, $ne: null });
