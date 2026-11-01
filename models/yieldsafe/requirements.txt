@@ -1,0 +1,4 @@
+# Wrapper (HTTP server and validation). The model itself needs only the standard library.
+fastapi==0.162.0
+pydantic==2.14.2
+uvicorn==0.54.0

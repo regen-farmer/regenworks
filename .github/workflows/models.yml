@@ -206,3 +206,48 @@ jobs:
       - name: Logs
         if: always()
         run: docker logs caf2021 || true
+
+  yieldsafe-tests:
+    name: Yield-SAFE port and wrapper tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: models/yieldsafe
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements-test.txt
+
+      - name: Schema files are current
+        run: python -m adapter.export_schema --check
+
+      # The fixture holds the workbook's inputs and Excel's cached results, so no
+      # download is needed (tools/from_workbook.py checks all columns locally).
+      - name: Golden and contract tests
+        run: python -m pytest -q tests
+
+  yieldsafe-image:
+    name: Yield-SAFE image builds and answers
+    runs-on: ubuntu-latest
+    needs: yieldsafe-tests
+    steps:
+      - uses: actions/checkout@v7
+
+      # Built locally only, never pushed (research use; see models/yieldsafe/NOTICE.md).
+      - name: Build
+        run: docker build -t yieldsafe-runner:ci models/yieldsafe
+
+      - name: Smoke test
+        run: |
+          docker run -d --name yieldsafe -p 8080:8080 -e YIELDSAFE_API_TOKEN=ci --read-only --tmpfs /tmp yieldsafe-runner:ci
+          for i in $(seq 1 30); do curl -sf localhost:8080/health && break; sleep 1; done
+          curl -sf -H "Authorization: Bearer ci" localhost:8080/processes/yieldsafe | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['id']=='yieldsafe' and 'poplar_upson_agf' in d['templates']['trees']; print(d['upstream']['referenceWorkbookSha256'])"
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080/processes)" = "401"
+
+      - name: Logs
+        if: always()
+        run: docker logs yieldsafe || true
