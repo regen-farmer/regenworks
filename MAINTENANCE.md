@@ -96,6 +96,23 @@ lines and a DXF). Run `python3 scripts/kml-to-stakeout.py --help` for details.
 
 ## Known issues and follow-ups
 
+- **Old internal names.** The screens say farm, field and scenario, but the code,
+  API paths and database still use the old names:
+
+  | On screen | In code, API and database |
+  |---|---|
+  | Farm | `Parcel` (`/parcels/...`) |
+  | Field | `Layer` (`/layers/...`) |
+  | Scenario (a design on a field) | `Project` (`/projects/...`) |
+  | System (template of rows and species) | `System`, `SystemDesign` |
+
+  Renaming them touches routes, saved links, database collections and the
+  desktop app. Leave it until the e2e tour covers the main flows, then do it in
+  one planned change with a database migration and redirects from the old URLs.
+- **Systems page for normal users:** the systems list (`GET /systems`) is
+  admin-only on the backend, so the page is empty for other users. Make the page
+  admin-only or open the list.
+
 - **Tree spacing scale:** the turf-based layout places trees along rows with
   spherical distances in longitude/latitude. In Denmark this makes real spacing
   0.1–0.3 % longer than designed (a 300 m row ends up to about 1 m longer).
