@@ -1,0 +1,28 @@
+# Model runners for local development. Separate from the app's
+# docker-compose.yml on purpose, so the two can change independently.
+#
+#   docker compose -f models/docker-compose.yml up --build
+#   curl -s -H "Authorization: Bearer local-dev-token" localhost:8090/processes/shamba | head
+#
+# The model never calls out (climate and soil travel in the request). Docker
+# can't publish a port from a fully internal network, so outbound blocking is
+# left to the hosting platform; locally the port is bound to 127.0.0.1 only.
+
+services:
+  shamba:
+    build:
+      context: ./shamba
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      SHAMBA_API_TOKEN: ${SHAMBA_API_TOKEN:-local-dev-token}
+      SHAMBA_MAX_CONCURRENT: "2"
+      SHAMBA_TIMEOUT_S: "120"
+      SHAMBA_MEMORY_MB: "1024"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    cpus: 2
