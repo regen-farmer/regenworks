@@ -26,3 +26,8 @@ minimumReleaseAge: 1440
 # "Bc is not defined" via _dispatchWorkerUpdate). Bump this when @maptiler/sdk does.
 overrides:
   maplibre-gl: 5.21.1
+  # deck.gl 9.3 uses luma.gl 9.3. @deck.gl/extensions accepts any @luma.gl/webgl 9.x,
+  # so a fresh resolve picks 9.4.x, which needs @luma.gl/core 9.4 and breaks the
+  # build ("isHTMLInCanvasSupported" is not exported). Keep webgl on 9.3 until
+  # deck.gl moves to luma.gl 9.4, then remove this line.
+  "@luma.gl/webgl": ~9.3.3
