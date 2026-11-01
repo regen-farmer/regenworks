@@ -1,0 +1,39 @@
+{
+  "name": "implement-coconut-cacao-agroforestry-system",
+  "trees": 979,
+  "rows": 63,
+  "species": {
+    "Betel nut": 65,
+    "Cacao": 858,
+    "Coconut palm": 56
+  },
+  "positionsSha256": "fe94111feefa0a27ae02379fc3c0d39a38bebd828e05a2ae6cd677ffd622fcda",
+  "firstTrees": [
+    [
+      -45.6789893,
+      -22.044963
+    ],
+    [
+      -45.6789699,
+      -22.0449805
+    ],
+    [
+      -45.6789699,
+      -22.0449536
+    ]
+  ],
+  "lastTrees": [
+    [
+      -45.6778056,
+      -22.0448893
+    ],
+    [
+      -45.6778056,
+      -22.0448624
+    ],
+    [
+      -45.6777862,
+      -22.0451562
+    ]
+  ]
+}

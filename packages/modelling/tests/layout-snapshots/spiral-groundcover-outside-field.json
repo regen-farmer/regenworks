@@ -1,0 +1,38 @@
+{
+  "name": "spiral-groundcover-outside-field",
+  "trees": 22571,
+  "rows": 184,
+  "species": {
+    "African Breadfruit": 11262,
+    "Banana": 11309
+  },
+  "positionsSha256": "6c35f1b596dab5b469418ae3abb935ad524ee5e52cd688e73929d4b358faf2e9",
+  "firstTrees": [
+    [
+      9.78046,
+      56.1046459
+    ],
+    [
+      9.78046,
+      56.1046548
+    ],
+    [
+      9.78046,
+      56.1046638
+    ]
+  ],
+  "lastTrees": [
+    [
+      9.7888466,
+      56.1089523
+    ],
+    [
+      9.7888466,
+      56.1089613
+    ],
+    [
+      9.7888466,
+      56.1089703
+    ]
+  ]
+}

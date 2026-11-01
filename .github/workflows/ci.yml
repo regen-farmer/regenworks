@@ -140,6 +140,9 @@ jobs:
       - name: Unit tests (backend access rules)
         run: pnpm --filter backend test
 
+      - name: Layout regression tests (tree positions in 88 real designs)
+        run: pnpm --filter @rw/modelling test
+
       - name: Build backend
         run: pnpm --filter backend build
 

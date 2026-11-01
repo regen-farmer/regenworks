@@ -1,0 +1,37 @@
+{
+  "name": "implement-alleycropping-with-coppiced-willow-and-w-1",
+  "trees": 1837,
+  "rows": 14,
+  "species": {
+    "White willow": 1837
+  },
+  "positionsSha256": "0d9adfc737d08d2a4bfb5edb63a0e4b25cee34503d56a81cd6c324933611ca5a",
+  "firstTrees": [
+    [
+      11.5657982,
+      54.8077916
+    ],
+    [
+      11.5657982,
+      54.8077961
+    ],
+    [
+      11.5657982,
+      54.8078006
+    ]
+  ],
+  "lastTrees": [
+    [
+      11.5714814,
+      54.8081412
+    ],
+    [
+      11.5714814,
+      54.8081457
+    ],
+    [
+      11.5714814,
+      54.8081501
+    ]
+  ]
+}

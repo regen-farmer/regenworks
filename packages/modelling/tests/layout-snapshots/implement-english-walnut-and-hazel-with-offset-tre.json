@@ -1,0 +1,40 @@
+{
+  "name": "implement-english-walnut-and-hazel-with-offset-tre",
+  "trees": 908,
+  "rows": 71,
+  "species": {
+    "Black alder": 183,
+    "Common Hazel": 361,
+    "Persian walnut": 179,
+    "Sweet cherry": 185
+  },
+  "positionsSha256": "4e35876806bec2ad3d969b5be529e0e06cc1b6bb3e0e5a941a78aead0a195c80",
+  "firstTrees": [
+    [
+      -0.0069206,
+      52.714366
+    ],
+    [
+      -0.0065197,
+      52.7142353
+    ],
+    [
+      -0.0065197,
+      52.7143073
+    ]
+  ],
+  "lastTrees": [
+    [
+      0.0018982,
+      52.7170857
+    ],
+    [
+      0.002299,
+      52.7171132
+    ],
+    [
+      0.0022991,
+      52.7171851
+    ]
+  ]
+}

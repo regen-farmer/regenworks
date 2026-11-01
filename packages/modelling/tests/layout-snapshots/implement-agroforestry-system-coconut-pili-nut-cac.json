@@ -1,0 +1,39 @@
+{
+  "name": "implement-agroforestry-system-coconut-pili-nut-cac",
+  "trees": 2784,
+  "rows": 131,
+  "species": {
+    "Cacao": 2002,
+    "Coconut palm": 447,
+    "Pili nut": 335
+  },
+  "positionsSha256": "549e1d2a138048a419bd7ca80dbee9eb6da520a5d7233aa5ff5198fbd31413ae",
+  "firstTrees": [
+    [
+      119.2547416,
+      10.336594
+    ],
+    [
+      119.2547507,
+      10.33659
+    ],
+    [
+      119.2547507,
+      10.336617
+    ]
+  ],
+  "lastTrees": [
+    [
+      119.2558111,
+      10.3368418
+    ],
+    [
+      119.2558111,
+      10.3368688
+    ],
+    [
+      119.2558203,
+      10.3368587
+    ]
+  ]
+}

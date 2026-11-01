@@ -1,0 +1,41 @@
+{
+  "name": "implement-english-walnut-and-hazel-alley-cropping--5",
+  "trees": 895,
+  "rows": 57,
+  "species": {
+    "Black alder": 85,
+    "Common Hazel": 510,
+    "Persian walnut": 126,
+    "Sweet cherry": 84,
+    "White Birch": 90
+  },
+  "positionsSha256": "c56d78a27015caf2eac7f248e7763346265d2038554764e02d118dad6a7d6bd6",
+  "firstTrees": [
+    [
+      -0.0062758,
+      52.7145058
+    ],
+    [
+      -0.0058856,
+      52.7144053
+    ],
+    [
+      -0.0058835,
+      52.7144232
+    ]
+  ],
+  "lastTrees": [
+    [
+      0.0012076,
+      52.7166754
+    ],
+    [
+      0.0012117,
+      52.7167113
+    ],
+    [
+      0.0012159,
+      52.7167472
+    ]
+  ]
+}

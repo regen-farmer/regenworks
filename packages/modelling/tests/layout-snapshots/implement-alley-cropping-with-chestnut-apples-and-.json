@@ -1,0 +1,39 @@
+{
+  "name": "implement-alley-cropping-with-chestnut-apples-and-",
+  "trees": 4503,
+  "rows": 67,
+  "species": {
+    "Apple": 1104,
+    "Chinese Chestnut": 115,
+    "European elderberry": 3284
+  },
+  "positionsSha256": "87d9eccc9cb39c7508b321a8d085250fe7fab40fba158547f7c87d9b1983354e",
+  "firstTrees": [
+    [
+      -70.9266232,
+      42.9428013
+    ],
+    [
+      -70.9265825,
+      42.9427537
+    ],
+    [
+      -70.9265735,
+      42.9427799
+    ]
+  ],
+  "lastTrees": [
+    [
+      -70.9240408,
+      42.9429672
+    ],
+    [
+      -70.9240319,
+      42.9429933
+    ],
+    [
+      -70.9240229,
+      42.9430195
+    ]
+  ]
+}

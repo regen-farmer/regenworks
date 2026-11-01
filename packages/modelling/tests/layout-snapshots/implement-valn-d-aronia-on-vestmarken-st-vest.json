@@ -1,0 +1,38 @@
+{
+  "name": "implement-valn-d-aronia-on-vestmarken-st-vest",
+  "trees": 4468,
+  "rows": 56,
+  "species": {
+    "Black chokeberries": 4346,
+    "Persian walnut": 122
+  },
+  "positionsSha256": "f0b753423eadf147eeed3528be89f5ebe7db55e49e6f72f3f84d41249395ba91",
+  "firstTrees": [
+    [
+      11.9941173,
+      55.6049384
+    ],
+    [
+      11.9941215,
+      55.6049833
+    ],
+    [
+      11.9941256,
+      55.6050282
+    ]
+  ],
+  "lastTrees": [
+    [
+      11.9984416,
+      55.6051528
+    ],
+    [
+      11.9985197,
+      55.605136
+    ],
+    [
+      11.9985205,
+      55.605145
+    ]
+  ]
+}
