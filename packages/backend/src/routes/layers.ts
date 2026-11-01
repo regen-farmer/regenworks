@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import unique from "array-unique";
 import { Types } from "mongoose";
@@ -55,6 +56,7 @@ function parseKmlCoordinate(coordinateText: string) {
 // NESTED PARCEL LAYER NEW ROUTE
 router.get(
   "/parcels/:id/new-layer",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -107,6 +109,7 @@ router.get(
 // NESTED PARCEL LAYER NEW WITH UPLOAD ROUTE
 router.get(
   "/parcels/:id/layers/newkml",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -223,6 +226,7 @@ router.get(
 
 router.put(
   "/layers/:id",
+  owns("layer"),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -436,6 +440,7 @@ router.post(
 // LAYER SHOW ROUTES
 router.get(
   "/layers/:id",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -536,6 +541,7 @@ router.get(
 // LAYER EDIT ROUTE
 router.get(
   "/layers/:id/edit",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -555,6 +561,7 @@ router.get(
 // LAYER UPDATE ROUTE
 router.put(
   "/layers/:id",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -575,6 +582,7 @@ router.put(
 // LAYER DELETE ROUTE
 router.delete(
   "/layers/:id",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -630,6 +638,7 @@ router.delete(
 // LAYER CURRENT SYSTEM UPDATE
 router.post(
   "/layers/:id/presentsystem",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -675,6 +684,7 @@ router.post(
 // LAYER ADD FUTURE SYSTEM DRAFT
 router.post(
   "/layers/:id/editfuture",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -709,6 +719,7 @@ router.post(
 // LAYER CURRENT SYSTEM LAYOUT
 router.get(
   "/layers/:id/layout",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1015,6 +1026,7 @@ router.get(
 // NEW SPLIT LAYER ROUTE
 router.get(
   "/layers/:id/split",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1033,6 +1045,7 @@ router.get(
 // CREATE SPLIT LAYER ROUTE
 router.post(
   "/layers/:id/split",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1176,6 +1189,7 @@ router.get(
 // ROW CREATE ROUTE
 router.post(
   "/layers/:id/row",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1259,6 +1273,7 @@ router.get(
 // UPDATE ROW
 router.put(
   "/layers/:id/row/:pid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1294,6 +1309,7 @@ router.put(
 // DELETE ROW
 router.delete(
   "/layers/:id/row/:pid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

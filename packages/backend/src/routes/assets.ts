@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import Asset from "@rw/db/schemas/asset.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
@@ -74,6 +75,7 @@ router.post(
 // ASSET SHOW ROUTES
 router.get(
   "/assets/:id",
+  owns("asset"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -92,6 +94,7 @@ router.get(
 // ASSET EDIT ROUTE
 router.get(
   "/assets/:id/edit",
+  owns("asset"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -123,6 +126,7 @@ router.get(
 // ASSET UPDATE ROUTE
 router.put(
   "/assets/:id",
+  owns("asset"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -147,6 +151,7 @@ router.put(
 // ASSET DELETE ROUTE
 router.delete(
   "/assets/:id",
+  owns("asset"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -194,6 +199,7 @@ router.delete(
 // AREA ASSET NEW ROUTE
 router.get(
   "/layers/:id/assets/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

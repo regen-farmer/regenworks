@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -12,6 +13,7 @@ const router = express.Router();
 // PARCEL LAYER SAP TEST NEW
 router.get(
   "/parcels/:id/layers/:pid/saptests/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -38,6 +40,7 @@ router.get(
 // PARCEL LAYER SOIL TEST CREATE
 router.post(
   "/parcels/:id/layers/:pid/saptests",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

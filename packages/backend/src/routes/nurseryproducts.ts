@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import NurseryProduct from "@rw/db/schemas/nurseryproduct.ts";
 import Nursery from "@rw/db/schemas/nursery.ts";
@@ -199,6 +200,7 @@ router.get(
 // NURSERY PRODUCT UPDATE
 router.put(
   "/nurseries/:id/nurseryproducts/:pid",
+  owns("nursery"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

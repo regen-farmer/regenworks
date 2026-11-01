@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 // import NodeGeocoder from 'node-geocoder';
 import unique from "array-unique";
@@ -98,6 +99,7 @@ router.post(
 // ACTIVITY SHOW ROUTES
 router.get(
   "/activities/:id",
+  owns("activity"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -166,6 +168,7 @@ router.get(
 // ACTIVITY UPDATE ROUTE
 router.put(
   "/activities/:id",
+  owns("activity"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -188,6 +191,7 @@ router.put(
 // ACTIVITY DELETE ROUTE
 router.delete(
   "/activities/:id",
+  owns("activity"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -209,6 +213,7 @@ router.delete(
 // PARCEL ACTIVITIES
 router.get(
   "/parcels/:id/activities",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -231,6 +236,7 @@ router.get(
 // PLACE ACTIVITY NEW ROUTE
 router.get(
   "/parcels/:id/activities/new",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -288,6 +294,7 @@ router.get(
 // PROJECT ACTIVITY NEW ROUTE
 router.get(
   "/projects/:id/activities/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -338,6 +345,7 @@ router.post(
 // GENERATE ACTIVITIES
 router.get(
   "/projects/:id/generateactivities",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -390,6 +398,7 @@ router.get(
 // PROJECT EDIT ACTIVITY ROUTE
 router.get(
   "/projects/:id/activities/:pid/edit",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -413,6 +422,7 @@ router.get(
 // PROJECT UPDATE ACTIVITY ROUTE
 router.put(
   "/projects/:id/activities/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -433,6 +443,7 @@ router.put(
 // DELETE ACTIVITY IN PROJECT
 router.delete(
   "/projects/:id/activities/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -474,6 +485,7 @@ router.delete(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/activities/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -512,6 +524,7 @@ router.get(
 
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/activities",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -550,6 +563,7 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/activities/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -592,6 +606,7 @@ router.get(
 
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/activities",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

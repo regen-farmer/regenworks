@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Area from "@rw/db/schemas/area.ts";
 import middleware from "../middleware/index.ts";
@@ -10,6 +11,7 @@ const router = express.Router();
 // NEW AREA ON PROJECT
 router.get(
   "/projects/:id/areas/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -28,6 +30,7 @@ router.get(
 // CREATE AREA ON PROJECT
 router.post(
   "/projects/:id/areas",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -65,6 +68,7 @@ router.post(
 // DELETE AREA ON PROJECT
 router.delete(
   "/projects/:id/areas/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -101,6 +105,7 @@ router.delete(
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   "/projects/:id/deleteareas",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import { centroid, helpers as turf } from "@turf/turf";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -13,6 +14,7 @@ const router = express.Router();
 // PARCEL LAYER SOIL TEST NEW
 router.get(
   "/parcels/:id/layers/:pid/soiltests/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -41,6 +43,7 @@ router.get(
 // PARCEL LAYER SOIL TEST CREATE
 router.post(
   "/parcels/:id/layers/:pid/soiltests",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -74,6 +77,7 @@ router.post(
 // PARCEL
 router.get(
   "/parcels/:id/soiltests/viz",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

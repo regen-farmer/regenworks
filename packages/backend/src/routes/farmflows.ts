@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import unique from "array-unique";
 import { Types } from "mongoose";
@@ -19,6 +20,7 @@ const router = express.Router();
 // PARCEL FARMFLOWS
 router.get(
   "/parcels/:id/farmflows",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -48,6 +50,7 @@ router.get(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/farmflows/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -85,6 +88,7 @@ router.get(
 // CREATE FARMFLOW ON ROW
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/farmflows",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -121,6 +125,7 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/farmflows/new",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -160,6 +165,7 @@ router.get(
 // CREATE FARMFLOW ON AREA
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/farmflows",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -195,6 +201,7 @@ router.post(
 // VIZ YIELDS
 router.get(
   "/parcels/:id/layers/:pid/farmflows/viz",
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import Activity from "@rw/db/schemas/activity.ts";
+import { owns } from "../middleware/ownership.ts";
 import Area from "@rw/db/schemas/area.ts";
 import Asset from "@rw/db/schemas/asset.ts";
 import Budget from "@rw/db/schemas/budget.ts";
@@ -18,6 +19,7 @@ import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_lay
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";
+import { hasRole } from "@rw/db/access.ts";
 import escapeHtml from "escape-html";
 import _ from "lodash";
 import mongoose from "mongoose";
@@ -209,6 +211,7 @@ router.post(
 // PROJECT EDIT ROUTE
 router.get(
   "/projects/:id/edit",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -227,6 +230,7 @@ router.get(
 
 router.post(
   "/projects/:id/preview",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -336,7 +340,11 @@ router.get(
         })
         .exec();
 
-      if (foundProject?.isPublic || (req.user && foundProject?.owner?.id.equals(req.user._id))) {
+      if (
+        foundProject?.isPublic ||
+        (req.user && foundProject?.owner?.id?.equals(req.user._id)) ||
+        (foundProject && hasRole(req.user, "grove-admin"))
+      ) {
         console.time("systemBasedLayout");
         const layout = await runSystemBasedLayout(
           foundProject.systemdesign,
@@ -359,10 +367,11 @@ router.get(
           plantNames: plantNamesOf(foundProject.systemdesign),
         });
       } else {
-        res.send({ error: "no project found" });
+        res.status(foundProject ? 403 : 404).send({ error: "no project found" });
       }
     } catch (err) {
       console.log(err);
+      if (!res.headersSent) res.status(500).send({ error: "Could not lay out this design" });
     }
   },
 );
@@ -370,6 +379,7 @@ router.get(
 // PROJECT UPDATE ROUTE
 router.put(
   "/projects/:id",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -390,6 +400,7 @@ router.put(
 // PROJECT UPDATE ROUTE
 router.put(
   "/projects/:id/layout",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -411,6 +422,7 @@ router.put(
 // PROJECT 3D VIZ
 router.get(
   "/projects/:id/3dviz",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -423,6 +435,7 @@ router.get(
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
   "/projects/:id/implement",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -442,6 +455,7 @@ router.put(
 // PROJECT STATUS CHANGE ROUTE - RETIRED
 router.put(
   "/projects/:id/retire",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -461,6 +475,7 @@ router.put(
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
   "/projects/:id/complete",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -544,6 +559,7 @@ router.get(
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
   "/projects/:id/addedgesystem",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -580,6 +596,7 @@ router.post(
 // PROJECT ASSET CREATION
 router.put(
   "/projects/:id/generateassets",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -782,6 +799,7 @@ router.put(
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   "/projects/:id/deleterows",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -822,6 +840,7 @@ router.get(
 // PROJECT ASSET SHOW PAGE
 router.get(
   "/projects/:id/assets",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -888,6 +907,7 @@ router.get(
 // SERVICES DELETE ROUTE
 router.delete(
   "/projects/:id",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -955,6 +975,7 @@ router.delete(
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
   "/layers/:id/systems/:system/projects/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -982,6 +1003,7 @@ router.get(
 
 router.get(
   "/layers/:id/new-project",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1005,6 +1027,7 @@ router.get(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   "/layers/:id/projects/duplicate",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1070,6 +1093,7 @@ router.post(
 // GET projects for a layer
 router.get(
   "/layers/:id/projects",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1223,6 +1247,7 @@ router.post(
 // PROJECT ASSETS DELETE ROUTE
 router.delete(
   "/projects/:id/allassets",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1287,6 +1312,7 @@ router.get(
 // ROW CREATE ROUTE
 router.post(
   "/projects/:id/row",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1375,6 +1401,7 @@ router.get(
 // UPDATE ROW
 router.put(
   "/projects/:id/row/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1416,6 +1443,7 @@ router.put(
 // DELETE ROW
 router.delete(
   "/projects/:id/row/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1491,6 +1519,7 @@ router.get(
 // UPDATE AREA
 router.put(
   "/projects/:id/areas/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1536,6 +1565,7 @@ router.put(
 // PROJECT FINANCIALS ROUTE
 router.get(
   "/projects/:id/financials",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1634,6 +1664,7 @@ router.get(
 
 router.patch(
   "/projects/:id/financials",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1651,6 +1682,7 @@ router.patch(
 
 router.patch(
   "/projects/:id/financials/activities",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1731,6 +1763,7 @@ router.get(
 // UPDATE PROJECT ALIGNMENT
 router.put(
   "/projects/:id/alignmentrow",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1756,6 +1789,7 @@ router.put(
 // BUDGET PDF
 router.get(
   "/projects/:id/budgetpdf",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1785,6 +1819,7 @@ router.get(
 
 router.put(
   "/projects/:projectid/set-public",
+  owns("project", "projectid"),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -1806,6 +1841,7 @@ router.put(
 // PROJECT SHOW ROUTE
 router.get(
   "/layers/:layerid/projects/:id",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

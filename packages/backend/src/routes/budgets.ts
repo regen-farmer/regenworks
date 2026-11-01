@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import unique from "array-unique";
 import { area } from "@turf/turf";
 import Budget from "@rw/db/schemas/budget.ts";
@@ -25,6 +26,7 @@ const router = express.Router();
 // BUDGET SHOW ROUTE
 router.get(
   "/budgets/:id",
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -98,6 +100,7 @@ router.get(
 // BUDGET EDIT ROUTE
 router.get(
   "/budgets/:id/edit",
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -115,6 +118,7 @@ router.get(
 // BUDGET UPDATE ROUTE
 router.post(
   "/budgets/:id",
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -140,6 +144,7 @@ router.post(
 // PARCEL BUDGET SHOW ROUTE
 router.get(
   "/parcels/:id/accounts",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -164,6 +169,7 @@ router.get(
 // PROJECT BUDGET NEW ROUTE
 router.get(
   "/projects/:id/budgets/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -228,6 +234,7 @@ router.get(
 // GENERATE NEW PROJECT ESTABLISHMENT BUDGET
 router.get(
   "/projects/:id/generateestablishment",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -300,6 +307,7 @@ router.get(
 // GENERATE ESTABLISHMENT BUDGET CREATE ROUTE
 router.post(
   "/projects/:id/generateestablishment",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -326,7 +334,7 @@ router.post(
         // CREATE BUDGET AND PLACE IN PROJECT
         // const budget = req.body.budget;
         try {
-          const createdBudget = await Budget.create({});
+          const createdBudget = await Budget.create({ owner: { id: req.user?._id } });
           foundProject.budgets.establishment = createdBudget;
           await foundProject.save();
           // PARSE QUERY
@@ -521,6 +529,7 @@ router.post(
 // GENERATE NEW PROJECT CASH-FLOW BUDGET
 router.get(
   "/projects/:id/generatemanagement",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -604,6 +613,7 @@ router.get(
 // GENERATE CASH-FLOW BUDGET CREATE ROUTE
 router.post(
   "/projects/:id/generatemanagement",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

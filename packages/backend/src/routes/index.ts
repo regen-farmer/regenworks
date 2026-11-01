@@ -1,4 +1,5 @@
 import express from "express";
+import { owns, isSelf } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -268,6 +269,7 @@ router.put(
 
 router.put(
   "/users/:id/countrycode",
+  isSelf(),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -295,6 +297,7 @@ router.put(
 // PARCEL STATUS PAGE
 router.get(
   "/parcels/:id/status",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

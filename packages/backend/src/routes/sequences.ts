@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import Sequence from "@rw/db/schemas/sequence.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Project from "@rw/db/schemas/project.ts";
@@ -13,6 +14,7 @@ const router = express.Router();
 // SEQUENCE NEW
 router.get(
   "/layers/:id/sequences/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -81,6 +83,7 @@ router.post(
 // SEQUENCE SHOW
 router.get(
   "/layers/:id/sequences/:pid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -109,6 +112,7 @@ router.get(
 // SEQUENCE EDIT
 router.get(
   "/layers/:id/sequences/:pid/edit",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -203,6 +207,7 @@ router.get(
 // SEQUENCE UPDATE
 router.put(
   "/layers/:layerid/sequences/:sequenceid",
+  owns("layer", "layerid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -234,6 +239,7 @@ router.put(
 // SEQUENCE NEW
 router.get(
   "/projects/:id/sequences/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -304,6 +310,7 @@ router.post(
 // PROJECT SEQUENCE EDIT ROUTE
 router.get(
   "/projects/:id/sequences/:pid/edit",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -397,6 +404,7 @@ router.get(
 // PROJECT SEQUENCE UPDATE
 router.put(
   "/projects/:id/sequences/:pid",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -424,6 +432,7 @@ router.put(
 
 router.patch(
   "/sequence/:id/financials/activities",
+  owns("sequence"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

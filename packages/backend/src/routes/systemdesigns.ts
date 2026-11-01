@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import mongoose from "mongoose";
 
 import Project from "@rw/db/schemas/project.ts";
@@ -21,6 +22,7 @@ function storedPlantIds(systemdesign: any) {
 // NESTED AREA SYSTEM NEW ROUTE
 router.get(
   "/projects/:projectid/systemdesign",
+  owns("project", "projectid", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

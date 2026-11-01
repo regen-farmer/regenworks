@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import unique from "array-unique";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -32,6 +33,7 @@ router.get(
 
 router.put(
   "/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick",
+  owns("project", "projectId"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -92,6 +94,7 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1312,6 +1315,7 @@ router.get(
 // SYSTEM OCCURRANCE CREATE ROUTE
 router.put(
   "/systems/:id/occurrences",
+  owns("system"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
