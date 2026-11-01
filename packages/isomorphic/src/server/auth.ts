@@ -22,11 +22,22 @@ export const authConfig: StartAuthJSConfig = {
   ],
   callbacks: {
     // Persist email_verified and sub through the JWT so session.user has them.
-    jwt: async ({ token, user, profile }) => {
+    jwt: async ({ token, user, profile, account }) => {
       const source = profile ?? user;
       if (source) {
         token.email_verified = (source as any).email_verified ?? token.email_verified;
         token.sub = (source as any).sub ?? token.sub;
+      }
+      // Remember when the Auth0 access token (the auth0Token cookie the backend
+      // checks) expires. Once it has, end the session so the user logs in again
+      // and gets a fresh token, instead of a logged-in screen whose backend
+      // calls all fail. Returning null makes Auth.js clear the session.
+      if (account?.expires_at) {
+        token.accessTokenExpires = account.expires_at * 1000;
+      }
+      const expires = token.accessTokenExpires as number | undefined;
+      if (typeof expires === "number" && Date.now() > expires - 60_000) {
+        return null;
       }
       return token;
     },
