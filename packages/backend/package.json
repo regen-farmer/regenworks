@@ -30,7 +30,7 @@
     "xml2js": "^0.6.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test test/*.test.ts",
     "dev": "vite-node --watch src/app.ts",
     "dev:debug": "vite-node --watch --inspect src/app.ts",
     "dev:hmr": "nodemon --exec vite-node src/app.ts",

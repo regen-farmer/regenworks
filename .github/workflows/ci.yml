@@ -137,6 +137,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Unit tests (backend access rules)
+        run: pnpm --filter backend test
+
       - name: Build backend
         run: pnpm --filter backend build
 
