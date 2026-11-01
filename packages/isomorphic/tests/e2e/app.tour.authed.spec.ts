@@ -17,6 +17,10 @@ const IGNORED = [
   /favicon/i,
 ];
 
+// "Not allowed" responses: the page asked for data this user can't see (e.g. admin-only
+// lists). Recorded as notes on the test, not failures.
+const PERMISSION = /status of (401|403)/i;
+
 // Anything that looks like a WebGL or shader failure is always an error.
 const GPU_ERROR = /DECKGL_|shader|GLSL|no matching overloaded function|WebGL: INVALID|luma\.gl.*error/i;
 
@@ -34,8 +38,18 @@ function collectErrors(page: Page): Collected {
 
 function realErrors(c: Collected): string[] {
   return [...c.pageErrors, ...c.consoleErrors].filter(
-    (e) => GPU_ERROR.test(e) || !IGNORED.some((re) => re.test(e)),
+    (e) => GPU_ERROR.test(e) || !(IGNORED.some((re) => re.test(e)) || PERMISSION.test(e)),
   );
+}
+
+function notePermissionErrors(c: Collected, testInfo: TestInfo, where: string) {
+  const n = c.consoleErrors.filter((e) => PERMISSION.test(e)).length;
+  if (n) {
+    testInfo.annotations.push({
+      type: "not allowed",
+      description: `${where}: ${n} request(s) answered 401/403 for a normal user`,
+    });
+  }
 }
 
 async function snap(page: Page, testInfo: TestInfo, name: string) {
@@ -67,6 +81,7 @@ for (const { path, name } of TOP_LEVEL) {
     await expect(page.getByRole("button", { name: LOGIN_GATE })).toBeHidden();
     await settle(page);
     await snap(page, testInfo, name);
+    notePermissionErrors(errors, testInfo, path);
     expect(realErrors(errors), `${path}:\n${realErrors(errors).join("\n")}`).toEqual([]);
   });
 }
@@ -112,5 +127,6 @@ test("tour: open a project and switch the map to 3D", async ({ page }, testInfo)
     await snap(page, testInfo, "project back to 2D");
   }
 
+  notePermissionErrors(errors, testInfo, "project / 3D");
   expect(realErrors(errors), `project / 3D:\n${realErrors(errors).join("\n")}`).toEqual([]);
 });
