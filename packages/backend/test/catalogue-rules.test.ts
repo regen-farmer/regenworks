@@ -4,6 +4,9 @@ import assert from "node:assert/strict";
 import {
   canCreate,
   canEdit,
+  canEditDesign,
+  forViewer,
+  stripUnusablePlants,
   checkDesignPlants,
   cleanCultivar,
   cleanHybridGroup,
@@ -131,7 +134,6 @@ test("referencedIds collects valid ids only", () => {
 });
 
 // ---- after review ----
-import { canEditDesign, forViewer, stripUnusablePlants } from "../src/catalogue/rules.ts";
 
 test("design save: owner and Grove admin only", () => {
   assert.equal(canEditDesign(pub, pub._id), true);

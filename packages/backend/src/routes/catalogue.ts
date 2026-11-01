@@ -9,6 +9,7 @@ import Species from "@rw/db/schemas/species.ts";
 import Variety from "@rw/db/schemas/variety.ts";
 import Rootstock from "@rw/db/schemas/rootstock.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
+import UserPreset from "@rw/db/schemas/userpreset.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import middleware from "../middleware/index.ts";
 import { requireRole } from "../middleware/access.ts";
@@ -68,9 +69,13 @@ async function blockedChange(
   const moveSpecies =
     field === "variety" && String(existing.species ?? "") !== String(next.species ?? "");
   if (!unshare && !moveSpecies) return null;
-  const used = await SystemDesign.countDocuments({ [`rows.sequence.${field}`]: existing._id });
+  const [designs, presets] = await Promise.all([
+    SystemDesign.countDocuments({ [`rows.sequence.${field}`]: existing._id }),
+    UserPreset.countDocuments({ [`systemDesign.rows.sequence.${field}`]: existing._id }),
+  ]);
+  const used = designs + presets;
   if (!used) return null;
-  return `Used in ${used} design${used === 1 ? "" : "s"}, so it can't be ${unshare ? "made private" : "moved to another species"}`;
+  return `Used in ${used} design${used === 1 ? "" : "s"} or preset${used === 1 ? "" : "s"}, so it can't be ${unshare ? "made private" : "moved to another species"}`;
 }
 
 async function speciesExists(id: string | undefined) {

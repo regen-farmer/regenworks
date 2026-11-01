@@ -117,11 +117,14 @@ router.post(
         owner: req.user?._id,
         name,
         description,
-        systemDesign: await presetDesign(
-          sanitizeMongoDocument(systemDesign),
-          req.user?._id.toString(),
-          !!isPublic,
-        ),
+        systemDesign:
+          systemDesign === undefined
+            ? undefined
+            : await presetDesign(
+                sanitizeMongoDocument(systemDesign),
+                req.user?._id.toString(),
+                !!isPublic,
+              ),
         thumbnail,
         isPublic: isPublic || false,
       });
