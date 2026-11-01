@@ -1,0 +1,37 @@
+{
+  "name": "implement-silvopasture-with-timber-on-silvopasture",
+  "trees": 4428,
+  "rows": 51,
+  "species": {
+    "Silver Fir": 4428
+  },
+  "positionsSha256": "c10dada069cd3c4bb7cf8f08339f9e2459021a42ed0de3bfd3e8bc3459d2f72c",
+  "firstTrees": [
+    [
+      -122.5242241,
+      48.8187186
+    ],
+    [
+      -122.5241832,
+      48.8187186
+    ],
+    [
+      -122.5241422,
+      48.8187186
+    ]
+  ],
+  "lastTrees": [
+    [
+      -122.5211811,
+      48.8170638
+    ],
+    [
+      -122.5211402,
+      48.8170638
+    ],
+    [
+      -122.5210992,
+      48.8170638
+    ]
+  ]
+}

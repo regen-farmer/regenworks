@@ -1,0 +1,38 @@
+{
+  "name": "agave-mezquite-sistema-agroflorestal",
+  "trees": 1653,
+  "rows": 32,
+  "species": {
+    "Giant agave": 1306,
+    "Smooth mesquite": 347
+  },
+  "positionsSha256": "83d6c86feff0fbf4ffc04d3085ba8615c38abc610be4369b3fdfb10849323e86",
+  "firstTrees": [
+    [
+      -100.7101751,
+      20.9171442
+    ],
+    [
+      -100.710146,
+      20.9171678
+    ],
+    [
+      -100.710117,
+      20.9171914
+    ]
+  ],
+  "lastTrees": [
+    [
+      -100.7085108,
+      20.9175125
+    ],
+    [
+      -100.7084962,
+      20.9175243
+    ],
+    [
+      -100.7084817,
+      20.9175361
+    ]
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "offset-tree-rows-on-0189-test",
+  "trees": 578,
+  "rows": 54,
+  "species": {
+    "Black alder": 115,
+    "Common Hazel": 234,
+    "Persian walnut": 113,
+    "Sweet cherry": 116
+  },
+  "positionsSha256": "c14cc8ea8aa3cd9cf27cb20f67d041725c9795f7aff9ee47b8dacbafee7ea906",
+  "firstTrees": [
+    [
+      -0.0060752,
+      52.7146033
+    ],
+    [
+      -0.0056734,
+      52.7146029
+    ],
+    [
+      -0.0056651,
+      52.7146747
+    ]
+  ],
+  "lastTrees": [
+    [
+      0.000971,
+      52.7164667
+    ],
+    [
+      0.0009793,
+      52.7165385
+    ],
+    [
+      0.0009876,
+      52.7166103
+    ]
+  ]
+}

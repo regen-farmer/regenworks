@@ -1,0 +1,40 @@
+{
+  "name": "this-project-has-assets-implement-english-walnut-a",
+  "trees": 580,
+  "rows": 36,
+  "species": {
+    "Black alder": 116,
+    "Common Hazel": 234,
+    "Persian walnut": 114,
+    "Sweet cherry": 116
+  },
+  "positionsSha256": "468d15fae9353ac025725bd2255f3e31f4fc60d0ea3406fb0c27715929340e5e",
+  "firstTrees": [
+    [
+      -0.0060601,
+      52.7146049
+    ],
+    [
+      -0.006058,
+      52.7146228
+    ],
+    [
+      -0.0056588,
+      52.7146001
+    ]
+  ],
+  "lastTrees": [
+    [
+      0.0009878,
+      52.7164833
+    ],
+    [
+      0.0009961,
+      52.7165551
+    ],
+    [
+      0.0010044,
+      52.7166269
+    ]
+  ]
+}

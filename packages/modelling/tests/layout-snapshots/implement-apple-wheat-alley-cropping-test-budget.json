@@ -1,0 +1,37 @@
+{
+  "name": "implement-apple-wheat-alley-cropping-test-budget",
+  "trees": 579,
+  "rows": 27,
+  "species": {
+    "Apple": 579
+  },
+  "positionsSha256": "1fc3a2b44f1168e0fe9061959dba3500d197f65f7afde8e2b91512ebea49ee21",
+  "firstTrees": [
+    [
+      11.5665974,
+      54.8112919
+    ],
+    [
+      11.5660301,
+      54.8110491
+    ],
+    [
+      11.5660769,
+      54.8110491
+    ]
+  ],
+  "lastTrees": [
+    [
+      11.5650524,
+      54.8081353
+    ],
+    [
+      11.5650992,
+      54.8081353
+    ],
+    [
+      11.565146,
+      54.8081353
+    ]
+  ]
+}

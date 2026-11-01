@@ -1,0 +1,38 @@
+{
+  "name": "implement-agave-and-mesquite-agroforestry-system",
+  "trees": 193,
+  "rows": 18,
+  "species": {
+    "Giant agave": 145,
+    "Smooth mesquite": 48
+  },
+  "positionsSha256": "9ca99d6cd2d0e8e6a33e1646b421c902bccd56518aff463a8d66eabd56c0eac9",
+  "firstTrees": [
+    [
+      -7.7893471,
+      40.145984
+    ],
+    [
+      -7.7893471,
+      40.146002
+    ],
+    [
+      -7.7893236,
+      40.1459766
+    ]
+  ],
+  "lastTrees": [
+    [
+      -7.7888177,
+      40.1459128
+    ],
+    [
+      -7.7888177,
+      40.1459308
+    ],
+    [
+      -7.7888177,
+      40.1459488
+    ]
+  ]
+}

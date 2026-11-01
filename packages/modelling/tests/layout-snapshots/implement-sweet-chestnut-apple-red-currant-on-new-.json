@@ -1,0 +1,39 @@
+{
+  "name": "implement-sweet-chestnut-apple-red-currant-on-new-",
+  "trees": 2945,
+  "rows": 52,
+  "species": {
+    "Apple": 723,
+    "Redcurrant": 2143,
+    "Sweet chestnut": 79
+  },
+  "positionsSha256": "22c5c43cfddc230a13b379c2ee7432fc8bde20c531e89e7f5df7b3724c945caa",
+  "firstTrees": [
+    [
+      14.7478525,
+      55.2111772
+    ],
+    [
+      14.7479881,
+      55.2112877
+    ],
+    [
+      14.7481237,
+      55.2113982
+    ]
+  ],
+  "lastTrees": [
+    [
+      14.7500951,
+      55.2106527
+    ],
+    [
+      14.7502308,
+      55.2107632
+    ],
+    [
+      14.7501624,
+      55.210637
+    ]
+  ]
+}

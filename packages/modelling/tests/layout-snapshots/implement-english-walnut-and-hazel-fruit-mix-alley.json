@@ -1,0 +1,44 @@
+{
+  "name": "implement-english-walnut-and-hazel-fruit-mix-alley",
+  "trees": 316,
+  "rows": 33,
+  "species": {
+    "Apple": 26,
+    "Black alder": 34,
+    "Common Hazel": 71,
+    "European pear": 18,
+    "European plum": 28,
+    "Persian walnut": 56,
+    "Sweet cherry": 36,
+    "White Birch": 47
+  },
+  "positionsSha256": "41c7e9a490fa4cc900ab4f752bbaa6b89284e5baebea22359fe3cf25ed55bf2b",
+  "firstTrees": [
+    [
+      -0.0055535,
+      52.7145773
+    ],
+    [
+      -0.0051908,
+      52.7139593
+    ],
+    [
+      -0.0051892,
+      52.7139773
+    ]
+  ],
+  "lastTrees": [
+    [
+      -0.0012586,
+      52.7161066
+    ],
+    [
+      -0.0012524,
+      52.7161784
+    ],
+    [
+      -0.0012477,
+      52.7162323
+    ]
+  ]
+}

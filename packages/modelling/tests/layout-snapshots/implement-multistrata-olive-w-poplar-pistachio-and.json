@@ -1,0 +1,41 @@
+{
+  "name": "implement-multistrata-olive-w-poplar-pistachio-and",
+  "trees": 2041,
+  "rows": 28,
+  "species": {
+    "Black mulberry": 578,
+    "Olive": 145,
+    "Persian walnut": 75,
+    "Pistachio": 1024,
+    "Poplar (black)": 219
+  },
+  "positionsSha256": "90409814003f0970e553d16001e86bc903cefbde52e297b87f548875181a630f",
+  "firstTrees": [
+    [
+      11.5676958,
+      54.8107792
+    ],
+    [
+      11.5676958,
+      54.8107882
+    ],
+    [
+      11.5676958,
+      54.8108017
+    ]
+  ],
+  "lastTrees": [
+    [
+      11.5698025,
+      54.8097514
+    ],
+    [
+      11.5698025,
+      54.8097649
+    ],
+    [
+      11.5698025,
+      54.8097739
+    ]
+  ]
+}

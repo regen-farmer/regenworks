@@ -1,0 +1,41 @@
+{
+  "name": "project-where-tree-rows-are-offset-50-cm-from-gras",
+  "trees": 792,
+  "rows": 53,
+  "species": {
+    "Black alder": 78,
+    "Common Hazel": 448,
+    "Persian walnut": 111,
+    "Sweet cherry": 74,
+    "White Birch": 81
+  },
+  "positionsSha256": "1bd1dcc1e683f716aee6b47820ca6a0f58cd276cd1ae3f70ab85ba96b9ee1c60",
+  "firstTrees": [
+    [
+      -0.0060224,
+      52.7146181
+    ],
+    [
+      -0.0056227,
+      52.7146003
+    ],
+    [
+      -0.0056206,
+      52.7146183
+    ]
+  ],
+  "lastTrees": [
+    [
+      0.0010319,
+      52.716552
+    ],
+    [
+      0.0010391,
+      52.7166148
+    ],
+    [
+      0.0010412,
+      52.7166328
+    ]
+  ]
+}
