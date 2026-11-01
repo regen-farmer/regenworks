@@ -35,7 +35,12 @@ export default defineConfig({
       name: "authed",
       testMatch: /.*\.authed\.spec\.ts/,
       dependencies: ["setup"],
-      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: STORAGE_STATE,
+        // Software WebGL so the map and 3D layers render on CI machines without a GPU.
+        launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] },
+      },
     },
   ],
 

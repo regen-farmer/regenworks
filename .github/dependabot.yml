@@ -19,6 +19,13 @@ updates:
           - "@tanstack/router-plugin"
           - "@tanstack/router-*"
           - "@tanstack/start-*"
+      # deck.gl packages share shader code with each other and with luma.gl.
+      # Mixed versions break the 3D map ("DECKGL_FILTER_COLOR: no matching
+      # overloaded function"), so they always update together.
+      deckgl:
+        patterns:
+          - "@deck.gl/*"
+          - "@luma.gl/*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
