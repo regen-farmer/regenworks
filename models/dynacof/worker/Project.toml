@@ -1,0 +1,6 @@
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DynACof = "d4e20bd3-38f5-51f3-b39d-16897e8b4820"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
