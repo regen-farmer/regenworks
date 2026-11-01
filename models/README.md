@@ -1,6 +1,6 @@
 # Model runners
 
-Process-based models (SHAMBA and DynACof now; CAF next) packaged so GroveWorks
+Process-based models (SHAMBA, DynACof and CAF2021) packaged so GroveWorks
 can run them. Each model gets one container that wraps the **unchanged**
 upstream code with a thin adapter and speaks the same small HTTP contract.
 
@@ -13,7 +13,7 @@ project, `Tech/Model Integration Proposal.md`) and DigitAF deliverable D2.9.
 |---|---|---|---|
 | SHAMBA v1.2 (carbon balance, RothC soil) | `shamba/` | [shamba-model/shamba](https://github.com/shamba-model/shamba) | Wrapper + golden test |
 | DynACof.jl 1.5.3 (coffee agroforestry growth, yield, water) | `dynacof/` | [VEZY/DynACof.jl](https://github.com/VEZY/DynACof.jl) | Wrapper + golden test |
-| CAF (coffee agroforestry) | – | version to confirm | Planned |
+| CAF2021 (coffee + up to 3 shade-tree species; soil C/N, N losses, water) | `caf2021/` | [MarcelVanOijen/CAF2021](https://github.com/MarcelVanOijen/CAF2021) | Wrapper + golden test (research use, APCCO) |
 
 ## The contract
 
@@ -54,7 +54,8 @@ The shape follows [OGC API – Processes, Part 1](https://ogcapi.ogc.org/process
    body size, model-specific maximums (years, cohorts).
 6. **A token is required when hosted** (`<MODEL>_API_TOKEN`), and the
    container runs as a non-root user with a read-only filesystem.
-7. **Isolate runs.** A fresh process per run where start-up is cheap (SHAMBA);
+7. **Isolate runs.** A fresh process per run where start-up is cheap (SHAMBA,
+   CAF2021: both keep module-level state between calls);
    a pool of long-lived workers that are killed and replaced on time-out where
    start-up is expensive (DynACof: ~20 s of Julia compilation).
 

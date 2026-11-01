@@ -1,0 +1,311 @@
+{
+  "$defs": {
+    "Caf2021Inputs": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "$ref": "#/$defs/Site"
+        },
+        "weather": {
+          "description": "Consecutive days, oldest first",
+          "items": {
+            "$ref": "#/$defs/WeatherDay"
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "title": "Weather",
+          "type": "array"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Overrides of CAF2021's parameters_default.txt (column 1) by name, e.g. 'TREEDENS0(1)': 0.07 (trees per m2 of species 1). Unknown names are rejected. LAT comes from site.lat.",
+          "maxProperties": 200,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "management": {
+          "$ref": "#/$defs/Management"
+        },
+        "daily_variables": {
+          "description": "CAF2021 output columns to return day by day, e.g. 'Csoil_f', 'LAI(1)'",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Daily Variables",
+          "type": "array"
+        }
+      },
+      "required": [
+        "site",
+        "weather"
+      ],
+      "title": "Caf2021Inputs",
+      "type": "object"
+    },
+    "CoffeePruning": {
+      "additionalProperties": false,
+      "properties": {
+        "year": {
+          "maximum": 2300,
+          "minimum": 1800,
+          "title": "Year",
+          "type": "integer"
+        },
+        "doy": {
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Doy",
+          "type": "integer"
+        },
+        "fraction": {
+          "description": "Fraction of coffee biomass pruned",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Fraction",
+          "type": "number"
+        }
+      },
+      "required": [
+        "year",
+        "doy",
+        "fraction"
+      ],
+      "title": "CoffeePruning",
+      "type": "object"
+    },
+    "Fertilisation": {
+      "additionalProperties": false,
+      "properties": {
+        "year": {
+          "maximum": 2300,
+          "minimum": 1800,
+          "title": "Year",
+          "type": "integer"
+        },
+        "doy": {
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Doy",
+          "type": "integer"
+        },
+        "n_kg_ha": {
+          "description": "Nitrogen applied (kg N/ha)",
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "N Kg Ha",
+          "type": "number"
+        }
+      },
+      "required": [
+        "year",
+        "doy",
+        "n_kg_ha"
+      ],
+      "title": "Fertilisation",
+      "type": "object"
+    },
+    "Management": {
+      "additionalProperties": false,
+      "properties": {
+        "fertilisation": {
+          "items": {
+            "$ref": "#/$defs/Fertilisation"
+          },
+          "maxItems": 100,
+          "title": "Fertilisation",
+          "type": "array"
+        },
+        "coffee_pruning": {
+          "items": {
+            "$ref": "#/$defs/CoffeePruning"
+          },
+          "maxItems": 100,
+          "title": "Coffee Pruning",
+          "type": "array"
+        },
+        "tree_pruning": {
+          "items": {
+            "$ref": "#/$defs/TreeEvent"
+          },
+          "maxItems": 300,
+          "title": "Tree Pruning",
+          "type": "array"
+        },
+        "tree_thinning": {
+          "items": {
+            "$ref": "#/$defs/TreeEvent"
+          },
+          "maxItems": 300,
+          "title": "Tree Thinning",
+          "type": "array"
+        }
+      },
+      "title": "Management",
+      "type": "object"
+    },
+    "Site": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "description": "Sets CAF parameter LAT (day length)",
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "description": "Recorded only; CAF does not use longitude",
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Lon",
+          "type": "number"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "title": "Site",
+      "type": "object"
+    },
+    "TreeEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "year": {
+          "maximum": 2300,
+          "minimum": 1800,
+          "title": "Year",
+          "type": "integer"
+        },
+        "doy": {
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Doy",
+          "type": "integer"
+        },
+        "species": {
+          "description": "Shade-tree species slot 1-3 (see parameters ...(1), ...(2), ...(3))",
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "title": "Species",
+          "type": "integer"
+        },
+        "fraction": {
+          "description": "Pruning: fraction of branches/leaves removed; thinning: fraction of trees removed",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Fraction",
+          "type": "number"
+        }
+      },
+      "required": [
+        "year",
+        "doy",
+        "species",
+        "fraction"
+      ],
+      "title": "TreeEvent",
+      "type": "object"
+    },
+    "WeatherDay": {
+      "additionalProperties": false,
+      "description": "One day, identified CAF-style by year and day of year. Leap days are\noptional: the model steps through the rows, so both real calendars and\n365-day series (as in CAF2021's own example files) are accepted.",
+      "properties": {
+        "year": {
+          "maximum": 2300,
+          "minimum": 1800,
+          "title": "Year",
+          "type": "integer"
+        },
+        "doy": {
+          "maximum": 366,
+          "minimum": 1,
+          "title": "Doy",
+          "type": "integer"
+        },
+        "rad_mj_m2": {
+          "description": "Global radiation (MJ m-2 d-1), CAF 'GR'",
+          "maximum": 50,
+          "minimum": 0,
+          "title": "Rad Mj M2",
+          "type": "number"
+        },
+        "tmin_c": {
+          "maximum": 50,
+          "minimum": -60,
+          "title": "Tmin C",
+          "type": "number"
+        },
+        "tmax_c": {
+          "maximum": 60,
+          "minimum": -50,
+          "title": "Tmax C",
+          "type": "number"
+        },
+        "vp_kpa": {
+          "description": "Vapour pressure (kPa), CAF 'VP'",
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Vp Kpa",
+          "type": "number"
+        },
+        "wind_m_s": {
+          "description": "Wind speed (m s-1), CAF 'WN'",
+          "maximum": 60,
+          "minimum": 0,
+          "title": "Wind M S",
+          "type": "number"
+        },
+        "rain_mm": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Rain Mm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "year",
+        "doy",
+        "rad_mj_m2",
+        "tmin_c",
+        "tmax_c",
+        "vp_kpa",
+        "wind_m_s",
+        "rain_mm"
+      ],
+      "title": "WeatherDay",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "$ref": "#/$defs/Caf2021Inputs"
+    }
+  },
+  "required": [
+    "inputs"
+  ],
+  "title": "ExecuteRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
