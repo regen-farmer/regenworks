@@ -1,3 +1,4 @@
+import { attachPlantDetails } from "../planting/plant_details.ts";
 import { runTurfJsLayout } from "./turf-js.ts";
 import type {
   LayoutBackendName,
@@ -70,10 +71,14 @@ async function runSelectedLayoutBackend(
   fieldGeometry: any,
 ): Promise<LayoutBackendRun> {
   const runner = await layoutBackendRunner(backendName);
-  return runner({
-    systemDesign: plainLayoutInput(systemDesign),
+  const plainDesign = plainLayoutInput(systemDesign);
+  const run = await runner({
+    systemDesign: plainDesign,
     fieldGeometry: plainLayoutInput(fieldGeometry),
   });
+  // Cultivar, rootstock and organic per tree, whichever engine ran.
+  attachPlantDetails(run.layout, plainDesign);
+  return run;
 }
 
 export function getSystemLayoutBackendName(): LayoutBackendName {

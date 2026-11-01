@@ -25,6 +25,7 @@ import {
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { isElectron } from "~/util/platform.ts";
+import { canUsePlantCatalogue } from "~/util/plantCatalogue.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -212,6 +213,13 @@ export function NavBar() {
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip>
+            </Show>
+            <Show when={canUsePlantCatalogue()}>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/plants"}>
+                  <i class="fas fa-seedling" /> Plants
+                </Link>
+              </li>
             </Show>
             <li class="nav-item">
               <Link class="nav-link" to={"/settings"}>
