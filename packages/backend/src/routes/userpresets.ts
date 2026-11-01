@@ -3,7 +3,7 @@ import UserPreset from "@rw/db/schemas/userpreset.ts";
 import middleware from "../middleware/index.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
-import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, inIds } from "../utils/mongoSafety.ts";
 import Variety from "@rw/db/schemas/variety.ts";
 import Rootstock from "@rw/db/schemas/rootstock.ts";
 import { referencedIds, stripUnusablePlants } from "../catalogue/rules.ts";
@@ -19,8 +19,8 @@ async function presetDesign(systemDesign: any, ownerId: string | undefined, isPu
   const ids = referencedIds(systemDesign.rows);
   if (!ids.varieties.length && !ids.rootstocks.length) return systemDesign;
   const [varieties, rootstocks] = await Promise.all([
-    Variety.find({ _id: { $in: ids.varieties } }).lean(),
-    Rootstock.find({ _id: { $in: ids.rootstocks } }).lean(),
+    Variety.find({ _id: inIds(ids.varieties) }).lean(),
+    Rootstock.find({ _id: inIds(ids.rootstocks) }).lean(),
   ]);
   return {
     ...systemDesign,

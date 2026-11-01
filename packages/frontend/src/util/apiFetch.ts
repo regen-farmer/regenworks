@@ -21,10 +21,14 @@ async function getErrorMessage(response: Response) {
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) {
       const body = await response.json();
-      return body?.error || body?.message || fallback;
+      const message = body?.error || body?.message || fallback;
+      // errorId matches a line in the server logs.
+      return body?.errorId ? `${message} (error ${body.errorId})` : message;
     }
 
     const text = await response.text();
+    // Don't show raw HTML error pages to people.
+    if (/^\s*</.test(text)) return `Server error (${response.status})`;
     return text || fallback;
   } catch {
     return fallback;

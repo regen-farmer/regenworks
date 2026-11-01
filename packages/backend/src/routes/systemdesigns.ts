@@ -6,7 +6,7 @@ import middleware from "../middleware/index.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 import SystemDesign from "@rw/db/schemas/systemdesign.ts";
-import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, inIds } from "../utils/mongoSafety.ts";
 import Variety from "@rw/db/schemas/variety.ts";
 import Rootstock from "@rw/db/schemas/rootstock.ts";
 import { canEditDesign, checkDesignPlants, referencedIds } from "../catalogue/rules.ts";
@@ -80,8 +80,8 @@ router.put(
       const body = sanitizeMongoDocument(req.body);
       const ids = referencedIds(body?.rows ?? []);
       const [varieties, rootstocks] = await Promise.all([
-        ids.varieties.length ? Variety.find({ _id: { $in: ids.varieties } }).lean() : [],
-        ids.rootstocks.length ? Rootstock.find({ _id: { $in: ids.rootstocks } }).lean() : [],
+        ids.varieties.length ? Variety.find({ _id: inIds(ids.varieties) }).lean() : [],
+        ids.rootstocks.length ? Rootstock.find({ _id: inIds(ids.rootstocks) }).lean() : [],
       ]);
       const checked = checkDesignPlants(
         body?.rows ?? [],

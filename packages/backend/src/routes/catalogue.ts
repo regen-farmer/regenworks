@@ -4,6 +4,7 @@
 // adds for themselves. Reading needs a login; adding to the shared list or
 // changing a shared entry needs grove-team. No prices live here.
 import express from "express";
+import { inIds, isSet } from "../utils/mongoSafety.ts";
 import mongoose from "mongoose";
 import Species from "@rw/db/schemas/species.ts";
 import Variety from "@rw/db/schemas/variety.ts";
@@ -43,7 +44,7 @@ router.get("/catalogue", middleware.isLoggedIn, async (req: Req, res: express.Re
   const [cultivars, rootstocks, hybridGroups] = await Promise.all([
     Variety.find(visibleTo(req)).select(CULTIVAR_FIELDS).sort({ name: 1 }).lean(),
     Rootstock.find(visibleTo(req)).select(ROOTSTOCK_FIELDS).sort({ name: 1 }).lean(),
-    Species.find({ hybrid: { $exists: true, $ne: null } })
+    Species.find({ hybrid: isSet() })
       .select("nameCommon genus species family hybrid")
       .sort({ nameCommon: 1 })
       .lean(),
@@ -185,7 +186,7 @@ const INHERITED = ["family", "form", "height", "width", "lifespan", "classsyntro
 
 async function hybridGroupDoc(value: ReturnType<typeof cleanHybridGroup> & { ok: true }) {
   const v = value.value;
-  const parents = await Species.find({ _id: { $in: v.parents } })
+  const parents = await Species.find({ _id: inIds(v.parents) })
     .select(INHERITED.join(" "))
     .lean();
   if (parents.length !== v.parents.length) return null;
