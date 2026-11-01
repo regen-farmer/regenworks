@@ -9,6 +9,11 @@ updates:
     open-pull-requests-limit: 5
     cooldown:
       default-days: 3
+    ignore:
+      # The app runs on Node 24 (.nvmrc, CI, Render). Keep the type definitions
+      # on the same major; bump this together with the Node version.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # TanStack Router and Start must move together. Bumping one alone
       # installs two router versions side by side and the app renders blank.
