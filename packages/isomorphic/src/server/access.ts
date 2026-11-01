@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import Project from "@rw/db/schemas/project.ts";
 import User, { type UserDocument } from "@rw/db/schemas/user.ts";
 import { getSession } from "./auth.ts";
+import { hasRole, type GroveRole } from "@rw/db/access.ts";
 
 export class AccessError extends Error {
   constructor(
@@ -32,6 +33,13 @@ export async function requireUser(): Promise<UserDocument> {
     user = await User.findOne({ email: { $eq: sessionUser.email } }).exec();
   }
   if (!user) throw new AccessError(401, "User not found");
+  return user;
+}
+
+/** The logged-in user if they have this Grove role (or higher); otherwise 401/403. */
+export async function requireRole(role: GroveRole): Promise<UserDocument> {
+  const user = await requireUser();
+  if (!hasRole(user, role)) throw new AccessError(403, "This is only available to the Grove team");
   return user;
 }
 

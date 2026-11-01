@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 // import passportLocalMongoose from "passport-local-mongoose"; // MAKES THE HASH AND SALT IN THE USER MODEL AUTOMATICALLY?
 import type { INurserySchema } from "./nursery.ts";
 import type { IParcelSchema } from "./parcel.ts";
+import { GROVE_ROLES, type GroveRole } from "../access.ts";
 
 export interface IUserSchema {
 	_id?: string;
@@ -11,6 +12,8 @@ export interface IUserSchema {
 	countryCode: string;
 	registrationDate: number;
 	isAdmin: boolean;
+	/** Grove-internal access. See packages/db/access.ts. */
+	roles: GroveRole[];
 	isNursery: boolean;
 	isManagement: boolean;
 	isProject: boolean;
@@ -29,6 +32,7 @@ const UserSchema = new mongoose.Schema({
 	countryCode: String,
 	registrationDate: Number,
 	isAdmin: { type: Boolean, default: false },
+	roles: { type: [{ type: String, enum: GROVE_ROLES }], default: [] },
 	isNursery: { type: Boolean, default: false },
 	isManagement: { type: Boolean, default: false },
 	isProject: { type: Boolean, default: false },
