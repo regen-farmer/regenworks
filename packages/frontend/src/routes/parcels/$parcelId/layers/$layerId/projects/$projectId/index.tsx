@@ -56,6 +56,7 @@ import { Resizable, ResizableHandle, ResizablePanel } from "~/components/ui/resi
 import { getScenario } from "~/util/getScenario.ts";
 import { getSpecies } from "~/util/getSpecies.ts";
 import { PlantDetailsEditor } from "~/components/plants/PlantDetailsEditor.tsx";
+import { StakeoutExport } from "~/components/plants/StakeoutExport.tsx";
 import { canUsePlantCatalogue, getPlantCatalogue } from "~/util/plantCatalogue.ts";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
@@ -2899,6 +2900,13 @@ const ExportAndShareContent = ({
             {exportingKML() ? "Exporting..." : "Export trees as KML"}
           </button>
         </div>
+        <Show when={canUsePlantCatalogue()}>
+          <StakeoutExport
+            projectId={params().projectId}
+            fieldName={scenarioData()?.project?.layer?.name}
+            scenarioName={scenarioData()?.project?.name}
+          />
+        </Show>
       </div>
 
       <div class="mb-6  border-zinc-300 dark:border-slate-600 pt-6">

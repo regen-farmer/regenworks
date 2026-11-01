@@ -90,9 +90,15 @@ Environment variable names are listed in `packages/backend/.env.example`,
 
 ## Field tools
 
-`scripts/kml-to-stakeout.py` turns a "Export trees as KML" file into RTK
-stake-out files (ETRS89 / UTM 32N grid coordinates with one name per tree, row
-lines and a DXF). Run `python3 scripts/kml-to-stakeout.py --help` for details.
+The app makes RTK stake-out files directly: scenario → Export → "Stake-out files
+(RTK)" (Grove users) downloads a zip with Trimble CSV grid points (ETRS89 / UTM
+32N, mm), row start/end points, DXF, a check KML and a summary. Code:
+`packages/modelling/planting/stakeout.ts` (projection in `utm.ts`, tested
+against pyproj). Trees are named `<prefix>R<row>T<tree>`.
+
+`scripts/kml-to-stakeout.py` does the same from an "Export trees as KML" file,
+for designs exported before this existed. Both give identical names and
+coordinates.
 
 ## Known issues and follow-ups
 
