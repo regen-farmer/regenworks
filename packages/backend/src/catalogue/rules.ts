@@ -35,6 +35,22 @@ export function canEdit(user: UserLike, item: CatalogueItem): boolean {
   return idOf(item.owner?.id) === idOf(user._id) || hasRole(user, "grove-admin");
 }
 
+/** Only the scenario's owner or a Grove admin may change its design. */
+export function canEditDesign(user: UserLike | undefined, ownerId: unknown): boolean {
+  if (!user) return false;
+  const owner = idOf(ownerId);
+  return (owner !== undefined && owner === idOf(user._id)) || hasRole(user, "grove-admin");
+}
+
+/** Shared entries without the owner's user id (other users don't need it). */
+export function forViewer<T extends CatalogueItem>(item: T, viewerId: unknown): T {
+  if (item.shared && idOf(item.owner?.id) !== idOf(viewerId)) {
+    const { owner: _owner, ...rest } = item as any;
+    return rest as T;
+  }
+  return item;
+}
+
 // ---- input cleaning --------------------------------------------------------
 
 export type Cleaned<T> = { ok: true; value: T } | { ok: false; errors: string[] };
@@ -190,6 +206,15 @@ export function checkDesignPlants(
   rows: any[],
   catalogue: { varieties: Map<string, CultivarDoc>; rootstocks: Map<string, RootstockDoc> },
   ownerIds: readonly string[],
+  /**
+   * Ids already stored on this design. They are kept if still visible and
+   * valid, and quietly dropped if not (e.g. un-shared since), so a design is
+   * never stuck for a user who can't see the plant pickers.
+   */
+  alreadyStored: { varieties: ReadonlySet<string>; rootstocks: ReadonlySet<string> } = {
+    varieties: new Set(),
+    rootstocks: new Set(),
+  },
 ): Cleaned<any[]> {
   const errors: string[] = [];
   const cleanRows = (rows ?? []).map((row: any, r: number) => ({
@@ -203,12 +228,14 @@ export function checkDesignPlants(
       const varietyId = idOf(entry?.variety);
       if (varietyId) {
         const cultivar = catalogue.varieties.get(varietyId);
-        if (!cultivar || !isVisible(cultivar, ownerIds)) {
-          errors.push(`${where}: cultivar not found`);
-        } else if (idOf(cultivar.species) !== species) {
-          errors.push(`${where}: cultivar ${cultivar.name ?? ""} belongs to a different species`);
+        const ok = cultivar && isVisible(cultivar, ownerIds) && idOf(cultivar.species) === species;
+        if (ok) out.variety = varietyId;
+        else if (alreadyStored.varieties.has(varietyId)) {
+          // stored earlier but no longer valid: drop it rather than block the save
+        } else if (!cultivar || !isVisible(cultivar, ownerIds)) {
+          errors.push(`${where}: cultivar not found or not available to the design's owner`);
         } else {
-          out.variety = varietyId;
+          errors.push(`${where}: cultivar ${cultivar.name ?? ""} belongs to a different species`);
         }
       }
 
@@ -218,8 +245,8 @@ export function checkDesignPlants(
         errors.push(`${where}: choose a rootstock or own roots, not both`);
       } else if (rootstockId) {
         const rootstock = catalogue.rootstocks.get(rootstockId);
-        if (!rootstock || !isVisible(rootstock, ownerIds)) errors.push(`${where}: rootstock not found`);
-        else out.rootstock = rootstockId;
+        if (rootstock && isVisible(rootstock, ownerIds)) out.rootstock = rootstockId;
+        else if (!alreadyStored.rootstocks.has(rootstockId)) errors.push(`${where}: rootstock not found or not available to the design's owner`);
       } else if (ownRoots) {
         out.ownRoots = true;
       }
@@ -229,4 +256,32 @@ export function checkDesignPlants(
     }),
   }));
   return done(cleanRows, errors);
+}
+
+/**
+ * For saved presets: keep only plant references the preset's viewers can
+ * use. Public presets keep shared entries only; private ones also keep the
+ * owner's own. Anything else is removed (never an error).
+ */
+export function stripUnusablePlants(
+  rows: any[],
+  catalogue: { varieties: Map<string, CultivarDoc>; rootstocks: Map<string, RootstockDoc> },
+  ownerIds: readonly string[],
+): any[] {
+  return (rows ?? []).map((row: any) => ({
+    ...row,
+    sequence: (row?.sequence ?? []).map((entry: any) => {
+      const out = { ...entry };
+      const v = idOf(entry?.variety);
+      const cultivar = v ? catalogue.varieties.get(v) : undefined;
+      if (v && !(cultivar && isVisible(cultivar, ownerIds) && idOf(cultivar.species) === idOf(entry?.species))) {
+        delete out.variety;
+      }
+      const r = idOf(entry?.rootstock);
+      const rootstock = r ? catalogue.rootstocks.get(r) : undefined;
+      if (r && !(rootstock && isVisible(rootstock, ownerIds))) delete out.rootstock;
+      if (out.rootstock && out.ownRoots) delete out.ownRoots;
+      return out;
+    }),
+  }));
 }

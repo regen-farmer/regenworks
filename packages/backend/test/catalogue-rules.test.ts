@@ -129,3 +129,59 @@ test("referencedIds collects valid ids only", () => {
   const ids = referencedIds([row({ variety: corabel._id, rootstock: "bad" }, { variety: { _id: corabel._id } })]);
   assert.deepEqual(ids, { varieties: [corabel._id], rootstocks: [] });
 });
+
+// ---- after review ----
+import { canEditDesign, forViewer, stripUnusablePlants } from "../src/catalogue/rules.ts";
+
+test("design save: owner and Grove admin only", () => {
+  assert.equal(canEditDesign(pub, pub._id), true);
+  assert.equal(canEditDesign(team, pub._id), false, "grove-team can't overwrite a client's design");
+  assert.equal(canEditDesign(field, pub._id), false);
+  assert.equal(canEditDesign(kris, pub._id), true);
+  assert.equal(canEditDesign(undefined, pub._id), false);
+  assert.equal(canEditDesign(pub, undefined), false, "design without owner: admin only");
+});
+
+test("design: the editor's private cultivar can't go into someone else's design", () => {
+  const krisOwn = { _id: id(22), name: "Kris only", species: HAZEL, shared: false, owner: { id: kris._id } };
+  const cat = { varieties: new Map<string, any>([[krisOwn._id, krisOwn]]), rootstocks: new Map() };
+  const r = checkDesignPlants([row({ species: HAZEL, spacingAfter: 4.5, variety: krisOwn._id })], cat, [pub._id]);
+  assert.equal(r.ok, false);
+});
+
+test("design: references already stored are kept if valid, dropped if not — never block", () => {
+  const stored = { varieties: new Set([privateCultivar._id, id(98)]), rootstocks: new Set([id(97)]) };
+  const r = checkDesignPlants(
+    [
+      row(
+        { species: HAZEL, spacingAfter: 4.5, variety: privateCultivar._id },
+        { species: HAZEL, spacingAfter: 4.5, variety: id(98), rootstock: id(97) },
+        { species: HAZEL, spacingAfter: 4.5, variety: corabel._id },
+      ),
+    ],
+    catalogue,
+    [team._id],
+    stored,
+  );
+  assert.ok(r.ok);
+  assert.deepEqual(r.value[0].sequence[0], { species: HAZEL, spacingAfter: 4.5 });
+  assert.deepEqual(r.value[0].sequence[1], { species: HAZEL, spacingAfter: 4.5 });
+  assert.equal(r.value[0].sequence[2].variety, corabel._id);
+});
+
+test("presets: public keeps shared plants only; private also the owner's", () => {
+  const rows = [row({ species: HAZEL, spacingAfter: 4.5, variety: privateCultivar._id, rootstock: colurna._id })];
+  const pubPreset = stripUnusablePlants(rows, catalogue, []);
+  assert.equal(pubPreset[0].sequence[0].variety, undefined);
+  assert.equal(pubPreset[0].sequence[0].rootstock, colurna._id);
+  const own = stripUnusablePlants(rows, catalogue, [pub._id]);
+  assert.equal(own[0].sequence[0].variety, privateCultivar._id);
+});
+
+test("catalogue: shared entries hide the creator's user id from others", () => {
+  const item = { _id: id(40), name: "Corabel", shared: true, owner: { id: team._id } };
+  assert.equal("owner" in forViewer(item, pub._id), false);
+  assert.equal("owner" in forViewer(item, team._id), true);
+  const priv = { _id: id(41), name: "Mine", shared: false, owner: { id: pub._id } };
+  assert.equal("owner" in forViewer(priv, pub._id), true);
+});

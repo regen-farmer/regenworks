@@ -8,12 +8,14 @@ import mongoose from "mongoose";
 import Species from "@rw/db/schemas/species.ts";
 import Variety from "@rw/db/schemas/variety.ts";
 import Rootstock from "@rw/db/schemas/rootstock.ts";
+import SystemDesign from "@rw/db/schemas/systemdesign.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import middleware from "../middleware/index.ts";
 import { requireRole } from "../middleware/access.ts";
 import {
   canCreate,
   canEdit,
+  forViewer,
   cleanCultivar,
   cleanHybridGroup,
   cleanRootstock,
@@ -45,8 +47,31 @@ router.get("/catalogue", middleware.isLoggedIn, async (req: Req, res: express.Re
       .sort({ nameCommon: 1 })
       .lean(),
   ]);
-  res.send({ cultivars, rootstocks, hybridGroups });
+  res.send({
+    cultivars: cultivars.map((c: any) => forViewer(c, req.user?._id)),
+    rootstocks: rootstocks.map((r: any) => forViewer(r, req.user?._id)),
+    hybridGroups,
+  });
 });
+
+/**
+ * A shared entry that designs use must stay shared, and a cultivar in use
+ * must keep its species; otherwise those designs would point at plants their
+ * owners can no longer use.
+ */
+async function blockedChange(
+  field: "variety" | "rootstock",
+  existing: { _id: unknown; shared?: boolean; species?: unknown },
+  next: { shared: boolean; species?: string },
+): Promise<string | null> {
+  const unshare = existing.shared && !next.shared;
+  const moveSpecies =
+    field === "variety" && String(existing.species ?? "") !== String(next.species ?? "");
+  if (!unshare && !moveSpecies) return null;
+  const used = await SystemDesign.countDocuments({ [`rows.sequence.${field}`]: existing._id });
+  if (!used) return null;
+  return `Used in ${used} design${used === 1 ? "" : "s"}, so it can't be ${unshare ? "made private" : "moved to another species"}`;
+}
 
 async function speciesExists(id: string | undefined) {
   return !id || (await Species.exists({ _id: id })) !== null;
@@ -84,6 +109,11 @@ router.put("/catalogue/cultivars/:id", middleware.isLoggedIn, async (req: Req, r
   // Must be allowed to edit it as it is now, and as it will be (sharing needs grove-team).
   if (!canEdit(req.user!, existing) || !canCreate(req.user!, cleaned.value.shared)) {
     res.status(403).send({ error: "You can't change this cultivar" });
+    return;
+  }
+  const blocked = await blockedChange("variety", existing, cleaned.value);
+  if (blocked) {
+    res.status(409).send({ error: blocked });
     return;
   }
   if (!(await speciesExists(cleaned.value.species))) {
@@ -126,6 +156,11 @@ router.put("/catalogue/rootstocks/:id", middleware.isLoggedIn, async (req: Req, 
   if (badInput(res, cleaned) || !cleaned.ok) return;
   if (!canEdit(req.user!, existing) || !canCreate(req.user!, cleaned.value.shared)) {
     res.status(403).send({ error: "You can't change this rootstock" });
+    return;
+  }
+  const blocked = await blockedChange("rootstock", existing, cleaned.value);
+  if (blocked) {
+    res.status(409).send({ error: blocked });
     return;
   }
   if (!(await speciesExists(cleaned.value.species))) {

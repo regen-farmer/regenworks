@@ -583,7 +583,8 @@ function ProjectIndexView() {
       },
     );
 
-    const systemData = await newsystem.json();
+    // Error pages may not be JSON (e.g. a 500), so parse defensively.
+    const systemData = await newsystem.json().catch(() => undefined);
 
     if (!newsystem.ok) {
       // e.g. a cultivar that belongs to another species, or no permission.
