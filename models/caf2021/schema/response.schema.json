@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "Outputs": {
+      "properties": {
+        "years": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Years",
+          "type": "array"
+        },
+        "annual": {
+          "additionalProperties": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "description": "One value per year in 'years'. coffee_harvest_t_c_ha: Coffee beans harvested in the year (t C/ha); coffee_harvest_dm_kg_ha: Coffee beans harvested in the year (kg dry matter/ha), harvest C / CCONC; coffee_biomass_t_c_ha: Coffee biomass carbon at year end, C_f (t C/ha); tree_biomass_t_c_ha: Shade-tree biomass carbon at year end, all species, CT_f (t C/ha); tree_stem_t_c_ha_1: Stem carbon of tree species 1 at year end (t C/ha); _2, _3 likewise; tree_density_per_ha_1: Trees per ha of species 1 at year end; _2, _3 likewise; tree_height_m_1: Height of tree species 1 at year end (m); _2, _3 likewise; soil_c_t_ha: Soil organic carbon at year end, Csoil_f (t C/ha); soil_n_t_ha: Soil organic nitrogen at year end, Nsoil_f (t N/ha); system_c_t_ha: Coffee + trees + soil carbon at year end (t C/ha); n_fertiliser_kg_ha: Fertiliser N applied (kg N/ha/yr); n_fixation_kg_ha: N fixed by trees (kg N/ha/yr); n_leaching_kg_ha: N leached (kg N/ha/yr); n_emission_kg_ha: Gaseous N emission (kg N/ha/yr), Nemission_f; n_runoff_kg_ha: N lost in runoff (kg N/ha/yr); c_soil_respiration_t_ha: Soil respiration (t C/ha/yr); rain_mm: Rain (mm/yr); drainage_mm: Drainage (mm/yr); runoff_mm: Runoff (mm/yr); evaporation_mm: Soil evaporation (mm/yr); transpiration_coffee_mm: Coffee transpiration (mm/yr); transpiration_trees_mm: Tree transpiration (mm/yr); days: Simulated days in the year",
+          "title": "Annual",
+          "type": "object"
+        },
+        "daily": {
+          "additionalProperties": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "description": "Only when daily_variables is set: 'year' and 'doy' plus one list per variable (CAF units)",
+          "title": "Daily",
+          "type": "object"
+        },
+        "daily_units": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Daily Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "years",
+        "annual",
+        "daily",
+        "daily_units"
+      ],
+      "title": "Outputs",
+      "type": "object"
+    },
+    "RunInfo": {
+      "properties": {
+        "process": {
+          "default": "caf2021",
+          "title": "Process",
+          "type": "string"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "upstream_commit": {
+          "title": "Upstream Commit",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "string"
+        },
+        "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+        },
+        "first_day": {
+          "description": "year-doy of the first simulated day",
+          "title": "First Day",
+          "type": "string"
+        },
+        "last_day": {
+          "title": "Last Day",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_version",
+        "upstream_commit",
+        "adapter_version",
+        "input_sha256",
+        "started_at",
+        "duration_s",
+        "first_day",
+        "last_day",
+        "warnings"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "outputs": {
+      "$ref": "#/$defs/Outputs"
+    },
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    }
+  },
+  "required": [
+    "outputs",
+    "run"
+  ],
+  "title": "ExecuteResponse",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

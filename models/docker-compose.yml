@@ -4,6 +4,7 @@
 #   docker compose -f models/docker-compose.yml up --build
 #   curl -s -H "Authorization: Bearer local-dev-token" localhost:8090/processes/shamba | head   (SHAMBA)
 #   curl -s -H "Authorization: Bearer local-dev-token" localhost:8091/processes/dynacof | head  (DynACof)
+#   curl -s -H "Authorization: Bearer local-dev-token" localhost:8092/processes/caf2021 | head  (CAF2021)
 #
 # The models never call out (weather and soil travel in the request). Docker
 # can't publish a port from a fully internal network, so outbound blocking is
@@ -44,4 +45,22 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     mem_limit: 3g
+    cpus: 2
+
+  caf2021:
+    build:
+      context: ./caf2021
+    ports:
+      - "127.0.0.1:8092:8080"
+    environment:
+      CAF2021_API_TOKEN: ${CAF2021_API_TOKEN:-local-dev-token}
+      CAF2021_MAX_CONCURRENT: "2"
+      CAF2021_TIMEOUT_S: "120"
+      CAF2021_MEMORY_MB: "1024"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
     cpus: 2
