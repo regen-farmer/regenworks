@@ -16,6 +16,7 @@ import animalRoutes from "./routes/animals.ts";
 import areaRoutes from "./routes/areas.ts";
 import assetRoutes from "./routes/assets.ts";
 import budgetRoutes from "./routes/budgets.ts";
+import catalogueRoutes from "./routes/catalogue.ts";
 import farmerAdvisorRoutes from "./routes/farmer-advisor-survey.ts";
 import farmflowRoutes from "./routes/farmflows.ts";
 import farmScenarioConfigRoutes from "./routes/farmscenarioconfigs.ts";
@@ -204,6 +205,7 @@ app.use("", saptestRoutes);
 app.use("", farmflowRoutes);
 app.use("", rotationRoutes);
 app.use("", varietyRoutes);
+app.use("", catalogueRoutes); // plant catalogue: hybrid groups, cultivars, rootstocks
 app.use("", stripeRoutes);
 app.use("", userPresetsRoutes);
 app.use("", farmScenarioConfigRoutes);

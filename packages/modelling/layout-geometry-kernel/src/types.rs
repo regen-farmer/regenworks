@@ -180,6 +180,15 @@ pub struct TreeMarker {
     /// Circle polygon for visualization (omitted when not needed to reduce payload size)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub circle: Option<GeoJsonFeature>,
+    /// Index of the physical tree row (into treeRowLines)
+    #[serde(default)]
+    pub tree_row_index: usize,
+    /// Index of the designed row this tree row repeats
+    #[serde(default)]
+    pub system_design_row_index: usize,
+    /// Position in that row's sequence, used to attach cultivar and rootstock
+    #[serde(default)]
+    pub sequence_index: usize,
 }
 
 /// GeoJSON Feature wrapper

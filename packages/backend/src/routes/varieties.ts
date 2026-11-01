@@ -64,14 +64,16 @@ router.post(
     res: express.Response,
   ) => {
     // CLEAN NONE OPTIONS
-    const variety = req.body.variety;
-    if (req.body.variety.species === "") {
+    // Never let the client decide sharing or ownership; the shared catalogue
+    // is changed only through /catalogue (Grove team).
+    const { shared: _shared, owner: _owner, _id: _ignoredId, ...variety } = req.body.variety ?? {};
+    if (variety.species === "") {
       variety.species = undefined;
     }
-    if (req.body.variety.hybrid === "") {
+    if (variety.hybrid === "") {
       variety.hybrid = undefined;
     }
-    if (req.body.variety.rootstock.species === "") {
+    if (variety.rootstock?.species === "") {
       variety.rootstock.species = undefined;
     }
     // CREATE VARIETY

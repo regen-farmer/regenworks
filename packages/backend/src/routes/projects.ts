@@ -73,6 +73,19 @@ import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.
 
 const router = express.Router();
 
+/** Cultivar and rootstock names used in a populated design, for exports. */
+function plantNamesOf(systemdesign: any) {
+  const varieties: Record<string, string> = {};
+  const rootstocks: Record<string, string> = {};
+  for (const row of systemdesign?.rows ?? []) {
+    for (const entry of row?.sequence ?? []) {
+      if (entry?.variety?._id) varieties[String(entry.variety._id)] = entry.variety.name;
+      if (entry?.rootstock?._id) rootstocks[String(entry.rootstock._id)] = entry.rootstock.name;
+    }
+  }
+  return { varieties, rootstocks };
+}
+
 const options: NodeGeocoder.Options = {
   provider: "openstreetmap",
   apiKey: process.env.GEOCODER_API_KEY,
@@ -311,7 +324,11 @@ router.get(
         .populate("systemdesign")
         .populate({
           path: "systemdesign",
-          populate: { path: "rows.sequence", populate: { path: "species" } },
+          populate: [
+            { path: "rows.sequence.species" },
+            { path: "rows.sequence.variety", select: "name pedigree" },
+            { path: "rows.sequence.rootstock", select: "name" },
+          ],
         })
         .populate({
           path: "systemdesign",
@@ -338,6 +355,8 @@ router.get(
           intersectionPoints: turf.featureCollection(layout.intersectionPoints),
           headlandSides: turf.featureCollection(layout.headlandSides),
           treeMarkerArray: layout.treeMarkerArray,
+          plantCountArray: layout.plantCountArray,
+          plantNames: plantNamesOf(foundProject.systemdesign),
         });
       } else {
         res.send({ error: "no project found" });

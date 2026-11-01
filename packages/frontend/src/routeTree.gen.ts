@@ -9,80 +9,62 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as SystemsRouteRouteImport } from './routes/systems/route'
-import { Route as SpeciesRouteRouteImport } from './routes/species/route'
-import { Route as ParcelsRouteRouteImport } from './routes/parcels/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SystemsIndexRouteImport } from './routes/systems/index'
-import { Route as SpeciesIndexRouteImport } from './routes/species/index'
+import { Route as ParcelsRouteRouteImport } from './routes/parcels/route'
+import { Route as PlantsRouteRouteImport } from './routes/plants/route'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SpeciesRouteRouteImport } from './routes/species/route'
+import { Route as SystemsRouteRouteImport } from './routes/systems/route'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as PlantsIndexRouteImport } from './routes/plants/index'
+import { Route as SpeciesIndexRouteImport } from './routes/species/index'
 import { Route as SpeciesNewRouteImport } from './routes/species/new'
-import { Route as SystemsSystemIdIndexRouteImport } from './routes/systems/$systemId/index'
-import { Route as SpeciesSpeciesIdIndexRouteImport } from './routes/species/$speciesId/index'
-import { Route as ScenarioPreviewScenarioIdIndexRouteImport } from './routes/scenario-preview/$scenarioId/index'
-import { Route as ParcelsParcelIdIndexRouteImport } from './routes/parcels/$parcelId/index'
-import { Route as FarmScenarioPreviewConfigIdIndexRouteImport } from './routes/farm-scenario-preview/$configId/index'
-import { Route as AdminFarmerAdvisorSurveyIndexRouteImport } from './routes/admin/farmer-advisor-survey/index'
+import { Route as SystemsIndexRouteImport } from './routes/systems/index'
 import { Route as AdminAdvisorRequestsIndexRouteImport } from './routes/admin/advisor-requests/index'
-import { Route as SystemsSystemIdEditRouteImport } from './routes/systems/$systemId/edit'
-import { Route as SpeciesSpeciesIdEditRouteImport } from './routes/species/$speciesId/edit'
+import { Route as AdminFarmerAdvisorSurveyIndexRouteImport } from './routes/admin/farmer-advisor-survey/index'
+import { Route as FarmScenarioPreviewConfigIdIndexRouteImport } from './routes/farm-scenario-preview/$configId/index'
+import { Route as ParcelsParcelIdIndexRouteImport } from './routes/parcels/$parcelId/index'
 import { Route as ParcelsParcelIdLayersRouteImport } from './routes/parcels/$parcelId/layers'
-import { Route as SpeciesSpeciesIdNutrientsNewRouteImport } from './routes/species/$speciesId/nutrients/new'
-import { Route as SpeciesSpeciesIdActivitiesNewRouteImport } from './routes/species/$speciesId/activities/new'
+import { Route as ScenarioPreviewScenarioIdIndexRouteImport } from './routes/scenario-preview/$scenarioId/index'
+import { Route as SpeciesSpeciesIdIndexRouteImport } from './routes/species/$speciesId/index'
+import { Route as SpeciesSpeciesIdEditRouteImport } from './routes/species/$speciesId/edit'
+import { Route as SystemsSystemIdIndexRouteImport } from './routes/systems/$systemId/index'
+import { Route as SystemsSystemIdEditRouteImport } from './routes/systems/$systemId/edit'
 import { Route as SpeciesSpeciesIdActivitiesEditRouteImport } from './routes/species/$speciesId/activities/edit'
-import { Route as ParcelsParcelIdYieldConfigIdIndexRouteImport } from './routes/parcels/$parcelId/yield/$configId/index'
-import { Route as ParcelsParcelIdModelsModelIdIndexRouteImport } from './routes/parcels/$parcelId/models/$modelId/index'
-import { Route as ParcelsParcelIdLayersLayerIdIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/index'
+import { Route as SpeciesSpeciesIdActivitiesNewRouteImport } from './routes/species/$speciesId/activities/new'
+import { Route as SpeciesSpeciesIdNutrientsNewRouteImport } from './routes/species/$speciesId/nutrients/new'
 import { Route as ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport } from './routes/parcels/$parcelId/farm-scenario/$farmScenarioId/index'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects'
-import { Route as ParcelsParcelIdLayersLayerIdLayoutRouteImport } from './routes/parcels/$parcelId/layers/$layerId/layout'
+import { Route as ParcelsParcelIdLayersLayerIdIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/index'
 import { Route as ParcelsParcelIdLayersLayerIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdLayoutRouteImport } from './routes/parcels/$parcelId/layers/$layerId/layout'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects'
+import { Route as ParcelsParcelIdModelsModelIdIndexRouteImport } from './routes/parcels/$parcelId/models/$modelId/index'
+import { Route as ParcelsParcelIdYieldConfigIdIndexRouteImport } from './routes/parcels/$parcelId/yield/$configId/index'
 import { Route as ParcelsParcelIdLayersLayerIdSequencesNewRouteImport } from './routes/parcels/$parcelId/layers/$layerId/sequences/new'
-import { Route as ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/row/new/index'
 import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/index'
-import { Route as ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
-import { Route as ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/backup'
 import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesNewRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/new'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/backup'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
+import { Route as ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/row/new/index'
+import { Route as ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
 import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/index'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/index'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRowRowIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
-import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/$rotationId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesNewRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/new'
 import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/$rotationId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRowRowIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/index'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/index'
+import { Route as ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport } from './routes/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SystemsRouteRoute = SystemsRouteRouteImport.update({
-  id: '/systems',
-  path: '/systems',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SpeciesRouteRoute = SpeciesRouteRouteImport.update({
-  id: '/species',
-  path: '/species',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParcelsRouteRoute = ParcelsRouteRouteImport.update({
@@ -90,56 +72,65 @@ const ParcelsRouteRoute = ParcelsRouteRouteImport.update({
   path: '/parcels',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const PlantsRouteRoute = PlantsRouteRouteImport.update({
+  id: '/plants',
+  path: '/plants',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SystemsIndexRoute = SystemsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SystemsRouteRoute,
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const SpeciesIndexRoute = SpeciesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SpeciesRouteRoute,
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpeciesRouteRoute = SpeciesRouteRouteImport.update({
+  id: '/species',
+  path: '/species',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemsRouteRoute = SystemsRouteRouteImport.update({
+  id: '/systems',
+  path: '/systems',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlantsIndexRoute = PlantsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlantsRouteRoute,
+} as any)
+const SpeciesIndexRoute = SpeciesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SpeciesRouteRoute,
+} as any)
 const SpeciesNewRoute = SpeciesNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => SpeciesRouteRoute,
 } as any)
-const SystemsSystemIdIndexRoute = SystemsSystemIdIndexRouteImport.update({
-  id: '/$systemId/',
-  path: '/$systemId/',
+const SystemsIndexRoute = SystemsIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => SystemsRouteRoute,
 } as any)
-const SpeciesSpeciesIdIndexRoute = SpeciesSpeciesIdIndexRouteImport.update({
-  id: '/$speciesId/',
-  path: '/$speciesId/',
-  getParentRoute: () => SpeciesRouteRoute,
-} as any)
-const ScenarioPreviewScenarioIdIndexRoute =
-  ScenarioPreviewScenarioIdIndexRouteImport.update({
-    id: '/scenario-preview/$scenarioId/',
-    path: '/scenario-preview/$scenarioId/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ParcelsParcelIdIndexRoute = ParcelsParcelIdIndexRouteImport.update({
-  id: '/$parcelId/',
-  path: '/$parcelId/',
-  getParentRoute: () => ParcelsRouteRoute,
-} as any)
-const FarmScenarioPreviewConfigIdIndexRoute =
-  FarmScenarioPreviewConfigIdIndexRouteImport.update({
-    id: '/farm-scenario-preview/$configId/',
-    path: '/farm-scenario-preview/$configId/',
+const AdminAdvisorRequestsIndexRoute =
+  AdminAdvisorRequestsIndexRouteImport.update({
+    id: '/admin/advisor-requests/',
+    path: '/admin/advisor-requests/',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AdminFarmerAdvisorSurveyIndexRoute =
@@ -148,31 +139,52 @@ const AdminFarmerAdvisorSurveyIndexRoute =
     path: '/admin/farmer-advisor-survey/',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AdminAdvisorRequestsIndexRoute =
-  AdminAdvisorRequestsIndexRouteImport.update({
-    id: '/admin/advisor-requests/',
-    path: '/admin/advisor-requests/',
+const FarmScenarioPreviewConfigIdIndexRoute =
+  FarmScenarioPreviewConfigIdIndexRouteImport.update({
+    id: '/farm-scenario-preview/$configId/',
+    path: '/farm-scenario-preview/$configId/',
     getParentRoute: () => rootRouteImport,
   } as any)
-const SystemsSystemIdEditRoute = SystemsSystemIdEditRouteImport.update({
-  id: '/$systemId/edit',
-  path: '/$systemId/edit',
-  getParentRoute: () => SystemsRouteRoute,
-} as any)
-const SpeciesSpeciesIdEditRoute = SpeciesSpeciesIdEditRouteImport.update({
-  id: '/$speciesId/edit',
-  path: '/$speciesId/edit',
-  getParentRoute: () => SpeciesRouteRoute,
+const ParcelsParcelIdIndexRoute = ParcelsParcelIdIndexRouteImport.update({
+  id: '/$parcelId/',
+  path: '/$parcelId/',
+  getParentRoute: () => ParcelsRouteRoute,
 } as any)
 const ParcelsParcelIdLayersRoute = ParcelsParcelIdLayersRouteImport.update({
   id: '/$parcelId/layers',
   path: '/$parcelId/layers',
   getParentRoute: () => ParcelsRouteRoute,
 } as any)
-const SpeciesSpeciesIdNutrientsNewRoute =
-  SpeciesSpeciesIdNutrientsNewRouteImport.update({
-    id: '/$speciesId/nutrients/new',
-    path: '/$speciesId/nutrients/new',
+const ScenarioPreviewScenarioIdIndexRoute =
+  ScenarioPreviewScenarioIdIndexRouteImport.update({
+    id: '/scenario-preview/$scenarioId/',
+    path: '/scenario-preview/$scenarioId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const SpeciesSpeciesIdIndexRoute = SpeciesSpeciesIdIndexRouteImport.update({
+  id: '/$speciesId/',
+  path: '/$speciesId/',
+  getParentRoute: () => SpeciesRouteRoute,
+} as any)
+const SpeciesSpeciesIdEditRoute = SpeciesSpeciesIdEditRouteImport.update({
+  id: '/$speciesId/edit',
+  path: '/$speciesId/edit',
+  getParentRoute: () => SpeciesRouteRoute,
+} as any)
+const SystemsSystemIdIndexRoute = SystemsSystemIdIndexRouteImport.update({
+  id: '/$systemId/',
+  path: '/$systemId/',
+  getParentRoute: () => SystemsRouteRoute,
+} as any)
+const SystemsSystemIdEditRoute = SystemsSystemIdEditRouteImport.update({
+  id: '/$systemId/edit',
+  path: '/$systemId/edit',
+  getParentRoute: () => SystemsRouteRoute,
+} as any)
+const SpeciesSpeciesIdActivitiesEditRoute =
+  SpeciesSpeciesIdActivitiesEditRouteImport.update({
+    id: '/$speciesId/activities/edit',
+    path: '/$speciesId/activities/edit',
     getParentRoute: () => SpeciesRouteRoute,
   } as any)
 const SpeciesSpeciesIdActivitiesNewRoute =
@@ -181,22 +193,16 @@ const SpeciesSpeciesIdActivitiesNewRoute =
     path: '/$speciesId/activities/new',
     getParentRoute: () => SpeciesRouteRoute,
   } as any)
-const SpeciesSpeciesIdActivitiesEditRoute =
-  SpeciesSpeciesIdActivitiesEditRouteImport.update({
-    id: '/$speciesId/activities/edit',
-    path: '/$speciesId/activities/edit',
+const SpeciesSpeciesIdNutrientsNewRoute =
+  SpeciesSpeciesIdNutrientsNewRouteImport.update({
+    id: '/$speciesId/nutrients/new',
+    path: '/$speciesId/nutrients/new',
     getParentRoute: () => SpeciesRouteRoute,
   } as any)
-const ParcelsParcelIdYieldConfigIdIndexRoute =
-  ParcelsParcelIdYieldConfigIdIndexRouteImport.update({
-    id: '/$parcelId/yield/$configId/',
-    path: '/$parcelId/yield/$configId/',
-    getParentRoute: () => ParcelsRouteRoute,
-  } as any)
-const ParcelsParcelIdModelsModelIdIndexRoute =
-  ParcelsParcelIdModelsModelIdIndexRouteImport.update({
-    id: '/$parcelId/models/$modelId/',
-    path: '/$parcelId/models/$modelId/',
+const ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute =
+  ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport.update({
+    id: '/$parcelId/farm-scenario/$farmScenarioId/',
+    path: '/$parcelId/farm-scenario/$farmScenarioId/',
     getParentRoute: () => ParcelsRouteRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdIndexRoute =
@@ -205,16 +211,10 @@ const ParcelsParcelIdLayersLayerIdIndexRoute =
     path: '/$layerId/',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
-const ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRoute =
-  ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport.update({
-    id: '/$parcelId/farm-scenario/$farmScenarioId/',
-    path: '/$parcelId/farm-scenario/$farmScenarioId/',
-    getParentRoute: () => ParcelsRouteRoute,
-  } as any)
-const ParcelsParcelIdLayersLayerIdProjectsRoute =
-  ParcelsParcelIdLayersLayerIdProjectsRouteImport.update({
-    id: '/$layerId/projects',
-    path: '/$layerId/projects',
+const ParcelsParcelIdLayersLayerIdEditRoute =
+  ParcelsParcelIdLayersLayerIdEditRouteImport.update({
+    id: '/$layerId/edit',
+    path: '/$layerId/edit',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdLayoutRoute =
@@ -223,22 +223,28 @@ const ParcelsParcelIdLayersLayerIdLayoutRoute =
     path: '/$layerId/layout',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdEditRoute =
-  ParcelsParcelIdLayersLayerIdEditRouteImport.update({
-    id: '/$layerId/edit',
-    path: '/$layerId/edit',
+const ParcelsParcelIdLayersLayerIdProjectsRoute =
+  ParcelsParcelIdLayersLayerIdProjectsRouteImport.update({
+    id: '/$layerId/projects',
+    path: '/$layerId/projects',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
+  } as any)
+const ParcelsParcelIdModelsModelIdIndexRoute =
+  ParcelsParcelIdModelsModelIdIndexRouteImport.update({
+    id: '/$parcelId/models/$modelId/',
+    path: '/$parcelId/models/$modelId/',
+    getParentRoute: () => ParcelsRouteRoute,
+  } as any)
+const ParcelsParcelIdYieldConfigIdIndexRoute =
+  ParcelsParcelIdYieldConfigIdIndexRouteImport.update({
+    id: '/$parcelId/yield/$configId/',
+    path: '/$parcelId/yield/$configId/',
+    getParentRoute: () => ParcelsRouteRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdSequencesNewRoute =
   ParcelsParcelIdLayersLayerIdSequencesNewRouteImport.update({
     id: '/$layerId/sequences/new',
     path: '/$layerId/sequences/new',
-    getParentRoute: () => ParcelsParcelIdLayersRoute,
-  } as any)
-const ParcelsParcelIdLayersLayerIdRowNewIndexRoute =
-  ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport.update({
-    id: '/$layerId/row/new/',
-    path: '/$layerId/row/new/',
     getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdProjectsProjectIdIndexRoute =
@@ -247,22 +253,22 @@ const ParcelsParcelIdLayersLayerIdProjectsProjectIdIndexRoute =
     path: '/$projectId/',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRoute =
-  ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport.update({
-    id: '/$layerId/sequences/$sequenceId/edit',
-    path: '/$layerId/sequences/$sequenceId/edit',
-    getParentRoute: () => ParcelsParcelIdLayersRoute,
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRouteImport.update({
+    id: '/$projectId/assets',
+    path: '/$projectId/assets',
+    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdRowRowIdEditRoute =
-  ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport.update({
-    id: '/$layerId/row/$rowId/edit',
-    path: '/$layerId/row/$rowId/edit',
-    getParentRoute: () => ParcelsParcelIdLayersRoute,
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRouteImport.update({
+    id: '/$projectId/backup',
+    path: '/$projectId/backup',
+    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport.update({
-    id: '/$projectId/mysystems',
-    path: '/$projectId/mysystems',
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport.update({
+    id: '/$projectId/financials',
+    path: '/$projectId/financials',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRoute =
@@ -273,22 +279,34 @@ const ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRoute =
       getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
     } as any,
   )
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport.update({
-    id: '/$projectId/financials',
-    path: '/$projectId/financials',
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport.update({
+    id: '/$projectId/mysystems',
+    path: '/$projectId/mysystems',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRouteImport.update({
-    id: '/$projectId/backup',
-    path: '/$projectId/backup',
-    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
+const ParcelsParcelIdLayersLayerIdRowRowIdEditRoute =
+  ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport.update({
+    id: '/$layerId/row/$rowId/edit',
+    path: '/$layerId/row/$rowId/edit',
+    getParentRoute: () => ParcelsParcelIdLayersRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRouteImport.update({
-    id: '/$projectId/assets',
-    path: '/$projectId/assets',
+const ParcelsParcelIdLayersLayerIdRowNewIndexRoute =
+  ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport.update({
+    id: '/$layerId/row/new/',
+    path: '/$layerId/row/new/',
+    getParentRoute: () => ParcelsParcelIdLayersRoute,
+  } as any)
+const ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRoute =
+  ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport.update({
+    id: '/$layerId/sequences/$sequenceId/edit',
+    path: '/$layerId/sequences/$sequenceId/edit',
+    getParentRoute: () => ParcelsParcelIdLayersRoute,
+  } as any)
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRouteImport.update({
+    id: '/$projectId/rotations/new',
+    path: '/$projectId/rotations/new',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
 const ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesNewRoute =
@@ -297,39 +315,19 @@ const ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesNewRoute =
     path: '/$projectId/sequences/new',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRouteImport.update({
-    id: '/$projectId/rotations/new',
-    path: '/$projectId/rotations/new',
-    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
-  } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport.update(
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRouteImport.update(
     {
-      id: '/$projectId/systems/$systemId/',
-      path: '/$projectId/systems/$systemId/',
+      id: '/$projectId/areas/$areaId/edit',
+      path: '/$projectId/areas/$areaId/edit',
       getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
     } as any,
   )
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport.update({
-    id: '/$projectId/row/new/',
-    path: '/$projectId/row/new/',
-    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
-  } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport.update(
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRouteImport.update(
     {
-      id: '/$projectId/systems/$systemId/edit',
-      path: '/$projectId/systems/$systemId/edit',
-      getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
-    } as any,
-  )
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport.update(
-    {
-      id: '/$projectId/sequences/$sequenceId/edit',
-      path: '/$projectId/sequences/$sequenceId/edit',
+      id: '/$projectId/rotations/$rotationId/edit',
+      path: '/$projectId/rotations/$rotationId/edit',
       getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
     } as any,
   )
@@ -339,19 +337,33 @@ const ParcelsParcelIdLayersLayerIdProjectsProjectIdRowRowIdEditRoute =
     path: '/$projectId/row/$rowId/edit',
     getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
   } as any)
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRouteImport.update(
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport.update({
+    id: '/$projectId/row/new/',
+    path: '/$projectId/row/new/',
+    getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
+  } as any)
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport.update(
     {
-      id: '/$projectId/rotations/$rotationId/edit',
-      path: '/$projectId/rotations/$rotationId/edit',
+      id: '/$projectId/sequences/$sequenceId/edit',
+      path: '/$projectId/sequences/$sequenceId/edit',
       getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
     } as any,
   )
-const ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRoute =
-  ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRouteImport.update(
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport.update(
     {
-      id: '/$projectId/areas/$areaId/edit',
-      path: '/$projectId/areas/$areaId/edit',
+      id: '/$projectId/systems/$systemId/',
+      path: '/$projectId/systems/$systemId/',
+      getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
+    } as any,
+  )
+const ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRoute =
+  ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport.update(
+    {
+      id: '/$projectId/systems/$systemId/edit',
+      path: '/$projectId/systems/$systemId/edit',
       getParentRoute: () => ParcelsParcelIdLayersLayerIdProjectsRoute,
     } as any,
   )
@@ -359,6 +371,7 @@ const ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/parcels': typeof ParcelsRouteRouteWithChildren
+  '/plants': typeof PlantsRouteRouteWithChildren
   '/species': typeof SpeciesRouteRouteWithChildren
   '/systems': typeof SystemsRouteRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -366,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
+  '/plants/': typeof PlantsIndexRoute
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -416,6 +430,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin': typeof AdminIndexRoute
+  '/plants': typeof PlantsIndexRoute
   '/species': typeof SpeciesIndexRoute
   '/systems': typeof SystemsIndexRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -462,6 +477,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/parcels': typeof ParcelsRouteRouteWithChildren
+  '/plants': typeof PlantsRouteRouteWithChildren
   '/species': typeof SpeciesRouteRouteWithChildren
   '/systems': typeof SystemsRouteRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -469,6 +485,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
+  '/plants/': typeof PlantsIndexRoute
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -516,6 +533,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/parcels'
+    | '/plants'
     | '/species'
     | '/systems'
     | '/privacy'
@@ -523,6 +541,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/species/new'
     | '/admin/'
+    | '/plants/'
     | '/species/'
     | '/systems/'
     | '/parcels/$parcelId/layers'
@@ -573,6 +592,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/species/new'
     | '/admin'
+    | '/plants'
     | '/species'
     | '/systems'
     | '/parcels/$parcelId/layers'
@@ -618,6 +638,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/parcels'
+    | '/plants'
     | '/species'
     | '/systems'
     | '/privacy'
@@ -625,6 +646,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/species/new'
     | '/admin/'
+    | '/plants/'
     | '/species/'
     | '/systems/'
     | '/parcels/$parcelId/layers'
@@ -671,6 +693,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ParcelsRouteRoute: typeof ParcelsRouteRouteWithChildren
+  PlantsRouteRoute: typeof PlantsRouteRouteWithChildren
   SpeciesRouteRoute: typeof SpeciesRouteRouteWithChildren
   SystemsRouteRoute: typeof SystemsRouteRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -685,39 +708,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/systems': {
-      id: '/systems'
-      path: '/systems'
-      fullPath: '/systems'
-      preLoaderRoute: typeof SystemsRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/species': {
-      id: '/species'
-      path: '/species'
-      fullPath: '/species'
-      preLoaderRoute: typeof SpeciesRouteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parcels': {
@@ -727,26 +722,47 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/plants': {
+      id: '/plants'
+      path: '/plants'
+      fullPath: '/plants'
+      preLoaderRoute: typeof PlantsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/systems/': {
-      id: '/systems/'
-      path: '/'
-      fullPath: '/systems/'
-      preLoaderRoute: typeof SystemsIndexRouteImport
-      parentRoute: typeof SystemsRouteRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/species/': {
-      id: '/species/'
-      path: '/'
-      fullPath: '/species/'
-      preLoaderRoute: typeof SpeciesIndexRouteImport
-      parentRoute: typeof SpeciesRouteRoute
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/species': {
+      id: '/species'
+      path: '/species'
+      fullPath: '/species'
+      preLoaderRoute: typeof SpeciesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/systems': {
+      id: '/systems'
+      path: '/systems'
+      fullPath: '/systems'
+      preLoaderRoute: typeof SystemsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
@@ -755,6 +771,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plants/': {
+      id: '/plants/'
+      path: '/'
+      fullPath: '/plants/'
+      preLoaderRoute: typeof PlantsIndexRouteImport
+      parentRoute: typeof PlantsRouteRoute
+    }
+    '/species/': {
+      id: '/species/'
+      path: '/'
+      fullPath: '/species/'
+      preLoaderRoute: typeof SpeciesIndexRouteImport
+      parentRoute: typeof SpeciesRouteRoute
+    }
     '/species/new': {
       id: '/species/new'
       path: '/new'
@@ -762,39 +792,18 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof SpeciesNewRouteImport
       parentRoute: typeof SpeciesRouteRoute
     }
-    '/systems/$systemId/': {
-      id: '/systems/$systemId/'
-      path: '/$systemId'
-      fullPath: '/systems/$systemId/'
-      preLoaderRoute: typeof SystemsSystemIdIndexRouteImport
+    '/systems/': {
+      id: '/systems/'
+      path: '/'
+      fullPath: '/systems/'
+      preLoaderRoute: typeof SystemsIndexRouteImport
       parentRoute: typeof SystemsRouteRoute
     }
-    '/species/$speciesId/': {
-      id: '/species/$speciesId/'
-      path: '/$speciesId'
-      fullPath: '/species/$speciesId/'
-      preLoaderRoute: typeof SpeciesSpeciesIdIndexRouteImport
-      parentRoute: typeof SpeciesRouteRoute
-    }
-    '/scenario-preview/$scenarioId/': {
-      id: '/scenario-preview/$scenarioId/'
-      path: '/scenario-preview/$scenarioId'
-      fullPath: '/scenario-preview/$scenarioId/'
-      preLoaderRoute: typeof ScenarioPreviewScenarioIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parcels/$parcelId/': {
-      id: '/parcels/$parcelId/'
-      path: '/$parcelId'
-      fullPath: '/parcels/$parcelId/'
-      preLoaderRoute: typeof ParcelsParcelIdIndexRouteImport
-      parentRoute: typeof ParcelsRouteRoute
-    }
-    '/farm-scenario-preview/$configId/': {
-      id: '/farm-scenario-preview/$configId/'
-      path: '/farm-scenario-preview/$configId'
-      fullPath: '/farm-scenario-preview/$configId/'
-      preLoaderRoute: typeof FarmScenarioPreviewConfigIdIndexRouteImport
+    '/admin/advisor-requests/': {
+      id: '/admin/advisor-requests/'
+      path: '/admin/advisor-requests'
+      fullPath: '/admin/advisor-requests/'
+      preLoaderRoute: typeof AdminAdvisorRequestsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/farmer-advisor-survey/': {
@@ -804,26 +813,19 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AdminFarmerAdvisorSurveyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/advisor-requests/': {
-      id: '/admin/advisor-requests/'
-      path: '/admin/advisor-requests'
-      fullPath: '/admin/advisor-requests/'
-      preLoaderRoute: typeof AdminAdvisorRequestsIndexRouteImport
+    '/farm-scenario-preview/$configId/': {
+      id: '/farm-scenario-preview/$configId/'
+      path: '/farm-scenario-preview/$configId'
+      fullPath: '/farm-scenario-preview/$configId/'
+      preLoaderRoute: typeof FarmScenarioPreviewConfigIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/systems/$systemId/edit': {
-      id: '/systems/$systemId/edit'
-      path: '/$systemId/edit'
-      fullPath: '/systems/$systemId/edit'
-      preLoaderRoute: typeof SystemsSystemIdEditRouteImport
-      parentRoute: typeof SystemsRouteRoute
-    }
-    '/species/$speciesId/edit': {
-      id: '/species/$speciesId/edit'
-      path: '/$speciesId/edit'
-      fullPath: '/species/$speciesId/edit'
-      preLoaderRoute: typeof SpeciesSpeciesIdEditRouteImport
-      parentRoute: typeof SpeciesRouteRoute
+    '/parcels/$parcelId/': {
+      id: '/parcels/$parcelId/'
+      path: '/$parcelId'
+      fullPath: '/parcels/$parcelId/'
+      preLoaderRoute: typeof ParcelsParcelIdIndexRouteImport
+      parentRoute: typeof ParcelsRouteRoute
     }
     '/parcels/$parcelId/layers': {
       id: '/parcels/$parcelId/layers'
@@ -832,11 +834,46 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersRouteImport
       parentRoute: typeof ParcelsRouteRoute
     }
-    '/species/$speciesId/nutrients/new': {
-      id: '/species/$speciesId/nutrients/new'
-      path: '/$speciesId/nutrients/new'
-      fullPath: '/species/$speciesId/nutrients/new'
-      preLoaderRoute: typeof SpeciesSpeciesIdNutrientsNewRouteImport
+    '/scenario-preview/$scenarioId/': {
+      id: '/scenario-preview/$scenarioId/'
+      path: '/scenario-preview/$scenarioId'
+      fullPath: '/scenario-preview/$scenarioId/'
+      preLoaderRoute: typeof ScenarioPreviewScenarioIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/species/$speciesId/': {
+      id: '/species/$speciesId/'
+      path: '/$speciesId'
+      fullPath: '/species/$speciesId/'
+      preLoaderRoute: typeof SpeciesSpeciesIdIndexRouteImport
+      parentRoute: typeof SpeciesRouteRoute
+    }
+    '/species/$speciesId/edit': {
+      id: '/species/$speciesId/edit'
+      path: '/$speciesId/edit'
+      fullPath: '/species/$speciesId/edit'
+      preLoaderRoute: typeof SpeciesSpeciesIdEditRouteImport
+      parentRoute: typeof SpeciesRouteRoute
+    }
+    '/systems/$systemId/': {
+      id: '/systems/$systemId/'
+      path: '/$systemId'
+      fullPath: '/systems/$systemId/'
+      preLoaderRoute: typeof SystemsSystemIdIndexRouteImport
+      parentRoute: typeof SystemsRouteRoute
+    }
+    '/systems/$systemId/edit': {
+      id: '/systems/$systemId/edit'
+      path: '/$systemId/edit'
+      fullPath: '/systems/$systemId/edit'
+      preLoaderRoute: typeof SystemsSystemIdEditRouteImport
+      parentRoute: typeof SystemsRouteRoute
+    }
+    '/species/$speciesId/activities/edit': {
+      id: '/species/$speciesId/activities/edit'
+      path: '/$speciesId/activities/edit'
+      fullPath: '/species/$speciesId/activities/edit'
+      preLoaderRoute: typeof SpeciesSpeciesIdActivitiesEditRouteImport
       parentRoute: typeof SpeciesRouteRoute
     }
     '/species/$speciesId/activities/new': {
@@ -846,25 +883,18 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof SpeciesSpeciesIdActivitiesNewRouteImport
       parentRoute: typeof SpeciesRouteRoute
     }
-    '/species/$speciesId/activities/edit': {
-      id: '/species/$speciesId/activities/edit'
-      path: '/$speciesId/activities/edit'
-      fullPath: '/species/$speciesId/activities/edit'
-      preLoaderRoute: typeof SpeciesSpeciesIdActivitiesEditRouteImport
+    '/species/$speciesId/nutrients/new': {
+      id: '/species/$speciesId/nutrients/new'
+      path: '/$speciesId/nutrients/new'
+      fullPath: '/species/$speciesId/nutrients/new'
+      preLoaderRoute: typeof SpeciesSpeciesIdNutrientsNewRouteImport
       parentRoute: typeof SpeciesRouteRoute
     }
-    '/parcels/$parcelId/yield/$configId/': {
-      id: '/parcels/$parcelId/yield/$configId/'
-      path: '/$parcelId/yield/$configId'
-      fullPath: '/parcels/$parcelId/yield/$configId/'
-      preLoaderRoute: typeof ParcelsParcelIdYieldConfigIdIndexRouteImport
-      parentRoute: typeof ParcelsRouteRoute
-    }
-    '/parcels/$parcelId/models/$modelId/': {
-      id: '/parcels/$parcelId/models/$modelId/'
-      path: '/$parcelId/models/$modelId'
-      fullPath: '/parcels/$parcelId/models/$modelId/'
-      preLoaderRoute: typeof ParcelsParcelIdModelsModelIdIndexRouteImport
+    '/parcels/$parcelId/farm-scenario/$farmScenarioId/': {
+      id: '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
+      path: '/$parcelId/farm-scenario/$farmScenarioId'
+      fullPath: '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
+      preLoaderRoute: typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport
       parentRoute: typeof ParcelsRouteRoute
     }
     '/parcels/$parcelId/layers/$layerId/': {
@@ -874,18 +904,11 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdIndexRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
     }
-    '/parcels/$parcelId/farm-scenario/$farmScenarioId/': {
-      id: '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
-      path: '/$parcelId/farm-scenario/$farmScenarioId'
-      fullPath: '/parcels/$parcelId/farm-scenario/$farmScenarioId/'
-      preLoaderRoute: typeof ParcelsParcelIdFarmScenarioFarmScenarioIdIndexRouteImport
-      parentRoute: typeof ParcelsRouteRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects': {
-      id: '/parcels/$parcelId/layers/$layerId/projects'
-      path: '/$layerId/projects'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRouteImport
+    '/parcels/$parcelId/layers/$layerId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/edit'
+      path: '/$layerId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdEditRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
     }
     '/parcels/$parcelId/layers/$layerId/layout': {
@@ -895,25 +918,32 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdLayoutRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
     }
-    '/parcels/$parcelId/layers/$layerId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/edit'
-      path: '/$layerId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdEditRouteImport
+    '/parcels/$parcelId/layers/$layerId/projects': {
+      id: '/parcels/$parcelId/layers/$layerId/projects'
+      path: '/$layerId/projects'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
+    }
+    '/parcels/$parcelId/models/$modelId/': {
+      id: '/parcels/$parcelId/models/$modelId/'
+      path: '/$parcelId/models/$modelId'
+      fullPath: '/parcels/$parcelId/models/$modelId/'
+      preLoaderRoute: typeof ParcelsParcelIdModelsModelIdIndexRouteImport
+      parentRoute: typeof ParcelsRouteRoute
+    }
+    '/parcels/$parcelId/yield/$configId/': {
+      id: '/parcels/$parcelId/yield/$configId/'
+      path: '/$parcelId/yield/$configId'
+      fullPath: '/parcels/$parcelId/yield/$configId/'
+      preLoaderRoute: typeof ParcelsParcelIdYieldConfigIdIndexRouteImport
+      parentRoute: typeof ParcelsRouteRoute
     }
     '/parcels/$parcelId/layers/$layerId/sequences/new': {
       id: '/parcels/$parcelId/layers/$layerId/sequences/new'
       path: '/$layerId/sequences/new'
       fullPath: '/parcels/$parcelId/layers/$layerId/sequences/new'
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdSequencesNewRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/row/new/': {
-      id: '/parcels/$parcelId/layers/$layerId/row/new/'
-      path: '/$layerId/row/new'
-      fullPath: '/parcels/$parcelId/layers/$layerId/row/new/'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport
       parentRoute: typeof ParcelsParcelIdLayersRoute
     }
     '/parcels/$parcelId/layers/$layerId/projects/$projectId/': {
@@ -923,39 +953,11 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdIndexRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
-    '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
-      path: '/$layerId/sequences/$sequenceId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/row/$rowId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
-      path: '/$layerId/row/$rowId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
-      path: '/$projectId/mysystems'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
-      path: '/$projectId/generateestablishment'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
-      path: '/$projectId/financials'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
+      path: '/$projectId/assets'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
     '/parcels/$parcelId/layers/$layerId/projects/$projectId/backup': {
@@ -965,11 +967,53 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdBackupRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
-      path: '/$projectId/assets'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/assets'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAssetsRouteImport
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
+      path: '/$projectId/financials'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/financials'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdFinancialsRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
+      path: '/$projectId/generateestablishment'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/generateestablishment'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdGenerateestablishmentRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
+      path: '/$projectId/mysystems'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/mysystems'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdMysystemsRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/row/$rowId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
+      path: '/$layerId/row/$rowId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/row/$rowId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdRowRowIdEditRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/row/new/': {
+      id: '/parcels/$parcelId/layers/$layerId/row/new/'
+      path: '/$layerId/row/new'
+      fullPath: '/parcels/$parcelId/layers/$layerId/row/new/'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdRowNewIndexRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
+      path: '/$layerId/sequences/$sequenceId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/sequences/$sequenceId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdSequencesSequenceIdEditRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new'
+      path: '/$projectId/rotations/new'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
     '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/new': {
@@ -979,46 +1023,11 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesNewRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new'
-      path: '/$projectId/rotations/new'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/new'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsNewRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/'
-      path: '/$projectId/systems/$systemId'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/'
-      path: '/$projectId/row/new'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
-      path: '/$projectId/systems/$systemId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
-      path: '/$projectId/sequences/$sequenceId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport
-      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
-    }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
-      path: '/$projectId/row/$rowId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRowRowIdEditRouteImport
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit'
+      path: '/$projectId/areas/$areaId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
     '/parcels/$parcelId/layers/$layerId/projects/$projectId/rotations/$rotationId/edit': {
@@ -1028,11 +1037,39 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRotationsRotationIdEditRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
-    '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit': {
-      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit'
-      path: '/$projectId/areas/$areaId/edit'
-      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/areas/$areaId/edit'
-      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdAreasAreaIdEditRouteImport
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
+      path: '/$projectId/row/$rowId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/$rowId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRowRowIdEditRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/'
+      path: '/$projectId/row/new'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/row/new/'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdRowNewIndexRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
+      path: '/$projectId/sequences/$sequenceId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/sequences/$sequenceId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSequencesSequenceIdEditRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/'
+      path: '/$projectId/systems/$systemId'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdIndexRouteImport
+      parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
+    }
+    '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit': {
+      id: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
+      path: '/$projectId/systems/$systemId/edit'
+      fullPath: '/parcels/$parcelId/layers/$layerId/projects/$projectId/systems/$systemId/edit'
+      preLoaderRoute: typeof ParcelsParcelIdLayersLayerIdProjectsProjectIdSystemsSystemIdEditRouteImport
       parentRoute: typeof ParcelsParcelIdLayersLayerIdProjectsRoute
     }
   }
@@ -1152,6 +1189,18 @@ const ParcelsRouteRouteWithChildren = ParcelsRouteRoute._addFileChildren(
   ParcelsRouteRouteChildren,
 )
 
+interface PlantsRouteRouteChildren {
+  PlantsIndexRoute: typeof PlantsIndexRoute
+}
+
+const PlantsRouteRouteChildren: PlantsRouteRouteChildren = {
+  PlantsIndexRoute: PlantsIndexRoute,
+}
+
+const PlantsRouteRouteWithChildren = PlantsRouteRoute._addFileChildren(
+  PlantsRouteRouteChildren,
+)
+
 interface SpeciesRouteRouteChildren {
   SpeciesNewRoute: typeof SpeciesNewRoute
   SpeciesIndexRoute: typeof SpeciesIndexRoute
@@ -1195,6 +1244,7 @@ const SystemsRouteRouteWithChildren = SystemsRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ParcelsRouteRoute: ParcelsRouteRouteWithChildren,
+  PlantsRouteRoute: PlantsRouteRouteWithChildren,
   SpeciesRouteRoute: SpeciesRouteRouteWithChildren,
   SystemsRouteRoute: SystemsRouteRouteWithChildren,
   PrivacyRoute: PrivacyRoute,

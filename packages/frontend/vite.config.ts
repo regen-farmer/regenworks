@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 		resolveId(id: string) {
 			if (id.startsWith("@tauri-apps/")) return "\0stub-server-module";
 			if (id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
-			if (id.startsWith("@rw/db/")) return "\0stub-server-module";
+			if (id.startsWith("@rw/db/") && id !== "@rw/db/access.ts") return "\0stub-server-module";
 		},
 		load(id: string) {
 			if (id === "\0stub-server-module") return "export default {}; export {};";

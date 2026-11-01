@@ -51,7 +51,20 @@ export interface ISpeciesSchema {
 		},
 	];
 	price: number;
+	/**
+	 * Hybrid groups are species entries too (e.g. "Castanea Euro-Japanese
+	 * hybrid"). One entry per group we work with, not per exact cross; an exact
+	 * pedigree goes on the cultivar.
+	 */
+	hybrid?: {
+		parents: mongoose.Types.ObjectId[] | string[];
+		parentageCertainty: "known" | "partial" | "uncertain";
+		/** Parent whose growth figures are used until we have our own data. */
+		growsLike?: mongoose.Types.ObjectId | string | null;
+	} | null;
 }
+
+export const PARENTAGE_CERTAINTY = ["known", "partial", "uncertain"] as const;
 
 // SPECIES SCHEMA SETUP
 const speciesSchema = new mongoose.Schema<ISpeciesSchema>({
@@ -107,6 +120,17 @@ const speciesSchema = new mongoose.Schema<ISpeciesSchema>({
 		},
 	],
 	price: Number,
+	hybrid: {
+		type: new mongoose.Schema(
+			{
+				parents: [{ type: mongoose.Schema.Types.ObjectId, ref: "Species" }],
+				parentageCertainty: { type: String, enum: PARENTAGE_CERTAINTY, default: "uncertain" },
+				growsLike: { type: mongoose.Schema.Types.ObjectId, ref: "Species" },
+			},
+			{ _id: false },
+		),
+		default: undefined,
+	},
 });
 
 const Species =
