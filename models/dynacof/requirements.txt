@@ -1,0 +1,5 @@
+# Wrapper (HTTP server and input validation). The model itself is Julia:
+# see worker/Project.toml and worker/Manifest.toml.
+fastapi==0.162.0
+pydantic==2.14.2
+uvicorn==0.54.0

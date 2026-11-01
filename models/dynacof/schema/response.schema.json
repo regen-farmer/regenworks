@@ -1,0 +1,138 @@
+{
+  "$defs": {
+    "Outputs": {
+      "properties": {
+        "years": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Years",
+          "type": "array"
+        },
+        "annual": {
+          "additionalProperties": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "description": "One value per year in 'years'. Keys: coffee_yield_green_kg_ha: Green coffee bean yield harvested in the year (kg/ha); coffee_gpp_t_c_ha: Coffee gross primary production (t C/ha/yr); coffee_npp_t_c_ha: Coffee net primary production (t C/ha/yr); coffee_lai_mean: Mean coffee leaf area index; coffee_biomass_t_c_ha: Coffee biomass carbon at year end: leaves, shoots, stump + coarse roots, fine roots, fruit (t C/ha); coffee_reserves_t_c_ha: Coffee carbon reserves at year end (t C/ha); tree_gpp_t_c_ha: Shade tree gross primary production (t C/ha/yr); tree_npp_t_c_ha: Shade tree net primary production (t C/ha/yr); tree_lai_mean: Mean shade tree leaf area index; tree_biomass_t_c_ha: Shade tree biomass carbon at year end: leaves, stem, branches, coarse + fine roots (t C/ha); tree_dbh_cm: Shade tree diameter at breast height at year end (cm); tree_height_m: Shade tree height at year end (m); tree_density_per_ha: Shade trees per hectare at year end; tree_light_transmittance_mean: Mean fraction of light passing the shade tree canopy; rain_mm: Rainfall (mm); evapotranspiration_mm: System evapotranspiration (mm); runoff_mm: Surface runoff (mm); drainage_mm: Drainage below the root zone (mm); days: Simulated days in the year",
+          "title": "Annual",
+          "type": "object"
+        },
+        "daily": {
+          "additionalProperties": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "description": "Only when daily_variables is set: 'date' plus one list per variable",
+          "title": "Daily",
+          "type": "object"
+        },
+        "cycles": {
+          "description": "Plantation cycles simulated (a new one starts after coffee.AgeCoffeeMax years)",
+          "title": "Cycles",
+          "type": "integer"
+        },
+        "shade_trees": {
+          "title": "Shade Trees",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "years",
+        "annual",
+        "daily",
+        "cycles",
+        "shade_trees"
+      ],
+      "title": "Outputs",
+      "type": "object"
+    },
+    "RunInfo": {
+      "properties": {
+        "process": {
+          "default": "dynacof",
+          "title": "Process",
+          "type": "string"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "string"
+        },
+        "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+        },
+        "model_seconds": {
+          "title": "Model Seconds",
+          "type": "number"
+        },
+        "first_date": {
+          "title": "First Date",
+          "type": "string"
+        },
+        "last_date": {
+          "title": "Last Date",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_version",
+        "adapter_version",
+        "input_sha256",
+        "started_at",
+        "duration_s",
+        "model_seconds",
+        "first_date",
+        "last_date",
+        "warnings"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "outputs": {
+      "$ref": "#/$defs/Outputs"
+    },
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    }
+  },
+  "required": [
+    "outputs",
+    "run"
+  ],
+  "title": "ExecuteResponse",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

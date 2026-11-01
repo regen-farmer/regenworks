@@ -21,6 +21,8 @@ permissions:
 env:
   # Keep in step with ARG SHAMBA_COMMIT in models/shamba/Dockerfile.
   SHAMBA_COMMIT: c98f5ef07c43c2841ef7e025f92ff52901f18c72
+  # Example weather for the DynACof golden test (VEZY/DynACof.jl_inputs).
+  DYNACOF_INPUTS_COMMIT: bce4d64f2d955b645ab06d355b2a34cfdab738c2
 
 jobs:
   shamba-tests:
@@ -77,3 +79,67 @@ jobs:
       - name: Logs
         if: always()
         run: docker logs shamba || true
+
+  dynacof-tests:
+    name: DynACof wrapper tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: models/dynacof
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.10.4"
+
+      - uses: julia-actions/cache@v2
+
+      - name: Install pinned Julia packages
+        run: julia --project=worker -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+      - name: Fetch example weather
+        run: |
+          git init /tmp/dynacof-inputs && cd /tmp/dynacof-inputs
+          git remote add origin https://github.com/VEZY/DynACof.jl_inputs
+          git fetch --depth 1 origin "$DYNACOF_INPUTS_COMMIT"
+          git checkout --detach FETCH_HEAD
+
+      - run: pip install -r requirements-test.txt
+
+      - name: Schema files are current
+        run: python -m adapter.export_schema --check
+
+      - name: Golden and contract tests
+        env:
+          DYNACOF_INPUTS: /tmp/dynacof-inputs
+        run: python -m pytest -q tests
+
+  dynacof-image:
+    name: DynACof image builds and answers
+    runs-on: ubuntu-latest
+    needs: dynacof-tests
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: docker build -t dynacof-runner:ci models/dynacof
+
+      - name: Smoke test
+        run: |
+          docker run -d --name dynacof -p 8080:8080 -e DYNACOF_API_TOKEN=ci --read-only --tmpfs /tmp dynacof-runner:ci
+          for i in $(seq 1 300); do
+            s=$(curl -sf localhost:8080/health | python3 -c "import json,sys; print(json.load(sys.stdin)['status'])" || true)
+            [ "$s" = "ok" ] && break; sleep 2
+          done
+          test "$s" = "ok"
+          curl -sf -H "Authorization: Bearer ci" localhost:8080/processes/dynacof | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['id']=='dynacof'; print(d['upstream'])"
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080/processes)" = "401"
+
+      - name: Logs
+        if: always()
+        run: docker logs dynacof || true
