@@ -11,6 +11,13 @@ on PRs and pushes to `dev` (Dependabot targets `dev`).
   `.auth/user.json`.
 - `app.authed.spec.ts` — reuses that session for gated UI, including the home
   maplibre farms map.
+- `app.tour.authed.spec.ts` — click-through tour as the test user: top-level
+  pages, then the first farm → first project → 3D map and back. Fails on page
+  crashes, console errors and any WebGL/shader error (e.g. mixed deck.gl
+  versions). Attaches a screenshot of every step to the HTML report; download
+  the `playwright-report` artifact from the CI run to look through them. Only
+  safe buttons are clicked (navigation and view toggles). The project test is
+  skipped if the test user has no farm with a project on staging.
 
 The authed build connects to the staging backend
 (`regenworks-dev-backend.onrender.com`) so gated pages render real data. Use
