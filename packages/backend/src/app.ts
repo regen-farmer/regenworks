@@ -41,7 +41,7 @@ import stripeRoutes from "./routes/stripe.ts";
 import systemdesignRoutes from "./routes/systemdesigns.ts";
 import systemflowRoutes from "./routes/systemflows.ts";
 import systemRoutes from "./routes/systems.ts";
-import { isPlainObject } from "./utils/mongoSafety.ts";
+import { identify } from "./auth/identify.ts";
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
@@ -135,39 +135,16 @@ app.use(
   ) => {
     res.locals.currentUser = undefined;
 
-    const jwt = req.headers.authorization;
-
-    function parseJwt(token) {
-      // eslint-disable-next-line no-unneeded-ternary
-      // console.log("token in place", token === "undefined" ? false : true);
-
-      if (token === "undefined") {
-        return;
-      }
-
-      return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
-    }
-
-    let idToken: Auth0IDToken | undefined;
-
-    // console.log('jwt in place', jwt);
-
-    if (jwt && jwt !== "" && jwt !== "undefined" && typeof jwt === "string") {
-      // idToken = parseJwt(jwt);
-      // console.log('jwt:', jwt)
-      const parsedToken = JSON.parse(jwt) as unknown;
-      if (isPlainObject(parsedToken)) {
-        idToken = parsedToken as unknown as Auth0IDToken;
-      }
-      // console.log('idToken:', idToken)
-      // if (!idToken) {
-      //   // console.log("no id token");
-      //   res.status(404).send("Invalid token");
-      //   return;
-      // }
-    } else {
-      console.log("no jwt");
-    }
+    // Identity comes only from Auth0 (see auth/identify.ts). Never from the
+    // request body or an unsigned header.
+    const identity = await identify(req.headers.authorization);
+    const idToken: Auth0IDToken | undefined = identity
+      ? ({
+          sub: identity.sub,
+          email: identity.email,
+          email_verified: identity.email_verified,
+        } as Auth0IDToken)
+      : undefined;
 
     const externalId = idToken?.sub;
     const email = idToken?.email;
@@ -177,16 +154,20 @@ app.use(
       if (user) {
         req.user = user;
       } else if (typeof email === "string" && email !== "") {
-        console.log("idToken", idToken);
-        // Find any existing user
         const user = await User.findOne({ email: { $eq: email } }).exec();
 
-        if (user) {
+        if (user && idToken?.email_verified) {
+          // Same person logging in with a new Auth0 identity: link the account.
           user.externalId = externalId;
           await user.save();
           req.user = user;
+        } else if (user) {
+          // The email belongs to an existing account but isn't verified for this
+          // login: don't link (that would be an account takeover). Treat as anonymous.
+          console.warn("Login with unverified email matching an existing account; not linked");
         } else {
-          // Create a new user if none exist
+          // Create a new user if none exist (unverified emails are stored but never
+          // used to link to an existing account)
           const newUser = await User.create({
             externalId,
             email,
