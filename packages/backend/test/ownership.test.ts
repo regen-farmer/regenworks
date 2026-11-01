@@ -122,7 +122,7 @@ test("every owns() names a parameter that exists in its path", () => {
   assert.deepEqual(bad, []);
 });
 
-test("each guard looks up its own parameter, and lets the owner through", async () => {
+test("each guard looks up its own parameter with the right kind", async () => {
   const failures: string[] = [];
   for (const r of guardedRoutes()) {
     const guards = guardsOf(r);
@@ -150,4 +150,31 @@ test("each guard looks up its own parameter, and lets the owner through", async 
   }
   setOwnerLookupForTests(async () => ({ ownerId: OWNER._id, isPublic: false }));
   assert.deepEqual(failures, []);
+});
+
+test("the owner gets past every guard", async () => {
+  // Replace each route's final handler with a marker, so the request stops
+  // right after the guards (no database needed).
+  for (const file of ROUTE_FILES) {
+    const router: any = (await import(`../src/routes/${file}`)).default;
+    for (const layer of router.stack ?? []) {
+      const stack = layer.route?.stack;
+      if (stack?.length) stack[stack.length - 1].handle = (_req: any, res: any) => res.status(299).send("ok");
+    }
+  }
+  setOwnerLookupForTests(async () => ({ ownerId: OWNER._id, isPublic: false }));
+  const blocked: string[] = [];
+  for (const r of guardedRoutes().filter((r) => r.guard.startsWith("owns("))) {
+    who = { user: OWNER, idToken: { email_verified: true } };
+    const res = await fetch(base + fill(r.path), {
+      method: r.method,
+      headers: { "content-type": "application/json" },
+      body: r.method === "GET" ? undefined : "{}",
+    });
+    await res.text();
+    // Other middleware after the guards (e.g. the old parcel check) may still
+    // need a database; only the guards' own refusals count here.
+    if (res.status === 401 || res.status === 403) blocked.push(`${r.method} ${r.path} → ${res.status}`);
+  }
+  assert.deepEqual(blocked, []);
 });

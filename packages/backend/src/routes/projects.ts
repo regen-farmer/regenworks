@@ -1051,9 +1051,10 @@ router.post(
         return;
       }
       const sourceDoc = await Project.findById(sourceId).lean();
+      // Only your own scenarios (or any, for Grove admins): the copy shares
+      // records with its source, so a copy of someone else's would reach theirs.
       const allowed = ownershipDecision(req.user, req.idToken?.email_verified === true, sourceDoc ? await dbOwnerLookup("project", sourceId) : null, {
-        method: "GET",
-        allowPublic: true,
+        method: "PUT",
       });
       if (allowed !== 200) {
         res.status(allowed).send({ error: "You can't copy this scenario" });
@@ -1068,6 +1069,10 @@ router.post(
         owner: { id: req.user?._id },
         layer: req.params.id,
         isPublic: false,
+        // Not shared with the source: deleting the copy deleted these too.
+        budgets: {},
+        activities: [],
+        assets: [],
       });
       createdProject.name = String(req.body?.project?.name ?? source.name ?? "Copy");
 

@@ -749,7 +749,8 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put(
   "/systems/:id",
-  owns("system"),
+  // No owns() here on purpose: a non-owner editing a shared system gets their
+  // own edited copy (see the "NOT OWNER" branch); only the owner changes it.
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

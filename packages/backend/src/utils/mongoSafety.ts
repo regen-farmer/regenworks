@@ -76,6 +76,10 @@ const PROTECTED_FIELDS = [
   "soiltests",
   "saptests",
   "systemdesign",
+  "system",
+  "edgesystem",
+  "systems",
+  "accounts",
 ];
 
 export const withoutProtectedFields = (value: Record<string, unknown>) => {

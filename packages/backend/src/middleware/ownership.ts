@@ -78,6 +78,7 @@ const LISTED_IN: Partial<Record<OwnedKind, [OwnedKind, mongoose.Model<any>, stri
     ["layer", Layer, "areas"],
   ],
   posting: [["budget", Budget, "postings"]],
+  activity: [["project", Project, "activities"]],
   nurseryProduct: [["nursery", Nursery, "products"]],
 };
 
