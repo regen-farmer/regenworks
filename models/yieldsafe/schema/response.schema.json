@@ -1,0 +1,186 @@
+{
+  "$defs": {
+    "Outputs": {
+      "properties": {
+        "years": {
+          "description": "Calendar years; values are for the end of each year",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Years",
+          "type": "array"
+        },
+        "tree_years": {
+          "description": "Tree year (0 = first) for each entry in 'years'",
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tree Years",
+          "type": "array"
+        },
+        "annual": {
+          "additionalProperties": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "description": "One value per year. crop: Crop code grown in the year; crop_yield_t_ha: Crop yield per cropped area at the end of the season (t/ha, at crop moisture); crop_byproduct_t_ha: Crop by-product, e.g. straw (t/ha of cropped area); trees_per_ha: Standing trees at year end; tree_height_m: Tree height at year end (m); tree_dbh_cm: Diameter at breast height at year end (cm); canopy_cover_pct: Canopy area (% of land, capped at 100); prune_height_m: Clear stem height (m); stand_volume_m3_ha: Standing timber volume at year end plus timber harvested in the year (m3/ha); harvest_volume_m3_ha: Timber removed by thinning or felling in the year (m3/ha); branch_volume_m3_ha: Branchwood volume at year end (m3/ha); harvest_branch_m3_ha: Branchwood removed in the year (m3/ha); fruit_t_ha: Tree fruit harvested in the year (t/ha); tree_carbon_t_ha: Carbon in trees including roots at year end (t C/ha); tree_co2_t_ha: The same as CO2 (t CO2/ha, x3.67); rain_mm: Precipitation (mm/yr); irrigation_mm: Irrigation (mm/yr); drainage_mm: Flow to groundwater (mm/yr); tree_water_mm: Tree water uptake (mm/yr); crop_water_mm: Crop water uptake (mm/yr); evaporation_mm: Soil evaporation (mm/yr); days: Simulated days in the year",
+          "title": "Annual",
+          "type": "object"
+        },
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "daily": {
+          "additionalProperties": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "description": "Only when daily_variables is set; dates follow weather.start",
+          "title": "Daily",
+          "type": "object"
+        },
+        "daily_units": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Daily Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "years",
+        "tree_years",
+        "annual",
+        "summary",
+        "daily",
+        "daily_units"
+      ],
+      "title": "Outputs",
+      "type": "object"
+    },
+    "RunInfo": {
+      "properties": {
+        "process": {
+          "default": "yieldsafe",
+          "title": "Process",
+          "type": "string"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "reference_workbook_sha256": {
+          "description": "The Excel workbook the port is tested against",
+          "title": "Reference Workbook Sha256",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "string"
+        },
+        "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+        },
+        "first_day": {
+          "title": "First Day",
+          "type": "string"
+        },
+        "last_day": {
+          "title": "Last Day",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_version",
+        "reference_workbook_sha256",
+        "adapter_version",
+        "input_sha256",
+        "started_at",
+        "duration_s",
+        "first_day",
+        "last_day",
+        "warnings"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    },
+    "Summary": {
+      "properties": {
+        "mean_crop_yield_t_ha": {
+          "description": "Mean of crop_yield_t_ha over years with a crop, as the workbook's summary (cropped area)",
+          "title": "Mean Crop Yield T Ha",
+          "type": "number"
+        },
+        "max_stand_volume_m3_ha": {
+          "description": "Largest standing + cumulative harvested timber volume (workbook 'final tree vol')",
+          "title": "Max Stand Volume M3 Ha",
+          "type": "number"
+        },
+        "max_stand_biomass_odt_ha": {
+          "description": "The same as oven-dry tonnes (x wood density)",
+          "title": "Max Stand Biomass Odt Ha",
+          "type": "number"
+        },
+        "final_tree_carbon_t_ha": {
+          "title": "Final Tree Carbon T Ha",
+          "type": "number"
+        },
+        "final_tree_co2_t_ha": {
+          "title": "Final Tree Co2 T Ha",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mean_crop_yield_t_ha",
+        "max_stand_volume_m3_ha",
+        "max_stand_biomass_odt_ha",
+        "final_tree_carbon_t_ha",
+        "final_tree_co2_t_ha"
+      ],
+      "title": "Summary",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "outputs": {
+      "$ref": "#/$defs/Outputs"
+    },
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    }
+  },
+  "required": [
+    "outputs",
+    "run"
+  ],
+  "title": "ExecuteResponse",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

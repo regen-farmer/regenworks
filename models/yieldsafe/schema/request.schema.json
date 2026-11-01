@@ -1,0 +1,1303 @@
+{
+  "$defs": {
+    "CropOverrides": {
+      "additionalProperties": false,
+      "description": "Names and units as in yieldsafe.model.CropParams. For a new crop code (13 or 14) every field is required.",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "doy_sowing": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": -365,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Negative = sown the previous autumn",
+          "title": "Doy Sowing"
+        },
+        "doy_harvest": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Harvest"
+        },
+        "t_base": {
+          "anyOf": [
+            {
+              "maximum": 20,
+              "minimum": -10,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "T Base"
+        },
+        "tsum_emerge": {
+          "anyOf": [
+            {
+              "maximum": 5000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tsum Emerge"
+        },
+        "tsum_rb": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tsum Rb"
+        },
+        "tsum_re": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tsum Re"
+        },
+        "tsum_harvest": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tsum Harvest"
+        },
+        "biomass0_g_m2": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Biomass0 G M2"
+        },
+        "lai0": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lai0"
+        },
+        "partition_leaves": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Partition Leaves"
+        },
+        "rue_g_per_mj": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rue G Per Mj"
+        },
+        "water_per_biomass_m3_g": {
+          "anyOf": [
+            {
+              "maximum": 0.01,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Water Per Biomass M3 G"
+        },
+        "harvest_index": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Harvest Index"
+        },
+        "harvest_index2": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Harvest Index2"
+        },
+        "k_extinction": {
+          "anyOf": [
+            {
+              "maximum": 2,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "K Extinction"
+        },
+        "pf_crit": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pf Crit"
+        },
+        "pwp": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pwp"
+        },
+        "moisture1": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Moisture1"
+        },
+        "moisture2": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Moisture2"
+        },
+        "sla_m2_g": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sla M2 G"
+        },
+        "site_factor": {
+          "anyOf": [
+            {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Site Factor"
+        },
+        "irrigated": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Irrigated"
+        },
+        "critical_deficit_mm": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Critical Deficit Mm"
+        },
+        "application_mm": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Application Mm"
+        }
+      },
+      "title": "CropOverrides",
+      "type": "object"
+    },
+    "Irrigation": {
+      "additionalProperties": false,
+      "properties": {
+        "start_year": {
+          "default": 0,
+          "maximum": 110,
+          "minimum": 0,
+          "title": "Start Year",
+          "type": "integer"
+        },
+        "start_doy": {
+          "default": 0,
+          "maximum": 365,
+          "minimum": 0,
+          "title": "Start Doy",
+          "type": "integer"
+        },
+        "end_year": {
+          "default": 60,
+          "maximum": 110,
+          "minimum": 0,
+          "title": "End Year",
+          "type": "integer"
+        },
+        "end_doy": {
+          "default": 180,
+          "maximum": 365,
+          "minimum": 0,
+          "title": "End Doy",
+          "type": "integer"
+        },
+        "interval_days": {
+          "default": 10,
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Interval Days",
+          "type": "integer"
+        },
+        "amount_mm": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Amount Mm",
+          "type": "number"
+        }
+      },
+      "title": "Irrigation",
+      "type": "object"
+    },
+    "Pruning": {
+      "additionalProperties": false,
+      "description": "The workbook's 'horizontal prune' (management sheet AF73-AF75).",
+      "properties": {
+        "interval_years": {
+          "default": 80,
+          "exclusiveMinimum": 0,
+          "maximum": 200,
+          "title": "Interval Years",
+          "type": "number"
+        },
+        "biomass_fraction": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Biomass Fraction",
+          "type": "number"
+        },
+        "shoots_fraction": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Shoots Fraction",
+          "type": "number"
+        }
+      },
+      "title": "Pruning",
+      "type": "object"
+    },
+    "Site": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "description": "Recorded only: Yield-SAFE takes radiation directly, not latitude",
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "description": "Recorded only",
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Lon",
+          "type": "number"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "required": [
+        "lat",
+        "lon"
+      ],
+      "title": "Site",
+      "type": "object"
+    },
+    "Soil": {
+      "additionalProperties": false,
+      "properties": {
+        "texture": {
+          "description": "Soil class from the workbook (worksheet C.3)",
+          "enum": [
+            "coarse",
+            "medium",
+            "medium_fine",
+            "fine",
+            "very_fine",
+            "fine_upson_2014"
+          ],
+          "title": "Texture",
+          "type": "string"
+        },
+        "vwc0": {
+          "description": "Initial volumetric water content (mm/mm)",
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Vwc0",
+          "type": "number"
+        },
+        "depth_mm": {
+          "description": "Effective soil (rooting) depth",
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "title": "Depth Mm",
+          "type": "number"
+        },
+        "water_model": {
+          "default": true,
+          "description": "False = no water limitation (the workbook's water switch)",
+          "title": "Water Model",
+          "type": "boolean"
+        },
+        "root_shoot_ratio": {
+          "default": 0.25,
+          "description": "Used for root carbon",
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Root Shoot Ratio",
+          "type": "number"
+        },
+        "overrides": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "propertyNames": {
+            "enum": [
+              "alpha",
+              "epot_mm_per_mj",
+              "pf_fc",
+              "ks_mm_d",
+              "n_vg",
+              "pf_crit_e",
+              "pf_e_offset",
+              "theta_s",
+              "theta_r"
+            ]
+          },
+          "title": "Overrides",
+          "type": "object"
+        }
+      },
+      "required": [
+        "texture",
+        "vwc0",
+        "depth_mm"
+      ],
+      "title": "Soil",
+      "type": "object"
+    },
+    "Tree": {
+      "additionalProperties": false,
+      "properties": {
+        "template": {
+          "description": "Parameter set from the Yield-SAFE v2 workbook (worksheet C.1)",
+          "enum": [
+            "poplar_graves_2010",
+            "src",
+            "miscanthus",
+            "wild_cherry",
+            "poplar_upson_agf",
+            "poplar_for_2011",
+            "apple_5_7x2_8"
+          ],
+          "title": "Template",
+          "type": "string"
+        },
+        "overrides": {
+          "$ref": "#/$defs/TreeOverrides"
+        }
+      },
+      "required": [
+        "template"
+      ],
+      "title": "Tree",
+      "type": "object"
+    },
+    "TreeOverrides": {
+      "additionalProperties": false,
+      "description": "Any parameter of the chosen template can be replaced. Names and units as in yieldsafe.model.TreeParams.",
+      "properties": {
+        "doy_planting": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Day of year, 0 = 1 January",
+          "title": "Doy Planting"
+        },
+        "doy_pruning": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Pruning"
+        },
+        "pruning_height_m": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pruning Height M"
+        },
+        "prune_biomass_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prune Biomass Fraction"
+        },
+        "prune_shoots_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prune Shoots Fraction"
+        },
+        "max_bole_proportion": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Bole Proportion"
+        },
+        "max_bole_height_m": {
+          "anyOf": [
+            {
+              "maximum": 30,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Bole Height M"
+        },
+        "doy_thinning": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Thinning"
+        },
+        "site_factor": {
+          "anyOf": [
+            {
+              "maximum": 3,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Site Factor"
+        },
+        "n_shoots0": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1000,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "N Shoots0"
+        },
+        "biomass0_g": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1000000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Biomass0 G"
+        },
+        "bole_height0_m": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bole Height0 M"
+        },
+        "ap": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 5,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ap"
+        },
+        "doy_budburst": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Budburst"
+        },
+        "doy_leaffall": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Leaffall"
+        },
+        "rue_g_per_mj": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rue G Per Mj"
+        },
+        "form_factor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 2,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Form Factor"
+        },
+        "water_per_biomass_m3_g": {
+          "anyOf": [
+            {
+              "maximum": 0.01,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Water Per Biomass M3 G"
+        },
+        "k_main": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "K Main"
+        },
+        "la_max_m2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "La Max M2"
+        },
+        "la_ratio": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 10000000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "La Ratio"
+        },
+        "ratio_timber": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ratio Timber"
+        },
+        "wood_density_g_m3": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 2000000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wood Density G M3"
+        },
+        "pf_crit": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pf Crit"
+        },
+        "pwp": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pwp"
+        },
+        "sigma_height": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 500,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sigma Height"
+        },
+        "canopy_width_depth": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canopy Width Depth"
+        },
+        "tau_days": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 365,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tau Days"
+        },
+        "moisture_content": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Moisture Content"
+        },
+        "light_a": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Light A"
+        },
+        "light_b": {
+          "anyOf": [
+            {
+              "maximum": 0.8,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Light B"
+        },
+        "root_proportion": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Root Proportion"
+        },
+        "root_length_m_g": {
+          "anyOf": [
+            {
+              "maximum": 10000000.0,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Root Length M G"
+        },
+        "root_water_coeff": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Root Water Coeff"
+        },
+        "doy_fruit_set": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Doy Fruit Set"
+        },
+        "fruit_proportion": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fruit Proportion"
+        }
+      },
+      "title": "TreeOverrides",
+      "type": "object"
+    },
+    "Weather": {
+      "additionalProperties": false,
+      "description": "Daily series from `start`, one value per day, no gaps (real calendar, leap days included).",
+      "properties": {
+        "start": {
+          "description": "Date of the first value; also the start of tree year 0",
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "temp_c": {
+          "description": "Daily mean air temperature (degC)",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 40000,
+          "minItems": 366,
+          "title": "Temp C",
+          "type": "array"
+        },
+        "rad_mj_m2": {
+          "description": "Global radiation (MJ m-2 d-1)",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 40000,
+          "minItems": 366,
+          "title": "Rad Mj M2",
+          "type": "array"
+        },
+        "rain_mm": {
+          "description": "Precipitation (mm d-1)",
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 40000,
+          "minItems": 366,
+          "title": "Rain Mm",
+          "type": "array"
+        }
+      },
+      "required": [
+        "start",
+        "temp_c",
+        "rad_mj_m2",
+        "rain_mm"
+      ],
+      "title": "Weather",
+      "type": "object"
+    },
+    "Year": {
+      "additionalProperties": false,
+      "description": "One tree year (0 = the year of `weather.start`). Mirrors a row of the workbook's crop calendar.",
+      "properties": {
+        "crop": {
+          "default": 0,
+          "description": "Crop code (1-12 built-in, 13-14 custom, 0 = none); see /processes/yieldsafe",
+          "maximum": 14,
+          "minimum": 0,
+          "title": "Crop",
+          "type": "integer"
+        },
+        "crop_area": {
+          "default": 0,
+          "description": "Share of the land cropped (alley width / total)",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Crop Area",
+          "type": "number"
+        },
+        "trees_planted_per_ha": {
+          "default": 0,
+          "description": "Planted on tree.doy_planting of this year",
+          "maximum": 20000,
+          "minimum": 0,
+          "title": "Trees Planted Per Ha",
+          "type": "number"
+        },
+        "trees_removed_per_ha": {
+          "default": 0,
+          "description": "Thinned or felled on tree.doy_thinning of this year",
+          "maximum": 20000,
+          "minimum": 0,
+          "title": "Trees Removed Per Ha",
+          "type": "number"
+        }
+      },
+      "title": "Year",
+      "type": "object"
+    },
+    "YieldSafeInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "$ref": "#/$defs/Site"
+        },
+        "weather": {
+          "$ref": "#/$defs/Weather"
+        },
+        "tree": {
+          "$ref": "#/$defs/Tree"
+        },
+        "soil": {
+          "$ref": "#/$defs/Soil"
+        },
+        "crops": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CropOverrides"
+          },
+          "description": "Changes to the built-in crops by code, or complete new crops under codes 13 and 14",
+          "propertyNames": {
+            "enum": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ]
+          },
+          "title": "Crops",
+          "type": "object"
+        },
+        "years": {
+          "description": "Index = tree year; years not listed have no crop and no tree events",
+          "items": {
+            "$ref": "#/$defs/Year"
+          },
+          "maxItems": 110,
+          "minItems": 1,
+          "title": "Years",
+          "type": "array"
+        },
+        "pruning": {
+          "$ref": "#/$defs/Pruning"
+        },
+        "irrigation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Irrigation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "daily_variables": {
+          "items": {
+            "enum": [
+              "tree_density",
+              "tree_lai",
+              "tree_light_fraction",
+              "tree_biomass_g",
+              "tree_shoots",
+              "tree_volume_m3",
+              "tree_height_m",
+              "tree_dbh_cm",
+              "bole_height_m",
+              "stand_volume_m3_ha",
+              "branch_volume_m3_ha",
+              "canopy_cover_pct",
+              "fruit_t_ha",
+              "crop_code",
+              "crop_tsum",
+              "crop_lai",
+              "crop_biomass_g_m2",
+              "crop_yield_t_ha",
+              "vwc",
+              "pf",
+              "evaporation_mm",
+              "drainage_mm",
+              "crop_water_mm",
+              "tree_water_mm",
+              "irrigation_mm",
+              "tree_carbon_t_ha"
+            ],
+            "type": "string"
+          },
+          "maxItems": 26,
+          "title": "Daily Variables",
+          "type": "array"
+        }
+      },
+      "required": [
+        "site",
+        "weather",
+        "tree",
+        "soil",
+        "years"
+      ],
+      "title": "YieldSafeInputs",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "$ref": "#/$defs/YieldSafeInputs"
+    }
+  },
+  "required": [
+    "inputs"
+  ],
+  "title": "ExecuteRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

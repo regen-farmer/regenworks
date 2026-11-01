@@ -5,6 +5,7 @@
 #   curl -s -H "Authorization: Bearer local-dev-token" localhost:8090/processes/shamba | head   (SHAMBA)
 #   curl -s -H "Authorization: Bearer local-dev-token" localhost:8091/processes/dynacof | head  (DynACof)
 #   curl -s -H "Authorization: Bearer local-dev-token" localhost:8092/processes/caf2021 | head  (CAF2021)
+#   curl -s -H "Authorization: Bearer local-dev-token" localhost:8093/processes/yieldsafe | head (Yield-SAFE)
 #
 # The models never call out (weather and soil travel in the request). Docker
 # can't publish a port from a fully internal network, so outbound blocking is
@@ -57,6 +58,24 @@ services:
       CAF2021_MAX_CONCURRENT: "2"
       CAF2021_TIMEOUT_S: "120"
       CAF2021_MEMORY_MB: "1024"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    cpus: 2
+
+  yieldsafe:
+    build:
+      context: ./yieldsafe
+    ports:
+      - "127.0.0.1:8093:8080"
+    environment:
+      YIELDSAFE_API_TOKEN: ${YIELDSAFE_API_TOKEN:-local-dev-token}
+      YIELDSAFE_MAX_CONCURRENT: "2"
+      YIELDSAFE_TIMEOUT_S: "60"
+      YIELDSAFE_MEMORY_MB: "1024"
     read_only: true
     tmpfs:
       - /tmp

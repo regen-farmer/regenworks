@@ -1,8 +1,10 @@
 # Model runners
 
-Process-based models (SHAMBA, DynACof and CAF2021) packaged so GroveWorks
+Process-based models (SHAMBA, DynACof, CAF2021 and Yield-SAFE) packaged so GroveWorks
 can run them. Each model gets one container that wraps the **unchanged**
 upstream code with a thin adapter and speaks the same small HTTP contract.
+The exception is Yield-SAFE: its upstream is an Excel workbook, so `yieldsafe/`
+holds a Python port that is tested against the workbook's own results.
 
 This folder is deliberately outside the pnpm workspace (`packages/*`): nothing
 here is built, linted or deployed with the app, and the app does not call these
@@ -14,6 +16,7 @@ project, `Tech/Model Integration Proposal.md`) and DigitAF deliverable D2.9.
 | SHAMBA v1.2 (carbon balance, RothC soil) | `shamba/` | [shamba-model/shamba](https://github.com/shamba-model/shamba) | Wrapper + golden test |
 | DynACof.jl 1.5.3 (coffee agroforestry growth, yield, water) | `dynacof/` | [VEZY/DynACof.jl](https://github.com/VEZY/DynACof.jl) | Wrapper + golden test |
 | CAF2021 (coffee + up to 3 shade-tree species; soil C/N, N losses, water) | `caf2021/` | [MarcelVanOijen/CAF2021](https://github.com/MarcelVanOijen/CAF2021) | Wrapper + golden test (research use, APCCO) |
+| Yield-SAFE v2 (temperate trees, crops and soil water; silvoarable, silvopasture, orchards) | `yieldsafe/` | Excel workbook, Cranfield University ([NOTICE](yieldsafe/NOTICE.md)) | Python port + golden test against the workbook (research use; commercial use needs the authors' permission) |
 
 ## The contract
 
@@ -42,7 +45,8 @@ The shape follows [OGC API – Processes, Part 1](https://ogcapi.ogc.org/process
 
 1. **Don't copy upstream code into this repo.** The Dockerfile fetches a pinned
    commit or package version (a lockfile such as Julia's `Manifest.toml`); CI
-   uses the same pin for the tests.
+   uses the same pin for the tests. (Yield-SAFE is the exception: a port of a
+   spreadsheet, pinned by the workbook's SHA-256 and kept under the authors' terms.)
 2. **Golden test:** the wrapper must reproduce the upstream example's
    published or directly computed result at the pinned commit.
 3. **No network during a run.** Inputs such as climate and soil arrive in the
