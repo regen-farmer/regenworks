@@ -222,13 +222,16 @@ app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: ex
 // ERRORS: one JSON answer and one log line with a short id, so a message on
 // screen ("error a1b2c3d4") can be found in the Render logs.
 app.use(
-  (err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     const errorId = randomUUID().slice(0, 8);
     console.error(`[error ${errorId}] ${req.method} ${req.originalUrl}`, err);
-    if (res.headersSent) return;
-    const status = Number.isInteger(err?.status) && err.status >= 400 ? err.status : 500;
+    // Response already started: let Express close the connection.
+    if (res.headersSent) return next(err);
+    const raw = Number(err?.status ?? err?.statusCode);
+    const status = Number.isInteger(raw) && raw >= 400 && raw <= 599 ? raw : 500;
     res.status(status).send({
-      error: status === 500 ? "Something went wrong on the server" : String(err?.message ?? "Error"),
+      // Never show server-side details for 5xx.
+      error: status >= 500 ? "Something went wrong on the server" : String(err?.message ?? "Error"),
       errorId,
     });
   },

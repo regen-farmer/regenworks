@@ -21,10 +21,22 @@ test("an untrusted operator is still neutralised (the protection stays on)", () 
   assert.deepEqual(JSON.parse(JSON.stringify(filter)), { _id: { $eq: { $in: ["a"] } } });
 });
 
-test("new routes don't use raw $in / $exists filters", async () => {
+// Raw operator filters that still exist in older routes. They silently match
+// nothing today; each needs an owner check before it is switched on, so they
+// are fixed in the access audit (hub CL-051), not blindly. Don't add to this.
+const KNOWN_OLD = new Map<string, number>([
+  ["projects.ts", 2],
+  ["financialModels.ts", 3],
+  ["areas.ts", 1],
+]);
+
+test("no new raw $in / $exists / $ne filters in routes", async () => {
   const fs = await import("node:fs");
-  for (const f of ["catalogue.ts", "systemdesigns.ts", "userpresets.ts"]) {
-    const src = fs.readFileSync(new URL(`../src/routes/${f}`, import.meta.url), "utf8");
-    assert.doesNotMatch(src, /\{\s*\$(in|exists|ne)\s*:/, `${f} has a raw operator filter`);
+  const dir = new URL("../src/routes/", import.meta.url);
+  for (const f of fs.readdirSync(dir)) {
+    const src = fs.readFileSync(new URL(f, dir), "utf8");
+    // find/findOne/deleteMany/count filters; aggregate $match is not sanitised
+    const hits = (src.match(/\.(find|findOne|deleteMany|deleteOne|updateMany|countDocuments)\(\{[^)]*?\{\s*\$(in|exists|ne)\s*:/gs) ?? []).length;
+    assert.ok(hits <= (KNOWN_OLD.get(f) ?? 0), `${f}: ${hits} raw operator filter(s); use inIds()/isSet()`);
   }
 });

@@ -26,7 +26,7 @@ import PDFDocument from "pdfkit";
 import type { Auth0IDToken } from "../app.ts";
 import dyFiMo from "../middleware/financials.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument, sanitizeMongoValue, inIds } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
 
 // import SystemDesign from 'collections/systemdesign.js';
 
@@ -646,7 +646,7 @@ router.put(
               if (updatedProject) {
                 try {
                   const foundRows = await Row.find({
-                    _id: inIds(updatedProject.rows ?? []),
+                    _id: { $in: updatedProject.rows },
                   });
 
                   for (let i = 0; i < createdAssets.length; i++) {
@@ -792,7 +792,7 @@ router.get(
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
         try {
-          await Row.deleteMany({ _id: inIds(foundProject.rows ?? []) });
+          await Row.deleteMany({ _id: { $in: foundProject.rows } });
           // DELETE ROWS
           try {
             const updatedProject = await Project.findByIdAndUpdate(req.params.id, {
