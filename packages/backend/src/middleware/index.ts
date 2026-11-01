@@ -68,8 +68,8 @@ export async function isLoggedIn(
   if (req.idToken?.email_verified) {
     return next();
   }
-  // req.flash("error", "You need to be logged in to do that!");
-  res.send();
+  // Refuse clearly. This used to answer an empty 200, which let callers think it worked.
+  res.status(401).send({ error: "You need to be logged in with a verified email to do that" });
 }
 
 // CHECK ADMIN USER IS LOGGED IN
