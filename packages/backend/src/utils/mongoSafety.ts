@@ -53,3 +53,33 @@ export const inIds = (ids: readonly unknown[]) => mongoose.trusted({ $in: [...id
 
 /** `{ $exists: true, $ne: null }` that survives sanitizeFilter. */
 export const isSet = () => mongoose.trusted({ $exists: true, $ne: null });
+
+/**
+ * Fields a user may not change through a general update: who owns a record
+ * and which other records it links to. Changing them would let an owner
+ * point their record at someone else's data.
+ */
+const PROTECTED_FIELDS = [
+  "_id",
+  "id",
+  "owner",
+  "user",
+  "layer",
+  "parcel",
+  "layers",
+  "projects",
+  "rows",
+  "areas",
+  "activities",
+  "assets",
+  "budgets",
+  "soiltests",
+  "saptests",
+  "systemdesign",
+];
+
+export const withoutProtectedFields = (value: Record<string, unknown>) => {
+  const out = { ...value };
+  for (const key of PROTECTED_FIELDS) delete out[key];
+  return out;
+};

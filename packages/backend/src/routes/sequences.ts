@@ -54,6 +54,7 @@ router.get(
 // SEQUENCE CREATE
 router.post(
   "/layers/:id/sequences",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -83,6 +84,7 @@ router.post(
 // SEQUENCE SHOW
 router.get(
   "/layers/:id/sequences/:pid",
+  owns("sequence", "pid"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
@@ -112,6 +114,7 @@ router.get(
 // SEQUENCE EDIT
 router.get(
   "/layers/:id/sequences/:pid/edit",
+  owns("sequence", "pid"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
@@ -207,6 +210,7 @@ router.get(
 // SEQUENCE UPDATE
 router.put(
   "/layers/:layerid/sequences/:sequenceid",
+  owns("sequence", "sequenceid"),
   owns("layer", "layerid"),
   middleware.isLoggedIn,
   async (
@@ -279,6 +283,7 @@ router.get(
 // SEQUENCE CREATE
 router.post(
   "/projects/:id/sequences",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -310,6 +315,7 @@ router.post(
 // PROJECT SEQUENCE EDIT ROUTE
 router.get(
   "/projects/:id/sequences/:pid/edit",
+  owns("sequence", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -404,6 +410,7 @@ router.get(
 // PROJECT SEQUENCE UPDATE
 router.put(
   "/projects/:id/sequences/:pid",
+  owns("sequence", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (

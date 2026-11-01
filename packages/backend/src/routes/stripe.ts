@@ -138,7 +138,11 @@ router.post(
     const stripe = requireStripeClient(res);
     if (!stripe) return;
 
-    const { email, priceId, currency, callbackUrl, customer } = req.body;
+    const { priceId, currency, callbackUrl } = req.body;
+    // Customer and email come from the logged-in account, never the request:
+    // otherwise a checkout could be attached to someone else's customer.
+    const customer = req.user?.get("stripeCustomerId") as string | undefined;
+    const email = req.idToken?.email ?? req.user?.email ?? "";
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
     const logdata = {

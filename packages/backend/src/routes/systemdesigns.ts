@@ -55,6 +55,7 @@ router.get(
 
 router.put(
   "/projects/:projectid/set-systemdesign",
+  owns("project", "projectid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -73,6 +73,7 @@ router.get(
 // NURSERY PRODUCT NURSERY CREATE
 router.post(
   "/nurseries/:id/nurseryproducts",
+  owns("nursery"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -200,6 +201,7 @@ router.get(
 // NURSERY PRODUCT UPDATE
 router.put(
   "/nurseries/:id/nurseryproducts/:pid",
+  owns("nurseryProduct", "pid"),
   owns("nursery"),
   middleware.isLoggedIn,
   async (

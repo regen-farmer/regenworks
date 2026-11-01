@@ -69,6 +69,7 @@ router.post(
 // NESTED POSTING BUDGET EDIT ROUTE - WITH THESE I CAN CHECK BUDGET OWNERSHIP
 router.get(
   "/budgets/:id/postings/:postid/edit",
+  owns("posting", "postid"),
   owns("budget"),
   middleware.isLoggedIn,
   async (
@@ -96,6 +97,7 @@ router.get(
 // NESTED POSTING BUDGET UPDATE ROUTE
 router.put(
   "/budgets/:id/postings/:postid",
+  owns("posting", "postid"),
   owns("budget"),
   middleware.isLoggedIn,
   async (

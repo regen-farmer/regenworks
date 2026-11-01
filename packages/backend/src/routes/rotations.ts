@@ -213,6 +213,7 @@ router.get(
 // CREATE PROJECT ROTATION
 router.post(
   "/projects/:id/rotations",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -276,6 +277,7 @@ router.post(
 // EDIT PROJECT ROTATION
 router.get(
   "/projects/:id/rotations/:pid/edit",
+  owns("rotation", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -310,6 +312,7 @@ router.get(
 // UPDATE PROJECT ROTATION
 router.put(
   "/projects/:id/rotations/:pid",
+  owns("rotation", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (

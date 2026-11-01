@@ -44,6 +44,7 @@ router.get(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/notes/new",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -62,6 +63,7 @@ router.get(
 // CREATE NOTE ON ROW
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/notes",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -89,6 +91,7 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/notes/new",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -107,6 +110,7 @@ router.get(
 // CREATE NOTE ON ROW
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/notes",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (

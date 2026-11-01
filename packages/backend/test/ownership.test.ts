@@ -103,3 +103,51 @@ test("every guarded route refuses anonymous requests", async () => {
   }
   assert.deepEqual(failures, []);
 });
+
+// ---- each guard checks the right record ----
+
+type Guard = { kind: string; param: string };
+function guardsOf(r: Route): Guard[] {
+  const src = fs.readFileSync(new URL(`../src/routes/${r.file}`, import.meta.url), "utf8");
+  const start = src.indexOf(`"${r.path}",`, src.search(new RegExp(`router\\.${r.method.toLowerCase()}\\(\\s*"${r.path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}",`)));
+  const head = src.slice(start, src.indexOf("async", start));
+  return [...head.matchAll(/owns\("(\w+)"(?:,\s*"(\w+)")?/g)].map((m) => ({ kind: m[1], param: m[2] ?? "id" }));
+}
+
+test("every owns() names a parameter that exists in its path", () => {
+  const bad: string[] = [];
+  for (const r of guardedRoutes()) {
+    for (const g of guardsOf(r)) if (!r.path.includes(`:${g.param}`)) bad.push(`${r.method} ${r.path}: owns("${g.kind}", "${g.param}")`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("each guard looks up its own parameter, and lets the owner through", async () => {
+  const failures: string[] = [];
+  for (const r of guardedRoutes()) {
+    const guards = guardsOf(r);
+    if (!guards.length) continue;
+    // a distinct id per parameter
+    const params = [...r.path.matchAll(/:(\w+)/g)].map((m) => m[1]);
+    const idFor = new Map(params.map((p, i) => [p, id(1000 + i)]));
+    const url = base + r.path.replace(/:(\w+)/g, (_, p) => idFor.get(p)!);
+    for (let i = 0; i < guards.length; i++) {
+      const target = idFor.get(guards[i].param)!;
+      const calls: string[] = [];
+      // OTHER owns everything except the record guard i checks.
+      setOwnerLookupForTests(async (kind, rid) => {
+        calls.push(`${kind}:${rid}`);
+        return { ownerId: rid === target ? OWNER._id : OTHER._id, isPublic: false };
+      });
+      who = { user: OTHER, idToken: { email_verified: true } };
+      const res = await fetch(url, { method: r.method, headers: { "content-type": "application/json" }, body: r.method === "GET" ? undefined : "{}" });
+      await res.text();
+      const last = calls.at(-1);
+      if (res.status !== 403 || last !== `${guards[i].kind}:${target}`) {
+        failures.push(`${r.method} ${r.path} guard ${i + 1} owns("${guards[i].kind}", "${guards[i].param}"): status ${res.status}, last lookup ${last}`);
+      }
+    }
+  }
+  setOwnerLookupForTests(async () => ({ ownerId: OWNER._id, isPublic: false }));
+  assert.deepEqual(failures, []);
+});

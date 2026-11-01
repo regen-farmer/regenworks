@@ -16,6 +16,8 @@ import Budget from "@rw/db/schemas/budget.ts";
 import FarmScenarioConfig from "@rw/db/schemas/farmScenarioConfig.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Nursery from "@rw/db/schemas/nursery.ts";
+import NurseryProduct from "@rw/db/schemas/nurseryproduct.ts";
+import Row from "@rw/db/schemas/row.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Rotation from "@rw/db/schemas/rotation.ts";
@@ -32,7 +34,10 @@ export type OwnedKind =
   | "farmScenarioConfig"
   | "layer"
   | "nursery"
+  | "nurseryProduct"
   | "parcel"
+  | "posting"
+  | "row"
   | "project"
   | "rotation"
   | "sequence"
@@ -49,7 +54,10 @@ const MODELS: Record<OwnedKind, mongoose.Model<any>> = {
   farmScenarioConfig: FarmScenarioConfig,
   layer: Layer,
   nursery: Nursery,
+  nurseryProduct: NurseryProduct,
   parcel: Parcel,
+  posting: null as any, // postings are found through their budget
+  row: Row,
   project: Project,
   rotation: Rotation,
   sequence: Sequence,
@@ -59,13 +67,39 @@ const MODELS: Record<OwnedKind, mongoose.Model<any>> = {
 const str = (v: unknown) => (v === undefined || v === null ? undefined : String(v));
 
 /** Owner of a record from the database, falling back to its parent when unset. */
+/** Child records found through the parent that lists them: [parent kind, model, field]. */
+const LISTED_IN: Partial<Record<OwnedKind, [OwnedKind, mongoose.Model<any>, string][]>> = {
+  row: [
+    ["project", Project, "rows"],
+    ["layer", Layer, "rows"],
+  ],
+  area: [
+    ["project", Project, "areas"],
+    ["layer", Layer, "areas"],
+  ],
+  posting: [["budget", Budget, "postings"]],
+  nurseryProduct: [["nursery", Nursery, "products"]],
+};
+
+async function ownerViaParent(kind: OwnedKind, id: string): Promise<Found> {
+  for (const [parentKind, model, field] of LISTED_IN[kind] ?? []) {
+    const parent: any = await model.findOne({ [field]: id }).select("_id").lean();
+    if (parent) return dbOwnerLookup(parentKind, String(parent._id));
+  }
+  return null;
+}
+
 export const dbOwnerLookup: OwnerLookup = async (kind, id) => {
+  if (kind === "posting") return ownerViaParent(kind, id);
   const doc: any = await MODELS[kind].findById(id).select("owner user layer isPublic").lean();
   if (!doc) return null;
   // Farm scenario configs store their owner as `user`; everything else as owner.id.
   let ownerId = str(doc.owner?.id ?? (kind === "farmScenarioConfig" ? doc.user : undefined));
   if (!ownerId && kind === "project" && doc.layer) {
     ownerId = (await dbOwnerLookup("layer", String(doc.layer)))?.ownerId;
+  }
+  if (!ownerId && LISTED_IN[kind]) {
+    ownerId = (await ownerViaParent(kind, id))?.ownerId;
   }
   if (!ownerId && kind === "activity" && doc.layer) {
     ownerId = (await dbOwnerLookup("layer", String(doc.layer)))?.ownerId;

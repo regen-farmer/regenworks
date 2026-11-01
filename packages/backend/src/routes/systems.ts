@@ -75,6 +75,7 @@ router.put(
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -151,6 +152,7 @@ router.post(
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
   "/layers/:id/systems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -247,6 +249,7 @@ router.post(
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
   "/layers/:id/systems/compare",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -746,6 +749,7 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put(
   "/systems/:id",
+  owns("system"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -918,6 +922,8 @@ router.put(
 // SYSTEM DELETE ROUTE
 router.delete(
   "/layers/:id/systems/:pid",
+  owns("layer"),
+  owns("system", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1261,6 +1267,7 @@ router.get(
 // LAYER MY SYSTEMS FIND
 router.get(
   "/layers/:id/mysystems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

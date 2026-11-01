@@ -139,6 +139,7 @@ router.get(
 // ACTIVITY EDIT ROUTE
 router.get(
   "/activities/:id/edit",
+  owns("activity"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -312,6 +313,7 @@ router.get(
 // PROJECT ACTIVITY CREATE ROUTE
 router.post(
   "/projects/:id/activities",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -375,7 +377,9 @@ router.get(
         }
         console.log(`Activity array length${activityArray.length}`);
         try {
-          const createdActivities = await Activity.insertMany(activityArray);
+          const createdActivities = await Activity.insertMany(
+            activityArray.map((a: any) => ({ ...a, owner: { id: req.user?._id } })),
+          );
           try {
             await Project.findByIdAndUpdate(foundProject._id, {
               $push: { activities: { $each: createdActivities } },
@@ -398,6 +402,7 @@ router.get(
 // PROJECT EDIT ACTIVITY ROUTE
 router.get(
   "/projects/:id/activities/:pid/edit",
+  owns("activity", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -422,6 +427,7 @@ router.get(
 // PROJECT UPDATE ACTIVITY ROUTE
 router.put(
   "/projects/:id/activities/:pid",
+  owns("activity", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -443,6 +449,7 @@ router.put(
 // DELETE ACTIVITY IN PROJECT
 router.delete(
   "/projects/:id/activities/:pid",
+  owns("activity", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -485,6 +492,7 @@ router.delete(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/activities/new",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -524,6 +532,7 @@ router.get(
 
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/activities",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -563,6 +572,7 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/activities/new",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -606,6 +616,7 @@ router.get(
 
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/activities",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (

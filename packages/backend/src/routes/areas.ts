@@ -68,6 +68,7 @@ router.post(
 // DELETE AREA ON PROJECT
 router.delete(
   "/projects/:id/areas/:pid",
+  owns("area", "pid"),
   owns("project"),
   middleware.isLoggedIn,
   async (

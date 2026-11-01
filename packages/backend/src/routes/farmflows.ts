@@ -50,6 +50,7 @@ router.get(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/farmflows/new",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -88,6 +89,7 @@ router.get(
 // CREATE FARMFLOW ON ROW
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/farmflows",
+  owns("row", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -125,6 +127,7 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/farmflows/new",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
@@ -165,6 +168,7 @@ router.get(
 // CREATE FARMFLOW ON AREA
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/farmflows",
+  owns("area", "rid"),
   owns("layer", "pid"),
   middleware.isLoggedIn,
   async (

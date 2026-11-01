@@ -22,7 +22,7 @@ import Animal from "@rw/db/schemas/animal.ts";
 import Sequence from "@rw/db/schemas/sequence.ts";
 import Row from "@rw/db/schemas/row.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, withoutProtectedFields } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -569,7 +569,7 @@ router.put(
   ) => {
     try {
       const updatedLayer = await Layer.findById(req.params.id);
-      updatedLayer?.set(sanitizeMongoDocument(req.body.layer));
+      updatedLayer?.set(withoutProtectedFields(sanitizeMongoDocument(req.body.layer)));
       await updatedLayer?.save();
       console.log(updatedLayer);
       res.send(`/layers/${escapeHtml(req.params.id)}`);
@@ -1160,6 +1160,7 @@ router.post(
 // ROW NEW ROUTE
 router.get(
   "/layers/:id/row/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1235,6 +1236,8 @@ router.post(
 // EDIT ROW
 router.get(
   "/layers/:id/row/:pid/edit",
+  owns("layer"),
+  owns("row", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1273,6 +1276,7 @@ router.get(
 // UPDATE ROW
 router.put(
   "/layers/:id/row/:pid",
+  owns("row", "pid"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
@@ -1309,6 +1313,7 @@ router.put(
 // DELETE ROW
 router.delete(
   "/layers/:id/row/:pid",
+  owns("row", "pid"),
   owns("layer"),
   middleware.isLoggedIn,
   async (

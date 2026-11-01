@@ -217,6 +217,7 @@ router.get(
 // AREA ASSET CREATE ROUTE
 router.post(
   "/layers/:id/assets",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
