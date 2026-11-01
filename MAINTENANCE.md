@@ -96,9 +96,11 @@ The app makes RTK stake-out files directly: scenario → Export → "Stake-out f
 `packages/modelling/planting/stakeout.ts` (projection in `utm.ts`, tested
 against pyproj). Trees are named `<prefix>R<row>T<tree>`.
 
-`scripts/kml-to-stakeout.py` does the same from an "Export trees as KML" file,
-for designs exported before this existed. Both give identical names and
-coordinates.
+`scripts/kml-to-stakeout.py` makes the same file format and projection from an
+"Export trees as KML" file, for designs exported before this existed. It
+guesses rows from distances, so in odd-shaped fields its row numbers can differ
+from the app's: don't mix files from the two for one field. Both take the
+design's lon/lat as ETRS89 (no datum shift).
 
 ## Known issues and follow-ups
 

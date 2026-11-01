@@ -104,3 +104,49 @@ test("zip contains the files", () => {
   const text = new TextDecoder().decode(zip);
   assert.ok(text.includes("hello") && text.includes("æ.csv"));
 });
+
+test("every row runs the same way and trees go monotonically along it, at any bearing", async () => {
+  for (const bearing of [0, 45, 90, 180, 179.5, -179.5, 270]) {
+    const design = { ...structuredClone(input.systemDesign), bearing };
+    const { layout } = await runTurfJsLayout({ systemDesign: design, fieldGeometry: input.fieldGeometry });
+    const rows = stakeoutTrees(layout, { prefix: "B", labelOf });
+    const dirOf = (r: (typeof rows)[number]) => {
+      const a = r.trees[0];
+      const b = r.trees[r.trees.length - 1];
+      return [b.e - a.e, b.n - a.n];
+    };
+    const ref = dirOf(rows.find((r) => r.trees.length > 1)!);
+    for (const r of rows.filter((r) => r.trees.length > 1)) {
+      const d = dirOf(r);
+      assert.ok(d[0] * ref[0] + d[1] * ref[1] > 0, `bearing ${bearing}: R${r.row} runs the other way`);
+      for (let i = 1; i < r.trees.length; i++) {
+        const step = [r.trees[i].e - r.trees[i - 1].e, r.trees[i].n - r.trees[i - 1].n];
+        assert.ok(step[0] * d[0] + step[1] * d[1] > 0, `bearing ${bearing}: R${r.row} T${i + 1} goes backwards`);
+      }
+    }
+  }
+});
+
+test("shuffled trees within a row are put back in order", () => {
+  const pt = (lon: number) => ({
+    species: { nameCommon: "Hazel" },
+    treeRowIndex: 0,
+    point: { geometry: { coordinates: [lon, 56.1] } },
+  });
+  const rows = stakeoutTrees({ treeMarkerArray: [pt(9.5002), pt(9.5), pt(9.5003), pt(9.5001)] }, { labelOf });
+  const lons = rows[0].trees.map((t) => t.lon);
+  assert.deepEqual(lons, [...lons].sort((a, b) => a - b));
+});
+
+test("spreadsheet formulas in labels are neutralised; one-tree rows get no line", () => {
+  const layout = {
+    treeMarkerArray: [
+      { species: { nameCommon: "=HYPERLINK(x)" }, treeRowIndex: 0, point: { geometry: { coordinates: [9.5, 56.1] } } },
+      { species: { nameCommon: "Hazel" }, treeRowIndex: 1, point: { geometry: { coordinates: [9.5, 56.2] } } },
+      { species: { nameCommon: "Hazel" }, treeRowIndex: 1, point: { geometry: { coordinates: [9.5001, 56.2] } } },
+    ],
+  };
+  const out = stakeoutFiles(layout, "x", { prefix: "B", labelOf });
+  assert.ok(!out.files["x_trees_NENZ.csv"].split("\n")[0].split(",")[4].startsWith("="));
+  assert.equal(out.files["x_rows_NENZ.csv"].trim().split("\n").length, 2);
+});

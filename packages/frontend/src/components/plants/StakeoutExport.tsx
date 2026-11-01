@@ -37,6 +37,14 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
   const [result, setResult] = createSignal<string>();
 
   async function exportFiles() {
+    if (!cleanPrefix(prefix())) {
+      showToast({
+        title: "Enter a name prefix",
+        description: "Without one, stakes in two fields get the same names.",
+        variant: "destructive",
+      });
+      return;
+    }
     setBusy(true);
     setResult(undefined);
     try {
@@ -77,7 +85,7 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
 
       setResult(
         `${out.trees} trees in ${out.rows} rows, ${cleanPrefix(prefix())}R01T001 onwards. ` +
-          `Grid accuracy ${out.roundTripMm.toFixed(2)} mm.`,
+          `mm rounding check ${out.roundTripMm.toFixed(2)} mm.`,
       );
     } catch (err) {
       showToast({ title: (err as Error).message || "Export failed", variant: "destructive" });
@@ -99,14 +107,21 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
             title="Letters in front of every stake name, e.g. B gives BR03T017 (row 3, tree 17)"
           />
         </label>
-        <button type="button" class="rounded-sm p-2 my-2 btn-default" onClick={exportFiles} disabled={busy()}>
+        <button
+          type="button"
+          class="rounded-sm p-2 my-2 btn-default"
+          onClick={exportFiles}
+          disabled={busy() || !cleanPrefix(prefix())}
+        >
           <i class="fas fa-location-crosshairs mr-2" />
           {busy() ? "Preparing..." : "Stake-out files (RTK)"}
         </button>
       </div>
       <p class="text-xs opacity-70">
         Zip with Trimble CSV (ETRS89 / UTM 32N, mm), row start/end points, DXF, check KML and a
-        summary. Stakes are named {cleanPrefix(prefix())}R&lt;row&gt;T&lt;tree&gt;.
+        summary. Stakes are named {cleanPrefix(prefix()) || "?"}R&lt;row&gt;T&lt;tree&gt;. Use a
+        different prefix for each field, so fields loaded into one controller job never share
+        names. Don't mix files from this button and the old KML converter for one field.
       </p>
       <Show when={result()}>
         <p class="text-xs">{result()}</p>

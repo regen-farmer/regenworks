@@ -1,13 +1,16 @@
 // RTK stake-out files from a layout, straight from the app.
 //
-// Same output as scripts/kml-to-stakeout.py, but the rows and tree order come
-// from the layout itself (treeRowIndex + position along the row) instead of
-// being guessed from distances, and each tree carries its cultivar.
+// Same file format and projection as scripts/kml-to-stakeout.py, but rows
+// come from the layout itself (treeRowIndex) instead of being guessed from
+// distances, and each tree carries its cultivar.
 //
 // Tree names: <prefix>R<row>T<tree>, e.g. BR03T017 = prefix B, row 3, tree 17.
-// Rows are numbered 1.. in layout order, skipping rows without trees; trees
-// are numbered 1.. from the row's start. Coordinates: ETRS89 / UTM 32N,
-// metres, 3 decimals (1 mm).
+// Rows are numbered 1.. in layout order, skipping rows without trees. Inside a
+// row, trees are sorted by their position along the row, and every row runs
+// the same way as row 1, so T001 is always at the same end of the field.
+//
+// Coordinates: the app's lon/lat are taken as ETRS89 (no datum shift, as in
+// the Python converter) and projected to ETRS89 / UTM 32N, metres, 3 decimals.
 import { fromUtm32, toUtm32 } from "./utm.ts";
 
 export type StakeoutTree = {
@@ -38,14 +41,26 @@ export function cleanPrefix(prefix: string | undefined): string {
   return (prefix ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 8);
 }
 
-/** Commas and line breaks would break the CSV; the code field is free text otherwise. */
-const csvSafe = (s: string) => s.replace(/[,\r\n"]+/g, " ").replace(/\s+/g, " ").trim();
+/**
+ * Commas and line breaks would break the CSV; a leading = + - @ could run as
+ * a formula if the file is opened in a spreadsheet.
+ */
+const csvSafe = (s: string) =>
+  s
+    .replace(/[,\r\n"]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[=+\-@]+/, "")
+    .trim();
 const xml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const mm = (v: number) => v.toFixed(3);
 const pad = (v: number, width: number) => String(v).padStart(width, "0");
 
-export function stakeoutTrees(layout: { treeMarkerArray?: any[] }, options: StakeoutOptions): StakeoutRow[] {
+export function stakeoutTrees(
+  layout: { treeMarkerArray?: any[]; treeRowLines?: any[] },
+  options: StakeoutOptions,
+): StakeoutRow[] {
   const prefix = cleanPrefix(options.prefix);
   // Group trees by physical row, keeping layout order inside each row.
   const byRow = new Map<number, any[]>();
@@ -63,26 +78,69 @@ export function stakeoutTrees(layout: { treeMarkerArray?: any[] }, options: Stak
   const rowWidth = Math.max(2, String(rowKeys.length).length);
   const treeWidth = Math.max(3, String(maxTrees).length);
 
-  return rowKeys.map((key, i) => {
-    const row = i + 1;
-    const trees = byRow.get(key)!.map((t, j) => {
+  // Grid position of every tree, then each row's direction.
+  type P = { t: any; lon: number; lat: number; e: number; n: number };
+  const rowsP = rowKeys.map((key) => {
+    const pts: P[] = byRow.get(key)!.map((t) => {
       const [lon, lat] = t.point.geometry.coordinates as [number, number];
-      const { e, n } = toUtm32(lon, lat);
-      const { label, species } = options.labelOf(t);
+      return { t, lon, lat, ...toUtm32(lon, lat) };
+    });
+    return { key, pts, dir: rowDirection(layout, key, pts) };
+  });
+  // Every row runs the same way as the first row, so T001 is always at the
+  // same end of the field (layout engines don't guarantee this).
+  const ref = rowsP[0]?.dir ?? { de: 1, dn: 0 };
+
+  return rowsP.map(({ pts, dir }, i) => {
+    const row = i + 1;
+    const d = dir.de * ref.de + dir.dn * ref.dn < 0 ? { de: -dir.de, dn: -dir.dn } : dir;
+    const along = (p: P) => p.e * d.de + p.n * d.dn;
+    const sorted = [...pts].sort((a, b) => along(a) - along(b));
+    const trees = sorted.map((p, j) => {
+      const { label, species } = options.labelOf(p.t);
       return {
         name: `${prefix}R${pad(row, rowWidth)}T${pad(j + 1, treeWidth)}`,
         row,
         tree: j + 1,
-        lon,
-        lat,
-        e,
-        n,
+        lon: p.lon,
+        lat: p.lat,
+        e: p.e,
+        n: p.n,
         label,
         species,
       };
     });
     return { row, trees };
   });
+}
+
+/**
+ * Unit direction of a row in grid metres: from the layout's row line when it
+ * has one, else from the two trees farthest apart.
+ */
+function rowDirection(
+  layout: { treeRowLines?: any[] },
+  key: number,
+  pts: { e: number; n: number }[],
+): { de: number; dn: number } {
+  const coords = layout?.treeRowLines?.[key]?.line?.geometry?.coordinates;
+  let a: { e: number; n: number } | undefined;
+  let b: { e: number; n: number } | undefined;
+  if (Array.isArray(coords) && coords.length >= 2) {
+    a = toUtm32(coords[0][0], coords[0][1]);
+    b = toUtm32(coords[coords.length - 1][0], coords[coords.length - 1][1]);
+  } else if (pts.length >= 2) {
+    let best = -1;
+    for (const p of pts) {
+      for (const q of pts) {
+        const d = (p.e - q.e) ** 2 + (p.n - q.n) ** 2;
+        if (d > best) [best, a, b] = [d, p, q];
+      }
+    }
+  }
+  if (!a || !b) return { de: 1, dn: 0 };
+  const len = Math.hypot(b.e - a.e, b.n - a.n) || 1;
+  return { de: (b.e - a.e) / len, dn: (b.n - a.n) / len };
 }
 
 const dist = (a: StakeoutTree, b: StakeoutTree) => Math.hypot(a.e - b.e, a.n - b.n);
@@ -96,7 +154,10 @@ function offsetFromLine(p: StakeoutTree, a: StakeoutTree, b: StakeoutTree) {
 export type StakeoutFiles = {
   trees: number;
   rows: number;
-  /** Largest error after rounding to mm and projecting back, in millimetres. */
+  /**
+   * Largest shift from rounding to mm, checked by projecting back. Only checks
+   * rounding; the projection itself is tested against pyproj.
+   */
   roundTripMm: number;
   files: Record<string, string>;
 };
@@ -111,7 +172,7 @@ export type StakeoutFiles = {
  *  <stem>_summary.txt     counts, spacing and accuracy checks
  */
 export function stakeoutFiles(
-  layout: { treeMarkerArray?: any[] },
+  layout: { treeMarkerArray?: any[]; treeRowLines?: any[] },
   stem: string,
   options: StakeoutOptions & { source?: string },
 ): StakeoutFiles {
@@ -132,7 +193,9 @@ export function stakeoutFiles(
   }
 
   const treesCsv = all.map((t) => `${t.name},${mm(t.e)},${mm(t.n)},${z},${csvSafe(t.label)}\n`).join("");
+  // Rows with one tree have no line to stake.
   const rowsCsv = rows
+    .filter((r) => r.trees.length >= 2)
     .map((r) => {
       const a = r.trees[0];
       const b = r.trees[r.trees.length - 1];
@@ -173,14 +236,16 @@ export function stakeoutFiles(
   const summary = [
     `Source: ${options.source ?? safeStem}`,
     "Grid: ETRS89 / UTM zone 32N (EPSG:25832), metres, 3 decimals (1 mm)",
-    `Trees: ${all.length}   Rows: ${rows.length}   Median spacing: ${median.toFixed(2)} m`,
-    `Projection round-trip error (worst tree): ${(roundTrip * 1000).toFixed(2)} mm`,
-    `Point names: ${prefix}R<row>T<tree>, rows numbered in design order, trees from the row start`,
+    "Datum: the design's lon/lat are taken as ETRS89 (no datum shift)",
+    `Trees: ${all.length}   Rows: ${rows.length}   Median spacing (grid): ${median.toFixed(2)} m`,
+    `mm rounding check (worst tree): ${(roundTrip * 1000).toFixed(2)} mm`,
+    `Point names: ${prefix}R<row>T<tree>; rows in design order; T001 at the same end in every row`,
+    "Distances below are grid distances (ground = grid / 0.9996, +4 cm per 100 m)",
     "",
     "Plants:",
     ...[...plants.entries()].sort((a, b) => b[1] - a[1]).map(([label, n]) => `  ${label}: ${n}`),
     "",
-    "Rows (trees, length, spacing, straightness = max offset from start-end line):",
+    "Rows (trees, grid length, grid spacing, straightness = max offset from start-end line):",
     ...rows.map((r) => {
       const a = r.trees[0];
       const b = r.trees[r.trees.length - 1];
