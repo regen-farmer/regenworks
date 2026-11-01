@@ -1,0 +1,79 @@
+name: Model runners
+
+# Only runs when something under models/ changes, so it never slows down or
+# blocks the app's own CI.
+on:
+  pull_request:
+    branches: [dev]
+    paths: ["models/**", ".github/workflows/models.yml"]
+  push:
+    branches: [dev]
+    paths: ["models/**", ".github/workflows/models.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: models-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Keep in step with ARG SHAMBA_COMMIT in models/shamba/Dockerfile.
+  SHAMBA_COMMIT: c98f5ef07c43c2841ef7e025f92ff52901f18c72
+
+jobs:
+  shamba-tests:
+    name: SHAMBA wrapper tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: models/shamba
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Fetch pinned SHAMBA
+        run: |
+          git init /tmp/shamba && cd /tmp/shamba
+          git remote add origin https://github.com/shamba-model/shamba
+          git fetch --depth 1 origin "$SHAMBA_COMMIT"
+          git checkout --detach FETCH_HEAD
+
+      - name: Check the Dockerfile pins the same commit
+        run: grep -q "ARG SHAMBA_COMMIT=$SHAMBA_COMMIT" Dockerfile
+
+      - run: pip install -r requirements-test.txt
+
+      - name: Schema files are current
+        run: python -m adapter.export_schema --check
+
+      - name: Golden and contract tests
+        env:
+          SHAMBA_SRC: /tmp/shamba/shamba
+        run: python -m pytest -q tests
+
+  shamba-image:
+    name: SHAMBA image builds and answers
+    runs-on: ubuntu-latest
+    needs: shamba-tests
+    steps:
+      - uses: actions/checkout@v7
+
+      # Built locally only, never pushed (see the licence note in the Dockerfile).
+      - name: Build
+        run: docker build -t shamba-runner:ci models/shamba
+
+      - name: Smoke test
+        run: |
+          docker run -d --name shamba -p 8080:8080 -e SHAMBA_API_TOKEN=ci --read-only --tmpfs /tmp shamba-runner:ci
+          for i in $(seq 1 30); do curl -sf localhost:8080/health && break; sleep 1; done
+          curl -sf -H "Authorization: Bearer ci" localhost:8080/processes/shamba | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['id']=='shamba'; print(d['upstream'])"
+          test "$(curl -s -o /dev/null -w '%{http_code}' localhost:8080/processes)" = "401"
+
+      - name: Logs
+        if: always()
+        run: docker logs shamba || true
