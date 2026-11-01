@@ -4,6 +4,33 @@ import express from "express";
 import dotenv from "dotenv";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
+import middleware from "../middleware/index.ts";
+
+type StripeReq = express.Request & { user?: UserDocument; idToken?: Auth0IDToken };
+
+/**
+ * Only the subscription's own customer may cancel or resume it. Before this,
+ * anyone (not even logged in) could cancel any subscription by id.
+ */
+function ownsSubscription(param = "subscriptionId") {
+  return async (req: StripeReq, res: express.Response, next: express.NextFunction) => {
+    const stripe = requireStripeClient(res);
+    if (!stripe) return;
+    const customerId = req.user?.get("stripeCustomerId");
+    if (!customerId) {
+      res.status(403).send({ error: "No subscription on this account" });
+      return;
+    }
+    try {
+      const sub = await stripe.subscriptions.retrieve(String(req.params[param]));
+      const owner = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+      if (owner === customerId) return next();
+    } catch {
+      // unknown id: same answer as someone else's
+    }
+    res.status(403).send({ error: "You can't change this subscription" });
+  };
+}
 /* eslint-disable import/first */
 
 dotenv.config();
@@ -103,6 +130,7 @@ const requireStripeClient = (res: express.Response) => {
 // NESTED SYSTEM SYSTEMFLOW NEW ROUTE
 router.post(
   "/stripe/checkout_session",
+  middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -110,7 +138,11 @@ router.post(
     const stripe = requireStripeClient(res);
     if (!stripe) return;
 
-    const { email, priceId, currency, callbackUrl, customer } = req.body;
+    const { priceId, currency, callbackUrl } = req.body;
+    // Customer and email come from the logged-in account, never the request:
+    // otherwise a checkout could be attached to someone else's customer.
+    const customer = req.user?.get("stripeCustomerId") as string | undefined;
+    const email = req.idToken?.email ?? req.user?.email ?? "";
     // const { priceId, currency, email } = Object.fromEntries(formData.entries());
 
     const logdata = {
@@ -208,6 +240,7 @@ router.get(
 
 router.post(
   "/stripe/get_subscriptions",
+  middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -215,7 +248,6 @@ router.post(
     const stripe = requireStripeClient(res);
     if (!stripe) return;
 
-    const payload = req.body;
     if (req.user.get("stripeCustomerId")) {
       const subscriptions = await stripe.subscriptions.list({
         limit: 10,
@@ -224,9 +256,10 @@ router.post(
 
       res.send(JSON.stringify({ subscriptions: subscriptions.data }));
     } else {
+      // Look up by the verified login email, never an email sent in the request.
       const customers = await stripe.customers.list({
         limit: 1,
-        email: payload.user.email,
+        email: req.idToken?.email,
       });
 
       const customer = customers.data[0];
@@ -250,6 +283,8 @@ router.post(
 
 router.put(
   "/stripe/cancel_subscription/:subscriptionId/cancel_at_period_end/:cancelAtPeriodEnd",
+  middleware.isLoggedIn,
+  ownsSubscription(),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -275,6 +310,8 @@ router.put(
 
 router.put(
   "/stripe/resume_subscription/:subscriptionId",
+  middleware.isLoggedIn,
+  ownsSubscription(),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,

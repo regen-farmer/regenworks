@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { owns } from "../middleware/ownership.ts";
 dotenv.config();
 
 import express from "express";
@@ -550,6 +551,7 @@ router.get(
 // PARCEL
 router.get(
   "/parcels/:id/layout",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import express from "express";
+import { requireRole } from "../middleware/access.ts";
 import escapeHtml from "escape-html";
 import Species from "@rw/db/schemas/species.ts";
 import middleware from "../middleware/index.ts";
@@ -59,6 +60,7 @@ router.get(
 // SPECIES CREATE
 router.post(
   "/species",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -114,6 +116,7 @@ router.get(
 // SPECIES UPDATE
 router.put(
   "/species/:id",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -153,6 +156,7 @@ router.get(
 // SPECIES ACTIVITY CREATE ROUTE
 router.post(
   "/species/:id/activities",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -213,6 +217,7 @@ router.get(
 // SPECIES ACTIVITY UPDATE ROUTE
 router.put(
   "/species/:id/activities",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -267,6 +272,7 @@ router.get(
 // SPECIES NUTRIENTS UPDATE ROUTE
 router.put(
   "/species/:id/nutrients",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import { rateLimit } from "express-rate-limit";
 // import Well from "collections/well";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -20,6 +21,7 @@ const wellRouteLimiter = rateLimit({
 // NESTED PARCEL WELL NEW ROUTE
 router.get(
   "/parcels/:id/wells/new",
+  owns("parcel"),
   middleware.isLoggedIn,
   wellRouteLimiter,
   async (

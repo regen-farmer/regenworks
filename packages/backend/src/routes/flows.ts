@@ -1,4 +1,6 @@
 import express from "express";
+import { requireRole } from "../middleware/access.ts";
+import { owns } from "../middleware/ownership.ts";
 import Flow from "@rw/db/schemas/flow.ts";
 import Species from "@rw/db/schemas/species.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -11,6 +13,7 @@ const router = express.Router();
 // PARCEL FLOWS
 router.get(
   "/parcels/:id/flows",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -48,6 +51,7 @@ router.get(
 // NESTED SPECIES FLOW CREATE ROUTE
 router.post(
   "/species/:id/flows",
+  requireRole("grove-team"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import NodeGeocoder from "node-geocoder";
 import Nursery from "@rw/db/schemas/nursery.ts";
 import User, { type UserDocument } from "@rw/db/schemas/user.ts";
@@ -141,6 +142,7 @@ router.get(
 // NURSERY UPDATE
 router.put(
   "/nurseries/:id",
+  owns("nursery"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import Activity from "@rw/db/schemas/activity.ts";
+import { dbOwnerLookup, ownershipDecision, owns } from "../middleware/ownership.ts";
 import Area from "@rw/db/schemas/area.ts";
 import Asset from "@rw/db/schemas/asset.ts";
 import Budget from "@rw/db/schemas/budget.ts";
@@ -18,6 +19,7 @@ import { systemBasedLayout } from "@rw/modelling/layout-turf-js/system_based_lay
 import { circle, helpers as turf, length as turfLength } from "@turf/turf";
 import unique from "array-unique";
 import express from "express";
+import { hasRole } from "@rw/db/access.ts";
 import escapeHtml from "escape-html";
 import _ from "lodash";
 import mongoose from "mongoose";
@@ -26,7 +28,7 @@ import PDFDocument from "pdfkit";
 import type { Auth0IDToken } from "../app.ts";
 import dyFiMo from "../middleware/financials.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields } from "../utils/mongoSafety.ts";
 
 // import SystemDesign from 'collections/systemdesign.js';
 
@@ -119,6 +121,7 @@ router.get(
 // GET SINGLE PROJECT ROUTE
 router.get(
   "/projects/:id",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -209,6 +212,7 @@ router.post(
 // PROJECT EDIT ROUTE
 router.get(
   "/projects/:id/edit",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -227,6 +231,7 @@ router.get(
 
 router.post(
   "/projects/:id/preview",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -336,7 +341,11 @@ router.get(
         })
         .exec();
 
-      if (foundProject?.isPublic || (req.user && foundProject?.owner?.id.equals(req.user._id))) {
+      if (
+        foundProject?.isPublic ||
+        (req.user && foundProject?.owner?.id?.equals(req.user._id)) ||
+        (foundProject && hasRole(req.user, "grove-admin"))
+      ) {
         console.time("systemBasedLayout");
         const layout = await runSystemBasedLayout(
           foundProject.systemdesign,
@@ -359,10 +368,11 @@ router.get(
           plantNames: plantNamesOf(foundProject.systemdesign),
         });
       } else {
-        res.send({ error: "no project found" });
+        res.status(!foundProject ? 404 : req.user ? 403 : 401).send({ error: "no project found" });
       }
     } catch (err) {
       console.log(err);
+      if (!res.headersSent) res.status(500).send({ error: "Could not lay out this design" });
     }
   },
 );
@@ -370,6 +380,7 @@ router.get(
 // PROJECT UPDATE ROUTE
 router.put(
   "/projects/:id",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -377,7 +388,7 @@ router.put(
   ) => {
     try {
       const project = await Project.findById(req.params.id);
-      project?.set(sanitizeMongoDocument(req.body.project));
+      project?.set(withoutProtectedFields(sanitizeMongoDocument(req.body.project)));
       await project?.save();
       // req.flash("success", "Successfully added service");
       res.send(`/projects/${escapeHtml(req.params.id)}`);
@@ -390,6 +401,7 @@ router.put(
 // PROJECT UPDATE ROUTE
 router.put(
   "/projects/:id/layout",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -398,7 +410,7 @@ router.put(
     console.log("Here");
     try {
       const project = await Project.findById(req.params.id);
-      project?.set(sanitizeMongoDocument(req.body.project));
+      project?.set(withoutProtectedFields(sanitizeMongoDocument(req.body.project)));
       await project?.save();
       // req.flash("success", "Successfully added service");
       res.send(`/projects/${escapeHtml(req.params.id)}/layout`);
@@ -411,6 +423,7 @@ router.put(
 // PROJECT 3D VIZ
 router.get(
   "/projects/:id/3dviz",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -423,6 +436,7 @@ router.get(
 // PROJECT STATUS CHANGE ROUTE - IMPLEMENT
 router.put(
   "/projects/:id/implement",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -442,6 +456,7 @@ router.put(
 // PROJECT STATUS CHANGE ROUTE - RETIRED
 router.put(
   "/projects/:id/retire",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -461,6 +476,7 @@ router.put(
 // PROJECT STATUS CHANGE ROUTE - COMPLETE
 router.put(
   "/projects/:id/complete",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -511,6 +527,7 @@ router.put(
 // ADD PROJECT EDGE SYSTEM NEW
 router.get(
   "/projects/:id/addedgesystem",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -544,6 +561,7 @@ router.get(
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
   "/projects/:id/addedgesystem",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -580,6 +598,7 @@ router.post(
 // PROJECT ASSET CREATION
 router.put(
   "/projects/:id/generateassets",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -634,7 +653,9 @@ router.put(
                     */
           // CREATE ASSETS
           try {
-            const createdAssets = await Asset.insertMany(treeAssetArray);
+            const createdAssets = await Asset.insertMany(
+              treeAssetArray.map((a: any) => ({ ...a, owner: { id: req.user?._id } })),
+            );
 
             console.log(createdAssets.length);
             try {
@@ -782,6 +803,7 @@ router.put(
 // PROJECT DELETE ALL ROWS, AND LATER ON AREAS ON PROJECT
 router.get(
   "/projects/:id/deleterows",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -822,6 +844,7 @@ router.get(
 // PROJECT ASSET SHOW PAGE
 router.get(
   "/projects/:id/assets",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -888,6 +911,7 @@ router.get(
 // SERVICES DELETE ROUTE
 router.delete(
   "/projects/:id",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -955,6 +979,7 @@ router.delete(
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
   "/layers/:id/systems/:system/projects/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -982,6 +1007,7 @@ router.get(
 
 router.get(
   "/layers/:id/new-project",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1005,6 +1031,7 @@ router.get(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   "/layers/:id/projects/duplicate",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1016,14 +1043,40 @@ router.post(
       // const foundLayer = await Layer.findById(req.params.id)
       // 	.exec();
 
-      const source = req.body.project.source;
-      source.id = undefined;
-      source._id = undefined;
+      // Copy the scenario from the database, not from the request: it must be
+      // a scenario the user may read, and owner/field are set here.
+      const sourceId = String(req.body?.project?.source?._id ?? "");
+      if (!mongoose.isValidObjectId(sourceId)) {
+        res.status(400).send({ error: "Choose a scenario to copy" });
+        return;
+      }
+      const sourceDoc = await Project.findById(sourceId).lean();
+      // Only your own scenarios (or any, for Grove admins): the copy shares
+      // records with its source, so a copy of someone else's would reach theirs.
+      const allowed = ownershipDecision(req.user, req.idToken?.email_verified === true, sourceDoc ? await dbOwnerLookup("project", sourceId) : null, {
+        method: "PUT",
+      });
+      if (allowed !== 200) {
+        res.status(allowed).send({ error: "You can't copy this scenario" });
+        return;
+      }
+      const { _id: _sourceId, id: _id2, __v: _v, ...source } = sourceDoc as any;
 
       // create new project
 
-      const createdProject = await Project.create(source);
-      createdProject.name = req.body.project.name;
+      const createdProject = await Project.create({
+        ...source,
+        // The copy belongs to the field's owner (e.g. the client when a Grove
+        // admin duplicates in a client's field), not to whoever clicked.
+        owner: { id: (await dbOwnerLookup("layer", req.params.id))?.ownerId ?? req.user?._id },
+        layer: req.params.id,
+        isPublic: false,
+        // Not shared with the source: deleting the copy deleted these too.
+        budgets: {},
+        activities: [],
+        assets: [],
+      });
+      createdProject.name = String(req.body?.project?.name ?? source.name ?? "Copy");
 
       // create new systemdesign
 
@@ -1070,6 +1123,7 @@ router.post(
 // GET projects for a layer
 router.get(
   "/layers/:id/projects",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1090,6 +1144,7 @@ router.get(
 
 router.post(
   "/layers/:id/projects",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1155,6 +1210,7 @@ router.post(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   "/layers/:id/systems/:system/projects",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1223,6 +1279,7 @@ router.post(
 // PROJECT ASSETS DELETE ROUTE
 router.delete(
   "/projects/:id/allassets",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1256,6 +1313,7 @@ router.delete(
 // ROW NEW ROUTE
 router.get(
   "/projects/:id/row/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1287,6 +1345,7 @@ router.get(
 // ROW CREATE ROUTE
 router.post(
   "/projects/:id/row",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1336,6 +1395,8 @@ router.post(
 // EDIT ROW
 router.get(
   "/projects/:id/row/:pid/edit",
+  owns("project"),
+  owns("row", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1375,6 +1436,8 @@ router.get(
 // UPDATE ROW
 router.put(
   "/projects/:id/row/:pid",
+  owns("row", "pid"),
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1416,6 +1479,8 @@ router.put(
 // DELETE ROW
 router.delete(
   "/projects/:id/row/:pid",
+  owns("row", "pid"),
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1452,6 +1517,8 @@ router.delete(
 // EDIT AREA
 router.get(
   "/projects/:id/areas/:pid/edit",
+  owns("project"),
+  owns("area", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1491,6 +1558,8 @@ router.get(
 // UPDATE AREA
 router.put(
   "/projects/:id/areas/:pid",
+  owns("area", "pid"),
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1536,6 +1605,7 @@ router.put(
 // PROJECT FINANCIALS ROUTE
 router.get(
   "/projects/:id/financials",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1634,6 +1704,7 @@ router.get(
 
 router.patch(
   "/projects/:id/financials",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1651,6 +1722,7 @@ router.patch(
 
 router.patch(
   "/projects/:id/financials/activities",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1700,6 +1772,7 @@ router.patch(
 // ALIGNMENT NEW ROUTE
 router.get(
   "/projects/:id/alignmentrow/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1731,6 +1804,7 @@ router.get(
 // UPDATE PROJECT ALIGNMENT
 router.put(
   "/projects/:id/alignmentrow",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1756,6 +1830,7 @@ router.put(
 // BUDGET PDF
 router.get(
   "/projects/:id/budgetpdf",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1785,6 +1860,7 @@ router.get(
 
 router.put(
   "/projects/:projectid/set-public",
+  owns("project", "projectid"),
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
@@ -1806,6 +1882,7 @@ router.put(
 // PROJECT SHOW ROUTE
 router.get(
   "/layers/:layerid/projects/:id",
+  owns("project", "id", { allowPublic: true }),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1829,6 +1906,12 @@ router.get(
           .populate("edgesystem")
           .populate("activities")
           .exec();
+        // The field must be this scenario's own field: the response includes
+        // the field and all its scenarios, which may be private.
+        if (foundProject && String((foundProject.layer as any)?._id ?? foundProject.layer) !== req.params.layerid) {
+          res.status(404).send({ error: "Scenario not found in this field" });
+          return;
+        }
         if (foundProject) {
           // TEST WITH BLANK
           let estPostings: IPostingSchema[] = [];

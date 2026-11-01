@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import Systemflow from "@rw/db/schemas/systemflow.ts";
 import System from "@rw/db/schemas/system.ts";
 import Species from "@rw/db/schemas/species.ts";
@@ -43,6 +44,7 @@ router.get(
 // NESTED SYSTEM SYSTEMFLOW CREATE ROUTE
 router.post(
   "/systems/:id/flows",
+  owns("system"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

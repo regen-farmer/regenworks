@@ -1,9 +1,9 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import unique from "array-unique";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import Parcel from "@rw/db/schemas/parcel.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
@@ -32,6 +32,7 @@ router.get(
 
 router.put(
   "/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick",
+  owns("project", "projectId"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -73,6 +74,7 @@ router.put(
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -92,6 +94,7 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -148,6 +151,7 @@ router.post(
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
   "/layers/:id/systems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -244,6 +248,7 @@ router.post(
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
   "/layers/:id/systems/compare",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -743,6 +748,8 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put(
   "/systems/:id",
+  // No owns() here on purpose: a non-owner editing a shared system gets their
+  // own edited copy (see the "NOT OWNER" branch); only the owner changes it.
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -915,6 +922,8 @@ router.put(
 // SYSTEM DELETE ROUTE
 router.delete(
   "/layers/:id/systems/:pid",
+  owns("layer"),
+  owns("system", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1258,6 +1267,7 @@ router.get(
 // LAYER MY SYSTEMS FIND
 router.get(
   "/layers/:id/mysystems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1312,6 +1322,7 @@ router.get(
 // SYSTEM OCCURRANCE CREATE ROUTE
 router.put(
   "/systems/:id/occurrences",
+  owns("system"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
