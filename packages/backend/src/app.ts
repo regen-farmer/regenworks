@@ -224,7 +224,7 @@ app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: ex
 app.use(
   (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     const errorId = randomUUID().slice(0, 8);
-    console.error(`[error ${errorId}] ${req.method} ${req.originalUrl}`, err);
+    console.error("[error %s] %s %s", errorId, req.method, req.originalUrl, err);
     // Response already started: let Express close the connection.
     if (res.headersSent) return next(err);
     const raw = Number(err?.status ?? err?.statusCode);
