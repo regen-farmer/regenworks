@@ -267,7 +267,7 @@ export function systemBasedLayoutSync(systemdesign: ISystemDesignSchema, fieldGe
   // INDIVIDUAL TREES
   const treeMarkerArray: any[] = [];
 
-  for (const treeRowLine of treeRowLines) {
+  for (const [treeRowIndex, treeRowLine] of treeRowLines.entries()) {
     if (
       systemRows[treeRowLine.systemDesignRowIndex].sequence.reduce(
         (acc, curr) => acc + curr.spacingAfter,
@@ -292,6 +292,11 @@ export function systemBasedLayoutSync(systemdesign: ISystemDesignSchema, fieldGe
           species: sequence[treeSequenceIdx].species,
           point,
           circle: newCircle,
+          // Where this tree came from, so cultivar, rootstock and tree IDs
+          // can be attached after layout (see planting_details.ts).
+          treeRowIndex,
+          systemDesignRowIndex: treeRowLine.systemDesignRowIndex,
+          sequenceIndex: treeSequenceIdx,
         });
         distance += sequence[treeSequenceIdx].spacingAfter;
         treeSequenceIdx = (treeSequenceIdx + 1) % sequence.length;
