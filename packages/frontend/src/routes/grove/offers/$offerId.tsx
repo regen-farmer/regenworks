@@ -182,7 +182,7 @@ function OfferPage() {
               </label>
               <label class="flex flex-col text-xs">
                 Status
-                <select class={input} value={draft.status} onChange={(e) => edit("status", e.currentTarget.value)}>
+                <select class={input} value={draft.status} disabled={data()?.offer.status === "accepted"} onChange={(e) => edit("status", e.currentTarget.value)}>
                   <For each={Object.entries(STATUS_DA)}>{([k, v]) => <option value={k}>{v}</option>}</For>
                 </select>
               </label>
@@ -520,7 +520,7 @@ function Internal(props: { p: Presented }) {
                   <td class={td}>{l.pricing?.documentDate}</td>
                   <td class={td}>{f()?.margin ? `${dkk(f()!.margin!.unitMargin)} (${f()!.margin!.marginPct} %)` : "–"}</td>
                   <td class={`${td} text-xs text-amber-700`}>
-                    {[f()?.dispensation && "dispensation", f()?.outdated && "outdated price", f()?.vatUnclear && "VAT unclear", f()?.ambiguous && "check type/size", f()?.unpriced && "no price"].filter(Boolean).join(", ")}
+                    {[f()?.dispensation && "dispensation", f()?.outdated && "outdated price", f()?.costReferenceOutdated && "cost reference outdated", f()?.stale && "not in this pricebook", f()?.vatUnclear && "VAT unclear", f()?.ambiguous && "check type/size", f()?.unpriced && "no price"].filter(Boolean).join(", ")}
                   </td>
                 </tr>
               );

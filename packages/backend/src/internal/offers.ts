@@ -108,9 +108,13 @@ export function purchaseList(o: OfferLike) {
   const bySupplier = new Map<string, { supplierId: string; lines: any[]; totalCostDkk: number }>();
   for (const l of o.lines) {
     if (!(l.qty > 0)) continue;
+    const listed = l.priceSource === "sales" ? l.pricing?.listedSupplier : undefined;
+    const ref = l.pricing?.supplierId;
+    // Grove's listed nursery for sales-priced lines; say so when the cost
+    // shown comes from a different nursery's price list.
     const supplierId =
-      (l.priceSource === "sales" ? l.pricing?.listedSupplier : undefined) ??
-      l.pricing?.supplierId ??
+      (listed && ref && listed !== ref ? `${listed} (Grove list; cost from ${ref})` : listed) ??
+      ref ??
       (l.priceSource === "manual" ? "(price set by hand: choose a supplier)" : "(no supplier price found)");
     const s = bySupplier.get(supplierId) ?? { supplierId, lines: [], totalCostDkk: 0 };
     const cost = typeof l.pricing?.unitCostDkk === "number" ? l.pricing.unitCostDkk * l.qty : 0;
@@ -230,6 +234,8 @@ export function mergeLines(stored: any[], incoming: any[]) {
       varietyId: old.varietyId,
       rootstockId: old.rootstockId,
       pricing: old.pricing ?? null,
+      // what was matched is the server's to say, not the editor's
+      organic: old.organic ?? null,
       priceSource: priceTyped ? "manual" : old.priceSource,
     }];
   });

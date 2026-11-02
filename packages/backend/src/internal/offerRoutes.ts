@@ -248,7 +248,7 @@ router.put("/:id", async (req: Req, res) => {
   let merged = lines ? mergeLines(offer.lines.map((l: any) => l.toObject()), lines) : offer.lines.map((l: any) => l.toObject());
   // New or changed plants, and a new margin/rate, are priced again with the
   // offer's own pricebook version (hand-set prices are kept).
-  const needsPricing = ratesChanged || merged.some((l: any) => l.priceSource === "none" && l.latin);
+  const needsPricing = offer.status !== "accepted" && (ratesChanged || merged.some((l: any) => l.priceSource === "none" && l.latin));
   if (needsPricing) {
     const priced = await priceAll(merged, offer);
     if ("error" in priced) {
