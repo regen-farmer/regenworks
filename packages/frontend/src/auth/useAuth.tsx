@@ -39,6 +39,8 @@ export const allowFarmCreation = (): boolean => {
   if (getMongoDBUser) {
     return (
       getMongoDBUser()?.isAdmin ||
+      // the Grove team keeps farms for its clients: no cap
+      hasRole(getMongoDBUser(), "grove-field") ||
       (getMongoDBUser() && getMongoDBUser().parcels?.length < 1) ||
       (paymentPlan() === "advisor" && getMongoDBUser() && getMongoDBUser().parcels?.length < 100)
     );
