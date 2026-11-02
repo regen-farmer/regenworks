@@ -253,8 +253,8 @@ export function buildPricebook(
         const v = num(r.value);
         if (r.key === "default_margin_pct" && v !== undefined && v >= 0 && v <= 500) settings.defaultMarginPct = v;
         else if (r.key === "eur_dkk" && v !== undefined && v > 1 && v < 20) settings.eurDkk = v;
-        else if (r.key === "target_margin_trees" && v !== undefined && v >= 0 && v <= 500) settings.targetMarginTrees = v;
-        else if (r.key === "target_margin_services" && v !== undefined && v >= 0 && v <= 500) settings.targetMarginServices = v;
+        else if (r.key === "target_margin_trees" && v !== undefined && v >= 0 && v < 100) settings.targetMarginTrees = v;
+        else if (r.key === "target_margin_services" && v !== undefined && v >= 0 && v < 100) settings.targetMarginServices = v;
         else if (r.key === "guarantee_text_da" && r.value?.trim()) settings.guaranteeTextDa = r.value.trim().slice(0, 3000);
         else warnings.push(`settings.csv: ignored ${r.key}=${r.value}`);
       }
@@ -503,7 +503,7 @@ export type PriceSuggestion = {
   matchNote: string;
 };
 
-const vatExcluded = (vat: string | undefined) => /excl|ex\.?\s*(vat|btw|moms)|\bht\b|hors taxe|ekskl/i.test(vat ?? "");
+export const vatExcluded = (vat: string | undefined) => /excl|ex\.?\s*(vat|btw|moms)|\bht\b|hors taxe|ekskl/i.test(vat ?? "");
 
 /**
  * Price for one plant: Grove's sales price where one exists, otherwise the

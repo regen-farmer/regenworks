@@ -75,7 +75,7 @@ export type Presented = {
   totals: Totals;
   dinero: { text: string; qty: number; amount: number }[];
   internal: {
-    lines: { id: string; margin: LineMargin | null; singleSource?: boolean; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; pickedMissing?: boolean; costReferenceOutdated?: boolean }[];
+    lines: { id: string; margin: LineMargin | null; singleSource?: boolean; documentDate?: string; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; pickedMissing?: boolean; costReferenceOutdated?: boolean }[];
     purchaseList: { supplierId: string; totalCostDkk: number; lines: any[] }[];
     margin: { sale: number; margin: number; marginPct: number | null; worstPct: number | null; bestPct: number | null; withoutCost: number };
   };
@@ -139,7 +139,7 @@ export const SECTION_EN: Record<ServiceSection, string> = {
   fencing: "Fencing",
   "site-prep": "Site preparation",
   planting: "Planting",
-  staking: "Staking",
+  staking: "Setting out (RTK)",
   design: "Design",
   irrigation: "Irrigation",
   logistics: "Logistics",
@@ -192,10 +192,23 @@ export function serviceQty(s: Pick<Service, "basis" | "qtyPerBasis" | "roundUp">
   return s.basis === "field_ha" || s.basis === "tree_ha" ? Math.round(raw * 100) / 100 : Math.round(raw);
 }
 
+/** The calendar day in Denmark as YYYY-MM-DD (same as the server). */
+export function danishDay(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+
+/** YYYY-MM-DD plus whole months, capped at the month's end (same as the server). */
+export function addMonths(day: string, months: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
+  return `${ny}-${String(nm).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
+}
+
 /** Deposit rule (same as the server): 50 % if delivery within 3 months of the offer date, else 20 %. */
 export function depositRule(offerDate: string | undefined, deliveryDate: string | null | undefined) {
   if (!deliveryDate) return 50;
-  const limit = new Date(offerDate ?? Date.now());
-  limit.setMonth(limit.getMonth() + 3);
-  return new Date(deliveryDate).getTime() <= limit.getTime() ? 50 : 20;
+  return danishDay(new Date(deliveryDate)) <= addMonths(danishDay(new Date(offerDate ?? Date.now())), 3) ? 50 : 20;
 }

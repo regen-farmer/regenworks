@@ -6,7 +6,7 @@
 // on the offer (e.g. "stk.", "m", "ha", "sæt") and a rule for its quantity
 // from the design: per tree, per metre of tree row, per metre of field
 // boundary, per hectare of field or of tree cover, per row, or a fixed number.
-import { round5, type SupplierPrice } from "./pricebook.ts";
+import { isOutdated, round5, vatExcluded, type PriceDocument, type SupplierPrice } from "./pricebook.ts";
 
 export const SERVICE_SECTIONS = ["protection", "fencing", "site-prep", "planting", "staking", "design", "irrigation", "logistics", "other"] as const;
 export type ServiceSection = (typeof SERVICE_SECTIONS)[number];
@@ -134,7 +134,7 @@ export function buildServices(rows: Record<string, string>[], supplierPriceIds: 
       targetMarginPct: num(r.target_margin_pct),
       notes: opt(r.notes),
     };
-    if (s.targetMarginPct !== undefined && (s.targetMarginPct < 0 || s.targetMarginPct > 500)) errors.push(`services.csv: ${id} has target_margin_pct ${r.target_margin_pct}`);
+    if (s.targetMarginPct !== undefined && (s.targetMarginPct < 0 || s.targetMarginPct >= 100)) errors.push(`services.csv: ${id} has target_margin_pct ${r.target_margin_pct}`);
     if (s.supplierQty !== undefined && !(s.supplierQty > 0)) errors.push(`services.csv: ${id} has supplier_qty ${r.supplier_qty}`);
     if (s.costLow !== undefined && s.costHigh !== undefined && s.costLow > s.costHigh) warnings.push(`services.csv: ${id} has cost_low above cost_high`);
     if (s.priceExclVat === undefined && s.costLikely === undefined && !s.supplierPriceId) warnings.push(`services.csv: ${id} has no price and no cost yet; it shows as "no price" on offers`);
@@ -180,29 +180,35 @@ export type ServicePricing = {
   targetMarginPct?: number;
   supplierPriceId?: string;
   singleSource: boolean;
+  vatUnclear?: boolean;
+  outdated?: boolean;
+  documentDate?: string;
 };
 
 /**
- * Price one service: Grove's listed price, else cost × (1 + target margin).
- * Cost: the likely cost in services.csv, else the supplier row. Null when
- * neither a price nor a cost is known.
+ * Price one service: Grove's listed price, else the cost priced to the target
+ * margin. Margins here are gross margins on the sales price, as in the sales
+ * plan (trees 25 %, planting 40 %): price = cost / (1 - margin). Cost: the
+ * likely cost in services.csv, else the supplier row. Null when neither a
+ * price nor a cost is known.
  */
 export function priceService(
   s: Service,
-  opts: { eurDkk: number; supplierPrices: SupplierPrice[]; defaultMarginPct?: number },
+  opts: { eurDkk: number; supplierPrices: SupplierPrice[]; documents?: PriceDocument[]; defaultMarginPct?: number; now?: Date },
 ): ServicePricing | null {
   let likely = s.costLikely;
-  let low = s.costLow;
-  let high = s.costHigh;
+  const low = s.costLow;
+  const high = s.costHigh;
   let fromSupplier: SupplierPrice | undefined;
   if (likely === undefined && s.supplierPriceId) {
     fromSupplier = opts.supplierPrices.find((p) => p.priceId === s.supplierPriceId);
     if (fromSupplier) {
-      const dkk = fromSupplier.currency === "DKK" ? fromSupplier.price : fromSupplier.currency === "EUR" ? fromSupplier.price * opts.eurDkk : NaN;
+      const dkk = fromSupplier.currency === "DKK" ? fromSupplier.price : fromSupplier.currency === "EUR" ? fromSupplier.price * opts.eurDkk : Number.NaN;
       if (Number.isFinite(dkk)) likely = Math.round(dkk * (s.supplierQty ?? 1) * 100) / 100;
     }
   }
   const margin = s.targetMarginPct ?? opts.defaultMarginPct;
+  const doc = fromSupplier ? opts.documents?.find((d) => d.docId === fromSupplier!.docId) : undefined;
   const base = {
     serviceId: s.serviceId,
     unitCostDkk: likely,
@@ -211,31 +217,41 @@ export function priceService(
     targetMarginPct: margin,
     supplierPriceId: fromSupplier?.priceId,
     singleSource: low === undefined && high === undefined,
+    // like plant lines: a supplier price that may include VAT, or an old list
+    vatUnclear: fromSupplier ? !vatExcluded(fromSupplier.vat) : undefined,
+    outdated: fromSupplier ? isOutdated(doc?.documentDate, opts.now) : undefined,
+    documentDate: doc?.documentDate,
   };
   if (s.priceExclVat !== undefined) return { ...base, unitPrice: s.priceExclVat, source: "sales" };
-  if (likely === undefined || margin === undefined) return null;
-  return { ...base, unitPrice: roundServicePrice(likely * (1 + margin / 100)), source: "cost+margin" };
-}
-
-/**
- * Margin of a line at the likely cost, and its range from the high and low
- * cost, as % of the (discounted) sales price. Null without a cost or price.
- */
-export function marginRange(unitPrice: number, discountPct: number, cost: { likely?: number; low?: number; high?: number }) {
-  const sale = unitPrice * (1 - (discountPct || 0) / 100);
-  if (!(sale > 0) || cost.likely === undefined) return null;
-  const pct = (c: number) => Math.round(((sale - c) / sale) * 1000) / 10;
-  return { likely: pct(cost.likely), worst: pct(cost.high ?? cost.likely), best: pct(cost.low ?? cost.likely) };
+  if (likely === undefined || margin === undefined || margin >= 100) return null;
+  return { ...base, unitPrice: roundServicePrice(likely / (1 - margin / 100)), source: "cost+margin" };
 }
 
 // ---- deposit and delivery ---------------------------------------------------
 
-/** Deposit rule (sales plan): 50 % if delivery is within 3 months of the offer date, else 20 %. */
+/** The calendar day in Denmark, as YYYY-MM-DD (offer dates are Danish days). */
+export function danishDay(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Copenhagen", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+
+/** YYYY-MM-DD plus whole months; the day is capped at the month's end (30 Nov + 3 = 28/29 Feb). */
+export function addMonths(day: string, months: number): string {
+  const [y, m, d] = day.split("-").map(Number);
+  const total = y * 12 + (m - 1) + months;
+  const ny = Math.floor(total / 12);
+  const nm = (total % 12) + 1;
+  const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate();
+  return `${ny}-${String(nm).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
+}
+
+/**
+ * Deposit rule (sales plan): 50 % if delivery is within 3 months of the
+ * offer date, else 20 %. Compared as Danish calendar days, so the server's
+ * time zone doesn't matter. No delivery date yet: 50 %.
+ */
 export function depositPctFor(offerDate: Date, deliveryDate: Date | null | undefined): number {
   if (!deliveryDate) return 50;
-  const limit = new Date(offerDate);
-  limit.setMonth(limit.getMonth() + 3);
-  return deliveryDate.getTime() <= limit.getTime() ? 50 : 20;
+  return danishDay(deliveryDate) <= addMonths(danishDay(offerDate), 3) ? 50 : 20;
 }
 
 /** Deposit in kr incl. VAT, to 2 decimals. */

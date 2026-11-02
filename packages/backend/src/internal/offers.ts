@@ -256,10 +256,12 @@ function priceServiceLine(l: OfferLine, data: PricebookData | null, rates: { mar
     if (l.unitPrice > 0 && l.priceSource !== "none") return { ...l, pricing: { ...(l.pricing ?? {}), stale: true, matchNote: "service not in this pricebook version; previous price kept" } };
     return { ...l, priceSource: "none", unitPrice: 0, pricing: { matchNote: "service not in this pricebook version" } };
   }
+  // services are priced to the services target margin (a gross margin), not the plants' markup
   const p = priceService(s, {
     eurDkk: rates?.eurDkk ?? data.settings?.eurDkk ?? Number.NaN,
     supplierPrices: data.supplierPrices,
-    defaultMarginPct: data.settings?.targetMarginServices ?? data.settings?.defaultMarginPct,
+    documents: data.documents,
+    defaultMarginPct: data.settings?.targetMarginServices,
   });
   const named = { ...l, nameDa: l.nameDa || s.nameDa, section: s.section, unitDa: l.unitDa || s.unitDa };
   if (!p) return { ...named, priceSource: "none", unitPrice: 0, pricing: { serviceId: s.serviceId, matchNote: "no price or cost for this service in services.csv yet" } };

@@ -20,23 +20,35 @@ const QTY_FIELDS: [keyof DesignQuantities, string, string][] = [
 export function ServicesCalculator(props: {
   offerId: string;
   version?: number;
+  /** the offer's EUR rate, so prices shown match what saving gives */
+  eurDkk?: number | null;
   /** service ids already on the offer */
   existing: string[];
   onAdd: (lines: OfferLine[]) => void;
   onClose: () => void;
 }) {
-  const [services] = createResource(
-    () => props.version ?? "latest",
-    (v) => apiFetch<{ version: number | null; services: Service[] }>(`/internal/pricebook/services${v === "latest" ? "" : `?version=${v}`}`),
+  const [servicesRes] = createResource(
+    () => ({ v: props.version, rate: props.eurDkk }),
+    (k) => {
+      const qs = new URLSearchParams();
+      if (k.v) qs.set("version", String(k.v));
+      if (k.rate) qs.set("eurDkk", String(k.rate));
+      return apiFetch<{ version: number | null; services: Service[] }>(`/internal/pricebook/services?${qs}`);
+    },
   );
-  const [fromDesign] = createResource(
+  const [designRes] = createResource(
     () => props.offerId,
-    (id) => apiFetch<{ fromDesign: boolean; quantities: Partial<DesignQuantities> }>(`/internal/offers/${id}/quantities`),
+    (id) => apiFetch<{ fromDesign: boolean; failed?: boolean; quantities: Partial<DesignQuantities> }>(`/internal/offers/${id}/quantities`),
   );
+  // a failed request must not take the offer page (and unsaved edits) down
+  const services = () => (servicesRes.error ? undefined : servicesRes());
+  const fromDesign = () => (designRes.error ? undefined : designRes());
   const [q, setQ] = createSignal<Partial<DesignQuantities>>({});
+  const [touched, setTouched] = createSignal(false);
   createEffect(() => {
     const d = fromDesign();
-    if (d) setQ(d.quantities);
+    // quantities typed before the design arrived are kept
+    if (d && !touched()) setQ(d.quantities);
   });
   const [picked, setPicked] = createSignal<Record<string, number | null>>({});
   const bySection = createMemo(() => {
@@ -48,10 +60,15 @@ export function ServicesCalculator(props: {
 
   function add() {
     const list = services()?.services ?? [];
-    const lines = Object.keys(picked())
+    const chosen = Object.keys(picked())
       .map((id) => list.find((s) => s.serviceId === id))
-      .filter((s): s is Service => !!s)
-      .map(
+      .filter((s): s is Service => !!s);
+    const empty = chosen.filter((s) => !(qtyOf(s) > 0));
+    if (empty.length) {
+      showToast({ title: "Quantity is 0", description: `Type a quantity for: ${empty.map((s) => s.nameEn || s.nameDa).join(", ")}`, variant: "destructive" });
+      return;
+    }
+    const lines = chosen.map(
         (s): OfferLine => ({
           kind: "service",
           serviceId: s.serviceId,
@@ -79,11 +96,13 @@ export function ServicesCalculator(props: {
       </div>
       <div>
         <div class="text-xs opacity-70 mb-1">
-          {fromDesign.loading
+          {designRes.loading
             ? "Reading the design…"
             : fromDesign()?.fromDesign
               ? "Quantities from the offer's design. Change them if the work differs (e.g. fence only part of the boundary)."
-              : "This offer has no design: type the quantities."}
+              : fromDesign()?.failed || designRes.error
+                ? "The design couldn't be read: type the quantities."
+                : "This offer has no design: trees come from the plant lines; type the rest."}
         </div>
         <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
           <For each={QTY_FIELDS}>
@@ -96,14 +115,18 @@ export function ServicesCalculator(props: {
                   step={step}
                   class={input}
                   value={q()[k] ?? ""}
-                  onInput={(e) => setQ({ ...q(), [k]: e.currentTarget.value === "" ? undefined : Number(e.currentTarget.value) })}
+                  onInput={(e) => {
+                    setTouched(true);
+                    setQ({ ...q(), [k]: e.currentTarget.value === "" ? undefined : Number(e.currentTarget.value) });
+                  }}
                 />
               </label>
             )}
           </For>
         </div>
       </div>
-      <Show when={!services.loading} fallback={<p class="text-sm">Loading services…</p>}>
+      <Show when={!servicesRes.loading} fallback={<p class="text-sm">Loading services…</p>}>
+        <Show when={servicesRes.error}><p class="text-sm text-red-600">Services could not be loaded: {(servicesRes.error as Error)?.message}</p></Show>
         <Show when={(services()?.services ?? []).length} fallback={<p class="text-sm">No services in this pricebook version. Add services.csv to the pricebook and import it.</p>}>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <For each={bySection()}>
@@ -134,6 +157,7 @@ export function ServicesCalculator(props: {
                           <input
                             type="number"
                             min="0"
+                            step="any"
                             class={`${input} w-24`}
                             aria-label={`Quantity of ${s.nameEn || s.nameDa}`}
                             disabled={!on()}

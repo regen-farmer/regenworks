@@ -105,6 +105,10 @@ router.post(
       return;
     }
     const note = typeof req.body?.note === "string" ? req.body.note.slice(0, 500) : undefined;
+    const previous: any = await PricebookVersion.findOne().sort({ version: -1 }).select("counts.services").lean();
+    if ((previous?.counts?.services ?? 0) > 0 && !built.data.services?.length) {
+      built.warnings.unshift("services.csv was not included: this version has no services, so offers using it can't price services. Import again with services.csv if that wasn't meant.");
+    }
     await PricebookVersion.init(); // make sure the unique version index exists
     for (let attempt = 0; attempt < 3; attempt++) {
       const latest: any = await PricebookVersion.findOne().sort({ version: -1 }).select("version").lean();
@@ -140,9 +144,8 @@ router.post(
 const q = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 200) : undefined);
 const organicParam = (v: unknown) => (v === "true" ? true : v === "false" ? false : undefined);
 
-// Free-text search for the pricebook page, or a structured match.
 // Services for the offer calculator, with the price each would get
-// (an offer's own version when given, else the newest).
+// (an offer's own version and EUR rate when given, else the newest).
 router.get("/services", async (req: Req, res) => {
   const v = Number(req.query.version);
   const doc = Number.isInteger(v) && v > 0 ? await pricebookVersion(v) : await activePricebook();
@@ -152,12 +155,19 @@ router.get("/services", async (req: Req, res) => {
   }
   const settings = doc.settings ?? {};
   const services = (doc.services ?? []).map((s: any) => {
-    const p = priceService(s, { eurDkk: settings.eurDkk ?? Number.NaN, supplierPrices: doc.supplierPrices ?? [], defaultMarginPct: settings.targetMarginServices ?? settings.defaultMarginPct });
+    const rate = Number(req.query.eurDkk);
+    const p = priceService(s, {
+      eurDkk: rate > 1 && rate < 20 ? rate : settings.eurDkk ?? Number.NaN,
+      supplierPrices: doc.supplierPrices ?? [],
+      documents: doc.documents ?? [],
+      defaultMarginPct: settings.targetMarginServices,
+    });
     return { ...s, unitPrice: p?.unitPrice ?? null, priceSource: p?.source ?? "none" };
   });
   res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null });
 });
 
+// Free-text search for the pricebook page, or a structured match.
 router.get("/search", async (req: Req, res) => {
   // an offer's own version when given, else the newest
   const v = Number(req.query.version);

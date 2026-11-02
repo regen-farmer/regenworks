@@ -62,6 +62,7 @@ function present(offer: any) {
         dispensation: needsDispensation(l, o.clientOrganic),
         // for sales-priced lines these describe the cost reference, not the client price
         outdated: l.priceSource === "cost+margin" && !!l.pricing?.outdated,
+        documentDate: l.pricing?.documentDate,
         vatUnclear: l.priceSource === "cost+margin" && !!l.pricing?.vatUnclear,
         costReferenceOutdated: l.priceSource === "sales" && !!l.pricing?.outdated,
         stale: !!l.pricing?.stale,
@@ -187,8 +188,14 @@ router.get("/:id/quantities", async (req: Req, res) => {
     res.send({ fromDesign: false, quantities: { trees: plantTrees } });
     return;
   }
-  const layout = await runSystemBasedLayout(project.systemdesign, project.layer.geometry);
-  res.send({ fromDesign: true, quantities: designQuantities(layout, project.layer.geometry) });
+  try {
+    const layout = await runSystemBasedLayout(project.systemdesign, project.layer.geometry);
+    res.send({ fromDesign: true, quantities: designQuantities(layout, project.layer.geometry) });
+  } catch (err) {
+    // the calculator then asks for the quantities by hand
+    console.error("[offers] quantities: layout failed for offer %s: %s", String(offer._id), (err as Error).message);
+    res.send({ fromDesign: false, failed: true, quantities: { trees: plantTrees } });
+  }
 });
 
 router.get("/", async (_req: Req, res) => {
@@ -322,14 +329,22 @@ router.put("/:id", async (req: Req, res) => {
   let merged = lines ? mergeLines(offer.lines.map((l: any) => l.toObject()), lines) : offer.lines.map((l: any) => l.toObject());
   // New or changed plants, and a new margin/rate, are priced again with the
   // offer's own pricebook version (hand-set prices are kept).
-  const needsPricing = offer.status !== "accepted" && (ratesChanged || merged.some((l: any) => l.priceSource === "none" && (l.latin || l.serviceId)));
+  // Only the lines that need a price are priced, unless the rates changed:
+  // the other lines keep the price the client was given.
+  const waiting = (l: any) => l.priceSource === "none" && (l.latin || l.serviceId);
+  const needsPricing = offer.status !== "accepted" && (ratesChanged || merged.some(waiting));
   if (needsPricing) {
-    const priced = await priceAll(merged, offer);
+    const toPrice = ratesChanged ? merged : merged.filter(waiting);
+    const priced = await priceAll(toPrice, offer);
     if ("error" in priced) {
       res.status(409).send({ error: priced.error });
       return;
     }
-    merged = priced.lines;
+    if (ratesChanged) merged = priced.lines;
+    else {
+      let k = 0;
+      merged = merged.map((l: any) => (waiting(l) ? priced.lines[k++] : l));
+    }
     offer.marginPct = priced.marginPct;
     offer.eurDkk = priced.eurDkk;
     offer.pricebookVersion ??= priced.pricebookVersion;

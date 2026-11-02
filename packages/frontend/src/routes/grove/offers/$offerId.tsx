@@ -46,6 +46,8 @@ function OfferPage() {
   const [tab, setTab] = createSignal<Tab>("edit");
   const [picking, setPicking] = createSignal<"new" | number | null>(null);
   const [calculator, setCalculator] = createSignal(false);
+  // the saved status decides: an accepted offer is what the client signed
+  const locked = () => data()?.offer.status === "accepted";
 
   async function standardGuarantee() {
     try {
@@ -55,6 +57,7 @@ function OfferPage() {
         showToast({ title: "No standard text yet", description: "Add guarantee_text_da to the pricebook's settings.csv and import it.", variant: "destructive" });
         return;
       }
+      if (draft.terms?.guaranteeText?.trim() && draft.terms.guaranteeText.trim() !== r.guaranteeText.trim() && !window.confirm("Replace the guarantee text you typed with the standard text?")) return;
       edit("terms", "guaranteeText", r.guaranteeText);
     } catch (err) {
       showToast({ title: "Could not load the text", description: (err as Error).message, variant: "destructive" });
@@ -187,7 +190,7 @@ function OfferPage() {
                 Priced with pricebook v{data()!.offer.pricebookVersion ?? "–"} · prices you typed are kept · new or changed plants and a new margin are priced when you save
               </span>
               <Show when={draft.status === "accepted"}>
-                <span class="text-xs text-amber-700">Accepted: locked except Dinero no. and notes.</span>
+                <span class="text-xs text-amber-700">Accepted: locked except Dinero no., notes and the links to a deal or project.</span>
               </Show>
               <button class="ml-auto text-xs underline text-red-600" onClick={() => setAskDelete(true)}>
                 Delete offer
@@ -262,7 +265,7 @@ function OfferPage() {
                 <input type="date" class={input} value={dateValue(draft.validUntil)} onInput={(e) => edit("validUntil", `${e.currentTarget.value}T12:00:00`)} />
               </label>
               <label class="flex flex-col text-xs">
-                Margin on supplier cost (%)
+                Plants: margin on supplier cost (%)
                 <input type="number" class={input} value={draft.marginPct ?? ""} onInput={(e) => edit("marginPct", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} />
               </label>
               <label class="flex flex-col text-xs">
@@ -275,6 +278,7 @@ function OfferPage() {
               </label>
             </section>
 
+            <fieldset disabled={locked()} class="contents">
             <section class="overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
@@ -414,7 +418,7 @@ function OfferPage() {
                       {(l, i) => (
                         <Show when={isService(l)}>
                           <tr class="border-t border-zinc-200 dark:border-slate-700">
-                            <td class={td}><input class={input} value={l.nameDa ?? ""} maxLength={200} onInput={(e) => edit("lines", i(), "nameDa", e.currentTarget.value)} /></td>
+                            <td class={td}><input class={input} aria-label="Service name on the offer" value={l.nameDa ?? ""} maxLength={200} onInput={(e) => edit("lines", i(), "nameDa", e.currentTarget.value)} /></td>
                             <td class={td}>
                               <Show when={!l.serviceId} fallback={<span>{l.section ? SECTION_EN[l.section] : ""}</span>}>
                                 <select class={input} value={l.section ?? "other"} onChange={(e) => edit("lines", i(), "section", e.currentTarget.value)}>
@@ -422,20 +426,31 @@ function OfferPage() {
                                 </select>
                               </Show>
                             </td>
-                            <td class={td}><input type="number" min="0" step="any" class={`${input} w-24`} value={l.qty} onInput={(e) => edit("lines", i(), "qty", Number(e.currentTarget.value) || 0)} /></td>
-                            <td class={td}><input class={`${input} w-16`} maxLength={20} value={l.unitDa ?? ""} onInput={(e) => edit("lines", i(), "unitDa", e.currentTarget.value)} /></td>
+                            <td class={td}><input type="number" min="0" step="any" aria-label="Quantity" class={`${input} w-24`} value={l.qty} onInput={(e) => edit("lines", i(), "qty", Number(e.currentTarget.value) || 0)} /></td>
+                            <td class={td}><input aria-label="Unit" class={`${input} w-16`} maxLength={20} value={l.unitDa ?? ""} onInput={(e) => edit("lines", i(), "unitDa", e.currentTarget.value)} /></td>
                             <td class={td}>
-                              <input type="number" min="0" step="any" class={`${input} w-24`} value={l.unitPrice} onInput={(e) => edit("lines", i(), { unitPrice: Number(e.currentTarget.value) || 0, priceSource: "manual" })} />
+                              <input type="number" min="0" step="any" aria-label="Unit price" class={`${input} w-24`} value={l.unitPrice} onInput={(e) => edit("lines", i(), { unitPrice: Number(e.currentTarget.value) || 0, priceSource: "manual" })} />
                               <div class="text-xs opacity-60">{{ sales: "Grove price", "cost+margin": "cost + target margin", manual: "set by hand", none: "no price" }[l.priceSource]}</div>
                             </td>
-                            <td class={td}><input type="number" min="0" max="100" class={`${input} w-16`} value={l.discountPct ?? 0} onInput={(e) => edit("lines", i(), "discountPct", Number(e.currentTarget.value) || 0)} /></td>
+                            <td class={td}><input type="number" min="0" max="100" aria-label="Discount %" class={`${input} w-16`} value={l.discountPct ?? 0} onInput={(e) => edit("lines", i(), "discountPct", Number(e.currentTarget.value) || 0)} /></td>
                             <td class={`${td} whitespace-nowrap`}>{dkk((l.qty || 0) * (l.unitPrice || 0) * (1 - (l.discountPct || 0) / 100))}</td>
                             <td class={td}>
                               <div class="flex flex-col gap-0.5 text-xs">
                                 <Show when={l.priceSource === "none"}><span class="text-red-600">no price</span></Show>
+                                <Show when={flags(i())?.vatUnclear}><span class="text-amber-600">supplier VAT unclear</span></Show>
+                                <Show when={flags(i())?.outdated}><span class="text-amber-600">price may be outdated</span></Show>
                                 <Show when={flags(i())?.stale}><span class="text-amber-600">not in this pricebook: old price kept</span></Show>
                                 <Show when={flags(i())?.margin?.belowTarget}><span class="text-amber-600">margin below target</span></Show>
-                                <button class="underline text-left" onClick={() => edit("lines", (ls: OfferLine[]) => ls.filter((_, j) => j !== i()))}>remove</button>
+                                <button
+                                  class="underline text-left"
+                                  aria-label={`Remove ${l.nameDa || "service line"}`}
+                                  onClick={() => {
+                                    setPicking(null); // indices shift: a picker open for a plant line would point at the wrong one
+                                    edit("lines", (ls: OfferLine[]) => ls.filter((_, j) => j !== i()));
+                                  }}
+                                >
+                                  remove
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -446,12 +461,12 @@ function OfferPage() {
                 </table>
               </Show>
               <div class="flex gap-2">
-                <button class="rounded-sm px-2 py-1 btn-default text-sm" disabled={draft.status === "accepted"} onClick={() => setCalculator(!calculator())}>
+                <button class="rounded-sm px-2 py-1 btn-default text-sm" disabled={locked()} onClick={() => setCalculator(!calculator())}>
                   {calculator() ? "Hide services calculator" : "+ Add services"}
                 </button>
                 <button
                   class="rounded-sm px-2 py-1 text-sm underline"
-                  disabled={draft.status === "accepted"}
+                  disabled={locked()}
                   onClick={() => edit("lines", (ls: OfferLine[]) => [...(ls ?? []), { kind: "service", section: "other", nameDa: "", unitDa: "stk.", qty: 1, unitPrice: 0, priceSource: "none", discountPct: 0 }])}
                 >
                   + Own service line
@@ -461,6 +476,7 @@ function OfferPage() {
                 <ServicesCalculator
                   offerId={params().offerId}
                   version={data()!.offer.pricebookVersion ?? undefined}
+                  eurDkk={data()!.offer.eurDkk}
                   existing={(draft.lines ?? []).filter(isService).map((l) => l.serviceId ?? "")}
                   onClose={() => setCalculator(false)}
                   onAdd={(lines) => {
@@ -472,7 +488,10 @@ function OfferPage() {
               </Show>
             </section>
 
+            </fieldset>
+
             <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <fieldset disabled={locked()} class="contents">
               <label class="flex flex-col text-xs">
                 Delivery season
                 <input class={input} value={draft.terms?.deliverySeason ?? ""} placeholder="fx Efterår 2027" onInput={(e) => edit("terms", "deliverySeason", e.currentTarget.value)} />
@@ -487,15 +506,24 @@ function OfferPage() {
               </label>
               <label class="flex flex-col text-xs">
                 Deposit note (optional, shown on the offer)
-                <input class={input} value={draft.terms?.deposit ?? ""} placeholder="fx restbeløb ved levering" onInput={(e) => edit("terms", "deposit", e.currentTarget.value)} />
+                <input class={input} value={draft.terms?.deposit ?? ""} placeholder="fx betales inden 8 dage" onInput={(e) => edit("terms", "deposit", e.currentTarget.value)} />
               </label>
               <div class="flex flex-col text-xs md:col-span-2 gap-1">
                 <label class="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={!!draft.terms?.guarantee} onChange={(e) => edit("terms", "guarantee", e.currentTarget.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={!!draft.terms?.guarantee}
+                    onChange={(e) => {
+                      edit("terms", "guarantee", e.currentTarget.checked);
+                      // fill in the standard wording so a ticked guarantee is never blank
+                      if (e.currentTarget.checked && !draft.terms?.guaranteeText?.trim()) standardGuarantee();
+                    }}
+                  />
                   Survival guarantee on this offer
                 </label>
                 <Show when={draft.terms?.guarantee}>
-                  <textarea class={input} rows={4} maxLength={3000} value={draft.terms?.guaranteeText ?? ""} placeholder="Guarantee wording (Danish)" onInput={(e) => edit("terms", "guaranteeText", e.currentTarget.value)} />
+                  <textarea class={input} rows={4} maxLength={3000} aria-label="Guarantee wording (Danish, on the offer)" value={draft.terms?.guaranteeText ?? ""} placeholder="Guarantee wording (Danish)" onInput={(e) => edit("terms", "guaranteeText", e.currentTarget.value)} />
+                  <Show when={!draft.terms?.guaranteeText?.trim()}><span class="text-amber-700">No wording yet: the guarantee won't show on the offer.</span></Show>
                   <button class="underline self-start" onClick={standardGuarantee}>Use the standard text from the pricebook</button>
                 </Show>
               </div>
@@ -503,6 +531,7 @@ function OfferPage() {
                 Other terms (shown on the offer)
                 <textarea class={input} rows={3} value={draft.terms?.text ?? ""} onInput={(e) => edit("terms", "text", e.currentTarget.value)} />
               </label>
+              </fieldset>
               <label class="flex flex-col text-xs md:col-span-2">
                 Internal notes (not on the offer)
                 <textarea class={input} rows={2} value={draft.notes ?? ""} onInput={(e) => edit("notes", e.currentTarget.value)} />
@@ -666,10 +695,17 @@ function OfferSheet(props: { p: Presented }) {
         <div>Tilbuddet er gældende til {dato(o().validUntil)}.</div>
         <Show when={o().terms?.deliverySeason}><div>Levering: {o().terms.deliverySeason}</div></Show>
         <Show when={o().terms?.deliveryDate}><div>Forventet levering/plantning: {dato(o().terms.deliveryDate ?? undefined)}</div></Show>
-        <div>
-          Depositum ved accept: {t().deposit.pct.toLocaleString("da-DK")} % = {dkk(t().deposit.amount)} inkl. moms. Restbeløbet faktureres ved levering.
-          <Show when={o().terms?.deposit}> {o().terms.deposit}</Show>
-        </div>
+        {/* Offers made before the deposit rule only show their own deposit text. */}
+        <Show
+          when={(o().terms?.deliveryDate || typeof o().terms?.depositPct === "number") && t().deposit.pct > 0}
+          fallback={<Show when={o().terms?.deposit}><div>Depositum: {o().terms.deposit}</div></Show>}
+        >
+          <div>
+            Depositum ved accept: {t().deposit.pct.toLocaleString("da-DK")} % = {dkk(t().deposit.amount)} inkl. moms.
+            <Show when={t().deposit.pct < 100}> Restbeløbet faktureres ved levering.</Show>
+            <Show when={o().terms?.deposit}> {o().terms.deposit}</Show>
+          </div>
+        </Show>
         <Show when={o().terms?.guarantee && o().terms?.guaranteeText}><div style={{ "white-space": "pre-line" }}>{o().terms.guaranteeText}</div></Show>
         <Show when={o().terms?.text}><div style={{ "white-space": "pre-line" }}>{o().terms.text}</div></Show>
         <div>Alle priser er i danske kroner og ekskl. moms, medmindre andet er angivet.</div>

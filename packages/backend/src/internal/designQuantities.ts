@@ -1,17 +1,22 @@
 // Quantities a design knows, for the offer's services calculator (pure).
-import { area, length, lineString, polygonToLine } from "@turf/turf";
+import { area, length, lineString } from "@turf/turf";
 import type { DesignQuantities } from "./services.ts";
 
 const round = (n: number, d = 0) => Math.round(n * 10 ** d) / 10 ** d;
 
-/** The field boundary as a GeoJSON Polygon/MultiPolygon (feature, geometry or JSON text). */
-function fieldGeometry(g: unknown): any | null {
+/** The field's polygons (feature, geometry, collection or JSON text), as Polygon coordinates. */
+function fieldPolygons(g: unknown): number[][][][] {
   try {
     const x = typeof g === "string" ? JSON.parse(g) : g;
-    const geom = x?.type === "Feature" ? x.geometry : x?.type === "FeatureCollection" ? x.features?.[0]?.geometry : x;
-    return geom?.type === "Polygon" || geom?.type === "MultiPolygon" ? geom : null;
+    const geoms = x?.type === "FeatureCollection" ? (x.features ?? []).map((f: any) => f?.geometry) : [x?.type === "Feature" ? x.geometry : x];
+    const out: number[][][][] = [];
+    for (const geom of geoms) {
+      if (geom?.type === "Polygon") out.push(geom.coordinates);
+      else if (geom?.type === "MultiPolygon") out.push(...geom.coordinates);
+    }
+    return out;
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -31,14 +36,13 @@ export function designQuantities(
     rows += 1;
     rowM += length(lineString(coords), { units: "kilometers" }) * 1000;
   }
-  const geom = fieldGeometry(field);
-  const feature = geom ? { type: "Feature" as const, properties: {}, geometry: geom } : null;
-  const fieldM2 = feature ? area(feature as any) : 0;
+  // area of every part (holes excluded); boundary = outer rings only (where a fence goes)
+  let fieldM2 = 0;
   let perimeterM = 0;
-  if (feature) {
-    const outline: any = polygonToLine(feature as any);
-    const parts = outline.type === "FeatureCollection" ? outline.features : [outline];
-    for (const p of parts) perimeterM += length(p, { units: "kilometers" }) * 1000;
+  for (const rings of fieldPolygons(field)) {
+    if (!rings?.[0] || rings[0].length < 4) continue;
+    fieldM2 += area({ type: "Polygon", coordinates: rings } as any);
+    perimeterM += length(lineString(rings[0]), { units: "kilometers" }) * 1000;
   }
   const stripM2 = (layout.stripAreasM2 ?? []).reduce((n, a) => n + (Number.isFinite(a) ? a : 0), 0);
   return {

@@ -2,7 +2,7 @@
 // Test numbers are made up; Grove's real prices live in the private repo.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildServices, depositPctFor, marginRange, priceService, roundServicePrice, serviceQty, type Service } from "../src/internal/services.ts";
+import { addMonths, buildServices, depositPctFor, priceService, roundServicePrice, serviceQty, type Service } from "../src/internal/services.ts";
 import { buildPricebook } from "../src/internal/pricebook.ts";
 import { cleanOfferUpdate, dineroLines, lineMargin, mergeLines, offerMargin, offerTotals, priceLine, purchaseList } from "../src/internal/offers.ts";
 import { designQuantities } from "../src/internal/designQuantities.ts";
@@ -37,24 +37,33 @@ test("quantities: per tree, per metre, per hectare, fixed; whole units round up"
   assert.equal(serviceQty({ basis: "row_m", qtyPerBasis: 1, roundUp: false }, {}), 0, "unknown quantity");
 });
 
-test("service price: listed price, else cost + target margin; supplier rows in EUR converted", () => {
+test("service price: listed price, else cost priced to the target (gross) margin; supplier rows in EUR converted", () => {
   const base: Service = { serviceId: "s", section: "protection", nameDa: "Net", unitDa: "stk.", basis: "tree", qtyPerBasis: 1, roundUp: false };
   assert.equal(priceService({ ...base, priceExclVat: 123 }, { eurDkk: 7, supplierPrices: [] })!.unitPrice, 123);
   const fromCost = priceService({ ...base, costLow: 80, costLikely: 100, costHigh: 130 }, { eurDkk: 7, supplierPrices: [], defaultMarginPct: 40 })!;
-  assert.equal(fromCost.unitPrice, 140);
+  assert.equal(fromCost.unitPrice, 165, "100 / (1 - 0.40) = 166.67 -> nearest 5 kr");
   assert.equal(fromCost.singleSource, false);
-  const sup = [{ priceId: "p1", docId: "d", supplierId: "x", latin: "", organicStatus: "", price: 2, currency: "EUR" }];
-  const fromSupplier = priceService({ ...base, supplierPriceId: "p1", supplierQty: 3 }, { eurDkk: 7, supplierPrices: sup, defaultMarginPct: 50 })!;
+  const sup = [{ priceId: "p1", docId: "d", supplierId: "x", latin: "", organicStatus: "", price: 2, currency: "EUR", vat: "not stated" }];
+  const docs = [{ docId: "d", supplierId: "x", documentDate: "2020-01-01" }];
+  const fromSupplier = priceService({ ...base, supplierPriceId: "p1", supplierQty: 3 }, { eurDkk: 7, supplierPrices: sup, documents: docs, defaultMarginPct: 50, now: new Date("2026-11-02") })!;
   assert.equal(fromSupplier.unitCostDkk, 42);
-  assert.equal(fromSupplier.unitPrice, 65, "42 x 1.5 = 63 -> nearest 5 kr");
+  assert.equal(fromSupplier.unitPrice, 85, "42 / 0.5 = 84 -> nearest 5 kr");
   assert.equal(fromSupplier.singleSource, true);
+  assert.equal(fromSupplier.vatUnclear, true, "VAT not stated: flagged like plant lines");
+  assert.equal(fromSupplier.outdated, true, "price list over 3 years old");
   assert.equal(priceService(base, { eurDkk: 7, supplierPrices: [] }), null, "nothing known");
   assert.equal(roundServicePrice(6.2), 6);
   assert.equal(roundServicePrice(6.3), 6.5);
   assert.equal(roundServicePrice(62), 60);
 });
 
-test("deposit rule: 50 % if delivery is within 3 months of the offer, else 20 %", () => {
+test("deposit rule: 50 % if delivery is within 3 months of the offer, else 20 % (Danish calendar days)", () => {
+  assert.equal(addMonths("2026-11-30", 3), "2027-02-28", "capped at the month's end");
+  assert.equal(addMonths("2027-11-30", 3), "2028-02-29");
+  assert.equal(depositPctFor(new Date("2026-11-30T12:00:00Z"), new Date("2027-03-01T12:00:00Z")), 20);
+  // 23:30 UTC on 14 Jan is 15 Jan in Denmark: 3 months later is 15 Apr
+  assert.equal(depositPctFor(new Date("2027-01-14T23:30:00Z"), new Date("2027-04-15T10:00:00Z")), 50);
+  assert.equal(depositPctFor(new Date("2027-01-15T11:00:00Z"), new Date("2027-04-15T11:00:00Z")), 50, "noon to noon across summer time");
   const offer = new Date("2026-11-02T12:00:00Z");
   assert.equal(depositPctFor(offer, new Date("2027-02-01T12:00:00Z")), 50);
   assert.equal(depositPctFor(offer, new Date("2027-02-02T12:00:00Z")), 50, "exactly 3 months");
@@ -97,7 +106,7 @@ test("service lines on an offer: priced, in totals and Dinero, not in the nurser
   assert.equal(planting.nameDa, "Plantning");
   assert.equal(planting.unitDa, "ha");
   const net = priceLine({ kind: "service", serviceId: "net", qty: 100, unitPrice: 0, priceSource: "none" }, b.data, rates);
-  assert.equal(net.unitPrice, 21, "2 EUR x 7 = 14 kr cost + 50 % services target");
+  assert.equal(net.unitPrice, 28, "2 EUR x 7 = 14 kr cost at a 50 % services margin");
   assert.equal(net.priceSource, "cost+margin");
   const none = priceLine({ kind: "service", serviceId: "noprice", qty: 4, unitPrice: 0, priceSource: "none" }, b.data, rates);
   assert.equal(none.priceSource, "none");
@@ -112,12 +121,13 @@ test("service lines on an offer: priced, in totals and Dinero, not in the nurser
   const offer = { lines: [hazel, planting, net], discountPct: 0 };
   const t = offerTotals(offer);
   assert.equal(t.plants, 10000);
-  assert.equal(t.services, 2500 + 2100);
+  assert.equal(t.services, 2500 + 2800);
   const dinero = dineroLines(offer);
   assert.ok(dinero.some((d) => d.text === "Plantning: 2,5 ha" && d.amount === 2500));
   assert.ok(dinero.some((d) => d.text === "Trænet: 100 stk."));
   assert.equal(purchaseList(offer).flatMap((s) => s.lines).length, 1, "only the plants");
-  assert.deepEqual(marginRange(1000, 0, { likely: 600 }), { likely: 40, worst: 40, best: 40 });
+  assert.equal(lineMargin(net)!.belowTarget, false, "priced at the target: not flagged");
+  assert.equal(lineMargin(net)!.marginPct, 50);
   const m = lineMargin(planting)!;
   assert.equal(m.marginPct, 40);
   assert.equal(m.belowTarget, true, "40 % against a 50 % services target");
@@ -172,4 +182,12 @@ test("design quantities: rows, boundary and areas from geometry", () => {
   assert.ok(Math.abs(q.fieldHa - 1) <= 0.02, `field ${q.fieldHa}`);
   assert.equal(q.treeHa, 0.2);
   assert.equal(designQuantities({}, "not json").fieldHa, 0);
+  // a field drawn as two features: both count
+  const two = { type: "FeatureCollection", features: [sq, sq].map((g) => ({ type: "Feature", properties: {}, geometry: g })) };
+  assert.ok(Math.abs(designQuantities({}, two).fieldHa - 2) <= 0.04);
+  // a hole: area without it, boundary = outer ring only
+  const inner = [[10 + dLng / 4, lat + dLat / 4], [10 + dLng / 2, lat + dLat / 4], [10 + dLng / 2, lat + dLat / 2], [10 + dLng / 4, lat + dLat / 2], [10 + dLng / 4, lat + dLat / 4]];
+  const holed = designQuantities({}, { type: "Polygon", coordinates: [sq.coordinates[0], inner] });
+  assert.ok(Math.abs(holed.fieldHa - 0.94) <= 0.02, `holed ${holed.fieldHa}`);
+  assert.ok(Math.abs(holed.perimeterM - 400) <= 4);
 });
