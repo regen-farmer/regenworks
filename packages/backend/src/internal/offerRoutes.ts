@@ -322,7 +322,12 @@ router.put("/:id", async (req: Req, res) => {
   }
   // An accepted offer can be marked a forward order for the scorecard; the
   // deposit the client signed is kept as a set % so it doesn't change.
-  if (typeof rest.scorecardForward === "boolean" && offer.status === "accepted") {
+  if (offer.status === "accepted" && rest.acceptedAt === null) {
+    res.status(400).send({ error: "An accepted offer needs its accepted date" });
+    return;
+  }
+  // only when the flag actually changes, so other saves leave the deposit alone
+  if (typeof rest.scorecardForward === "boolean" && offer.status === "accepted" && rest.scorecardForward !== !!offer.terms?.forwardOrder) {
     const before = deposit(offer.toObject(), offerTotals(offer.toObject()).total).pct;
     if (offer.terms?.depositPct === null || offer.terms?.depositPct === undefined) offer.set("terms.depositPct", before);
     offer.set("terms.forwardOrder", rest.scorecardForward);
