@@ -1,6 +1,6 @@
 // Grove pricebook: upload a version from the private grove-pricebook repo,
 // see documents with their dates, and search prices. Grove team only.
-import { createFileRoute } from "@tanstack/solid-router";
+import { createFileRoute, Link } from "@tanstack/solid-router";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney, kr, uploadForm } from "~/grove/access.ts";
@@ -68,6 +68,7 @@ function Pricebook() {
       <Toaster />
       <div>
         <h1 class="text-3xl font-bold">Pricebook</h1>
+        <Link to="/grove/prices" class="text-sm underline">See all prices, costs and margins →</Link>
         <p class="text-sm opacity-70">
           Grove's prices from the private grove-pricebook repo. Offers use Grove's sales price where one exists, otherwise
           the supplier price plus margin, rounded to 5 kr.

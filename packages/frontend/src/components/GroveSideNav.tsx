@@ -18,6 +18,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/managed", label: "Managed farms", letter: "C", icon: "fa-tractor", soon: true },
   { heading: "Library" },
   { to: "/plants", label: "Plants", icon: "fa-seedling", show: () => canUsePlantCatalogue() },
+  { to: "/grove/prices", label: "Prices", icon: "fa-scale-balanced", show: () => canSeeMoney() },
   { to: "/grove/pricebook", label: "Pricebook", icon: "fa-tags", show: () => canSeeMoney() },
   { to: "/settings", label: "Settings", icon: "fa-gear" },
 ];
