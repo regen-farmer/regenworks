@@ -97,7 +97,7 @@ function ProjectPage() {
       <Toaster />
       <Show when={data()} fallback={<p>Loading…</p>}>
         <div class="flex flex-wrap items-center gap-2">
-          <Link to="/grove" class="text-sm underline">← Dashboard</Link>
+          <Link to="/grove/projects" class="text-sm underline">← Projects</Link>
           <h1 class="text-2xl font-bold mr-auto">{p.name}</h1>
           <Show when={team()}>
             <button class="rounded-sm px-2 py-1 btn-default" disabled={busy() || !dirty()} onClick={() => save()}>
@@ -246,7 +246,7 @@ function ProjectPage() {
           try {
             await apiFetch(`/internal/projects/${params().projectId}`, { method: "DELETE" });
             setAskDelete(false);
-            navigate({ to: "/grove" });
+            navigate({ to: "/grove/projects" });
           } catch (err) {
             setAskDelete(false);
             showToast({ title: "Not deleted", description: (err as Error).message, variant: "destructive" });
