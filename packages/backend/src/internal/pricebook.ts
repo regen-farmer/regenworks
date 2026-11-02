@@ -584,9 +584,18 @@ export function priceFromRow(
     const s = data.salesPrices.find((p) => p.salesPriceId === ref.id);
     if (!s) return null;
     // cost reference for the internal sheet, as for matched sales prices
+    const prop = s.propagation?.toLowerCase().includes("graft") ? "grafted" : s.propagation ? "seedling" : undefined;
     const cost = supplierSuggestion(
       data,
-      { latin: s.latin, cultivar: s.cultivar, rootstock: s.rootstock, organic: s.organicStatus === "organic" ? true : undefined },
+      {
+        latin: s.latin,
+        cultivar: s.cultivar,
+        rootstock: s.rootstock,
+        organic: s.organicStatus === "organic",
+        propagation: prop as PlantQuery["propagation"],
+        heightMin: s.heightMin,
+        heightMax: s.heightMax,
+      },
       opts,
     );
     return {

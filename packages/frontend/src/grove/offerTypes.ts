@@ -47,7 +47,7 @@ export type Presented = {
   totals: Totals;
   dinero: { text: string; qty: number; amount: number }[];
   internal: {
-    lines: { id: string; margin: { unitCost: number; unitMargin: number; marginPct: number } | null; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; costReferenceOutdated?: boolean }[];
+    lines: { id: string; margin: { unitCost: number; unitMargin: number; marginPct: number } | null; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; pickedMissing?: boolean; costReferenceOutdated?: boolean }[];
     purchaseList: { supplierId: string; totalCostDkk: number; lines: any[] }[];
   };
   warning?: string;

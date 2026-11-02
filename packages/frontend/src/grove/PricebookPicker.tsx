@@ -29,7 +29,7 @@ export function lineFromRow(kind: "sales" | "supplier", r: any): Partial<OfferLi
   };
 }
 
-export function PricebookPicker(props: { onPick: (fields: Partial<OfferLine>) => void; onClose?: () => void }) {
+export function PricebookPicker(props: { onPick: (fields: Partial<OfferLine>) => void; onClose?: () => void; version?: number }) {
   const [q, setQ] = createSignal("");
   const [res, setRes] = createSignal<Results>();
   const [busy, setBusy] = createSignal(false);
@@ -38,7 +38,10 @@ export function PricebookPicker(props: { onPick: (fields: Partial<OfferLine>) =>
     if (!q().trim()) return;
     setBusy(true);
     try {
-      setRes(await apiFetch<Results>(`/internal/pricebook/search?q=${encodeURIComponent(q().trim())}`));
+      // the offer's own pricebook version, so the picked product is the one it is priced from
+      const r = await apiFetch<Results>(`/internal/pricebook/search?q=${encodeURIComponent(q().trim())}${props.version ? `&version=${props.version}` : ""}`);
+      // plants only (no guards, mulch or other items)
+      setRes({ salesPrices: r.salesPrices, supplierPrices: r.supplierPrices.filter((p) => !p.unit || p.unit === "plant") });
     } finally {
       setBusy(false);
     }

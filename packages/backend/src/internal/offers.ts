@@ -169,7 +169,13 @@ export function priceLine(
   if (!data || !rates || !l.latin) return { ...l, priceSource: l.unitPrice > 0 ? l.priceSource : "none" };
   if (l.pricebookRef) {
     const picked = priceFromRow(data, l.pricebookRef, rates);
-    if (picked) {
+    const row: any =
+      l.pricebookRef.kind === "sales"
+        ? data.salesPrices.find((p) => p.salesPriceId === l.pricebookRef!.id)
+        : data.supplierPrices.find((p) => p.priceId === l.pricebookRef!.id);
+    // only if the line still describes that product (not edited since)
+    const stillSame = row && (row.latin ?? "").trim().toLowerCase() === (l.latin ?? "").trim().toLowerCase();
+    if (picked && stillSame) {
       const salesRow = picked.salesPriceId ? data.salesPrices.find((p) => p.salesPriceId === picked.salesPriceId) : undefined;
       return {
         ...l,
@@ -181,8 +187,21 @@ export function priceLine(
         pricing: { ...picked },
       };
     }
-    // not in this pricebook version: fall through to a normal match
+    // Not in this pricebook version, or the plant was edited: match as usual,
+    // and say so on the line.
+    const fallback = priceLineByMatch(l, data, rates, hybrid, clientOrganic);
+    return { ...fallback, pricing: { ...(fallback.pricing ?? {}), pickedMissing: true, matchNote: `picked product not used (${picked ? "plant edited" : "not in this pricebook version"}); ${fallback.pricing?.matchNote ?? "matched instead"}` } };
   }
+  return priceLineByMatch(l, data, rates, hybrid, clientOrganic);
+}
+
+function priceLineByMatch(
+  l: OfferLine,
+  data: PricebookData,
+  rates: { marginPct: number; eurDkk: number },
+  hybrid: PlantQuery["hybrid"] | undefined,
+  clientOrganic: boolean,
+): OfferLine {
   const base = lineQuery(l, hybrid);
   // Open: the client's kind first, then the other (organic plants can be sold
   // to anyone; an organic client then needs a dispensation for the line).
@@ -217,7 +236,7 @@ function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybr
 }
 
 /** What identifies the plant on a line; changing any of these needs a new price. */
-const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested", "pricebookRefKey"] as const;
+const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
 const same = (a: unknown, b: unknown) => {
   const n = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : typeof v === "string" ? v.trim() : v);
   return n(a) === n(b);
@@ -229,11 +248,9 @@ const same = (a: unknown, b: unknown) => {
  * manual price; a changed plant loses its old pricing (needs repricing).
  * Duplicate line ids are dropped.
  */
-export function mergeLines(stored: any[], incoming: any[]) {
-  return mergeLinesRaw(stored, incoming).map(({ pricebookRefKey: _k, ...l }: any) => l);
-}
+const refKey = (l: any) => (l?.pricebookRef ? `${l.pricebookRef.kind}:${l.pricebookRef.id}` : null);
 
-function mergeLinesRaw(stored: any[], incoming: any[]) {
+export function mergeLines(stored: any[], incoming: any[]) {
   const before = new Map(stored.map((l) => [String(l._id), l]));
   const seen = new Set<string>();
   return incoming.flatMap((l) => {
@@ -244,10 +261,11 @@ function mergeLinesRaw(stored: any[], incoming: any[]) {
     if (!old) {
       return [{ ...l, _id: undefined, pricing: null, priceSource: l.unitPrice > 0 ? "manual" : "none" }];
     }
-    const priceTyped = old.unitPrice !== l.unitPrice;
-    old.pricebookRefKey = old.pricebookRef ? `${old.pricebookRef.kind}:${old.pricebookRef.id}` : null;
-    l.pricebookRefKey = l.pricebookRef ? `${l.pricebookRef.kind}:${l.pricebookRef.id}` : null;
-    const plantChanged = PLANT_FIELDS.some((k) => !same(old[k], l[k]));
+    // A newly picked product is priced from the pricebook, whatever price the
+    // editor sent along with it.
+    const picked = refKey(l) !== null && refKey(l) !== refKey(old);
+    const priceTyped = !picked && old.unitPrice !== l.unitPrice;
+    const plantChanged = picked || PLANT_FIELDS.some((k) => !same(old[k], l[k]));
     if (plantChanged) {
       return [{ ...l, _id: old._id, speciesId: l.latin === old.latin ? old.speciesId : undefined, pricing: null, priceSource: priceTyped ? "manual" : "none", unitPrice: priceTyped ? l.unitPrice : 0 }];
     }
@@ -362,7 +380,7 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
           organic: l?.organic === true ? true : l?.organic === false ? false : null,
           organicRequested: l?.organicRequested === true ? true : l?.organicRequested === false ? false : null,
           pricebookRef:
-            (l?.pricebookRef?.kind === "sales" || l?.pricebookRef?.kind === "supplier") && typeof l.pricebookRef.id === "string" && l.pricebookRef.id.length <= 100
+            (l?.pricebookRef?.kind === "sales" || l?.pricebookRef?.kind === "supplier") && typeof l.pricebookRef.id === "string" && l.pricebookRef.id.length > 0 && l.pricebookRef.id.length <= 100
               ? { kind: l.pricebookRef.kind, id: l.pricebookRef.id }
               : null,
           qty: qty ?? 0,
