@@ -180,3 +180,28 @@ test("a conventional client gets organic stock when that's all there is; ticking
   assert.equal(again.organic, true);
   assert.equal(again.unitPrice, 150);
 });
+
+// ---- products picked from the pricebook ----
+test("a picked supplier product is priced from exactly that row", () => {
+  const two = (buildPricebook({
+    ...pbFiles,
+    supplierPrices:
+      pbFiles.supplierPrices + "x2,d1,n1,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted,organic,9,EUR,excl. VAT,plant\n",
+    salesPrices: "sales_price_id,latin,common_name_da,cultivar,propagation,rootstock,organic_status,price_excl_vat,currency\n",
+  }) as any).data;
+  const picked = priceLine(hazel({ pricebookRef: { kind: "supplier", id: "x1" } }), two, rates, undefined, false);
+  assert.equal(picked.pricing?.supplierPriceId, "x1", "not the cheaper x2");
+  assert.equal(picked.unitPrice, 135); // 14 EUR x 7 x 1.4 = 137.2 -> nearest 5 kr
+  assert.equal(picked.organic, true);
+});
+
+test("a picked Grove sales price is used as listed; an unknown row falls back to matching", () => {
+  const s = priceLine(hazel({ pricebookRef: { kind: "sales", id: "s2" } }), pb, rates, undefined, true);
+  assert.equal(s.unitPrice, 110, "the conventional row the user picked, even for an organic client");
+  assert.equal(s.organic, false);
+  const gone = priceLine(hazel({ pricebookRef: { kind: "sales", id: "nope" } }), pb, rates, undefined, false);
+  assert.equal(gone.unitPrice, 110);
+  const m = mergeLines([{ _id: "a", ...hazel(), unitPrice: 110, priceSource: "sales", pricing: {} }], [{ _id: "a", ...hazel(), unitPrice: 110, pricebookRef: { kind: "sales", id: "s1" } }]);
+  assert.equal(m[0].priceSource, "none", "picking another product means pricing again");
+  assert.equal("pricebookRefKey" in m[0], false);
+});

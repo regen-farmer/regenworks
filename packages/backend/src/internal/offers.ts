@@ -1,5 +1,5 @@
 // Offer sheet logic (pure, tested). Grove team only via /internal/offers.
-import { round5, suggestPrice, type PlantQuery, type PricebookData, type Propagation } from "./pricebook.ts";
+import { priceFromRow, round5, suggestPrice, type PlantQuery, type PricebookData, type PricebookRef, type Propagation } from "./pricebook.ts";
 
 export const VAT_RATE = 0.25;
 export const DEFAULT_VALID_DAYS = 14;
@@ -34,6 +34,8 @@ export type OfferLine = {
   organic?: boolean | null;
   /** organic as asked for by the design or the editor; null = open (client decides) */
   organicRequested?: boolean | null;
+  /** a product picked in the pricebook: priced from exactly that row */
+  pricebookRef?: PricebookRef | null;
   qty: number;
   unitPrice: number;
   priceSource: "sales" | "cost+margin" | "manual" | "none";
@@ -165,6 +167,22 @@ export function priceLine(
 ): OfferLine {
   if (l.priceSource === "manual") return l;
   if (!data || !rates || !l.latin) return { ...l, priceSource: l.unitPrice > 0 ? l.priceSource : "none" };
+  if (l.pricebookRef) {
+    const picked = priceFromRow(data, l.pricebookRef, rates);
+    if (picked) {
+      const salesRow = picked.salesPriceId ? data.salesPrices.find((p) => p.salesPriceId === picked.salesPriceId) : undefined;
+      return {
+        ...l,
+        nameDa: l.nameDa || salesRow?.commonNameDa || danishName(data, l, hybrid),
+        organic: picked.organicStatus === "organic",
+        unitPrice: round5(picked.unitPrice),
+        priceSource: picked.source,
+        size: l.size || picked.size,
+        pricing: { ...picked },
+      };
+    }
+    // not in this pricebook version: fall through to a normal match
+  }
   const base = lineQuery(l, hybrid);
   // Open: the client's kind first, then the other (organic plants can be sold
   // to anyone; an organic client then needs a dispensation for the line).
@@ -199,7 +217,7 @@ function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybr
 }
 
 /** What identifies the plant on a line; changing any of these needs a new price. */
-const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
+const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested", "pricebookRefKey"] as const;
 const same = (a: unknown, b: unknown) => {
   const n = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : typeof v === "string" ? v.trim() : v);
   return n(a) === n(b);
@@ -212,6 +230,10 @@ const same = (a: unknown, b: unknown) => {
  * Duplicate line ids are dropped.
  */
 export function mergeLines(stored: any[], incoming: any[]) {
+  return mergeLinesRaw(stored, incoming).map(({ pricebookRefKey: _k, ...l }: any) => l);
+}
+
+function mergeLinesRaw(stored: any[], incoming: any[]) {
   const before = new Map(stored.map((l) => [String(l._id), l]));
   const seen = new Set<string>();
   return incoming.flatMap((l) => {
@@ -223,6 +245,8 @@ export function mergeLines(stored: any[], incoming: any[]) {
       return [{ ...l, _id: undefined, pricing: null, priceSource: l.unitPrice > 0 ? "manual" : "none" }];
     }
     const priceTyped = old.unitPrice !== l.unitPrice;
+    old.pricebookRefKey = old.pricebookRef ? `${old.pricebookRef.kind}:${old.pricebookRef.id}` : null;
+    l.pricebookRefKey = l.pricebookRef ? `${l.pricebookRef.kind}:${l.pricebookRef.id}` : null;
     const plantChanged = PLANT_FIELDS.some((k) => !same(old[k], l[k]));
     if (plantChanged) {
       return [{ ...l, _id: old._id, speciesId: l.latin === old.latin ? old.speciesId : undefined, pricing: null, priceSource: priceTyped ? "manual" : "none", unitPrice: priceTyped ? l.unitPrice : 0 }];
@@ -337,6 +361,10 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
           heightMax: number(l?.heightMax, 0, 5000),
           organic: l?.organic === true ? true : l?.organic === false ? false : null,
           organicRequested: l?.organicRequested === true ? true : l?.organicRequested === false ? false : null,
+          pricebookRef:
+            (l?.pricebookRef?.kind === "sales" || l?.pricebookRef?.kind === "supplier") && typeof l.pricebookRef.id === "string" && l.pricebookRef.id.length <= 100
+              ? { kind: l.pricebookRef.kind, id: l.pricebookRef.id }
+              : null,
           qty: qty ?? 0,
           unitPrice: unitPrice ?? 0,
           priceSource: source,

@@ -4,12 +4,12 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
-import { dkk, STATUS_DA } from "~/grove/offerTypes.ts";
+import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
-type Detail = { project: GroveProject; offers: { _id: string; title?: string; dineroNumber?: string; status: keyof typeof STATUS_DA; validUntil?: string; net: number }[] };
+type Detail = { project: GroveProject; offers: { _id: string; title?: string; dineroNumber?: string; status: keyof typeof STATUS_EN; validUntil?: string; net: number }[] };
 
 const day = (d: string | null | undefined) => {
   if (!d) return "";
@@ -207,7 +207,7 @@ function ProjectPage() {
                           {o.dineroNumber ? ` (${o.dineroNumber})` : ""}
                         </Link>
                       </td>
-                      <td class="py-1 pr-3">{STATUS_DA[o.status]}</td>
+                      <td class="py-1 pr-3">{STATUS_EN[o.status]}</td>
                       <td class="py-1 pr-3">{o.validUntil ? new Date(o.validUntil).toLocaleDateString("da-DK") : ""}</td>
                       <td class="py-1 pr-3 text-right">{dkk(o.net)}</td>
                     </tr>

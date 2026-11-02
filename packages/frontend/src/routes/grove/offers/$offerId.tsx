@@ -10,11 +10,13 @@ import {
   DISPENSATION_TEXT,
   dkk,
   PROPAGATION_DA,
-  STATUS_DA,
+  PROPAGATION_EN,
+  STATUS_EN,
   type Offer,
   type OfferLine,
   type Presented,
 } from "~/grove/offerTypes.ts";
+import { PricebookPicker } from "~/grove/PricebookPicker.tsx";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
@@ -34,6 +36,7 @@ function OfferPage() {
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const [tab, setTab] = createSignal<Tab>("edit");
+  const [picking, setPicking] = createSignal<"new" | number | null>(null);
 
   createEffect(() => {
     const d = data();
@@ -192,7 +195,7 @@ function OfferPage() {
               <label class="flex flex-col text-xs">
                 Status
                 <select class={input} value={draft.status} disabled={data()?.offer.status === "accepted"} onChange={(e) => edit("status", e.currentTarget.value)}>
-                  <For each={Object.entries(STATUS_DA)}>{([k, v]) => <option value={k}>{v}</option>}</For>
+                  <For each={Object.entries(STATUS_EN)}>{([k, v]) => <option value={k}>{v}</option>}</For>
                 </select>
               </label>
               <For each={[["name", "Client"], ["contactPerson", "Contact person"], ["cvr", "CVR"], ["address", "Address"], ["email", "Email"], ["phone", "Phone"]] as const}>
@@ -275,7 +278,7 @@ function OfferPage() {
                         <td class={td}>
                           <select class={input} value={l.propagation ?? ""} onChange={(e) => edit("lines", i(), "propagation", e.currentTarget.value || undefined)}>
                             <option value="">–</option>
-                            <For each={Object.entries(PROPAGATION_DA)}>{([k, v]) => <option value={k}>{v}</option>}</For>
+                            <For each={Object.entries(PROPAGATION_EN)}>{([k, v]) => <option value={k}>{v}</option>}</For>
                           </select>
                         </td>
                         <td class={td}><input class={input} value={l.size ?? ""} onInput={(e) => edit("lines", i(), "size", e.currentTarget.value)} /></td>
@@ -284,9 +287,9 @@ function OfferPage() {
                             const v = e.currentTarget.value === "yes" ? true : e.currentTarget.value === "no" ? false : null;
                             edit("lines", i(), { organic: v, organicRequested: v });
                           }}>
-                            <option value="">? ({l.organic === true ? "øko" : l.organic === false ? "ikke øko" : "–"})</option>
-                            <option value="yes">øko</option>
-                            <option value="no">ikke øko</option>
+                            <option value="">? ({l.organic === true ? "organic" : l.organic === false ? "not organic" : "–"})</option>
+                            <option value="yes">organic</option>
+                            <option value="no">not organic</option>
                           </select>
                         </td>
                         <td class={td}><input type="number" min="0" class={`${input} w-20`} value={l.qty} onInput={(e) => edit("lines", i(), "qty", Number(e.currentTarget.value) || 0)} /></td>
@@ -304,6 +307,8 @@ function OfferPage() {
                             <Show when={flags(i())?.stale}><span class="text-amber-600">not in this pricebook: old price kept</span></Show>
                             <Show when={flags(i())?.ambiguous}><span class="text-amber-600">several prices fit: check type/size</span></Show>
                             <Show when={l.priceSource === "none"}><span class="text-red-600">no price</span></Show>
+                            <button class="underline text-left" onClick={() => setPicking(i())}>pick product</button>
+                            <Show when={l.pricebookRef}><span class="opacity-60">from pricebook</span></Show>
                             <button class="underline text-left" onClick={() => edit("lines", (ls: OfferLine[]) => ls.filter((_, j) => j !== i()))}>remove</button>
                           </div>
                         </td>
@@ -312,12 +317,33 @@ function OfferPage() {
                   </For>
                 </tbody>
               </table>
-              <button
-                class="mt-2 rounded-sm px-2 py-1 btn-default text-sm"
-                onClick={() => edit("lines", (ls: OfferLine[]) => [...(ls ?? []), { qty: 1, unitPrice: 0, priceSource: "none", discountPct: 0, organic: null }])}
-              >
-                + Add line
-              </button>
+              <div class="flex gap-2 mt-2">
+                <button class="rounded-sm px-2 py-1 btn-default text-sm" onClick={() => setPicking("new")}>
+                  + Add plant from pricebook
+                </button>
+                <button
+                  class="rounded-sm px-2 py-1 text-sm underline"
+                  onClick={() => edit("lines", (ls: OfferLine[]) => [...(ls ?? []), { qty: 1, unitPrice: 0, priceSource: "none", discountPct: 0, organic: null }])}
+                >
+                  + Empty line
+                </button>
+              </div>
+              <Show when={picking() !== null}>
+                <div class="mt-2">
+                  <p class="text-xs opacity-70 mb-1">
+                    {picking() === "new" ? "Pick a product for a new line." : `Pick a product for line ${(picking() as number) + 1}; its quantity and discount stay.`} It is priced from that product when you save.
+                  </p>
+                  <PricebookPicker
+                    onClose={() => setPicking(null)}
+                    onPick={(fields) => {
+                      const at = picking();
+                      if (at === "new") edit("lines", (ls: OfferLine[]) => [...(ls ?? []), { qty: 1, discountPct: 0, ...fields } as OfferLine]);
+                      else if (typeof at === "number") edit("lines", at, (l: OfferLine) => ({ ...l, ...fields, nameDa: fields.nameDa ?? l.nameDa }));
+                      setPicking(null);
+                    }}
+                  />
+                </div>
+              </Show>
               <p class="text-xs opacity-70 mt-1">
                 Changes to quantities or plants are saved with "Save"; "Price from pricebook" then prices the lines that have no hand-set price.
               </p>

@@ -567,3 +567,72 @@ function describeMatch(m: Scored<{ rootstock?: string }>, q: PlantQuery) {
   if (q.heightMin !== undefined || q.heightMax !== undefined) parts.push(m.heightGap === 0 ? "size matches" : "size differs");
   return parts.join(", ");
 }
+
+export type PricebookRef = { kind: "sales" | "supplier"; id: string };
+
+/**
+ * Price from one row the user picked in the pricebook (not a search): a Grove
+ * sales price as listed, or that supplier price plus margin, rounded to 5 kr.
+ * Null when the row isn't in this version.
+ */
+export function priceFromRow(
+  data: PricebookData,
+  ref: PricebookRef,
+  opts: { marginPct: number; eurDkk: number; now?: Date },
+): PriceSuggestion | null {
+  if (ref.kind === "sales") {
+    const s = data.salesPrices.find((p) => p.salesPriceId === ref.id);
+    if (!s) return null;
+    // cost reference for the internal sheet, as for matched sales prices
+    const cost = supplierSuggestion(
+      data,
+      { latin: s.latin, cultivar: s.cultivar, rootstock: s.rootstock, organic: s.organicStatus === "organic" ? true : undefined },
+      opts,
+    );
+    return {
+      unitPrice: round5(s.priceExclVat),
+      source: "sales",
+      salesPriceId: s.salesPriceId,
+      listedSupplier: s.listedSupplier,
+      supplierPriceId: cost?.supplierPriceId,
+      supplierId: cost?.supplierId,
+      docId: cost?.docId,
+      documentDate: cost?.documentDate,
+      outdated: cost?.outdated,
+      unitCostDkk: cost?.unitCostDkk,
+      costCurrency: cost?.costCurrency,
+      costPrice: cost?.costPrice,
+      vat: cost?.vat,
+      vatUnclear: cost?.vatUnclear,
+      organicStatus: s.organicStatus,
+      size: s.heightMin && s.heightMax ? `${s.heightMin}-${s.heightMax} cm` : undefined,
+      alternatives: 0,
+      ambiguous: false,
+      matchNote: "chosen from the pricebook",
+    };
+  }
+  const p = data.supplierPrices.find((x) => x.priceId === ref.id);
+  if (!p) return null;
+  const cost = p.currency === "DKK" ? p.price : p.currency === "EUR" ? p.price * opts.eurDkk : NaN;
+  if (!Number.isFinite(cost)) return null;
+  const doc = data.documents.find((d) => d.docId === p.docId);
+  return {
+    unitPrice: round5(cost * (1 + opts.marginPct / 100)),
+    source: "cost+margin",
+    supplierPriceId: p.priceId,
+    supplierId: p.supplierId,
+    docId: p.docId,
+    documentDate: doc?.documentDate,
+    outdated: isOutdated(doc?.documentDate, opts.now),
+    unitCostDkk: Math.round(cost * 100) / 100,
+    costCurrency: p.currency,
+    costPrice: p.price,
+    vat: p.vat,
+    vatUnclear: !vatExcluded(p.vat),
+    size: p.size,
+    organicStatus: p.organicStatus,
+    alternatives: 0,
+    ambiguous: false,
+    matchNote: "chosen from the pricebook",
+  };
+}
