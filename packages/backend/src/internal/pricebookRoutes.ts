@@ -16,6 +16,7 @@ import {
   type PricebookData,
 } from "./pricebook.ts";
 import { priceService } from "./services.ts";
+import { priceOverview } from "./priceOverview.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -165,6 +166,41 @@ router.get("/services", async (req: Req, res) => {
     return { ...s, unitPrice: p?.unitPrice ?? null, priceSource: p?.source ?? "none" };
   });
   res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null });
+});
+
+// Price overview: per product, Grove's sales prices next to every supplier
+// cost, each with its price list, date and source file; services likewise.
+router.get("/overview", async (req: Req, res) => {
+  const v = Number(req.query.version);
+  const doc = Number.isInteger(v) && v > 0 ? await pricebookVersion(v) : await activePricebook();
+  if (!doc) {
+    res.send({ version: null, products: [], services: [] });
+    return;
+  }
+  const rate = Number(req.query.eurDkk);
+  const eurDkk = rate > 1 && rate < 20 ? rate : doc.settings?.eurDkk;
+  if (!eurDkk) {
+    res.status(409).send({ error: "Set eur_dkk in the pricebook's settings.csv" });
+    return;
+  }
+  const q = typeof req.query.q === "string" ? req.query.q.slice(0, 100) : "";
+  const all = priceOverview(doc, { eurDkk, q });
+  // filters, then a page of products (the full list is ~1 MB)
+  const only = req.query.only;
+  const filtered = all.products.filter((p) =>
+    only === "sales" ? p.sales.length > 0 : only === "multi" ? p.summary.suppliers > 1 : only === "flags" ? p.summary.outdated + p.summary.vatUnclear > 0 : true,
+  );
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+  res.send({
+    version: doc.version,
+    importedAt: doc.importedAt,
+    eurDkk: all.eurDkk,
+    targets: all.targets,
+    total: filtered.length,
+    products: filtered.slice(offset, offset + limit),
+    services: all.services,
+  });
 });
 
 // Free-text search for the pricebook page, or a structured match.

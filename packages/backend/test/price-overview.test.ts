@@ -1,0 +1,51 @@
+// Price overview: grouping, DKK costs, ranges, sources, margins. Made-up numbers.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { buildPricebook } from "../src/internal/pricebook.ts";
+import { priceOverview, productKey } from "../src/internal/priceOverview.ts";
+
+const files = {
+  suppliers: "supplier_id,name\na,Nursery A\nb,Nursery B\ngrove,Grove",
+  documents: "doc_id,supplier_id,file,title,document_date\nda,a,sources/a-2025.xlsx,A list 2025,2025-09-01\ndb,b,sources/b-2019.pdf,B list 2019,2019-01-01\ngs,grove,sources/grove-2026.pdf,Grove 2026,2026-01-01",
+  supplierPrices:
+    "price_id,doc_id,supplier_id,latin,common_name,cultivar,rootstock,propagation,size_raw,height_cm_min,height_cm_max,organic_status,price,currency,vat,unit\n" +
+    "a1,da,a,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted,100-150,100,150,not-organic,10,EUR,excl. VAT,plant\n" +
+    "b1,db,b,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted,60-80,60,80,not-organic,60,DKK,not stated,plant\n" +
+    "a2,da,a,Corylus avellana,Hazel,,,seedling,40-60,40,60,organic,2,EUR,excl. VAT,plant",
+  salesPrices:
+    "sales_price_id,doc_id,latin,common_name_da,cultivar,propagation,rootstock,organic_status,height_cm_min,height_cm_max,price_excl_vat,currency\n" +
+    "s1,gs,Corylus avellana,Hassel,Corabel,grafted,Corylus colurna,not-organic,100,150,120,DKK",
+  settings: "key,value\neur_dkk,7\ntarget_margin_services,40",
+  services: "service_id,section,name_da,unit_da,basis,supplier_price_id\nnet,protection,Net,stk.,tree,a2",
+};
+
+test("price overview: one product per species, cultivar, rootstock and type; costs in DKK with sources", () => {
+  const b = buildPricebook(files);
+  assert.ok(b.ok);
+  if (!b.ok) return;
+  assert.equal(b.data.documents[0].file, "sources/a-2025.xlsx");
+  assert.equal(b.data.salesPrices[0].docId, "gs");
+  const o = priceOverview(b.data, { eurDkk: 7, now: new Date("2026-11-02") });
+  assert.equal(o.products.length, 2, "Corabel grafted, and the seedling");
+  const corabel = o.products.find((p) => p.cultivar === "Corabel")!;
+  assert.deepEqual(corabel.costs.map((c) => c.unitCostDkk), [60, 70], "cheapest first; 10 EUR x 7");
+  assert.equal(corabel.summary.costMin, 60);
+  assert.equal(corabel.summary.costMax, 70);
+  assert.equal(corabel.summary.suppliers, 2);
+  assert.equal(corabel.summary.outdated, 1, "the 2019 list");
+  assert.equal(corabel.summary.vatUnclear, 1);
+  assert.equal(corabel.costs[1].source.file, "sources/a-2025.xlsx");
+  assert.equal(corabel.costs[1].source.supplierName, "Nursery A");
+  const sale = corabel.sales[0];
+  assert.equal(sale.priceExclVat, 120);
+  assert.equal(sale.source.file, "sources/grove-2026.pdf");
+  assert.equal(sale.costReference.supplierPriceId, "a1", "same size as the sales price");
+  assert.equal(sale.marginPct, 41.67);
+  assert.equal(priceOverview(b.data, { eurDkk: 7, q: "corabel colurna" }).products.length, 1, "all words must match");
+  assert.equal(priceOverview(b.data, { eurDkk: 7, q: "walnut" }).products.length, 0);
+  const net = o.services[0];
+  assert.equal(net.costLikely, 14);
+  assert.equal(net.unitPrice, 23.5, "14 / 0.6 = 23.33 -> up to 0.50 kr");
+  assert.equal(net.source.file, "sources/a-2025.xlsx");
+  assert.equal(productKey({ latin: "Corylus avellana", cultivar: " corabel", propagation: "podet" }), productKey({ latin: "corylus  avellana", cultivar: "Corabel", propagation: "grafted" }));
+});

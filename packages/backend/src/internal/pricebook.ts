@@ -24,13 +24,13 @@ const REQUIRED_COLUMNS: Record<keyof typeof PRICEBOOK_FILES, string[]> = {
 /** Columns read from each file; anything else is ignored. */
 const USED_COLUMNS: Record<keyof typeof PRICEBOOK_FILES, string[]> = {
   suppliers: ["supplier_id", "name", "country", "organic_certification", "price_basis", "vat_note", "order_discounts", "payment_terms"],
-  documents: ["doc_id", "supplier_id", "title", "document_date", "date_basis", "season", "currency"],
+  documents: ["doc_id", "supplier_id", "file", "title", "document_date", "date_basis", "season", "currency", "notes"],
   supplierPrices: ["price_id", "doc_id", "supplier_id", "latin", "common_name", "cultivar", "rootstock", "propagation", "size_raw", "container", "height_cm_min", "height_cm_max", "organic_status", "price", "currency", "vat", "unit", "available_qty", "notes"],
-  salesPrices: ["sales_price_id", "season", "group", "latin", "common_name_da", "cultivar", "propagation", "rootstock", "organic_status", "height_cm_min", "height_cm_max", "form", "listed_supplier", "price_excl_vat", "price_incl_vat", "currency", "stock_status", "notes"],
+  salesPrices: ["sales_price_id", "doc_id", "season", "group", "latin", "common_name_da", "cultivar", "propagation", "rootstock", "organic_status", "height_cm_min", "height_cm_max", "form", "listed_supplier", "price_excl_vat", "price_incl_vat", "currency", "stock_status", "notes"],
 };
 
 export type Supplier = { supplierId: string; name: string; country?: string; organicCertification?: string; priceBasis?: string; vatNote?: string; orderDiscounts?: string; paymentTerms?: string };
-export type PriceDocument = { docId: string; supplierId: string; title?: string; documentDate: string; dateBasis?: string; season?: string; currency?: string };
+export type PriceDocument = { docId: string; supplierId: string; file?: string; title?: string; documentDate: string; dateBasis?: string; season?: string; currency?: string; notes?: string };
 export type SupplierPrice = {
   priceId: string;
   docId: string;
@@ -54,6 +54,8 @@ export type SupplierPrice = {
 };
 export type SalesPrice = {
   salesPriceId: string;
+  /** Grove's own price list this price comes from (documents.csv) */
+  docId?: string;
   season?: string;
   group?: string;
   latin: string;
@@ -160,11 +162,13 @@ export function buildPricebook(
   const documents: PriceDocument[] = parsed.documents!.map((r) => ({
     docId: r.doc_id,
     supplierId: r.supplier_id,
+    file: opt(r.file),
     title: opt(r.title),
     documentDate: r.document_date,
     dateBasis: opt(r.date_basis),
     season: opt(r.season),
     currency: opt(r.currency),
+    notes: opt(r.notes),
   }));
   const supplierIds = new Set(suppliers.map((s) => s.supplierId));
   const docIds = new Set(documents.map((d) => d.docId));
@@ -214,6 +218,7 @@ export function buildPricebook(
     if (price % 5 !== 0) warnings.push(`sales_prices.csv: ${r.sales_price_id} (${price} kr) doesn't end in 0 or 5`);
     salesPrices.push({
       salesPriceId: r.sales_price_id,
+      docId: opt(r.doc_id),
       season: opt(r.season),
       group: opt(r.group),
       latin: r.latin,
@@ -377,7 +382,7 @@ const organicOk = (status: string, organic: boolean | undefined) =>
   organic === undefined ? true : organic ? status === "organic" : status !== "organic";
 
 /** Row propagation in pricebook words → our categories. */
-function rowPropagation(p: string | undefined): Propagation | undefined {
+export function rowPropagation(p: string | undefined): Propagation | undefined {
   const x = norm(p);
   if (!x) return undefined;
   if (/graft|podet|veredeld/.test(x)) return "grafted";
