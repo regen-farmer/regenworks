@@ -181,7 +181,7 @@ function Supply() {
       <Toaster />
       <Show when={canSeeMoney()} fallback={<p>Supply is only shown to the Grove team.</p>}>
         <div class="flex flex-wrap items-center gap-2">
-          <h1 class="text-2xl font-bold mr-auto">Supply for forward orders</h1>
+          <h1 class="text-2xl font-bold mr-auto">Nursery & supply</h1>
           <button class="rounded-sm px-2 py-1 btn-default" disabled={!d()} onClick={() => (editing() ? setEditing(false) : startEdit())}>
             {editing() ? "Cancel" : "Edit supply plan"}
           </button>

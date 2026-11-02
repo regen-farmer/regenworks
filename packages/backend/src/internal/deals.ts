@@ -205,13 +205,16 @@ export function reorder(ids: string[], moving: string, beforeId?: string | null)
   return [...rest.slice(0, at), moving, ...rest.slice(at)];
 }
 
-/** Dashboard project → which funnel and stage its deal goes into. */
+/**
+ * Dashboard project → which funnel and stage its deal goes into. Projects
+ * still in screening or design are open sales; later ones were sold.
+ * (Old stage names from before 2 Nov are understood too.)
+ */
 export function dealPlaceForProject(p: { type?: string; stage?: string }): { funnel: string; stage: string; status: "open" | "won" | "lost" } {
   const funnel = p.type === "tree-sale" ? "tree-sales" : p.type === "own" ? "management" : "development";
-  if (p.stage === "prospect") return { funnel, stage: "lead", status: "open" };
-  if (p.stage === "design-offer") return { funnel, stage: funnel === "tree-sales" ? "quote" : "offer", status: "open" };
-  if (p.stage === "closed") return { funnel, stage: "won", status: "won" };
-  // signed, establishment, management: the sale is won; the work continues in B and C
+  if (p.stage === "prospect" || p.stage === "screening") return { funnel, stage: "lead", status: "open" };
+  if (p.stage === "design-offer" || p.stage === "design" || p.stage === "economics") return { funnel, stage: funnel === "tree-sales" ? "quote" : "offer", status: "open" };
+  // preparation, planting, handed over: the sale is won; the work continues in B and C
   return { funnel, stage: "won", status: "won" };
 }
 

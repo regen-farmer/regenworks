@@ -1,20 +1,21 @@
+/** B · Projects: delivering a planting. Selling is A (deals), running the farm C. */
 export const STAGES = [
-  ["prospect", "Prospect"],
-  ["design-offer", "Design & offer"],
-  ["signed", "Signed"],
-  ["establishment", "Establishment"],
-  ["management", "Management"],
-  ["closed", "Closed"],
+  ["screening", "Screening"],
+  ["design", "Design"],
+  ["economics", "Economics"],
+  ["preparation", "Preparation"],
+  ["planting", "Planting"],
+  ["handed-over", "Handed over"],
 ] as const;
 export type Stage = (typeof STAGES)[number][0];
 export const STAGE_LABEL = Object.fromEntries(STAGES) as Record<Stage, string>;
 export const STAGE_COLOR: Record<Stage, string> = {
-  prospect: "#9ca3af",
-  "design-offer": "#3b82f6",
-  signed: "#8b5cf6",
-  establishment: "#f59e0b",
-  management: "#16a34a",
-  closed: "#4b5563",
+  screening: "#9ca3af",
+  design: "#3b82f6",
+  economics: "#8b5cf6",
+  preparation: "#f59e0b",
+  planting: "#16a34a",
+  "handed-over": "#4b5563",
 };
 
 export const TYPES = [
@@ -54,12 +55,12 @@ export type GroveProject = {
 
 /** Suggested steps per stage (free text is allowed too). */
 export const STEPS: Record<Stage, string[]> = {
-  prospect: ["First contact", "Meeting booked", "Screening"],
-  "design-offer": ["Screening", "Design", "Financial model", "Offer sent", "Negotiation"],
-  signed: ["Deposit invoiced", "Deposit paid", "Plants ordered"],
-  establishment: ["Plants ordered", "Delivery", "Staking", "Planting", "As-planted check"],
-  management: ["Care year 1", "Survival count", "Replanting", "Care year 2+"],
-  closed: ["Done", "Cancelled"],
+  screening: ["Site visit booked", "Site visit", "Checklist", "Decision"],
+  design: ["Fields drawn", "Layout", "Plan A/B", "Plan chosen"],
+  economics: ["Yield and costs", "Value chain", "Farmer economics", "Plan chosen", "Offer made (on the deal)"],
+  preparation: ["Plants ordered", "Site prep", "Stake-out files", "Crew booked"],
+  planting: ["Delivery", "Staking", "Planting", "As-planted check"],
+  "handed-over": ["To C · care contract", "To C · own site", "Done", "Stopped"],
 };
 
 export const stageText = (p: { stage: Stage; step?: string }) => `${STAGE_LABEL[p.stage] ?? p.stage}${p.step ? ` · ${p.step}` : ""}`;

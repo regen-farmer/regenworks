@@ -6,7 +6,6 @@ import Project from "@rw/db/schemas/project.ts";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
 import Deal from "@rw/db/schemas/internal/deal.ts";
 import { dealOfferAccepted } from "./dealRoutes.ts";
-import { stageAfterOffer } from "./projects.ts";
 import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
@@ -33,23 +32,6 @@ type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
 
 const validId = (id: unknown): id is string => typeof id === "string" && mongoose.isValidObjectId(id);
-
-/** Move the dashboard project along when an offer is made or accepted. */
-async function moveProjectStage(groveProjectId: unknown, event: "offer-made" | "offer-accepted") {
-  if (!validId(String(groveProjectId ?? ""))) return;
-  try {
-    const p: any = await GroveProject.findById(String(groveProjectId)).select("stage step");
-    const next = p ? stageAfterOffer(p.stage, event) : null;
-    if (next) {
-      p.stage = next;
-      p.step = ""; // the old step belonged to the old stage
-      await p.save();
-    }
-  } catch (err) {
-    // the offer is saved either way; the stage can be set by hand
-    console.error("[offers] could not move project stage", err);
-  }
-}
 
 /** Offer plus everything the screens need: totals, Dinero lines, internal sheet. */
 function present(offer: any) {
@@ -267,7 +249,6 @@ router.post("/", async (req: Req, res) => {
     createdBy: req.user?._id,
     updatedBy: req.user?._id,
   });
-  await moveProjectStage(groveProject, "offer-made");
   res.status(201).send({ ...present(offer), warning: priced.warning });
 });
 
@@ -308,7 +289,6 @@ router.put("/:id", async (req: Req, res) => {
     res.status(400).send({ error: "Deal not found" });
     return;
   }
-  const linkedNow = rest.groveProject && String(rest.groveProject) !== String(offer.groveProject ?? "");
   // An accepted offer is what the client signed: only its Dinero number and
   // notes can change.
   if (offer.status === "accepted") {
@@ -373,8 +353,7 @@ router.put("/:id", async (req: Req, res) => {
   if (becameAccepted) offer.acceptedAt = new Date();
   offer.updatedBy = req.user?._id;
   await offer.save();
-  if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");
-  if (becameAccepted) await moveProjectStage(offer.groveProject, "offer-accepted");
+  // the project (B) isn't moved by offers: selling is the deal's (A)
   // Only the moment of acceptance moves a deal; linking an already accepted
   // offer to a deal later doesn't (it could be the wrong deal).
   if (becameAccepted) await dealOfferAccepted(offer.deal, req.user?._id);
