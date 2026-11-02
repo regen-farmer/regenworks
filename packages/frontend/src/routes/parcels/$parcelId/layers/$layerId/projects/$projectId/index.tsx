@@ -57,6 +57,7 @@ import { getScenario } from "~/util/getScenario.ts";
 import { getSpecies } from "~/util/getSpecies.ts";
 import { PlantDetailsEditor } from "~/components/plants/PlantDetailsEditor.tsx";
 import { StakeoutExport } from "~/components/plants/StakeoutExport.tsx";
+import { MakeOfferButton } from "~/grove/MakeOfferButton.tsx";
 import { canUsePlantCatalogue, getPlantCatalogue } from "~/util/plantCatalogue.ts";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
@@ -2900,6 +2901,10 @@ const ExportAndShareContent = ({
             {exportingKML() ? "Exporting..." : "Export trees as KML"}
           </button>
         </div>
+        <MakeOfferButton
+          projectId={params().projectId}
+          title={[scenarioData()?.project?.layer?.name, scenarioData()?.project?.name].filter(Boolean).join(" - ")}
+        />
         <Show when={canUsePlantCatalogue()}>
           <StakeoutExport
             projectId={params().projectId}

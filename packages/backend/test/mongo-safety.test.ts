@@ -39,4 +39,9 @@ test("no new raw $in / $exists / $ne filters in routes", async () => {
     const hits = (src.match(/\.(find|findOne|deleteMany|deleteOne|updateMany|countDocuments)\(\{[^)]*?\{\s*\$(in|exists|ne)\s*:/gs) ?? []).length;
     assert.ok(hits <= (KNOWN_OLD.get(f) ?? 0), `${f}: ${hits} raw operator filter(s); use inIds()/isSet()`);
   }
+  const internal = new URL("../src/internal/", import.meta.url);
+  for (const f of fs.readdirSync(internal)) {
+    const src = fs.readFileSync(new URL(f, internal), "utf8");
+    assert.doesNotMatch(src, /:\s*\{\s*\$(in|exists|ne|gt|lt)\s*:/, `internal/${f} has a raw operator filter`);
+  }
 });
