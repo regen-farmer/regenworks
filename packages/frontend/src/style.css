@@ -393,7 +393,7 @@ html {
   left: calc(var(--grove-nav-width, 0px) + 10px);
   top: calc(var(--app-nav-height) + 118px);
   z-index: 10;
-  width: min(320px, calc(100vw - 20px));
+  width: min(320px, calc(100vw - 20px - var(--grove-nav-width, 0px)));
   max-height: min(520px, calc(100vh - var(--app-nav-height) - 138px));
   display: flex;
   flex-direction: column;

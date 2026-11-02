@@ -30,7 +30,8 @@ function DealPage() {
   const [lostReason, setLostReason] = createSignal("");
 
   // .latest: keep the page on screen while it reloads after a save or move
-  const view = () => data.latest;
+  // only the deal in the URL (right after opening another deal, .latest is still the old one)
+  const view = () => (data.latest?.deal._id === params().dealId ? data.latest : undefined);
   createEffect(() => {
     const x = view();
     if (x) {

@@ -139,7 +139,12 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
   const funnels: any[] = await Funnel.find({ archived: false }).lean();
   const byKey = new Map(funnels.map((f) => [f.key, f]));
   const projects: any[] = await GroveProject.find({}).limit(2000).lean();
-  const done = new Set((await Deal.find({ importedFrom: inIds(projects.map((p) => String(p._id))) }).select("importedFrom").lean()).map((d: any) => String(d.importedFrom)));
+  // skip projects already imported, and projects a deal already links to
+  // (e.g. made with "Create project" from a won deal)
+  const projectIds = projects.map((p) => String(p._id));
+  const done = new Set<string>();
+  for (const d of (await Deal.find({ importedFrom: inIds(projectIds) }).select("importedFrom").lean()) as any[]) done.add(String(d.importedFrom));
+  for (const d of (await Deal.find({ groveProject: inIds(projectIds) }).select("groveProject").lean()) as any[]) done.add(String(d.groveProject));
   const groveFarmOwners = new Set(await groveUserIds());
   let created = 0;
   let clientsCreated = 0;
@@ -150,12 +155,14 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
     if (!funnel) continue;
     const stage = stageOf(funnel, place.stage) ?? firstOpenStage(funnel);
     if (!stage) continue;
-    if (await Deal.exists({ importedFrom: p._id })) continue;
+    if ((await Deal.exists({ importedFrom: p._id })) || (await Deal.exists({ groveProject: p._id }))) continue;
     const contact = { email: p.client?.email, phone: p.client?.phone };
     const clientName = String(p.client?.name || p.name).trim().slice(0, 200);
     const candidates: any[] = await Client.find({ name: clientName, archived: false }).select("_id email phone").limit(20).lean();
     let client: any = candidates.find((c) => sameClient(c, contact));
+    let madeClient = false;
     if (!client) {
+      madeClient = true;
       client = await Client.create({
         name: clientName,
         kind: "person",
@@ -193,7 +200,12 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
       });
       created += 1;
     } catch (err: any) {
-      if (err?.code !== 11000) throw err; // imported at the same moment by someone else
+      if (err?.code !== 11000) throw err;
+      // imported at the same moment by someone else: drop the client we just made
+      if (madeClient) {
+        await Client.deleteOne({ _id: client._id });
+        clientsCreated -= 1;
+      }
     }
   }
   res.send({ created, clientsCreated, skipped: projects.length - created });

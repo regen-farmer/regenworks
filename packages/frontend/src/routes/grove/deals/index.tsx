@@ -59,7 +59,8 @@ function Board() {
     return !q || d.title.toLowerCase().includes(q) || (d.client?.name ?? "").toLowerCase().includes(q);
   };
   // .latest keeps showing the board while it reloads (no flash, no scroll jump)
-  const inStage = (key: string) => (data.latest?.deals ?? []).filter((d) => d.stage === key && matches(d));
+  const current = () => (data.latest && data.latest.funnel._id === funnel()?._id ? data.latest : undefined);
+  const inStage = (key: string) => (current()?.deals ?? []).filter((d) => d.stage === key && matches(d));
   const total = (list: Deal[]) => list.reduce((n, d) => n + (d.value ?? 0), 0);
 
   async function move(deal: Deal, stage: FunnelStage, before: string | null, reason?: string) {
@@ -93,6 +94,7 @@ function Board() {
     const deal = data.latest?.deals.find((d) => d._id === id);
     if (!deal || !target) return;
     if (target.before === deal._id) return;
+    if (inStage(stage.key).length >= SHOW) setExpanded((x) => new Set(x).add(stage.key));
     if (stage.kind === "lost" && deal.status !== "lost") {
       setLostReason("");
       setLostAsk({ deal, stage, before: target.before });
@@ -154,7 +156,7 @@ function Board() {
           </div>
         </div>
 
-        <Show when={data.latest} fallback={<p>Loading…</p>}>
+        <Show when={current()} fallback={<p>Loading…</p>}>
           <div class="overflow-x-auto pb-2">
             <div class="flex gap-3 items-start" style={{ "min-width": "100%" }}>
               <For each={funnel()?.stages}>
@@ -170,8 +172,16 @@ function Board() {
                       onDragOver={(e) => {
                         if (!dragging()) return;
                         e.preventDefault();
-                        // cards stop this event, so here the pointer is below or between cards: drop at the end
-                        if (drop()?.stage !== stage.key || drop()?.before !== null) setDrop({ stage: stage.key, before: null });
+                        // in front of the first card whose middle is below the pointer (gaps included)
+                        const cards = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLElement>("[data-deal-id]"));
+                        const hit = cards.find((c) => {
+                          const r = c.getBoundingClientRect();
+                          return e.clientY < r.top + r.height / 2;
+                        });
+                        let before = hit?.dataset.dealId ?? null;
+                        // below the last shown card of a cut-short column: right after it
+                        if (!hit && shown().length < list().length) before = list()[shown().length]?._id ?? null;
+                        if (drop()?.stage !== stage.key || drop()?.before !== before) setDrop({ stage: stage.key, before });
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
@@ -195,6 +205,7 @@ function Board() {
                               <Link
                                 to="/grove/deals/$dealId"
                                 params={{ dealId: d._id }}
+                                data-deal-id={d._id}
                                 draggable={!archived()}
                                 class="block rounded-md bg-white dark:bg-slate-900 border border-zinc-300 dark:border-slate-600 p-2 text-sm hover:border-emerald-700"
                                 classList={{ "opacity-40": dragging() === d._id, "cursor-grab": !archived() }}
@@ -206,17 +217,6 @@ function Board() {
                                 onDragEnd={() => {
                                   setDragging(null);
                                   setDrop(null);
-                                }}
-                                onDragOver={(e) => {
-                                  if (!dragging()) return;
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                  // next card in the full stage, also when the list is cut short
-                                  const list0 = list();
-                                  const i = list0.findIndex((x) => x._id === d._id);
-                                  const before = e.clientY < r.top + r.height / 2 ? d._id : list0[i + 1]?._id ?? null;
-                                  if (drop()?.stage !== stage.key || drop()?.before !== before) setDrop({ stage: stage.key, before });
                                 }}
                               >
                                 <div class="font-semibold leading-tight">{d.title}</div>
@@ -240,7 +240,7 @@ function Board() {
                             </>
                           )}
                         </For>
-                        <Show when={drop()?.stage === stage.key && drop()?.before === null && !!dragging()}>
+                        <Show when={drop()?.stage === stage.key && !!dragging() && (drop()?.before === null || !shown().some((x) => x._id === drop()?.before))}>
                           <div class="h-1 rounded bg-emerald-600" aria-hidden="true" />
                         </Show>
                         <Show when={list().length > SHOW}>
