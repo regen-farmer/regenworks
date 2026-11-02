@@ -72,3 +72,10 @@ test("/internal/pricebook: every route refuses field users", async () => {
     assert.equal((await fetch(`${base}/internal/pricebook${path}`)).status, 403, path);
   }
 });
+
+test("/internal/offers: field users and public users are refused", async () => {
+  who = { user: { roles: ["grove-field"] }, idToken: verified };
+  assert.equal((await fetch(`${base}/internal/offers`)).status, 403);
+  who = { user: { roles: [] }, idToken: verified };
+  assert.equal((await fetch(`${base}/internal/offers`, { method: "POST" })).status, 403);
+});

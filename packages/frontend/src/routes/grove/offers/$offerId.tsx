@@ -76,11 +76,14 @@ function OfferPage() {
       terms: draft.terms,
       notes: draft.notes,
       lines: draft.lines.map(({ pricing: _p, ...l }) => l),
-    }).then((r) => r && showToast({ title: "Offer saved" }));
+    }).then((r) => {
+      if (r) showToast({ title: "Offer saved" });
+      return r;
+    });
 
-  async function reprice() {
-    if (dirty()) await save();
-    await call(`/internal/offers/${params().offerId}/reprice`, "POST", {});
+  async function reprice(latest = false) {
+    if (dirty() && !(await save())) return;
+    await call(`/internal/offers/${params().offerId}/reprice`, "POST", { latest });
   }
 
   async function remove() {
@@ -101,8 +104,17 @@ function OfferPage() {
     return false;
   };
 
-  const flags = (i: number) => data()?.internal.lines[i];
-  const dateValue = (d: string | undefined) => (d ? new Date(d).toISOString().slice(0, 10) : "");
+  // flags by line id, so they stay on the right line while editing
+  const flags = (i: number) => {
+    const id = draft.lines?.[i]?._id;
+    return id ? data()?.internal.lines.find((f) => f.id === id) : undefined;
+  };
+  // dates as the Danish calendar day (not UTC)
+  const dateValue = (d: string | undefined) => {
+    if (!d) return "";
+    const x = new Date(d);
+    return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+  };
 
   return (
     <div class="container mx-auto p-4 flex flex-col gap-4 offer-page" data-testid="grove-offer">
@@ -140,12 +152,20 @@ function OfferPage() {
               <button class="rounded-sm px-2 py-1 btn-default" disabled={busy() || !dirty()} onClick={save}>
                 {dirty() ? "Save" : "Saved"}
               </button>
-              <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()} onClick={reprice}>
-                Price from pricebook
+              <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()} onClick={() => reprice(false)}>
+                Price again
               </button>
+              <Show when={draft.status === "draft"}>
+                <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy()} onClick={() => reprice(true)}>
+                  Use newest pricebook
+                </button>
+              </Show>
               <span class="text-xs opacity-70">
-                Pricebook v{data()!.offer.pricebookVersion ?? "–"} · lines with a price you typed keep it
+                Priced with pricebook v{data()!.offer.pricebookVersion ?? "–"} · prices you typed are kept · new or changed plants and a new margin are priced when you save
               </span>
+              <Show when={draft.status === "accepted"}>
+                <span class="text-xs text-amber-700">Accepted: locked except Dinero no. and notes.</span>
+              </Show>
               <button class="ml-auto text-xs underline text-red-600" onClick={remove}>
                 {deleteArmed() ? "Click again to delete" : "Delete offer"}
               </button>
@@ -180,11 +200,11 @@ function OfferPage() {
               </label>
               <label class="flex flex-col text-xs">
                 Offer date
-                <input type="date" class={input} value={dateValue(draft.offerDate)} onInput={(e) => edit("offerDate", e.currentTarget.value)} />
+                <input type="date" class={input} value={dateValue(draft.offerDate)} onInput={(e) => edit("offerDate", `${e.currentTarget.value}T12:00:00`)} />
               </label>
               <label class="flex flex-col text-xs">
                 Valid until (default 2 weeks)
-                <input type="date" class={input} value={dateValue(draft.validUntil)} onInput={(e) => edit("validUntil", e.currentTarget.value)} />
+                <input type="date" class={input} value={dateValue(draft.validUntil)} onInput={(e) => edit("validUntil", `${e.currentTarget.value}T12:00:00`)} />
               </label>
               <label class="flex flex-col text-xs">
                 Margin on supplier cost (%)
@@ -384,7 +404,7 @@ function OfferSheet(props: { p: Presented }) {
                     </td>
                     <td class="py-1 text-right align-top">{(l.qty || 0).toLocaleString("da-DK")}</td>
                     <td class="py-1 text-right align-top whitespace-nowrap">{dkk(l.unitPrice)}</td>
-                    <td class="py-1 text-right align-top">{l.discountPct ? `${l.discountPct} %` : ""}</td>
+                    <td class="py-1 text-right align-top">{l.discountPct ? `${l.discountPct.toLocaleString("da-DK")} %` : ""}</td>
                     <td class="py-1 text-right align-top whitespace-nowrap">{dkk(lineTotal(l))}</td>
                   </tr>
                 )}
@@ -397,7 +417,7 @@ function OfferSheet(props: { p: Presented }) {
         <tbody>
           <tr><td class="pr-6">Subtotal</td><td class="text-right">{dkk(t().subtotal)}</td></tr>
           <Show when={t().discount > 0}>
-            <tr><td class="pr-6">Rabat {o().discountPct} %</td><td class="text-right">-{dkk(t().discount)}</td></tr>
+            <tr><td class="pr-6">Rabat {o().discountPct.toLocaleString("da-DK")} %</td><td class="text-right">-{dkk(t().discount)}</td></tr>
           </Show>
           <tr><td class="pr-6">Moms 25 %</td><td class="text-right">{dkk(t().vat)}</td></tr>
           <tr class="font-bold" style={{ "border-top": "1px solid #000" }}><td class="pr-6">I alt inkl. moms</td><td class="text-right">{dkk(t().total)}</td></tr>

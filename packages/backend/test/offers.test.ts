@@ -89,3 +89,80 @@ test("input: only known fields, numbers checked, status from a fixed list", () =
   assert.equal(l.value.lines[0].pricing, undefined, "pricing is server-side only");
   assert.equal(l.value.lines[0]._id, undefined);
 });
+
+// ---- after review ----
+import { buildPricebook } from "../src/internal/pricebook.ts";
+import { mergeLines } from "../src/internal/offers.ts";
+
+const pbFiles = {
+  suppliers: "supplier_id,name\nn1,Nursery 1\n",
+  documents: "doc_id,supplier_id,document_date\nd1,n1,2026-09-01\n",
+  supplierPrices:
+    "price_id,doc_id,supplier_id,latin,common_name,cultivar,rootstock,propagation,organic_status,price,currency,vat,unit\n" +
+    "x1,d1,n1,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted,organic,14,EUR,excl. VAT,plant\n",
+  salesPrices:
+    "sales_price_id,latin,common_name_da,cultivar,propagation,rootstock,organic_status,price_excl_vat,currency\n" +
+    "s1,Corylus avellana,Hassel,Corabel,grafted,Corylus colurna,organic,150,DKK\n" +
+    "s2,Corylus avellana,Hassel,Corabel,grafted,Corylus colurna,not-organic,110,DKK\n",
+};
+const pb = (buildPricebook(pbFiles) as any).data;
+const rates = { marginPct: 40, eurDkk: 7 };
+const hazel = (o: any = {}) => line({ latin: "Corylus avellana", cultivar: "Corabel", rootstock: "Corylus colurna", propagation: "grafted", qty: 10, priceSource: "none", organic: null, ...o });
+
+test("organic left open: organic client gets organic, others conventional; the line records which", () => {
+  const forOrganic = priceLine(hazel(), pb, rates, undefined, true);
+  assert.equal(forOrganic.unitPrice, 150);
+  assert.equal(forOrganic.organic, true);
+  const forOther = priceLine(hazel(), pb, rates, undefined, false);
+  assert.equal(forOther.unitPrice, 110);
+  assert.equal(forOther.organic, false);
+  assert.equal(forOther.nameDa, "Hassel");
+});
+
+test("sales-priced lines still show a supplier cost for the margin", () => {
+  const l = priceLine(hazel({ organic: true }), pb, rates, undefined, true);
+  assert.equal(l.priceSource, "sales");
+  assert.equal(l.pricing?.supplierId, "n1");
+  assert.equal(l.pricing?.unitCostDkk, 98);
+  assert.equal(lineMargin(l)?.unitMargin, 52);
+});
+
+test("a priced line keeps its price when a later pricebook has no match (flagged)", () => {
+  const priced = priceLine(hazel({ organic: true }), pb, rates, undefined, true);
+  const empty = { ...pb, salesPrices: [], supplierPrices: [] };
+  const again = priceLine(priced, empty, rates, undefined, true);
+  assert.equal(again.unitPrice, 150);
+  assert.equal(again.pricing?.stale, true);
+});
+
+test("merge: typed price → manual; changed plant → old pricing dropped; duplicates and new lines", () => {
+  const stored = [
+    { _id: "a", ...hazel({ organic: false }), unitPrice: 110, priceSource: "sales", pricing: { supplierId: "n1" }, speciesId: "sp" },
+  ];
+  const typed = mergeLines(stored, [{ ...stored[0], pricing: undefined, unitPrice: 100 }]);
+  assert.equal(typed[0].priceSource, "manual");
+  assert.deepEqual(typed[0].pricing, { supplierId: "n1" });
+  const changed = mergeLines(stored, [{ ...stored[0], pricing: undefined, cultivar: "Tonda di Giffoni" }]);
+  assert.equal(changed[0].pricing, null);
+  assert.equal(changed[0].priceSource, "none");
+  assert.equal(changed[0].unitPrice, 0);
+  const dup = mergeLines(stored, [stored[0], stored[0], { latin: "Juglans regia", qty: 1, unitPrice: 0 }]);
+  assert.equal(dup.length, 2);
+  assert.equal(dup[1].priceSource, "none");
+});
+
+test("Dinero: lines without a cultivar are counted as unsorted", () => {
+  const d = dineroLines({
+    lines: [
+      line({ nameDa: "Hassel", propagation: "grafted", cultivar: "Corabel", qty: 100, unitPrice: 1 }),
+      line({ nameDa: "Hassel", propagation: "grafted", qty: 15, unitPrice: 1 }),
+    ],
+    discountPct: 7.5,
+  });
+  assert.equal(d[0].text, "Hassel, podet, Corabel + 15 usorteret: 115 stk.");
+  assert.equal(d[1].text, "Rabat 7,5 %");
+});
+
+test("øre rounding: 1.005 kr is 1.01", () => {
+  assert.equal(offerTotals({ lines: [line({ qty: 1, unitPrice: 1.005 })] }).subtotal, 1.01);
+});

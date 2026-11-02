@@ -15,7 +15,8 @@ export const PROPAGATION_DA: Record<string, string> = {
   cutting: "stikling",
 };
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+/** Kroner to 2 decimals, without floating-point surprises (1.005 -> 1.01). */
+const round2 = (n: number) => Math.round(Number((n * 100).toPrecision(12))) / 100;
 
 export type OfferLine = {
   _id?: unknown;
@@ -69,31 +70,34 @@ export function lineMargin(l: OfferLine) {
 }
 
 const stk = (n: number) => n.toLocaleString("da-DK");
+const pct = (n: number) => n.toLocaleString("da-DK", { maximumFractionDigits: 2 });
 
 /**
  * One summary line per species and propagation for the Dinero tilbud,
  * e.g. "Hassel, podet, 3 sorter: 1.115 stk." with the amount excl. VAT.
  */
 export function dineroLines(o: OfferLike) {
-  const groups = new Map<string, { text: string; qty: number; amount: number; cultivars: Set<string> }>();
+  const groups = new Map<string, { text: string; qty: number; amount: number; cultivars: Set<string>; unnamed: number }>();
   for (const l of o.lines) {
     if (!(l.qty > 0)) continue;
     const name = l.nameDa || l.latin || "Planter";
     const prop = l.propagation ? PROPAGATION_DA[l.propagation] ?? l.propagation : "";
     const key = `${name}|${prop}|${l.organic === true ? "øko" : ""}`;
-    const g = groups.get(key) ?? { text: "", qty: 0, amount: 0, cultivars: new Set<string>() };
+    const g = groups.get(key) ?? { text: "", qty: 0, amount: 0, cultivars: new Set<string>(), unnamed: 0 };
     g.qty += l.qty;
     g.amount += lineTotal(l);
     if (l.cultivar) g.cultivars.add(l.cultivar);
+    else g.unnamed += l.qty;
     g.text = [name, prop, l.organic === true ? "økologisk" : ""].filter(Boolean).join(", ");
     groups.set(key, g);
   }
   const out = [...groups.values()].map((g) => {
-    const sorter = g.cultivars.size > 1 ? `, ${g.cultivars.size} sorter` : g.cultivars.size === 1 ? `, ${[...g.cultivars][0]}` : "";
+    const named = g.cultivars.size > 1 ? `${g.cultivars.size} sorter` : g.cultivars.size === 1 ? [...g.cultivars][0] : "";
+    const sorter = named && g.unnamed ? `, ${named} + ${stk(g.unnamed)} usorteret` : named ? `, ${named}` : "";
     return { text: `${g.text}${sorter}: ${stk(g.qty)} stk.`, qty: g.qty, amount: round2(g.amount) };
   });
   const t = offerTotals(o);
-  if (t.discount > 0) out.push({ text: `Rabat ${o.discountPct} %`, qty: 1, amount: -t.discount });
+  if (t.discount > 0) out.push({ text: `Rabat ${pct(o.discountPct ?? 0)} %`, qty: 1, amount: -t.discount });
   return out;
 }
 
@@ -102,7 +106,9 @@ export function purchaseList(o: OfferLike) {
   const bySupplier = new Map<string, { supplierId: string; lines: any[]; totalCostDkk: number }>();
   for (const l of o.lines) {
     if (!(l.qty > 0)) continue;
-    const supplierId = l.pricing?.supplierId ?? "(Grove sales price, supplier not chosen)";
+    const supplierId =
+      l.pricing?.supplierId ??
+      (l.priceSource === "manual" ? "(price set by hand: choose a supplier)" : "(no supplier price found)");
     const s = bySupplier.get(supplierId) ?? { supplierId, lines: [], totalCostDkk: 0 };
     const cost = typeof l.pricing?.unitCostDkk === "number" ? l.pricing.unitCostDkk * l.qty : 0;
     s.lines.push({
@@ -136,26 +142,88 @@ export function lineQuery(l: OfferLine, hybrid?: PlantQuery["hybrid"]): PlantQue
   };
 }
 
-/** Price a line from the pricebook unless its price was set by hand. */
+/**
+ * Price a line from the pricebook unless its price was set by hand.
+ * Organic left open on the line: an organic client is offered organic plants
+ * (falling back to non-organic, which then needs a dispensation), others
+ * non-organic; the line then records what was matched. A line that had a
+ * price keeps it when the pricebook no longer has a match (flagged).
+ */
 export function priceLine(
   l: OfferLine,
   data: PricebookData | null,
   rates: { marginPct: number; eurDkk: number } | null,
   hybrid?: PlantQuery["hybrid"],
+  clientOrganic = false,
 ): OfferLine {
   if (l.priceSource === "manual") return l;
-  if (!data || !rates || !l.latin) return { ...l, priceSource: "none", unitPrice: l.unitPrice || 0, pricing: null };
-  const s = suggestPrice(data, lineQuery(l, hybrid), rates);
-  if (!s) return { ...l, priceSource: "none", unitPrice: 0, pricing: { matchNote: "no matching price in the pricebook" } };
-  const nameDa = l.nameDa || (s.salesPriceId ? data.salesPrices.find((p) => p.salesPriceId === s.salesPriceId)?.commonNameDa : undefined);
+  if (!data || !rates || !l.latin) return { ...l, priceSource: l.unitPrice > 0 ? l.priceSource : "none" };
+  const base = lineQuery(l, hybrid);
+  let s = suggestPrice(data, base.organic === undefined ? { ...base, organic: clientOrganic } : base, rates);
+  if (!s && base.organic === undefined && clientOrganic) s = suggestPrice(data, { ...base, organic: false }, rates);
+  if (!s) {
+    if (l.unitPrice > 0 && l.priceSource !== "none") {
+      return { ...l, pricing: { ...(l.pricing ?? {}), stale: true, matchNote: "not found in this pricebook version; previous price kept" } };
+    }
+    return { ...l, priceSource: "none", unitPrice: 0, pricing: { matchNote: "no matching price in the pricebook" } };
+  }
+  const salesRow = s.salesPriceId ? data.salesPrices.find((p) => p.salesPriceId === s!.salesPriceId) : undefined;
   return {
     ...l,
-    nameDa,
+    nameDa: l.nameDa || salesRow?.commonNameDa || danishName(data, l, hybrid),
+    organic: typeof l.organic === "boolean" ? l.organic : s.organicStatus === "organic",
     unitPrice: round5(s.unitPrice),
     priceSource: s.source,
     size: l.size || s.size,
     pricing: { ...s },
   };
+}
+
+/** Danish name from Grove's sales list for the species (any cultivar). */
+function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybrid"]) {
+  const latin = (l.latin ?? "").toLowerCase();
+  const genus = (hybrid?.genus ?? latin.split(" ")[0]).toLowerCase();
+  const hit =
+    data.salesPrices.find((p) => p.latin.toLowerCase() === latin && p.commonNameDa) ??
+    data.salesPrices.find((p) => p.latin.toLowerCase() === genus && p.commonNameDa);
+  return hit?.commonNameDa;
+}
+
+/** What identifies the plant on a line; changing any of these needs a new price. */
+const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organic"] as const;
+
+/**
+ * Merge lines sent by the editor with the stored ones: server-side details
+ * (ids, pricing) are kept for unchanged plants; a typed price becomes a
+ * manual price; a changed plant loses its old pricing (needs repricing).
+ * Duplicate line ids are dropped.
+ */
+export function mergeLines(stored: any[], incoming: any[]) {
+  const before = new Map(stored.map((l) => [String(l._id), l]));
+  const seen = new Set<string>();
+  return incoming.flatMap((l) => {
+    const id = l._id ? String(l._id) : undefined;
+    if (id && seen.has(id)) return [];
+    if (id) seen.add(id);
+    const old = id ? before.get(id) : undefined;
+    if (!old) {
+      return [{ ...l, _id: undefined, pricing: null, priceSource: l.unitPrice > 0 ? "manual" : "none" }];
+    }
+    const priceTyped = old.unitPrice !== l.unitPrice;
+    const plantChanged = PLANT_FIELDS.some((k) => (old[k] ?? null) !== (l[k] ?? null));
+    if (plantChanged) {
+      return [{ ...l, _id: old._id, speciesId: l.latin === old.latin ? old.speciesId : undefined, pricing: null, priceSource: priceTyped ? "manual" : "none", unitPrice: priceTyped ? l.unitPrice : 0 }];
+    }
+    return [{
+      ...l,
+      _id: old._id,
+      speciesId: old.speciesId,
+      varietyId: old.varietyId,
+      rootstockId: old.rootstockId,
+      pricing: old.pricing ?? null,
+      priceSource: priceTyped ? "manual" : old.priceSource,
+    }];
+  });
 }
 
 export function defaultValidUntil(from = new Date()) {

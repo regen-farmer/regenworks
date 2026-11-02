@@ -13,6 +13,7 @@ import {
   defaultValidUntil,
   dineroLines,
   lineMargin,
+  mergeLines,
   needsDispensation,
   offerTotals,
   priceLine,
@@ -60,16 +61,25 @@ async function hybridsFor(speciesIds: unknown[]) {
   );
 }
 
-async function priceAll(lines: OfferLine[], offer: { marginPct?: number | null; eurDkk?: number | null; pricebookVersion?: number | null }) {
+/**
+ * Price lines with a given pricebook version (or the newest). Returns an
+ * error instead of wiping prices when that version can't be loaded.
+ */
+async function priceAll(
+  lines: OfferLine[],
+  offer: { marginPct?: number | null; eurDkk?: number | null; pricebookVersion?: number | null; clientOrganic?: boolean },
+) {
   const pb = offer.pricebookVersion ? await pricebookVersion(offer.pricebookVersion) : await activePricebook();
+  if (offer.pricebookVersion && !pb) return { error: `Pricebook version ${offer.pricebookVersion} not found` } as const;
   const rates = pb ? pricingRates({ marginPct: offer.marginPct ?? undefined, eurDkk: offer.eurDkk ?? undefined }, pb.settings) : null;
+  const okRates = rates && !("error" in rates) ? rates : null;
   const hybrids = await hybridsFor(lines.map((l) => l.speciesId));
-  const priced = lines.map((l) => priceLine(l, pb ?? null, rates && !("error" in rates) ? rates : null, hybrids.get(String(l.speciesId))));
+  const priced = lines.map((l) => priceLine(l, pb ?? null, okRates, hybrids.get(String(l.speciesId)), !!offer.clientOrganic));
   return {
     lines: priced,
-    pricebookVersion: pb?.version ?? null,
-    marginPct: rates && !("error" in rates) ? rates.marginPct : offer.marginPct ?? null,
-    eurDkk: rates && !("error" in rates) ? rates.eurDkk : offer.eurDkk ?? null,
+    pricebookVersion: pb?.version ?? offer.pricebookVersion ?? null,
+    marginPct: okRates?.marginPct ?? offer.marginPct ?? null,
+    eurDkk: okRates?.eurDkk ?? offer.eurDkk ?? null,
     warning: !pb ? "No pricebook imported yet" : rates && "error" in rates ? rates.error : undefined,
   };
 }
@@ -81,7 +91,7 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
     .populate({
       path: "systemdesign",
       populate: [
-        { path: "rows.sequence.species" },
+        { path: "rows.sequence.species", populate: { path: "hybrid.parents", select: "species" } },
         { path: "rows.sequence.variety", select: "name" },
         { path: "rows.sequence.rootstock", select: "name propagation" },
       ],
@@ -101,7 +111,12 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
   }
   return (layout.plantCountArray ?? []).map((p: any) => {
     const s = species.get(String(p.species));
-    const latin = s ? (s.species === "hybrid" ? s.genus : [s.genus, s.species].filter(Boolean).join(" ")) : undefined;
+    const parents = (s?.hybrid?.parents ?? []).map((x: any) => x?.species).filter(Boolean);
+    const latin = s
+      ? s.hybrid && parents.length >= 2
+        ? `${s.genus} ${parents.join(" × ")}`
+        : [s.genus, s.species].filter(Boolean).join(" ")
+      : undefined;
     return {
       latin,
       nameDa: undefined,
@@ -110,7 +125,7 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
       rootstockId: p.rootstock,
       cultivar: p.variety ? varieties.get(String(p.variety))?.name : undefined,
       rootstock: p.rootstock ? rootstocks.get(String(p.rootstock))?.name : undefined,
-      propagation: p.rootstock ? "grafted" : p.ownRoots ? "seedling" : undefined,
+      propagation: p.rootstock ? "grafted" : p.ownRoots ? "own-rooted" : undefined,
       organic: typeof p.organic === "boolean" ? p.organic : null,
       qty: p.count,
       unitPrice: 0,
@@ -152,7 +167,15 @@ router.post("/", async (req: Req, res) => {
     lines = fromDesign;
   }
   const groveProject = validId(req.body?.groveProjectId) ? req.body.groveProjectId : undefined;
-  const priced = await priceAll(lines, { marginPct: cleaned.value.marginPct, eurDkk: cleaned.value.eurDkk });
+  const priced = await priceAll(lines, {
+    marginPct: cleaned.value.marginPct,
+    eurDkk: cleaned.value.eurDkk,
+    clientOrganic: cleaned.value.clientOrganic,
+  });
+  if ("error" in priced) {
+    res.status(409).send({ error: priced.error });
+    return;
+  }
   const offer = await Offer.create({
     ...cleaned.value,
     status: "draft",
@@ -198,25 +221,41 @@ router.put("/:id", async (req: Req, res) => {
     return;
   }
   const { lines, ...rest } = cleaned.value;
-  offer.set(rest);
-  if (lines) {
-    // Keep what the server knows about each existing line (ids, pricing);
-    // a price changed by hand becomes a manual price.
-    const before = new Map<string, any>(offer.lines.map((l: any) => [String(l._id), l.toObject()]));
-    offer.lines = lines.map((l: any) => {
-      const old = l._id ? before.get(String(l._id)) : undefined;
-      const priceChanged = old && old.unitPrice !== l.unitPrice;
-      return {
-        ...l,
-        _id: old?._id,
-        speciesId: old?.speciesId,
-        varietyId: old?.varietyId,
-        rootstockId: old?.rootstockId,
-        pricing: old?.pricing ?? null,
-        priceSource: priceChanged ? "manual" : old ? l.priceSource : l.unitPrice > 0 ? "manual" : "none",
-      };
-    });
+  // An accepted offer is what the client signed: only its Dinero number and
+  // notes can change.
+  if (offer.status === "accepted") {
+    const allowed = new Set(["dineroNumber", "notes"]);
+    const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
+    if (changed.length) {
+      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number and notes can change" });
+      return;
+    }
   }
+  // Move "valid until" with the offer date while it is still the default.
+  if (rest.offerDate && !rest.validUntil && offer.validUntil && offer.offerDate) {
+    const wasDefault = defaultValidUntil(offer.offerDate).toISOString().slice(0, 10) === new Date(offer.validUntil).toISOString().slice(0, 10);
+    if (wasDefault) rest.validUntil = defaultValidUntil(rest.offerDate);
+  }
+  const ratesChanged =
+    (rest.marginPct !== undefined && rest.marginPct !== offer.marginPct) ||
+    (rest.eurDkk !== undefined && rest.eurDkk !== offer.eurDkk) ||
+    (rest.clientOrganic !== undefined && rest.clientOrganic !== offer.clientOrganic);
+  offer.set(rest);
+  let merged = lines ? mergeLines(offer.lines.map((l: any) => l.toObject()), lines) : offer.lines.map((l: any) => l.toObject());
+  // New or changed plants, and a new margin/rate, are priced again with the
+  // offer's own pricebook version (hand-set prices are kept).
+  const needsPricing = ratesChanged || merged.some((l: any) => l.priceSource === "none" && l.latin);
+  if (needsPricing) {
+    const priced = await priceAll(merged, offer);
+    if ("error" in priced) {
+      res.status(409).send({ error: priced.error });
+      return;
+    }
+    merged = priced.lines;
+    offer.marginPct = priced.marginPct;
+    offer.eurDkk = priced.eurDkk;
+  }
+  if (lines || needsPricing) offer.lines = merged;
   offer.updatedBy = req.user?._id;
   await offer.save();
   res.send(present(offer));
@@ -238,10 +277,23 @@ router.post("/:id/reprice", async (req: Req, res) => {
     res.status(409).send({ error: "This offer is accepted; prices are locked" });
     return;
   }
-  const priced = await priceAll(
-    offer.lines.map((l: any) => l.toObject()),
-    { marginPct: offer.marginPct, eurDkk: offer.eurDkk, pricebookVersion: req.body?.keepVersion ? offer.pricebookVersion : null },
-  );
+  // Default: price again with the version this offer already uses. Moving to
+  // the newest pricebook is a separate, explicit choice, and only for drafts.
+  const latest = req.body?.latest === true;
+  if (latest && offer.status !== "draft") {
+    res.status(409).send({ error: "Only draft offers can move to a newer pricebook; this one has been sent" });
+    return;
+  }
+  const priced = await priceAll(offer.lines.map((l: any) => l.toObject()), {
+    marginPct: offer.marginPct,
+    eurDkk: offer.eurDkk,
+    clientOrganic: offer.clientOrganic,
+    pricebookVersion: latest ? null : offer.pricebookVersion,
+  });
+  if ("error" in priced) {
+    res.status(409).send({ error: priced.error });
+    return;
+  }
   offer.lines = priced.lines;
   offer.pricebookVersion = priced.pricebookVersion;
   offer.marginPct = priced.marginPct;
