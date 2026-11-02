@@ -240,7 +240,7 @@ function ProjectPage() {
         }}
         onClose={() => setAskDelete(false)}
       >
-        Delete "{p.name}" from the Dashboard for good? Its farm and designs stay. A project with offers can't be deleted: archive it instead.
+        Delete "{p.name}" from the Dashboard for good? Its farm and designs stay. A project with offers or a linked deal can't be deleted: archive it instead.
       </ConfirmDialog>
     </div>
   );
