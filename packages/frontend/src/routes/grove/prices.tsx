@@ -128,8 +128,11 @@ function Prices() {
   const products = () => [...(d()?.products ?? []), ...more()];
   async function showMore() {
     setLoadingMore(true);
+    const asked = `${q()}|${only()}`;
     try {
       const r = await apiFetch<Overview>(`/internal/pricebook/overview?q=${encodeURIComponent(q())}&only=${only()}&limit=${PAGE}&offset=${PAGE * pages()}`);
+      // the search changed while this page was loading: drop it
+      if (asked !== `${q()}|${only()}`) return;
       setMore([...more(), ...r.products]);
       setPages(pages() + 1);
     } finally {
