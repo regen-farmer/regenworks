@@ -5,6 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
 import Offer from "@rw/db/schemas/internal/offer.ts";
+import Deal from "@rw/db/schemas/internal/deal.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { canSeeMoney } from "@rw/db/access.ts";
@@ -219,6 +220,10 @@ router.delete("/:id", team, async (req: Req, res) => {
   // Only empty projects can be deleted; others are archived instead.
   if (await Offer.exists({ groveProject: req.params.id })) {
     res.status(409).send({ error: "This project has offers; archive it instead" });
+    return;
+  }
+  if (await Deal.exists({ groveProject: req.params.id })) {
+    res.status(409).send({ error: "A deal links to this project; archive it instead" });
     return;
   }
   await GroveProject.deleteOne({ _id: req.params.id });

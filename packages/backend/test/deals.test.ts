@@ -143,6 +143,8 @@ test("deal, client and funnel routes: anonymous 401, public and field users 403"
     ["POST", `/internal/deals/${id}/move`],
     ["POST", `/internal/deals/${id}/handover`],
     ["POST", "/internal/deals/import-dashboard"],
+    ["DELETE", `/internal/deals/${id}`],
+    ["DELETE", `/internal/clients/${id}`],
     ["GET", "/internal/clients"],
     ["POST", "/internal/clients"],
     ["GET", `/internal/clients/${id}`],
@@ -169,6 +171,8 @@ test("bad ids are refused before any database call", async () => {
     ["POST", "/internal/deals/nope/move"],
     ["POST", "/internal/deals/nope/handover"],
     ["GET", "/internal/clients/nope"],
+    ["DELETE", "/internal/deals/nope"],
+    ["DELETE", "/internal/clients/nope"],
     ["PUT", "/internal/clients/nope"],
     ["GET", "/internal/deals?funnel=nope"],
   ]) {

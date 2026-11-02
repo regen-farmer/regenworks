@@ -6,6 +6,7 @@ import { createEffect, createMemo, createResource, createSignal, For, Show } fro
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { NewDealDialog, WonDialog } from "~/grove/DealDialogs.tsx";
 import { dkk, overdue, shortDay, type Deal, type Funnel, type FunnelStage } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
@@ -104,9 +105,10 @@ function Board() {
   }
 
   const [importing, setImporting] = createSignal(false);
+  const [askImport, setAskImport] = createSignal(false);
   async function importDashboard() {
     if (importing()) return;
-    if (!window.confirm("Make a deal (and a client) for every Dashboard project that has no deal yet? Projects already imported are skipped.")) return;
+    setAskImport(false);
     setImporting(true);
     try {
       const r = await apiFetch<{ created: number; clientsCreated: number }>("/internal/deals/import-dashboard", { method: "POST", body: "{}" });
@@ -147,7 +149,7 @@ function Board() {
               <input type="checkbox" checked={archived()} onChange={(e) => setArchived(e.currentTarget.checked)} /> Archived
             </label>
             <Link to="/grove/clients" class="text-sm underline">Clients</Link>
-            <button class="rounded-sm px-2 py-1 text-sm underline" disabled={importing()} onClick={importDashboard} title="Makes a deal for each Dashboard project that has none yet. Safe to run again.">
+            <button class="rounded-sm px-2 py-1 text-sm underline" disabled={importing()} onClick={() => setAskImport(true)} title="Makes a deal for each Dashboard project that has none yet. Safe to run again.">
               Import from Dashboard
             </button>
             <button class="rounded-sm px-3 py-1 btn-default" onClick={() => setAdding(true)} disabled={!funnel() || archived()}>
@@ -206,9 +208,9 @@ function Board() {
                                 to="/grove/deals/$dealId"
                                 params={{ dealId: d._id }}
                                 data-deal-id={d._id}
-                                draggable={!archived()}
+                                draggable={!archived() && d.status === "open"}
                                 class="block rounded-md bg-white dark:bg-slate-900 border border-zinc-300 dark:border-slate-600 p-2 text-sm hover:border-emerald-700"
-                                classList={{ "opacity-40": dragging() === d._id, "cursor-grab": !archived() }}
+                                classList={{ "opacity-40": dragging() === d._id, "cursor-grab": !archived() && d.status === "open" }}
                                 onDragStart={(e) => {
                                   setDragging(d._id);
                                   e.dataTransfer?.setData("text/plain", d._id);
@@ -266,7 +268,7 @@ function Board() {
             </div>
           </div>
           <p class="text-xs opacity-70">
-            Drag a card to move it; drop it on a card to put it above that card. On a phone, open the deal and change its stage there.
+            Drag an open deal to move it; drop it on a card to put it above that card. Won and lost deals stay put: open the deal and use "Change stage". On a phone, change the stage on the deal page.
           </p>
         </Show>
 
@@ -295,6 +297,16 @@ function Board() {
             </form>
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={askImport()}
+          title="Import from Dashboard"
+          confirmLabel={importing() ? "Importing…" : "Import"}
+          onConfirm={importDashboard}
+          onClose={() => setAskImport(false)}
+        >
+          Make a deal (and a client where needed) for every Dashboard project that has no deal yet. Projects already imported are skipped.
+        </ConfirmDialog>
 
         <WonDialog deal={wonDeal()} funnels={funnels()?.funnels ?? []} onClose={() => setWonDeal(null)} onDone={(to) => navigate(to)} />
 

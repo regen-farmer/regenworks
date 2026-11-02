@@ -16,6 +16,7 @@ import {
   type OfferLine,
   type Presented,
 } from "~/grove/offerTypes.ts";
+import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { PricebookPicker } from "~/grove/PricebookPicker.tsx";
 import { apiFetch } from "~/util/apiFetch.ts";
 
@@ -93,23 +94,17 @@ function OfferPage() {
     await call(`/internal/offers/${params().offerId}/reprice`, "POST", { latest });
   }
 
+  const [askDelete, setAskDelete] = createSignal(false);
   async function remove() {
-    if (!confirmDelete()) return;
     try {
       await apiFetch(`/internal/offers/${params().offerId}`, { method: "DELETE" });
+      setAskDelete(false);
       navigate({ to: "/grove/offers" });
     } catch (err) {
+      setAskDelete(false);
       showToast({ title: "Not deleted", description: (err as Error).message, variant: "destructive" });
     }
   }
-  const [deleteArmed, setDeleteArmed] = createSignal(false);
-  const confirmDelete = () => {
-    // two clicks instead of a browser dialog
-    if (deleteArmed()) return true;
-    setDeleteArmed(true);
-    setTimeout(() => setDeleteArmed(false), 4000);
-    return false;
-  };
 
   // flags by line id, so they stay on the right line while editing
   const flags = (i: number) => {
@@ -173,8 +168,8 @@ function OfferPage() {
               <Show when={draft.status === "accepted"}>
                 <span class="text-xs text-amber-700">Accepted: locked except Dinero no. and notes.</span>
               </Show>
-              <button class="ml-auto text-xs underline text-red-600" onClick={remove}>
-                {deleteArmed() ? "Click again to delete" : "Delete offer"}
+              <button class="ml-auto text-xs underline text-red-600" onClick={() => setAskDelete(true)}>
+                Delete offer
               </button>
             </div>
 
@@ -414,6 +409,9 @@ function OfferPage() {
           </Show>
         </Show>
       </Show>
+      <ConfirmDialog open={askDelete()} title="Delete offer" confirmLabel="Delete offer" danger onConfirm={remove} onClose={() => setAskDelete(false)}>
+        Delete "{data()?.offer.title || "this offer"}" for good? Accepted offers can't be deleted.
+      </ConfirmDialog>
     </div>
   );
 }
