@@ -455,6 +455,8 @@ export type PriceSuggestion = {
   unitCostDkk?: number;
   costCurrency?: string;
   costPrice?: number;
+  /** supplier Grove lists for a sales price */
+  listedSupplier?: string;
   /** VAT basis as printed by the supplier; vatUnclear when not clearly excl. VAT */
   vat?: string;
   vatUnclear?: boolean;
@@ -485,7 +487,21 @@ export function suggestPrice(
   if (sales.length) {
     const best = sales[0];
     const s = best.item;
+    // Cost reference for the internal sheet: the supplier price that would
+    // have been used without a sales price.
+    const cost = supplierSuggestion(data, q, opts);
     return {
+      supplierPriceId: cost?.supplierPriceId,
+      supplierId: cost?.supplierId,
+      docId: cost?.docId,
+      documentDate: cost?.documentDate,
+      outdated: cost?.outdated,
+      unitCostDkk: cost?.unitCostDkk,
+      costCurrency: cost?.costCurrency,
+      costPrice: cost?.costPrice,
+      vat: cost?.vat,
+      vatUnclear: cost?.vatUnclear,
+      listedSupplier: s.listedSupplier,
       unitPrice: round5(s.priceExclVat),
       source: "sales",
       salesPriceId: s.salesPriceId,
@@ -496,6 +512,14 @@ export function suggestPrice(
       matchNote: describeMatch(best, q),
     };
   }
+  return supplierSuggestion(data, q, opts);
+}
+
+function supplierSuggestion(
+  data: PricebookData,
+  q: PlantQuery,
+  opts: { marginPct: number; eurDkk: number; now?: Date },
+): PriceSuggestion | null {
   const docs = new Map(data.documents.map((d) => [d.docId, d]));
   const toDkk = (p: SupplierPrice) => (p.currency === "DKK" ? p.price : p.currency === "EUR" ? p.price * opts.eurDkk : NaN);
   const old = (p: SupplierPrice) => (isOutdated(docs.get(p.docId)?.documentDate, opts.now) ? 1 : 0);

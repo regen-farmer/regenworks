@@ -6,6 +6,7 @@ import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { canSeeMoney, groveRole } from "@rw/db/access.ts";
 import { requireRole } from "../middleware/access.ts";
 import pricebookRoutes from "../internal/pricebookRoutes.ts";
+import offerRoutes from "../internal/offerRoutes.ts";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.get("/me", (req: express.Request & { user?: UserDocument }, res: express.
 
 // Prices and costs: grove-team and up (field users never see money).
 router.use("/pricebook", requireRole("grove-team"), pricebookRoutes);
+router.use("/offers", requireRole("grove-team"), offerRoutes);
 
 export default router;

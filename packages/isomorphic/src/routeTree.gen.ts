@@ -28,6 +28,8 @@ import { Route as AdminAdvisorRequestsIndexRouteImport } from './routes/_pages/a
 import { Route as AdminFarmerAdvisorSurveyIndexRouteImport } from './routes/_pages/admin/farmer-advisor-survey/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as FarmScenarioPreviewConfigIdIndexRouteImport } from './routes/_pages/farm-scenario-preview/$configId/index'
+import { Route as GroveOffersIndexRouteImport } from './routes/_pages/grove/offers/index'
+import { Route as GroveOffersOfferIdRouteImport } from './routes/_pages/grove/offers/$offerId'
 import { Route as ParcelsParcelIdIndexRouteImport } from './routes/_pages/parcels/$parcelId/index'
 import { Route as ParcelsParcelIdLayersRouteImport } from './routes/_pages/parcels/$parcelId/layers'
 import { Route as ScenarioPreviewScenarioIdIndexRouteImport } from './routes/_pages/scenario-preview/$scenarioId/index'
@@ -165,6 +167,16 @@ const FarmScenarioPreviewConfigIdIndexRoute =
     path: '/farm-scenario-preview/$configId/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GroveOffersIndexRoute = GroveOffersIndexRouteImport.update({
+  id: '/offers/',
+  path: '/offers/',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveOffersOfferIdRoute = GroveOffersOfferIdRouteImport.update({
+  id: '/offers/$offerId',
+  path: '/offers/$offerId',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
 const ParcelsParcelIdIndexRoute = ParcelsParcelIdIndexRouteImport.update({
   id: '/$parcelId/',
   path: '/$parcelId/',
@@ -417,12 +429,14 @@ export interface FileRoutesByFullPath {
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
   '/species/$speciesId/edit': typeof SpeciesSpeciesIdEditRoute
   '/systems/$systemId/edit': typeof SystemsSystemIdEditRoute
   '/admin/advisor-requests/': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey/': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId/': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/offers/': typeof GroveOffersIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId/': typeof SpeciesSpeciesIdIndexRoute
@@ -473,12 +487,14 @@ export interface FileRoutesByTo {
   '/species': typeof SpeciesIndexRoute
   '/systems': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
   '/species/$speciesId/edit': typeof SpeciesSpeciesIdEditRoute
   '/systems/$systemId/edit': typeof SystemsSystemIdEditRoute
   '/admin/advisor-requests': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/offers': typeof GroveOffersIndexRoute
   '/parcels/$parcelId': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId': typeof SpeciesSpeciesIdIndexRoute
@@ -533,12 +549,14 @@ export interface FileRoutesById {
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
   '/species/$speciesId/edit': typeof SpeciesSpeciesIdEditRoute
   '/systems/$systemId/edit': typeof SystemsSystemIdEditRoute
   '/admin/advisor-requests/': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey/': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId/': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/offers/': typeof GroveOffersIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId/': typeof SpeciesSpeciesIdIndexRoute
@@ -594,12 +612,14 @@ export interface FileRouteTypes {
     | '/species/'
     | '/systems/'
     | '/api/auth/$'
+    | '/grove/offers/$offerId'
     | '/parcels/$parcelId/layers'
     | '/species/$speciesId/edit'
     | '/systems/$systemId/edit'
     | '/admin/advisor-requests/'
     | '/admin/farmer-advisor-survey/'
     | '/farm-scenario-preview/$configId/'
+    | '/grove/offers/'
     | '/parcels/$parcelId/'
     | '/scenario-preview/$scenarioId/'
     | '/species/$speciesId/'
@@ -650,12 +670,14 @@ export interface FileRouteTypes {
     | '/species'
     | '/systems'
     | '/api/auth/$'
+    | '/grove/offers/$offerId'
     | '/parcels/$parcelId/layers'
     | '/species/$speciesId/edit'
     | '/systems/$systemId/edit'
     | '/admin/advisor-requests'
     | '/admin/farmer-advisor-survey'
     | '/farm-scenario-preview/$configId'
+    | '/grove/offers'
     | '/parcels/$parcelId'
     | '/scenario-preview/$scenarioId'
     | '/species/$speciesId'
@@ -709,12 +731,14 @@ export interface FileRouteTypes {
     | '/species/'
     | '/systems/'
     | '/api/auth/$'
+    | '/grove/offers/$offerId'
     | '/parcels/$parcelId/layers'
     | '/species/$speciesId/edit'
     | '/systems/$systemId/edit'
     | '/admin/advisor-requests/'
     | '/admin/farmer-advisor-survey/'
     | '/farm-scenario-preview/$configId/'
+    | '/grove/offers/'
     | '/parcels/$parcelId/'
     | '/scenario-preview/$scenarioId/'
     | '/species/$speciesId/'
@@ -906,6 +930,20 @@ declare module '@tanstack/solid-router' {
       fullPath: '/farm-scenario-preview/$configId/'
       preLoaderRoute: typeof FarmScenarioPreviewConfigIdIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/grove/offers/': {
+      id: '/grove/offers/'
+      path: '/offers'
+      fullPath: '/grove/offers/'
+      preLoaderRoute: typeof GroveOffersIndexRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/offers/$offerId': {
+      id: '/grove/offers/$offerId'
+      path: '/offers/$offerId'
+      fullPath: '/grove/offers/$offerId'
+      preLoaderRoute: typeof GroveOffersOfferIdRouteImport
+      parentRoute: typeof GroveRouteRoute
     }
     '/parcels/$parcelId/': {
       id: '/parcels/$parcelId/'
@@ -1178,10 +1216,14 @@ declare module '@tanstack/solid-router' {
 
 interface GroveRouteRouteChildren {
   GrovePricebookRoute: typeof GrovePricebookRoute
+  GroveOffersOfferIdRoute: typeof GroveOffersOfferIdRoute
+  GroveOffersIndexRoute: typeof GroveOffersIndexRoute
 }
 
 const GroveRouteRouteChildren: GroveRouteRouteChildren = {
   GrovePricebookRoute: GrovePricebookRoute,
+  GroveOffersOfferIdRoute: GroveOffersOfferIdRoute,
+  GroveOffersIndexRoute: GroveOffersIndexRoute,
 }
 
 const GroveRouteRouteWithChildren = GroveRouteRoute._addFileChildren(
