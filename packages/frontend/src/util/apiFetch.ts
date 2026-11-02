@@ -61,3 +61,11 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   return response.json() as Promise<T>;
 }
+
+/** A file from the API (e.g. a CSV export), with the same login headers as apiFetch. */
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const defaults = apiFetchOptions();
+  const response = await fetch(buildUrl(path), { ...defaults, headers: new Headers(defaults.headers) });
+  if (!response.ok) throw new ApiError(await getErrorMessage(response), response);
+  return response.blob();
+}

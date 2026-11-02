@@ -45,6 +45,7 @@ import { Route as SpeciesSpeciesIdIndexRouteImport } from './routes/species/$spe
 import { Route as SpeciesSpeciesIdEditRouteImport } from './routes/species/$speciesId/edit'
 import { Route as SystemsSystemIdIndexRouteImport } from './routes/systems/$systemId/index'
 import { Route as SystemsSystemIdEditRouteImport } from './routes/systems/$systemId/edit'
+import { Route as GroveTreesProjectIdRegisterIdRouteImport } from './routes/grove/trees/$projectId.$registerId'
 import { Route as SpeciesSpeciesIdActivitiesEditRouteImport } from './routes/species/$speciesId/activities/edit'
 import { Route as SpeciesSpeciesIdActivitiesNewRouteImport } from './routes/species/$speciesId/activities/new'
 import { Route as SpeciesSpeciesIdNutrientsNewRouteImport } from './routes/species/$speciesId/nutrients/new'
@@ -259,6 +260,12 @@ const SystemsSystemIdEditRoute = SystemsSystemIdEditRouteImport.update({
   path: '/$systemId/edit',
   getParentRoute: () => SystemsRouteRoute,
 } as any)
+const GroveTreesProjectIdRegisterIdRoute =
+  GroveTreesProjectIdRegisterIdRouteImport.update({
+    id: '/trees/$projectId/$registerId',
+    path: '/trees/$projectId/$registerId',
+    getParentRoute: () => GroveRouteRoute,
+  } as any)
 const SpeciesSpeciesIdActivitiesEditRoute =
   SpeciesSpeciesIdActivitiesEditRouteImport.update({
     id: '/$speciesId/activities/edit',
@@ -483,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId/': typeof SpeciesSpeciesIdIndexRoute
   '/systems/$systemId/': typeof SystemsSystemIdIndexRoute
+  '/grove/trees/$projectId/$registerId': typeof GroveTreesProjectIdRegisterIdRoute
   '/species/$speciesId/activities/edit': typeof SpeciesSpeciesIdActivitiesEditRoute
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
@@ -546,6 +554,7 @@ export interface FileRoutesByTo {
   '/scenario-preview/$scenarioId': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId': typeof SpeciesSpeciesIdIndexRoute
   '/systems/$systemId': typeof SystemsSystemIdIndexRoute
+  '/grove/trees/$projectId/$registerId': typeof GroveTreesProjectIdRegisterIdRoute
   '/species/$speciesId/activities/edit': typeof SpeciesSpeciesIdActivitiesEditRoute
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
@@ -614,6 +623,7 @@ export interface FileRoutesById {
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
   '/species/$speciesId/': typeof SpeciesSpeciesIdIndexRoute
   '/systems/$systemId/': typeof SystemsSystemIdIndexRoute
+  '/grove/trees/$projectId/$registerId': typeof GroveTreesProjectIdRegisterIdRoute
   '/species/$speciesId/activities/edit': typeof SpeciesSpeciesIdActivitiesEditRoute
   '/species/$speciesId/activities/new': typeof SpeciesSpeciesIdActivitiesNewRoute
   '/species/$speciesId/nutrients/new': typeof SpeciesSpeciesIdNutrientsNewRoute
@@ -683,6 +693,7 @@ export interface FileRouteTypes {
     | '/scenario-preview/$scenarioId/'
     | '/species/$speciesId/'
     | '/systems/$systemId/'
+    | '/grove/trees/$projectId/$registerId'
     | '/species/$speciesId/activities/edit'
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
@@ -746,6 +757,7 @@ export interface FileRouteTypes {
     | '/scenario-preview/$scenarioId'
     | '/species/$speciesId'
     | '/systems/$systemId'
+    | '/grove/trees/$projectId/$registerId'
     | '/species/$speciesId/activities/edit'
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
@@ -813,6 +825,7 @@ export interface FileRouteTypes {
     | '/scenario-preview/$scenarioId/'
     | '/species/$speciesId/'
     | '/systems/$systemId/'
+    | '/grove/trees/$projectId/$registerId'
     | '/species/$speciesId/activities/edit'
     | '/species/$speciesId/activities/new'
     | '/species/$speciesId/nutrients/new'
@@ -1115,6 +1128,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof SystemsSystemIdEditRouteImport
       parentRoute: typeof SystemsRouteRoute
     }
+    '/grove/trees/$projectId/$registerId': {
+      id: '/grove/trees/$projectId/$registerId'
+      path: '/trees/$projectId/$registerId'
+      fullPath: '/grove/trees/$projectId/$registerId'
+      preLoaderRoute: typeof GroveTreesProjectIdRegisterIdRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
     '/species/$speciesId/activities/edit': {
       id: '/species/$speciesId/activities/edit'
       path: '/$speciesId/activities/edit'
@@ -1334,6 +1354,7 @@ interface GroveRouteRouteChildren {
   GroveClientsIndexRoute: typeof GroveClientsIndexRoute
   GroveDealsIndexRoute: typeof GroveDealsIndexRoute
   GroveOffersIndexRoute: typeof GroveOffersIndexRoute
+  GroveTreesProjectIdRegisterIdRoute: typeof GroveTreesProjectIdRegisterIdRoute
 }
 
 const GroveRouteRouteChildren: GroveRouteRouteChildren = {
@@ -1349,6 +1370,7 @@ const GroveRouteRouteChildren: GroveRouteRouteChildren = {
   GroveClientsIndexRoute: GroveClientsIndexRoute,
   GroveDealsIndexRoute: GroveDealsIndexRoute,
   GroveOffersIndexRoute: GroveOffersIndexRoute,
+  GroveTreesProjectIdRegisterIdRoute: GroveTreesProjectIdRegisterIdRoute,
 }
 
 const GroveRouteRouteWithChildren = GroveRouteRoute._addFileChildren(
