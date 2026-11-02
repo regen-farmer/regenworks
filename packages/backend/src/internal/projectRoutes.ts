@@ -18,6 +18,8 @@ import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
 import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
 import Checklist from "@rw/db/schemas/internal/checklist.ts";
 import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, templateOf } from "./checklists.ts";
+import TreeRegister from "@rw/db/schemas/internal/treeRegister.ts";
+import treeRoutes from "./treeRoutes.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -240,10 +242,17 @@ router.delete("/:id", team, async (req: Req, res) => {
     res.status(409).send({ error: "A deal links to this project; archive it instead" });
     return;
   }
+  if (await TreeRegister.exists({ project: req.params.id })) {
+    res.status(409).send({ error: "This project has a tree register; archive it instead" });
+    return;
+  }
   await GroveProject.deleteOne({ _id: req.params.id });
   await Checklist.deleteMany({ project: req.params.id }); // its screening goes with it
   res.status(204).send();
 });
+
+// ---- tree register (see treeRoutes.ts) ----
+router.use("/:id/trees", treeRoutes);
 
 // ---- checklists (screening) ----
 // Field users can fill in checklists on projects assigned to them; the

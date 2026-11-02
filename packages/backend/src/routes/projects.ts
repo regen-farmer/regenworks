@@ -28,6 +28,7 @@ import PDFDocument from "pdfkit";
 import type { Auth0IDToken } from "../app.ts";
 import dyFiMo from "../middleware/financials.ts";
 import middleware from "../middleware/index.ts";
+import { plantNamesOf } from "@rw/modelling/planting/plant_details.ts";
 import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields, inIds } from "../utils/mongoSafety.ts";
 
 // import SystemDesign from 'collections/systemdesign.js';
@@ -74,19 +75,6 @@ import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields, inId
 // NODE GEOCODER CODE
 
 const router = express.Router();
-
-/** Cultivar and rootstock names used in a populated design, for exports. */
-function plantNamesOf(systemdesign: any) {
-  const varieties: Record<string, string> = {};
-  const rootstocks: Record<string, string> = {};
-  for (const row of systemdesign?.rows ?? []) {
-    for (const entry of row?.sequence ?? []) {
-      if (entry?.variety?._id) varieties[String(entry.variety._id)] = entry.variety.name;
-      if (entry?.rootstock?._id) rootstocks[String(entry.rootstock._id)] = entry.rootstock.name;
-    }
-  }
-  return { varieties, rootstocks };
-}
 
 const options: NodeGeocoder.Options = {
   provider: "openstreetmap",

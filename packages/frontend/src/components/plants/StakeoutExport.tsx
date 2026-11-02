@@ -1,7 +1,7 @@
 // "Stake-out files (RTK)": one zip with Trimble-ready grid coordinates, row
 // lines, DXF, check KML and a summary, named <prefix>R<row>T<tree>.
 // Grove users only for now. See packages/modelling/planting/stakeout.ts.
-import { cleanPrefix, stakeoutFiles } from "@rw/modelling/planting/stakeout.ts";
+import { cleanPrefix, defaultPrefix, plantLabel, stakeoutFiles } from "@rw/modelling/planting/stakeout.ts";
 import { zipTextFiles } from "@rw/modelling/planting/zip.ts";
 import { createSignal, Show } from "solid-js";
 import { showToast } from "~/components/ui/toast";
@@ -12,15 +12,7 @@ type Preview = {
   plantNames?: { varieties: Record<string, string>; rootstocks: Record<string, string> };
 };
 
-/** "Mark 1 Hassel" -> "M1H": first character of each word, letters and digits only. */
-export function defaultPrefix(fieldName: string | undefined): string {
-  return cleanPrefix(
-    (fieldName ?? "")
-      .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase())
-      .join(""),
-  ).slice(0, 4);
-}
+export { defaultPrefix };
 
 const storageKey = (projectId: string) => `stakeout-prefix:${projectId}`;
 
@@ -61,16 +53,7 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
       const out = stakeoutFiles(preview, stem, {
         prefix: prefix(),
         source: stem,
-        labelOf: (t) => {
-          const species = t.species?.nameCommon ?? "Tree";
-          const cultivar = t.variety ? names.varieties[t.variety] : undefined;
-          const rootstock = t.rootstock ? names.rootstocks[t.rootstock] : undefined;
-          let label = cultivar ? `${species} ${cultivar}` : species;
-          if (rootstock) label += ` on ${rootstock}`;
-          else if (t.ownRoots) label += " own roots";
-          if (t.organic === true) label += " (organic)";
-          return { label, species };
-        },
+        labelOf: (t) => plantLabel(t, names),
       });
 
       const blob = new Blob([zipTextFiles(out.files) as BlobPart], { type: "application/zip" });

@@ -82,3 +82,16 @@ export function attachPlantDetails<L extends { treeMarkerArray?: any[] }>(
   result.plantCountArray = [...counts.values()];
   return result;
 }
+
+/** Cultivar and rootstock names used in a populated design, for exports and the tree register. */
+export function plantNamesOf(systemdesign: any) {
+  const varieties: Record<string, string> = {};
+  const rootstocks: Record<string, string> = {};
+  for (const row of systemdesign?.rows ?? []) {
+    for (const entry of row?.sequence ?? []) {
+      if (entry?.variety?._id) varieties[String(entry.variety._id)] = entry.variety.name;
+      if (entry?.rootstock?._id) rootstocks[String(entry.rootstock._id)] = entry.rootstock.name;
+    }
+  }
+  return { varieties, rootstocks };
+}
