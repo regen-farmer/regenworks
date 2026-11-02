@@ -6,10 +6,21 @@ import { priceService } from "./services.ts";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-/** A product: same species, cultivar, rootstock and plant type (sizes and organic status vary inside). */
-export function productKey(r: { latin?: string; commonName?: string; cultivar?: string; rootstock?: string; propagation?: string }) {
+/**
+ * A product: same species (or name) and cultivar. Rootstock, plant type,
+ * size and organic status vary inside and are shown on each price, so a
+ * sales price and its supplier costs sit together even when the supplier
+ * leaves the rootstock or type out.
+ */
+export function productKey(r: { latin?: string; commonName?: string; cultivar?: string }) {
   const name = norm(r.latin) || norm(r.commonName);
-  return [name, norm(r.cultivar), norm(r.rootstock), rowPropagation(r.propagation) ?? ""].join("|");
+  return [name, norm(r.cultivar)].join("|");
+}
+
+/** Do two sizes describe the same plants? Height ranges overlap, or the same size text. */
+function sameSize(a: { heightMin?: number; heightMax?: number; size?: string }, b: { heightMin?: number; heightMax?: number; size?: string }) {
+  if (a.heightMin !== undefined && a.heightMax !== undefined && b.heightMin !== undefined && b.heightMax !== undefined) return a.heightMin <= b.heightMax && b.heightMin <= a.heightMax;
+  return !!a.size && !!b.size && norm(a.size) === norm(b.size);
 }
 
 /** Supplier price in DKK as printed (no VAT added or removed); NaN for unknown currencies. */
@@ -51,17 +62,15 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     latin: string;
     name?: string;
     cultivar?: string;
-    rootstock?: string;
-    propagation?: string;
     sales: any[];
     costs: any[];
   };
   const products = new Map<string, Product>();
-  const get = (r: { latin?: string; commonName?: string; cultivar?: string; rootstock?: string; propagation?: string }) => {
+  const get = (r: { latin?: string; commonName?: string; cultivar?: string }) => {
     const key = productKey(r);
     let p = products.get(key);
     if (!p) {
-      p = { key, latin: r.latin || "", name: r.commonName, cultivar: r.cultivar, rootstock: r.rootstock, propagation: rowPropagation(r.propagation), sales: [], costs: [] };
+      p = { key, latin: r.latin || "", name: r.commonName, cultivar: r.cultivar, sales: [], costs: [] };
       products.set(key, p);
     }
     if (!p.name && r.commonName) p.name = r.commonName;
@@ -74,6 +83,8 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     get(r).costs.push({
       priceId: r.priceId,
       supplierId: r.supplierId,
+      rootstock: r.rootstock,
+      propagation: rowPropagation(r.propagation),
       size: r.size,
       heightMin: r.heightMin,
       heightMax: r.heightMax,
@@ -94,8 +105,13 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     // the cost the offer builder uses for this sales price (closest size, organic as listed)
     const ref = priceFromRow(data, { kind: "sales", id: s.salesPriceId }, { marginPct: 0, eurDkk: opts.eurDkk, now: opts.now });
     const cost = ref?.unitCostDkk;
+    const row = ref?.supplierPriceId ? data.supplierPrices.find((x) => x.priceId === ref.supplierPriceId) : undefined;
+    const sizeOk = row ? sameSize({ heightMin: s.heightMin, heightMax: s.heightMax }, row) : false;
+    const organicOk = row ? row.organicStatus === s.organicStatus : false;
     get({ ...s, commonName: s.commonNameDa }).sales.push({
       salesPriceId: s.salesPriceId,
+      rootstock: s.rootstock,
+      propagation: rowPropagation(s.propagation),
       size: s.heightMin && s.heightMax ? `${s.heightMin}-${s.heightMax} cm` : s.form,
       heightMin: s.heightMin,
       heightMax: s.heightMax,
@@ -105,7 +121,22 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
       listedSupplier: s.listedSupplier,
       stockStatus: s.stockStatus,
       notes: s.notes,
-      costReference: typeof cost === "number" ? { unitCostDkk: cost, supplierPriceId: ref?.supplierPriceId, supplierId: ref?.supplierId, size: ref?.size } : null,
+      // the closest supplier price; it may differ in size or organic status, which makes the margin approximate
+      costReference:
+        typeof cost === "number" && row
+          ? {
+              unitCostDkk: cost,
+              supplierPriceId: row.priceId,
+              supplierName: suppliers.get(row.supplierId)?.name ?? row.supplierId,
+              size: row.size,
+              organicStatus: row.organicStatus,
+              vatUnclear: !vatExcluded(row.vat),
+              outdated: source(row.docId, row.supplierId).outdated,
+              sameSize: sizeOk,
+              sameOrganic: organicOk,
+              exact: sizeOk && organicOk && vatExcluded(row.vat),
+            }
+          : null,
       marginPct: typeof cost === "number" && s.priceExclVat > 0 ? round2(((s.priceExclVat - cost) / s.priceExclVat) * 100) : null,
       source: source(s.docId, "grove"),
     });

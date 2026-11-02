@@ -168,6 +168,8 @@ router.get("/services", async (req: Req, res) => {
   res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null });
 });
 
+const overviewCache = new Map<string, ReturnType<typeof priceOverview>>();
+
 // Price overview: per product, Grove's sales prices next to every supplier
 // cost, each with its price list, date and source file; services likewise.
 router.get("/overview", async (req: Req, res) => {
@@ -184,7 +186,14 @@ router.get("/overview", async (req: Req, res) => {
     return;
   }
   const q = typeof req.query.q === "string" ? req.query.q.slice(0, 100) : "";
-  const all = priceOverview(doc, { eurDkk, q });
+  // built once per version, rate and search; paging and filters reuse it
+  const key = `${doc.version}|${eurDkk}|${q}`;
+  let all = overviewCache.get(key);
+  if (!all) {
+    all = priceOverview(doc, { eurDkk, q });
+    overviewCache.set(key, all);
+    if (overviewCache.size > 30) overviewCache.delete(overviewCache.keys().next().value!);
+  }
   // filters, then a page of products (the full list is ~1 MB)
   const only = req.query.only;
   const filtered = all.products.filter((p) =>

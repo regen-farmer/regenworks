@@ -26,7 +26,7 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   assert.equal(b.data.documents[0].file, "sources/a-2025.xlsx");
   assert.equal(b.data.salesPrices[0].docId, "gs");
   const o = priceOverview(b.data, { eurDkk: 7, now: new Date("2026-11-02") });
-  assert.equal(o.products.length, 2, "Corabel grafted, and the seedling");
+  assert.equal(o.products.length, 2, "Corabel, and hazel without a cultivar");
   const corabel = o.products.find((p) => p.cultivar === "Corabel")!;
   assert.deepEqual(corabel.costs.map((c) => c.unitCostDkk), [60, 70], "cheapest first; 10 EUR x 7");
   assert.equal(corabel.summary.costMin, 60);
@@ -40,6 +40,8 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   assert.equal(sale.priceExclVat, 120);
   assert.equal(sale.source.file, "sources/grove-2026.pdf");
   assert.equal(sale.costReference.supplierPriceId, "a1", "same size as the sales price");
+  assert.equal(sale.costReference.exact, true);
+  assert.equal(corabel.costs[0].rootstock, "Corylus colurna");
   assert.equal(sale.marginPct, 41.67);
   assert.equal(priceOverview(b.data, { eurDkk: 7, q: "corabel colurna" }).products.length, 1, "all words must match");
   assert.equal(priceOverview(b.data, { eurDkk: 7, q: "walnut" }).products.length, 0);
@@ -47,5 +49,8 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   assert.equal(net.costLikely, 14);
   assert.equal(net.unitPrice, 23.5, "14 / 0.6 = 23.33 -> up to 0.50 kr");
   assert.equal(net.source.file, "sources/a-2025.xlsx");
-  assert.equal(productKey({ latin: "Corylus avellana", cultivar: " corabel", propagation: "podet" }), productKey({ latin: "corylus  avellana", cultivar: "Corabel", propagation: "grafted" }));
+  assert.equal(productKey({ latin: "Corylus avellana", cultivar: " corabel" }), productKey({ latin: "corylus  avellana", cultivar: "Corabel" }));
+  // a supplier row without rootstock or type still sits with the sales price
+  const loose = buildPricebook({ ...files, supplierPrices: files.supplierPrices.replace("b1,db,b,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted", "b1,db,b,Corylus avellana,Hazel,Corabel,,") });
+  assert.ok(loose.ok && priceOverview(loose.data, { eurDkk: 7 }).products.find((p) => p.cultivar === "Corabel")!.costs.length === 2);
 });
