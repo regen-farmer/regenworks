@@ -26,8 +26,9 @@ export default defineConfig(({ mode }) => {
 			if (id.startsWith("@tauri-apps/")) return "\0stub-server-module";
 			if (id.startsWith("@rw/desktop-tauri")) return "\0stub-server-module";
 			if (options?.ssr) return null;
-			// access.ts is plain role logic (no mongoose), shared with the browser.
-			if (id.startsWith("@rw/db/") && id !== "@rw/db/access.ts") return "\0stub-server-module";
+			// access.ts (role logic) and productSpec.ts (the product definition) are
+			// plain code without mongoose, shared with the browser.
+			if (id.startsWith("@rw/db/") && id !== "@rw/db/access.ts" && id !== "@rw/db/productSpec.ts") return "\0stub-server-module";
 		},
 		load(id: string) {
 			if (id === "\0stub-server-module") return "export default {}; export {};";
