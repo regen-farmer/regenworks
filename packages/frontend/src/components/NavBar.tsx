@@ -26,6 +26,7 @@ import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { isElectron } from "~/util/platform.ts";
 import { canUsePlantCatalogue } from "~/util/plantCatalogue.ts";
+import { canSeeMoney, isGroveUser } from "~/grove/access.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -94,7 +95,8 @@ export function NavBar() {
         id="logotype"
         class="mx-3 cursor-pointer"
         onclick={() => {
-          navigate({ to: "/" });
+          // Grove's start page is the dashboard; everyone else gets the farm map.
+          navigate({ to: isGroveUser() ? "/grove" : "/" });
         }}
       >
         <div class="logo-icon" />
@@ -214,10 +216,34 @@ export function NavBar() {
                 </Tooltip.Portal>
               </Tooltip>
             </Show>
+            <Show when={isGroveUser()}>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/grove"} activeOptions={{ exact: true }}>
+                  <i class="fas fa-table-columns" /> Dashboard
+                </Link>
+              </li>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/"} activeOptions={{ exact: true }}>
+                  <i class="fas fa-map" /> Farms
+                </Link>
+              </li>
+            </Show>
             <Show when={canUsePlantCatalogue()}>
               <li class="nav-item">
                 <Link class="nav-link" to={"/plants"}>
                   <i class="fas fa-seedling" /> Plants
+                </Link>
+              </li>
+            </Show>
+            <Show when={canSeeMoney()}>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/grove/offers"}>
+                  <i class="fas fa-file-invoice" /> Offers
+                </Link>
+              </li>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/grove/pricebook"}>
+                  <i class="fas fa-tags" /> Pricebook
                 </Link>
               </li>
             </Show>

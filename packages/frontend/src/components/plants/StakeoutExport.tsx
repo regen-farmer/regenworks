@@ -73,7 +73,7 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
         },
       });
 
-      const blob = new Blob([zipTextFiles(out.files)], { type: "application/zip" });
+      const blob = new Blob([zipTextFiles(out.files) as BlobPart], { type: "application/zip" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

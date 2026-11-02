@@ -3,6 +3,8 @@ import express from "express";
 import mongoose from "mongoose";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import Project from "@rw/db/schemas/project.ts";
+import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
+import { stageAfterOffer } from "./projects.ts";
 import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
@@ -25,6 +27,22 @@ type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
 
 const validId = (id: unknown): id is string => typeof id === "string" && mongoose.isValidObjectId(id);
+
+/** Move the dashboard project along when an offer is made or accepted. */
+async function moveProjectStage(groveProjectId: unknown, event: "offer-made" | "offer-accepted") {
+  if (!validId(String(groveProjectId ?? ""))) return;
+  try {
+    const p: any = await GroveProject.findById(String(groveProjectId)).select("stage");
+    const next = p ? stageAfterOffer(p.stage, event) : null;
+    if (next) {
+      p.stage = next;
+      await p.save();
+    }
+  } catch (err) {
+    // the offer is saved either way; the stage can be set by hand
+    console.error("[offers] could not move project stage", err);
+  }
+}
 
 /** Offer plus everything the screens need: totals, Dinero lines, internal sheet. */
 function present(offer: any) {
@@ -170,7 +188,14 @@ router.post("/", async (req: Req, res) => {
     }
     lines = fromDesign;
   }
-  const groveProject = validId(req.body?.groveProjectId) ? req.body.groveProjectId : undefined;
+  let groveProject: string | undefined;
+  if (req.body?.groveProjectId !== undefined) {
+    if (!validId(req.body.groveProjectId) || !(await GroveProject.exists({ _id: req.body.groveProjectId }))) {
+      res.status(400).send({ error: "Dashboard project not found" });
+      return;
+    }
+    groveProject = req.body.groveProjectId;
+  }
   const priced = await priceAll(lines, {
     marginPct: cleaned.value.marginPct,
     eurDkk: cleaned.value.eurDkk,
@@ -193,6 +218,7 @@ router.post("/", async (req: Req, res) => {
     createdBy: req.user?._id,
     updatedBy: req.user?._id,
   });
+  await moveProjectStage(groveProject, "offer-made");
   res.status(201).send({ ...present(offer), warning: priced.warning });
 });
 
@@ -225,10 +251,16 @@ router.put("/:id", async (req: Req, res) => {
     return;
   }
   const { lines, ...rest } = cleaned.value;
+  if (rest.groveProject && !(await GroveProject.exists({ _id: rest.groveProject }))) {
+    res.status(400).send({ error: "Dashboard project not found" });
+    return;
+  }
+  const linkedNow = rest.groveProject && String(rest.groveProject) !== String(offer.groveProject ?? "");
   // An accepted offer is what the client signed: only its Dinero number and
   // notes can change.
   if (offer.status === "accepted") {
-    const allowed = new Set(["dineroNumber", "notes"]);
+    // linking to a dashboard project is internal bookkeeping, not the offer itself
+    const allowed = new Set(["dineroNumber", "notes", "groveProject"]);
     const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
     if (changed.length) {
       res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number and notes can change" });
@@ -261,8 +293,11 @@ router.put("/:id", async (req: Req, res) => {
     offer.pricebookVersion ??= priced.pricebookVersion;
   }
   if (lines || needsPricing) offer.lines = merged;
+  const becameAccepted = rest.status === "accepted" && offer.isModified("status");
   offer.updatedBy = req.user?._id;
   await offer.save();
+  if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");
+  if (becameAccepted) await moveProjectStage(offer.groveProject, "offer-accepted");
   res.send(present(offer));
 });
 
