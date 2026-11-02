@@ -1,4 +1,6 @@
 import express from "express";
+import { inIds } from "../utils/mongoSafety.ts";
+import { notUsedElsewhere } from "../utils/sharedRecords.ts";
 import { owns } from "../middleware/ownership.ts";
 import Project from "@rw/db/schemas/project.ts";
 import Area from "@rw/db/schemas/area.ts";
@@ -118,7 +120,9 @@ router.get(
       // DELETE AREAS
       if (foundProject) {
         try {
-          await Area.deleteMany({ _id: { $in: foundProject.areas } });
+          // only this scenario's own areas (copies used to share them)
+          const ids = await notUsedElsewhere("areas", foundProject.areas, String(foundProject._id));
+          await Area.deleteMany({ _id: inIds(ids) });
           // CLEAR AREA ARRAY ON PROJECT
           try {
             const updatedProject = await Project.findByIdAndUpdate(req.params.id, {

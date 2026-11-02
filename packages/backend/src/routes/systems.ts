@@ -1,5 +1,5 @@
 import express from "express";
-import { owns } from "../middleware/ownership.ts";
+import { owns, systemReadable } from "../middleware/ownership.ts";
 import unique from "array-unique";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -7,7 +7,7 @@ import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
@@ -357,6 +357,7 @@ router.get(
 // SYSTEM SHOW ROUTE
 router.get(
   "/systems/:id",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -434,6 +435,7 @@ router.get(
 // SYSTEM EDIT ROUTE
 router.get(
   "/systems/:id/edit",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -577,6 +579,7 @@ router.get(
 // SYSTEM EDIT ROUTE OLD
 router.get(
   "/systems/:id/editold",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -634,6 +637,7 @@ router.get(
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get(
   "/systems/:id/edit/:speciesid",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -748,6 +752,7 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put(
   "/systems/:id",
+  systemReadable(),
   // No owns() here on purpose: a non-owner editing a shared system gets their
   // own edited copy (see the "NOT OWNER" branch); only the owner changes it.
   middleware.isLoggedIn,
@@ -820,12 +825,13 @@ router.put(
             system.animals.splice(i, 1);
           }
         }
-        if (foundSystem.owner.id === req.user?._id.toString()) {
+        // (compared as strings: an id object never equals a string)
+        if (String(foundSystem.owner?.id) === String(req.user?._id)) {
           // if true, update existing system
 
           console.log("OWNER");
           try {
-            foundSystem.set(sanitizeMongoDocument(system));
+            foundSystem.set(withoutProtectedFields(sanitizeMongoDocument(system)));
             const updatedSystem = await foundSystem.save();
             if (updatedSystem) {
               res.send({
@@ -1004,6 +1010,7 @@ router.delete(
 // SYSTEM SUCCESSION ROUTE
 router.get(
   "/systems/:id/succession",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1305,6 +1312,7 @@ router.get(
 // SYSTEM OCCURRENCE NEW ROUTE
 router.get(
   "/systems/:id/occurrences/new",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

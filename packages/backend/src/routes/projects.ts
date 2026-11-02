@@ -1,4 +1,5 @@
 import Activity from "@rw/db/schemas/activity.ts";
+import { notUsedElsewhere } from "../utils/sharedRecords.ts";
 import { dbOwnerLookup, ownershipDecision, owns } from "../middleware/ownership.ts";
 import Area from "@rw/db/schemas/area.ts";
 import Asset from "@rw/db/schemas/asset.ts";
@@ -28,7 +29,7 @@ import PDFDocument from "pdfkit";
 import type { Auth0IDToken } from "../app.ts";
 import dyFiMo from "../middleware/financials.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields, inIds } from "../utils/mongoSafety.ts";
 
 // import SystemDesign from 'collections/systemdesign.js';
 
@@ -666,14 +667,14 @@ router.put(
               // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
               if (updatedProject) {
                 try {
-                  const foundRows = await Row.find({
-                    _id: { $in: updatedProject.rows },
-                  });
+                  // rows in the scenario's own order (treeAssetRowRef indexes it)
+                  const found = await Row.find({ _id: inIds((updatedProject.rows ?? []).map(String)) });
+                  const byId = new Map(found.map((r: any) => [String(r._id), r]));
+                  const foundRows: any[] = (updatedProject.rows ?? []).map((id: any) => byId.get(String(id))).filter(Boolean);
 
                   for (let i = 0; i < createdAssets.length; i++) {
                     const ref = treeAssetRowRef[i];
-                    console.log(`ref ${ref}`);
-                    // @ts-expect-error
+                    if (!foundRows[ref]) continue; // row missing: skip rather than crash
                     foundRows[ref].assets.push(createdAssets[i]);
                   }
                   // SAVE ROWS INDIVIDUALLY
@@ -814,7 +815,9 @@ router.get(
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
         try {
-          await Row.deleteMany({ _id: { $in: foundProject.rows } });
+          // only this scenario's own rows (copies used to share them)
+          const ids = await notUsedElsewhere("rows", foundProject.rows, String(foundProject._id));
+          await Row.deleteMany({ _id: inIds(ids) });
           // DELETE ROWS
           try {
             const updatedProject = await Project.findByIdAndUpdate(req.params.id, {
@@ -1063,6 +1066,22 @@ router.post(
       const { _id: _sourceId, id: _id2, __v: _v, ...source } = sourceDoc as any;
 
       // create new project
+
+      // Rows and areas get their own copies, so the scenarios no longer share
+      // records (deleting one used to delete the other's).
+      const copyAll = async (model: any, ids: unknown[]) => {
+        const list = (ids ?? []).map(String).filter((id) => mongoose.isValidObjectId(id));
+        if (!list.length) return [];
+        const docs: any[] = await model.find({ _id: inIds(list) }).lean();
+        const byId = new Map(docs.map((d) => [String(d._id), d]));
+        const copies = list
+          .map((id) => byId.get(id))
+          .filter(Boolean)
+          .map(({ _id, __v, ...d }: any) => ({ ...d, ...(Array.isArray(d.assets) ? { assets: [] } : {}), ...(d.owner ? { owner: { id: req.user?._id } } : {}) }));
+        return (await model.insertMany(copies)).map((d: any) => d._id);
+      };
+      source.rows = await copyAll(Row, source.rows);
+      source.areas = await copyAll(Area, source.areas);
 
       const createdProject = await Project.create({
         ...source,
