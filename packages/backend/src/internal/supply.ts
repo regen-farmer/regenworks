@@ -263,9 +263,10 @@ export function supplyOptions(rows: { latin?: string; commonName?: string; commo
   const rootstocks = new Map<string, string>();
   for (const r of rows) {
     if (r.unit && r.unit !== "plant") continue;
-    const words = (r.latin ?? "").trim().split(/\s+/).filter((w) => w && w !== "x" && w !== "×");
-    if (words.length < 2 || !/^[A-Z][a-z]+$/.test(words[0]) || !/^[a-z-]+$/.test(words[1])) continue;
-    const latin = `${words[0]} ${words[1]}`;
+    // "Prunus ×yedoensis", "Malus x domestica", "corylus avellana": genus + species epithet
+    const words = (r.latin ?? "").trim().replace(/×/g, " ").split(/\s+/).filter((w) => w && w.toLowerCase() !== "x");
+    if (words.length < 2 || !/^[A-Za-z]+$/.test(words[0]) || !/^[a-z-]+$/i.test(words[1])) continue;
+    const latin = `${words[0][0].toUpperCase()}${words[0].slice(1).toLowerCase()} ${words[1].toLowerCase()}`;
     const sp = species.get(latin) ?? { latin, name: undefined, cultivars: new Set<string>() };
     sp.name ??= r.commonNameDa || r.commonName || undefined;
     if (r.cultivar?.trim()) sp.cultivars.add(r.cultivar.trim());

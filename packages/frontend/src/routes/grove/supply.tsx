@@ -101,7 +101,10 @@ function Supply() {
   const [data, { refetch }] = createResource(() => (canSeeMoney() ? true : undefined), () => apiFetch<Data>("/internal/supply"));
   // searchable species, cultivars and rootstocks (from the pricebook and the saved plan)
   const [options] = createResource(() => (canSeeMoney() ? true : undefined), () => apiFetch<Options>("/internal/supply/options"));
-  const cultivarsOf = (latin: string) => options.latest?.species.find((x) => x.latin.toLowerCase() === latin.trim().split(/\s+/).slice(0, 2).join(" ").toLowerCase())?.cultivars ?? [];
+  // suggestions only: a failed load just means none
+  const opts = () => (options.error ? undefined : options.latest);
+  const speciesOf = (latin: string) => latin.replace(/×/g, " ").trim().split(/\s+/).filter((w) => w && w.toLowerCase() !== "x").slice(0, 2).join(" ").toLowerCase();
+  const cultivarsOf = (latin: string) => opts()?.species.find((x) => x.latin.toLowerCase() === speciesOf(latin))?.cultivars ?? [];
   const d = () => (data.error ? undefined : data.latest);
   const [editing, setEditing] = createSignal(false);
   const [rows, setRows] = createSignal<EditRow[]>([]);
@@ -258,10 +261,10 @@ function Supply() {
               </table>
             </div>
             <datalist id="supply-species">
-              <For each={options.latest?.species}>{(x) => <option value={x.latin}>{x.name ?? ""}</option>}</For>
+              <For each={opts()?.species}>{(x) => <option value={x.latin}>{x.name ?? ""}</option>}</For>
             </datalist>
             <datalist id="supply-rootstocks">
-              <For each={options.latest?.rootstocks}>{(x) => <option value={x} />}</For>
+              <For each={opts()?.rootstocks}>{(x) => <option value={x} />}</For>
             </datalist>
             <p class="text-xs opacity-80">
               <b>Own: plants started</b> is what we produce ourselves: grafts made (grafted) or seeds sown (seedlings). <b>Expected success %</b> is how many of them we expect to make it (e.g. 70 % graft take), so 1,000 grafts at 70 % = 700 plants. <b>Bought in</b> lists other nurseries that can deliver the same product, as "Nursery: plants", several separated by ";".

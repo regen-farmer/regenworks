@@ -15,8 +15,9 @@ type Card = {
   weeksLeft: number | null;
   margin: Part;
   deposits: Part;
-  pipeline: { funnel: string; count: number; value: number; estMargin?: number }[];
+  pipeline: { funnel: string; count: number; value: number; estMargin?: number; estDeposits?: number }[];
   standardMarginPct?: number;
+  forwardDepositPct?: number;
   withoutOffer?: { count: number; value: number; margin?: number; deposits?: number };
   won: {
     kind: "deal" | "offer";
@@ -117,7 +118,7 @@ export function Scorecard() {
           <label class="flex flex-col">Name<input class={input} maxLength={100} value={t().label ?? ""} placeholder="e.g. Spring 2027" onInput={(e) => setT({ ...t(), label: e.currentTarget.value })} /></label>
           <label class="flex flex-col">From<input type="date" class={input} value={t().from ?? ""} onInput={(e) => setT({ ...t(), from: e.currentTarget.value })} /></label>
           <label class="flex flex-col">To<input type="date" class={input} value={t().to ?? ""} onInput={(e) => setT({ ...t(), to: e.currentTarget.value })} /></label>
-          <label class="flex flex-col">Margin target, spring deals (kr)<input type="number" min="0" step="1000" class={input} value={t().margin ?? ""} onInput={(e) => setT({ ...t(), margin: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
+          <label class="flex flex-col">Margin target, spring deals (kr excl. VAT)<input type="number" min="0" step="1000" class={input} value={t().margin ?? ""} onInput={(e) => setT({ ...t(), margin: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
           <label class="flex flex-col" title="Used for won deals until their offer has real costs">
             Standard margin on deals (%)
             <input type="number" min="0" max="90" step="1" class={input} value={t().standardMarginPct ?? ""} placeholder="25" onInput={(e) => setT({ ...t(), standardMarginPct: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} />
@@ -137,20 +138,20 @@ export function Scorecard() {
           <div class="flex flex-col gap-1 min-w-48">
             <span class="font-semibold text-sm">Open deals</span>
             <For each={card()!.pipeline} fallback={<span class="text-xs opacity-70">None</span>}>
-              {(f) => <span class="text-xs">{f.funnel}: {f.count} · {kr(f.value)}{f.estMargin ? <span class="opacity-70"> (≈ {kr(f.estMargin)} margin)</span> : ""}</span>}
+              {(f) => <span class="text-xs">{f.funnel}: {f.count} · {kr(f.value)}{f.estMargin || f.estDeposits ? <span class="opacity-70"> (≈ {[f.estMargin ? `${kr(f.estMargin)} margin` : "", f.estDeposits ? `${kr(f.estDeposits)} deposits` : ""].filter(Boolean).join(" + ")})</span> : ""}</span>}
             </For>
           </div>
         </div>
         <Show when={card()!.withoutOffer?.count}>
           <p class="text-xs text-amber-700">
-            {card()!.withoutOffer!.count} won deal{card()!.withoutOffer!.count === 1 ? " is" : "s are"} counted from the deal value ({dkk(card()!.withoutOffer!.value) || "no value"}): {card()!.standardMarginPct ?? 25} % standard margin, or a 20 % deposit for forward orders. Their real margin comes in when an offer is accepted on the deal.
+            Of this, ≈ {[card()!.withoutOffer!.margin ? `${kr(card()!.withoutOffer!.margin)} margin` : "", card()!.withoutOffer!.deposits ? `${kr(card()!.withoutOffer!.deposits)} deposits` : ""].filter(Boolean).join(" and ") || "0 kr"} is estimated: {card()!.withoutOffer!.count} won deal{card()!.withoutOffer!.count === 1 ? "" : "s"} without an accepted offer ({dkk(card()!.withoutOffer!.value) || "no value"}), at {card()!.standardMarginPct ?? 25} % standard margin or a {card()!.forwardDepositPct ?? 20} % deposit for forward orders. The real figure comes in when an offer is accepted on the deal.
           </p>
         </Show>
         <Show when={(card()!.margin.withoutCost ?? 0) > 0}>
           <p class="text-xs text-amber-700">{kr(card()!.margin.withoutCost)} of accepted sales has no known cost, so its margin isn't counted.</p>
         </Show>
         <p class="text-xs opacity-70">
-          Counts deals won in the period. A deal with an accepted offer counts its real margin (deposit for forward orders); a deal without one is estimated from its value at the standard margin (forward orders: 20 % deposit). Deposits excl. VAT. Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.
+          Counts deals won in the period. A deal with an accepted offer counts its real margin (deposit for forward orders); a deal without one is estimated from its value at the standard margin (forward orders: a 20 % deposit; management deals are billed monthly and not counted). Deposits excl. VAT. Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.
         </p>
 
         <details>

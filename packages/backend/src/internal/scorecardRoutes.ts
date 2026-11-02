@@ -30,23 +30,24 @@ router.get("/", async (_req: Req, res) => {
       .sort({ updatedAt: -1 })
       .limit(5000)
       .lean(),
-    Deal.find({ status: "open", archived: false }).select("value funnel").limit(5000).lean(),
-    Funnel.find({}).select("name").lean(),
+    Deal.find({ status: "open", archived: false }).select("value funnel forwardOrder").limit(5000).lean(),
+    Funnel.find({}).select("name key").lean(),
     GroveProject.find({ status: inIds(["active", "on-hold"]) })
       .select("name type stage step status client.name nextAction plantingDate")
       .sort({ updatedAt: -1 })
       .limit(500)
       .lean(),
-    Deal.find({ status: "won" }).select("title client value forwardOrder wonAt updatedAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
+    Deal.find({ status: "won" }).select("title client value forwardOrder archived wonAt updatedAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
     Deal.find({ status: "lost" }).select("_id").limit(10000).lean(),
   ]);
   const clientIds = [...new Set((wonDeals as any[]).map((d) => String(d.client)).filter(Boolean))];
   const clients: any[] = clientIds.length ? await Client.find({ _id: inIds(clientIds) }).select("name").lean() : [];
   const clientName = new Map(clients.map((c) => [String(c._id), c.name]));
   const funnelName = new Map((funnels as any[]).map((f) => [String(f._id), f.name]));
+  const isManagement = new Map((funnels as any[]).map((f) => [String(f._id), f.key === "management"]));
   const card = scorecard({
     offers: offers as any[],
-    openDeals: (deals as any[]).map((d) => ({ value: d.value, funnelName: funnelName.get(String(d.funnel)) })),
+    openDeals: (deals as any[]).map((d) => ({ value: d.value, funnelName: funnelName.get(String(d.funnel)), forwardOrder: !!d.forwardOrder, management: isManagement.get(String(d.funnel)) })),
     wonDeals: (wonDeals as any[]).map((d) => ({
       _id: d._id,
       title: d.title,
@@ -54,6 +55,8 @@ router.get("/", async (_req: Req, res) => {
       funnelName: funnelName.get(String(d.funnel)),
       value: d.value,
       forwardOrder: d.forwardOrder,
+      management: isManagement.get(String(d.funnel)),
+      archived: d.archived,
       wonAt: d.wonAt,
       updatedAt: d.updatedAt,
       groveProject: d.groveProject,

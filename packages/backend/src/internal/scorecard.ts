@@ -1,7 +1,7 @@
 // Scorecard for the Grove Dashboard (pure, tested): margin won and
 // forward-order deposits against targets set in the app, the open pipeline,
 // and what is needed per week to close the gap. Grove team only.
-import { offerMargin, offerTotals, type OfferLike } from "./offers.ts";
+import { offerMargin, offerTotals, VAT_RATE, type OfferLike } from "./offers.ts";
 import { danishDay } from "./services.ts";
 
 export type ScorecardTargets = {
@@ -9,7 +9,7 @@ export type ScorecardTargets = {
   /** period, YYYY-MM-DD */
   from?: string;
   to?: string;
-  /** gross margin on offers accepted in the period (kr, excl. VAT) */
+  /** gross margin on deals won in the period (kr excl. VAT; real from accepted offers, else estimated) */
   margin?: number | null;
   /** deposits on forward orders won in the period (kr excl. VAT, as in the sales plan) */
   deposits?: number | null;
@@ -20,7 +20,7 @@ export type ScorecardTargets = {
 export const DEFAULT_STANDARD_MARGIN = 25;
 /** Deposit on a forward-order deal without an offer: the forward-order rule. */
 export const FORWARD_DEPOSIT_PCT = 20;
-const VAT = 0.25;
+const VAT = VAT_RATE;
 
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime());
 
@@ -73,7 +73,7 @@ const day = (d: Date | string | null | undefined) => {
   return Number.isNaN(x.getTime()) ? undefined : danishDay(x);
 };
 
-type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; forwardOrder?: boolean; wonAt?: Date | string | null; updatedAt?: Date | string | null; groveProject?: unknown };
+type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; management?: boolean; archived?: boolean; value?: number | null; forwardOrder?: boolean; wonAt?: Date | string | null; updatedAt?: Date | string | null; groveProject?: unknown };
 
 /**
  * Won business in the period, shown per deal (A · Deals) where there is one.
@@ -82,16 +82,16 @@ type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: str
  * back into an earlier period (a deal won on a handshake in October with its
  * offer accepted in November counts in November). Spring work counts margin,
  * forward orders their deposit (excl. VAT). A won deal without an accepted
- * offer is estimated from its value: the standard margin (Kris, 2 Nov: count
- * deals now, real costs come with the offers), or a 20 % deposit for a deal
- * ticked "Forward order". Accepted offers not
+ * offer is estimated from its value (so deals count now; real costs come
+ * with the offers): the standard margin, or a 20 % deposit for a deal ticked
+ * "Forward order". Management deals are billed monthly: never estimated. Accepted offers not
  * on a won deal (plant-list sales, older offers) count by acceptance date.
  * `closedDealIds`: won and lost deals, whose sent offers are no longer
  * counted as "in sent offers".
  */
 export function scorecard(input: {
   offers: ScoredOffer[];
-  openDeals: { value?: number | null; funnelName?: string }[];
+  openDeals: { value?: number | null; funnelName?: string; forwardOrder?: boolean; management?: boolean }[];
   wonDeals?: WonDeal[];
   closedDealIds?: unknown[];
   targets: ScorecardTargets;
@@ -123,7 +123,8 @@ export function scorecard(input: {
   const fromDeals = wonDeals.flatMap((d) => {
     const all = offersOf.get(String(d._id)) ?? [];
     if (!all.length) {
-      if (!inPeriod(wonDay(d))) return [];
+      // management is invoiced monthly; a hidden (archived) deal isn't estimated either
+      if (!inPeriod(wonDay(d)) || d.management || d.archived) return [];
       const value = d.value ?? 0;
       const fwd = !!d.forwardOrder;
       return [
@@ -215,12 +216,15 @@ export function scorecard(input: {
   const sent = input.offers.filter((o) => o.status === "sent" && !(o.deal && closed.has(String(o.deal))));
   const sentMargin = sum(sent.filter((o) => !o.terms?.forwardOrder).map((o) => offerMargin(o).margin));
   const sentDeposits = sum(sent.filter((o) => o.terms?.forwardOrder).map((o) => offerTotals(o).deposit.amount / (1 + VAT)));
-  const byFunnel = new Map<string, { count: number; value: number }>();
+  const byFunnel = new Map<string, { count: number; value: number; estMargin: number; estDeposits: number }>();
   for (const d of input.openDeals) {
     const k = d.funnelName ?? "Other";
-    const v = byFunnel.get(k) ?? { count: 0, value: 0 };
+    const v = byFunnel.get(k) ?? { count: 0, value: 0, estMargin: 0, estDeposits: 0 };
     v.count += 1;
     v.value += d.value ?? 0;
+    // what the open deals would bring if won: margin, or a deposit for forward orders; management billed monthly
+    if (d.forwardOrder) v.estDeposits += ((d.value ?? 0) * FORWARD_DEPOSIT_PCT) / 100;
+    else if (!d.management) v.estMargin += ((d.value ?? 0) * stdPct) / 100;
     byFunnel.set(k, v);
   }
   // whole Danish days from today to the end of the period, in weeks (rounded up)
@@ -237,7 +241,8 @@ export function scorecard(input: {
     withoutOffer,
     deposits: { actual: deposits, target: t.deposits ?? null, gap: depositGap, perWeek: perWeek(depositGap), inSentOffers: sentDeposits },
     standardMarginPct: stdPct,
-    pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v, estMargin: Math.round((v.value * stdPct) / 100) })).sort((a, b) => b.value - a.value),
+    forwardDepositPct: FORWARD_DEPOSIT_PCT,
+    pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v, estMargin: Math.round(v.estMargin), estDeposits: Math.round(v.estDeposits) })).sort((a, b) => b.value - a.value),
     won,
   };
 }
