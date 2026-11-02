@@ -64,7 +64,7 @@ export const DEFAULT_FUNNELS = [
   {
     key: "management",
     name: "Management clients",
-    description: "Care and management contracts, e.g. Vejstruplund, Ellinglund",
+    description: "Care and management contracts",
     order: 4,
     stages: [lead, { key: "meeting", name: "Meeting", kind: "open" }, { key: "offer", name: "Offer sent", kind: "open" }, won, lost],
   },
@@ -213,3 +213,16 @@ export function dealPlaceForProject(p: { type?: string; stage?: string }): { fun
 
 /** Escape text for a case-insensitive "contains" search. */
 export const searchPattern = (q: string) => new RegExp(q.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+
+/**
+ * May an imported project reuse an existing client of the same name? Only
+ * if their contact details don't contradict each other (two different
+ * emails or phones mean two different people).
+ */
+export function sameClient(a: { email?: string; phone?: string }, b: { email?: string; phone?: string }) {
+  const norm = (v?: string) => (v ?? "").trim().toLowerCase();
+  const digits = (v?: string) => (v ?? "").replace(/\D/g, "");
+  if (norm(a.email) && norm(b.email) && norm(a.email) !== norm(b.email)) return false;
+  if (digits(a.phone) && digits(b.phone) && digits(a.phone) !== digits(b.phone)) return false;
+  return true;
+}

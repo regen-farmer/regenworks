@@ -58,11 +58,12 @@ function Board() {
     const q = search().trim().toLowerCase();
     return !q || d.title.toLowerCase().includes(q) || (d.client?.name ?? "").toLowerCase().includes(q);
   };
-  const inStage = (key: string) => (data()?.deals ?? []).filter((d) => d.stage === key && matches(d));
+  // .latest keeps showing the board while it reloads (no flash, no scroll jump)
+  const inStage = (key: string) => (data.latest?.deals ?? []).filter((d) => d.stage === key && matches(d));
   const total = (list: Deal[]) => list.reduce((n, d) => n + (d.value ?? 0), 0);
 
   async function move(deal: Deal, stage: FunnelStage, before: string | null, reason?: string) {
-    const before0 = data();
+    const before0 = data.latest;
     // show the move straight away; the server's order replaces it
     if (before0) {
       const rest = before0.deals.filter((d) => d._id !== deal._id);
@@ -79,6 +80,7 @@ function Board() {
       if (r.wonNow) setWonDeal(r.deal);
     } catch (err) {
       if (before0) mutate(before0);
+      refetch();
       showToast({ title: "Not moved", description: (err as Error).message, variant: "destructive" });
     }
   }
@@ -88,7 +90,7 @@ function Board() {
     const target = drop();
     setDragging(null);
     setDrop(null);
-    const deal = data()?.deals.find((d) => d._id === id);
+    const deal = data.latest?.deals.find((d) => d._id === id);
     if (!deal || !target) return;
     if (target.before === deal._id) return;
     if (stage.kind === "lost" && deal.status !== "lost") {
@@ -99,13 +101,19 @@ function Board() {
     move(deal, stage, target.before);
   }
 
+  const [importing, setImporting] = createSignal(false);
   async function importDashboard() {
+    if (importing()) return;
+    if (!window.confirm("Make a deal (and a client) for every Dashboard project that has no deal yet? Projects already imported are skipped.")) return;
+    setImporting(true);
     try {
       const r = await apiFetch<{ created: number; clientsCreated: number }>("/internal/deals/import-dashboard", { method: "POST", body: "{}" });
       showToast({ title: `${r.created} deals made from Dashboard projects`, description: `${r.clientsCreated} new clients` });
       refetch();
     } catch (err) {
       showToast({ title: "Import failed", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -137,16 +145,16 @@ function Board() {
               <input type="checkbox" checked={archived()} onChange={(e) => setArchived(e.currentTarget.checked)} /> Archived
             </label>
             <Link to="/grove/clients" class="text-sm underline">Clients</Link>
-            <button class="rounded-sm px-2 py-1 text-sm underline" onClick={importDashboard} title="Makes a deal for each Dashboard project that has none yet. Safe to run again.">
+            <button class="rounded-sm px-2 py-1 text-sm underline" disabled={importing()} onClick={importDashboard} title="Makes a deal for each Dashboard project that has none yet. Safe to run again.">
               Import from Dashboard
             </button>
-            <button class="rounded-sm px-3 py-1 btn-default" onClick={() => setAdding(true)} disabled={!funnel()}>
+            <button class="rounded-sm px-3 py-1 btn-default" onClick={() => setAdding(true)} disabled={!funnel() || archived()}>
               + New deal
             </button>
           </div>
         </div>
 
-        <Show when={data()} fallback={<p>Loading…</p>}>
+        <Show when={data.latest} fallback={<p>Loading…</p>}>
           <div class="overflow-x-auto pb-2">
             <div class="flex gap-3 items-start" style={{ "min-width": "100%" }}>
               <For each={funnel()?.stages}>
@@ -162,7 +170,8 @@ function Board() {
                       onDragOver={(e) => {
                         if (!dragging()) return;
                         e.preventDefault();
-                        if (drop()?.stage !== stage.key) setDrop({ stage: stage.key, before: null });
+                        // cards stop this event, so here the pointer is below or between cards: drop at the end
+                        if (drop()?.stage !== stage.key || drop()?.before !== null) setDrop({ stage: stage.key, before: null });
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
@@ -187,8 +196,8 @@ function Board() {
                                 to="/grove/deals/$dealId"
                                 params={{ dealId: d._id }}
                                 draggable={!archived()}
-                                class="block rounded-md bg-white dark:bg-slate-900 border border-zinc-300 dark:border-slate-600 p-2 text-sm hover:border-emerald-700 cursor-grab"
-                                classList={{ "opacity-40": dragging() === d._id }}
+                                class="block rounded-md bg-white dark:bg-slate-900 border border-zinc-300 dark:border-slate-600 p-2 text-sm hover:border-emerald-700"
+                                classList={{ "opacity-40": dragging() === d._id, "cursor-grab": !archived() }}
                                 onDragStart={(e) => {
                                   setDragging(d._id);
                                   e.dataTransfer?.setData("text/plain", d._id);
@@ -203,7 +212,8 @@ function Board() {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                  const list0 = shown();
+                                  // next card in the full stage, also when the list is cut short
+                                  const list0 = list();
                                   const i = list0.findIndex((x) => x._id === d._id);
                                   const before = e.clientY < r.top + r.height / 2 ? d._id : list0[i + 1]?._id ?? null;
                                   if (drop()?.stage !== stage.key || drop()?.before !== before) setDrop({ stage: stage.key, before });
@@ -265,23 +275,24 @@ function Board() {
             <DialogHeader>
               <DialogTitle>Mark "{lostAsk()?.deal.title}" as lost</DialogTitle>
             </DialogHeader>
-            <label class="flex flex-col text-sm gap-1">
-              Why was it lost? (optional, helps the win-rate numbers later)
-              <input class={input} value={lostReason()} maxLength={500} placeholder="e.g. price, timing, chose another supplier" onInput={(e) => setLostReason(e.currentTarget.value)} />
-            </label>
-            <DialogFooter>
-              <button class="rounded-sm p-2 btn-default" onClick={() => setLostAsk(null)}>Cancel</button>
-              <button
-                class="rounded-sm p-2 btn-primary"
-                onClick={() => {
-                  const a = lostAsk();
-                  setLostAsk(null);
-                  if (a) move(a.deal, a.stage, a.before, lostReason());
-                }}
-              >
-                Mark as lost
-              </button>
-            </DialogFooter>
+            <form
+              class="flex flex-col gap-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const a = lostAsk();
+                setLostAsk(null);
+                if (a) move(a.deal, a.stage, a.before, lostReason());
+              }}
+            >
+              <label class="flex flex-col text-sm gap-1">
+                Why was it lost? (optional, helps the win-rate numbers later)
+                <input class={input} autofocus value={lostReason()} maxLength={500} placeholder="e.g. price, timing, chose another supplier" onInput={(e) => setLostReason(e.currentTarget.value)} />
+              </label>
+              <DialogFooter>
+                <button type="button" class="rounded-sm p-2 btn-default" onClick={() => setLostAsk(null)}>Cancel</button>
+                <button class="rounded-sm p-2 btn-primary">Mark as lost</button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
 

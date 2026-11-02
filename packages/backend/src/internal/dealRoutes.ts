@@ -21,6 +21,7 @@ import {
   isId,
   moveDeal,
   reorder,
+  sameClient,
   searchPattern,
   stageOf,
 } from "./deals.ts";
@@ -39,9 +40,12 @@ export async function ensureFunnels() {
   }
 }
 
-async function loadFunnel(id: unknown) {
+/** A funnel by id; archived funnels only when reading. */
+async function loadFunnel(id: unknown, { forWrite = false } = {}) {
   if (!isId(id)) return null;
-  return (await Funnel.findById(id).lean()) as any;
+  const f: any = await Funnel.findById(id).lean();
+  if (!f || (forWrite && f.archived)) return null;
+  return f;
 }
 
 /** Owner must be Grove staff; a farm must be kept under a Grove account; refs must exist. */
@@ -126,25 +130,31 @@ dealRouter.get("/options", async (_req: Req, res) => {
   res.send({ deals: deals.map((d) => ({ _id: d._id, title: d.title, status: d.status, clientName: nameOf.get(String(d.client)) ?? "" })) });
 });
 
-// One-off: a deal for each Dashboard project that has none yet, with a
-// client made from the project's client details (or reused by exact name).
+// One-off: a deal for each Dashboard project that has none yet. A client
+// of the same name is reused only if its contact details don't contradict
+// the project's; otherwise a new client is made. Safe to run again (one
+// deal per project, enforced by a unique index on importedFrom).
 dealRouter.post("/import-dashboard", async (req: Req, res) => {
   await ensureFunnels();
-  const funnels: any[] = await Funnel.find({}).lean();
+  const funnels: any[] = await Funnel.find({ archived: false }).lean();
   const byKey = new Map(funnels.map((f) => [f.key, f]));
   const projects: any[] = await GroveProject.find({}).limit(2000).lean();
-  const linked = new Set((await Deal.find({ groveProject: inIds(projects.map((p) => String(p._id))) }).select("groveProject").lean()).map((d: any) => String(d.groveProject)));
+  const done = new Set((await Deal.find({ importedFrom: inIds(projects.map((p) => String(p._id))) }).select("importedFrom").lean()).map((d: any) => String(d.importedFrom)));
+  const groveFarmOwners = new Set(await groveUserIds());
   let created = 0;
   let clientsCreated = 0;
   for (const p of projects) {
-    if (linked.has(String(p._id))) continue;
+    if (done.has(String(p._id))) continue;
     const place = dealPlaceForProject(p);
     const funnel = byKey.get(place.funnel);
     if (!funnel) continue;
     const stage = stageOf(funnel, place.stage) ?? firstOpenStage(funnel);
     if (!stage) continue;
+    if (await Deal.exists({ importedFrom: p._id })) continue;
+    const contact = { email: p.client?.email, phone: p.client?.phone };
     const clientName = String(p.client?.name || p.name).trim().slice(0, 200);
-    let client: any = await Client.findOne({ name: clientName }).select("_id").lean();
+    const candidates: any[] = await Client.find({ name: clientName, archived: false }).select("_id email phone").limit(20).lean();
+    let client: any = candidates.find((c) => sameClient(c, contact));
     if (!client) {
       client = await Client.create({
         name: clientName,
@@ -157,23 +167,34 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
       });
       clientsCreated += 1;
     }
+    // only a farm still kept under a Grove account
+    let farm = null;
+    if (p.farm) {
+      const f: any = await Parcel.findById(p.farm).select("owner").lean();
+      if (f?.owner?.id && groveFarmOwners.has(String(f.owner.id))) farm = p.farm;
+    }
     const now = new Date();
-    await Deal.create({
-      title: String(p.name).slice(0, 200),
-      client: client._id,
-      funnel: funnel._id,
-      stage: stage.key,
-      status: stage.kind,
-      position: await nextPosition(funnel._id, stage.key),
-      nextAction: p.nextAction ?? {},
-      farm: p.farm ?? null,
-      groveProject: p._id,
-      archived: p.status === "archived",
-      wonAt: stage.kind === "won" ? p.updatedAt ?? now : null,
-      history: [{ stage: stage.key, funnel: funnel._id, status: stage.kind, at: now, by: req.user?._id, note: "from Dashboard" }],
-      createdBy: req.user?._id,
-    });
-    created += 1;
+    try {
+      await Deal.create({
+        title: String(p.name).slice(0, 200),
+        client: client._id,
+        funnel: funnel._id,
+        stage: stage.key,
+        status: stage.kind,
+        position: await nextPosition(funnel._id, stage.key),
+        nextAction: p.nextAction ?? {},
+        farm,
+        groveProject: p._id,
+        importedFrom: p._id,
+        archived: p.status === "archived",
+        wonAt: stage.kind === "won" ? p.updatedAt ?? now : null,
+        history: [{ stage: stage.key, funnel: funnel._id, status: stage.kind, at: now, by: req.user?._id, note: "from Dashboard" }],
+        createdBy: req.user?._id,
+      });
+      created += 1;
+    } catch (err: any) {
+      if (err?.code !== 11000) throw err; // imported at the same moment by someone else
+    }
   }
   res.send({ created, clientsCreated, skipped: projects.length - created });
 });
@@ -181,7 +202,7 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
 dealRouter.post("/", async (req: Req, res) => {
   const cleaned = cleanDeal(req.body, { creating: true });
   if (!cleaned.ok) return bad(res, cleaned.errors.join("; "));
-  const funnel = await loadFunnel(req.body?.funnel);
+  const funnel = await loadFunnel(req.body?.funnel, { forWrite: true });
   if (!funnel) return bad(res, "Funnel not found");
   const stage = req.body?.stage !== undefined ? stageOf(funnel, req.body.stage) : firstOpenStage(funnel);
   if (!stage) return bad(res, "Stage not found in this funnel");
@@ -258,7 +279,7 @@ dealRouter.post("/:id/move", async (req: Req, res) => {
   const deal: any = await Deal.findById(req.params.id);
   if (!deal) return bad(res, "Deal not found", 404);
   if (deal.archived) return bad(res, "Restore the deal before moving it");
-  const funnel = req.body?.funnel !== undefined ? await loadFunnel(req.body.funnel) : await loadFunnel(String(deal.funnel));
+  const funnel = await loadFunnel(req.body?.funnel !== undefined ? req.body.funnel : String(deal.funnel), { forWrite: true });
   if (!funnel) return bad(res, "Funnel not found");
   if (req.body?.lostReason !== undefined && req.body.lostReason !== null && typeof req.body.lostReason !== "string") return bad(res, "lostReason must be text");
   const moved = moveDeal(deal.toObject(), funnel, req.body?.stage, { by: req.user?._id ?? null, lostReason: req.body?.lostReason ?? undefined });
@@ -277,6 +298,7 @@ dealRouter.post("/:id/handover", async (req: Req, res) => {
   if (!isId(req.params.id)) return bad(res, "Invalid id");
   const deal: any = await Deal.findById(req.params.id);
   if (!deal) return bad(res, "Deal not found", 404);
+  if (deal.archived || deal.status === "lost") return bad(res, "Restore or reopen the deal first", 409);
   const action = req.body?.action;
   if (action === "project") {
     if (deal.groveProject && (await GroveProject.exists({ _id: deal.groveProject }))) {
@@ -294,13 +316,19 @@ dealRouter.post("/:id/handover", async (req: Req, res) => {
       region: client?.region,
       createdBy: req.user?._id,
     });
-    deal.groveProject = project._id;
-    await deal.save();
+    // link only if nobody linked a project meanwhile; otherwise drop ours
+    const linked = await Deal.findOneAndUpdate({ _id: deal._id, groveProject: deal.groveProject ?? null }, { $set: { groveProject: project._id } }, { new: true }).lean();
+    if (!linked) {
+      await GroveProject.deleteOne({ _id: project._id });
+      const now: any = await Deal.findById(deal._id).select("groveProject").lean();
+      res.send({ project: { _id: now?.groveProject }, existing: true });
+      return;
+    }
     res.status(201).send({ project: { _id: project._id }, existing: false });
     return;
   }
   if (action === "followup") {
-    const funnel = await loadFunnel(req.body?.funnel);
+    const funnel = await loadFunnel(req.body?.funnel, { forWrite: true });
     if (!funnel) return bad(res, "Funnel not found");
     const stage = firstOpenStage(funnel);
     if (!stage) return bad(res, "This funnel has no stages");

@@ -1,12 +1,12 @@
 // Left menu for Grove users: Dashboard and the three workspaces
 // (A · Deals, B · Projects, C · Managed farms), then Library and Settings.
 // Collapses to icons; the choice is remembered in this browser.
-import { Link } from "@tanstack/solid-router";
-import { createSignal, For, Show, type JSX } from "solid-js";
+import { Link, useLocation } from "@tanstack/solid-router";
+import { createEffect, createSignal, For, onCleanup, Show, type JSX } from "solid-js";
 import { canSeeMoney } from "~/grove/access.ts";
 import { canUsePlantCatalogue } from "~/util/plantCatalogue.ts";
 
-type Item = { to: string; label: string; icon: string; exact?: boolean; show?: () => boolean; letter?: string; sub?: boolean; soon?: boolean };
+type Item = { to: string; label: string; icon: string; exact?: boolean; show?: () => boolean; letter?: string; sub?: boolean; soon?: boolean; also?: RegExp };
 
 const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove", label: "Dashboard", icon: "fa-table-columns", exact: true },
@@ -14,7 +14,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/deals", label: "Deals", letter: "A", icon: "fa-filter", show: () => canSeeMoney() },
   { to: "/grove/clients", label: "Clients", icon: "fa-address-book", sub: true, show: () => canSeeMoney() },
   { to: "/grove/offers", label: "Offers", icon: "fa-file-invoice", sub: true, show: () => canSeeMoney() },
-  { to: "/", label: "Projects", letter: "B", icon: "fa-compass-drafting", exact: true },
+  { to: "/", label: "Projects", letter: "B", icon: "fa-compass-drafting", exact: true, also: /^\/(parcels|grove\/projects)(\/|$)/ },
   { to: "/grove/managed", label: "Managed farms", letter: "C", icon: "fa-tractor", soon: true },
   { heading: "Library" },
   { to: "/plants", label: "Plants", icon: "fa-seedling", show: () => canUsePlantCatalogue() },
@@ -22,16 +22,23 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/settings", label: "Settings", icon: "fa-gear" },
 ];
 
+/** The saved choice, else collapsed on narrow screens (phones). */
 function readCollapsed() {
   try {
-    return localStorage.getItem("grove-nav-collapsed") === "1";
+    const v = localStorage.getItem("grove-nav-collapsed");
+    if (v === "1" || v === "0") return v === "1";
   } catch {
-    return false;
+    // no saved choice
   }
+  return typeof window !== "undefined" && window.innerWidth < 768;
 }
 
 export function GroveSideNav(): JSX.Element {
   const [collapsed, setCollapsed] = createSignal(readCollapsed());
+  const location = useLocation();
+  // Fixed overlays on the map pages (e.g. the soil legend) read this to sit right of the menu.
+  createEffect(() => document.documentElement.style.setProperty("--grove-nav-width", collapsed() ? "3.5rem" : "13rem"));
+  onCleanup(() => document.documentElement.style.removeProperty("--grove-nav-width"));
   const toggle = () => {
     const next = !collapsed();
     setCollapsed(next);
@@ -74,7 +81,7 @@ export function GroveSideNav(): JSX.Element {
                 to={item.to}
                 activeOptions={{ exact: item.exact ?? false }}
                 class="mx-2 h-9 rounded-sm flex items-center gap-2 px-2 text-sm hover:bg-zinc-200 dark:hover:bg-slate-700"
-                classList={{ "pl-6": item.sub && !collapsed() }}
+                classList={{ "pl-6": item.sub && !collapsed(), "bg-emerald-700 text-white hover:bg-emerald-800 dark:hover:bg-emerald-800 font-semibold": !!item.also?.test(location().pathname) }}
                 activeProps={{ class: "bg-emerald-700 text-white hover:bg-emerald-800 dark:hover:bg-emerald-800 font-semibold" }}
                 title={item.letter ? `${item.letter} · ${item.label}` : item.label}
                 aria-label={collapsed() ? (item.letter ? `${item.letter} · ${item.label}` : item.label) : undefined}

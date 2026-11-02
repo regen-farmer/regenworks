@@ -267,7 +267,6 @@ router.put("/:id", async (req: Req, res) => {
     return;
   }
   const linkedNow = rest.groveProject && String(rest.groveProject) !== String(offer.groveProject ?? "");
-  const dealLinkedNow = rest.deal && String(rest.deal) !== String(offer.deal ?? "");
   // An accepted offer is what the client signed: only its Dinero number and
   // notes can change.
   if (offer.status === "accepted") {
@@ -275,7 +274,7 @@ router.put("/:id", async (req: Req, res) => {
     const allowed = new Set(["dineroNumber", "notes", "groveProject", "deal"]);
     const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
     if (changed.length) {
-      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number and notes can change" });
+      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number, notes and links to a project or deal can change" });
       return;
     }
   }
@@ -310,7 +309,9 @@ router.put("/:id", async (req: Req, res) => {
   await offer.save();
   if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");
   if (becameAccepted) await moveProjectStage(offer.groveProject, "offer-accepted");
-  if (becameAccepted || (dealLinkedNow && offer.status === "accepted")) await dealOfferAccepted(offer.deal, req.user?._id);
+  // Only the moment of acceptance moves a deal; linking an already accepted
+  // offer to a deal later doesn't (it could be the wrong deal).
+  if (becameAccepted) await dealOfferAccepted(offer.deal, req.user?._id);
   res.send(present(offer));
 });
 

@@ -23,7 +23,7 @@ function ClientPage() {
   const [newIn, setNewIn] = createSignal<Funnel | undefined>();
 
   createEffect(() => {
-    const x = data();
+    const x = data.latest;
     if (x) {
       setC(reconcile(structuredClone(x.client)));
       setDirty(false);
@@ -60,13 +60,13 @@ function ClientPage() {
     }
   }
 
-  const lifetime = () => (data()?.deals ?? []).filter((d) => d.status === "won").reduce((n, d) => n + (d.value ?? 0), 0);
+  const lifetime = () => (data.latest?.deals ?? []).filter((d) => d.status === "won").reduce((n, d) => n + (d.value ?? 0), 0);
 
   return (
     <div class="container mx-auto p-4 flex flex-col gap-4" data-testid="grove-client">
       <Toaster />
       <Show when={canSeeMoney()} fallback={<p>Clients are only shown to the Grove team.</p>}>
-        <Show when={data()} fallback={<p>Loading…</p>}>
+        <Show when={data.latest} fallback={<p>Loading…</p>}>
           <div class="flex flex-wrap items-center gap-2">
             <Link to="/grove/clients" class="text-sm underline">← Clients</Link>
             <h1 class="text-2xl font-bold mr-auto">{c.name}</h1>
@@ -102,7 +102,7 @@ function ClientPage() {
             </div>
             <table class="w-full text-sm">
               <tbody>
-                <For each={data()!.deals} fallback={<tr><td class="py-1">No deals yet.</td></tr>}>
+                <For each={data.latest!.deals} fallback={<tr><td class="py-1">No deals yet.</td></tr>}>
                   {(d) => (
                     <tr class="border-t border-zinc-200 dark:border-slate-700">
                       <td class="py-1 pr-3"><Link to="/grove/deals/$dealId" params={{ dealId: d._id }} class="underline">{d.title}</Link>{d.archived ? <span class="opacity-60"> (archived)</span> : ""}</td>

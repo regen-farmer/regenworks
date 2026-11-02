@@ -17,7 +17,7 @@ export function WonDialog(props: { deal: Deal | null; funnels: Funnel[]; onClose
     if (!d) return;
     const management = props.funnels.find((f) => f.key === "management");
     setFollowFunnel(management?._id ?? props.funnels[0]?._id ?? "");
-    setFollowTitle(`Care contract · ${d.title}`);
+    setFollowTitle(/^care contract/i.test(d.title) ? `${d.title} · renewal` : `Care contract · ${d.title}`);
   });
 
   async function handover(body: Record<string, unknown>) {
@@ -40,13 +40,13 @@ export function WonDialog(props: { deal: Deal | null; funnels: Funnel[]; onClose
     <Dialog open={!!props.deal} onOpenChange={(o) => !o && props.onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Won: {props.deal?.title}</DialogTitle>
+          <DialogTitle>{props.deal?.status === "won" ? "Won" : "Next steps"}: {props.deal?.title}</DialogTitle>
         </DialogHeader>
-        <p class="text-sm">Next steps are optional. You can also do them later from the deal page.</p>
+        <p class="text-sm">These are optional. You can also do them later from the deal page.</p>
         <div class="flex flex-col gap-3 text-sm">
           <div class="rounded-md border border-zinc-300 dark:border-slate-600 p-3 flex flex-col gap-2">
-            <b>Project in B · Projects</b>
-            <span class="opacity-70">For design and planting work: a project with the client, farm and stage "Signed".</span>
+            <b>Project on the Dashboard</b>
+            <span class="opacity-70">For design and planting work: a project with the client and farm ({props.deal?.status === "won" ? "stage Signed" : "stage Prospect"}). Its farm and designs are under B · Projects.</span>
             <button class="rounded-sm p-2 btn-default self-start" disabled={busy()} onClick={() => handover({ action: "project" })}>
               {props.deal?.groveProject ? "Open its project" : "Create project"}
             </button>

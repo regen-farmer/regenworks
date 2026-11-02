@@ -10,6 +10,8 @@ const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-tr
 
 function Clients() {
   const [q, setQ] = createSignal("");
+  const [typed, setTyped] = createSignal("");
+  let timer: ReturnType<typeof setTimeout> | undefined;
   const [archived, setArchived] = createSignal(false);
   const [data] = createResource(
     () => (canSeeMoney() ? { q: q(), archived: archived() } : undefined),
@@ -22,7 +24,12 @@ function Clients() {
         <div class="flex flex-wrap items-center gap-2">
           <Link to="/grove/deals" class="text-sm underline">← Deals</Link>
           <h1 class="text-2xl font-bold mr-auto">Clients</h1>
-          <input class={input} placeholder="Search by name" value={q()} onInput={(e) => setQ(e.currentTarget.value)} />
+          <input class={input} placeholder="Search by name" value={typed()} onInput={(e) => {
+            const v = e.currentTarget.value;
+            setTyped(v);
+            clearTimeout(timer);
+            timer = setTimeout(() => setQ(v), 250);
+          }} />
           <label class="text-sm flex items-center gap-1">
             <input type="checkbox" checked={archived()} onChange={(e) => setArchived(e.currentTarget.checked)} /> Archived
           </label>
@@ -40,7 +47,7 @@ function Clients() {
             </tr>
           </thead>
           <tbody>
-            <For each={data()?.clients} fallback={<tr><td class="py-1">{data.loading ? "Loading…" : "No clients yet."}</td></tr>}>
+            <For each={data.latest?.clients} fallback={<tr><td class="py-1">{data.loading ? "Loading…" : "No clients yet."}</td></tr>}>
               {(c) => (
                 <tr class="border-t border-zinc-200 dark:border-slate-700">
                   <td class="py-1 pr-3"><Link to="/grove/clients/$clientId" params={{ clientId: c._id }} class="underline">{c.name}</Link></td>

@@ -30,6 +30,8 @@ export interface IDeal {
 	nextAction: { text?: string; date?: Date | null };
 	farm?: mongoose.Types.ObjectId | null;
 	groveProject?: mongoose.Types.ObjectId | null;
+	/** Dashboard project this deal was imported from (one deal per project). */
+	importedFrom?: mongoose.Types.ObjectId | null;
 	lostReason?: string;
 	wonAt?: Date | null;
 	lostAt?: Date | null;
@@ -69,6 +71,7 @@ const schema = new mongoose.Schema<IDeal>(
 		},
 		farm: { type: mongoose.Schema.Types.ObjectId, ref: "Parcel" },
 		groveProject: { type: mongoose.Schema.Types.ObjectId, ref: "GroveProject" },
+		importedFrom: { type: mongoose.Schema.Types.ObjectId, ref: "GroveProject", unique: true, sparse: true },
 		lostReason: { type: String, maxlength: 500 },
 		wonAt: Date,
 		lostAt: Date,

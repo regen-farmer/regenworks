@@ -4,7 +4,8 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { DEFAULT_FUNNELS, cleanClient, cleanDeal, dealPlaceForProject, firstOpenStage, moveDeal, reorder, searchPattern, stageOf } from "../src/internal/deals.ts";
+import { DEFAULT_FUNNELS, cleanClient, cleanDeal, dealPlaceForProject, firstOpenStage, moveDeal, reorder, sameClient, searchPattern, stageOf } from "../src/internal/deals.ts";
+import { cleanOfferUpdate } from "../src/internal/offers.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 const funnel = { _id: "f1", ...DEFAULT_FUNNELS[2], stages: [...DEFAULT_FUNNELS[2].stages] };
@@ -92,6 +93,21 @@ test("Dashboard import: type picks the funnel, stage maps to a stage that exists
   }
   assert.equal(dealPlaceForProject({ type: "tree-sale", stage: "prospect" }).funnel, "tree-sales");
   assert.equal(dealPlaceForProject({ type: "client", stage: "signed" }).status, "won");
+});
+
+test("import: a same-named client is reused only if the contact details don't contradict", () => {
+  assert.equal(sameClient({ email: "a@x.dk" }, { email: "A@x.dk " }), true);
+  assert.equal(sameClient({ email: "a@x.dk" }, { email: "b@x.dk" }), false, "two Jens Hansens");
+  assert.equal(sameClient({ phone: "+45 20 30 40 50" }, { phone: "4520304050" }), true);
+  assert.equal(sameClient({ phone: "20304050" }, { phone: "20304051" }), false);
+  assert.equal(sameClient({}, { email: "a@x.dk" }), true, "nothing to contradict");
+});
+
+test("offers: the deal link takes an id or null, nothing else", () => {
+  assert.equal((cleanOfferUpdate({ deal: "0123456789abcdef01234567" }) as any).value.deal, "0123456789abcdef01234567");
+  assert.equal((cleanOfferUpdate({ deal: "" }) as any).value.deal, null);
+  assert.equal(cleanOfferUpdate({ deal: { $ne: null } }).ok, false);
+  assert.equal(cleanOfferUpdate({ deal: "nope" }).ok, false);
 });
 
 test("client search: text is matched literally", () => {
