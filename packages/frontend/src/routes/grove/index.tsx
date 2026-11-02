@@ -47,12 +47,16 @@ function readTab(): Tab {
   }
 }
 
-function Dashboard() {
+/**
+ * The Dashboard, or with `only="projects"` the B · Projects page (left menu):
+ * the same project list without the scorecard and the deals tab.
+ */
+export function Dashboard(props: { only?: "projects" } = {}) {
   const [data, { refetch, mutate }] = createResource(() => apiFetch<{ projects: GroveProject[] }>("/internal/projects"));
   const [view, setView] = createSignal<View>(readView());
   const [tabChoice, setTab] = createSignal<Tab>(readTab());
   // field users only have projects
-  const tab = () => (canSeeMoney() ? tabChoice() : "projects");
+  const tab = () => (props.only === "projects" || !canSeeMoney() ? "projects" : tabChoice());
   createEffect(() => {
     try {
       localStorage.setItem("grove-dashboard-tab", tabChoice());
@@ -155,11 +159,22 @@ function Dashboard() {
   return (
     <div class="p-4 flex flex-col gap-3" data-testid="grove-dashboard">
       <Toaster />
-      <h1 class="text-3xl font-bold">Grove Dashboard</h1>
-      <Show when={canSeeMoney()}>
+      <Show
+        when={props.only !== "projects"}
+        fallback={
+          <div class="flex flex-wrap items-baseline gap-3">
+            <h1 class="text-3xl font-bold">B · Projects</h1>
+            <span class="text-sm opacity-70">Open a project for its screening, offers and tree register. Designs are under</span>
+            <Link to="/" class="text-sm underline">Farms & designs</Link>
+          </div>
+        }
+      >
+        <h1 class="text-3xl font-bold">Grove Dashboard</h1>
+      </Show>
+      <Show when={canSeeMoney() && props.only !== "projects"}>
         <Scorecard />
       </Show>
-      <Show when={canSeeMoney()}>
+      <Show when={canSeeMoney() && props.only !== "projects"}>
         <div role="tablist" aria-label="Workspace" class="flex gap-1 border-b border-zinc-300 dark:border-slate-600">
           <For each={[["deals", "A · Deals"], ["projects", "B · Projects"]] as [Tab, string][]}>
             {([k, l]) => (
