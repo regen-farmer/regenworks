@@ -137,7 +137,7 @@ export function cleanLines(body: unknown): Result<SavedLine[]> {
       const common = { id: nid, label: text(n.label) || "Box", x: finite(n.x, -1e5, 1e5) ?? 0, y: finite(n.y, -1e5, 1e5) ?? 0 };
       if (n.kind === "input") {
         if (!(CROPS as readonly string[]).includes(n.crop)) return { ok: false, error: `${name}: unknown crop on "${common.label}"` };
-        nodes.push({ ...common, kind: "input", crop: n.crop, form: text(n.form, 60) || undefined, kg: finite(n.kg, 0, 1e9) ?? 0, weekFrom: finite(n.weekFrom, 1, 53) ?? 36, weekTo: finite(n.weekTo, 1, 53) ?? 40 });
+        nodes.push({ ...common, kind: "input", crop: n.crop, form: text(n.form, 60) || undefined, kg: finite(n.kg, 0, 1e9) ?? 0, weekFrom: finite(n.weekFrom, 1, 52) ?? 36, weekTo: finite(n.weekTo, 1, 52) ?? 40 });
       } else if (n.kind === "machine") {
         nodes.push({
           ...common,

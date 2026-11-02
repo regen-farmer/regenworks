@@ -423,7 +423,7 @@ function ValueChains() {
               <Show when={bottleneck()}>
                 {(b) => (
                   <span classList={{ "text-orange-700 dark:text-orange-400 font-semibold": (b().peakLoad ?? 0) > 1 }}>
-                    {(b().peakLoad ?? 0) > 1 ? "Bottleneck" : "Busiest machine"}: {b().label}, {pct(b().peakLoad)} of its capacity in week {wk(b().peakWeek)}
+                    {(b().peakLoad ?? 0) > 1 ? "Bottleneck" : "Busiest machine"}: {b().label}, {Number.isFinite(b().peakLoad ?? 0) ? `${pct(b().peakLoad)} of its capacity in week ${wk(b().peakWeek)}` : "has no hours or capacity, so nothing gets through"}
                   </span>
                 )}
               </Show>
@@ -523,8 +523,8 @@ function ValueChains() {
                           </label>
                           <label class="flex flex-col gap-1">Season harvest (kg)<input class={input} type="number" min="0" value={inp().kg} onChange={(e) => setNodeField(n().id, "kg", numOrNull(e.currentTarget.value) ?? 0)} /></label>
                           <div class="flex gap-2">
-                            <label class="flex flex-col gap-1 flex-1">From week<input class={input} type="number" min="1" max="53" value={inp().weekFrom} onChange={(e) => setNodeField(n().id, "weekFrom", numOrNull(e.currentTarget.value) ?? 36)} /></label>
-                            <label class="flex flex-col gap-1 flex-1">To week<input class={input} type="number" min="1" max="53" value={inp().weekTo} onChange={(e) => setNodeField(n().id, "weekTo", numOrNull(e.currentTarget.value) ?? 40)} /></label>
+                            <label class="flex flex-col gap-1 flex-1">From week<input class={input} type="number" min="1" max="52" value={inp().weekFrom} onChange={(e) => setNodeField(n().id, "weekFrom", numOrNull(e.currentTarget.value) ?? 36)} /></label>
+                            <label class="flex flex-col gap-1 flex-1">To week<input class={input} type="number" min="1" max="52" value={inp().weekTo} onChange={(e) => setNodeField(n().id, "weekTo", numOrNull(e.currentTarget.value) ?? 40)} /></label>
                           </div>
                           <p class="text-xs opacity-80">Typed in for now. The harvest is spread over the weeks, peaking in the middle.</p>
                         </>
