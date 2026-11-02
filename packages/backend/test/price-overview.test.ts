@@ -40,7 +40,9 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   assert.equal(sale.priceExclVat, 120);
   assert.equal(sale.source.file, "sources/grove-2026.pdf");
   assert.equal(sale.costReference.supplierPriceId, "a1", "same size as the sales price");
-  assert.equal(sale.costReference.exact, true);
+  assert.equal(sale.costReference.sameProduct, true);
+  assert.deepEqual(sale.costReference.unknown, ["years"], "Grove's own grafted plant is 1+1; the supplier list doesn't say");
+  assert.equal(sale.costReference.exact, false);
   assert.equal(corabel.costs[0].rootstock, "Corylus colurna");
   assert.equal(sale.marginPct, 41.67);
   assert.equal(priceOverview(b.data, { eurDkk: 7, q: "corabel colurna" }).products.length, 1, "all words must match");
@@ -53,4 +55,40 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   // a supplier row without rootstock or type still sits with the sales price
   const loose = buildPricebook({ ...files, supplierPrices: files.supplierPrices.replace("b1,db,b,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted", "b1,db,b,Corylus avellana,Hazel,Corabel,,") });
   assert.ok(loose.ok && priceOverview(loose.data, { eurDkk: 7 }).products.find((p) => p.cultivar === "Corabel")!.costs.length === 2);
+});
+
+test("price overview: products by rootstock, propagation, form and years; margins only against costs that fit", async () => {
+  const b = buildPricebook({
+    ...files,
+    services: "service_id,section,name_da,unit_da,basis,supplier_price_id\nnet,protection,Net,stk.,tree,c2",
+    supplierPrices:
+      "price_id,doc_id,supplier_id,latin,common_name,cultivar,rootstock,propagation,size_raw,container,age,height_cm_min,height_cm_max,organic_status,price,currency,vat,unit\n" +
+      "c1,da,a,Corylus avellana,Hazel,Corabel,Corylus colurna,grafted,100-150,WG,1+1,100,150,organic,10,EUR,excl. VAT,plant\n" +
+      "c2,da,a,Corylus avellana,Hazel,Corabel,,own-rooted,100-150,C3,,100,150,organic,4,EUR,excl. VAT,plant\n" +
+      "c3,da,a,Corylus avellana,Hazel,Corabel,Corylus avellana,grafted,100-150,WG,2 ans,100,150,organic,12,EUR,excl. VAT,plant",
+    salesPrices:
+      "sales_price_id,doc_id,latin,common_name_da,cultivar,propagation,rootstock,organic_status,height_cm_min,height_cm_max,form,price_excl_vat,currency\n" +
+      "s1,gs,Corylus avellana,Hassel,Corabel,grafted,Corylus colurna seedling,organic,100,150,bare root,120,DKK",
+  });
+  assert.ok(b.ok);
+  if (!b.ok) return;
+  const g = priceOverview(b.data, { eurDkk: 7 }).products.find((p) => p.cultivar === "Corabel")!;
+  assert.equal(g.products.length, 3, "colurna 1+1 bare root (sale + c1), own-rooted container, avellana rootstock 2 years");
+  const main = g.products.find((p) => p.sales)!;
+  assert.equal(main.costs, 1);
+  assert.equal(main.summary.compatiblePoints, 1, "c1 only: not the own-rooted plant, not the one on avellana");
+  assert.equal(main.summary.costMin, 70);
+  assert.equal(main.summary.marginLow, 41.67);
+  assert.equal(main.summary.approx, false);
+  assert.equal(main.spec.years, "1+1");
+  assert.equal(main.spec.form, "bare-root");
+  assert.ok(g.products.some((p) => p.spec.rootstock === "Corylus avellana" && p.spec.years === "2"));
+  // pricing a line: the same form and years rank first
+  const { suggestPrice } = await import("../src/internal/pricebook.ts");
+  const pick = (form: string, years?: string) => suggestPrice(b.data, { latin: "Corylus avellana", cultivar: "Corabel", form, years }, { marginPct: 25, eurDkk: 7 })?.supplierPriceId;
+  assert.equal(pick("container"), "c2");
+  assert.equal(pick("bare-root", "2"), "c3");
+  // a leftover form never pulls the price to another rootstock
+  const onColurna = suggestPrice(b.data, { latin: "Corylus avellana", cultivar: "Corabel", rootstock: "Corylus colurna", form: "container", years: "2" }, { marginPct: 25, eurDkk: 7 })?.supplierPriceId;
+  assert.equal(onColurna, "c1");
 });

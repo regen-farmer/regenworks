@@ -1,5 +1,6 @@
 // One offer: edit, the Danish offer sheet (print to PDF), Dinero lines and
 // the internal sheet with costs and margins. Grove team only.
+import { cleanYears, FORM_DA, FORM_EN, FORMS, type Form } from "@rw/db/productSpec.ts";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/solid-router";
 import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
@@ -320,6 +321,8 @@ function OfferPage() {
                     <th class={th}>Cultivar</th>
                     <th class={th}>Rootstock</th>
                     <th class={th}>Type</th>
+                    <th class={th} title="Bare root or container">Form</th>
+                    <th class={th} title="Production years, e.g. 1+1">Years</th>
                     <th class={th}>Size</th>
                     <th class={th}>Organic</th>
                     <th class={th}>Qty</th>
@@ -343,6 +346,32 @@ function OfferPage() {
                             <option value="">–</option>
                             <For each={Object.entries(PROPAGATION_EN)}>{([k, v]) => <option value={k}>{v}</option>}</For>
                           </select>
+                        </td>
+                        <td class={td}>
+                          <select class={input} aria-label="Bare root or container" value={l.form ?? ""} onChange={(e) => edit("lines", i(), { form: e.currentTarget.value || undefined, pricebookRef: null })}>
+                            <option value="">–</option>
+                            <For each={FORMS}>{(f) => <option value={f}>{FORM_EN[f]}</option>}</For>
+                          </select>
+                        </td>
+                        <td class={td}>
+                          <input
+                            class={`${input} w-14`}
+                            aria-label="Production years"
+                            value={l.years ?? ""}
+                            placeholder="1+1"
+                            title="Production years, e.g. 1+1 (grafted) or 1 (seedling). Empty: from the price list (Grove's own: grafted 1+1, seedlings 1)"
+                            onChange={(e) => {
+                              const typed = e.currentTarget.value.trim();
+                              const years = cleanYears(typed);
+                              if (typed && !years) {
+                                // show what is kept, not what was typed
+                                e.currentTarget.value = l.years ?? "";
+                                showToast({ title: "Years not changed", description: "Write production years as e.g. 1+1, 2+0 or 1", variant: "destructive" });
+                                return;
+                              }
+                              edit("lines", i(), { years, pricebookRef: null });
+                            }}
+                          />
                         </td>
                         <td class={td}><input class={input} value={l.size ?? ""} onInput={(e) => edit("lines", i(), { size: e.currentTarget.value, pricebookRef: null })} /></td>
                         <td class={td}>
@@ -683,7 +712,7 @@ function OfferSheet(props: { p: Presented }) {
                       <Show when={l.rootstock}><span class="text-xs"> på {l.rootstock}</span></Show>
                     </td>
                     <td class="py-1 pr-2 align-top">
-                      {[l.propagation ? PROPAGATION_DA[l.propagation] ?? l.propagation : "", l.size, l.organic === true ? "økologisk" : ""].filter(Boolean).join(", ")}
+                      {[l.propagation ? PROPAGATION_DA[l.propagation] ?? l.propagation : "", l.form ? FORM_DA[l.form as Form] ?? l.form : "", l.years ? `${l.years} år` : "", l.size, l.organic === true ? "økologisk" : ""].filter(Boolean).join(", ")}
                       <Show when={o().clientOrganic && l.organic !== true}>
                         <div class="text-xs" style={{ color: "#a15c00" }}>{DISPENSATION_TEXT}</div>
                       </Show>
@@ -879,7 +908,7 @@ function Internal(props: { p: Presented }) {
                     </Show>
                   </td>
                   <td class={`${td} text-xs text-amber-700`}>
-                    {[f()?.dispensation && "dispensation", f()?.outdated && "outdated price", f()?.costReferenceOutdated && "cost reference outdated", f()?.stale && "not in this pricebook", f()?.vatUnclear && "VAT unclear", f()?.ambiguous && "check type/size", f()?.unpriced && "no price", f()?.margin?.belowTarget && "margin below target", f()?.singleSource && "one cost figure only"].filter(Boolean).join(", ")}
+                    {[f()?.dispensation && "dispensation", f()?.outdated && "outdated price", f()?.costReferenceOutdated && "cost reference outdated", f()?.stale && "not in this pricebook", f()?.vatUnclear && "VAT unclear", f()?.ambiguous && "check type/size", f()?.unpriced && "no price", f()?.margin?.belowTarget && "margin below target", f()?.singleSource && "one cost figure only", l.pricing?.productDiffers?.length && `cost is for another ${l.pricing.productDiffers.join(", ")}`].filter(Boolean).join(", ")}
                   </td>
                 </tr>
               );

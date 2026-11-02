@@ -1,5 +1,6 @@
 // Search the pricebook and pick a product for an offer line. The line is then
 // priced from exactly that row (Grove team only; prices never leave /internal).
+import { cleanYears, formOf } from "@rw/db/productSpec.ts";
 import { createSignal, For, Show } from "solid-js";
 import { canSeeMoney } from "~/grove/access.ts";
 import { PROPAGATION_EN, propagationFrom, type OfferLine } from "~/grove/offerTypes.ts";
@@ -18,6 +19,9 @@ export function lineFromRow(kind: "sales" | "supplier", r: any): Partial<OfferLi
     cultivar: r.cultivar ?? "",
     rootstock: r.rootstock ?? "",
     propagation: propagationFrom(r.propagation),
+    // the picked row's form and years (the server fills in Grove's own defaults); never the previous product's
+    form: kind === "sales" ? formOf(r.form) : formOf(r.container, r.size),
+    years: cleanYears(kind === "sales" ? r.years : r.age),
     size: kind === "sales" ? height : r.size ?? height,
     heightMin: r.heightMin,
     heightMax: r.heightMax,

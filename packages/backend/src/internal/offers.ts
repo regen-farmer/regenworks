@@ -1,5 +1,6 @@
+import { cleanYears, compareSpecs, FORMS } from "@rw/db/productSpec.ts";
 // Offer sheet logic (pure, tested). Grove team only via /internal/offers.
-import { priceFromRow, round5, suggestPrice, type PlantQuery, type PricebookData, type PricebookRef, type Propagation } from "./pricebook.ts";
+import { priceFromRow, round5, salesSpec, suggestPrice, supplierSpec, type PlantQuery, type PricebookData, type PricebookRef, type Propagation } from "./pricebook.ts";
 import { depositAmount, depositPctFor, priceService, SERVICE_SECTIONS, type ServiceSection } from "./services.ts";
 
 export const VAT_RATE = 0.25;
@@ -35,6 +36,10 @@ export type OfferLine = {
   cultivar?: string;
   rootstock?: string;
   propagation?: string;
+  /** bare-root, container or root-ball (see @rw/db/productSpec.ts) */
+  form?: string;
+  /** production years, e.g. "1+1" */
+  years?: string;
   size?: string;
   heightMin?: number;
   heightMax?: number;
@@ -238,6 +243,8 @@ export function lineQuery(l: OfferLine, hybrid?: PlantQuery["hybrid"]): PlantQue
     heightMin: l.heightMin,
     heightMax: l.heightMax,
     organic: typeof l.organicRequested === "boolean" ? l.organicRequested : undefined,
+    form: l.form || undefined,
+    years: l.years || undefined,
   };
 }
 
@@ -308,7 +315,7 @@ function pricePlantLine(
         unitPrice: round5(picked.unitPrice),
         priceSource: picked.source,
         size: l.size || picked.size,
-        pricing: { ...picked },
+        ...specFrom(l, data, picked),
       };
     }
     // Not in this pricebook version, or the plant was edited: match as usual,
@@ -345,8 +352,23 @@ function priceLineByMatch(
     unitPrice: round5(s.unitPrice),
     priceSource: s.source,
     size: l.size || s.size,
-    pricing: { ...s },
+    ...specFrom(l, data, s),
   };
+}
+
+/**
+ * Bare root/container and production years from the priced row, unless the
+ * line already says; and, for the internal sheet, where the priced product
+ * differs from the line (another rootstock, other years).
+ */
+function specFrom(l: OfferLine, data: PricebookData, s: { salesPriceId?: string; supplierPriceId?: string } & Record<string, any>) {
+  const sales = s.salesPriceId ? data.salesPrices.find((p) => p.salesPriceId === s.salesPriceId) : undefined;
+  const sup = !sales && s.supplierPriceId ? data.supplierPrices.find((p) => p.priceId === s.supplierPriceId) : undefined;
+  const row = sales ? salesSpec(sales) : sup ? supplierSpec(sup) : undefined;
+  const form = l.form || (row?.form as string | undefined) || undefined;
+  const years = l.years || row?.years || undefined;
+  const cmp = row ? compareSpecs({ latin: l.latin, cultivar: l.cultivar, rootstock: l.rootstock, propagation: l.propagation, form, years }, { ...row, organic: undefined }) : null;
+  return { form, years, pricing: { ...s, productDiffers: cmp?.differs.filter((f) => f !== "species" && f !== "cultivar") ?? [] } };
 }
 
 /** Danish name from Grove's sales list for the species (any cultivar). */
@@ -360,7 +382,7 @@ function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybr
 }
 
 /** What identifies the plant on a line; changing any of these needs a new price. */
-const PLANT_FIELDS = ["kind", "serviceId", "latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
+const PLANT_FIELDS = ["kind", "serviceId", "latin", "cultivar", "rootstock", "propagation", "form", "years", "size", "heightMin", "heightMax", "organicRequested"] as const;
 const same = (a: unknown, b: unknown) => {
   const n = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : typeof v === "string" ? v.trim() : v);
   return n(a) === n(b);
@@ -539,6 +561,8 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
           cultivar: text(l?.cultivar, 200),
           rootstock: text(l?.rootstock, 200),
           propagation: text(l?.propagation, 40),
+          form: service ? undefined : (FORMS as readonly unknown[]).includes(l?.form) ? l.form : undefined,
+          years: service ? undefined : cleanYears(l?.years),
           size: text(l?.size, 100),
           heightMin: number(l?.heightMin, 0, 5000),
           heightMax: number(l?.heightMax, 0, 5000),
