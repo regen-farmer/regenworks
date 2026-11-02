@@ -48,12 +48,16 @@ Toolchain: Node 24 (`.nvmrc`), pnpm 11.3, Rust stable with the
 **Monthly**
 1. Promote `dev` to `main` if there are user-facing fixes waiting.
 2. Check the Render services for errors, memory and plan limits.
-3. Check MongoDB backups and storage use.
+3. Check MongoDB backups and storage use, and run
+   `migrate.ts status` on staging and production: both should list the same
+   migrations (see "Changing the database").
 
 **Yearly**
 1. Renew the Apple Developer membership and signing certificate before they
    expire, or desktop releases will fail.
 2. Review who has access to each account below and remove people who have left.
+3. Restore a production backup into a scratch database and open a few projects,
+   to prove the backups work.
 
 ## Accounts the app depends on
 
@@ -64,7 +68,7 @@ not only the developer. Rotate keys whenever a person with access leaves.
 |---|---|---|
 | GitHub (`regen-farmer`) | code, CI, releases | repository and environment secrets |
 | Render | hosting web app, backend, tile server | Render environment settings |
-| MongoDB (hosting provider to confirm) | all application data | `DATABASEURL` |
+| MongoDB (mongodb.com) | all application data; staging and production have separate databases | `DATABASEURL` |
 | Auth0 | logins | `AUTH_AUTH0_*`, `AUTH_SECRET` |
 | Stripe | subscriptions and payments | `STRIPE_SECRET_KEY`, `STRIPE_MODE` |
 | Resend | email | `RESEND_API_KEY` |
@@ -75,6 +79,61 @@ not only the developer. Rotate keys whenever a person with access leaves.
 
 Environment variable names are listed in `packages/backend/.env.example`,
 `packages/isomorphic/.env.example` and `.env.docker.example`.
+
+## Changing the database
+
+So far every schema change has only **added** things (new collections, new
+optional fields), which is why old projects keep loading. Keep it that way
+unless there is a reason not to, and when there is, make it a planned change.
+
+**Rules**
+1. **Add by default.** New fields are optional, or have a default that is also
+   correct for old documents. Code that reads a document copes with the field
+   being missing.
+2. **Never rename, remove or change the type of a field in a schema alone.**
+   Ship it together with a migration script, and keep reading the old shape
+   until the migration has run on staging and production.
+3. **Snapshots are never migrated.** A sent offer, a chosen plan and stake-out
+   exports are frozen copies of what someone saw or signed. Store what is needed
+   to show them again inside the snapshot, with a version number, and keep code
+   that can render old versions.
+4. **A version number on records that will change shape.** When a collection
+   needs a breaking change, add `schemaVersion` to its documents. Old documents
+   can then be upgraded when they are opened, instead of in one big batch.
+5. **Breaking changes get a review** by the `reviewer` agent, like other schema
+   changes (see `CLAUDE.md`).
+
+**Writing a migration.** One standalone script per change in
+`packages/db/migrations/`, named `<what>-<yyyy>-<mm>.ts`. It reads
+`DATABASEURL`, prints what it would do, and writes only with `--apply`
+(see `plant-catalogue-2026-11.ts`). Running it twice must be harmless.
+
+**Running a migration** with the runner, which keeps a ledger (the `migrations`
+collection) of what ran on each database, from which commit, after which backup:
+
+```sh
+DATABASEURL=<staging> node packages/db/migrations/migrate.ts run packages/db/migrations/<file>.ts   # dry run
+# take a backup of staging (or note the latest snapshot), then:
+DATABASEURL=<staging> node packages/db/migrations/migrate.ts run packages/db/migrations/<file>.ts --apply --backup "<snapshot id or time>"
+# check the app on staging, then the same two steps on production
+DATABASEURL=<db> node packages/db/migrations/migrate.ts status
+```
+
+The runner refuses to apply without `--backup`, from uncommitted code, or a
+migration already in that database's ledger. To undo, restore the backup; there
+are no down-migrations. A migration that was applied before the ledger existed
+is recorded with `migrate.ts record <name> --note "<who, when, where>"`
+(`plant-catalogue-2026-11` was applied on staging and production in Nov 2026).
+`remove-fields-2024-1.ts` and `stripe-customer-id.ts` are older one-offs and
+not run through the ledger.
+
+**Breaking with old data.** The planned changes that do restructure data are
+the farm / field / scenario rename (routes and collections), Dashboard
+projects becoming deals, and the B · Project plan (which extends the farm
+planting plan, `FarmScenarioConfig`, with optional fields). Before those, count
+documents per collection by last activity and by Grove vs public users, and
+decide on purpose: migrate everything, or migrate Grove's and recently used
+projects and keep older ones read-only with an export.
 
 ## Security notes
 
