@@ -4,6 +4,7 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ChecklistPanel } from "~/grove/ChecklistPanel.tsx";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, STEPS, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
@@ -200,6 +201,8 @@ function ProjectPage() {
           </Show>
         </fieldset>
 
+        <ChecklistPanel projectId={params().projectId} kind="screening" />
+
         <Show when={team()}>
           <section class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
@@ -248,7 +251,7 @@ function ProjectPage() {
         }}
         onClose={() => setAskDelete(false)}
       >
-        Delete "{p.name}" from the Dashboard for good? Its farm and designs stay. A project with offers or a linked deal can't be deleted: archive it instead.
+        Delete "{p.name}" from the Dashboard for good? Its farm and designs stay; its screening is deleted too. A project with offers or a linked deal can't be deleted: archive it instead.
       </ConfirmDialog>
     </div>
   );

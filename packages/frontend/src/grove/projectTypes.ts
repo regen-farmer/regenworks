@@ -31,6 +31,7 @@ export type GroveProject = {
   stage: Stage;
   /** where in the stage, e.g. "Staking" */
   step?: string;
+  screening?: { done: number; total: number; issues: number; decision: string | null } | null;
   status: "active" | "on-hold" | "archived";
   client?: { name?: string; contactPerson?: string; email?: string; phone?: string };
   farm?: { _id: string; name?: string; lat?: number; lng?: number; size?: number } | null;

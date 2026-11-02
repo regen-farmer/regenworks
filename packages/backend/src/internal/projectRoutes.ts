@@ -16,6 +16,8 @@ import User from "@rw/db/schemas/user.ts";
 import { GROVE_ROLES } from "@rw/db/access.ts";
 import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
 import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
+import Checklist from "@rw/db/schemas/internal/checklist.ts";
+import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, templateOf } from "./checklists.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -48,8 +50,16 @@ async function farmsById(ids: unknown[]) {
   return new Map(farms.map((f) => [String(f._id), { _id: f._id, name: f.name, lat: f.lat, lng: f.lng, size: f.size }]));
 }
 
+/** Screening progress per project (no money: field users see it too). */
+async function screeningProgress(projectIds: unknown[]) {
+  const ids = projectIds.map(String).filter(validId);
+  if (!ids.length) return new Map<string, ReturnType<typeof progress>>();
+  const lists: any[] = await Checklist.find({ project: inIds(ids), kind: "screening" }).select("project items decision").lean();
+  return new Map(lists.map((c) => [String(c.project), progress(SCREENING, c)]));
+}
+
 async function present(projects: any[], user: UserDocument | undefined) {
-  const [values, farms] = await Promise.all([offerValues(projects.map((p) => p._id)), farmsById(projects.map((p) => p.farm))]);
+  const [values, farms, screening] = await Promise.all([offerValues(projects.map((p) => p._id)), farmsById(projects.map((p) => p.farm)), screeningProgress(projects.map((p) => p._id))]);
   const money = canSeeMoney(user);
   return projects.map((p) => {
     const v = values.get(String(p._id));
@@ -62,6 +72,10 @@ async function present(projects: any[], user: UserDocument | undefined) {
       signedValue: v?.signedValue ?? 0,
       // trees is what was typed; signedTrees comes from accepted offers
       signedTrees: v?.signedTrees ?? 0,
+      screening: (() => {
+        const sp = screening.get(String(p._id));
+        return sp ? { done: sp.done, total: sp.total, issues: sp.issues, decision: sp.decision } : null;
+      })(),
     };
     return money ? full : forFieldUser(full);
   });
@@ -227,7 +241,121 @@ router.delete("/:id", team, async (req: Req, res) => {
     return;
   }
   await GroveProject.deleteOne({ _id: req.params.id });
+  await Checklist.deleteMany({ project: req.params.id }); // its screening goes with it
   res.status(204).send();
+});
+
+// ---- checklists (screening) ----
+// Field users can fill in checklists on projects assigned to them; the
+// decision (go / no-go) is the Grove team's.
+
+async function visibleProject(req: Req, res: express.Response) {
+  if (!validId(req.params.id)) {
+    res.status(400).send({ error: "Invalid id" });
+    return null;
+  }
+  const project: any = await GroveProject.findOne({ _id: req.params.id, ...visibleFilter(req.user) }).select("_id name").lean();
+  if (!project) {
+    res.status(404).send({ error: "Project not found" });
+    return null;
+  }
+  return project;
+}
+
+function templateFor(req: Req, res: express.Response) {
+  const t = templateOf(req.params.kind);
+  if (!t) res.status(404).send({ error: "Unknown checklist" });
+  return t;
+}
+
+async function presentChecklist(projectId: unknown, kind: string) {
+  const t = templateOf(kind)!;
+  const c: any = await Checklist.findOne({ project: projectId, kind }).lean();
+  return {
+    template: t,
+    checklist: c ? { items: c.items ?? {}, sectionNotes: c.sectionNotes ?? {}, decision: c.decision ?? null, updatedAt: c.updatedAt } : { items: {}, sectionNotes: {}, decision: null },
+    progress: progress(t, c),
+  };
+}
+
+router.get("/:id/checklists/:kind", async (req: Req, res) => {
+  const t = templateFor(req, res);
+  if (!t) return;
+  const project = await visibleProject(req, res);
+  if (!project) return;
+  res.send(await presentChecklist(project._id, t.kind));
+});
+
+router.put("/:id/checklists/:kind/items/:key", async (req: Req, res) => {
+  const t = templateFor(req, res);
+  if (!t) return;
+  if (!itemKeys(t).has(String(req.params.key))) {
+    res.status(404).send({ error: "Unknown item" });
+    return;
+  }
+  const cleaned = cleanItem(req.body);
+  if (!cleaned.ok) {
+    res.status(400).send({ error: cleaned.error });
+    return;
+  }
+  const project = await visibleProject(req, res);
+  if (!project) return;
+  // one item at a time, so two people filling in different items don't overwrite each other
+  await Checklist.findOneAndUpdate(
+    { project: project._id, kind: t.kind },
+    {
+      $set: {
+        // only what was sent: a status click doesn't touch the note, and the other way round
+        ...(cleaned.value.state !== undefined ? { [`items.${req.params.key}.state`]: cleaned.value.state } : {}),
+        ...(cleaned.value.note !== undefined ? { [`items.${req.params.key}.note`]: cleaned.value.note } : {}),
+        [`items.${req.params.key}.at`]: new Date(),
+        [`items.${req.params.key}.by`]: req.user?._id,
+        templateVersion: t.version,
+      },
+    },
+    { upsert: true, runValidators: true },
+  );
+  res.send(await presentChecklist(project._id, t.kind));
+});
+
+router.put("/:id/checklists/:kind/sections/:key", async (req: Req, res) => {
+  const t = templateFor(req, res);
+  if (!t) return;
+  if (!t.sections.some((s) => s.key === req.params.key)) {
+    res.status(404).send({ error: "Unknown section" });
+    return;
+  }
+  if (req.body?.note !== undefined && req.body.note !== null && typeof req.body.note !== "string") {
+    res.status(400).send({ error: "Note must be text" });
+    return;
+  }
+  const project = await visibleProject(req, res);
+  if (!project) return;
+  const note = typeof req.body?.note === "string" ? req.body.note.trim().slice(0, 3000) : "";
+  await Checklist.findOneAndUpdate({ project: project._id, kind: t.kind }, { $set: { [`sectionNotes.${req.params.key}`]: note } }, { upsert: true, runValidators: true });
+  res.send(await presentChecklist(project._id, t.kind));
+});
+
+router.put("/:id/checklists/:kind/decision", team, async (req: Req, res) => {
+  const t = templateFor(req, res);
+  if (!t) return;
+  if (!t.decision) {
+    res.status(400).send({ error: "This checklist has no decision" });
+    return;
+  }
+  const cleaned = cleanDecision(req.body);
+  if (!cleaned.ok) {
+    res.status(400).send({ error: cleaned.error });
+    return;
+  }
+  const project = await visibleProject(req, res);
+  if (!project) return;
+  await Checklist.findOneAndUpdate(
+    { project: project._id, kind: t.kind },
+    { $set: { decision: { ...cleaned.value, at: cleaned.value.result ? new Date() : null, by: cleaned.value.result ? req.user?._id : null } } },
+    { upsert: true, runValidators: true },
+  );
+  res.send(await presentChecklist(project._id, t.kind));
 });
 
 export default router;
