@@ -23,12 +23,12 @@ function TreeLog() {
   const causeName = (k?: string) => causes().find(([c]) => c === k)?.[1] ?? k ?? "";
 
   const [row, setRow] = createSignal(1);
-  let started = false;
+  let startedFor = "";
   createEffect(() => {
-    // start once on the first row not walked yet
+    // start once per register on the first row not walked yet
     const r = register();
-    if (r && !started) {
-      started = true;
+    if (r && startedFor !== r._id) {
+      startedFor = r._id;
       const first = r.rowStats.find((x) => !r.rowChecks[String(x.row)])?.row;
       if (first && first !== 1) setRow(first);
     }
@@ -45,38 +45,48 @@ function TreeLog() {
     (name) => apiFetch<{ tree: Tree }>(`${base()}/${params().registerId}/trees/${encodeURIComponent(name)}`),
   );
   const tree = () => (detail.error ? undefined : detail.latest?.tree.name === selected() ? detail.latest.tree : undefined);
-  const [saving, setSaving] = createSignal(false);
+  const [saving, setSaving] = createSignal(0);
   const [near, setNear] = createSignal<(Tree & { distanceM: number })[] | null>(null);
   const [locating, setLocating] = createSignal(false);
 
-  async function save(body: Record<string, unknown>) {
+  // Saves go one after another, so a note saved on blur doesn't swallow the
+  // status tap that caused the blur; each is for the tree it was made on.
+  let queue: Promise<unknown> = Promise.resolve();
+  function save(body: Record<string, unknown>) {
     const name = selected();
     if (!name) return;
-    setSaving(true);
+    queue = queue.then(() => saveOne(name, body));
+  }
+  async function saveOne(name: string, body: Record<string, unknown>) {
+    setSaving((n) => n + 1);
     try {
       const r = await apiFetch<{ tree: Tree }>(`${base()}/${params().registerId}/trees/${encodeURIComponent(name)}`, { method: "PUT", body: JSON.stringify(body) });
-      // keep the history already loaded; add this entry on top
-      const prev = tree();
-      setDetail({ tree: { ...r.tree, history: [...(prev?.history ?? []), { at: new Date().toISOString(), ...body } as any] } });
+      // only the tree still open gets the reply (history kept, this entry added)
+      const open = detail.latest;
+      if (selected() === name && open?.tree.name === name) {
+        setDetail({ tree: { ...r.tree, history: [...(open.tree.history ?? []), { at: new Date().toISOString(), ...body } as any] } });
+      }
       const rd = rowData.latest;
       if (rd && rd.row === r.tree.row) setRowData({ ...rd, trees: rd.trees.map((t) => (t.name === name ? { ...t, ...r.tree } : t)) });
-      refetchList();
     } catch (err) {
-      showToast({ title: "Not saved", description: (err as Error).message, variant: "destructive" });
+      showToast({ title: `${name} not saved`, description: (err as Error).message, variant: "destructive" });
     } finally {
-      setSaving(false);
+      setSaving((n) => n - 1);
     }
   }
 
   async function rowWalked() {
+    const walked = row();
     try {
-      const r = await apiFetch<{ checked: { at: string } }>(`${base()}/${params().registerId}/rows/${row()}/checked`, { method: "PUT" });
+      await queue; // the row's last taps first
+      const r = await apiFetch<{ checked: { at: string } }>(`${base()}/${params().registerId}/rows/${walked}/checked`, { method: "PUT" });
       const rd = rowData.latest;
-      if (rd) setRowData({ ...rd, checked: r.checked });
+      if (rd && rd.row === walked) setRowData({ ...rd, checked: r.checked });
       refetchList();
-      showToast({ title: `Row ${row()} walked` });
+      showToast({ title: `Row ${walked} walked` });
       const reg = register();
-      if (reg && row() < reg.rowCount) goRow(row() + 1);
+      // move on only if still on that row
+      if (reg && row() === walked && walked < reg.rowCount) goRow(walked + 1);
     } catch (err) {
       showToast({ title: "Not saved", description: (err as Error).message, variant: "destructive" });
     }
@@ -124,7 +134,7 @@ function TreeLog() {
   }
 
   return (
-    <div class="mx-auto max-w-xl p-3 pb-72 flex flex-col gap-3" data-testid="tree-log">
+    <div class="mx-auto max-w-xl p-3 flex flex-col gap-3" classList={{ "pb-[65vh]": !!selected(), "pb-8": !selected() }} data-testid="tree-log">
       <Toaster />
       <div class="flex items-center gap-2">
         <Link to="/grove/projects/$projectId" params={{ projectId: params().projectId }} class="text-sm underline">← Project</Link>
@@ -186,7 +196,12 @@ function TreeLog() {
                       class={`rounded-md border-2 py-2 text-sm leading-tight ${TILE[t.status]}`}
                       classList={{ "ring-4 ring-sky-500": selected() === t.name }}
                       aria-label={`${t.name}: ${STATUS_EN[t.status]}${t.cause ? `, ${causeName(t.cause)}` : ""}`}
-                      onClick={() => setSelected(t.name)}
+                      onClick={(e) => {
+                        setSelected(t.name);
+                        // keep the tapped tree visible above the sheet
+                        const el = e.currentTarget;
+                        setTimeout(() => el.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+                      }}
                     >
                       <div class="font-semibold">{t.tree}</div>
                       <div class="text-[10px] opacity-80 truncate px-0.5">{t.status === "alive" ? (t.replanted ? "replanted" : "") : t.cause ? causeName(t.cause).split(" ")[0] : STATUS_EN[t.status]}</div>
@@ -205,7 +220,7 @@ function TreeLog() {
       {/* the tree being logged, fixed at the bottom so it's reachable with a thumb */}
       <Show when={selected()}>
         <div class="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-300 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-lg">
-          <div class="mx-auto max-w-xl p-3 flex flex-col gap-2 max-h-[70vh] overflow-y-auto">
+          <div class="mx-auto max-w-xl p-3 flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
             <div class="flex items-start gap-2">
               <div class="mr-auto">
                 <div class="font-bold">{selected()}</div>
@@ -215,7 +230,7 @@ function TreeLog() {
             </div>
             <Show when={tree()} fallback={<p class="text-sm">{detail.error ? (detail.error as Error).message : "Loading…"}</p>}>
               {(t) => (
-                <fieldset disabled={saving()} class="contents">
+                <div class="contents">
                   <div class="grid grid-cols-4 gap-1.5" role="group" aria-label="Status">
                     <For each={STATUS}>
                       {([k, label, on]) => (
@@ -269,7 +284,7 @@ function TreeLog() {
                       </ul>
                     </details>
                   </Show>
-                </fieldset>
+                </div>
               )}
             </Show>
           </div>

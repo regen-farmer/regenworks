@@ -16,13 +16,14 @@ import { cleanPrefix } from "@rw/modelling/planting/stakeout.ts";
 import { requireRole } from "../middleware/access.ts";
 import { isSet } from "../utils/mongoSafety.ts";
 import { visibleFilter } from "./projects.ts";
-import { CAUSES, checkUpdate, cleanTreeCheck, defaultPrefix, nearest, survival, treesFromLayout } from "./trees.ts";
+import { CAUSES, checkUpdate, cleanTreeCheck, csvText, defaultPrefix, nearest, survival, treesFromLayout } from "./trees.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router({ mergeParams: true });
 const team = requireRole("grove-team");
 const validId = (id: unknown): id is string => typeof id === "string" && mongoose.isValidObjectId(id);
 const MAX_TREES = 100_000;
+const between = (lo: number, hi: number) => mongoose.trusted({ $gte: lo, $lte: hi });
 
 async function visibleProject(req: Req, res: express.Response) {
   if (!validId(req.params.id)) {
@@ -58,8 +59,22 @@ router.get("/", async (req: Req, res) => {
   const registers: any[] = await TreeRegister.find({ project: project._id }).sort({ createdAt: 1 }).lean();
   const out = [];
   for (const r of registers) {
-    const trees: any[] = await GroveTree.find({ register: r._id }).select("row status cause checkedAt replanted").lean();
-    const s = survival(trees);
+    // counted in the database, grouped: a big register isn't loaded into memory
+    const groups: any[] = await GroveTree.aggregate([
+      { $match: { register: r._id } },
+      {
+        $group: {
+          _id: { row: "$row", status: "$status", cause: "$cause", checked: { $toBool: { $ifNull: ["$checkedAt", false] } } },
+          n: { $sum: 1 },
+          replanted: { $sum: { $ifNull: ["$replanted", 0] } },
+        },
+      },
+    ]);
+    const walked = Object.keys(r.rowChecks ?? {}).map(Number).filter(Number.isInteger);
+    const s = survival(
+      groups.map((g) => ({ row: g._id.row, status: g._id.status, cause: g._id.cause, checkedAt: g._id.checked, replanted: g.replanted, n: g.n })),
+      walked,
+    );
     out.push({
       _id: r._id,
       name: r.name,
@@ -106,8 +121,8 @@ router.post("/", team, async (req: Req, res) => {
     res.status(400).send({ error: "Choose a design" });
     return;
   }
-  if (!prefix) {
-    res.status(400).send({ error: "Enter a tree-ID prefix (letters and digits), so trees in two fields don't share IDs" });
+  if (!prefix || /^[-_]/.test(prefix)) {
+    res.status(400).send({ error: "Enter a tree-ID prefix starting with a letter or digit, so trees in two fields don't share IDs" });
     return;
   }
   const design: any = await Project.findById(designId)
@@ -186,11 +201,17 @@ router.post("/", team, async (req: Req, res) => {
 router.delete("/:registerId", team, async (req: Req, res) => {
   const found = await registerOf(req, res);
   if (!found) return;
+  const refused = () => res.status(409).send({ error: "Trees in this register have been logged; it can't be deleted" });
   if (await GroveTree.exists({ register: found.register._id, checkedAt: isSet() })) {
-    res.status(409).send({ error: "Trees in this register have been checked; it can't be deleted" });
+    refused();
     return;
   }
-  await GroveTree.deleteMany({ register: found.register._id });
+  // only trees never logged: a check landing meanwhile keeps its tree, and then the register
+  await GroveTree.deleteMany({ register: found.register._id, checkedAt: null });
+  if (await GroveTree.exists({ register: found.register._id })) {
+    refused();
+    return;
+  }
   await TreeRegister.deleteOne({ _id: found.register._id });
   res.status(204).send();
 });
@@ -220,7 +241,10 @@ router.get("/:registerId/near", async (req: Req, res) => {
   }
   const found = await registerOf(req, res);
   if (!found) return;
-  const trees: any[] = await GroveTree.find({ register: found.register._id }).select("name row tree lon lat").lean();
+  // trees within ~60 m first; the whole register only when none are that close
+  const box = { register: found.register._id, lat: between(lat - 0.00055, lat + 0.00055), lon: between(lon - 0.001, lon + 0.001) };
+  let trees: any[] = await GroveTree.find(box).select("name row tree lon lat").limit(5000).lean();
+  if (!trees.length) trees = await GroveTree.find({ register: found.register._id }).select("name row tree lon lat").lean();
   res.send({ trees: nearest(trees, lon, lat, 5) });
 });
 
@@ -275,12 +299,6 @@ router.put("/:registerId/rows/:row/checked", async (req: Req, res) => {
   res.send({ row, checked: { at } });
 });
 
-const csvCell = (v: unknown) => {
-  const s = String(v ?? "")
-    .replace(/[\r\n]+/g, " ")
-    .replace(/^[=+\-@]+/, "");
-  return /[",;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 /** The register as CSV, e.g. for the guarantee count. */
 router.get("/:registerId/export.csv", async (req: Req, res) => {
@@ -289,9 +307,20 @@ router.get("/:registerId/export.csv", async (req: Req, res) => {
   const trees: any[] = await GroveTree.find({ register: found.register._id }).select(TREE_FIELDS).sort({ row: 1, tree: 1 }).lean();
   const head = ["tree_id", "row", "tree", "plant", "status", "cause", "note", "checked", "replanted", "lon", "lat", "position"];
   const lines = trees.map((t) =>
-    [t.name, t.row, t.tree, t.label, t.status, t.cause ?? "", t.note ?? "", t.checkedAt ? new Date(t.checkedAt).toISOString().slice(0, 10) : "", t.replanted || 0, t.lon, t.lat, t.positionSource]
-      .map(csvCell)
-      .join(","),
+    [
+      t.name,
+      t.row,
+      t.tree,
+      csvText(t.label),
+      t.status,
+      t.cause ?? "",
+      csvText(t.note),
+      t.checkedAt ? new Date(t.checkedAt).toISOString().slice(0, 10) : "",
+      t.replanted || 0,
+      t.lon,
+      t.lat,
+      t.positionSource,
+    ].join(","),
   );
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", `attachment; filename="tree-register-${found.register.prefix || "field"}.csv"`);

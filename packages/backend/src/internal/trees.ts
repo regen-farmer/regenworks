@@ -2,7 +2,9 @@
 // RTK stake-out files, per-tree checks (status and cause of death), and
 // survival per row and field. For following mortality from the first season,
 // e.g. the guarantee count on 1 September.
-import { cleanPrefix, stakeoutTrees } from "@rw/modelling/planting/stakeout.ts";
+import { plantLabel, stakeoutTrees } from "@rw/modelling/planting/stakeout.ts";
+
+export { defaultPrefix } from "@rw/modelling/planting/stakeout.ts";
 
 export const TREE_STATUSES = ["alive", "weak", "dead", "missing"] as const;
 export type TreeStatus = (typeof TREE_STATUSES)[number];
@@ -29,15 +31,6 @@ const CAUSE_KEYS: readonly string[] = CAUSES.map(([k]) => k);
 /** The most history entries kept per tree. */
 export const HISTORY_MAX = 50;
 
-/** "Mark 1 Hassel" -> "M1H", as the stake-out export suggests. */
-export const defaultPrefix = (name: string | undefined) =>
-  cleanPrefix(
-    (name ?? "")
-      .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase())
-      .join(""),
-  ).slice(0, 4);
-
 export type RegisterTree = { name: string; row: number; tree: number; species: string; label: string; lon: number; lat: number };
 
 /**
@@ -51,16 +44,7 @@ export function treesFromLayout(
 ): RegisterTree[] {
   const rows = stakeoutTrees(layout, {
     prefix,
-    labelOf: (t) => {
-      const species = t.species?.nameCommon || [t.species?.genus, t.species?.species].filter(Boolean).join(" ") || "Tree";
-      const cultivar = t.variety ? names.varieties[t.variety] : undefined;
-      const rootstock = t.rootstock ? names.rootstocks[t.rootstock] : undefined;
-      let label = cultivar ? `${species} ${cultivar}` : species;
-      if (rootstock) label += ` on ${rootstock}`;
-      else if (t.ownRoots) label += " own roots";
-      if (t.organic === true) label += " (organic)";
-      return { label, species };
-    },
+    labelOf: (t) => plantLabel(t, names),
   });
   return rows.flatMap((r) => r.trees.map((t) => ({ name: t.name, row: t.row, tree: t.tree, species: t.species, label: t.label, lon: t.lon, lat: t.lat })));
 }
@@ -119,39 +103,56 @@ export function checkUpdate(check: TreeCheck, by: unknown, at = new Date()) {
   };
 }
 
-type TreeLike = { row: number; status: string; cause?: string | null; checkedAt?: Date | string | null; replanted?: number };
+type TreeLike = { row: number; status: string; cause?: string | null; checkedAt?: Date | string | boolean | null; replanted?: number; n?: number };
 
 const pct = (n: number, of: number) => (of ? Math.round((n / of) * 1000) / 10 : null);
 
 /**
- * Survival per row and for the field. Survival counts alive and weak trees;
- * mortality counts dead and missing. Causes are counted over dead, missing
- * and weak trees.
+ * Survival per row and for the field, over the trees someone has looked at:
+ * trees logged one by one, and every tree in a row marked walked. A register
+ * nobody has walked has no survival yet (not 100 %). Survival counts alive and
+ * weak trees; mortality dead and missing. Causes count dead, missing and weak
+ * trees. `n` lets grouped counts (from an aggregation) be passed in.
  */
-export function survival(trees: TreeLike[]) {
-  type Acc = { total: number; alive: number; weak: number; dead: number; missing: number; checked: number; replanted: number; causes: Record<string, number> };
-  const empty = (): Acc => ({ total: 0, alive: 0, weak: 0, dead: 0, missing: 0, checked: 0, replanted: 0, causes: {} });
+export function survival(trees: TreeLike[], walkedRows: Iterable<number> = []) {
+  const walked = new Set(walkedRows);
+  type Acc = { total: number; seen: number; alive: number; weak: number; dead: number; missing: number; checked: number; replanted: number; causes: Record<string, number> };
+  const empty = (): Acc => ({ total: 0, seen: 0, alive: 0, weak: 0, dead: 0, missing: 0, checked: 0, replanted: 0, causes: {} });
   const all = empty();
   const rows = new Map<number, Acc>();
   for (const t of trees) {
+    const n = t.n ?? 1;
     const r = rows.get(t.row) ?? empty();
+    const seen = !!t.checkedAt || walked.has(t.row);
     for (const a of [all, r]) {
-      a.total += 1;
-      if (t.status === "weak") a.weak += 1;
-      else if (t.status === "dead") a.dead += 1;
-      else if (t.status === "missing") a.missing += 1;
-      else a.alive += 1;
-      if (t.checkedAt) a.checked += 1;
+      a.total += n;
+      if (t.checkedAt) a.checked += n;
       a.replanted += t.replanted ?? 0;
-      if (t.cause && t.status !== "alive") a.causes[t.cause] = (a.causes[t.cause] ?? 0) + 1;
+      if (!seen) continue;
+      a.seen += n;
+      if (t.status === "weak") a.weak += n;
+      else if (t.status === "dead") a.dead += n;
+      else if (t.status === "missing") a.missing += n;
+      else a.alive += n;
+      if (t.cause && t.status !== "alive") a.causes[t.cause] = (a.causes[t.cause] ?? 0) + n;
     }
     rows.set(t.row, r);
   }
-  const shape = (a: Acc) => ({ ...a, survivalPct: pct(a.alive + a.weak, a.total), mortalityPct: pct(a.dead + a.missing, a.total) });
+  const shape = (a: Acc) => ({ ...a, survivalPct: pct(a.alive + a.weak, a.seen), mortalityPct: pct(a.dead + a.missing, a.seen) });
   return {
-    field: shape(all),
-    rows: [...rows.entries()].sort((a, b) => a[0] - b[0]).map(([row, a]) => ({ row, ...shape(a) })),
+    field: { ...shape(all), rowsWalked: [...rows.keys()].filter((k) => walked.has(k)).length },
+    rows: [...rows.entries()].sort((a, b) => a[0] - b[0]).map(([row, a]) => ({ row, walked: walked.has(row), ...shape(a) })),
   };
+}
+
+/**
+ * Keeps a spreadsheet from running a cell as a formula (leading = + - @, tab
+ * or return, also after spaces) and quotes it for CSV. For text columns.
+ */
+export function csvText(v: unknown) {
+  let s = String(v ?? "").replace(/[\r\n]+/g, " ");
+  while (/^[\s=+\-@]/.test(s)) s = s.replace(/^[\s=+\-@]+/, "");
+  return /[",;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 /** The trees nearest a point (metres, small distances), for "which tree am I at?" on a phone. */

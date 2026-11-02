@@ -2,6 +2,8 @@
 export type TreeStatus = "alive" | "weak" | "dead" | "missing";
 export type Stats = {
   total: number;
+  /** trees looked at: logged one by one, or in a row marked walked */
+  seen: number;
   alive: number;
   weak: number;
   dead: number;
@@ -20,8 +22,8 @@ export type Register = {
   rowCount: number;
   rowChecks: Record<string, { at: string }>;
   createdAt: string;
-  field: Stats;
-  rowStats: (Stats & { row: number })[];
+  field: Stats & { rowsWalked: number };
+  rowStats: (Stats & { row: number; walked: boolean })[];
 };
 export type RegisterList = { registers: Register[]; causes: [string, string][] };
 export type Tree = {

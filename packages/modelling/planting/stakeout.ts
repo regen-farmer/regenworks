@@ -41,6 +41,30 @@ export function cleanPrefix(prefix: string | undefined): string {
   return (prefix ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 8);
 }
 
+/** "Mark 1 Hassel" -> "M1H": first character of each word, letters and digits only. */
+export function defaultPrefix(fieldName: string | undefined): string {
+  return cleanPrefix(
+    (fieldName ?? "")
+      .split(/\s+/)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join(""),
+  )
+    .replace(/^[-_]+/, "")
+    .slice(0, 4);
+}
+
+/** What to plant at a tree, e.g. "Hassel Corabel on Corylus colurna (organic)"; shared by the stake-out files and the tree register. */
+export function plantLabel(t: any, names: { varieties: Record<string, string>; rootstocks: Record<string, string> }): { label: string; species: string } {
+  const species = t?.species?.nameCommon || [t?.species?.genus, t?.species?.species].filter(Boolean).join(" ") || "Tree";
+  const cultivar = t?.variety ? names.varieties[t.variety] : undefined;
+  const rootstock = t?.rootstock ? names.rootstocks[t.rootstock] : undefined;
+  let label = cultivar ? `${species} ${cultivar}` : species;
+  if (rootstock) label += ` on ${rootstock}`;
+  else if (t?.ownRoots) label += " own roots";
+  if (t?.organic === true) label += " (organic)";
+  return { label, species };
+}
+
 /**
  * Commas and line breaks would break the CSV; a leading = + - @ could run as
  * a formula if the file is opened in a spreadsheet.

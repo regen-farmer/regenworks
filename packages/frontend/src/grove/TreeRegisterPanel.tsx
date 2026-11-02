@@ -92,7 +92,7 @@ export function TreeRegisterPanel(props: { projectId: string }) {
           </label>
           <button class="rounded-sm px-2 py-1 btn-default text-sm" disabled={busy()}>{busy() ? "Laying out…" : "Make register"}</button>
           <p class="basis-full opacity-70">
-            Every tree in the design gets an ID like {prefix() || "EL1"}R03T017 (row 3, tree 17), the same names as the RTK stake-out files, so use the same prefix as when staking. Positions come from the design; as-staked RTK positions can replace them later.
+            Every tree in the design gets an ID like {prefix() || "EL1"}R03T017 (row 3, tree 17), the same names as the RTK stake-out files, so use the same prefix and the design as it was staked. Compare the tree and row counts shown after making it with the stake-out summary. Positions come from the design; as-staked RTK positions can replace them later.
           </p>
         </form>
       </Show>
@@ -111,8 +111,8 @@ export function TreeRegisterPanel(props: { projectId: string }) {
               </Show>
             </div>
             <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-              <span><b>{pctText(r.field.survivalPct)}</b> survival</span>
-              <span>{r.trees.toLocaleString("da-DK")} trees · {r.rowCount} rows</span>
+              <span><b>{pctText(r.field.survivalPct)}</b> survival{r.field.seen < r.trees ? ` of ${r.field.seen.toLocaleString("da-DK")} trees looked at` : ""}</span>
+              <span>{r.trees.toLocaleString("da-DK")} trees · {r.field.rowsWalked} of {r.rowCount} rows walked</span>
               <span>Dead {r.field.dead} · missing {r.field.missing} · weak {r.field.weak}</span>
               <span>{r.field.checked.toLocaleString("da-DK")} logged{r.field.replanted ? ` · ${r.field.replanted} replanted` : ""}</span>
             </div>
@@ -160,7 +160,7 @@ export function TreeRegisterPanel(props: { projectId: string }) {
                   </tbody>
                 </table>
               </div>
-              <p class="text-xs opacity-70 mt-1">Red: more than 10 % dead or missing in the row (the guarantee threshold).</p>
+              <p class="text-xs opacity-70 mt-1">Survival counts trees looked at: rows marked walked, plus trees logged one by one. Red: more than 10 % dead or missing in the row (the guarantee threshold).</p>
             </details>
           </div>
         )}

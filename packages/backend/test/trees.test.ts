@@ -3,7 +3,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { checkUpdate, cleanTreeCheck, defaultPrefix, HISTORY_MAX, nearest, survival, treesFromLayout } from "../src/internal/trees.ts";
+import { checkUpdate, cleanTreeCheck, csvText, defaultPrefix, HISTORY_MAX, nearest, survival, treesFromLayout } from "../src/internal/trees.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 // two rows of three trees running east, 4 m apart, near Ellinglund-ish coordinates
@@ -69,22 +69,44 @@ test("check update: current values, cause cleared when alive, history capped", (
   assert.equal(noteOnly.$set.status, undefined, "a note doesn't change the status");
 });
 
-test("survival per row and field", () => {
-  const s = survival([
+test("survival per row and field, over trees looked at", () => {
+  const trees = [
     { row: 1, status: "alive", checkedAt: "2027-09-01" },
     { row: 1, status: "dead", cause: "voles", checkedAt: "2027-09-01" },
     { row: 1, status: "weak", cause: "drought" },
-    { row: 2, status: "missing", cause: "deer", replanted: 1 },
+    { row: 2, status: "missing", cause: "deer", replanted: 1, checkedAt: "2027-09-01" },
     { row: 2, status: "alive", cause: "deer" },
-  ]);
-  assert.equal(s.field.total, 5);
-  assert.equal(s.field.survivalPct, 60);
-  assert.equal(s.field.mortalityPct, 40);
-  assert.equal(s.field.checked, 2);
+    { row: 3, status: "alive" },
+  ];
+  const s = survival(trees, [1]);
+  assert.equal(s.field.total, 6);
+  assert.equal(s.field.seen, 4, "row 1 walked (3 trees) + one logged tree in row 2; row 3 not seen");
+  assert.equal(s.field.survivalPct, 50);
+  assert.equal(s.field.mortalityPct, 50);
+  assert.equal(s.field.checked, 3);
   assert.equal(s.field.replanted, 1);
-  assert.deepEqual(s.field.causes, { voles: 1, drought: 1, deer: 1 }, "an alive tree's old cause isn't counted");
-  assert.deepEqual(s.rows.map((r) => [r.row, r.survivalPct]), [[1, 66.7], [2, 50]]);
+  assert.equal(s.field.rowsWalked, 1);
+  assert.deepEqual(s.field.causes, { voles: 1, drought: 1, deer: 1 });
+  assert.deepEqual(s.rows.map((r) => [r.row, r.walked, r.survivalPct]), [[1, true, 66.7], [2, false, 0], [3, false, null]]);
+  assert.equal(survival([{ row: 1, status: "alive" }]).field.survivalPct, null, "a register nobody has walked has no survival yet, not 100 %");
   assert.equal(survival([]).field.survivalPct, null);
+});
+
+test("survival from grouped counts (aggregation) equals per tree", () => {
+  const grouped = survival([{ row: 1, status: "alive", n: 97 }, { row: 1, status: "dead", cause: "voles", checkedAt: true, n: 3 }], [1]);
+  assert.equal(grouped.field.total, 100);
+  assert.equal(grouped.field.survivalPct, 97);
+  assert.deepEqual(grouped.field.causes, { voles: 3 });
+});
+
+test("CSV text cells can't run as formulas", () => {
+  assert.equal(csvText("=HYPERLINK(1)"), "HYPERLINK(1)");
+  assert.equal(csvText("\t=\t=cmd"), "cmd");
+  assert.equal(csvText(" @x"), "x");
+  assert.equal(csvText("-1+2"), "1+2");
+  assert.equal(csvText('bark, "gnawed"'), '"bark, ""gnawed"""');
+  assert.equal(csvText("line\nbreak"), "line break");
+  assert.equal(csvText(undefined), "");
 });
 
 test("nearest trees", () => {
