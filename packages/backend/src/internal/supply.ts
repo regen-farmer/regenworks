@@ -256,3 +256,29 @@ function dedupeOffers(list: any[]) {
     return true;
   });
 }
+
+/** Species (genus + species, with a common name), cultivars per species and rootstocks, for searchable plan fields. */
+export function supplyOptions(rows: { latin?: string; commonName?: string; commonNameDa?: string; cultivar?: string; rootstock?: string; unit?: string }[]) {
+  const species = new Map<string, { latin: string; name?: string; cultivars: Set<string> }>();
+  const rootstocks = new Map<string, string>();
+  for (const r of rows) {
+    if (r.unit && r.unit !== "plant") continue;
+    // "Prunus ×yedoensis", "Malus x domestica", "corylus avellana": genus + species epithet
+    const words = (r.latin ?? "").trim().replace(/×/g, " ").split(/\s+/).filter((w) => w && w.toLowerCase() !== "x");
+    if (words.length < 2 || !/^[A-Za-z]+$/.test(words[0]) || !/^[a-z-]+$/i.test(words[1])) continue;
+    const latin = `${words[0][0].toUpperCase()}${words[0].slice(1).toLowerCase()} ${words[1].toLowerCase()}`;
+    const sp = species.get(latin) ?? { latin, name: undefined, cultivars: new Set<string>() };
+    sp.name ??= r.commonNameDa || r.commonName || undefined;
+    if (r.cultivar?.trim()) sp.cultivars.add(r.cultivar.trim());
+    species.set(latin, sp);
+    const rs = r.rootstock?.trim();
+    if (rs && rs.length <= 60) {
+      const k = rs.toLowerCase();
+      if (!rootstocks.has(k)) rootstocks.set(k, rs);
+    }
+  }
+  return {
+    species: [...species.values()].map((s) => ({ latin: s.latin, name: s.name, cultivars: [...s.cultivars].sort((a, b) => a.localeCompare(b)) })).sort((a, b) => a.latin.localeCompare(b.latin)),
+    rootstocks: [...rootstocks.values()].sort((a, b) => a.localeCompare(b)),
+  };
+}

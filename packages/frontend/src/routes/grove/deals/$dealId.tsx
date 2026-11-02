@@ -73,6 +73,7 @@ function DealPage() {
           expectedClose: d.expectedClose ?? null,
           source: d.source ?? "",
           sourceDetail: d.sourceDetail ?? "",
+          forwardOrder: !!d.forwardOrder,
           nextAction: { text: d.nextAction?.text ?? "", date: d.nextAction?.date ?? null },
           notes: d.notes ?? "",
           ...(d.status === "lost" ? { lostReason: lostReason() } : {}),
@@ -213,6 +214,10 @@ function DealPage() {
               <label class="flex flex-col text-xs">
                 Source
                 <SourceSelect class={input} value={d.source ?? ""} onChange={(v) => edit("source", v)} />
+              </label>
+              <label class="flex items-center gap-2 text-sm md:col-span-2" title="Trees for a later season: counts as a 20 % deposit on the scorecard until an offer is accepted">
+                <input type="checkbox" checked={!!d.forwardOrder} onChange={(e) => edit("forwardOrder", e.currentTarget.checked)} />
+                Forward order (trees for a later season; scorecard counts a 20 % deposit)
               </label>
               <label class="flex flex-col text-xs">Source detail<input class={input} maxLength={200} value={d.sourceDetail ?? ""} placeholder="e.g. ØRD adviser, date of the check" onInput={(e) => edit("sourceDetail", e.currentTarget.value)} /></label>
               <div class="flex flex-col text-xs">

@@ -83,6 +83,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
   const [value, setValue] = createSignal("");
   const [source, setSource] = createSignal("");
   const [sourceDetail, setSourceDetail] = createSignal("");
+  const [forwardOrder, setForwardOrder] = createSignal(false);
   const [nextText, setNextText] = createSignal("");
   const [nextDate, setNextDate] = createSignal("");
   const [busy, setBusy] = createSignal(false);
@@ -94,6 +95,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
     setValue("");
     setSource(props.clientId ? "Re-purchase" : "");
     setSourceDetail("");
+    setForwardOrder(false);
     setNextText("");
     setNextDate("");
   });
@@ -118,6 +120,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
           value: value() === "" ? null : value(),
           source: source(),
           sourceDetail: sourceDetail(),
+          forwardOrder: forwardOrder(),
           nextAction: { text: nextText(), date: noon(nextDate()) },
           ...(id ? { client: id } : { newClient: { name: clientName() } }),
         }),
@@ -173,6 +176,10 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
             <label class="flex flex-col gap-1">
               Source detail
               <input class={input} maxLength={200} value={sourceDetail()} placeholder="e.g. ØRD adviser, date of the check" onInput={(e) => setSourceDetail(e.currentTarget.value)} />
+            </label>
+            <label class="flex items-center gap-2 col-span-full">
+              <input type="checkbox" checked={forwardOrder()} onChange={(e) => setForwardOrder(e.currentTarget.checked)} />
+              Forward order (trees for a later season)
             </label>
             <label class="flex flex-col gap-1">
               Next action date

@@ -191,3 +191,22 @@ test("orders without form, years or organic still count against the planned prod
   const legacy = supplyBalance([], [{ latin: "Corylus avellana", season: "Autumn 2027", ownGrafts: 1000, takePct: 70 } as any]);
   assert.deepEqual(legacy.rows[0].planMissing, ["propagation", "organic", "bare root/container", "years"]);
 });
+
+test("supply options: species with names and cultivars, rootstocks; non-plants and odd names left out", async () => {
+  const { supplyOptions } = await import("../src/internal/supply.ts");
+  const { cleanDeal } = await import("../src/internal/deals.ts");
+  const o = supplyOptions([
+    { latin: "Corylus avellana", commonNameDa: "Hassel", cultivar: "Corabel", rootstock: "Corylus colurna" },
+    { latin: "Corylus avellana", cultivar: "Emmoa", rootstock: "corylus colurna" },
+    { latin: "Castanea sativa x crenata", cultivar: "Bouche de Bétizac" },
+    { latin: "Quercus", cultivar: "x" },
+    { latin: "Brise Vent Griplast", unit: "roll" },
+  ]);
+  assert.deepEqual(o.species.map((s) => [s.latin, s.name, s.cultivars]), [
+    ["Castanea sativa", undefined, ["Bouche de Bétizac"]],
+    ["Corylus avellana", "Hassel", ["Corabel", "Emmoa"]],
+  ]);
+  assert.deepEqual(o.rootstocks, ["Corylus colurna"]);
+  assert.equal((cleanDeal({ forwardOrder: true }) as any).value.forwardOrder, true);
+  assert.equal(cleanDeal({ forwardOrder: "yes" }).ok, false);
+});

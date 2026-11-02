@@ -53,12 +53,12 @@ test("scorecard: spring deals count margin, forward orders count deposits; only 
   assert.equal(c.margin.actual, 4000 + 500 + 100);
   const fwdDeposit = offerTotals({ lines: [line(1000, 130, 90)], terms: { forwardOrder: true } }).deposit;
   assert.equal(fwdDeposit.pct, 20, "forward orders default to 20 %");
-  assert.equal(c.deposits.actual, fwdDeposit.amount);
+  assert.equal(c.deposits.actual, Math.round((fwdDeposit.amount / 1.25) * 100) / 100, "deposits excl. VAT, as in the sales plan");
   assert.equal(c.margin.gap, 95_400);
   assert.equal(c.weeksLeft, 22, "30 Nov to 30 Apr: 152 days");
   assert.equal(c.margin.perWeek, Math.round(95_400 / 22));
   assert.equal(c.margin.inSentOffers, 1500);
-  assert.deepEqual(c.pipeline[0], { funnel: "Tree sales", count: 2, value: 1500 });
+  assert.deepEqual(c.pipeline[0], { funnel: "Tree sales", count: 2, value: 1500, estMargin: 375, estDeposits: 0 });
   const none = scorecard({ offers, openDeals: [], targets: {} });
   assert.equal(none.margin.gap, null);
   assert.equal(none.deposits.gap, null);
@@ -110,10 +110,10 @@ test("scorecard counts won deals: margin/deposit from their accepted offers; no 
       { status: "accepted", acceptedAt: "2026-11-23", lines: [line(10, 100, 50)] },
     ] as any[],
   });
-  assert.equal(c.margin.actual, 4000 + 10000 + 500, "d1 + d4 (won in May, offer accepted 25 Nov: counts now) + the plant-list offer");
+  assert.equal(c.margin.actual, 4000 + 10000 + 500 + 10000, "d1 + d4 (won in May, offer accepted 25 Nov: counts now) + the plant-list offer + Handshake at the standard 25 %");
   const fwdDeposit = offerTotals({ lines: [line(1000, 130, 90)], terms: { forwardOrder: true } } as any).deposit.amount;
-  assert.equal(c.deposits.actual, fwdDeposit);
-  assert.deepEqual(c.withoutOffer, { count: 1, value: 40000 });
+  assert.equal(c.deposits.actual, Math.round((fwdDeposit / 1.25) * 100) / 100);
+  assert.deepEqual(c.withoutOffer, { count: 1, value: 40000, margin: 10000, deposits: 0 });
   assert.deepEqual(c.won.map((w) => [w.kind, w.title ?? "(offer)"]), [
     ["deal", "Last season"],
     ["offer", "(offer)"],
@@ -150,4 +150,32 @@ test("scorecard edge cases: mixed deal, offers on open/lost deals, missing wonAt
   assert.equal(c.won.find((w) => w.title === "No date")?.margin, 500, "a won deal without wonAt keeps its offers");
   assert.equal(c.margin.actual, 4000 + 500 + 200, "offer on an open deal counts by its acceptance date");
   assert.equal(c.margin.inSentOffers, 500, "only the sent offer on the open deal");
+});
+
+test("won deals without an offer: standard margin (set in targets), forward-order deals a 20 % deposit", () => {
+  const c = scorecard({
+    targets: { from: "2026-11-01", to: "2027-04-30", standardMarginPct: 30 },
+    openDeals: [{ value: 100000, funnelName: "Design clients" }, { value: 50000, funnelName: "Tree sales", forwardOrder: true }, { value: 60000, funnelName: "Management clients", management: true }],
+    wonDeals: [
+      { _id: "s", title: "Spring 4 ha", wonAt: "2026-11-20T12:00:00Z", value: 200000 },
+      { _id: "f", title: "Hazel 2027", wonAt: "2026-11-21T12:00:00Z", value: 390000, forwardOrder: true },
+      { _id: "m", title: "Care contract", wonAt: "2026-11-22T12:00:00Z", value: 120000, management: true },
+      { _id: "a", title: "Hidden", wonAt: "2026-11-22T12:00:00Z", value: 999999, archived: true },
+      // ticked forward order and has an accepted offer: the offer's deposit replaces the estimate
+      { _id: "fo", title: "Hazel with offer", wonAt: "2026-11-23T12:00:00Z", value: 1, forwardOrder: true },
+    ],
+    closedDealIds: ["s", "f", "m", "a", "fo"],
+    offers: [
+      { status: "accepted", deal: "fo", acceptedAt: "2026-11-23", lines: [line(100, 125, 90)], terms: { forwardOrder: true } },
+      { status: "sent", lines: [line(100, 125, 90)], terms: { forwardOrder: true } },
+    ] as any[],
+  });
+  assert.equal(c.won.length, 3, "management (billed monthly) and hidden deals aren't estimated");
+  assert.equal(c.won.find((w) => w.title === "Hazel with offer")!.deposit, 2500, "20 % of 12,500 excl. VAT, from the offer");
+  assert.equal(c.deposits.inSentOffers, 2500, "sent forward-order deposits excl. VAT too");
+  assert.equal(c.margin.actual, 60000);
+  assert.equal(c.deposits.actual, 78000 + 2500, "20 % of 390,000, excl. VAT: the sales plan's figure");
+  assert.equal(c.won.filter((w) => w.estimated).length, 2);
+  assert.deepEqual(c.pipeline.map((p) => [p.funnel, p.estMargin, p.estDeposits]), [["Design clients", 30000, 0], ["Management clients", 0, 0], ["Tree sales", 0, 10000]]);
+  assert.equal(cleanTargets({ standardMarginPct: 95 }).ok, false);
 });

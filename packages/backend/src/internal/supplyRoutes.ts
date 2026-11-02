@@ -4,8 +4,9 @@
 import express from "express";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
+import PricebookVersion from "@rw/db/schemas/internal/pricebookVersion.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
-import { cleanSupplyPlan, supplyBalance, type SupplyRow } from "./supply.ts";
+import { cleanSupplyPlan, supplyBalance, supplyOptions, type SupplyRow } from "./supply.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -20,6 +21,16 @@ router.get("/", async (_req: Req, res) => {
     .limit(2000)
     .lean();
   res.send({ plan, ...supplyBalance(offers, plan) });
+});
+
+/**
+ * What to pick from when planning: species (with Danish name), cultivars per
+ * species and rootstocks, from the latest pricebook and the saved plan.
+ */
+router.get("/options", async (_req: Req, res) => {
+  const pb: any = await PricebookVersion.findOne().sort({ version: -1 }).select("supplierPrices.latin supplierPrices.commonName supplierPrices.cultivar supplierPrices.rootstock supplierPrices.unit salesPrices.latin salesPrices.commonNameDa salesPrices.cultivar salesPrices.rootstock").lean();
+  const setting: any = await GroveSetting.findOne({ key: KEY }).lean();
+  res.send(supplyOptions([...(pb?.salesPrices ?? []), ...(pb?.supplierPrices ?? []), ...(Array.isArray(setting?.value?.rows) ? setting.value.rows : [])]));
 });
 
 router.put("/plan", async (req: Req, res) => {

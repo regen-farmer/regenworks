@@ -27,6 +27,8 @@ export interface IDeal {
 	expectedClose?: Date | null;
 	owner?: mongoose.Types.ObjectId | null;
 	source?: string;
+	/** trees for a later season: counts as a deposit (not margin) on the scorecard */
+	forwardOrder?: boolean;
 	/** e.g. the ØRD adviser and the date of the Omlægningstjek */
 	sourceDetail?: string;
 	nextAction: { text?: string; date?: Date | null };
@@ -68,6 +70,7 @@ const schema = new mongoose.Schema<IDeal>(
 		owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		source: { type: String, maxlength: 100 },
 		sourceDetail: { type: String, maxlength: 200 },
+		forwardOrder: { type: Boolean, default: false },
 		nextAction: {
 			text: { type: String, maxlength: 500 },
 			date: Date,

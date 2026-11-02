@@ -8,21 +8,24 @@ import { stageText, type Stage } from "~/grove/projectTypes.ts";
 import { dkk } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
-type Targets = { label?: string; from?: string; to?: string; margin?: number | null; deposits?: number | null };
+type Targets = { label?: string; from?: string; to?: string; margin?: number | null; deposits?: number | null; standardMarginPct?: number | null };
 type Part = { actual: number; target: number | null; gap: number | null; perWeek: number | null; inSentOffers: number; withoutCost?: number };
 type Card = {
   targets: Targets;
   weeksLeft: number | null;
   margin: Part;
   deposits: Part;
-  pipeline: { funnel: string; count: number; value: number }[];
-  withoutOffer?: { count: number; value: number };
+  pipeline: { funnel: string; count: number; value: number; estMargin?: number; estDeposits?: number }[];
+  standardMarginPct?: number;
+  forwardDepositPct?: number;
+  withoutOffer?: { count: number; value: number; margin?: number; deposits?: number };
   won: {
     kind: "deal" | "offer";
     offerId?: string | null;
     offers: number;
     funnel?: string;
     withoutOffer: number;
+    estimated?: boolean;
     _id: string;
     title?: string;
     client?: string;
@@ -111,13 +114,17 @@ export function Scorecard() {
       <Show when={data.error}><p class="text-sm text-red-600">{(data.error as Error)?.message}</p></Show>
 
       <Show when={editing()}>
-        <form class="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs" onSubmit={save}>
+        <form class="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs" onSubmit={save}>
           <label class="flex flex-col">Name<input class={input} maxLength={100} value={t().label ?? ""} placeholder="e.g. Spring 2027" onInput={(e) => setT({ ...t(), label: e.currentTarget.value })} /></label>
           <label class="flex flex-col">From<input type="date" class={input} value={t().from ?? ""} onInput={(e) => setT({ ...t(), from: e.currentTarget.value })} /></label>
           <label class="flex flex-col">To<input type="date" class={input} value={t().to ?? ""} onInput={(e) => setT({ ...t(), to: e.currentTarget.value })} /></label>
-          <label class="flex flex-col">Margin target, spring deals (kr)<input type="number" min="0" step="1000" class={input} value={t().margin ?? ""} onInput={(e) => setT({ ...t(), margin: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
-          <label class="flex flex-col">Deposit target, forward orders (kr)<input type="number" min="0" step="1000" class={input} value={t().deposits ?? ""} onInput={(e) => setT({ ...t(), deposits: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
-          <div class="col-span-2 md:col-span-5 flex gap-2 items-center">
+          <label class="flex flex-col">Margin target, spring deals (kr excl. VAT)<input type="number" min="0" step="1000" class={input} value={t().margin ?? ""} onInput={(e) => setT({ ...t(), margin: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
+          <label class="flex flex-col" title="Used for won deals until their offer has real costs">
+            Standard margin on deals (%)
+            <input type="number" min="0" max="90" step="1" class={input} value={t().standardMarginPct ?? ""} placeholder="25" onInput={(e) => setT({ ...t(), standardMarginPct: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} />
+          </label>
+          <label class="flex flex-col">Deposit target, forward orders (kr excl. VAT)<input type="number" min="0" step="1000" class={input} value={t().deposits ?? ""} onInput={(e) => setT({ ...t(), deposits: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} /></label>
+          <div class="col-span-2 md:col-span-6 flex gap-2 items-center">
             <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()}>Save targets</button>
             <span class="opacity-70">Kept in the app's database, not in the code.</span>
           </div>
@@ -131,20 +138,20 @@ export function Scorecard() {
           <div class="flex flex-col gap-1 min-w-48">
             <span class="font-semibold text-sm">Open deals</span>
             <For each={card()!.pipeline} fallback={<span class="text-xs opacity-70">None</span>}>
-              {(f) => <span class="text-xs">{f.funnel}: {f.count} · {kr(f.value)}</span>}
+              {(f) => <span class="text-xs">{f.funnel}: {f.count} · {kr(f.value)}{f.estMargin || f.estDeposits ? <span class="opacity-70"> (≈ {[f.estMargin ? `${kr(f.estMargin)} margin` : "", f.estDeposits ? `${kr(f.estDeposits)} deposits` : ""].filter(Boolean).join(" + ")})</span> : ""}</span>}
             </For>
           </div>
         </div>
         <Show when={card()!.withoutOffer?.count}>
           <p class="text-xs text-amber-700">
-            {card()!.withoutOffer!.count} won deal{card()!.withoutOffer!.count === 1 ? " has" : "s have"} no accepted offer ({dkk(card()!.withoutOffer!.value) || "no value"}), so {card()!.withoutOffer!.count === 1 ? "its" : "their"} margin isn't counted. Accept the offer, or link it to the deal.
+            Of this, ≈ {[card()!.withoutOffer!.margin ? `${kr(card()!.withoutOffer!.margin)} margin` : "", card()!.withoutOffer!.deposits ? `${kr(card()!.withoutOffer!.deposits)} deposits` : ""].filter(Boolean).join(" and ") || "0 kr"} is estimated: {card()!.withoutOffer!.count} won deal{card()!.withoutOffer!.count === 1 ? "" : "s"} without an accepted offer ({dkk(card()!.withoutOffer!.value) || "no value"}), at {card()!.standardMarginPct ?? 25} % standard margin or a {card()!.forwardDepositPct ?? 20} % deposit for forward orders. The real figure comes in when an offer is accepted on the deal.
           </p>
         </Show>
         <Show when={(card()!.margin.withoutCost ?? 0) > 0}>
           <p class="text-xs text-amber-700">{kr(card()!.margin.withoutCost)} of accepted sales has no known cost, so its margin isn't counted.</p>
         </Show>
         <p class="text-xs opacity-70">
-          Counts deals won in the period, from their accepted offers: the internal-sheet margin for spring work, the deposit for offers ticked "Forward order". Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.
+          Counts deals won in the period. A deal with an accepted offer counts its real margin (deposit for forward orders); a deal without one is estimated from its value at the standard margin (forward orders: a 20 % deposit; management deals are billed monthly and not counted). Deposits excl. VAT. Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.
         </p>
 
         <details>
@@ -166,7 +173,9 @@ export function Scorecard() {
                     </td>
                     <td class="py-1 pr-3">
                       <Show when={w.kind === "deal" && !w.offers} fallback={[w.margin ? `Margin ${kr(w.margin)}${w.marginPct !== null ? ` (${w.marginPct} %)` : ""}` : "", w.deposit ? `forward-order deposit ${kr(w.deposit)}` : ""].filter(Boolean).join(" · ") || "–"}>
-                        <span class="text-amber-700">No accepted offer · deal value {kr(w.withoutOffer)}</span>
+                        <span class="opacity-80">
+                          {w.forwardOrder ? `forward-order deposit ${kr(w.deposit)}` : `margin ${kr(w.margin)}`} <span class="text-amber-700">≈ estimate from deal value {kr(w.withoutOffer)}</span>
+                        </span>
                       </Show>
                     </td>
                     <td class="py-1 pr-3">
