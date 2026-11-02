@@ -176,9 +176,8 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
       return {
         key,
         spec,
-        sales: sales.map((x) => x.salesPriceId),
-        costs: own.map((x) => x.priceId),
-        compatibleCosts: compatible.map((x) => x.priceId),
+        sales: sales.length,
+        costs: own.length,
         summary: {
           costPoints: own.length,
           compatiblePoints: compatible.length,
@@ -204,7 +203,7 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     p.costs.sort((a, b) => (a.unitCostDkk ?? Infinity) - (b.unitCostDkk ?? Infinity));
     return {
       ...p,
-      products: productsOf(p).sort((a, b) => b.sales.length - a.sales.length || b.costs.length - a.costs.length || a.key.localeCompare(b.key)),
+      products: productsOf(p).sort((a, b) => b.sales - a.sales || b.costs - a.costs || a.key.localeCompare(b.key)),
       summary: {
         costPoints: p.costs.length,
         suppliers: new Set(p.costs.map((c) => c.supplierId)).size,

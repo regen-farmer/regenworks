@@ -243,6 +243,8 @@ export function lineQuery(l: OfferLine, hybrid?: PlantQuery["hybrid"]): PlantQue
     heightMin: l.heightMin,
     heightMax: l.heightMax,
     organic: typeof l.organicRequested === "boolean" ? l.organicRequested : undefined,
+    form: l.form || undefined,
+    years: l.years || undefined,
   };
 }
 

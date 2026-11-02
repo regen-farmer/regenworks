@@ -33,7 +33,12 @@ type Row = {
   afterSigned: number;
   afterLikely: number;
   planned: boolean;
+  /** what the plan row leaves open */
+  planMissing: string[];
+  /** fields the orders counted here don't state */
   missing: string[];
+  /** an order that fits several planned products: counted against none */
+  candidates: number;
   offers: { _id: string; title?: string; client?: string; status: string }[];
   note?: string;
 };
@@ -169,7 +174,7 @@ function Supply() {
           </button>
         </div>
         <p class="text-sm opacity-80">
-          Plants in offers ticked "Forward order", per exact product and delivery season: signed (accepted) and likely (sent or draft), against own production × expected take plus what suppliers can deliver. Supply only counts for the same product (rootstock, propagation, organic, bare root/container, production years). Designs (B) don't look at stock.
+          Plants in offers ticked "Forward order", per exact product and delivery season: signed (accepted) and likely (sent or draft), against own production × expected take plus what suppliers can deliver. Supply only counts for the same product (rootstock, propagation, organic, bare root/container, production years); an order line that leaves a field open counts against the one planned product it fits, and says so. Designs (B) don't look at stock.
         </p>
         <Show when={data.error}><p class="text-sm text-red-600">{(data.error as Error)?.message}</p></Show>
         <Show when={short()}>
@@ -289,8 +294,10 @@ function Supply() {
                                 {r.label}
                               </button>
                               <Show when={r.name}><span class="opacity-70 text-xs"> {r.name}</span></Show>
-                              <Show when={!r.planned}><div class="text-xs text-amber-700">No supply plan for this product</div></Show>
-                              <Show when={r.missing.length}><div class="text-xs text-amber-700">Order lines don't say: {r.missing.join(", ")}</div></Show>
+                              <Show when={!r.planned && r.candidates < 2}><div class="text-xs text-amber-700">No supply plan for this product</div></Show>
+                              <Show when={r.candidates > 1}><div class="text-xs text-amber-700">Fits {r.candidates} planned products: say which on the order line (e.g. bare root or container)</div></Show>
+                              <Show when={r.planMissing.length}><div class="text-xs text-amber-700">Plan row doesn't say: {r.planMissing.join(", ")}</div></Show>
+                              <Show when={r.missing.length}><div class="text-xs opacity-70">Counted here, but the order lines don't say: {r.missing.join(", ")}</div></Show>
                             </td>
                             <td class={td}>{r.season}</td>
                             <td class={td}>{n(r.signed)}</td>

@@ -332,6 +332,9 @@ export type PlantQuery = {
   /** wanted plant height in cm; closer sizes rank higher */
   heightMin?: number;
   heightMax?: number;
+  /** bare root / container and production years: the same product ranks higher, another one lower */
+  form?: string;
+  years?: string;
   /** true: organic only; false: anything not organic; undefined: either. */
   organic?: boolean;
 };
@@ -462,6 +465,12 @@ function matchRows<T extends Matchable>(rows: T[], q: PlantQuery): Scored<T>[] {
     if (rootstockMatch) score += 2;
     else if (q.rootstock && r.rootstock && rowPropagation(r.propagation) === "grafted") score -= 1;
     if (q.organic !== undefined) score += 1;
+    if (q.form || q.years) {
+      const spec = "salesPriceId" in r ? salesSpec(r as unknown as SalesPrice) : supplierSpec(r as unknown as SupplierPrice);
+      const w = cleanYears(q.years);
+      if (q.form && spec.form) score += spec.form === q.form ? 1 : -3;
+      if (w && spec.years) score += spec.years === w ? 1 : -3;
+    }
     out.push({ item: r, score, exactCultivar, rootstockMatch, heightGap: heightGap(r, q) });
   }
   return out.sort((a, b) => b.score - a.score || a.heightGap - b.heightGap || tieBreak(a.item, b.item, q));

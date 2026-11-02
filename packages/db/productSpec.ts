@@ -44,9 +44,20 @@ export const speciesOf = (latin: string | undefined) =>
     .slice(0, 2)
     .join(" ");
 
-const SEEDLING_WORDS = /\b(seedling|seedlings|froformeret|kimplante|zaailing)\b/g;
-/** "Corylus colurna seedling" and "corylus colurna" are the same rootstock. */
-export const rootstockOf = (r: string | undefined) => norm(r).replace(SEEDLING_WORDS, "").replace(/\s+/g, " ").trim();
+const SEEDLING_WORDS = /\b(seedling|seedlings|froformeret|kimplante|zaailing|samling|semis)\b/g;
+/**
+ * One spelling per rootstock: "Corylus colurna seedling", "C. colurna" and
+ * "corylus colurna" -> "c colurna" (genus by its first letter); "M.9", "M 9"
+ * -> "m9"; "MM 106" -> "mm106".
+ */
+export const rootstockOf = (r: string | undefined) => {
+  const t = norm(r).replace(SEEDLING_WORDS, "").replace(/\s+/g, " ").trim();
+  if (!t) return "";
+  const joined = t.replace(/\b([a-z]{1,3})\s+(\d+[a-z]?)\b/g, "$1$2");
+  const [first, ...rest] = joined.split(" ");
+  // a Latin name: genus (full or abbreviated) + epithet
+  return rest.length && /^[a-z]+$/.test(first) && /^[a-z]/.test(rest[0]) ? [first[0], ...rest].join(" ") : joined;
+};
 
 /**
  * Production years: "1+1", "2+0", "1/1", "1-0" -> "1+1", "2+0", "1+1", "1+0";
@@ -55,9 +66,16 @@ export const rootstockOf = (r: string | undefined) => norm(r).replace(SEEDLING_W
 export function cleanYears(v: unknown): string | undefined {
   if (typeof v !== "string" && typeof v !== "number") return undefined;
   const t = String(v).trim().toLowerCase();
-  const m = t.match(/^(\d)(?:\s*[+/-]\s*(\d))?$/);
-  if (m) return m[2] !== undefined ? `${m[1]}+${m[2]}` : m[1];
-  const y = t.match(/^(\d)\s*(?:ans?|år|aar|years?|yrs?|jahre?|jaar|jarig)$/);
+  // "+" and "/" are nursery notation; a dash only as in "1-0", "1-1", "2-0"
+  // ("2-3" is more likely an age range, which isn't a product)
+  const m = t.match(/^(\d)\s*([+/-])\s*(\d)$/);
+  if (m) {
+    if (m[2] === "-" && Number(m[3]) > 1) return undefined;
+    // N+0 is N years in the nursery: the same as "N"
+    return m[3] === "0" ? m[1] : `${m[1]}+${m[3]}`;
+  }
+  if (/^\d$/.test(t)) return t;
+  const y = t.match(/^(\d)\s*-?\s*(?:ans?|år|aar|years?|yrs?|y|jahre?|jährig|jahrig|jaar|jarig|j)$/);
   return y ? y[1] : undefined;
 }
 
@@ -68,11 +86,13 @@ export const defaultYears = (propagation: string | undefined) => (propagation ==
 export function formOf(...texts: (string | undefined)[]): Form | undefined {
   const t = texts.filter(Boolean).join(" ").toLowerCase();
   if (!t) return undefined;
-  // WG = wortelgoed (Dutch nurseries), racines nues (French)
-  if (/bare\s*-?\s*root|barrod|wurzelnackt|wortelgoed|\bwg\b|racines? nues?|naked|\bbr\b|\bb\.r\.?\b/.test(t)) return "bare-root";
-  if (/root\s*-?\s*ball|klump|ballen|kluit|motte|\brb\b/.test(t)) return "root-ball";
-  if (/\bc\s?\d+(\.\d+)?\s?l?\b|container|conteneur|godet|airpot|\bpot\b|potte|\bp\s?\d+\b|liter|\bltr\b|\d+\s?l\b/.test(t)) return "container";
-  return undefined;
+  // WG = wortelgoed (Dutch), racines nues (French), o.B./Wurzelware (German)
+  const bare = /bare\s*-?\s*root|barrod|wurzelnackt|wurzelware|wortelgoed|\bwg\b|racines? nues?|naked|\bbr\b|\bb\.r\.?(?!\w)|\bo\.?\s?b\.?(?!\w)/.test(t);
+  const ball = /root\s*-?\s*ball|klump|ballen|kluit|motte|\brb\b|\bm\.?\s?b\.?(?!\w)/.test(t);
+  const pot = /\bc\s?\d+(\.\d+)?\s?l?\b|container|conteneur|godet|airpot|\bpot\b|potte|\btopf\b|\bp\s?\d+\b|liter|\bltr\b|\d+\s?l\b/.test(t);
+  // two different forms on one row ("C3 / WG"): don't guess
+  if (Number(bare) + Number(ball) + Number(pot) !== 1) return undefined;
+  return bare ? "bare-root" : ball ? "root-ball" : "container";
 }
 
 /**

@@ -3,7 +3,7 @@
 // rootstock, propagation, organic, bare root/container, production years) and
 // season: own production at the expected take rate plus supplier capacity.
 // Stock is only looked at for orders (A); designs (B) ignore it. Grove team only.
-import { cleanYears, defaultYears, FORMS, missingFields, PROPAGATIONS, specKey, specLabel, type ProductSpec } from "@rw/db/productSpec.ts";
+import { cleanYears, compareSpecs, defaultYears, FORMS, missingFields, PROPAGATIONS, specKey, specLabel, type ProductSpec } from "@rw/db/productSpec.ts";
 import { norm, rowPropagation } from "./pricebook.ts";
 import { isService, type OfferLike } from "./offers.ts";
 import { danishDay } from "./services.ts";
@@ -143,51 +143,90 @@ export function cleanSupplyPlan(body: any): { ok: true; value: SupplyRow[] } | {
 }
 
 /**
- * Demand against supply per exact product and season. Supply counts only
- * for the same product (same rootstock, propagation, organic, form, years);
- * per species and season the totals show where one product is short while
- * another has plants to spare (a substitute is a decision made on the order,
- * not here).
+ * Demand against supply per product and season. An order counts against a
+ * planned product when they could be the same product: every field both
+ * state agrees, and a field only one of them states (e.g. an older order
+ * line without production years) is allowed but listed as "not stated".
+ * An order that fits several planned products isn't counted against any of
+ * them (say which on the order line). Per species and season, the totals
+ * show where one product is short and another has plants to spare (a
+ * substitute is a decision made on the order, not here).
  */
 export function supplyBalance(offers: SupplyOffer[], plan: SupplyRow[]) {
   const demand = forwardDemand(offers);
-  const planBy = new Map(plan.map((p) => [rowKey(p, p.season), p]));
-  const keys = new Set([...demand.map((d) => d.key), ...planBy.keys()]);
-  const rows = [...keys]
-    .map((key) => {
-      const d = demand.find((x) => x.key === key);
-      const p = planBy.get(key);
-      const own = Math.floor(((p?.ownGrafts ?? 0) * (p?.takePct ?? 0)) / 100);
-      const bought = (p?.suppliers ?? []).reduce((n, s) => n + s.qty, 0);
-      const available = own + bought;
-      const signed = d?.signed ?? 0;
-      const likely = d?.likely ?? 0;
-      const spec: ProductSpec = d?.spec ?? { latin: p!.latin, cultivar: p!.cultivar, rootstock: p!.rootstock, propagation: p!.propagation, organic: p!.organic, form: p!.form, years: p!.years };
+  const planned = plan.map((p) => ({ key: rowKey(p, p.season), p, spec: { latin: p.latin, cultivar: p.cultivar, rootstock: p.rootstock, propagation: p.propagation, organic: p.organic, form: p.form, years: p.years } as ProductSpec, demand: [] as { d: (typeof demand)[number]; unknown: string[] }[] }));
+  const loose: { d: (typeof demand)[number]; candidates: number }[] = [];
+  for (const d of demand) {
+    const fits = planned.filter((x) => x.p.season === d.season).map((x) => ({ x, cmp: compareSpecs(d.spec, x.spec) })).filter((f) => f.cmp.same);
+    // the exact one wins when there is one
+    const exact = fits.filter((f) => f.cmp.exact);
+    const pick = exact.length === 1 ? exact : fits;
+    if (pick.length === 1) pick[0].x.demand.push({ d, unknown: pick[0].cmp.unknown });
+    else loose.push({ d, candidates: pick.length });
+  }
+  const supplyOf = (p?: SupplyRow) => {
+    const own = Math.floor(((p?.ownGrafts ?? 0) * (p?.takePct ?? 0)) / 100);
+    const bought = (p?.suppliers ?? []).reduce((n, x) => n + x.qty, 0);
+    return { own, available: own + bought };
+  };
+  const rows = [
+    ...planned.map(({ key, p, spec, demand: ds }) => {
+      const { own, available } = supplyOf(p);
+      const signed = ds.reduce((n, x) => n + x.d.signed, 0);
+      const likely = ds.reduce((n, x) => n + x.d.likely, 0);
       return {
         key,
-        group: speciesSeason(d?.latin ?? p!.latin, d?.season ?? p!.season),
+        group: speciesSeason(p.latin, p.season),
         spec,
         label: specLabel(spec),
-        latin: d?.latin ?? p!.latin,
-        name: d?.name,
-        season: d?.season ?? p!.season,
+        latin: p.latin,
+        name: ds.find((x) => x.d.name)?.d.name,
+        season: p.season,
         signed,
         likely,
-        ownGrafts: p?.ownGrafts ?? 0,
-        takePct: p?.takePct ?? null,
+        ownGrafts: p.ownGrafts ?? 0,
+        takePct: p.takePct ?? null,
         ownExpected: own,
-        suppliers: p?.suppliers ?? [],
+        suppliers: p.suppliers ?? [],
         available,
         afterSigned: available - signed,
         afterLikely: available - signed - likely,
-        planned: !!p,
-        missing: d?.missing ?? [],
-        offers: d?.offers ?? [],
-        note: p?.note,
+        planned: true,
+        // what the plan row itself leaves open (e.g. a row saved before products were specified)
+        planMissing: missingFields(spec),
+        // fields the matched orders don't state
+        missing: [...new Set(ds.flatMap((x) => x.unknown))],
+        candidates: 0,
+        offers: dedupeOffers(ds.flatMap((x) => x.d.offers)),
+        note: p.note,
       };
-    })
-    .sort((a, b) => a.season.localeCompare(b.season) || a.label.localeCompare(b.label));
-  const species = new Map<string, { latin: string; season: string; signed: number; likely: number; available: number; products: number }>();
+    }),
+    ...loose.map(({ d, candidates }) => ({
+      key: d.key,
+      group: speciesSeason(d.latin, d.season),
+      spec: d.spec,
+      label: specLabel(d.spec),
+      latin: d.latin,
+      name: d.name,
+      season: d.season,
+      signed: d.signed,
+      likely: d.likely,
+      ownGrafts: 0,
+      takePct: null as number | null,
+      ownExpected: 0,
+      suppliers: [] as { name: string; qty: number }[],
+      available: 0,
+      afterSigned: -d.signed,
+      afterLikely: -d.signed - d.likely,
+      planned: false,
+      planMissing: [] as string[],
+      missing: d.missing,
+      candidates,
+      offers: d.offers,
+      note: undefined as string | undefined,
+    })),
+  ].sort((a, b) => a.season.localeCompare(b.season) || a.label.localeCompare(b.label));
+  const species = new Map<string, { group: string; latin: string; season: string; signed: number; likely: number; available: number; products: number }>();
   for (const r of rows) {
     const k = r.group;
     const x = species.get(k) ?? { group: k, latin: r.latin.split(" ").slice(0, 2).join(" "), season: r.season, signed: 0, likely: 0, available: 0, products: 0 };
@@ -201,4 +240,14 @@ export function supplyBalance(offers: SupplyOffer[], plan: SupplyRow[]) {
     rows,
     species: [...species.values()].map((x) => ({ ...x, afterSigned: x.available - x.signed, afterLikely: x.available - x.signed - x.likely })).sort((a, b) => a.season.localeCompare(b.season) || a.latin.localeCompare(b.latin)),
   };
+}
+
+function dedupeOffers(list: any[]) {
+  const seen = new Set<string>();
+  return list.filter((o) => {
+    const k = String(o._id);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }

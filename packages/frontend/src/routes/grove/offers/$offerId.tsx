@@ -1,6 +1,6 @@
 // One offer: edit, the Danish offer sheet (print to PDF), Dinero lines and
 // the internal sheet with costs and margins. Grove team only.
-import { cleanYears, defaultYears, FORM_DA, FORM_EN, FORMS, type Form } from "@rw/db/productSpec.ts";
+import { cleanYears, FORM_DA, FORM_EN, FORMS, type Form } from "@rw/db/productSpec.ts";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/solid-router";
 import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
@@ -358,9 +358,19 @@ function OfferPage() {
                             class={`${input} w-14`}
                             aria-label="Production years"
                             value={l.years ?? ""}
-                            placeholder={defaultYears(l.propagation) ?? "–"}
-                            title="Production years, e.g. 1+1 (grafted) or 1 (seedling)"
-                            onChange={(e) => edit("lines", i(), { years: cleanYears(e.currentTarget.value) ?? (e.currentTarget.value.trim() ? l.years : undefined), pricebookRef: null })}
+                            placeholder="1+1"
+                            title="Production years, e.g. 1+1 (grafted) or 1 (seedling). Empty: from the price list (Grove's own: grafted 1+1, seedlings 1)"
+                            onChange={(e) => {
+                              const typed = e.currentTarget.value.trim();
+                              const years = cleanYears(typed);
+                              if (typed && !years) {
+                                // show what is kept, not what was typed
+                                e.currentTarget.value = l.years ?? "";
+                                showToast({ title: "Years not changed", description: "Write production years as e.g. 1+1, 2+0 or 1", variant: "destructive" });
+                                return;
+                              }
+                              edit("lines", i(), { years, pricebookRef: null });
+                            }}
                           />
                         </td>
                         <td class={td}><input class={input} value={l.size ?? ""} onInput={(e) => edit("lines", i(), { size: e.currentTarget.value, pricebookRef: null })} /></td>

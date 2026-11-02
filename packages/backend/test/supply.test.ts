@@ -170,3 +170,24 @@ test("/internal/supply: grove-team only", async () => {
     assert.equal((await fetch(`${base}/internal/supply/plan`, { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
   }
 });
+
+test("orders without form, years or organic still count against the planned product (flagged); ambiguous ones don't", () => {
+  const terms = { forwardOrder: true, deliveryDate: "2027-10-01" };
+  // an accepted line from before products were specified
+  const old = { latin: "Corylus avellana", cultivar: "Corabel", rootstock: "Corylus colurna", propagation: "grafted", qty: 1000, unitPrice: 130, priceSource: "sales" };
+  const plan = (cleanSupplyPlan({ rows: [{ ...corabelPlan, organic: undefined, season: "Autumn 2027", suppliers: [{ name: "X", qty: 2000 }] }] }) as any).value;
+  const r = supplyBalance([{ status: "accepted", terms, lines: [old] }] as any[], plan);
+  assert.equal(r.rows.length, 1, "no false shortage next to a spare plan row");
+  assert.equal(r.rows[0].signed, 1000);
+  assert.equal(r.rows[0].afterSigned, 1000);
+  assert.deepEqual(r.rows[0].missing.sort(), ["form", "years"]);
+  // two planned products the old line could be: counted against neither
+  const two = (cleanSupplyPlan({ rows: [{ ...corabelPlan, season: "Autumn 2027", suppliers: [{ name: "X", qty: 10 }] }, { ...corabelPlan, form: "container", season: "Autumn 2027" }] }) as any).value;
+  const r2 = supplyBalance([{ status: "accepted", terms, lines: [old] }] as any[], two);
+  const open = r2.rows.find((x) => !x.planned)!;
+  assert.equal(open.candidates, 2);
+  assert.equal(open.afterSigned, -1000);
+  // an old-format plan row (species only) still loads, and says what it leaves open
+  const legacy = supplyBalance([], [{ latin: "Corylus avellana", season: "Autumn 2027", ownGrafts: 1000, takePct: 70 } as any]);
+  assert.deepEqual(legacy.rows[0].planMissing, ["propagation", "organic", "bare root/container", "years"]);
+});

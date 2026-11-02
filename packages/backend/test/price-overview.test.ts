@@ -57,7 +57,7 @@ test("price overview: one product per species, cultivar, rootstock and type; cos
   assert.ok(loose.ok && priceOverview(loose.data, { eurDkk: 7 }).products.find((p) => p.cultivar === "Corabel")!.costs.length === 2);
 });
 
-test("price overview: products by rootstock, propagation, form and years; margins only against costs that fit", () => {
+test("price overview: products by rootstock, propagation, form and years; margins only against costs that fit", async () => {
   const b = buildPricebook({
     ...files,
     services: "service_id,section,name_da,unit_da,basis,supplier_price_id\nnet,protection,Net,stk.,tree,c2",
@@ -74,13 +74,18 @@ test("price overview: products by rootstock, propagation, form and years; margin
   if (!b.ok) return;
   const g = priceOverview(b.data, { eurDkk: 7 }).products.find((p) => p.cultivar === "Corabel")!;
   assert.equal(g.products.length, 3, "colurna 1+1 bare root (sale + c1), own-rooted container, avellana rootstock 2 years");
-  const main = g.products.find((p) => p.sales.length)!;
-  assert.deepEqual(main.costs, ["c1"]);
-  assert.deepEqual(main.compatibleCosts, ["c1"], "not the own-rooted plant, not the one on avellana");
+  const main = g.products.find((p) => p.sales)!;
+  assert.equal(main.costs, 1);
+  assert.equal(main.summary.compatiblePoints, 1, "c1 only: not the own-rooted plant, not the one on avellana");
   assert.equal(main.summary.costMin, 70);
   assert.equal(main.summary.marginLow, 41.67);
   assert.equal(main.summary.approx, false);
   assert.equal(main.spec.years, "1+1");
   assert.equal(main.spec.form, "bare-root");
-  assert.equal(g.products.find((p) => p.costs.includes("c3"))!.spec.years, "2");
+  assert.ok(g.products.some((p) => p.spec.rootstock === "Corylus avellana" && p.spec.years === "2"));
+  // pricing a line: the same form and years rank first
+  const { suggestPrice } = await import("../src/internal/pricebook.ts");
+  const pick = (form: string, years?: string) => suggestPrice(b.data, { latin: "Corylus avellana", cultivar: "Corabel", form, years }, { marginPct: 25, eurDkk: 7 })?.supplierPriceId;
+  assert.equal(pick("container"), "c2");
+  assert.equal(pick("bare-root", "2"), "c3");
 });

@@ -65,9 +65,9 @@ type Sale = {
 type Variant = {
   key: string;
   spec: ProductSpec;
-  sales: string[];
-  costs: string[];
-  compatibleCosts: string[];
+  /** how many sales and supplier prices are for exactly this product */
+  sales: number;
+  costs: number;
   summary: { costPoints: number; compatiblePoints: number; exactPoints: number; costMin?: number; costMax?: number; salesMin?: number; salesMax?: number; marginLow: number | null; marginHigh: number | null; approx: boolean };
 };
 type Product = {
@@ -279,17 +279,17 @@ function Prices() {
                           </td>
                         </tr>
                         {/* each product: rootstock, propagation, organic, bare root/container, production years */}
-                        <For each={p.products?.length && (p.products.length > 1 || p.products[0].sales.length) ? p.products : []}>
+                        <For each={p.products?.length && (p.products.length > 1 || p.products[0].sales) ? p.products : []}>
                           {(v) => (
-                            <tr class="text-xs" classList={{ "opacity-60": !v.sales.length }}>
+                            <tr class="text-xs" classList={{ "opacity-60": !v.sales }}>
                               <td class={`${td} pl-4`} colSpan={2}>└ {variantText(v.spec)}</td>
-                              <td class={`${td} whitespace-nowrap`}>{v.sales.length ? range(v.summary.salesMin, v.summary.salesMax) : ""}</td>
+                              <td class={`${td} whitespace-nowrap`}>{v.sales ? range(v.summary.salesMin, v.summary.salesMax) : ""}</td>
                               <td class={`${td} whitespace-nowrap`}>
-                                {v.summary.compatiblePoints ? range(v.summary.costMin, v.summary.costMax) : v.sales.length ? <span class="text-amber-700">no supplier price for this product</span> : ""}
+                                {v.summary.compatiblePoints ? range(v.summary.costMin, v.summary.costMax) : v.sales ? <span class="text-amber-700">no supplier price for this product</span> : ""}
                               </td>
                               <td class={td}>
                                 {v.summary.costPoints ? `${v.summary.costPoints} price${v.summary.costPoints === 1 ? "" : "s"}` : ""}
-                                <Show when={v.sales.length && v.summary.compatiblePoints > v.summary.exactPoints}>
+                                <Show when={v.sales && v.summary.compatiblePoints > v.summary.exactPoints}>
                                   <div class="opacity-70">{v.summary.compatiblePoints - v.summary.exactPoints} not fully specified</div>
                                 </Show>
                               </td>
