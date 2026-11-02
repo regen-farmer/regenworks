@@ -88,4 +88,7 @@ test("price overview: products by rootstock, propagation, form and years; margin
   const pick = (form: string, years?: string) => suggestPrice(b.data, { latin: "Corylus avellana", cultivar: "Corabel", form, years }, { marginPct: 25, eurDkk: 7 })?.supplierPriceId;
   assert.equal(pick("container"), "c2");
   assert.equal(pick("bare-root", "2"), "c3");
+  // a leftover form never pulls the price to another rootstock
+  const onColurna = suggestPrice(b.data, { latin: "Corylus avellana", cultivar: "Corabel", rootstock: "Corylus colurna", form: "container", years: "2" }, { marginPct: 25, eurDkk: 7 })?.supplierPriceId;
+  assert.equal(onColurna, "c1");
 });

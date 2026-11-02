@@ -146,6 +146,14 @@ export function compareSpecs(a: ProductSpec, b: ProductSpec): { same: boolean; e
     } else if (x || y) unknown.push(name);
   };
   check("rootstock", rootstockOf(a.rootstock) || undefined, rootstockOf(b.rootstock) || undefined);
+  // both spell the genus out: it must be the same genus ("Pyrus communis" isn't "Prunus communis")
+  const genus = (r: string | undefined) => {
+    const w = norm(r).split(" ");
+    return w.length > 1 && w[0].length > 2 ? w[0] : undefined;
+  };
+  const ga = genus(a.rootstock);
+  const gb = genus(b.rootstock);
+  if (ga && gb && ga !== gb && !differs.includes("rootstock")) differs.push("rootstock");
   check("propagation", norm(a.propagation as string) || undefined, norm(b.propagation as string) || undefined);
   check("organic", a.organic === true || a.organic === false ? String(a.organic) : undefined, b.organic === true || b.organic === false ? String(b.organic) : undefined);
   check("form", norm(a.form as string) || undefined, norm(b.form as string) || undefined);

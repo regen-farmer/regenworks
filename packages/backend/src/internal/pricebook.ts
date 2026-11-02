@@ -464,12 +464,15 @@ function matchRows<T extends Matchable>(rows: T[], q: PlantQuery): Scored<T>[] {
     if (exactCultivar) score += 4;
     if (rootstockMatch) score += 2;
     else if (q.rootstock && r.rootstock && rowPropagation(r.propagation) === "grafted") score -= 1;
+    // a rootstock was asked for: a plant on its own roots is another product
+    else if (q.rootstock && !r.rootstock && rowPropagation(r.propagation) && rowPropagation(r.propagation) !== "grafted") score -= 2;
     if (q.organic !== undefined) score += 1;
     if (q.form || q.years) {
       const spec = "salesPriceId" in r ? salesSpec(r as unknown as SalesPrice) : supplierSpec(r as unknown as SupplierPrice);
       const w = cleanYears(q.years);
-      if (q.form && spec.form) score += spec.form === q.form ? 1 : -3;
-      if (w && spec.years) score += spec.years === w ? 1 : -3;
+      // lighter than the rootstock (+2): a form or age off never beats the right rootstock
+      if (q.form && spec.form) score += spec.form === q.form ? 0.5 : -1;
+      if (w && spec.years) score += spec.years === w ? 0.5 : -1;
     }
     out.push({ item: r, score, exactCultivar, rootstockMatch, heightGap: heightGap(r, q) });
   }

@@ -180,7 +180,7 @@ test("orders without form, years or organic still count against the planned prod
   assert.equal(r.rows.length, 1, "no false shortage next to a spare plan row");
   assert.equal(r.rows[0].signed, 1000);
   assert.equal(r.rows[0].afterSigned, 1000);
-  assert.deepEqual(r.rows[0].missing.sort(), ["form", "years"]);
+  assert.deepEqual(r.rows[0].missing.sort(), ["form", "years"], "organic isn't listed: the line says it, the plan row doesn't");
   // two planned products the old line could be: counted against neither
   const two = (cleanSupplyPlan({ rows: [{ ...corabelPlan, season: "Autumn 2027", suppliers: [{ name: "X", qty: 10 }] }, { ...corabelPlan, form: "container", season: "Autumn 2027" }] }) as any).value;
   const r2 = supplyBalance([{ status: "accepted", terms, lines: [old] }] as any[], two);

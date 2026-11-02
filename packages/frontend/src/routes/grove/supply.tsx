@@ -106,8 +106,10 @@ function Supply() {
   const startEdit = () => {
     // the saved plan, plus a row for each ordered product that has no plan yet
     const plan = (d()?.plan ?? []).map(toEdit);
-    const missing = (d()?.rows ?? []).filter((r) => !r.planned).map((r) => toEdit({ ...r.spec, latin: r.latin, season: r.season }));
-    setRows([...plan, ...missing]);
+    // (not for an order that fits several planned products: that's for the order line to settle)
+    const missing = (d()?.rows ?? []).filter((r) => !r.planned && r.candidates < 2).map((r) => toEdit({ ...r.spec, latin: r.latin, season: r.season }));
+    const sameRow = (a: EditRow, b: EditRow) => JSON.stringify({ ...a, ownGrafts: "", takePct: "", suppliers: "", note: "" }) === JSON.stringify({ ...b, ownGrafts: "", takePct: "", suppliers: "", note: "" });
+    setRows([...plan, ...missing.filter((m, i) => !plan.some((p) => sameRow(p, m)) && missing.findIndex((x) => sameRow(x, m)) === i)]);
     setEditing(true);
   };
   const setField = (i: number, k: keyof EditRow, v: string) => setRows(rows().map((r, j) => (j === i ? { ...r, [k]: v } : r)));

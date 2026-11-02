@@ -161,7 +161,12 @@ export function supplyBalance(offers: SupplyOffer[], plan: SupplyRow[]) {
     // the exact one wins when there is one
     const exact = fits.filter((f) => f.cmp.exact);
     const pick = exact.length === 1 ? exact : fits;
-    if (pick.length === 1) pick[0].x.demand.push({ d, unknown: pick[0].cmp.unknown });
+    // "not stated" means the order line doesn't say (not the plan row)
+    const lineLacks = (f: string) => {
+      const v = (d.spec as Record<string, unknown>)[f];
+      return v === undefined || v === null || v === "";
+    };
+    if (pick.length === 1) pick[0].x.demand.push({ d, unknown: pick[0].cmp.unknown.filter(lineLacks) });
     else loose.push({ d, candidates: pick.length });
   }
   const supplyOf = (p?: SupplyRow) => {

@@ -30,6 +30,7 @@ test("same product only when every stated field agrees", () => {
     assert.ok(compareSpecs({ ...a, rootstock: x }, { ...a, rootstock: y }).exact, `${x} = ${y}`);
   }
   assert.notEqual(specKey({ ...a, rootstock: "M9" }), specKey({ ...a, rootstock: "MM106" }));
+  assert.deepEqual(compareSpecs({ ...a, rootstock: "Pyrus communis" }, { ...a, rootstock: "Prunus communis" }).differs, ["rootstock"]);
   assert.deepEqual(missingFields({ latin: "Corylus avellana", propagation: "grafted" }), ["rootstock", "organic", "bare root/container", "years"]);
   assert.equal(specLabel(a), "Corylus avellana 'Corabel' on Corylus colurna seedling · grafted · organic · bare root · 1+1");
 });
