@@ -57,7 +57,7 @@ test("Dinero: an offer discount becomes its own line", () => {
 
 test("margin and purchase list come from the pricebook cost", () => {
   const l = line({ qty: 10, unitPrice: 120, pricing: { unitCostDkk: 80, supplierId: "nurseryA", costPrice: 10.7, costCurrency: "EUR" } });
-  assert.deepEqual(lineMargin(l), { unitCost: 80, unitMargin: 40, marginPct: 33.33 });
+  assert.deepEqual(lineMargin(l), { unitCost: 80, unitMargin: 40, marginPct: 33.33, worstPct: 33.33, bestPct: 33.33, targetPct: undefined, belowTarget: false });
   const p = purchaseList({ lines: [l] });
   assert.equal(p[0].supplierId, "nurseryA");
   assert.equal(p[0].totalCostDkk, 800);

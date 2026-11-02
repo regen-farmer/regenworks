@@ -10,7 +10,7 @@ type Summary = {
   version: number | null;
   importedAt?: string;
   note?: string;
-  counts?: { suppliers: number; documents: number; supplierPrices: number; salesPrices: number };
+  counts?: { suppliers: number; documents: number; supplierPrices: number; salesPrices: number; services?: number };
   warnings?: string[];
   suppliers?: { supplierId: string; name: string; country?: string; organicCertification?: string }[];
   documents?: { docId: string; supplierId: string; title?: string; documentDate: string; dateBasis?: string; outdated: boolean }[];
@@ -34,7 +34,7 @@ function Pricebook() {
     if (!picked?.length) return;
     const form = new FormData();
     for (const f of Array.from(picked)) {
-      if (FILES.includes(f.name) || f.name === "settings.csv") form.append(f.name, f);
+      if (FILES.includes(f.name) || f.name === "settings.csv" || f.name === "services.csv") form.append(f.name, f);
     }
     const missing = FILES.filter((n) => !form.has(n));
     if (missing.length) {
@@ -80,7 +80,7 @@ function Pricebook() {
             <p class="text-sm">
               Version {summary()!.version}, imported {new Date(summary()!.importedAt!).toLocaleString("da-DK")}
               {summary()!.note ? ` · ${summary()!.note}` : ""} · {summary()!.counts?.supplierPrices} supplier prices ·{" "}
-              {summary()!.counts?.salesPrices} sales prices · {summary()!.counts?.suppliers} suppliers
+              {summary()!.counts?.salesPrices} sales prices · {summary()!.counts?.services ?? 0} services · {summary()!.counts?.suppliers} suppliers
             </p>
             <table class="w-full text-sm">
               <thead>
@@ -125,7 +125,7 @@ function Pricebook() {
           <h2 class="text-xl font-semibold">Import a new version</h2>
           <form class="flex flex-wrap gap-2 items-end" onSubmit={importFiles}>
             <label class="flex flex-col text-xs">
-              <span class="opacity-70">The four CSV files ({FILES.join(", ")}), plus settings.csv if you have one</span>
+              <span class="opacity-70">The four CSV files ({FILES.join(", ")}), plus settings.csv and services.csv</span>
               <input name="files" type="file" accept=".csv,text/csv" multiple class="text-sm" />
             </label>
             <label class="flex flex-col text-xs">

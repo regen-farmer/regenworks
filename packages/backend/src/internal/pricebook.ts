@@ -5,6 +5,7 @@
 // version, stored in its own collection and only ever sent to grove-team.
 // Pure functions (no database) so they can be tested.
 import { CsvTooLargeError, parseCsvObjects } from "./csv.ts";
+import { buildServices, SERVICE_COLUMNS, SERVICE_REQUIRED, type Service } from "./services.ts";
 
 export const PRICEBOOK_FILES = {
   suppliers: "suppliers.csv",
@@ -72,11 +73,25 @@ export type SalesPrice = {
   notes?: string;
 };
 
-/** Optional settings.csv (key,value): default_margin_pct, eur_dkk. Kept in the private repo. */
-export type PricebookSettings = { defaultMarginPct?: number; eurDkk?: number };
+/**
+ * Optional settings.csv (key,value), kept in the private repo:
+ * default_margin_pct, eur_dkk, target_margin_trees, target_margin_services
+ * (margin targets: below them the internal sheet warns; services without a
+ * price are priced at cost + target_margin_services), guarantee_text_da
+ * (the standard survival-guarantee wording for offers).
+ */
+export type PricebookSettings = {
+  defaultMarginPct?: number;
+  eurDkk?: number;
+  targetMarginTrees?: number;
+  targetMarginServices?: number;
+  guaranteeTextDa?: string;
+};
 
 export type PricebookData = {
   settings?: PricebookSettings;
+  /** optional services.csv (offer v2) */
+  services?: Service[];
   suppliers: Supplier[];
   documents: PriceDocument[];
   supplierPrices: SupplierPrice[];
@@ -103,7 +118,7 @@ const opt = (v: string | undefined) => (v && v.trim() ? v.trim() : undefined);
 
 /** Parse and check the uploaded CSV files. Nothing is saved here. */
 export function buildPricebook(
-  files: Partial<Record<keyof typeof PRICEBOOK_FILES, string>> & { settings?: string },
+  files: Partial<Record<keyof typeof PRICEBOOK_FILES, string>> & { settings?: string; services?: string },
 ): BuildResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -238,6 +253,9 @@ export function buildPricebook(
         const v = num(r.value);
         if (r.key === "default_margin_pct" && v !== undefined && v >= 0 && v <= 500) settings.defaultMarginPct = v;
         else if (r.key === "eur_dkk" && v !== undefined && v > 1 && v < 20) settings.eurDkk = v;
+        else if (r.key === "target_margin_trees" && v !== undefined && v >= 0 && v <= 500) settings.targetMarginTrees = v;
+        else if (r.key === "target_margin_services" && v !== undefined && v >= 0 && v <= 500) settings.targetMarginServices = v;
+        else if (r.key === "guarantee_text_da" && r.value?.trim()) settings.guaranteeTextDa = r.value.trim().slice(0, 3000);
         else warnings.push(`settings.csv: ignored ${r.key}=${r.value}`);
       }
     } catch (err) {
@@ -245,9 +263,25 @@ export function buildPricebook(
       return { ok: false, errors: ["settings.csv: file too large"] };
     }
   }
+  let services: Service[] = [];
+  if (files.services?.trim()) {
+    let parsedServices: ReturnType<typeof parseCsvObjects>;
+    try {
+      parsedServices = parseCsvObjects(files.services, SERVICE_COLUMNS);
+    } catch (err) {
+      if (!(err instanceof CsvTooLargeError)) throw err;
+      return { ok: false, errors: ["services.csv: file too large"] };
+    }
+    const missing = SERVICE_REQUIRED.filter((c) => !parsedServices.header.includes(c));
+    if (missing.length) return { ok: false, errors: [`services.csv: missing column(s) ${missing.join(", ")}`] };
+    const built = buildServices(parsedServices.rows, new Set(supplierPrices.map((p) => p.priceId)));
+    if (built.errors.length) return { ok: false, errors: built.errors.slice(0, 50) };
+    warnings.push(...built.warnings);
+    services = built.services;
+  }
   return {
     ok: true,
-    data: { settings, suppliers, documents, supplierPrices, salesPrices },
+    data: { settings, suppliers, documents, supplierPrices, salesPrices, services },
     warnings: warnings.slice(0, 100),
   };
 }
