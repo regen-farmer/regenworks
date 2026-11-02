@@ -4,7 +4,8 @@ import mongoose from "mongoose";
  * A sales funnel in A · Clients & deals: a name and its ordered stages.
  * Stages are plain named boxes; `kind` says whether a deal in it is still
  * open, won or lost. Deals point at a stage by its `key`, so stages can be
- * renamed or reordered later without touching the deals. Grove team only.
+ * renamed or reordered without touching the deals (edited in Funnels &
+ * sources). Grove team only.
  */
 export const STAGE_KINDS = ["open", "won", "lost"] as const;
 
@@ -12,6 +13,8 @@ export interface IFunnelStage {
 	key: string;
 	name: string;
 	kind: (typeof STAGE_KINDS)[number];
+	/** optional: days a deal should stay in this stage at most (cards are marked after) */
+	targetDays?: number | null;
 }
 
 export interface IFunnel {
@@ -21,6 +24,8 @@ export interface IFunnel {
 	order: number;
 	archived: boolean;
 	stages: IFunnelStage[];
+	/** every stage key ever used, so a removed stage's key (and its history) is never given to a new stage */
+	usedKeys: string[];
 }
 
 const stage = new mongoose.Schema<IFunnelStage>(
@@ -28,6 +33,7 @@ const stage = new mongoose.Schema<IFunnelStage>(
 		key: { type: String, required: true, maxlength: 40 },
 		name: { type: String, required: true, trim: true, maxlength: 80 },
 		kind: { type: String, enum: STAGE_KINDS, default: "open" },
+		targetDays: { type: Number, min: 0, max: 365 },
 	},
 	{ _id: false },
 );
@@ -40,6 +46,7 @@ const schema = new mongoose.Schema<IFunnel>(
 		order: { type: Number, default: 0 },
 		archived: { type: Boolean, default: false },
 		stages: { type: [stage], default: [] },
+		usedKeys: { type: [String], default: [] },
 	},
 	{ collection: "grove_funnels", timestamps: true },
 );

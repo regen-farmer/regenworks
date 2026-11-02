@@ -8,7 +8,7 @@ import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { NewDealDialog, WonDialog } from "~/grove/DealDialogs.tsx";
-import { dkk, overdue, shortDay, type Deal, type Funnel, type FunnelStage } from "~/grove/dealTypes.ts";
+import { dkk, overdue, shortDay, stageAge, type Deal, type Funnel, type FunnelStage } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
@@ -149,6 +149,8 @@ function Board() {
               <input type="checkbox" checked={archived()} onChange={(e) => setArchived(e.currentTarget.checked)} /> Archived
             </label>
             <Link to="/grove/clients" class="text-sm underline">Clients</Link>
+            <Link to="/grove/deals/report" class="text-sm underline">Report</Link>
+            <Link to="/grove/funnels" class="text-sm underline">Edit funnels</Link>
             <button class="rounded-sm px-2 py-1 text-sm underline" disabled={importing()} onClick={() => setAskImport(true)} title="Makes a deal for each Dashboard project that has none yet. Safe to run again.">
               Import from Dashboard
             </button>
@@ -192,7 +194,10 @@ function Board() {
                     >
                       <header class="px-2 py-2">
                         <div class="flex justify-between items-baseline gap-2">
-                          <h2 class="font-semibold text-sm">{stage.name}</h2>
+                          <h2 class="font-semibold text-sm">
+                            {stage.name}
+                            <Show when={stage.targetDays}><span class="font-normal opacity-60"> · {stage.targetDays} d</span></Show>
+                          </h2>
                           <span class="text-xs opacity-70">{list().length}</span>
                         </div>
                         <div class="text-xs opacity-70">{dkk(total(list())) || "0 kr"}</div>
@@ -233,6 +238,11 @@ function Board() {
                                   <div class="text-xs mt-1" classList={{ "text-red-700 dark:text-red-400 font-semibold": overdue(d.nextAction?.date), "opacity-70": !overdue(d.nextAction?.date) }}>
                                     {d.nextAction?.date ? `${shortDay(d.nextAction.date)} · ` : ""}
                                     {d.nextAction?.text || "next action"}
+                                  </div>
+                                </Show>
+                                <Show when={stage.kind === "open" && stageAge(d, stage).days !== null}>
+                                  <div class="text-xs mt-1" classList={{ "text-red-700 dark:text-red-400 font-semibold": stageAge(d, stage).over, "opacity-60": !stageAge(d, stage).over }}>
+                                    {stageAge(d, stage).days} d in stage{stageAge(d, stage).over ? ` (target ${stage.targetDays} d)` : ""}
                                   </div>
                                 </Show>
                                 <Show when={stage.kind === "open" && !d.nextAction?.date}>

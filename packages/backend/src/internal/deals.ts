@@ -130,7 +130,7 @@ export function cleanDeal(body: any, { creating = false } = {}): Cleaned<Record<
     if (id !== undefined) out[k] = id;
   }
   if (out.client === null) errors.push("A deal needs a client");
-  for (const [k, max] of [["source", 100], ["lostReason", 500], ["notes", 5000]] as const) {
+  for (const [k, max] of [["source", 100], ["sourceDetail", 200], ["lostReason", 500], ["notes", 5000]] as const) {
     if (body?.[k] === undefined) continue;
     if (body[k] !== null && typeof body[k] !== "string") errors.push(`${k} must be text`);
     else out[k] = text(body[k] ?? "", max);

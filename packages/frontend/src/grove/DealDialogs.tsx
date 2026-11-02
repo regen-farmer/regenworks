@@ -2,7 +2,8 @@
 import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { showToast } from "~/components/ui/toast";
-import { noon, SOURCES, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
+import { noon, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
+import { SourceSelect } from "~/grove/SourceSelect.tsx";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
@@ -81,6 +82,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
   const [stage, setStage] = createSignal("");
   const [value, setValue] = createSignal("");
   const [source, setSource] = createSignal("");
+  const [sourceDetail, setSourceDetail] = createSignal("");
   const [nextText, setNextText] = createSignal("");
   const [nextDate, setNextDate] = createSignal("");
   const [busy, setBusy] = createSignal(false);
@@ -91,6 +93,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
     setStage(props.funnel?.stages.find((s) => s.kind === "open")?.key ?? "");
     setValue("");
     setSource(props.clientId ? "Re-purchase" : "");
+    setSourceDetail("");
     setNextText("");
     setNextDate("");
   });
@@ -114,6 +117,7 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
           stage: stage(),
           value: value() === "" ? null : value(),
           source: source(),
+          sourceDetail: sourceDetail(),
           nextAction: { text: nextText(), date: noon(nextDate()) },
           ...(id ? { client: id } : { newClient: { name: clientName() } }),
         }),
@@ -164,10 +168,11 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
             </label>
             <label class="flex flex-col gap-1">
               Source
-              <select class={input} value={source()} onChange={(e) => setSource(e.currentTarget.value)}>
-                <option value="">–</option>
-                <For each={SOURCES}>{(s) => <option value={s}>{s}</option>}</For>
-              </select>
+              <SourceSelect class={input} value={source()} onChange={setSource} />
+            </label>
+            <label class="flex flex-col gap-1">
+              Source detail
+              <input class={input} maxLength={200} value={sourceDetail()} placeholder="e.g. ØRD adviser, date of the check" onInput={(e) => setSourceDetail(e.currentTarget.value)} />
             </label>
             <label class="flex flex-col gap-1">
               Next action date

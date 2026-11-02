@@ -27,6 +27,8 @@ export interface IDeal {
 	expectedClose?: Date | null;
 	owner?: mongoose.Types.ObjectId | null;
 	source?: string;
+	/** e.g. the ØRD adviser and the date of the Omlægningstjek */
+	sourceDetail?: string;
 	nextAction: { text?: string; date?: Date | null };
 	farm?: mongoose.Types.ObjectId | null;
 	groveProject?: mongoose.Types.ObjectId | null;
@@ -65,6 +67,7 @@ const schema = new mongoose.Schema<IDeal>(
 		expectedClose: Date,
 		owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		source: { type: String, maxlength: 100 },
+		sourceDetail: { type: String, maxlength: 200 },
 		nextAction: {
 			text: { type: String, maxlength: 500 },
 			date: Date,

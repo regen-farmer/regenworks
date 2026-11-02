@@ -6,7 +6,8 @@ import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { WonDialog } from "~/grove/DealDialogs.tsx";
-import { day, dkk, noon, SOURCES, STATUS_LABEL, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
+import { day, dkk, noon, STATUS_LABEL, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
+import { SourceSelect } from "~/grove/SourceSelect.tsx";
 import { STATUS_EN } from "~/grove/offerTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
@@ -71,6 +72,7 @@ function DealPage() {
           value: d.value ?? null,
           expectedClose: d.expectedClose ?? null,
           source: d.source ?? "",
+          sourceDetail: d.sourceDetail ?? "",
           nextAction: { text: d.nextAction?.text ?? "", date: d.nextAction?.date ?? null },
           notes: d.notes ?? "",
           ...(d.status === "lost" ? { lostReason: lostReason() } : {}),
@@ -210,12 +212,9 @@ function DealPage() {
               <label class="flex flex-col text-xs">Next action date<input class={input} type="date" value={day(d.nextAction?.date)} onInput={(e) => edit("nextAction", (n: any) => ({ ...n, date: noon(e.currentTarget.value) }))} /></label>
               <label class="flex flex-col text-xs">
                 Source
-                <select class={input} value={d.source ?? ""} onChange={(e) => edit("source", e.currentTarget.value)}>
-                  <option value="">–</option>
-                  <Show when={d.source && !SOURCES.includes(d.source)}><option value={d.source}>{d.source}</option></Show>
-                  <For each={SOURCES}>{(s) => <option value={s}>{s}</option>}</For>
-                </select>
+                <SourceSelect class={input} value={d.source ?? ""} onChange={(v) => edit("source", v)} />
               </label>
+              <label class="flex flex-col text-xs">Source detail<input class={input} maxLength={200} value={d.sourceDetail ?? ""} placeholder="e.g. ØRD adviser, date of the check" onInput={(e) => edit("sourceDetail", e.currentTarget.value)} /></label>
               <div class="flex flex-col text-xs">
                 Farm
                 <span class="text-sm mt-1">
