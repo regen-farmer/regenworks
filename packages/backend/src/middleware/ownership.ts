@@ -184,3 +184,40 @@ export function isSelf(param = "id") {
     res.status(403).send({ error: "You don't have permission to access this" });
   };
 }
+
+/**
+ * Systems are templates: shared ones are readable by every logged-in user;
+ * private ones only by their owner (or a Grove admin). Copying a system
+ * (editing one you don't own) needs read access too.
+ */
+export function systemReadable(param = "id", from: "params" | "body" = "params") {
+  return async (req: Req, res: express.Response, next: express.NextFunction) => {
+    const id = from === "body" ? (req.body as any)?.[param] : req.params[param];
+    if (typeof id !== "string" || !mongoose.isValidObjectId(id)) {
+      res.status(400).send({ error: "Invalid id" });
+      return;
+    }
+    if (!req.user || req.idToken?.email_verified !== true) {
+      res.status(401).send({ error: "You need to be logged in with a verified email to do that" });
+      return;
+    }
+    const found: any = await currentSystemLookup(id);
+    if (!found) {
+      res.status(404).send({ error: "Not found" });
+      return;
+    }
+    if (found.shared || str(found.ownerId) === str(req.user._id) || hasRole(req.user, "grove-admin")) return next();
+    res.status(403).send({ error: "You don't have permission to access this" });
+  };
+}
+
+type SystemFound = { ownerId?: string; shared?: boolean } | null;
+const dbSystemLookup = async (id: string): Promise<SystemFound> => {
+  const doc: any = await System.findById(id).select("owner shared").lean();
+  return doc ? { ownerId: str(doc.owner?.id), shared: doc.shared === true } : null;
+};
+let currentSystemLookup: (id: string) => Promise<SystemFound> = dbSystemLookup;
+/** Tests only. */
+export function setSystemLookupForTests(fn: ((id: string) => Promise<SystemFound>) | null) {
+  currentSystemLookup = fn ?? dbSystemLookup;
+}

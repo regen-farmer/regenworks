@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/solid-router";
 import { apiResponseOptions } from "@rw/frontend/src/util/apiFetchOptions.ts";
+import { hasRole } from "@rw/db/access.ts";
 import { accessErrorResponse, requireProjectOwner } from "../../../../../server/access.ts";
 
 export const Route = createFileRoute("/api/projects/$projectId/financials/activities")({
@@ -7,8 +8,9 @@ export const Route = createFileRoute("/api/projects/$projectId/financials/activi
     handlers: {
       PATCH: async ({ request, params }: { request: Request; params: Record<string, string> }) => {
         let project;
+        let user;
         try {
-          ({ project } = await requireProjectOwner(params.projectId));
+          ({ project, user } = await requireProjectOwner(params.projectId));
         } catch (err) {
           return accessErrorResponse(err);
         }
@@ -27,6 +29,15 @@ export const Route = createFileRoute("/api/projects/$projectId/financials/activi
             status: 400,
             headers: { "Content-Type": "application/json" },
           });
+        }
+
+        // The system may be a shared template used by other people's scenarios:
+        // only its owner (or a Grove admin) may change its activities and prices.
+        if (String((system as any).owner?.id) !== String(user._id) && !hasRole(user, "grove-admin")) {
+          return new Response(
+            JSON.stringify({ error: "This system is a shared template; make your own copy of it to change its activities and prices" }),
+            { status: 403, headers: { "Content-Type": "application/json" } },
+          );
         }
 
         let newActivities: [
