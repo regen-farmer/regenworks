@@ -3,7 +3,8 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanProject, forFieldUser, stageAfterOffer } from "../src/internal/projects.ts";
+import { cleanProject, forFieldUser, stageAfterOffer, summariseOffers, visibleFilter } from "../src/internal/projects.ts";
+import { canSeeMoney } from "@rw/db/access.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("input: name required on create; enums checked; unknown fields ignored", () => {
@@ -61,4 +62,29 @@ test("/internal/projects: anonymous 401, public 403; field users can't change an
     const r = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: method === "GET" ? undefined : "{}" });
     assert.equal(r.status, 403, `${method} ${path}`);
   }
+});
+
+test("field users only get projects assigned to them; the team gets all", () => {
+  const field = { _id: "u1", roles: ["grove-field"] };
+  assert.deepEqual(visibleFilter(field, canSeeMoney), { assignees: "u1" });
+  assert.deepEqual(visibleFilter({ _id: "u2", roles: ["grove-team"] }, canSeeMoney), {});
+  assert.deepEqual(visibleFilter(undefined, canSeeMoney), { assignees: null });
+});
+
+test("values: sent offers are the pipeline, accepted are signed (with trees); drafts don't count", () => {
+  const v = summariseOffers([
+    { status: "draft", net: 100000, trees: 500 },
+    { status: "sent", net: 120000, trees: 600 },
+    { status: "accepted", net: 90000, trees: 400 },
+    { status: "declined", net: 50000, trees: 200 },
+  ]);
+  assert.deepEqual(v, { offers: 4, offerValue: 120000, signedValue: 90000, signedTrees: 400, drafts: 1 });
+});
+
+test("partial client / next action: only the keys sent", () => {
+  const c = cleanProject({ client: { name: "X" }, nextAction: { text: "Call" } }) as any;
+  assert.deepEqual(c.value.client, { name: "X" });
+  assert.deepEqual(c.value.nextAction, { text: "Call" });
+  assert.equal(cleanProject({ plannedHa: true }).ok, false);
+  assert.equal(cleanProject({ plantingDate: true }).ok, false);
 });

@@ -31,11 +31,16 @@ const validId = (id: unknown): id is string => typeof id === "string" && mongoos
 /** Move the dashboard project along when an offer is made or accepted. */
 async function moveProjectStage(groveProjectId: unknown, event: "offer-made" | "offer-accepted") {
   if (!validId(String(groveProjectId ?? ""))) return;
-  const p: any = await GroveProject.findById(String(groveProjectId)).select("stage");
-  const next = p ? stageAfterOffer(p.stage, event) : null;
-  if (next) {
-    p.stage = next;
-    await p.save();
+  try {
+    const p: any = await GroveProject.findById(String(groveProjectId)).select("stage");
+    const next = p ? stageAfterOffer(p.stage, event) : null;
+    if (next) {
+      p.stage = next;
+      await p.save();
+    }
+  } catch (err) {
+    // the offer is saved either way; the stage can be set by hand
+    console.error("[offers] could not move project stage", err);
   }
 }
 
@@ -254,7 +259,8 @@ router.put("/:id", async (req: Req, res) => {
   // An accepted offer is what the client signed: only its Dinero number and
   // notes can change.
   if (offer.status === "accepted") {
-    const allowed = new Set(["dineroNumber", "notes"]);
+    // linking to a dashboard project is internal bookkeeping, not the offer itself
+    const allowed = new Set(["dineroNumber", "notes", "groveProject"]);
     const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
     if (changed.length) {
       res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number and notes can change" });

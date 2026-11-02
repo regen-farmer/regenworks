@@ -11,33 +11,47 @@ import { canSeeMoney } from "@rw/db/access.ts";
 import { requireRole } from "../middleware/access.ts";
 import { inIds } from "../utils/mongoSafety.ts";
 import { offerTotals } from "./offers.ts";
-import { cleanProject, forFieldUser } from "./projects.ts";
+import User from "@rw/db/schemas/user.ts";
+import { GROVE_ROLES } from "@rw/db/access.ts";
+import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
 const team = requireRole("grove-team");
 const validId = (id: unknown): id is string => typeof id === "string" && mongoose.isValidObjectId(id);
 
-/** Offer value (open offers) and signed value (accepted) per project, excl. VAT. */
+/** Offer, signed value and signed trees per project (see summariseOffers). */
 async function offerValues(projectIds: unknown[]) {
   const ids = projectIds.map(String).filter(validId);
-  if (!ids.length) return new Map<string, { offerValue: number; signedValue: number; offers: number; trees: number }>();
+  const out = new Map<string, ReturnType<typeof summariseOffers>>();
+  if (!ids.length) return out;
   const offers: any[] = await Offer.find({ groveProject: inIds(ids) })
     .select("groveProject status lines.qty lines.unitPrice lines.discountPct discountPct")
     .lean();
-  const out = new Map<string, { offerValue: number; signedValue: number; offers: number; trees: number }>();
+  const byProject = new Map<string, { status: string; net: number; trees: number }[]>();
   for (const o of offers) {
     const k = String(o.groveProject);
-    const v = out.get(k) ?? { offerValue: 0, signedValue: 0, offers: 0, trees: 0 };
-    const net = offerTotals(o).net;
-    v.offers += 1;
-    if (o.status === "accepted") {
-      v.signedValue += net;
-      v.trees += (o.lines ?? []).reduce((n: number, l: any) => n + (l.qty || 0), 0);
-    } else if (o.status !== "declined") v.offerValue += net;
-    out.set(k, v);
+    const list = byProject.get(k) ?? [];
+    list.push({ status: o.status, net: offerTotals(o).net, trees: (o.lines ?? []).reduce((n: number, l: any) => n + (l.qty || 0), 0) });
+    byProject.set(k, list);
   }
+  for (const [k, list] of byProject) out.set(k, summariseOffers(list));
   return out;
+}
+
+/** Ids of users with a Grove role (their farms can be linked to projects). */
+async function groveUserIds(): Promise<string[]> {
+  const users: any[] = await User.find({ $or: [{ isAdmin: true }, { roles: mongoose.trusted({ $in: [...GROVE_ROLES] }) }] })
+    .select("_id")
+    .lean();
+  return users.map((u) => String(u._id));
+}
+
+/** Only farms kept under a Grove account can be linked (not public users' farms). */
+async function farmIsGroves(farmId: string) {
+  const farm: any = await Parcel.findById(farmId).select("owner").lean();
+  if (!farm?.owner?.id) return false;
+  return (await groveUserIds()).includes(String(farm.owner.id));
 }
 
 async function farmsById(ids: unknown[]) {
@@ -56,28 +70,68 @@ async function present(projects: any[], user: UserDocument | undefined) {
       ...p,
       farm: p.farm ? farms.get(String(p.farm)) ?? { _id: p.farm } : null,
       offers: v?.offers ?? 0,
+      drafts: v?.drafts ?? 0,
       offerValue: v?.offerValue ?? 0,
       signedValue: v?.signedValue ?? 0,
-      trees: p.trees ?? (v?.trees || null),
+      // trees is what was typed; signedTrees comes from accepted offers
+      signedTrees: v?.signedTrees ?? 0,
     };
     return money ? full : forFieldUser(full);
   });
 }
 
-/** Field users: only projects they are assigned to. */
-const visibleFilter = (user: UserDocument | undefined) =>
-  canSeeMoney(user) ? {} : { assignees: user?._id };
+const visibleFilter = (user: UserDocument | undefined) => visibleFor(user, canSeeMoney);
+
+/** A linked farm must be kept under a Grove account; assignees must be Grove users. */
+async function checkLinks(v: Record<string, any>): Promise<string | null> {
+  if (v.farm && !(await farmIsGroves(String(v.farm)))) return "Farm not found among Grove's farms";
+  if (v.assignees?.length) {
+    const grove = new Set(await groveUserIds());
+    if (!v.assignees.every((id: string) => grove.has(String(id)))) return "Assignees must be Grove team members";
+  }
+  return null;
+}
 
 router.get("/", async (req: Req, res) => {
   const projects = await GroveProject.find(visibleFilter(req.user)).sort({ updatedAt: -1 }).limit(1000).lean();
   res.send({ projects: await present(projects, req.user) });
 });
 
-// Farms the user owns, to link a project to (Grove keeps client farms under
-// its own accounts). Another farm can be linked by its id.
-router.get("/farms", team, async (req: Req, res) => {
-  const farms = await Parcel.find({ "owner.id": req.user?._id }).select("name lat lng size").sort({ name: 1 }).limit(1000).lean();
-  res.send({ farms });
+// Farms kept under Grove accounts (the user's own and colleagues'), to link
+// a project to; with whether a project already uses them.
+router.get("/farms", team, async (_req: Req, res) => {
+  const ids = await groveUserIds();
+  const farms: any[] = await Parcel.find({ "owner.id": inIds(ids) }).select("name lat lng size owner").sort({ name: 1 }).limit(2000).lean();
+  const linked = new Set((await GroveProject.find({ farm: inIds(farms.map((f) => String(f._id))) }).select("farm").lean()).map((p: any) => String(p.farm)));
+  res.send({ farms: farms.map((f) => ({ _id: f._id, name: f.name, lat: f.lat, lng: f.lng, size: f.size, linked: linked.has(String(f._id)) })) });
+});
+
+// People who can be assigned to projects (users with a Grove role).
+router.get("/people", team, async (_req: Req, res) => {
+  const users: any[] = await User.find({ $or: [{ isAdmin: true }, { roles: mongoose.trusted({ $in: [...GROVE_ROLES] }) }] })
+    .select("email name roles isAdmin")
+    .limit(200)
+    .lean();
+  res.send({ people: users.map((u) => ({ _id: u._id, email: u.email, name: u.name, roles: u.roles, isAdmin: u.isAdmin })) });
+});
+
+// One-off tidy-up: make projects from Grove farms that have none yet, e.g.
+// old test farms straight into "archived".
+router.post("/import-farms", team, async (req: Req, res) => {
+  const farmIds: string[] = Array.isArray(req.body?.farmIds) ? req.body.farmIds.filter(validId).slice(0, 500) : [];
+  const cleaned = cleanProject({ type: req.body?.type ?? "client", stage: req.body?.stage ?? "prospect", status: req.body?.status ?? "active" });
+  if (!farmIds.length || !cleaned.ok) {
+    res.status(400).send({ error: cleaned.ok ? "Choose farms" : cleaned.errors.join("; ") });
+    return;
+  }
+  const allowed = new Set(await groveUserIds());
+  const farms: any[] = await Parcel.find({ _id: inIds(farmIds) }).select("name owner").lean();
+  const already = new Set((await GroveProject.find({ farm: inIds(farmIds) }).select("farm").lean()).map((p: any) => String(p.farm)));
+  const toCreate = farms
+    .filter((f) => allowed.has(String(f.owner?.id)) && !already.has(String(f._id)))
+    .map((f) => ({ ...cleaned.value, name: f.name || "Farm", farm: f._id, createdBy: req.user?._id }));
+  if (toCreate.length) await GroveProject.insertMany(toCreate);
+  res.send({ created: toCreate.length, skipped: farmIds.length - toCreate.length });
 });
 
 router.post("/", team, async (req: Req, res) => {
@@ -86,8 +140,9 @@ router.post("/", team, async (req: Req, res) => {
     res.status(400).send({ error: cleaned.errors.join("; "), errors: cleaned.errors });
     return;
   }
-  if (cleaned.value.farm && !(await Parcel.exists({ _id: cleaned.value.farm }))) {
-    res.status(400).send({ error: "Farm not found" });
+  const problem = await checkLinks(cleaned.value);
+  if (problem) {
+    res.status(400).send({ error: problem });
     return;
   }
   const created = await GroveProject.create({ ...cleaned.value, createdBy: req.user?._id });
@@ -127,16 +182,21 @@ router.put("/:id", team, async (req: Req, res) => {
     res.status(400).send({ error: cleaned.errors.join("; "), errors: cleaned.errors });
     return;
   }
-  if (cleaned.value.farm && !(await Parcel.exists({ _id: cleaned.value.farm }))) {
-    res.status(400).send({ error: "Farm not found" });
+  const problem = await checkLinks(cleaned.value);
+  if (problem) {
+    res.status(400).send({ error: problem });
     return;
   }
-  const project = await GroveProject.findById(req.params.id);
+  const project: any = await GroveProject.findById(req.params.id);
   if (!project) {
     res.status(404).send({ error: "Project not found" });
     return;
   }
-  project.set(cleaned.value);
+  // client and next action: merge the keys that were sent
+  const { client, nextAction, ...rest } = cleaned.value;
+  project.set(rest);
+  if (client) project.client = { ...(project.client?.toObject?.() ?? project.client ?? {}), ...client };
+  if (nextAction) project.nextAction = { ...(project.nextAction?.toObject?.() ?? project.nextAction ?? {}), ...nextAction };
   await project.save();
   const [p] = await present([project.toObject()], req.user);
   res.send({ project: p });

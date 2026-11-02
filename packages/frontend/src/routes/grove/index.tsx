@@ -37,6 +37,9 @@ function Dashboard() {
   const [view, setView] = createSignal<View>(readView());
   const [search, setSearch] = createSignal("");
   const [type, setType] = createSignal("");
+  const [stageFilter, setStageFilter] = createSignal("");
+  const [region, setRegion] = createSignal("");
+  const [importing, setImporting] = createSignal(false);
   const [owner, setOwner] = createSignal("");
   const [showArchived, setShowArchived] = createSignal(false);
   const [adding, setAdding] = createSignal(false);
@@ -51,7 +54,9 @@ function Dashboard() {
     }
   });
 
-  const owners = createMemo(() => [...new Set((data()?.projects ?? []).map((p) => p.responsible).filter(Boolean))] as string[]);
+  const norm = (s: string | undefined) => (s ?? "").trim().toLowerCase();
+  const owners = createMemo(() => [...new Set((data()?.projects ?? []).map((p) => p.responsible?.trim()).filter(Boolean))].sort() as string[]);
+  const regions = createMemo(() => [...new Set((data()?.projects ?? []).map((p) => p.region?.trim()).filter(Boolean))].sort() as string[]);
 
   const shown = createMemo(() => {
     const q = search().toLowerCase();
@@ -59,31 +64,38 @@ function Dashboard() {
       (p) =>
         (showArchived() || p.status !== "archived") &&
         (!type() || p.type === type()) &&
-        (!owner() || p.responsible === owner()) &&
+        (!stageFilter() || p.stage === stageFilter()) &&
+        (!region() || norm(p.region) === norm(region())) &&
+        (!owner() || norm(p.responsible) === norm(owner())) &&
         (!q || `${p.name} ${p.client?.name ?? ""} ${p.region ?? ""} ${p.farm?.name ?? ""}`.toLowerCase().includes(q)),
     );
   });
 
   const sorted = createMemo(() => {
     const { key, dir } = sort();
-    const val = (p: GroveProject): any => (key === "next" ? p.nextAction?.date ?? "9999" : (p as any)[key] ?? "");
+    const stageIndex = (s: string) => STAGES.findIndex(([k]) => k === s);
+    const val = (p: GroveProject): any =>
+      key === "next" ? p.nextAction?.date ?? "9999" : key === "stage" ? stageIndex(p.stage) : (p as any)[key] ?? "";
     return [...shown()].sort((a, b) => (val(a) > val(b) ? dir : val(a) < val(b) ? -dir : 0));
   });
 
   async function move(p: GroveProject, stage: Stage) {
     if (p.stage === stage) return;
-    const before = data()?.projects;
-    mutate({ projects: (before ?? []).map((x) => (x._id === p._id ? { ...x, stage } : x)) });
+    const old = p.stage;
+    const setStage = (s: Stage) => mutate({ projects: (data()?.projects ?? []).map((x) => (x._id === p._id ? { ...x, stage: s } : x)) });
+    setStage(stage);
     try {
       await apiFetch(`/internal/projects/${p._id}`, { method: "PUT", body: JSON.stringify({ stage }) });
     } catch (err) {
-      mutate(before ? { projects: before } : undefined);
+      setStage(old); // undo only this card
       showToast({ title: "Not moved", description: (err as Error).message, variant: "destructive" });
     }
   }
 
   async function bulk(status: "archived" | "active") {
-    const ids = [...selected()];
+    // only rows still shown (a filter may have hidden some selected ones)
+    const visible = new Set(shown().map((p) => p._id));
+    const ids = [...selected()].filter((id) => visible.has(id));
     if (!ids.length) return;
     try {
       const r = await apiFetch<{ updated: number }>("/internal/projects/bulk-status", { method: "POST", body: JSON.stringify({ ids, status }) });
@@ -117,6 +129,9 @@ function Dashboard() {
           <button class="rounded-sm px-2 py-1 btn-default" onClick={() => setAdding(!adding())}>
             + New project
           </button>
+          <button class="rounded-sm px-2 py-1 text-sm underline" onClick={() => setImporting(!importing())}>
+            Add from farms
+          </button>
         </Show>
       </div>
 
@@ -125,6 +140,16 @@ function Dashboard() {
         <select class={input} value={type()} onChange={(e) => setType(e.currentTarget.value)}>
           <option value="">All types</option>
           <For each={TYPES}>{([k, v]) => <option value={k}>{v}</option>}</For>
+        </select>
+        <Show when={view() !== "board"}>
+          <select class={input} value={stageFilter()} onChange={(e) => setStageFilter(e.currentTarget.value)}>
+            <option value="">All stages</option>
+            <For each={STAGES}>{([k, v]) => <option value={k}>{v}</option>}</For>
+          </select>
+        </Show>
+        <select class={input} value={region()} onChange={(e) => setRegion(e.currentTarget.value)}>
+          <option value="">All regions</option>
+          <For each={regions()}>{(r) => <option value={r}>{r}</option>}</For>
         </select>
         <select class={input} value={owner()} onChange={(e) => setOwner(e.currentTarget.value)}>
           <option value="">Everyone</option>
@@ -136,6 +161,15 @@ function Dashboard() {
         </label>
         <span class="opacity-60">{shown().length} project(s)</span>
       </div>
+
+      <Show when={importing()}>
+        <ImportFarms
+          onDone={() => {
+            setImporting(false);
+            refetch();
+          }}
+        />
+      </Show>
 
       <Show when={adding()}>
         <NewProject
@@ -189,7 +223,7 @@ function Dashboard() {
                           </div>
                         </Show>
                         <div class="text-xs mt-1 opacity-80">
-                          {[p.plannedHa ? `${p.plannedHa} ha` : "", p.trees ? `${p.trees.toLocaleString("da-DK")} trees` : "", canSeeMoney() ? kroner(p.signedValue || p.offerValue) : ""].filter(Boolean).join(" · ")}
+                          {[p.plannedHa ? `${p.plannedHa} ha` : "", (p.trees ?? p.signedTrees) ? `${(p.trees ?? p.signedTrees)!.toLocaleString("da-DK")} trees` : "", canSeeMoney() ? kroner(p.signedValue || p.offerValue) : ""].filter(Boolean).join(" · ")}
                         </div>
                         <Show when={canSeeMoney()}>
                           <select class="mt-1 text-xs bg-transparent border border-zinc-300 dark:border-slate-600 rounded-sm" value={p.stage} onChange={(e) => move(p, e.currentTarget.value as Stage)} aria-label="Move to stage">
@@ -216,8 +250,17 @@ function Dashboard() {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left">
-                <th class="py-1 pr-2" />
-                <For each={[["name", "Project"], ["type", "Type"], ["stage", "Stage"], ["responsible", "Owner"], ["region", "Region"], ["next", "Next action"], ["plannedHa", "ha"], ["trees", "Trees"], ...(canSeeMoney() ? [["offerValue", "Offers"], ["signedValue", "Signed"]] : [])] as [any, string][]}>
+                <th class="py-1 pr-2">
+                  <Show when={canSeeMoney()}>
+                    <input
+                      type="checkbox"
+                      aria-label="Select all shown"
+                      checked={shown().length > 0 && shown().every((p) => selected().has(p._id))}
+                      onChange={(e) => setSelected(new Set<string>(e.currentTarget.checked ? shown().map((p) => p._id) : []))}
+                    />
+                  </Show>
+                </th>
+                <For each={[["name", "Project"], ["type", "Type"], ["stage", "Stage"], ["responsible", "Owner"], ["region", "Region"], ["next", "Next action"], ["plannedHa", "ha"], ["trees", "Trees"], ...(canSeeMoney() ? [["offerValue", "Sent offers"], ["signedValue", "Signed"]] : [])] as [any, string][]}>
                   {([key, label]) => (
                     <th class="py-1 pr-3 cursor-pointer select-none" onClick={() => setSort((s) => ({ key, dir: s.key === key ? (-s.dir as 1 | -1) : 1 }))}>
                       {label}
@@ -255,7 +298,7 @@ function Dashboard() {
                       <div class="text-xs opacity-60">{shortDate(p.nextAction?.date)}</div>
                     </td>
                     <td class="py-1 pr-3">{p.plannedHa ?? ""}</td>
-                    <td class="py-1 pr-3">{p.trees ? p.trees.toLocaleString("da-DK") : ""}</td>
+                    <td class="py-1 pr-3">{(p.trees ?? p.signedTrees) ? (p.trees ?? p.signedTrees)!.toLocaleString("da-DK") : ""}</td>
                     <Show when={canSeeMoney()}>
                       <td class="py-1 pr-3">{kroner(p.offerValue)}</td>
                       <td class="py-1 pr-3">{kroner(p.signedValue)}</td>
@@ -268,7 +311,7 @@ function Dashboard() {
         </Show>
 
         <Show when={view() === "map"}>
-          <ProjectMap projects={shown()} />
+          <ProjectMap projects={shown().filter((p) => p.status === "active")} />
         </Show>
       </Show>
     </div>
@@ -280,6 +323,7 @@ function ProjectMap(props: { projects: GroveProject[] }) {
   let map: maplibregl.Map | undefined;
   const markers: maplibregl.Marker[] = [];
   const located = () => props.projects.filter((p) => typeof p.farm?.lat === "number" && typeof p.farm?.lng === "number");
+  let lastFit = "";
 
   createEffect(() => {
     if (!el) return;
@@ -296,7 +340,10 @@ function ProjectMap(props: { projects: GroveProject[] }) {
       markers.push(new maplibregl.Marker({ element: dot }).setLngLat([p.farm!.lng!, p.farm!.lat!]).setPopup(popup).addTo(map));
       bounds.extend([p.farm!.lng!, p.farm!.lat!]);
     }
-    if (located().length) map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
+    // re-fit only when the set of projects on the map changes, not on every keystroke
+    const key = located().map((p) => p._id).sort().join(",");
+    if (located().length && key !== lastFit) map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
+    lastFit = key;
   });
   onCleanup(() => map?.remove());
 
@@ -311,7 +358,7 @@ function ProjectMap(props: { projects: GroveProject[] }) {
             </span>
           )}
         </For>
-        <span class="opacity-60">{props.projects.length - located().length} project(s) without a linked farm are not on the map</span>
+        <span class="opacity-60">Active projects only · {props.projects.length - located().length} without a linked farm are not shown</span>
       </div>
       <div ref={el} style={{ height: "65vh", width: "100%" }} class="rounded-md overflow-hidden" />
     </div>
@@ -356,7 +403,7 @@ function NewProject(props: { onCreated: (p: GroveProject) => void }) {
         <select name="stage" class={input}><For each={STAGES}>{([k, v]) => <option value={k}>{v}</option>}</For></select>
       </label>
       <label class="flex flex-col text-xs">Client<input name="client" class={input} /></label>
-      <label class="flex flex-col text-xs">Owner at Grove<input name="responsible" class={input} placeholder="Kris" /></label>
+      <label class="flex flex-col text-xs">Owner at Grove<input name="responsible" class={input} placeholder="e.g. Kris" /></label>
       <label class="flex flex-col text-xs">
         Farm (optional)
         <select name="farm" class={input}>
@@ -365,6 +412,73 @@ function NewProject(props: { onCreated: (p: GroveProject) => void }) {
         </select>
       </label>
       <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()}>Create</button>
+    </form>
+  );
+}
+
+/** One-off: make projects from Grove farms that have none, e.g. old test farms as archived. */
+function ImportFarms(props: { onDone: () => void }) {
+  const [farms] = createResource(() => apiFetch<{ farms: { _id: string; name: string; linked: boolean }[] }>("/internal/projects/farms"));
+  const [picked, setPicked] = createSignal<Set<string>>(new Set());
+  const [busy, setBusy] = createSignal(false);
+  const free = () => (farms()?.farms ?? []).filter((f) => !f.linked);
+  async function submit(e: SubmitEvent) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget as HTMLFormElement);
+    setBusy(true);
+    try {
+      const r = await apiFetch<{ created: number; skipped: number }>("/internal/projects/import-farms", {
+        method: "POST",
+        body: JSON.stringify({ farmIds: [...picked()], type: f.get("type"), stage: f.get("stage"), status: f.get("status") }),
+      });
+      showToast({ title: `${r.created} project(s) added${r.skipped ? `, ${r.skipped} skipped` : ""}` });
+      props.onDone();
+    } catch (err) {
+      showToast({ title: "Not added", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <form class="flex flex-col gap-2 p-2 rounded-sm border border-zinc-200 dark:border-slate-700 text-sm" onSubmit={submit}>
+      <p class="text-xs opacity-70">
+        Farms under Grove accounts that have no project yet. Tick them, choose how to add them (for example old test farms as Archived), and add.
+      </p>
+      <div class="flex flex-wrap gap-x-4 gap-y-1 max-h-48 overflow-auto">
+        <label class="flex items-center gap-1 font-semibold">
+          <input type="checkbox" checked={free().length > 0 && picked().size === free().length} onChange={(e) => setPicked(new Set<string>(e.currentTarget.checked ? free().map((x) => x._id) : []))} />
+          All ({free().length})
+        </label>
+        <For each={free()}>
+          {(f) => (
+            <label class="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={picked().has(f._id)}
+                onChange={() => {
+                  const s = new Set(picked());
+                  s.has(f._id) ? s.delete(f._id) : s.add(f._id);
+                  setPicked(s);
+                }}
+              />
+              {f.name}
+            </label>
+          )}
+        </For>
+      </div>
+      <div class="flex flex-wrap gap-2 items-end">
+        <label class="flex flex-col text-xs">Type<select name="type" class={input}><For each={TYPES}>{([k, v]) => <option value={k}>{v}</option>}</For></select></label>
+        <label class="flex flex-col text-xs">Stage<select name="stage" class={input}><For each={STAGES}>{([k, v]) => <option value={k}>{v}</option>}</For></select></label>
+        <label class="flex flex-col text-xs">
+          Status
+          <select name="status" class={input}>
+            <option value="active">Active</option>
+            <option value="on-hold">On hold</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+        <button class="rounded-sm px-2 py-1 btn-default" disabled={busy() || !picked().size}>Add {picked().size} project(s)</button>
+      </div>
     </form>
   );
 }

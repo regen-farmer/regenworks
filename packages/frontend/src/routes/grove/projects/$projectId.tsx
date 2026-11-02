@@ -23,6 +23,7 @@ function ProjectPage() {
   const navigate = useNavigate();
   const [data, { mutate, refetch }] = createResource(() => params().projectId, (id) => apiFetch<Detail>(`/internal/projects/${id}`));
   const [farms] = createResource(() => canSeeMoney() || undefined, () => apiFetch<{ farms: { _id: string; name: string }[] }>("/internal/projects/farms"));
+  const [people] = createResource(() => canSeeMoney() || undefined, () => apiFetch<{ people: { _id: string; email?: string; name?: string; roles?: string[] }[] }>("/internal/projects/people"));
   const [p, setP] = createStore<GroveProject>({} as GroveProject);
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
@@ -58,6 +59,7 @@ function ProjectPage() {
           contractEnd: p.contractEnd ?? null,
           plannedHa: p.plannedHa ?? null,
           trees: p.trees ?? null,
+          assignees: p.assignees ?? [],
           notes: p.notes ?? "",
           ...extra,
         }),
@@ -96,13 +98,13 @@ function ProjectPage() {
             <button class="rounded-sm px-2 py-1 btn-default" disabled={busy() || !dirty()} onClick={() => save()}>
               {dirty() ? "Save" : "Saved"}
             </button>
-            <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy()} onClick={() => save({ status: p.status === "archived" ? "active" : "archived" }).then(refetch)}>
+            <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy() || dirty()} title={dirty() ? "Save your changes first" : ""} onClick={() => save({ status: p.status === "archived" ? "active" : "archived" }).then(refetch)}>
               {p.status === "archived" ? "Restore" : "Archive"}
             </button>
           </Show>
         </div>
 
-        <fieldset disabled={!team()} class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <fieldset disabled={!team() || busy()} class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <label class="flex flex-col text-xs">Name<input class={input} value={p.name ?? ""} onInput={(e) => edit("name", e.currentTarget.value)} /></label>
           <label class="flex flex-col text-xs">
             Type
@@ -156,7 +158,30 @@ function ProjectPage() {
           <label class="flex flex-col text-xs">Planting date<input type="date" class={input} value={day(p.plantingDate)} onInput={(e) => edit("plantingDate", noon(e.currentTarget.value))} /></label>
           <label class="flex flex-col text-xs">Contract end<input type="date" class={input} value={day(p.contractEnd)} onInput={(e) => edit("contractEnd", noon(e.currentTarget.value))} /></label>
           <label class="flex flex-col text-xs">Planned ha<input type="number" min="0" step="0.1" class={input} value={p.plannedHa ?? ""} onInput={(e) => edit("plannedHa", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} /></label>
-          <label class="flex flex-col text-xs">Trees (blank: from signed offers)<input type="number" min="0" class={input} value={p.trees ?? ""} onInput={(e) => edit("trees", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} /></label>
+          <label class="flex flex-col text-xs">
+            Trees (blank: from signed offers)
+            <input type="number" min="0" class={input} value={p.trees ?? ""} placeholder={p.signedTrees ? `${p.signedTrees.toLocaleString("da-DK")} from signed offers` : ""} onInput={(e) => edit("trees", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} />
+          </label>
+          <Show when={team()}>
+            <div class="flex flex-col text-xs md:col-span-3">
+              Assigned (field users see only projects they are assigned to)
+              <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                <For each={people()?.people}>
+                  {(u) => (
+                    <label class="flex items-center gap-1 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={(p.assignees ?? []).includes(u._id)}
+                        onChange={(e) => edit("assignees", (a: string[] | undefined) => (e.currentTarget.checked ? [...(a ?? []), u._id] : (a ?? []).filter((x) => x !== u._id)))}
+                      />
+                      {u.name || u.email}
+                      <span class="opacity-60">({(u.roles ?? []).join(", ") || "admin"})</span>
+                    </label>
+                  )}
+                </For>
+              </div>
+            </div>
+          </Show>
           <Show when={team()}>
             <label class="flex flex-col text-xs md:col-span-3">Notes<textarea class={input} rows={3} value={p.notes ?? ""} onInput={(e) => edit("notes", e.currentTarget.value)} /></label>
           </Show>

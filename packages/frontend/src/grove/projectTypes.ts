@@ -39,6 +39,9 @@ export type GroveProject = {
   contractEnd?: string | null;
   plannedHa?: number | null;
   trees?: number | null;
+  signedTrees?: number;
+  drafts?: number;
+  assignees?: string[];
   notes?: string;
   offers?: number;
   offerValue?: number;

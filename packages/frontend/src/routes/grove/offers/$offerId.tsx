@@ -63,7 +63,7 @@ function OfferPage() {
   }
 
   const save = () =>
-    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes } : {
+    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes, groveProject: draft.groveProject ?? null } : {
       dineroNumber: draft.dineroNumber,
       title: draft.title,
       status: draft.status,
