@@ -9,6 +9,7 @@ import pricebookRoutes from "../internal/pricebookRoutes.ts";
 import offerRoutes from "../internal/offerRoutes.ts";
 import projectRoutes from "../internal/projectRoutes.ts";
 import { clientRouter, dealRouter, funnelRouter } from "../internal/dealRoutes.ts";
+import scorecardRoutes from "../internal/scorecardRoutes.ts";
 
 const router = express.Router();
 
@@ -26,6 +27,8 @@ router.use("/offers", requireRole("grove-team"), offerRoutes);
 router.use("/funnels", requireRole("grove-team"), funnelRouter);
 router.use("/deals", requireRole("grove-team"), dealRouter);
 router.use("/clients", requireRole("grove-team"), clientRouter);
+// Dashboard scorecard: money, grove-team only.
+router.use("/scorecard", requireRole("grove-team"), scorecardRoutes);
 // Dashboard: field users see their assigned projects (no money); see projectRoutes.ts.
 router.use("/projects", projectRoutes);
 

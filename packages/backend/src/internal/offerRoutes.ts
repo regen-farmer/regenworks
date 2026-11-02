@@ -16,6 +16,7 @@ import { activePricebook, pricebookVersion, pricingRates } from "./pricebookRout
 import {
   cleanOfferUpdate,
   defaultValidUntil,
+  deposit,
   dineroLines,
   lineMargin,
   mergeLines,
@@ -36,10 +37,11 @@ const validId = (id: unknown): id is string => typeof id === "string" && mongoos
 async function moveProjectStage(groveProjectId: unknown, event: "offer-made" | "offer-accepted") {
   if (!validId(String(groveProjectId ?? ""))) return;
   try {
-    const p: any = await GroveProject.findById(String(groveProjectId)).select("stage");
+    const p: any = await GroveProject.findById(String(groveProjectId)).select("stage step");
     const next = p ? stageAfterOffer(p.stage, event) : null;
     if (next) {
       p.stage = next;
+      p.step = ""; // the old step belonged to the old stage
       await p.save();
     }
   } catch (err) {
@@ -309,13 +311,28 @@ router.put("/:id", async (req: Req, res) => {
   // notes can change.
   if (offer.status === "accepted") {
     // linking to a dashboard project is internal bookkeeping, not the offer itself
-    const allowed = new Set(["dineroNumber", "notes", "groveProject", "deal"]);
+    // bookkeeping that doesn't change what was signed: links, accepted date,
+    // and whether it counts as a forward order (its deposit is frozen below)
+    const allowed = new Set(["dineroNumber", "notes", "groveProject", "deal", "acceptedAt", "scorecardForward"]);
     const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
     if (changed.length) {
-      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number, notes and links to a project or deal can change" });
+      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number, notes, links, accepted date and forward-order flag can change" });
       return;
     }
   }
+  // An accepted offer can be marked a forward order for the scorecard; the
+  // deposit the client signed is kept as a set % so it doesn't change.
+  if (offer.status === "accepted" && rest.acceptedAt === null) {
+    res.status(400).send({ error: "An accepted offer needs its accepted date" });
+    return;
+  }
+  // only when the flag actually changes, so other saves leave the deposit alone
+  if (typeof rest.scorecardForward === "boolean" && offer.status === "accepted" && rest.scorecardForward !== !!offer.terms?.forwardOrder) {
+    const before = deposit(offer.toObject(), offerTotals(offer.toObject()).total).pct;
+    if (offer.terms?.depositPct === null || offer.terms?.depositPct === undefined) offer.set("terms.depositPct", before);
+    offer.set("terms.forwardOrder", rest.scorecardForward);
+  }
+  delete rest.scorecardForward;
   // Move "valid until" with the offer date while it is still the default.
   if (rest.offerDate && !rest.validUntil && offer.validUntil && offer.offerDate) {
     const wasDefault = defaultValidUntil(offer.offerDate).toISOString().slice(0, 10) === new Date(offer.validUntil).toISOString().slice(0, 10);
@@ -351,6 +368,7 @@ router.put("/:id", async (req: Req, res) => {
   }
   if (lines || needsPricing) offer.lines = merged;
   const becameAccepted = rest.status === "accepted" && offer.isModified("status");
+  if (becameAccepted) offer.acceptedAt = new Date();
   offer.updatedBy = req.user?._id;
   await offer.save();
   if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");

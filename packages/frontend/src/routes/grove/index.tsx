@@ -6,6 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { createEffect, createMemo, createResource, createSignal, For, onCleanup, Show } from "solid-js";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { Scorecard } from "~/grove/Scorecard.tsx";
 import {
   kroner,
   shortDate,
@@ -130,6 +131,9 @@ function Dashboard() {
   return (
     <div class="p-4 flex flex-col gap-3" data-testid="grove-dashboard">
       <Toaster />
+      <Show when={canSeeMoney()}>
+        <Scorecard />
+      </Show>
       <div class="flex flex-wrap items-center gap-2">
         <h1 class="text-3xl font-bold mr-auto">Grove Dashboard</h1>
         <For each={["board", "list", "map"] as View[]}>
@@ -230,6 +234,7 @@ function Dashboard() {
                           {p.client?.name ? ` · ${p.client.name}` : ""}
                           {p.status !== "active" ? ` · ${p.status}` : ""}
                         </div>
+                        <Show when={p.step}><div class="text-xs font-semibold mt-0.5">{p.step}</div></Show>
                         <Show when={p.nextAction?.text}>
                           <div class="text-xs mt-1">
                             Next: {p.nextAction!.text}
@@ -303,6 +308,7 @@ function Dashboard() {
                     <td class="py-1 pr-3">
                       <span class="inline-block w-2 h-2 rounded-full mr-1" style={{ background: STAGE_COLOR[p.stage] }} />
                       {STAGE_LABEL[p.stage]}
+                      {p.step ? ` · ${p.step}` : ""}
                       {p.status !== "active" ? ` (${p.status})` : ""}
                     </td>
                     <td class="py-1 pr-3">{p.responsible}</td>

@@ -73,6 +73,8 @@ export function cleanProject(body: any, { creating = false } = {}): Cleaned<Reco
   }
   for (const k of ["region", "responsible"]) if (body?.[k] !== undefined) out[k] = text(body[k], 100);
   if (body?.notes !== undefined) out.notes = text(body.notes, 5000);
+  // where in the stage the project is, e.g. "Staking" in Establishment
+  if (body?.step !== undefined) out.step = body.step === null ? "" : text(body.step, 60) ?? "";
   if (body?.nextAction !== undefined) {
     const n: Record<string, unknown> = {};
     if (body.nextAction?.text !== undefined) n.text = text(body.nextAction.text, 500);

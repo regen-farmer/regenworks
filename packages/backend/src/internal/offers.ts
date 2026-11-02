@@ -56,7 +56,7 @@ export type OfferLike = {
   discountPct?: number;
   clientOrganic?: boolean;
   offerDate?: Date | string;
-  terms?: { deliveryDate?: Date | string | null; depositPct?: number | null };
+  terms?: { deliveryDate?: Date | string | null; depositPct?: number | null; forwardOrder?: boolean };
 };
 
 export const isService = (l: OfferLine) => l.kind === "service";
@@ -86,7 +86,8 @@ export function deposit(o: OfferLike, totalInclVat: number) {
   const set = o.terms?.depositPct;
   const delivery = o.terms?.deliveryDate ? new Date(o.terms.deliveryDate) : null;
   const usable = delivery && !Number.isNaN(delivery.getTime()) ? delivery : null;
-  const pct = typeof set === "number" ? set : depositPctFor(o.offerDate ? new Date(o.offerDate) : new Date(), usable);
+  // forward orders: 20 % (sales plan); otherwise by delivery date
+  const pct = typeof set === "number" ? set : o.terms?.forwardOrder ? 20 : depositPctFor(o.offerDate ? new Date(o.offerDate) : new Date(), usable);
   return { pct, fromRule: typeof set !== "number", amount: depositAmount(totalInclVat, pct) };
 }
 
@@ -137,7 +138,7 @@ export function offerMargin(o: OfferLike) {
   // the offer-wide discount comes off the sales side
   const net = sale * (1 - (o.discountPct || 0) / 100);
   const pct = (cost: number) => (net > 0 ? round2(((net - cost) / net) * 100) : null);
-  return { sale: round2(net), margin: round2(net - likely), marginPct: pct(likely), worstPct: pct(worst), bestPct: pct(best), withoutCost: round2(unknown) };
+  return { sale: round2(net), margin: round2(net - likely), marginPct: pct(likely), worstPct: pct(worst), bestPct: pct(best), withoutCost: round2(unknown * (1 - (o.discountPct || 0) / 100)) };
 }
 
 const stk = (n: number) => n.toLocaleString("da-DK");
@@ -461,6 +462,7 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
       deposit: text(t.deposit, 500),
       text: text(t.text, 5000),
       guarantee: t.guarantee === true,
+      forwardOrder: t.forwardOrder === true,
       guaranteeText: text(t.guaranteeText, 3000),
       deliveryDate: null,
       depositPct: null,
@@ -477,6 +479,17 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
     }
   }
   if (body?.notes !== undefined) out.notes = text(body.notes, 5000);
+  // scorecard bookkeeping, also on accepted offers
+  if (body?.acceptedAt !== undefined) {
+    const d = typeof body.acceptedAt === "string" || typeof body.acceptedAt === "number" ? new Date(body.acceptedAt) : new Date(Number.NaN);
+    if (body.acceptedAt === null) out.acceptedAt = null;
+    else if (Number.isNaN(d.getTime())) errors.push("Accepted date is not a date");
+    else out.acceptedAt = d;
+  }
+  if (body?.scorecardForward !== undefined) {
+    if (typeof body.scorecardForward !== "boolean") errors.push("Forward order must be true or false");
+    else out.scorecardForward = body.scorecardForward;
+  }
   if (body?.groveProject !== undefined) {
     if (body.groveProject === null || body.groveProject === "") out.groveProject = null;
     else if (typeof body.groveProject === "string" && /^[0-9a-f]{24}$/i.test(body.groveProject)) out.groveProject = body.groveProject;

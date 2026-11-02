@@ -67,6 +67,8 @@ export interface IOffer {
 		deliverySeason?: string;
 		deposit?: string;
 		text?: string;
+		/** a forward order: plants for a later season, 20 % deposit and a later-delivery clause */
+		forwardOrder?: boolean;
 		/** expected delivery/planting date: decides the deposit rule */
 		deliveryDate?: Date | null;
 		/** deposit % set by hand; null = the rule (50 % within 3 months, else 20 %) */
@@ -75,6 +77,8 @@ export interface IOffer {
 		guaranteeText?: string;
 	};
 	notes?: string;
+	/** when the offer was marked accepted (for the scorecard) */
+	acceptedAt?: Date | null;
 	createdBy?: mongoose.Types.ObjectId;
 	updatedBy?: mongoose.Types.ObjectId;
 }
@@ -107,12 +111,14 @@ const offerSchema = new mongoose.Schema<IOffer>(
 			deliverySeason: { type: String, maxlength: 200 },
 			deposit: { type: String, maxlength: 500 },
 			text: { type: String, maxlength: 5000 },
+			forwardOrder: { type: Boolean, default: false },
 			deliveryDate: { type: Date, default: null },
 			depositPct: { type: Number, min: 0, max: 100, default: null },
 			guarantee: { type: Boolean, default: false },
 			guaranteeText: { type: String, maxlength: 3000 },
 		},
 		notes: { type: String, maxlength: 5000 },
+		acceptedAt: { type: Date, default: null },
 		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 	},
