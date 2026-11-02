@@ -71,7 +71,9 @@ let seq = 0;
 const newId = (p: string) => `${p}${Date.now().toString(36)}${(seq++).toString(36)}`;
 const mid = (a: number | null, b: number | null) => (a != null && b != null ? (a + b) / 2 : (a ?? b));
 const kg = (x: number) => `${Math.round(x).toLocaleString("da-DK")} kg`;
-const pct = (x: number | null) => (x == null ? "–" : `${Math.round(x * 100)} %`);
+const pct = (x: number | null) => (x == null ? "–" : Number.isFinite(x) ? `${Math.round(x * 100)} %` : "can't run");
+/** ISO week for display: 53 and up are next year's weeks */
+const wk = (w: number | null) => (w == null ? "–" : w > 52 ? `${w - 52} (next yr)` : `${w}`);
 const priceText = (it: Item) => {
   if (it.priceLow == null && it.priceHigh == null) return "no price";
   const lo = it.priceLow ?? it.priceHigh!;
@@ -267,7 +269,7 @@ function ValueChains() {
     if (!file) return;
     try {
       const csv = await file.text();
-      const r = await apiFetch<{ catalogue: Catalogue }>("/internal/value-chains/catalogue", { method: "PUT", body: JSON.stringify({ csv, fileName: file.name }) });
+      const r = await apiFetch<{ catalogue: Catalogue }>(`/internal/value-chains/catalogue?fileName=${encodeURIComponent(file.name)}`, { method: "PUT", headers: { "Content-Type": "text/csv" }, body: csv });
       await refetch();
       showToast({ title: `Catalogue v${r.catalogue.version}: ${r.catalogue.items.length} items`, variant: "success" });
     } catch (err) {
@@ -303,7 +305,7 @@ function ValueChains() {
     if (n.kind === "output") return kg(r.inKg);
     if (n.kind === "store") return `max ${kg(r.maxWaitingKg)} in stock`;
     if (r.weeklyCapacityKg == null) return "no capacity data";
-    return `peak ${pct(r.peakLoad)} · wk ${r.peakWeek ?? "–"}`;
+    return `peak ${pct(r.peakLoad)} · wk ${wk(r.peakWeek)}`;
   };
   const unknownCapacity = () => result().nodes.filter((r) => r.kind === "machine" && r.weeklyCapacityKg == null).length;
   const bottleneck = () => (result().bottleneck ? resultById().get(result().bottleneck!) : undefined);
@@ -421,7 +423,7 @@ function ValueChains() {
               <Show when={bottleneck()}>
                 {(b) => (
                   <span classList={{ "text-orange-700 dark:text-orange-400 font-semibold": (b().peakLoad ?? 0) > 1 }}>
-                    {(b().peakLoad ?? 0) > 1 ? "Bottleneck" : "Busiest machine"}: {b().label}, {pct(b().peakLoad)} of its capacity in week {b().peakWeek}
+                    {(b().peakLoad ?? 0) > 1 ? "Bottleneck" : "Busiest machine"}: {b().label}, {pct(b().peakLoad)} of its capacity in week {wk(b().peakWeek)}
                   </span>
                 )}
               </Show>
@@ -582,7 +584,7 @@ function ValueChains() {
                           <span>In: {kg(res().inKg)}{n().kind !== "output" ? ` · out: ${kg(res().outKg)}` : ""}</span>
                           <Show when={n().kind === "machine"}>
                             <span>Capacity: {res().weeklyCapacityKg == null ? "no data" : `${kg(res().weeklyCapacityKg!)} a week`}</span>
-                            <span classList={{ "text-orange-700 dark:text-orange-400 font-semibold": (res().peakLoad ?? 0) > 1 }}>Peak: {pct(res().peakLoad)} in week {res().peakWeek ?? "–"} · average {pct(res().avgUse)}</span>
+                            <span classList={{ "text-orange-700 dark:text-orange-400 font-semibold": (res().peakLoad ?? 0) > 1 }}>Peak: {pct(res().peakLoad)} in week {wk(res().peakWeek)} · average {pct(res().avgUse)}</span>
                             <span>Weeks over capacity: {res().weeksOverCapacity} · most waiting: {kg(res().maxWaitingKg)}</span>
                           </Show>
                           <Show when={n().kind === "store"}><span>Most in stock: {kg(res().maxWaitingKg)} · left at the end: {kg(res().leftKg)}</span></Show>
@@ -594,7 +596,7 @@ function ValueChains() {
                               </Show>
                               <For each={res().weeks.filter((w) => w.arrivedKg + w.waitingKg > 0.5)}>
                                 {(w) => (
-                                  <div class="flex-1 flex flex-col justify-end h-full" title={`week ${w.week}: ${kg(w.arrivedKg)} arrived, ${kg(w.waitingKg)} left waiting`}>
+                                  <div class="flex-1 flex flex-col justify-end h-full" title={`week ${wk(w.week)}: ${kg(w.arrivedKg)} arrived, ${kg(w.waitingKg)} left waiting`}>
                                     <div class="bg-orange-300 dark:bg-orange-800" style={{ height: `${(w.waitingKg / chartMax()) * 100}%` }} />
                                     <div class="bg-emerald-600" style={{ height: `${(w.arrivedKg / chartMax()) * 100}%` }} />
                                   </div>
@@ -639,7 +641,7 @@ function ValueChains() {
                       <td class={td}>{kg(r.inKg)}</td>
                       <td class={td}>{r.kind === "output" ? "–" : kg(r.outKg)}</td>
                       <td class={td}>{r.kind === "machine" ? (r.weeklyCapacityKg == null ? "no data" : kg(r.weeklyCapacityKg)) : "–"}</td>
-                      <td class={td}>{r.kind === "machine" ? `${pct(r.peakLoad)}${r.peakWeek ? ` (wk ${r.peakWeek})` : ""}` : "–"}</td>
+                      <td class={td}>{r.kind === "machine" ? `${pct(r.peakLoad)}${r.peakWeek ? ` (wk ${wk(r.peakWeek)})` : ""}` : "–"}</td>
                       <td class={td}>{r.kind === "machine" ? pct(r.avgUse) : "–"}</td>
                       <td class={td}>{r.kind === "machine" || r.kind === "store" ? r.weeksOverCapacity : "–"}</td>
                       <td class={td}>{r.kind === "machine" || r.kind === "store" ? kg(r.maxWaitingKg) : "–"}</td>

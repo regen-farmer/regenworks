@@ -1,6 +1,7 @@
 // /internal/value-chains: equipment catalogue and processing lines (Library →
 // Value chains). Grove team only: the catalogue holds equipment prices.
 import express from "express";
+import mongoose from "mongoose";
 import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { cleanLines, LIMITS, parseEquipmentCsv } from "./valueChains.ts";
@@ -18,10 +19,10 @@ router.get("/", async (_req: Req, res) => {
   });
 });
 
-// Import equipment.csv (sent as text, within the app's 100 kB JSON limit).
-// Each import replaces the catalogue and counts up the version.
-router.put("/catalogue", async (req: Req, res) => {
-  const csv = typeof req.body?.csv === "string" ? req.body.csv : "";
+// Import equipment.csv, sent as text/csv (the app's JSON limit is 100 kB, too
+// small for a long catalogue). Each import replaces the catalogue and counts up the version.
+router.put("/catalogue", express.text({ type: "text/csv", limit: "2mb" }), async (req: Req, res) => {
+  const csv = typeof req.body === "string" ? req.body : typeof req.body?.csv === "string" ? req.body.csv : "";
   const parsed = parseEquipmentCsv(csv);
   if (!parsed.ok) {
     res.status(400).send({ error: parsed.error });
@@ -31,7 +32,7 @@ router.put("/catalogue", async (req: Req, res) => {
   const value = {
     version: (Number(prev?.value?.version) || 0) + 1,
     importedAt: new Date().toISOString(),
-    fileName: typeof req.body?.fileName === "string" ? req.body.fileName.slice(0, 100) : undefined,
+    fileName: typeof req.query.fileName === "string" ? req.query.fileName.slice(0, 100) : undefined,
     items: parsed.value,
   };
   await GroveSetting.findOneAndUpdate({ key: CATALOGUE }, { $set: { value, updatedBy: req.user?._id } }, { upsert: true });
@@ -52,16 +53,27 @@ router.put("/lines/:id", async (req: Req, res) => {
     return;
   }
   const line = cleaned.value[0];
-  const replaced = await GroveSetting.findOneAndUpdate({ key: LINES, "value.lines.id": line.id }, { $set: { "value.lines.$": line, updatedBy: req.user?._id } });
-  if (!replaced) {
-    const doc: any = await GroveSetting.findOne({ key: LINES }).select("value.lines.id").lean();
-    if ((doc?.value?.lines?.length ?? 0) >= LIMITS.lines) {
-      res.status(400).send({ error: `At most ${LIMITS.lines} lines` });
-      return;
+  const replace = () => GroveSetting.updateOne({ key: LINES, "value.lines.id": line.id }, { $set: { "value.lines.$": line, updatedBy: req.user?._id } });
+  // Add only if no line has this id and the list isn't full: one atomic update,
+  // so two saves at once can't add the same line twice or pass the limit.
+  const add = () =>
+    GroveSetting.updateOne(
+      { key: LINES, "value.lines.id": mongoose.trusted({ $ne: line.id }), [`value.lines.${LIMITS.lines - 1}`]: mongoose.trusted({ $exists: false }) },
+      { $push: { "value.lines": line }, $set: { updatedBy: req.user?._id } },
+    );
+  if ((await replace()).matchedCount) return void res.send({ line });
+  if ((await add()).matchedCount) return void res.send({ line });
+  const doc: any = await GroveSetting.findOne({ key: LINES }).select("value.lines.id").lean();
+  if (!doc) {
+    try {
+      await GroveSetting.create({ key: LINES, value: { lines: [line] }, updatedBy: req.user?._id });
+      return void res.send({ line });
+    } catch (e: any) {
+      if (e?.code !== 11000) throw e; // created at the same moment by another save: fall through
     }
-    await GroveSetting.updateOne({ key: LINES }, { $push: { "value.lines": line }, $set: { updatedBy: req.user?._id } }, { upsert: true });
   }
-  res.send({ line });
+  if ((await replace()).matchedCount || (await add()).matchedCount) return void res.send({ line });
+  res.status(400).send({ error: `At most ${LIMITS.lines} lines` });
 });
 
 router.delete("/lines/:id", async (req: Req, res) => {

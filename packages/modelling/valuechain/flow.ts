@@ -85,7 +85,9 @@ export function weeklyCapacityKg(n: Extract<FlowNode, { kind: "machine" }>): num
 		return Number(n.kgPerHour) * hours * count;
 	}
 	if (!(Number(n.kgPerBatch) > 0) || !(Number(n.batchHours) > 0)) return null;
-	return Number(n.kgPerBatch) * Math.floor(hours / Number(n.batchHours)) * count;
+	// fractional batches: a batch started late in the week finishes next week, so on
+	// average hours / batchHours batches a week (a 48 h batch on an 8 h x 5 day week: 0.83)
+	return (Number(n.kgPerBatch) * hours * count) / Number(n.batchHours);
 }
 
 /** Spread a season's kg over its harvest weeks: a triangle peaking in the middle week(s). */
@@ -166,6 +168,7 @@ export function runFlow(line: FlowLine, opts: { extraWeeks?: number } = {}): Flo
 		}
 	}
 	if (!Number.isFinite(first)) return { weeks: [], nodes: [], bottleneck: null, warnings: ["Add an input with kg and harvest weeks."] };
+	// weeks run on past 52 for the extra weeks (53 = week 1 next year); harvests within one calendar year
 	const weeks = Array.from({ length: last - first + 1 + (opts.extraWeeks ?? 12) }, (_, i) => first + i);
 
 	const res = new Map<string, NodeResult>();
@@ -202,8 +205,8 @@ export function runFlow(line: FlowLine, opts: { extraWeeks?: number } = {}): Flo
 				const left = avail - done;
 				waiting.set(id, left);
 				r.maxWaitingKg = Math.max(r.maxWaitingKg, left);
-				if (cap != null && cap > 0 && avail > 0) {
-					const load = avail / cap;
+				if (cap != null && avail > 0) {
+					const load = cap > 0 ? avail / cap : Infinity; // a machine that can't run is the worst bottleneck
 					if (r.peakLoad == null || load > r.peakLoad) {
 						r.peakLoad = load;
 						r.peakWeek = week;
@@ -219,6 +222,7 @@ export function runFlow(line: FlowLine, opts: { extraWeeks?: number } = {}): Flo
 				done = Math.min(stock, rate);
 				waiting.set(id, stock - done);
 				r.maxWaitingKg = Math.max(r.maxWaitingKg, stock);
+				// what it must hold that week: stock plus arrivals, before sending on
 				if (n.capacityKg != null && n.capacityKg > 0 && stock > n.capacityKg + 1e-9) r.weeksOverCapacity++;
 				out = done;
 			} else {
@@ -237,11 +241,14 @@ export function runFlow(line: FlowLine, opts: { extraWeeks?: number } = {}): Flo
 		const u = used.get(r.id);
 		if (u && u.cap > 0) r.avgUse = u.done / u.cap;
 		const n = byId.get(r.id)!;
-		if (n.kind === "store" && n.capacityKg != null && n.capacityKg > 0 && r.maxWaitingKg > n.capacityKg) r.warnings.push(`Stock reaches ${Math.round(r.maxWaitingKg)} kg, above the ${Math.round(n.capacityKg)} kg it holds`);
+		if (n.kind === "store" && n.capacityKg != null && n.capacityKg > 0 && r.maxWaitingKg > n.capacityKg) r.warnings.push(`Must hold up to ${Math.round(r.maxWaitingKg)} kg in a week (stock + arrivals), above the ${Math.round(n.capacityKg)} kg it holds`);
 		if (n.kind === "machine" && r.leftKg > 0.5) r.warnings.push(`${Math.round(r.leftKg)} kg still waiting after week ${weeks[weeks.length - 1]}`);
-		const shares = (outEdges.get(r.id) ?? []).filter((e) => e.share != null);
+		const outs = outEdges.get(r.id) ?? [];
+		const shares = outs.filter((e) => e.share != null);
 		const sum = shares.reduce((a, e) => a + Number(e.share), 0);
-		if (shares.length && shares.length === (outEdges.get(r.id) ?? []).length && Math.abs(sum - 1) > 0.001) r.warnings.push(`Arrow shares add up to ${Math.round(sum * 100)} %; scaled to 100 %`);
+		if (shares.length && shares.length === outs.length && sum === 0) r.warnings.push("All arrow shares are 0 %: split equally instead");
+		else if (shares.length && shares.length === outs.length && Math.abs(sum - 1) > 0.001) r.warnings.push(`Arrow shares add up to ${Math.round(sum * 100)} %; scaled to 100 %`);
+		else if (shares.length < outs.length && sum >= 1) r.warnings.push(`Arrow shares already add up to ${Math.round(sum * 100)} %: arrows without a share get nothing`);
 	}
 
 	let bottleneck: string | null = null;

@@ -14,11 +14,12 @@ test("harvest is spread over the weeks, peaking in the middle, and adds up", () 
 	assert.equal(harvestWeeks(100, 40, 36).size, 0);
 });
 
-test("weekly capacity: rate, batch (whole batches only), count, unknown", () => {
+test("weekly capacity: rate, batch (fractional batches), count, unknown", () => {
 	const base = { id: "m", kind: "machine" as const, label: "", x: 0, y: 0, hoursPerDay: 10, daysPerWeek: 6 };
 	assert.equal(weeklyCapacityKg({ ...base, mode: "rate", kgPerHour: 100 }), 6000);
 	assert.equal(weeklyCapacityKg({ ...base, mode: "rate", kgPerHour: 100, count: 2 }), 12000);
-	assert.equal(weeklyCapacityKg({ ...base, mode: "batch", kgPerBatch: 5000, batchHours: 24 }), 10000); // 60 h -> 2 batches
+	assert.equal(weeklyCapacityKg({ ...base, mode: "batch", kgPerBatch: 5000, batchHours: 24 }), 12500); // 60 h = 2.5 batches
+	close(weeklyCapacityKg({ ...base, hoursPerDay: 8, daysPerWeek: 5, mode: "batch", kgPerBatch: 1200, batchHours: 48 })!, 1000); // a batch longer than the week still counts
 	assert.equal(weeklyCapacityKg({ ...base, mode: "batch", kgPerBatch: 5000, batchHours: null }), null);
 	assert.equal(weeklyCapacityKg({ ...base, mode: "rate", kgPerHour: null }), null);
 });
@@ -99,10 +100,18 @@ test("a store releases at its rate and flags stock above its size", () => {
 	});
 	const cold = r.nodes.find((n) => n.id === "cold")!;
 	assert.ok(cold.maxWaitingKg > 8000);
-	assert.ok(cold.warnings.some((w) => /above the 8000 kg/.test(w)));
+	assert.ok(cold.warnings.some((w) => /above the 8000 kg it holds/.test(w)));
 	const sale = r.nodes.find((n) => n.id === "sale")!;
 	assert.ok(sale.inKg <= 1000 * r.weeks.length + 1e-6);
 	close(sale.inKg + cold.leftKg, 12000, 1e-6);
+});
+
+test("a machine with 0 capacity is the bottleneck, not silent", () => {
+	const line = hazelLine(5000);
+	(line.nodes[2] as any).hoursPerDay = 0;
+	const r = runFlow(line);
+	assert.equal(r.bottleneck, "grade");
+	assert.equal(r.nodes.find((n) => n.id === "grade")!.peakLoad, Infinity);
 });
 
 test("unknown capacity counts as unlimited and is flagged", () => {
