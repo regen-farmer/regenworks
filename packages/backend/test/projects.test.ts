@@ -3,27 +3,19 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanProject, forFieldUser, stageAfterOffer, summariseOffers, visibleFilter } from "../src/internal/projects.ts";
+import { cleanProject, forFieldUser, migrateStage, summariseOffers, visibleFilter } from "../src/internal/projects.ts";
 import { canSeeMoney } from "@rw/db/access.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("input: name required on create; enums checked; unknown fields ignored", () => {
   assert.equal(cleanProject({}, { creating: true }).ok, false);
-  const ok = cleanProject({ name: " Brian ", stage: "signed", createdBy: "x", offerValue: 9, plannedHa: "12.5" }, { creating: true });
+  const ok = cleanProject({ name: " Brian ", stage: "preparation", createdBy: "x", offerValue: 9, plannedHa: "12.5" }, { creating: true });
   assert.ok(ok.ok);
   assert.deepEqual(Object.keys(ok.value).sort(), ["name", "plannedHa", "stage"]);
   assert.equal(cleanProject({ stage: "won" }).ok, false);
   assert.equal(cleanProject({ farm: { $ne: null } }).ok, false);
   assert.equal(cleanProject({ assignees: ["nope"] }).ok, false);
   assert.equal((cleanProject({ farm: "" }) as any).value.farm, null);
-});
-
-test("offers move projects forward, never back", () => {
-  assert.equal(stageAfterOffer("prospect", "offer-made"), "design-offer");
-  assert.equal(stageAfterOffer("design-offer", "offer-made"), null);
-  assert.equal(stageAfterOffer("design-offer", "offer-accepted"), "signed");
-  assert.equal(stageAfterOffer("management", "offer-accepted"), null);
-  assert.equal(stageAfterOffer("prospect", "offer-accepted"), "signed");
 });
 
 test("field users see no money and no client contacts", () => {
@@ -89,4 +81,22 @@ test("partial client / next action: only the keys sent", () => {
   assert.deepEqual(c.value.nextAction, { text: "Call" });
   assert.equal(cleanProject({ plannedHa: true }).ok, false);
   assert.equal(cleanProject({ plantingDate: true }).ok, false);
+});
+
+test("B's stages: projects from before 2 Nov are mapped; a step naming a stage decides it", () => {
+  assert.deepEqual(migrateStage({ stage: "prospect" }), { stage: "screening", step: "" });
+  assert.deepEqual(migrateStage({ stage: "design-offer", step: "Screening" }), { stage: "screening", step: "" }, "Jesper Broch");
+  assert.deepEqual(migrateStage({ stage: "design-offer", step: "Financial model" }), { stage: "economics", step: "" });
+  assert.deepEqual(migrateStage({ stage: "design-offer", step: "Offer sent" }), { stage: "design", step: "" });
+  assert.deepEqual(migrateStage({ stage: "signed", step: "Plants ordered" }), { stage: "preparation", step: "Plants ordered" });
+  assert.deepEqual(migrateStage({ stage: "establishment", step: "Staking" }), { stage: "planting", step: "Staking" });
+  assert.deepEqual(migrateStage({ stage: "management" }), { stage: "handed-over", step: "To C · care contract" });
+  assert.deepEqual(migrateStage({ stage: "closed", step: "Cancelled" }), { stage: "handed-over", step: "Stopped" });
+  assert.deepEqual(migrateStage({ stage: "closed" }), { stage: "handed-over", step: "Done" });
+  assert.deepEqual(migrateStage({ stage: "management", step: "Planting" }), { stage: "handed-over", step: "To C · care contract" }, "never back");
+  assert.deepEqual(migrateStage({ stage: "establishment", step: "Planting" }), { stage: "planting", step: "Planting" });
+  assert.deepEqual(migrateStage({ stage: "signed", step: "Contract out" }), { stage: "preparation", step: "Contract out" }, "old note kept");
+  assert.equal(migrateStage({ stage: "planting", step: "Staking" }), null, "already in the new stages");
+  assert.equal(cleanProject({ stage: "signed" }).ok, false, "old stages can't be set any more");
+  assert.ok(cleanProject({ stage: "economics" }).ok);
 });

@@ -1,19 +1,24 @@
 import mongoose from "mongoose";
 
 /**
- * A Grove project on the dashboard: one client engagement, one of Grove's
- * own sites, or a tree sale. Grove team only (field users see the projects
- * they are assigned to, without money).
+ * A Grove project (B · Projects): delivering a planting, from screening to
+ * hand-over. Selling (leads, offers) is the deal's in A; running the farm
+ * afterwards is C. One client engagement, one of Grove's own sites, or a
+ * tree sale. Grove team only (field users see the projects they are
+ * assigned to, without money).
  */
 export const PROJECT_TYPES = ["client", "own", "tree-sale"] as const;
-export const PROJECT_STAGES = ["prospect", "design-offer", "signed", "establishment", "management", "closed"] as const;
+/** B's stages (Kris, 2 Nov): screening → design → economics → preparation → planting → handed over (to C, or stopped). */
+export const PROJECT_STAGES = ["screening", "design", "economics", "preparation", "planting", "handed-over"] as const;
+/** Stages before 2 Nov, when the Dashboard was also the sales funnel; mapped on read (see projects.ts). */
+export const OLD_PROJECT_STAGES = ["prospect", "design-offer", "signed", "establishment", "management", "closed"] as const;
 export const PROJECT_STATUSES = ["active", "on-hold", "archived"] as const;
 
 export interface IGroveProject {
 	name: string;
 	type: (typeof PROJECT_TYPES)[number];
 	stage: (typeof PROJECT_STAGES)[number];
-	/** where in the stage, e.g. "Staking" in establishment */
+	/** where in the stage, e.g. "Staking" in planting */
 	step?: string;
 	status: (typeof PROJECT_STATUSES)[number];
 	client: { name?: string; contactPerson?: string; email?: string; phone?: string };
@@ -34,7 +39,7 @@ const schema = new mongoose.Schema<IGroveProject>(
 	{
 		name: { type: String, required: true, trim: true, maxlength: 200 },
 		type: { type: String, enum: PROJECT_TYPES, default: "client" },
-		stage: { type: String, enum: PROJECT_STAGES, default: "prospect" },
+		stage: { type: String, enum: [...PROJECT_STAGES, ...OLD_PROJECT_STAGES], default: "screening" },
 		step: { type: String, maxlength: 60 },
 		status: { type: String, enum: PROJECT_STATUSES, default: "active" },
 		client: {

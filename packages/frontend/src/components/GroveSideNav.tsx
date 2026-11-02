@@ -1,5 +1,6 @@
 // Left menu for Grove users: Dashboard and the three workspaces
-// (A · Deals, B · Projects with Farms & designs, C · Managed farms), then
+// (A · Deals: selling; B · Projects with Farms & designs: delivering;
+// C · Management & production: managed farms, nursery and supply), then
 // Library and Settings.
 // Collapses to icons; the choice is remembered in this browser.
 import { Link, useLocation } from "@tanstack/solid-router";
@@ -15,11 +16,11 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/deals", label: "Deals", letter: "A", icon: "fa-filter", show: () => canSeeMoney() },
   { to: "/grove/clients", label: "Clients", icon: "fa-address-book", sub: true, show: () => canSeeMoney() },
   { to: "/grove/offers", label: "Offers", icon: "fa-file-invoice", sub: true, show: () => canSeeMoney() },
-  { to: "/grove/supply", label: "Supply", icon: "fa-boxes-stacked", sub: true, show: () => canSeeMoney() },
   { to: "/grove/funnels", label: "Funnels & sources", icon: "fa-sliders", sub: true, show: () => canSeeMoney() },
   { to: "/grove/projects", label: "Projects", letter: "B", icon: "fa-compass-drafting", also: /^\/grove\/(projects|trees)(\/|$)/ },
   { to: "/", label: "Farms & designs", icon: "fa-map-location-dot", sub: true, exact: true, also: /^\/parcels(\/|$)/ },
-  { to: "/grove/managed", label: "Managed farms", letter: "C", icon: "fa-tractor", soon: true },
+  { to: "/grove/managed", label: "Management & production", letter: "C", icon: "fa-tractor", exact: true },
+  { to: "/grove/supply", label: "Nursery & supply", icon: "fa-seedling", sub: true, show: () => canSeeMoney() },
   { heading: "Library" },
   { to: "/plants", label: "Plants", icon: "fa-seedling", show: () => canUsePlantCatalogue() },
   { to: "/grove/prices", label: "Prices", icon: "fa-scale-balanced", show: () => canSeeMoney() },

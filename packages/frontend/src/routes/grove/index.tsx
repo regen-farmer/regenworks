@@ -270,7 +270,7 @@ export function Dashboard(props: { only?: "projects" } = {}) {
               <tbody>
                 <For
                   each={[...shown()]
-                    .filter((p) => p.status !== "archived" && p.stage !== "closed")
+                    .filter((p) => p.status !== "archived" && p.stage !== "handed-over")
                     .sort((a, b) => STAGES.findIndex(([k]) => k === b.stage) - STAGES.findIndex(([k]) => k === a.stage) || a.name.localeCompare(b.name))}
                   fallback={<tr><td class="py-2 opacity-70" colSpan={6}>No ongoing projects.</td></tr>}
                 >

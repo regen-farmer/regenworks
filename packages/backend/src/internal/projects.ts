@@ -1,5 +1,5 @@
-// Grove Dashboard logic (pure, tested): input cleaning, stage moves from
-// offers, and what field users may see.
+// Grove Dashboard logic (pure, tested): input cleaning, moving projects
+// from the old stages, and what field users may see.
 import { PROJECT_STAGES, PROJECT_STATUSES, PROJECT_TYPES } from "@rw/db/schemas/internal/groveProject.ts";
 
 type Cleaned<T> = { ok: true; value: T } | { ok: false; errors: string[] };
@@ -73,7 +73,7 @@ export function cleanProject(body: any, { creating = false } = {}): Cleaned<Reco
   }
   for (const k of ["region", "responsible"]) if (body?.[k] !== undefined) out[k] = text(body[k], 100);
   if (body?.notes !== undefined) out.notes = text(body.notes, 5000);
-  // where in the stage the project is, e.g. "Staking" in Establishment
+  // where in the stage the project is, e.g. "Staking" in Planting
   if (body?.step !== undefined) out.step = body.step === null ? "" : text(body.step, 60) ?? "";
   if (body?.nextAction !== undefined) {
     const n: Record<string, unknown> = {};
@@ -101,16 +101,29 @@ export function cleanProject(body: any, { creating = false } = {}): Cleaned<Reco
   return errors.length ? { ok: false, errors } : { ok: true, value: out };
 }
 
-const order = (s: string) => PROJECT_STAGES.indexOf(s as Stage);
-
 /**
- * Stage after an offer event: making an offer moves a prospect to
- * "design & offer"; an accepted offer moves it to "signed". Never moves a
- * project backwards.
+ * A project saved with the stages from before 2 Nov, in B's stages. A step
+ * that names a new stage (e.g. "Screening" under the old "Design & offer")
+ * decides it; else: prospect → screening, design & offer → design, signed →
+ * preparation, establishment → planting, management and closed → handed over.
+ * Returns null for a project already in the new stages.
  */
-export function stageAfterOffer(current: string, event: "offer-made" | "offer-accepted"): Stage | null {
-  const target: Stage = event === "offer-accepted" ? "signed" : "design-offer";
-  return order(current) < order(target) ? target : null;
+export function migrateStage(p: { stage?: string; step?: string }): { stage: Stage; step: string } | null {
+  if ((PROJECT_STAGES as readonly string[]).includes(p.stage ?? "")) return null;
+  const step = (p.step ?? "").trim();
+  // only before signing did the step stand in for B's stages ("Screening" under Design & offer)
+  const early = p.stage === "prospect" || p.stage === "design-offer";
+  const byStep = early && PROJECT_STAGES.find((s) => s === step.toLowerCase() || (s === "economics" && /financial model|economics/i.test(step)));
+  if (byStep) return { stage: byStep, step: "" };
+  const map: Record<string, Stage> = { prospect: "screening", "design-offer": "design", signed: "preparation", establishment: "planting", management: "handed-over", closed: "handed-over" };
+  const stage = map[p.stage ?? ""] ?? "screening";
+  // old steps that still mean something in the new stage are kept
+  const keep: Record<string, string[]> = { planting: ["Delivery", "Staking", "Planting", "As-planted check"], preparation: ["Plants ordered"] };
+  if (keep[stage]?.includes(step)) return { stage, step };
+  if (p.stage === "management") return { stage, step: "To C · care contract" };
+  if (p.stage === "closed") return { stage, step: /cancel|stop|lost/i.test(step) ? "Stopped" : step || "Done" };
+  // anything else written in the old step is kept rather than lost
+  return { stage, step: stage === "design" && /offer/i.test(step) ? "" : step };
 }
 
 /** What a field user may see: no client money, no offer values. */

@@ -92,6 +92,8 @@ test("Dashboard import: type picks the funnel, stage maps to a stage that exists
     assert.equal(s!.kind, place.status);
   }
   assert.equal(dealPlaceForProject({ type: "tree-sale", stage: "prospect" }).funnel, "tree-sales");
+  assert.equal(dealPlaceForProject({ type: "client", stage: "economics" }).status, "open");
+  assert.equal(dealPlaceForProject({ type: "client", stage: "planting" }).status, "won");
   assert.equal(dealPlaceForProject({ type: "client", stage: "signed" }).status, "won");
 });
 

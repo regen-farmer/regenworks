@@ -1,4 +1,4 @@
-// Supply for forward orders: plants promised (signed) and likely (sent or
+// C · Nursery & supply, for forward orders: plants promised (signed) and likely (sent or
 // draft offers ticked "Forward order") per exact product and season, against
 // own production at the expected take rate plus supplier capacity. A product
 // is species · cultivar · rootstock · propagation · organic · bare root or
@@ -181,7 +181,7 @@ function Supply() {
       <Toaster />
       <Show when={canSeeMoney()} fallback={<p>Supply is only shown to the Grove team.</p>}>
         <div class="flex flex-wrap items-center gap-2">
-          <h1 class="text-2xl font-bold mr-auto">Supply for forward orders</h1>
+          <h1 class="text-2xl font-bold mr-auto">Nursery & supply</h1>
           <button class="rounded-sm px-2 py-1 btn-default" disabled={!d()} onClick={() => (editing() ? setEditing(false) : startEdit())}>
             {editing() ? "Cancel" : "Edit supply plan"}
           </button>

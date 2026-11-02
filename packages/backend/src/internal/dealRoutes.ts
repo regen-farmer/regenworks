@@ -536,7 +536,8 @@ dealRouter.post("/:id/handover", async (req: Req, res) => {
     const project = await GroveProject.create({
       name: deal.title,
       type: funnel?.key === "tree-sales" ? "tree-sale" : "client",
-      stage: deal.status === "won" ? "signed" : "prospect",
+      // a won (or open) deal hands over to B: the project starts with screening
+      stage: "screening",
       status: "active",
       client: { name: client?.name, contactPerson: client?.contactPerson, email: client?.email, phone: client?.phone },
       farm: deal.farm ?? null,

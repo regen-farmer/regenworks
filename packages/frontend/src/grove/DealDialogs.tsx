@@ -47,7 +47,7 @@ export function WonDialog(props: { deal: Deal | null; funnels: Funnel[]; onClose
         <div class="flex flex-col gap-3 text-sm">
           <div class="rounded-md border border-zinc-300 dark:border-slate-600 p-3 flex flex-col gap-2">
             <b>Project on the Dashboard</b>
-            <span class="opacity-70">For design and planting work: a project with the client and farm ({props.deal?.status === "won" ? "stage Signed" : "stage Prospect"}). Its farm and designs are under B · Projects.</span>
+            <span class="opacity-70">For design and planting work: a project in B · Projects with the client and farm, starting with Screening.</span>
             <button class="rounded-sm p-2 btn-default self-start" disabled={busy()} onClick={() => handover({ action: "project" })}>
               {props.deal?.groveProject ? "Open its project" : "Create project"}
             </button>

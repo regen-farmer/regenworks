@@ -3,7 +3,7 @@
 // only projects they are assigned to, without money or client contacts.
 import express from "express";
 import mongoose from "mongoose";
-import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
+import GroveProject, { OLD_PROJECT_STAGES } from "@rw/db/schemas/internal/groveProject.ts";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import Deal from "@rw/db/schemas/internal/deal.ts";
 import Parcel from "@rw/db/schemas/parcel.ts";
@@ -15,7 +15,7 @@ import { offerTotals } from "./offers.ts";
 import User from "@rw/db/schemas/user.ts";
 import { GROVE_ROLES } from "@rw/db/access.ts";
 import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
-import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
+import { cleanProject, forFieldUser, migrateStage, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
 import Checklist from "@rw/db/schemas/internal/checklist.ts";
 import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, templateOf } from "./checklists.ts";
 import TreeRegister from "@rw/db/schemas/internal/treeRegister.ts";
@@ -95,7 +95,29 @@ async function checkLinks(v: Record<string, any>): Promise<string | null> {
   return null;
 }
 
+/**
+ * Projects still in the stages from before 2 Nov move to B's stages. Done once
+ * per server start (and retried if it fails); the filter on the old stage means
+ * a project someone has just moved is left alone. A failure never stops the list.
+ */
+let stagesMigrated = false;
+async function migrateOldStages() {
+  if (stagesMigrated) return;
+  try {
+    const old: any[] = await GroveProject.find({ stage: inIds([...OLD_PROJECT_STAGES]) }).select("stage step").limit(2000).lean();
+    if (old.length) {
+      await GroveProject.bulkWrite(
+        old.map((p) => ({ updateOne: { filter: { _id: p._id, stage: p.stage }, update: { $set: migrateStage(p)! }, timestamps: false } })),
+      );
+    }
+    stagesMigrated = old.length < 2000;
+  } catch (e) {
+    console.error("Moving projects to the new stages failed", e);
+  }
+}
+
 router.get("/", async (req: Req, res) => {
+  await migrateOldStages();
   const projects = await GroveProject.find(visibleFilter(req.user)).sort({ updatedAt: -1 }).limit(1000).lean();
   res.send({ projects: await present(projects, req.user) });
 });
@@ -122,7 +144,7 @@ router.get("/people", team, async (_req: Req, res) => {
 // old test farms straight into "archived".
 router.post("/import-farms", team, async (req: Req, res) => {
   const farmIds: string[] = Array.isArray(req.body?.farmIds) ? req.body.farmIds.filter(validId).slice(0, 500) : [];
-  const cleaned = cleanProject({ type: req.body?.type ?? "client", stage: req.body?.stage ?? "prospect", status: req.body?.status ?? "active" });
+  const cleaned = cleanProject({ type: req.body?.type ?? "client", stage: req.body?.stage ?? "screening", status: req.body?.status ?? "active" });
   if (!farmIds.length || !cleaned.ok) {
     res.status(400).send({ error: cleaned.ok ? "Choose farms" : cleaned.errors.join("; ") });
     return;
@@ -158,11 +180,14 @@ router.get("/:id", async (req: Req, res) => {
     res.status(400).send({ error: "Invalid id" });
     return;
   }
+  await migrateOldStages();
   const project: any = await GroveProject.findOne({ _id: req.params.id, ...visibleFilter(req.user) }).lean();
   if (!project) {
     res.status(404).send({ error: "Project not found" });
     return;
   }
+  // in case the move above failed: show (and so save) the project in a new stage
+  Object.assign(project, migrateStage(project) ?? {});
   const [p] = await present([project], req.user);
   const offers = canSeeMoney(req.user)
     ? (

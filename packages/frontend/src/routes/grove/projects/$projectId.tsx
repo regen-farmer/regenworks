@@ -213,7 +213,7 @@ function ProjectPage() {
               <button class="rounded-sm px-2 py-1 btn-default text-sm" onClick={newOffer}>New offer (plant list)</button>
             </div>
             <p class="text-xs opacity-70">
-              To offer a design, use "Make offer" on the scenario, then choose this project on the offer page. Making an offer moves a prospect to "Design & offer"; accepting it moves the project to "Signed".
+              To offer a design, use "Make offer" on the scenario, then choose this project and its deal on the offer page. Offers are followed up on the deal in A; the project's stage is set here as the work moves on.
             </p>
             <table class="w-full text-sm">
               <tbody>
