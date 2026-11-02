@@ -24,6 +24,10 @@ const lineSchema = new mongoose.Schema(
 		cultivar: { type: String, maxlength: 200 },
 		rootstock: { type: String, maxlength: 200 },
 		propagation: { type: String, maxlength: 40 },
+		// bare-root / container / root-ball, and production years ("1+1"): with
+		// rootstock and organic this says exactly which product is sold
+		form: { type: String, maxlength: 20 },
+		years: { type: String, maxlength: 10 },
 		size: { type: String, maxlength: 100 },
 		heightMin: Number,
 		heightMax: Number,

@@ -12,6 +12,10 @@ export type OfferLine = {
   cultivar?: string;
   rootstock?: string;
   propagation?: string;
+  /** bare-root, container or root-ball */
+  form?: string;
+  /** production years, e.g. "1+1" */
+  years?: string;
   size?: string;
   organic?: boolean | null;
   organicRequested?: boolean | null;

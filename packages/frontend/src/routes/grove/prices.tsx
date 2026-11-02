@@ -1,6 +1,7 @@
 // Price overview: per product, Grove's sales prices next to every supplier
 // cost, each with its supplier, price list, date and source file, so ranges
 // and margins can be judged without making an offer. Grove team only.
+import { FORM_EN, type Form, type ProductSpec } from "@rw/db/productSpec.ts";
 import { createFileRoute, Link } from "@tanstack/solid-router";
 import { createResource, createSignal, For, Show } from "solid-js";
 import { Toaster } from "~/components/ui/toast";
@@ -15,6 +16,7 @@ const PAGE = 100;
 
 type Source = { docId?: string; title?: string; file?: string; documentDate?: string; outdated: boolean; supplierName?: string };
 type Cost = {
+  spec?: ProductSpec;
   priceId: string;
   supplierId: string;
   rootstock?: string;
@@ -32,6 +34,7 @@ type Cost = {
   source: Source;
 };
 type Sale = {
+  spec?: ProductSpec;
   salesPriceId: string;
   rootstock?: string;
   propagation?: string;
@@ -51,13 +54,25 @@ type Sale = {
     outdated: boolean;
     sameSize: boolean;
     sameOrganic: boolean;
+    sameProduct?: boolean;
+    differs?: string[];
+    unknown?: string[];
     exact: boolean;
   } | null;
   marginPct: number | null;
   source: Source;
 };
+type Variant = {
+  key: string;
+  spec: ProductSpec;
+  sales: string[];
+  costs: string[];
+  compatibleCosts: string[];
+  summary: { costPoints: number; compatiblePoints: number; exactPoints: number; costMin?: number; costMax?: number; salesMin?: number; salesMax?: number; marginLow: number | null; marginHigh: number | null; approx: boolean };
+};
 type Product = {
   key: string;
+  products?: Variant[];
   latin: string;
   name?: string;
   cultivar?: string;
@@ -95,6 +110,17 @@ type Overview = {
 const kr = (n: number | null | undefined) => (n === null || n === undefined || !Number.isFinite(n) ? "–" : `${n.toLocaleString("da-DK", { maximumFractionDigits: 2 })} kr`);
 const organic = (s: string) => (s === "organic" ? "organic" : s === "in-conversion" ? "in conversion" : s === "not-organic" ? "not organic" : s);
 const type = (rootstock?: string, propagation?: string) => [rootstock ? `on ${rootstock}` : "", propagation ? PROPAGATION_EN[propagation] ?? propagation : ""].filter(Boolean).join(", ");
+/** "on Corylus colurna · grafted · organic · bare root · 1+1" */
+const variantText = (v: ProductSpec) =>
+  [
+    v.rootstock ? `on ${v.rootstock}` : v.propagation && v.propagation !== "grafted" ? "own roots" : "",
+    v.propagation ? PROPAGATION_EN[v.propagation as string] ?? v.propagation : "",
+    v.organic === true ? "organic" : v.organic === false ? "not organic" : "",
+    v.form ? FORM_EN[v.form as Form] ?? v.form : "",
+    v.years ? `${v.years} yrs` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ") || "type not stated";
 const range = (a?: number, b?: number) => (a === undefined ? "–" : a === b ? kr(a) : `${kr(a)} – ${kr(b)}`);
 
 function SourceCell(props: { s: Source }) {
@@ -252,6 +278,28 @@ function Prices() {
                             {[p.summary.outdated && `${p.summary.outdated} old`, p.summary.vatUnclear && `${p.summary.vatUnclear} VAT unclear`].filter(Boolean).join(", ")}
                           </td>
                         </tr>
+                        {/* each product: rootstock, propagation, organic, bare root/container, production years */}
+                        <For each={p.products?.length && (p.products.length > 1 || p.products[0].sales.length) ? p.products : []}>
+                          {(v) => (
+                            <tr class="text-xs" classList={{ "opacity-60": !v.sales.length }}>
+                              <td class={`${td} pl-4`} colSpan={2}>└ {variantText(v.spec)}</td>
+                              <td class={`${td} whitespace-nowrap`}>{v.sales.length ? range(v.summary.salesMin, v.summary.salesMax) : ""}</td>
+                              <td class={`${td} whitespace-nowrap`}>
+                                {v.summary.compatiblePoints ? range(v.summary.costMin, v.summary.costMax) : v.sales.length ? <span class="text-amber-700">no supplier price for this product</span> : ""}
+                              </td>
+                              <td class={td}>
+                                {v.summary.costPoints ? `${v.summary.costPoints} price${v.summary.costPoints === 1 ? "" : "s"}` : ""}
+                                <Show when={v.sales.length && v.summary.compatiblePoints > v.summary.exactPoints}>
+                                  <div class="opacity-70">{v.summary.compatiblePoints - v.summary.exactPoints} not fully specified</div>
+                                </Show>
+                              </td>
+                              <td class={td} classList={{ "text-amber-700 font-semibold": d()?.targets?.trees !== undefined && v.summary.marginLow !== null && v.summary.marginLow < d()!.targets!.trees! }}>
+                                {v.summary.marginLow === null ? "" : `${v.summary.approx ? "≈ " : ""}${v.summary.marginLow === v.summary.marginHigh ? v.summary.marginLow : `${v.summary.marginLow}–${v.summary.marginHigh}`} %`}
+                              </td>
+                              <td class={td} />
+                            </tr>
+                          )}
+                        </For>
                         <Show when={isOpen()}>
                           <tr>
                             <td colSpan={7} class="pb-3 pl-4">
@@ -265,7 +313,7 @@ function Prices() {
                                     <For each={p.sales}>
                                       {(s) => (
                                         <tr class="border-t border-zinc-200 dark:border-slate-700">
-                                          <td class={td}>{type(s.rootstock, s.propagation)}</td>
+                                          <td class={td}>{s.spec ? variantText(s.spec) : type(s.rootstock, s.propagation)}</td>
                                           <td class={td}>{s.size}</td>
                                           <td class={td}>{organic(s.organicStatus)}</td>
                                           <td class={td}>{kr(s.priceExclVat)}</td>
@@ -276,7 +324,14 @@ function Prices() {
                                               {kr(s.costReference!.unitCostDkk)} · {s.costReference!.supplierName}
                                               <div class="opacity-70">{[s.costReference!.size, organic(s.costReference!.organicStatus)].filter(Boolean).join(", ")} · <span class="font-mono">{s.costReference!.supplierPriceId}</span></div>
                                               <div class="text-amber-700">
-                                                {[!s.costReference!.sameSize && "other size", !s.costReference!.sameOrganic && "other organic status", s.costReference!.vatUnclear && "VAT unclear", s.costReference!.outdated && "old list"].filter(Boolean).join(", ")}
+                                                {[
+                                                  !s.costReference!.sameSize && "other size",
+                                                  !s.costReference!.sameOrganic && "other organic status",
+                                                  s.costReference!.differs?.length && `other ${s.costReference!.differs.join(", ")}`,
+                                                  s.costReference!.unknown?.length && `${s.costReference!.unknown.join(", ")} not stated by supplier`,
+                                                  s.costReference!.vatUnclear && "VAT unclear",
+                                                  s.costReference!.outdated && "old list",
+                                                ].filter(Boolean).join(", ")}
                                               </div>
                                             </Show>
                                           </td>
@@ -299,7 +354,7 @@ function Prices() {
                                       {(c) => (
                                         <tr class="border-t border-zinc-200 dark:border-slate-700">
                                           <td class={td}>{c.source.supplierName ?? c.supplierId}</td>
-                                          <td class={td}>{type(c.rootstock, c.propagation)}</td>
+                                          <td class={td}>{c.spec ? variantText(c.spec) : type(c.rootstock, c.propagation)}</td>
                                           <td class={td}>{c.size}{c.unit && c.unit !== "plant" ? ` (${c.unit})` : ""}</td>
                                           <td class={td}>{organic(c.organicStatus)}</td>
                                           <td class={td}>
@@ -326,7 +381,9 @@ function Prices() {
               </tbody>
             </table>
           </div>
-          <p class="text-xs opacity-70">≈ margin: the closest supplier price differs from the sales price in size or organic status, or its VAT basis isn't stated.</p>
+          <p class="text-xs opacity-70">
+            Under each cultivar, one row per product: rootstock (or own roots), propagation, organic, bare root or container, and production years (Grove's own: grafted 1+1, seedlings 1). A product's margin is only against supplier prices that could be the same product. ≈ margin: some of those don't state every field (often the years), differ in size, or don't state VAT.
+          </p>
           <Show when={(d()?.total ?? 0) > products().length}>
             <button class="rounded-sm px-2 py-1 btn-default self-start" disabled={loadingMore() || data.loading} onClick={showMore}>
               {loadingMore() ? "Loading…" : `Show more (${(d()?.total ?? 0) - products().length} left)`}

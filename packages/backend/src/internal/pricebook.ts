@@ -4,6 +4,7 @@
 // Grove team uploads those files here; each upload becomes a numbered
 // version, stored in its own collection and only ever sent to grove-team.
 // Pure functions (no database) so they can be tested.
+import { cleanYears, defaultYears, formOf, type ProductSpec } from "@rw/db/productSpec.ts";
 import { CsvTooLargeError, parseCsvObjects } from "./csv.ts";
 import { buildServices, SERVICE_COLUMNS, SERVICE_REQUIRED, type Service } from "./services.ts";
 
@@ -25,8 +26,8 @@ const REQUIRED_COLUMNS: Record<keyof typeof PRICEBOOK_FILES, string[]> = {
 const USED_COLUMNS: Record<keyof typeof PRICEBOOK_FILES, string[]> = {
   suppliers: ["supplier_id", "name", "country", "organic_certification", "price_basis", "vat_note", "order_discounts", "payment_terms"],
   documents: ["doc_id", "supplier_id", "file", "title", "document_date", "date_basis", "season", "currency", "notes"],
-  supplierPrices: ["price_id", "doc_id", "supplier_id", "latin", "common_name", "cultivar", "rootstock", "propagation", "size_raw", "container", "height_cm_min", "height_cm_max", "organic_status", "price", "currency", "vat", "unit", "available_qty", "notes"],
-  salesPrices: ["sales_price_id", "doc_id", "season", "group", "latin", "common_name_da", "cultivar", "propagation", "rootstock", "organic_status", "height_cm_min", "height_cm_max", "form", "listed_supplier", "price_excl_vat", "price_incl_vat", "currency", "stock_status", "notes"],
+  supplierPrices: ["price_id", "doc_id", "supplier_id", "latin", "common_name", "cultivar", "rootstock", "propagation", "size_raw", "container", "height_cm_min", "height_cm_max", "age", "organic_status", "price", "currency", "vat", "unit", "available_qty", "notes"],
+  salesPrices: ["sales_price_id", "doc_id", "season", "group", "latin", "common_name_da", "cultivar", "propagation", "rootstock", "organic_status", "height_cm_min", "height_cm_max", "form", "years", "listed_supplier", "price_excl_vat", "price_incl_vat", "currency", "stock_status", "notes"],
 };
 
 export type Supplier = { supplierId: string; name: string; country?: string; organicCertification?: string; priceBasis?: string; vatNote?: string; orderDiscounts?: string; paymentTerms?: string };
@@ -44,6 +45,8 @@ export type SupplierPrice = {
   container?: string;
   heightMin?: number;
   heightMax?: number;
+  /** production years as printed, e.g. "1+1", "2/0" */
+  age?: string;
   organicStatus: string;
   price: number;
   currency: string;
@@ -67,6 +70,8 @@ export type SalesPrice = {
   heightMin?: number;
   heightMax?: number;
   form?: string;
+  /** production years, e.g. "1+1"; empty for Grove's own products means grafted 1+1, seedling 1 */
+  years?: string;
   listedSupplier?: string;
   priceExclVat: number;
   priceInclVat?: number;
@@ -200,6 +205,7 @@ export function buildPricebook(
       container: opt(r.container),
       heightMin: num(r.height_cm_min),
       heightMax: num(r.height_cm_max),
+      age: opt(r.age),
       organicStatus: r.organic_status || "unknown",
       price,
       currency: (r.currency || "").toUpperCase(),
@@ -232,6 +238,7 @@ export function buildPricebook(
       heightMin: num(r.height_cm_min),
       heightMax: num(r.height_cm_max),
       form: opt(r.form),
+      years: opt(r.years),
       listedSupplier: opt(r.listed_supplier),
       priceExclVat: price,
       priceInclVat: num(r.price_incl_vat),
@@ -307,7 +314,8 @@ export function isOutdated(documentDate: string | undefined, now = new Date()): 
 
 // ---- matching a plant to prices --------------------------------------------
 
-export type Propagation = "grafted" | "seedling" | "own-rooted" | "cutting";
+export type { Propagation } from "@rw/db/productSpec.ts";
+import type { Propagation } from "@rw/db/productSpec.ts";
 
 export type PlantQuery = {
   latin: string;
@@ -685,5 +693,43 @@ export function priceFromRow(
     alternatives: 0,
     ambiguous: false,
     matchNote: "chosen from the pricebook",
+  };
+}
+
+// ---- product spec (see @rw/db/productSpec.ts) ------------------------------
+
+// in conversion is not (yet) organic: an organic client would need a dispensation
+const organicOf = (status: string | undefined) => (status === "organic" ? true : status === "not-organic" || status === "conventional" || status === "in-conversion" ? false : undefined);
+
+/** The full product of a supplier price row: form from the container/size text, years from the age column. */
+export function supplierSpec(r: SupplierPrice): ProductSpec {
+  return {
+    latin: r.latin,
+    cultivar: r.cultivar,
+    rootstock: r.rootstock,
+    propagation: rowPropagation(r.propagation),
+    organic: organicOf(r.organicStatus),
+    form: formOf(r.container, r.size),
+    years: cleanYears(r.age),
+  };
+}
+
+/**
+ * Grove's own product, unless the sales price names a nursery it is bought
+ * from (listed_supplier). Own products without a years column: grafted 1+1,
+ * seedlings 1 (Kris, 2 Nov).
+ */
+export const isOwnProduct = (s: Pick<SalesPrice, "listedSupplier">) => !s.listedSupplier || /grove|jordl/i.test(s.listedSupplier);
+
+export function salesSpec(s: SalesPrice): ProductSpec {
+  const propagation = rowPropagation(s.propagation);
+  return {
+    latin: s.latin,
+    cultivar: s.cultivar,
+    rootstock: s.rootstock,
+    propagation,
+    organic: organicOf(s.organicStatus),
+    form: formOf(s.form),
+    years: cleanYears(s.years) ?? (isOwnProduct(s) ? defaultYears(propagation) : undefined),
   };
 }

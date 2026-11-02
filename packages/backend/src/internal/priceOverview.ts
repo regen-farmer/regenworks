@@ -1,16 +1,17 @@
 // Price overview for the Pricebook page (pure, tested): per product, Grove's
 // sales prices next to every supplier cost, each traced to its supplier,
 // price list, date and source file. Grove team only.
-import { isOutdated, norm, priceFromRow, rowPropagation, vatExcluded, type PricebookData, type SupplierPrice } from "./pricebook.ts";
+import { compareSpecs, specKey, type ProductSpec } from "@rw/db/productSpec.ts";
+import { isOutdated, isOwnProduct, norm, priceFromRow, rowPropagation, salesSpec, supplierSpec, vatExcluded, type PricebookData, type SupplierPrice } from "./pricebook.ts";
 import { priceService } from "./services.ts";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * A product: same species (or name) and cultivar. Rootstock, plant type,
- * size and organic status vary inside and are shown on each price, so a
- * sales price and its supplier costs sit together even when the supplier
- * leaves the rootstock or type out.
+ * A group: same species (or name) and cultivar. Inside it, each product
+ * (rootstock, propagation, organic, bare root/container, production years;
+ * see @rw/db/productSpec.ts) is its own row, so a hazel on colurna is never
+ * priced against an own-rooted one.
  */
 export function productKey(r: { latin?: string; commonName?: string; cultivar?: string }) {
   const name = norm(r.latin) || norm(r.commonName);
@@ -80,7 +81,10 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
   for (const r of data.supplierPrices) {
     if (!matches(r.latin, r.commonName, r.cultivar, r.rootstock)) continue;
     const dkk = toDkk(r, opts.eurDkk);
+    const spec = supplierSpec(r);
     get(r).costs.push({
+      spec,
+      specKey: specKey(spec),
       priceId: r.priceId,
       supplierId: r.supplierId,
       rootstock: r.rootstock,
@@ -108,7 +112,12 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     const row = ref?.supplierPriceId ? data.supplierPrices.find((x) => x.priceId === ref.supplierPriceId) : undefined;
     const sizeOk = row ? sameSize({ heightMin: s.heightMin, heightMax: s.heightMax }, row) : false;
     const organicOk = row ? row.organicStatus === s.organicStatus : false;
+    const spec = salesSpec(s);
+    const vs = row ? compareSpecs(spec, supplierSpec(row)) : null;
     get({ ...s, commonName: s.commonNameDa }).sales.push({
+      spec,
+      specKey: specKey(spec),
+      own: isOwnProduct(s),
       salesPriceId: s.salesPriceId,
       rootstock: s.rootstock,
       propagation: rowPropagation(s.propagation),
@@ -134,13 +143,58 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
               outdated: source(row.docId, row.supplierId).outdated,
               sameSize: sizeOk,
               sameOrganic: organicOk,
-              exact: sizeOk && organicOk && vatExcluded(row.vat),
+              // the product itself: rootstock, propagation, form, years
+              sameProduct: !!vs?.same,
+              differs: vs?.differs ?? [],
+              unknown: vs?.unknown ?? [],
+              exact: sizeOk && organicOk && vatExcluded(row.vat) && !!vs?.exact,
             }
           : null,
       marginPct: typeof cost === "number" && s.priceExclVat > 0 ? round2(((s.priceExclVat - cost) / s.priceExclVat) * 100) : null,
       source: source(s.docId, "grove"),
     });
   }
+
+  /**
+   * Products inside a group: one per distinct spec among its sales prices
+   * and supplier prices. Each gets its own costs, and for its sales prices
+   * the costs that could be the same product (fields both state agree), so
+   * margins are only ever against the right rootstock, form and age.
+   */
+  const productsOf = (p: Product) => {
+    const keys = new Map<string, ProductSpec>();
+    for (const x of [...p.sales, ...p.costs]) if (!keys.has(x.specKey)) keys.set(x.specKey, x.spec);
+    return [...keys.entries()].map(([key, spec]) => {
+      const sales = p.sales.filter((x) => x.specKey === key);
+      const own = p.costs.filter((x) => x.specKey === key);
+      const compatible = p.costs.filter((c) => compareSpecs(spec, c.spec).same);
+      const priced = (xs: any[]) => xs.map((c) => c.unitCostDkk).filter((n: unknown): n is number => typeof n === "number");
+      const forMargin = priced(compatible);
+      const cmin = forMargin.length ? Math.min(...forMargin) : undefined;
+      const cmax = forMargin.length ? Math.max(...forMargin) : undefined;
+      const exactCosts = compatible.filter((c) => compareSpecs(spec, c.spec).exact);
+      return {
+        key,
+        spec,
+        sales: sales.map((x) => x.salesPriceId),
+        costs: own.map((x) => x.priceId),
+        compatibleCosts: compatible.map((x) => x.priceId),
+        summary: {
+          costPoints: own.length,
+          compatiblePoints: compatible.length,
+          exactPoints: exactCosts.length,
+          costMin: cmin,
+          costMax: cmax,
+          salesMin: sales.length ? Math.min(...sales.map((x) => x.priceExclVat)) : undefined,
+          salesMax: sales.length ? Math.max(...sales.map((x) => x.priceExclVat)) : undefined,
+          // worst and best margin of its sales prices against the costs that fit
+          marginLow: sales.length && cmax !== undefined ? round2(Math.min(...sales.map((x) => ((x.priceExclVat - cmax) / x.priceExclVat) * 100))) : null,
+          marginHigh: sales.length && cmin !== undefined ? round2(Math.max(...sales.map((x) => ((x.priceExclVat - cmin) / x.priceExclVat) * 100))) : null,
+          approx: compatible.length > exactCosts.length,
+        },
+      };
+    });
+  };
 
   const list = [...products.values()].map((p) => {
     const costs = p.costs.map((c) => c.unitCostDkk).filter((x): x is number => typeof x === "number");
@@ -150,6 +204,7 @@ export function priceOverview(data: PricebookData, opts: { eurDkk: number; q?: s
     p.costs.sort((a, b) => (a.unitCostDkk ?? Infinity) - (b.unitCostDkk ?? Infinity));
     return {
       ...p,
+      products: productsOf(p).sort((a, b) => b.sales.length - a.sales.length || b.costs.length - a.costs.length || a.key.localeCompare(b.key)),
       summary: {
         costPoints: p.costs.length,
         suppliers: new Set(p.costs.map((c) => c.supplierId)).size,

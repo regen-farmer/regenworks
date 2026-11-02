@@ -15,11 +15,11 @@ router.get("/", async (_req: Req, res) => {
   const setting: any = await GroveSetting.findOne({ key: KEY }).lean();
   const plan: SupplyRow[] = Array.isArray(setting?.value?.rows) ? setting.value.rows : [];
   const offers: any[] = await Offer.find({ "terms.forwardOrder": true })
-    .select("title client.name status terms lines.kind lines.latin lines.nameDa lines.cultivar lines.qty")
+    .select("title client.name status terms lines.kind lines.latin lines.nameDa lines.cultivar lines.rootstock lines.propagation lines.organic lines.organicRequested lines.form lines.years lines.qty")
     .sort({ updatedAt: -1 })
     .limit(2000)
     .lean();
-  res.send({ plan, rows: supplyBalance(offers, plan) });
+  res.send({ plan, ...supplyBalance(offers, plan) });
 });
 
 router.put("/plan", async (req: Req, res) => {
