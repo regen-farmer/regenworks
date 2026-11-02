@@ -113,13 +113,14 @@ export function stageAfterOffer(current: string, event: "offer-made" | "offer-ac
 
 /** What a field user may see: no client money, no offer values. */
 export function forFieldUser(p: Record<string, any>) {
-  const { offerValue: _o, signedValue: _s, client, notes: _n, ...rest } = p;
+  const { offerValue: _o, signedValue: _s, client, notes: _n, assignees: _a, ...rest } = p;
   return { ...rest, client: client ? { name: client.name } : undefined };
 }
 
 /** Mongo filter for the projects a user may see. */
 export function visibleFilter(user: { _id?: unknown; isAdmin?: boolean | null; roles?: readonly string[] | null } | undefined, canSeeMoney: (u: any) => boolean) {
-  return canSeeMoney(user) ? {} : { assignees: user?._id ?? null };
+  // no user: a filter that matches nothing
+  return canSeeMoney(user) ? {} : user?._id ? { assignees: user._id } : { _id: null };
 }
 
 /**

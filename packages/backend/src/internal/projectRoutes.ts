@@ -129,7 +129,7 @@ router.post("/import-farms", team, async (req: Req, res) => {
   const already = new Set((await GroveProject.find({ farm: inIds(farmIds) }).select("farm").lean()).map((p: any) => String(p.farm)));
   const toCreate = farms
     .filter((f) => allowed.has(String(f.owner?.id)) && !already.has(String(f._id)))
-    .map((f) => ({ ...cleaned.value, name: f.name || "Farm", farm: f._id, createdBy: req.user?._id }));
+    .map((f) => ({ ...cleaned.value, name: String(f.name || "Farm").slice(0, 200), farm: f._id, createdBy: req.user?._id }));
   if (toCreate.length) await GroveProject.insertMany(toCreate);
   res.send({ created: toCreate.length, skipped: farmIds.length - toCreate.length });
 });
@@ -182,14 +182,25 @@ router.put("/:id", team, async (req: Req, res) => {
     res.status(400).send({ error: cleaned.errors.join("; "), errors: cleaned.errors });
     return;
   }
-  const problem = await checkLinks(cleaned.value);
-  if (problem) {
-    res.status(400).send({ error: problem });
-    return;
-  }
   const project: any = await GroveProject.findById(req.params.id);
   if (!project) {
     res.status(404).send({ error: "Project not found" });
+    return;
+  }
+  // Check only what changes: a farm or person that was fine when linked
+  // never blocks saving later. Assignees who are no longer Grove users are
+  // dropped.
+  const changes: Record<string, any> = {};
+  if (cleaned.value.farm && String(cleaned.value.farm) !== String(project.farm ?? "")) changes.farm = cleaned.value.farm;
+  if (cleaned.value.assignees) {
+    const before = new Set((project.assignees ?? []).map(String));
+    changes.assignees = cleaned.value.assignees.filter((id: string) => !before.has(String(id)));
+    const grove = new Set(await groveUserIds());
+    cleaned.value.assignees = cleaned.value.assignees.filter((id: string) => grove.has(String(id)) || !before.has(String(id)));
+  }
+  const problem = await checkLinks(changes);
+  if (problem) {
+    res.status(400).send({ error: problem });
     return;
   }
   // client and next action: merge the keys that were sent

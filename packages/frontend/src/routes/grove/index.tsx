@@ -55,7 +55,14 @@ function Dashboard() {
   });
 
   const norm = (s: string | undefined) => (s ?? "").trim().toLowerCase();
-  const owners = createMemo(() => [...new Set((data()?.projects ?? []).map((p) => p.responsible?.trim()).filter(Boolean))].sort() as string[]);
+  const owners = createMemo(() => {
+    const byKey = new Map<string, string>();
+    for (const p of data()?.projects ?? []) {
+      const o = p.responsible?.trim();
+      if (o && !byKey.has(o.toLowerCase())) byKey.set(o.toLowerCase(), o);
+    }
+    return [...byKey.values()].sort();
+  });
   const regions = createMemo(() => [...new Set((data()?.projects ?? []).map((p) => p.region?.trim()).filter(Boolean))].sort() as string[]);
 
   const shown = createMemo(() => {
@@ -64,7 +71,7 @@ function Dashboard() {
       (p) =>
         (showArchived() || p.status !== "archived") &&
         (!type() || p.type === type()) &&
-        (!stageFilter() || p.stage === stageFilter()) &&
+        (view() === "board" || !stageFilter() || p.stage === stageFilter()) &&
         (!region() || norm(p.region) === norm(region())) &&
         (!owner() || norm(p.responsible) === norm(owner())) &&
         (!q || `${p.name} ${p.client?.name ?? ""} ${p.region ?? ""} ${p.farm?.name ?? ""}`.toLowerCase().includes(q)),
@@ -75,7 +82,13 @@ function Dashboard() {
     const { key, dir } = sort();
     const stageIndex = (s: string) => STAGES.findIndex(([k]) => k === s);
     const val = (p: GroveProject): any =>
-      key === "next" ? p.nextAction?.date ?? "9999" : key === "stage" ? stageIndex(p.stage) : (p as any)[key] ?? "";
+      key === "next"
+        ? p.nextAction?.date ?? "9999"
+        : key === "stage"
+          ? stageIndex(p.stage)
+          : key === "trees"
+            ? p.trees ?? p.signedTrees ?? 0
+            : (p as any)[key] ?? "";
     return [...shown()].sort((a, b) => (val(a) > val(b) ? dir : val(a) < val(b) ? -dir : 0));
   });
 
@@ -87,7 +100,8 @@ function Dashboard() {
     try {
       await apiFetch(`/internal/projects/${p._id}`, { method: "PUT", body: JSON.stringify({ stage }) });
     } catch (err) {
-      setStage(old); // undo only this card
+      // undo only this card, and only if nothing moved it since
+      if (data()?.projects.find((x) => x._id === p._id)?.stage === stage) setStage(old);
       showToast({ title: "Not moved", description: (err as Error).message, variant: "destructive" });
     }
   }

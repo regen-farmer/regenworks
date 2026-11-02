@@ -58,6 +58,8 @@ test("/internal/projects: anonymous 401, public 403; field users can't change an
     ["DELETE", "/internal/projects/000000000000000000000002"],
     ["POST", "/internal/projects/bulk-status"],
     ["GET", "/internal/projects/farms"],
+    ["GET", "/internal/projects/people"],
+    ["POST", "/internal/projects/import-farms"],
   ]) {
     const r = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: method === "GET" ? undefined : "{}" });
     assert.equal(r.status, 403, `${method} ${path}`);
@@ -68,7 +70,7 @@ test("field users only get projects assigned to them; the team gets all", () => 
   const field = { _id: "u1", roles: ["grove-field"] };
   assert.deepEqual(visibleFilter(field, canSeeMoney), { assignees: "u1" });
   assert.deepEqual(visibleFilter({ _id: "u2", roles: ["grove-team"] }, canSeeMoney), {});
-  assert.deepEqual(visibleFilter(undefined, canSeeMoney), { assignees: null });
+  assert.deepEqual(visibleFilter(undefined, canSeeMoney), { _id: null });
 });
 
 test("values: sent offers are the pipeline, accepted are signed (with trees); drafts don't count", () => {
