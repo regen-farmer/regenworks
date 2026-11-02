@@ -18,7 +18,7 @@ export interface IGroveProject {
 	name: string;
 	type: (typeof PROJECT_TYPES)[number];
 	stage: (typeof PROJECT_STAGES)[number];
-	/** where in the stage, e.g. "Staking" in establishment */
+	/** where in the stage, e.g. "Staking" in planting */
 	step?: string;
 	status: (typeof PROJECT_STATUSES)[number];
 	client: { name?: string; contactPerson?: string; email?: string; phone?: string };

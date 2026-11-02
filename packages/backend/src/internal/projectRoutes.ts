@@ -95,14 +95,29 @@ async function checkLinks(v: Record<string, any>): Promise<string | null> {
   return null;
 }
 
-router.get("/", async (req: Req, res) => {
-  // one-off: projects still in the stages from before 2 Nov move to B's stages
-  const old: any[] = await GroveProject.find({ stage: inIds([...OLD_PROJECT_STAGES]) }).select("stage step").limit(2000).lean();
-  if (old.length) {
-    await GroveProject.bulkWrite(
-      old.map((p) => ({ updateOne: { filter: { _id: p._id, stage: p.stage }, update: { $set: migrateStage(p)! }, timestamps: false } })),
-    );
+/**
+ * Projects still in the stages from before 2 Nov move to B's stages. Done once
+ * per server start (and retried if it fails); the filter on the old stage means
+ * a project someone has just moved is left alone. A failure never stops the list.
+ */
+let stagesMigrated = false;
+async function migrateOldStages() {
+  if (stagesMigrated) return;
+  try {
+    const old: any[] = await GroveProject.find({ stage: inIds([...OLD_PROJECT_STAGES]) }).select("stage step").limit(2000).lean();
+    if (old.length) {
+      await GroveProject.bulkWrite(
+        old.map((p) => ({ updateOne: { filter: { _id: p._id, stage: p.stage }, update: { $set: migrateStage(p)! }, timestamps: false } })),
+      );
+    }
+    stagesMigrated = old.length < 2000;
+  } catch (e) {
+    console.error("Moving projects to the new stages failed", e);
   }
+}
+
+router.get("/", async (req: Req, res) => {
+  await migrateOldStages();
   const projects = await GroveProject.find(visibleFilter(req.user)).sort({ updatedAt: -1 }).limit(1000).lean();
   res.send({ projects: await present(projects, req.user) });
 });
@@ -165,11 +180,14 @@ router.get("/:id", async (req: Req, res) => {
     res.status(400).send({ error: "Invalid id" });
     return;
   }
+  await migrateOldStages();
   const project: any = await GroveProject.findOne({ _id: req.params.id, ...visibleFilter(req.user) }).lean();
   if (!project) {
     res.status(404).send({ error: "Project not found" });
     return;
   }
+  // in case the move above failed: show (and so save) the project in a new stage
+  Object.assign(project, migrateStage(project) ?? {});
   const [p] = await present([project], req.user);
   const offers = canSeeMoney(req.user)
     ? (

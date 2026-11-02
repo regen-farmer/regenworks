@@ -18,9 +18,6 @@ test("input: name required on create; enums checked; unknown fields ignored", ()
   assert.equal((cleanProject({ farm: "" }) as any).value.farm, null);
 });
 
-test("offers move projects forward, never back", () => {
-});
-
 test("field users see no money and no client contacts", () => {
   const p = forFieldUser({ name: "X", offerValue: 1, signedValue: 2, notes: "n", client: { name: "C", email: "e", phone: "p" } });
   assert.deepEqual(p, { name: "X", client: { name: "C" } });
@@ -94,7 +91,11 @@ test("B's stages: projects from before 2 Nov are mapped; a step naming a stage d
   assert.deepEqual(migrateStage({ stage: "signed", step: "Plants ordered" }), { stage: "preparation", step: "Plants ordered" });
   assert.deepEqual(migrateStage({ stage: "establishment", step: "Staking" }), { stage: "planting", step: "Staking" });
   assert.deepEqual(migrateStage({ stage: "management" }), { stage: "handed-over", step: "To C · care contract" });
-  assert.deepEqual(migrateStage({ stage: "closed", step: "Cancelled" }), { stage: "handed-over", step: "Done" });
+  assert.deepEqual(migrateStage({ stage: "closed", step: "Cancelled" }), { stage: "handed-over", step: "Stopped" });
+  assert.deepEqual(migrateStage({ stage: "closed" }), { stage: "handed-over", step: "Done" });
+  assert.deepEqual(migrateStage({ stage: "management", step: "Planting" }), { stage: "handed-over", step: "To C · care contract" }, "never back");
+  assert.deepEqual(migrateStage({ stage: "establishment", step: "Planting" }), { stage: "planting", step: "Planting" });
+  assert.deepEqual(migrateStage({ stage: "signed", step: "Contract out" }), { stage: "preparation", step: "Contract out" }, "old note kept");
   assert.equal(migrateStage({ stage: "planting", step: "Staking" }), null, "already in the new stages");
   assert.equal(cleanProject({ stage: "signed" }).ok, false, "old stages can't be set any more");
   assert.ok(cleanProject({ stage: "economics" }).ok);

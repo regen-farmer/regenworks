@@ -1,4 +1,4 @@
-// Supply for forward orders: plants promised (signed) and likely (sent or
+// C · Nursery & supply, for forward orders: plants promised (signed) and likely (sent or
 // draft offers ticked "Forward order") per exact product and season, against
 // own production at the expected take rate plus supplier capacity. A product
 // is species · cultivar · rootstock · propagation · organic · bare root or
