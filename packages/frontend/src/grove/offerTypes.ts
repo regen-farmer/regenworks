@@ -50,6 +50,7 @@ export type Offer = {
     deliveryDate?: string | null;
     depositPct?: number | null;
     forwardOrder?: boolean;
+    forwardOrderText?: string;
     guarantee?: boolean;
     guaranteeText?: string;
   };
@@ -77,6 +78,7 @@ export type Presented = {
   offer: Offer;
   totals: Totals;
   dinero: { text: string; qty: number; amount: number }[];
+  depositInvoice: { pct: number; text: string; net: number; vat: number; total: number };
   internal: {
     lines: { id: string; margin: LineMargin | null; singleSource?: boolean; documentDate?: string; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; pickedMissing?: boolean; costReferenceOutdated?: boolean }[];
     purchaseList: { supplierId: string; totalCostDkk: number; lines: any[] }[];

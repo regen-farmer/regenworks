@@ -92,6 +92,21 @@ export function deposit(o: OfferLike, totalInclVat: number) {
 }
 
 /**
+ * The deposit invoice (a-conto) for Dinero: the deposit % of the offer, as
+ * one line excl. VAT, plus VAT and the total to pay.
+ */
+export function depositInvoice(o: OfferLike & { dineroNumber?: string; title?: string }) {
+  const t = offerTotals(o);
+  const pct = t.deposit.pct;
+  // from the deposit the rest of the app shows (incl. VAT), so the invoice matches it to the øre
+  const total = t.deposit.amount;
+  const net = round2(total / (1 + VAT_RATE));
+  const vat = round2(total - net);
+  const ref = o.dineroNumber ? `tilbud nr. ${o.dineroNumber}` : o.title ? `tilbud "${o.title}"` : "tilbud";
+  return { pct, text: `Depositum ${pct.toLocaleString("da-DK")} % af ${ref}`, net, vat, total };
+}
+
+/**
  * Margin per line from the pricebook cost (internal sheet): at the likely
  * cost, the range from the high and low cost when known, and whether it is
  * below the target margin.
@@ -463,6 +478,7 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
       text: text(t.text, 5000),
       guarantee: t.guarantee === true,
       forwardOrder: t.forwardOrder === true,
+      forwardOrderText: text(t.forwardOrderText, 3000),
       guaranteeText: text(t.guaranteeText, 3000),
       deliveryDate: null,
       depositPct: null,

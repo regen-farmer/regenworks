@@ -49,6 +49,21 @@ function OfferPage() {
   // the saved status decides: an accepted offer is what the client signed
   const locked = () => data()?.offer.status === "accepted";
 
+  async function standardForwardText() {
+    try {
+      const v = data()?.offer.pricebookVersion;
+      const r = await apiFetch<{ forwardOrderText: string | null }>(`/internal/pricebook/services${v ? `?version=${v}` : ""}`);
+      if (!r.forwardOrderText) {
+        showToast({ title: "No standard clause yet", description: "Add forward_order_text_da to the pricebook's settings.csv and import it.", variant: "destructive" });
+        return;
+      }
+      if (draft.terms?.forwardOrderText?.trim() && draft.terms.forwardOrderText.trim() !== r.forwardOrderText.trim() && !window.confirm("Replace the clause you typed with the standard text?")) return;
+      edit("terms", "forwardOrderText", r.forwardOrderText);
+    } catch (err) {
+      showToast({ title: "Could not load the text", description: (err as Error).message, variant: "destructive" });
+    }
+  }
+
   async function standardGuarantee() {
     try {
       const v = data()?.offer.pricebookVersion;
@@ -513,10 +528,24 @@ function OfferPage() {
                 Delivery season
                 <input class={input} value={draft.terms?.deliverySeason ?? ""} placeholder="fx Efterår 2027" onInput={(e) => edit("terms", "deliverySeason", e.currentTarget.value)} />
               </label>
-              <label class="flex items-center gap-2 text-sm md:col-span-2">
-                <input type="checkbox" checked={!!draft.terms?.forwardOrder} onChange={(e) => edit("terms", "forwardOrder", e.currentTarget.checked)} />
-                Forward order (plants for a later season: 20 % deposit; counted as a deposit on the scorecard)
-              </label>
+              <div class="flex flex-col gap-1 text-xs md:col-span-2">
+                <label class="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={!!draft.terms?.forwardOrder}
+                    onChange={(e) => {
+                      edit("terms", "forwardOrder", e.currentTarget.checked);
+                      if (e.currentTarget.checked && !draft.terms?.forwardOrderText?.trim()) standardForwardText();
+                    }}
+                  />
+                  Forward order (plants for a later season: 20 % deposit; counted as a deposit on the scorecard and on the supply page)
+                </label>
+                <Show when={draft.terms?.forwardOrder}>
+                  <textarea class={input} rows={3} maxLength={3000} aria-label="Later-delivery clause (Danish, on the offer)" value={draft.terms?.forwardOrderText ?? ""} placeholder="Later-delivery clause (Danish)" onInput={(e) => edit("terms", "forwardOrderText", e.currentTarget.value)} />
+                  <button class="underline self-start" onClick={standardForwardText}>Use the standard clause from the pricebook</button>
+                  <Show when={!draft.terms?.deliveryDate && !draft.terms?.deliverySeason}><span class="text-amber-700">Set a delivery date or season, so the supply page knows which season this is for.</span></Show>
+                </Show>
+              </div>
               <label class="flex flex-col text-xs">
                 Expected delivery / planting date (sets the deposit rule)
                 <input type="date" class={input} value={dateValue(draft.terms?.deliveryDate ?? undefined)} onInput={(e) => edit("terms", "deliveryDate", e.currentTarget.value ? `${e.currentTarget.value}T12:00:00` : null)} />
@@ -730,6 +759,18 @@ function OfferSheet(props: { p: Presented }) {
             <Show when={o().terms?.deposit}> {o().terms.deposit}</Show>
           </div>
         </Show>
+        <Show when={o().terms?.forwardOrder}>
+          <div>
+            Forudbestilling
+            {o().terms?.deliverySeason
+              ? ` til levering ${o().terms.deliverySeason}`
+              : o().terms?.deliveryDate
+                ? ` til levering ${new Date(o().terms.deliveryDate!).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Copenhagen" })}`
+                : ""}
+            .
+          </div>
+          <Show when={o().terms?.forwardOrderText}><div style={{ "white-space": "pre-line" }}>{o().terms.forwardOrderText}</div></Show>
+        </Show>
         <Show when={o().terms?.guarantee && o().terms?.guaranteeText}><div style={{ "white-space": "pre-line" }}>{o().terms.guaranteeText}</div></Show>
         <Show when={o().terms?.text}><div style={{ "white-space": "pre-line" }}>{o().terms.text}</div></Show>
         <div>Alle priser er i danske kroner og ekskl. moms, medmindre andet er angivet.</div>
@@ -740,8 +781,23 @@ function OfferSheet(props: { p: Presented }) {
 
 function DineroLines(props: { p: Presented }) {
   const text = () => props.p.dinero.map((d) => `${d.text}\t${d.amount.toFixed(2).replace(".", ",")}`).join("\n");
+  const inv = () => props.p.depositInvoice;
   return (
     <section class="flex flex-col gap-2">
+      <Show when={inv() && inv().pct > 0}>
+        <div class="rounded-md border border-zinc-300 dark:border-slate-600 p-3 text-sm flex flex-col gap-1">
+          <div class="font-semibold">Deposit invoice (a-conto)</div>
+          <div class="flex justify-between gap-4"><span>{inv().text}</span><span>{dkk(inv().net)}</span></div>
+          <div class="flex justify-between gap-4 opacity-80"><span>Moms 25 %</span><span>{dkk(inv().vat)}</span></div>
+          <div class="flex justify-between gap-4 font-semibold"><span>I alt</span><span>{dkk(inv().total)}</span></div>
+          <button
+            class="rounded-sm px-2 py-1 btn-default self-start mt-1"
+            onClick={() => navigator.clipboard?.writeText(`${inv().text}\t${inv().net.toFixed(2).replace(".", ",")}`).then(() => showToast({ title: "Copied" }))}
+          >
+            Copy deposit line
+          </button>
+        </div>
+      </Show>
       <p class="text-sm opacity-70">One line per species, then one per service, for the Dinero tilbud (amounts excl. VAT). The offer number comes from Dinero.</p>
       <table class="text-sm">
         <tbody>

@@ -88,6 +88,8 @@ export type PricebookSettings = {
   targetMarginTrees?: number;
   targetMarginServices?: number;
   guaranteeTextDa?: string;
+  /** standard later-delivery clause for forward orders */
+  forwardOrderTextDa?: string;
 };
 
 export type PricebookData = {
@@ -261,6 +263,7 @@ export function buildPricebook(
         else if (r.key === "target_margin_trees" && v !== undefined && v >= 0 && v < 100) settings.targetMarginTrees = v;
         else if (r.key === "target_margin_services" && v !== undefined && v >= 0 && v < 100) settings.targetMarginServices = v;
         else if (r.key === "guarantee_text_da" && r.value?.trim()) settings.guaranteeTextDa = r.value.trim().slice(0, 3000);
+        else if (r.key === "forward_order_text_da" && r.value?.trim()) settings.forwardOrderTextDa = r.value.trim().slice(0, 3000);
         else warnings.push(`settings.csv: ignored ${r.key}=${r.value}`);
       }
     } catch (err) {

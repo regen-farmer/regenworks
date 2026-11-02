@@ -86,7 +86,7 @@ const pbFiles = {
   documents: "doc_id,supplier_id,document_date\nd,x,2026-01-01",
   supplierPrices: "price_id,doc_id,supplier_id,latin,cultivar,rootstock,organic_status,price,currency,unit\np1,d,x,,,,not-organic,2,EUR,item",
   salesPrices: "sales_price_id,latin,cultivar,rootstock,organic_status,price_excl_vat,currency\ns1,Corylus avellana,,,not-organic,100,DKK",
-  settings: "key,value\ndefault_margin_pct,30\neur_dkk,7\ntarget_margin_trees,20\ntarget_margin_services,50\nguarantee_text_da,Plantegaranti (test)",
+  settings: "key,value\ndefault_margin_pct,30\neur_dkk,7\ntarget_margin_trees,20\ntarget_margin_services,50\nguarantee_text_da,Plantegaranti (test)\nforward_order_text_da,Forudbestilling (test)",
   services: `${header}\nplant,planting,Plantning,ha,tree_ha,1,,1000,,600,,,,\nnet,protection,Trænet,stk.,tree,1,,,,,,p1,,\nnoprice,staking,Afsætning,stk.,row,1,,,,,,,,`,
 };
 
@@ -95,7 +95,7 @@ test("pricebook import: services.csv and the new settings are read; services.csv
   assert.ok(b.ok);
   if (!b.ok) return;
   assert.equal(b.data.services?.length, 3);
-  assert.deepEqual(b.data.settings, { defaultMarginPct: 30, eurDkk: 7, targetMarginTrees: 20, targetMarginServices: 50, guaranteeTextDa: "Plantegaranti (test)" });
+  assert.deepEqual(b.data.settings, { defaultMarginPct: 30, eurDkk: 7, targetMarginTrees: 20, targetMarginServices: 50, guaranteeTextDa: "Plantegaranti (test)", forwardOrderTextDa: "Forudbestilling (test)" });
   const without = buildPricebook({ ...pbFiles, services: undefined });
   assert.ok(without.ok && without.data.services?.length === 0);
   const bad = buildPricebook({ ...pbFiles, services: "service_id,name_da\nx,X" });
