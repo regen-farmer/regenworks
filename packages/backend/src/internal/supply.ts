@@ -5,6 +5,21 @@ import { norm } from "./pricebook.ts";
 import { isService, type OfferLike } from "./offers.ts";
 import { danishDay } from "./services.ts";
 
+/**
+ * One label for a season typed in Danish or English, any case: "efterår 2027",
+ * "Autumn 2027", "høst 27" → "Autumn 2027"; "forår 2027" → "Spring 2027".
+ * Undefined when it can't be read.
+ */
+export function seasonLabel(text: string | undefined): string | undefined {
+  const t = (text ?? "").toLowerCase();
+  const autumn = /(efter[aå]r|efteraar|autumn|fall|h[øo]st)/.test(t);
+  const spring = /(for[aå]r|foraar|spring)/.test(t);
+  const y = t.match(/\b(20\d{2}|\d{2})\b/);
+  if (autumn === spring || !y) return undefined;
+  const year = y[1].length === 2 ? 2000 + Number(y[1]) : Number(y[1]);
+  return `${autumn ? "Autumn" : "Spring"} ${year}`;
+}
+
 /** A season from the delivery date (Jul–Dec: autumn; Jan–Jun: spring) or the season text. */
 export function seasonOf(terms: { deliveryDate?: Date | string | null; deliverySeason?: string } | undefined): string {
   const d = terms?.deliveryDate ? new Date(terms.deliveryDate) : null;
@@ -12,11 +27,17 @@ export function seasonOf(terms: { deliveryDate?: Date | string | null; deliveryS
     const [y, m] = danishDay(d).split("-").map(Number);
     return `${m >= 7 ? "Autumn" : "Spring"} ${y}`;
   }
-  return terms?.deliverySeason?.trim() || "No season set";
+  const text = terms?.deliverySeason?.trim();
+  return seasonLabel(text) ?? (text || "No season set");
 }
 
-/** Species key: genus + species, so cultivars and rootstocks of one species share supply. */
-export const speciesKey = (latin: string | undefined) => norm(latin).split(" ").slice(0, 2).join(" ");
+/** Species key: genus + species, so cultivars and rootstocks of one species share supply ("x"/"×" hybrid marks skipped). */
+export const speciesKey = (latin: string | undefined) =>
+  norm(latin)
+    .split(" ")
+    .filter((w) => w && w !== "x" && w !== "×")
+    .slice(0, 2)
+    .join(" ");
 
 export type SupplyRow = {
   /** species, as Latin (genus species) */
@@ -56,10 +77,16 @@ export function forwardDemand(offers: SupplyOffer[]) {
 export function cleanSupplyPlan(body: any): { ok: true; value: SupplyRow[] } | { ok: false; error: string } {
   if (!Array.isArray(body?.rows) || body.rows.length > 200) return { ok: false, error: "Send rows (max 200)" };
   const out: SupplyRow[] = [];
+  const seen = new Map<string, number>();
   for (const [i, r] of body.rows.entries()) {
     const latin = typeof r?.latin === "string" ? r.latin.trim().slice(0, 100) : "";
-    const season = typeof r?.season === "string" ? r.season.trim().slice(0, 40) : "";
-    if (!latin || !season) return { ok: false, error: `Row ${i + 1}: species and season are needed` };
+    const typed = typeof r?.season === "string" ? r.season.trim().slice(0, 40) : "";
+    if (!latin || !typed) return { ok: false, error: `Row ${i + 1}: species and season are needed` };
+    const season = seasonLabel(typed);
+    if (!season) return { ok: false, error: `Row ${i + 1}: write the season as e.g. "Autumn 2027" or "Forår 2028"` };
+    const key = `${speciesKey(latin)}|${season}`;
+    if (seen.has(key)) return { ok: false, error: `Row ${i + 1}: ${latin}, ${season} is already in the plan (rows ${seen.get(key)} and ${i + 1}); put both in one row` };
+    seen.set(key, i + 1);
     const n = (v: unknown) => (v === undefined || v === null || v === "" ? undefined : typeof v === "number" || typeof v === "string" ? Number(v) : Number.NaN);
     const ownGrafts = n(r.ownGrafts);
     const takePct = n(r.takePct);

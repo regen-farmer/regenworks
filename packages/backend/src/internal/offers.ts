@@ -98,10 +98,12 @@ export function deposit(o: OfferLike, totalInclVat: number) {
 export function depositInvoice(o: OfferLike & { dineroNumber?: string; title?: string }) {
   const t = offerTotals(o);
   const pct = t.deposit.pct;
-  const net = round2((t.net * pct) / 100);
-  const vat = round2(net * VAT_RATE);
+  // from the deposit the rest of the app shows (incl. VAT), so the invoice matches it to the øre
+  const total = t.deposit.amount;
+  const net = round2(total / (1 + VAT_RATE));
+  const vat = round2(total - net);
   const ref = o.dineroNumber ? `tilbud nr. ${o.dineroNumber}` : o.title ? `tilbud "${o.title}"` : "tilbud";
-  return { pct, text: `Depositum ${pct.toLocaleString("da-DK")} % af ${ref}`, net, vat, total: round2(net + vat) };
+  return { pct, text: `Depositum ${pct.toLocaleString("da-DK")} % af ${ref}`, net, vat, total };
 }
 
 /**

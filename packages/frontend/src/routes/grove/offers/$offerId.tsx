@@ -760,7 +760,15 @@ function OfferSheet(props: { p: Presented }) {
           </div>
         </Show>
         <Show when={o().terms?.forwardOrder}>
-          <div>Forudbestilling{o().terms?.deliverySeason ? ` til levering ${o().terms.deliverySeason}` : ""}.</div>
+          <div>
+            Forudbestilling
+            {o().terms?.deliverySeason
+              ? ` til levering ${o().terms.deliverySeason}`
+              : o().terms?.deliveryDate
+                ? ` til levering ${new Date(o().terms.deliveryDate!).toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Copenhagen" })}`
+                : ""}
+            .
+          </div>
           <Show when={o().terms?.forwardOrderText}><div style={{ "white-space": "pre-line" }}>{o().terms.forwardOrderText}</div></Show>
         </Show>
         <Show when={o().terms?.guarantee && o().terms?.guaranteeText}><div style={{ "white-space": "pre-line" }}>{o().terms.guaranteeText}</div></Show>

@@ -52,8 +52,9 @@ function parseSuppliers(text: string, row: number): { name: string; qty: number 
     .map((x) => x.trim())
     .filter(Boolean)
     .map((part) => {
-      const m = part.match(/^(.*?)[:=]\s*([\d.\s]+)$/);
-      if (!m || !m[1].trim()) throw new Error(`Row ${row}: write suppliers as "Name: quantity; Name: quantity"`);
+      // whole plants; "1.000" and "1 000" are thousands
+      const m = part.match(/^(.*?)[:=]\s*(\d{1,3}(?:[.\s]\d{3})+|\d+)$/);
+      if (!m || !m[1].trim()) throw new Error(`Row ${row}: write suppliers as "Name: quantity; Name: quantity" (whole plants)`);
       return { name: m[1].trim(), qty: Number(m[2].replace(/[.\s]/g, "")) };
     });
 }
@@ -80,8 +81,9 @@ function Supply() {
     let body: PlanRow[];
     try {
       body = rows()
-        .filter((r) => r.latin.trim() || r.season.trim())
-        .map((r, i) => ({
+        .map((r, i) => ({ r, i }))
+        .filter(({ r }) => r.latin.trim() || r.season.trim())
+        .map(({ r, i }) => ({
           latin: r.latin,
           season: r.season,
           ownGrafts: r.ownGrafts === "" ? undefined : Number(r.ownGrafts),
@@ -153,7 +155,7 @@ function Supply() {
                     {(r, i) => (
                       <tr>
                         <td class={td}><input class={input} required maxLength={100} value={r().latin} placeholder="Malus domestica" onInput={(e) => setField(i, "latin", e.currentTarget.value)} /></td>
-                        <td class={td}><input class={input} required maxLength={40} value={r().season} placeholder="Autumn 2027" onInput={(e) => setField(i, "season", e.currentTarget.value)} /></td>
+                        <td class={td}><input class={input} required maxLength={40} value={r().season} placeholder="Autumn 2027 / Efterår 2027" onInput={(e) => setField(i, "season", e.currentTarget.value)} /></td>
                         <td class={td}><input class={input} type="number" min="0" value={r().ownGrafts} onInput={(e) => setField(i, "ownGrafts", e.currentTarget.value)} /></td>
                         <td class={td}><input class={input} type="number" min="0" max="100" value={r().takePct} placeholder="e.g. 80" onInput={(e) => setField(i, "takePct", e.currentTarget.value)} /></td>
                         <td class={td}><input class={input} maxLength={1000} value={r().suppliers} placeholder="Supplier A: 200; Supplier B: 50" onInput={(e) => setField(i, "suppliers", e.currentTarget.value)} /></td>
@@ -172,7 +174,7 @@ function Supply() {
                 Add a species
               </button>
               <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()}>Save plan</button>
-              <span class="text-xs opacity-70">Season must match the offers' delivery season (e.g. "Autumn 2027") to line up. Kept in the app's database, not in the code.</span>
+              <span class="text-xs opacity-70">Seasons in Danish or English ("Efterår 2027", "Autumn 2027") line up with the offers' delivery date or season. One row per species and season. Kept in the app's database, not in the code.</span>
             </div>
           </form>
         </Show>
