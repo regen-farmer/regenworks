@@ -142,6 +142,8 @@ test("merge: typed price → manual; changed plant → old pricing dropped; dupl
   const typed = mergeLines(stored, [{ ...stored[0], pricing: undefined, unitPrice: 100 }]);
   assert.equal(typed[0].priceSource, "manual");
   assert.deepEqual(typed[0].pricing, { supplierId: "n1" });
+  const trimmed = mergeLines(stored, [{ ...stored[0], pricing: undefined, cultivar: " Corabel ", size: "" }]);
+  assert.equal(trimmed[0].priceSource, "sales", "spaces and empty text are not a new plant");
   const changed = mergeLines(stored, [{ ...stored[0], pricing: undefined, cultivar: "Tonda di Giffoni" }]);
   assert.equal(changed[0].pricing, null);
   assert.equal(changed[0].priceSource, "none");
@@ -165,4 +167,16 @@ test("Dinero: lines without a cultivar are counted as unsorted", () => {
 
 test("øre rounding: 1.005 kr is 1.01", () => {
   assert.equal(offerTotals({ lines: [line({ qty: 1, unitPrice: 1.005 })] }).subtotal, 1.01);
+});
+
+test("a conventional client gets organic stock when that's all there is; ticking organic later switches", () => {
+  const onlyOrganic = { ...pb, salesPrices: pb.salesPrices.filter((p: any) => p.organicStatus === "organic") };
+  const l = priceLine(hazel(), onlyOrganic, rates, undefined, false);
+  assert.equal(l.unitPrice, 150);
+  assert.equal(l.organic, true);
+  const first = priceLine(hazel(), pb, rates, undefined, false);
+  assert.equal(first.organic, false);
+  const again = priceLine(first, pb, rates, undefined, true); // client now organic, line still open
+  assert.equal(again.organic, true);
+  assert.equal(again.unitPrice, 150);
 });

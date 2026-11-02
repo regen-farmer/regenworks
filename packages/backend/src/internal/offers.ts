@@ -32,6 +32,8 @@ export type OfferLine = {
   heightMin?: number;
   heightMax?: number;
   organic?: boolean | null;
+  /** organic as asked for by the design or the editor; null = open (client decides) */
+  organicRequested?: boolean | null;
   qty: number;
   unitPrice: number;
   priceSource: "sales" | "cost+margin" | "manual" | "none";
@@ -107,6 +109,7 @@ export function purchaseList(o: OfferLike) {
   for (const l of o.lines) {
     if (!(l.qty > 0)) continue;
     const supplierId =
+      (l.priceSource === "sales" ? l.pricing?.listedSupplier : undefined) ??
       l.pricing?.supplierId ??
       (l.priceSource === "manual" ? "(price set by hand: choose a supplier)" : "(no supplier price found)");
     const s = bySupplier.get(supplierId) ?? { supplierId, lines: [], totalCostDkk: 0 };
@@ -138,7 +141,7 @@ export function lineQuery(l: OfferLine, hybrid?: PlantQuery["hybrid"]): PlantQue
     propagation: (l.propagation as Propagation) || undefined,
     heightMin: l.heightMin,
     heightMax: l.heightMax,
-    organic: typeof l.organic === "boolean" ? l.organic : undefined,
+    organic: typeof l.organicRequested === "boolean" ? l.organicRequested : undefined,
   };
 }
 
@@ -159,8 +162,10 @@ export function priceLine(
   if (l.priceSource === "manual") return l;
   if (!data || !rates || !l.latin) return { ...l, priceSource: l.unitPrice > 0 ? l.priceSource : "none" };
   const base = lineQuery(l, hybrid);
+  // Open: the client's kind first, then the other (organic plants can be sold
+  // to anyone; an organic client then needs a dispensation for the line).
   let s = suggestPrice(data, base.organic === undefined ? { ...base, organic: clientOrganic } : base, rates);
-  if (!s && base.organic === undefined && clientOrganic) s = suggestPrice(data, { ...base, organic: false }, rates);
+  if (!s && base.organic === undefined) s = suggestPrice(data, { ...base, organic: !clientOrganic }, rates);
   if (!s) {
     if (l.unitPrice > 0 && l.priceSource !== "none") {
       return { ...l, pricing: { ...(l.pricing ?? {}), stale: true, matchNote: "not found in this pricebook version; previous price kept" } };
@@ -171,7 +176,7 @@ export function priceLine(
   return {
     ...l,
     nameDa: l.nameDa || salesRow?.commonNameDa || danishName(data, l, hybrid),
-    organic: typeof l.organic === "boolean" ? l.organic : s.organicStatus === "organic",
+    organic: s.organicStatus === "organic",
     unitPrice: round5(s.unitPrice),
     priceSource: s.source,
     size: l.size || s.size,
@@ -190,7 +195,11 @@ function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybr
 }
 
 /** What identifies the plant on a line; changing any of these needs a new price. */
-const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organic"] as const;
+const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
+const same = (a: unknown, b: unknown) => {
+  const n = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : typeof v === "string" ? v.trim() : v);
+  return n(a) === n(b);
+};
 
 /**
  * Merge lines sent by the editor with the stored ones: server-side details
@@ -210,7 +219,7 @@ export function mergeLines(stored: any[], incoming: any[]) {
       return [{ ...l, _id: undefined, pricing: null, priceSource: l.unitPrice > 0 ? "manual" : "none" }];
     }
     const priceTyped = old.unitPrice !== l.unitPrice;
-    const plantChanged = PLANT_FIELDS.some((k) => (old[k] ?? null) !== (l[k] ?? null));
+    const plantChanged = PLANT_FIELDS.some((k) => !same(old[k], l[k]));
     if (plantChanged) {
       return [{ ...l, _id: old._id, speciesId: l.latin === old.latin ? old.speciesId : undefined, pricing: null, priceSource: priceTyped ? "manual" : "none", unitPrice: priceTyped ? l.unitPrice : 0 }];
     }
@@ -316,6 +325,7 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
           heightMin: number(l?.heightMin, 0, 5000),
           heightMax: number(l?.heightMax, 0, 5000),
           organic: l?.organic === true ? true : l?.organic === false ? false : null,
+          organicRequested: l?.organicRequested === true ? true : l?.organicRequested === false ? false : null,
           qty: qty ?? 0,
           unitPrice: unitPrice ?? 0,
           priceSource: source,

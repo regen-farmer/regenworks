@@ -62,7 +62,7 @@ function OfferPage() {
   }
 
   const save = () =>
-    call(`/internal/offers/${params().offerId}`, "PUT", {
+    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes } : {
       dineroNumber: draft.dineroNumber,
       title: draft.title,
       status: draft.status,
@@ -200,7 +200,24 @@ function OfferPage() {
               </label>
               <label class="flex flex-col text-xs">
                 Offer date
-                <input type="date" class={input} value={dateValue(draft.offerDate)} onInput={(e) => edit("offerDate", `${e.currentTarget.value}T12:00:00`)} />
+                <input
+                  type="date"
+                  class={input}
+                  value={dateValue(draft.offerDate)}
+                  onInput={(e) => {
+                    const v = e.currentTarget.value;
+                    if (!v) return;
+                    // "valid until" follows while it is still the default 2 weeks
+                    const plus14 = (d: string) => {
+                      const x = new Date(d);
+                      x.setDate(x.getDate() + 14);
+                      return x;
+                    };
+                    const wasDefault = dateValue(draft.validUntil) === dateValue(plus14(draft.offerDate).toISOString());
+                    edit("offerDate", `${v}T12:00:00`);
+                    if (wasDefault) edit("validUntil", plus14(`${v}T12:00:00`).toISOString());
+                  }}
+                />
               </label>
               <label class="flex flex-col text-xs">
                 Valid until (default 2 weeks)
@@ -254,8 +271,11 @@ function OfferPage() {
                         </td>
                         <td class={td}><input class={input} value={l.size ?? ""} onInput={(e) => edit("lines", i(), "size", e.currentTarget.value)} /></td>
                         <td class={td}>
-                          <select class={input} value={l.organic === true ? "yes" : l.organic === false ? "no" : ""} onChange={(e) => edit("lines", i(), "organic", e.currentTarget.value === "yes" ? true : e.currentTarget.value === "no" ? false : null)}>
-                            <option value="">?</option>
+                          <select class={input} title="Open (?) lets the client decide: organic clients get organic plants" value={l.organicRequested === true ? "yes" : l.organicRequested === false ? "no" : ""} onChange={(e) => {
+                            const v = e.currentTarget.value === "yes" ? true : e.currentTarget.value === "no" ? false : null;
+                            edit("lines", i(), { organic: v, organicRequested: v });
+                          }}>
+                            <option value="">? ({l.organic === true ? "øko" : l.organic === false ? "ikke øko" : "–"})</option>
                             <option value="yes">øko</option>
                             <option value="no">ikke øko</option>
                           </select>
@@ -272,6 +292,7 @@ function OfferPage() {
                             <Show when={draft.clientOrganic && l.organic !== true}><span class="text-amber-600">needs dispensation</span></Show>
                             <Show when={flags(i())?.outdated}><span class="text-amber-600">price may be outdated</span></Show>
                             <Show when={flags(i())?.vatUnclear}><span class="text-amber-600">supplier VAT unclear</span></Show>
+                            <Show when={flags(i())?.stale}><span class="text-amber-600">not in this pricebook: old price kept</span></Show>
                             <Show when={flags(i())?.ambiguous}><span class="text-amber-600">several prices fit: check type/size</span></Show>
                             <Show when={l.priceSource === "none"}><span class="text-red-600">no price</span></Show>
                             <button class="underline text-left" onClick={() => edit("lines", (ls: OfferLine[]) => ls.filter((_, j) => j !== i()))}>remove</button>

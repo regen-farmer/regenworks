@@ -20,6 +20,8 @@ const lineSchema = new mongoose.Schema(
 		size: { type: String, maxlength: 100 },
 		heightMin: Number,
 		heightMax: Number,
+		// what was asked for (design or editor; null = open) and what was matched
+		organicRequested: { type: Boolean, default: null },
 		organic: { type: Boolean, default: null },
 		qty: { type: Number, min: 0, max: 10_000_000 },
 		unitPrice: { type: Number, min: 0, max: 10_000_000 },

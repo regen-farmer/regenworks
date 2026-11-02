@@ -38,8 +38,11 @@ function present(offer: any) {
         id: String(l._id),
         margin: lineMargin(l),
         dispensation: needsDispensation(l, o.clientOrganic),
-        outdated: !!l.pricing?.outdated,
-        vatUnclear: !!l.pricing?.vatUnclear,
+        // for sales-priced lines these describe the cost reference, not the client price
+        outdated: l.priceSource === "cost+margin" && !!l.pricing?.outdated,
+        vatUnclear: l.priceSource === "cost+margin" && !!l.pricing?.vatUnclear,
+        costReferenceOutdated: l.priceSource === "sales" && !!l.pricing?.outdated,
+        stale: !!l.pricing?.stale,
         ambiguous: !!l.pricing?.ambiguous,
         unpriced: l.priceSource === "none",
       })),
@@ -127,6 +130,7 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
       rootstock: p.rootstock ? rootstocks.get(String(p.rootstock))?.name : undefined,
       propagation: p.rootstock ? "grafted" : p.ownRoots ? "own-rooted" : undefined,
       organic: typeof p.organic === "boolean" ? p.organic : null,
+      organicRequested: typeof p.organic === "boolean" ? p.organic : null,
       qty: p.count,
       unitPrice: 0,
       priceSource: "none",
@@ -254,6 +258,7 @@ router.put("/:id", async (req: Req, res) => {
     merged = priced.lines;
     offer.marginPct = priced.marginPct;
     offer.eurDkk = priced.eurDkk;
+    offer.pricebookVersion ??= priced.pricebookVersion;
   }
   if (lines || needsPricing) offer.lines = merged;
   offer.updatedBy = req.user?._id;
