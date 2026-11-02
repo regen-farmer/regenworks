@@ -23,6 +23,7 @@ import { Route as GroveIndexRouteImport } from './routes/grove/index'
 import { Route as GroveManagedRouteImport } from './routes/grove/managed'
 import { Route as GrovePricebookRouteImport } from './routes/grove/pricebook'
 import { Route as GrovePricesRouteImport } from './routes/grove/prices'
+import { Route as GroveSupplyRouteImport } from './routes/grove/supply'
 import { Route as PlantsIndexRouteImport } from './routes/plants/index'
 import { Route as SpeciesIndexRouteImport } from './routes/species/index'
 import { Route as SpeciesNewRouteImport } from './routes/species/new'
@@ -142,6 +143,11 @@ const GrovePricebookRoute = GrovePricebookRouteImport.update({
 const GrovePricesRoute = GrovePricesRouteImport.update({
   id: '/prices',
   path: '/prices',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveSupplyRoute = GroveSupplyRouteImport.update({
+  id: '/supply',
+  path: '/supply',
   getParentRoute: () => GroveRouteRoute,
 } as any)
 const PlantsIndexRoute = PlantsIndexRouteImport.update({
@@ -453,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
+  '/grove/supply': typeof GroveSupplyRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
   '/grove/': typeof GroveIndexRoute
@@ -515,6 +522,7 @@ export interface FileRoutesByTo {
   '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
+  '/grove/supply': typeof GroveSupplyRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin': typeof AdminIndexRoute
   '/grove': typeof GroveIndexRoute
@@ -582,6 +590,7 @@ export interface FileRoutesById {
   '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
+  '/grove/supply': typeof GroveSupplyRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
   '/grove/': typeof GroveIndexRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/grove/managed'
     | '/grove/pricebook'
     | '/grove/prices'
+    | '/grove/supply'
     | '/species/new'
     | '/admin/'
     | '/grove/'
@@ -712,6 +722,7 @@ export interface FileRouteTypes {
     | '/grove/managed'
     | '/grove/pricebook'
     | '/grove/prices'
+    | '/grove/supply'
     | '/species/new'
     | '/admin'
     | '/grove'
@@ -778,6 +789,7 @@ export interface FileRouteTypes {
     | '/grove/managed'
     | '/grove/pricebook'
     | '/grove/prices'
+    | '/grove/supply'
     | '/species/new'
     | '/admin/'
     | '/grove/'
@@ -947,6 +959,13 @@ declare module '@tanstack/solid-router' {
       path: '/prices'
       fullPath: '/grove/prices'
       preLoaderRoute: typeof GrovePricesRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/supply': {
+      id: '/grove/supply'
+      path: '/supply'
+      fullPath: '/grove/supply'
+      preLoaderRoute: typeof GroveSupplyRouteImport
       parentRoute: typeof GroveRouteRoute
     }
     '/plants/': {
@@ -1306,6 +1325,7 @@ interface GroveRouteRouteChildren {
   GroveManagedRoute: typeof GroveManagedRoute
   GrovePricebookRoute: typeof GrovePricebookRoute
   GrovePricesRoute: typeof GrovePricesRoute
+  GroveSupplyRoute: typeof GroveSupplyRoute
   GroveIndexRoute: typeof GroveIndexRoute
   GroveClientsClientIdRoute: typeof GroveClientsClientIdRoute
   GroveDealsDealIdRoute: typeof GroveDealsDealIdRoute
@@ -1320,6 +1340,7 @@ const GroveRouteRouteChildren: GroveRouteRouteChildren = {
   GroveManagedRoute: GroveManagedRoute,
   GrovePricebookRoute: GrovePricebookRoute,
   GrovePricesRoute: GrovePricesRoute,
+  GroveSupplyRoute: GroveSupplyRoute,
   GroveIndexRoute: GroveIndexRoute,
   GroveClientsClientIdRoute: GroveClientsClientIdRoute,
   GroveDealsDealIdRoute: GroveDealsDealIdRoute,

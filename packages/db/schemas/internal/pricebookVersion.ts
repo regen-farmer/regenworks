@@ -12,7 +12,7 @@ export interface IPricebookVersion {
 	note?: string;
 	counts: { suppliers: number; documents: number; supplierPrices: number; salesPrices: number; services?: number };
 	warnings: string[];
-	settings?: { defaultMarginPct?: number; eurDkk?: number; targetMarginTrees?: number; targetMarginServices?: number; guaranteeTextDa?: string };
+	settings?: { defaultMarginPct?: number; eurDkk?: number; targetMarginTrees?: number; targetMarginServices?: number; guaranteeTextDa?: string; forwardOrderTextDa?: string };
 	suppliers: Record<string, unknown>[];
 	documents: Record<string, unknown>[];
 	supplierPrices: Record<string, unknown>[];
@@ -34,7 +34,7 @@ const schema = new mongoose.Schema<IPricebookVersion>(
 			services: Number,
 		},
 		warnings: [String],
-		settings: { defaultMarginPct: Number, eurDkk: Number, targetMarginTrees: Number, targetMarginServices: Number, guaranteeTextDa: { type: String, maxlength: 3000 } },
+		settings: { defaultMarginPct: Number, eurDkk: Number, targetMarginTrees: Number, targetMarginServices: Number, guaranteeTextDa: { type: String, maxlength: 3000 }, forwardOrderTextDa: { type: String, maxlength: 3000 } },
 		suppliers: [mongoose.Schema.Types.Mixed],
 		documents: [mongoose.Schema.Types.Mixed],
 		supplierPrices: [mongoose.Schema.Types.Mixed],

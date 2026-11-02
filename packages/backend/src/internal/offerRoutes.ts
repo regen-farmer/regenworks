@@ -17,6 +17,7 @@ import {
   cleanOfferUpdate,
   defaultValidUntil,
   deposit,
+  depositInvoice,
   dineroLines,
   lineMargin,
   mergeLines,
@@ -57,6 +58,7 @@ function present(offer: any) {
     offer: o,
     totals: offerTotals(o),
     dinero: dineroLines(o),
+    depositInvoice: depositInvoice(o),
     internal: {
       lines: o.lines.map((l: OfferLine) => ({
         id: String(l._id),

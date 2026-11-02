@@ -151,7 +151,7 @@ router.get("/services", async (req: Req, res) => {
   const v = Number(req.query.version);
   const doc = Number.isInteger(v) && v > 0 ? await pricebookVersion(v) : await activePricebook();
   if (!doc) {
-    res.send({ version: null, services: [], guaranteeText: null });
+    res.send({ version: null, services: [], guaranteeText: null, forwardOrderText: null });
     return;
   }
   const settings = doc.settings ?? {};
@@ -165,7 +165,7 @@ router.get("/services", async (req: Req, res) => {
     });
     return { ...s, unitPrice: p?.unitPrice ?? null, priceSource: p?.source ?? "none" };
   });
-  res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null });
+  res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null, forwardOrderText: settings.forwardOrderTextDa ?? null });
 });
 
 const overviewCache = new Map<string, ReturnType<typeof priceOverview>>();
