@@ -24,6 +24,8 @@ export interface IFunnel {
 	order: number;
 	archived: boolean;
 	stages: IFunnelStage[];
+	/** every stage key ever used, so a removed stage's key (and its history) is never given to a new stage */
+	usedKeys: string[];
 }
 
 const stage = new mongoose.Schema<IFunnelStage>(
@@ -44,6 +46,7 @@ const schema = new mongoose.Schema<IFunnel>(
 		order: { type: Number, default: 0 },
 		archived: { type: Boolean, default: false },
 		stages: { type: [stage], default: [] },
+		usedKeys: { type: [String], default: [] },
 	},
 	{ collection: "grove_funnels", timestamps: true },
 );

@@ -2,7 +2,7 @@
 // reorder, hide and delete funnels; add, rename, reorder and remove stages
 // with an optional target time; and the list of deal sources. Grove team only.
 import { createFileRoute, Link } from "@tanstack/solid-router";
-import { createEffect, createResource, createSignal, For, Index, on, Show } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, Index, on, Show } from "solid-js";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
@@ -68,6 +68,8 @@ function FunnelCard(props: { f: EFunnel; first: boolean; last: boolean; onMove: 
       props.onChanged();
     } catch (err) {
       showToast({ title: "Not saved", description: (err as Error).message, variant: "destructive" });
+      // someone else changed it: load their version (your edits are kept only if the funnel didn't change)
+      if ((err as { status?: number }).status === 409) props.onChanged();
     } finally {
       setBusy(false);
     }
@@ -115,7 +117,7 @@ function FunnelCard(props: { f: EFunnel; first: boolean; last: boolean; onMove: 
                   <tr class="border-t border-zinc-200 dark:border-slate-700">
                     <td class="py-1 pr-2"><input class={`${input} w-full`} required maxLength={80} value={s().name} placeholder="Stage name" onInput={(e) => set(i, { name: e.currentTarget.value })} /></td>
                     <td class="py-1 pr-2">
-                      <select class={input} value={s().kind} onChange={(e) => set(i, { kind: e.currentTarget.value as StageKind, targetDays: e.currentTarget.value === "open" ? s().targetDays : "" })}>
+                      <select class={input} value={s().kind} disabled={s().deals > 0} title={s().deals > 0 ? "Move its deals first; or add a new stage" : undefined} onChange={(e) => set(i, { kind: e.currentTarget.value as StageKind, targetDays: e.currentTarget.value === "open" ? s().targetDays : "" })}>
                         <For each={Object.entries(KIND_EN)}>{([k, l]) => <option value={k}>{l}</option>}</For>
                       </select>
                     </td>
@@ -147,10 +149,10 @@ function FunnelCard(props: { f: EFunnel; first: boolean; last: boolean; onMove: 
           <button class="rounded-sm px-2 py-1 btn-default text-sm ml-auto" disabled={busy() || !dirty()}>Save funnel</button>
           <Show when={dirty()}><button type="button" class="text-sm underline" onClick={() => { setName(props.f.name); setDescription(props.f.description ?? ""); setStages(props.f.stages.map((s) => ({ key: s.key, name: s.name, kind: s.kind, targetDays: s.targetDays ? String(s.targetDays) : "", deals: s.deals }))); }}>Undo changes</button></Show>
           <button type="button" class="text-sm underline" onClick={() => archive(!props.f.archived)}>{props.f.archived ? "Show again" : "Hide"}</button>
-          <Show when={props.f.deals === 0}><button type="button" class="text-sm underline text-red-700" onClick={() => setAskDelete(true)}>Delete</button></Show>
+          <Show when={props.f.deals === 0 && props.f.archived}><button type="button" class="text-sm underline text-red-700" onClick={() => setAskDelete(true)}>Delete</button></Show>
         </div>
         <p class="text-xs opacity-60">
-          New deals start in the first stage. Each funnel needs at least one Open, one Won and one Lost stage. The target time marks cards that stay longer in an open stage. Renaming never touches deals; a stage can be removed once no deal is in it.
+          New deals start in the first stage. Each funnel needs at least one Open, one Won and one Lost stage. The target time marks cards that stay longer in an open stage. Renaming never touches deals; a stage can be removed, or change kind, once no deal is in it. A funnel without deals can be deleted once hidden.
         </p>
       </form>
       <ConfirmDialog
@@ -215,6 +217,9 @@ function Sources() {
 function Funnels() {
   const [data, { refetch }] = createResource(() => (canSeeMoney() ? true : undefined), () => apiFetch<{ funnels: EFunnel[]; templates: Template[] }>("/internal/funnels?editor=1"));
   const funnels = () => (data.error ? [] : (data.latest?.funnels ?? []));
+  // cards keyed by funnel, so a reorder keeps each card's open state and drafts with its funnel
+  const byId = createMemo(() => new Map(funnels().map((f) => [f._id, f])));
+  const ids = createMemo(() => funnels().map((f) => f._id), undefined, { equals: (a, b) => a.length === b.length && a.every((x, i) => x === b[i]) });
   const [newName, setNewName] = createSignal("");
   const [template, setTemplate] = createSignal("blank");
   const [busy, setBusy] = createSignal(false);
@@ -260,9 +265,13 @@ function Funnels() {
 
         <section class="flex flex-col gap-2" aria-label="Funnels">
           <h2 class="text-xl font-semibold">Funnels</h2>
-          <Index each={funnels()} fallback={<p class="text-sm">{data.loading ? "Loading…" : "No funnels."}</p>}>
-            {(f, i) => <FunnelCard f={f()} first={i === 0} last={i === funnels().length - 1} onMove={(dir) => move(i, dir)} onChanged={refetch} />}
-          </Index>
+          <For each={ids()} fallback={<p class="text-sm">{data.loading ? "Loading…" : "No funnels."}</p>}>
+            {(id, i) => (
+              <Show when={byId().get(id)}>
+                {(f) => <FunnelCard f={f()} first={i() === 0} last={i() === ids().length - 1} onMove={(dir) => move(i(), dir)} onChanged={refetch} />}
+              </Show>
+            )}
+          </For>
           <form class="flex flex-wrap items-end gap-2 rounded-md border border-dashed border-zinc-300 dark:border-slate-600 p-3 text-xs" onSubmit={create}>
             <label class="flex flex-col">New funnel<input class={input} required maxLength={100} value={newName()} placeholder="e.g. Corporate pilots" onInput={(e) => setNewName(e.currentTarget.value)} /></label>
             <label class="flex flex-col">

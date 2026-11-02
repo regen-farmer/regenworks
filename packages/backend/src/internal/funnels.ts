@@ -12,9 +12,9 @@ const DAY = 86_400_000;
 export const DEFAULT_SOURCES = [
   "ØRD (Omlægningstjek)",
   "FØL agroforestry check",
-  "Them / dairy supplier",
-  "Skovdyrkerne",
-  "DTI / corporate campaign",
+  "Dairy / co-op supplier",
+  "Forest owners' association",
+  "Corporate campaign",
   "Website",
   "Ads (Meta, Google)",
   "Newsletter",
@@ -41,7 +41,7 @@ export const FUNNEL_TEMPLATES: { key: string; name: string; description: string;
   {
     key: "corporate",
     name: "Corporate pilots",
-    description: "DTI campaign: companies funding trees and monitoring",
+    description: "Companies funding trees and monitoring",
     stages: [
       { key: "idea", name: "Idea", kind: "open" },
       { key: "researched", name: "Researched", kind: "open" },
@@ -96,8 +96,8 @@ type Cleaned<T> = { ok: true; value: T } | { ok: false; error: string };
  */
 export function cleanFunnel(
   body: any,
-  existing?: { stages: Stage[] },
-): Cleaned<{ name: string; description: string; stages: Stage[]; removed: string[] }> {
+  existing?: { stages: Stage[]; usedKeys?: string[] },
+): Cleaned<{ name: string; description: string; stages: Stage[]; removed: string[]; kindChanged: string[]; usedKeys: string[] }> {
   const name = typeof body?.name === "string" ? body.name.trim().slice(0, 100) : "";
   if (!name) return { ok: false, error: "The funnel needs a name" };
   if (body?.description !== undefined && body.description !== null && typeof body.description !== "string") return { ok: false, error: "Description must be text" };
@@ -116,7 +116,7 @@ export function cleanFunnel(
       if (keys.has(s.key)) return { ok: false, error: `Stage ${i + 1} appears twice` };
       key = s.key;
     } else {
-      key = keyFrom(sName, [...oldKeys, ...keys]);
+      key = keyFrom(sName, [...oldKeys, ...keys, ...(existing?.usedKeys ?? [])]);
     }
     let targetDays: number | null = null;
     if (s?.targetDays !== undefined && s.targetDays !== null && s.targetDays !== "") {
@@ -129,7 +129,19 @@ export function cleanFunnel(
   }
   for (const kind of KINDS) if (!stages.some((s) => s.kind === kind)) return { ok: false, error: `A funnel needs at least one ${kind} stage` };
   if (stages[0].kind !== "open") return { ok: false, error: "The first stage must be an open stage (new deals start there)" };
-  return { ok: true, value: { name, description, stages, removed: [...oldKeys].filter((k) => !keys.has(k)) } };
+  const oldKind = new Map((existing?.stages ?? []).map((s) => [s.key, s.kind]));
+  return {
+    ok: true,
+    value: {
+      name,
+      description,
+      stages,
+      removed: [...oldKeys].filter((k) => !keys.has(k)),
+      // a stage that changes between open, won and lost: its deals would no longer match it
+      kindChanged: stages.filter((s) => oldKind.has(s.key) && oldKind.get(s.key) !== s.kind).map((s) => s.key),
+      usedKeys: [...new Set([...(existing?.usedKeys ?? []), ...oldKeys, ...keys])],
+    },
+  };
 }
 
 /** The deal sources list from Settings: 1–50 unique names. */
@@ -258,5 +270,5 @@ export function dealReport(deals: DealLike[], funnels: { _id: unknown; name: str
       }),
     };
   });
-  return { deals: inPeriod.length, bySource, byFunnel };
+  return { deals: inPeriod.length, bySource, byFunnel, truncated: false };
 }

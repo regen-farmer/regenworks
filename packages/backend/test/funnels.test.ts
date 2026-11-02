@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { cleanFunnel, cleanSources, dealReport, DEFAULT_SOURCES, FUNNEL_TEMPLATES, keyFrom, stageAge, stageSince } from "../src/internal/funnels.ts";
-import { cleanDeal } from "../src/internal/deals.ts";
+import { cleanDeal, firstOpenStage, firstStageOfKind, moveDeal } from "../src/internal/deals.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 const existing = {
@@ -59,6 +59,36 @@ test("funnel editor: refuses what would break deals", () => {
   assert.equal(base([{ name: "A", kind: "open", targetDays: 0 }, { name: "W", kind: "won" }, { name: "L", kind: "lost" }]).ok, false);
   assert.equal(cleanFunnel({ name: "", stages: existing.stages }).ok, false);
   assert.equal(cleanFunnel({ name: "X", stages: Array.from({ length: 21 }, (_, i) => ({ name: `S${i}`, kind: i === 19 ? "won" : i === 20 ? "lost" : "open" })) }).ok, false);
+});
+
+test("funnel editor: kind changes are reported; removed keys are never reused", () => {
+  const r = cleanFunnel(
+    { name: "X", stages: [{ key: "lead", name: "Lead", kind: "open" }, { key: "offer", name: "Offer sent", kind: "won" }, { key: "lost", name: "Lost", kind: "lost" }] },
+    { ...existing, usedKeys: ["lead", "offer", "won", "lost", "meeting"] },
+  );
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.deepEqual(r.value.kindChanged, ["offer"], "the route refuses this while deals are in Offer sent");
+  assert.deepEqual(r.value.removed, ["won"]);
+  const again = cleanFunnel({ name: "X", stages: [{ key: "lead", name: "Lead", kind: "open" }, { name: "Meeting", kind: "open" }, { name: "Won", kind: "won" }, { key: "lost", name: "Lost", kind: "lost" }] }, { stages: [existing.stages[0], existing.stages[3]], usedKeys: ["lead", "meeting", "won", "lost"] });
+  assert.ok(again.ok);
+  if (!again.ok) return;
+  assert.deepEqual(again.value.stages.map((s) => s.key), ["lead", "meeting-2", "won-2", "lost"], "old keys (and their history) stay retired");
+  assert.ok(again.value.usedKeys.includes("meeting-2") && again.value.usedKeys.includes("meeting"));
+});
+
+test("custom funnels work with moves and 'offer accepted' (won stage found by kind, not key)", () => {
+  const t = FUNNEL_TEMPLATES.find((x) => x.key === "corporate")!;
+  const c = cleanFunnel({ name: t.name, stages: t.stages.map((s) => ({ ...s, key: undefined })) });
+  assert.ok(c.ok);
+  if (!c.ok) return;
+  const f = { _id: "fc", stages: c.value.stages };
+  assert.equal(firstOpenStage(f)?.key, "idea");
+  const won = firstStageOfKind(f, "won")!;
+  assert.equal(won.key, "pilot-contract");
+  const m = moveDeal({ funnel: "fc", stage: "proposal", status: "open", history: [] }, f, won.key, { now: new Date("2027-01-01") })!;
+  assert.equal(m.patch.status, "won");
+  assert.ok(m.wonNow);
 });
 
 test("templates are valid funnels", () => {

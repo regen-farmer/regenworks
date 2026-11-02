@@ -9,6 +9,7 @@ import { apiFetch } from "~/util/apiFetch.ts";
 
 type Report = {
   deals: number;
+  truncated?: boolean;
   bySource: { source: string; deals: number; open: number; won: number; lost: number; value: number; wonValue: number; winRate: number | null }[];
   byFunnel: {
     _id: string;
@@ -46,8 +47,9 @@ function DealReport() {
         </div>
         <Show when={data.error}><p class="text-sm text-red-600">{(data.error as Error)?.message}</p></Show>
         <Show when={r()} fallback={<p class="text-sm">Loading…</p>}>
+          <Show when={r()!.truncated}><p class="text-sm text-amber-700">Only the newest 20,000 deals are counted.</p></Show>
           <p class="text-xs opacity-70">
-            {r()!.deals} deals, archived ones included. Win rate = won ÷ (won + lost); open deals don't count yet. Days per stage: how long deals stayed before the next move (deals still there count with their days so far).
+            {r()!.deals} deals, archived ones included. Win rate = won ÷ (won + lost); open deals don't count yet. Days per stage: how long deals stayed before the next move (deals still there count with their days so far). Deals imported from the Dashboard count from the import date.
           </p>
           <section class="flex flex-col gap-1">
             <h2 class="text-xl font-semibold">By source</h2>

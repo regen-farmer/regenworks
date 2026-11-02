@@ -89,6 +89,16 @@ async function present(deals: any[]) {
   }));
 }
 
+/**
+ * After writing a deal: is its funnel still there (not deleted) and its stage
+ * still in it? A funnel edit saved at the same moment could have removed it.
+ */
+async function stageStillThere(funnelId: unknown, stageKey: string) {
+  const f: any = await Funnel.findById(funnelId).select("stages.key").lean();
+  return !!f && f.stages.some((s: any) => s.key === stageKey);
+}
+const CHANGED = "The funnel was changed at the same moment. Reload and try again.";
+
 /** Put `dealId` in front of `beforeId` within its stage and renumber the stage. */
 async function placeInStage(dealId: string, funnel: unknown, stage: string, beforeId?: unknown) {
   const inStage: any[] = await Deal.find({ funnel, stage, archived: false }).select("_id position").sort({ position: 1, _id: 1 }).lean();
@@ -137,7 +147,7 @@ funnelRouter.post("/", async (req: Req, res) => {
   const cleaned = cleanFunnel({ ...req.body, stages: (stages ?? []).map((st: any) => ({ ...st, key: undefined })) });
   if (!cleaned.ok) return bad(res, cleaned.error);
   const all: any[] = await Funnel.find({}).select("key order").lean();
-  const { removed: _removed, ...value } = cleaned.value;
+  const { removed: _removed, kindChanged: _k, ...value } = cleaned.value;
   try {
     const funnel = await Funnel.create({
       ...value,
@@ -155,7 +165,8 @@ funnelRouter.post("/", async (req: Req, res) => {
 funnelRouter.put("/order", async (req: Req, res) => {
   const ids = req.body?.ids;
   if (!Array.isArray(ids) || !ids.length || ids.length > 100 || !ids.every(isId)) return bad(res, "Send the funnel ids in order");
-  await Funnel.bulkWrite(ids.map((id: string, i: number) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: i + 1 } } } })));
+  // order only: not an edit of the funnel (no new updatedAt, so open editors keep their drafts)
+  await Funnel.bulkWrite(ids.map((id: string, i: number) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: i + 1 } }, timestamps: false } })));
   res.send({ ok: true });
 });
 
@@ -173,13 +184,24 @@ funnelRouter.put("/:id", async (req: Req, res) => {
   }
   const cleaned = cleanFunnel(req.body, funnel);
   if (!cleaned.ok) return bad(res, cleaned.error);
-  const { removed, ...value } = cleaned.value;
-  if (removed.length) {
-    const inRemoved = await Deal.countDocuments({ funnel: funnel._id, stage: inIds(removed) });
-    if (inRemoved) return bad(res, `${inRemoved} deal${inRemoved === 1 ? " is" : "s are"} in a stage you removed (archived deals too). Move them first.`, 409);
-  }
+  const { removed, kindChanged, ...value } = cleaned.value;
+  const blocked = async () => {
+    const n = removed.length ? await Deal.countDocuments({ funnel: funnel._id, stage: inIds(removed) }) : 0;
+    const k = kindChanged.length ? await Deal.countDocuments({ funnel: funnel._id, stage: inIds(kindChanged) }) : 0;
+    if (n) return `${n} deal${n === 1 ? " is" : "s are"} in a stage you removed (archived deals too). Move them first.`;
+    if (k) return `${k} deal${k === 1 ? " is" : "s are"} in a stage whose kind (open, won, lost) you changed. Move them first, or add a new stage.`;
+    return null;
+  };
+  const problem = await blocked();
+  if (problem) return bad(res, problem, 409);
   const saved = await Funnel.findOneAndUpdate({ _id: funnel._id, updatedAt: funnel.updatedAt }, { $set: value }, { new: true, runValidators: true }).lean();
   if (!saved) return bad(res, "This funnel was changed by someone else meanwhile. Reload and try again.", 409);
+  // a deal moved into a removed stage while saving: put the stages back
+  const late = await blocked();
+  if (late) {
+    await Funnel.updateOne({ _id: funnel._id }, { $set: { stages: funnel.stages } });
+    return bad(res, late, 409);
+  }
   res.send({ funnel: saved });
 });
 
@@ -193,14 +215,25 @@ funnelRouter.post("/:id/archive", async (req: Req, res) => {
   }
   const f = await Funnel.findByIdAndUpdate(req.params.id, { $set: { archived: req.body.archived } }, { new: true }).lean();
   if (!f) return bad(res, "Funnel not found", 404);
+  // two people hid the last two funnels at once: show this one again
+  if (req.body.archived && !(await Funnel.exists({ archived: false }))) {
+    await Funnel.updateOne({ _id: req.params.id }, { $set: { archived: false } });
+    return bad(res, "Keep at least one funnel", 409);
+  }
   res.send({ funnel: f });
 });
 
-/** Delete a funnel that never had a deal; otherwise hide it. */
+/**
+ * Delete a hidden funnel that has no deals. Hiding first stops new deals
+ * (hidden funnels take no new deals), so nothing can land in it meanwhile.
+ */
 funnelRouter.delete("/:id", async (req: Req, res) => {
   if (!isId(req.params.id)) return bad(res, "Invalid id");
-  if (await Deal.exists({ funnel: req.params.id })) return bad(res, "This funnel has deals; hide it instead", 409);
-  const r = await Funnel.deleteOne({ _id: req.params.id });
+  const f: any = await Funnel.findById(req.params.id).select("archived").lean();
+  if (!f) return bad(res, "Funnel not found", 404);
+  if (!f.archived) return bad(res, "Hide the funnel first, then delete it", 409);
+  if (await Deal.exists({ funnel: req.params.id })) return bad(res, "This funnel has deals; keep it hidden instead", 409);
+  const r = await Funnel.deleteOne({ _id: req.params.id, archived: true });
   if (!r.deletedCount) return bad(res, "Funnel not found", 404);
   res.status(204).send();
 });
@@ -239,10 +272,11 @@ dealRouter.get("/report", async (req: Req, res) => {
   const to = day(req.query.to);
   if ((req.query.from && !from) || (req.query.to && !to)) return bad(res, "Dates as YYYY-MM-DD");
   const [deals, funnels] = await Promise.all([
-    Deal.find({}).select("funnel stage status source value archived createdAt history.stage history.funnel history.at").limit(20000).lean(),
+    Deal.find({}).select("funnel stage status source value archived createdAt history.stage history.funnel history.at").sort({ createdAt: -1 }).limit(20001).lean(),
     Funnel.find({}).sort({ archived: 1, order: 1 }).lean(),
   ]);
-  res.send(dealReport(deals as any[], funnels as any[], { from, to }));
+  const truncated = deals.length > 20000;
+  res.send({ ...dealReport((deals as any[]).slice(0, 20000), funnels as any[], { from, to }), truncated });
 });
 
 // Short list of deals to link an offer to (open and won, newest first).
@@ -368,6 +402,10 @@ dealRouter.post("/", async (req: Req, res) => {
     history: [{ stage: stage.key, funnel: funnel._id, status: stage.kind, at: now, by: req.user?._id }],
     createdBy: req.user?._id,
   });
+  if (!(await stageStillThere(funnel._id, stage.key))) {
+    await Deal.deleteOne({ _id: deal._id });
+    return bad(res, CHANGED, 409);
+  }
   const [d] = await present([deal.toObject()]);
   res.status(201).send({ deal: d });
 });
@@ -432,8 +470,14 @@ dealRouter.post("/:id/move", async (req: Req, res) => {
   if (req.body?.lostReason !== undefined && req.body.lostReason !== null && typeof req.body.lostReason !== "string") return bad(res, "lostReason must be text");
   const moved = moveDeal(deal.toObject(), funnel, req.body?.stage, { by: req.user?._id ?? null, lostReason: req.body?.lostReason ?? undefined });
   if (!moved) return bad(res, "Stage not found in this funnel");
+  const before = deal.toObject();
   deal.set(moved.patch);
   await deal.save();
+  if (!(await stageStillThere(funnel._id, moved.stage.key))) {
+    const { funnel: bf, stage: bs, status, wonAt, lostAt, lostReason, history } = before;
+    await Deal.updateOne({ _id: deal._id }, { $set: { funnel: bf, stage: bs, status, wonAt: wonAt ?? null, lostAt: lostAt ?? null, lostReason: lostReason ?? "", history } });
+    return bad(res, CHANGED, 409);
+  }
   await placeInStage(String(deal._id), funnel._id, moved.stage.key, req.body?.before);
   const fresh: any = await Deal.findById(deal._id).lean();
   const [d] = await present([fresh]);
@@ -498,6 +542,10 @@ dealRouter.post("/:id/handover", async (req: Req, res) => {
       history: [{ stage: stage.key, funnel: funnel._id, status: stage.kind, at: now, by: req.user?._id, note: `follow-up of ${String(deal.title).slice(0, 150)}` }],
       createdBy: req.user?._id,
     });
+    if (!(await stageStillThere(funnel._id, stage.key))) {
+      await Deal.deleteOne({ _id: created._id });
+      return bad(res, CHANGED, 409);
+    }
     res.status(201).send({ deal: { _id: created._id } });
     return;
   }
