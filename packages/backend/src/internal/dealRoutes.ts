@@ -286,12 +286,24 @@ dealRouter.put("/:id", async (req: Req, res) => {
   res.send({ deal: d });
 });
 
+// Delete a deal. Only without offers; otherwise archive it, so offers keep their deal.
+dealRouter.delete("/:id", async (req: Req, res) => {
+  if (!isId(req.params.id)) return bad(res, "Invalid id");
+  if (await Offer.exists({ deal: req.params.id })) return bad(res, "This deal has offers; archive it instead", 409);
+  const r = await Deal.deleteOne({ _id: req.params.id });
+  if (!r.deletedCount) return bad(res, "Deal not found", 404);
+  res.status(204).send();
+});
+
 // Move a card: to another stage (or another funnel), in front of `before`.
 dealRouter.post("/:id/move", async (req: Req, res) => {
   if (!isId(req.params.id)) return bad(res, "Invalid id");
   const deal: any = await Deal.findById(req.params.id);
   if (!deal) return bad(res, "Deal not found", 404);
   if (deal.archived) return bad(res, "Restore the deal before moving it");
+  // Won and lost deals stay put on the board; changing them is a deliberate
+  // step on the deal page ("Change stage"), which sends confirm: true.
+  if (deal.status !== "open" && req.body?.confirm !== true) return bad(res, "This deal is closed. Open it and use Change stage.", 409);
   const funnel = await loadFunnel(req.body?.funnel !== undefined ? req.body.funnel : String(deal.funnel), { forWrite: true });
   if (!funnel) return bad(res, "Funnel not found");
   if (req.body?.lostReason !== undefined && req.body.lostReason !== null && typeof req.body.lostReason !== "string") return bad(res, "lostReason must be text");
@@ -420,6 +432,15 @@ clientRouter.put("/:id", async (req: Req, res) => {
   const client = await Client.findByIdAndUpdate(req.params.id, { $set: cleaned.value }, { new: true, runValidators: true }).lean();
   if (!client) return bad(res, "Client not found", 404);
   res.send({ client });
+});
+
+// Delete a client. Only without deals; otherwise archive it.
+clientRouter.delete("/:id", async (req: Req, res) => {
+  if (!isId(req.params.id)) return bad(res, "Invalid id");
+  if (await Deal.exists({ client: req.params.id })) return bad(res, "This client has deals; archive it instead", 409);
+  const r = await Client.deleteOne({ _id: req.params.id });
+  if (!r.deletedCount) return bad(res, "Client not found", 404);
+  res.status(204).send();
 });
 
 /** When an offer linked to a deal is accepted, an open deal moves to its funnel's won stage. */

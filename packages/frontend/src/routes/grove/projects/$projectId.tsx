@@ -4,6 +4,7 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
@@ -27,6 +28,7 @@ function ProjectPage() {
   const [p, setP] = createStore<GroveProject>({} as GroveProject);
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
+  const [askDelete, setAskDelete] = createSignal(false);
 
   createEffect(() => {
     const d = data();
@@ -100,6 +102,9 @@ function ProjectPage() {
             </button>
             <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy() || dirty()} title={dirty() ? "Save your changes first" : ""} onClick={() => save({ status: p.status === "archived" ? "active" : "archived" }).then(refetch)}>
               {p.status === "archived" ? "Restore" : "Archive"}
+            </button>
+            <button class="rounded-sm px-2 py-1 text-sm underline text-red-700 dark:text-red-400" disabled={busy()} onClick={() => setAskDelete(true)}>
+              Delete
             </button>
           </Show>
         </div>
@@ -218,6 +223,25 @@ function ProjectPage() {
           </section>
         </Show>
       </Show>
+      <ConfirmDialog
+        open={askDelete()}
+        title="Delete project"
+        confirmLabel="Delete project"
+        danger
+        onConfirm={async () => {
+          try {
+            await apiFetch(`/internal/projects/${params().projectId}`, { method: "DELETE" });
+            setAskDelete(false);
+            navigate({ to: "/grove" });
+          } catch (err) {
+            setAskDelete(false);
+            showToast({ title: "Not deleted", description: (err as Error).message, variant: "destructive" });
+          }
+        }}
+        onClose={() => setAskDelete(false)}
+      >
+        Delete "{p.name}" from the Dashboard for good? Its farm and designs stay. A project with offers can't be deleted: archive it instead.
+      </ConfirmDialog>
     </div>
   );
 }

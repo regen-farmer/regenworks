@@ -4,6 +4,7 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { WonDialog } from "~/grove/DealDialogs.tsx";
 import { day, dkk, noon, SOURCES, STATUS_LABEL, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
 import { STATUS_EN } from "~/grove/offerTypes.ts";
@@ -28,6 +29,11 @@ function DealPage() {
   const [busy, setBusy] = createSignal(false);
   const [won, setWon] = createSignal<Deal | null>(null);
   const [lostReason, setLostReason] = createSignal("");
+  // won/lost deals: stage and funnel unlock only after "Change stage"
+  const [changing, setChanging] = createSignal(false);
+  const [askFunnel, setAskFunnel] = createSignal<{ funnel: Funnel; stage: { key: string; name: string } } | null>(null);
+  const [askDelete, setAskDelete] = createSignal(false);
+  const locked = () => d.status !== "open" && !changing();
 
   // .latest: keep the page on screen while it reloads after a save or move
   // only the deal in the URL (right after opening another deal, .latest is still the old one)
@@ -91,8 +97,9 @@ function DealPage() {
     try {
       const r = await apiFetch<{ deal: Deal; wonNow: boolean }>(`/internal/deals/${params().dealId}/move`, {
         method: "POST",
-        body: JSON.stringify({ funnel, stage, lostReason: kind === "lost" ? lostReason() : undefined }),
+        body: JSON.stringify({ funnel, stage, lostReason: kind === "lost" ? lostReason() : undefined, confirm: d.status !== "open" }),
       });
+      setChanging(false);
       refetch();
       if (r.wonNow) setWon(r.deal);
       return true;
@@ -138,32 +145,46 @@ function DealPage() {
             <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy() || dirty()} title={dirty() ? "Save your changes first" : ""} onClick={() => save({ archived: !d.archived })}>
               {d.archived ? "Restore" : "Archive"}
             </button>
+            <button class="rounded-sm px-2 py-1 text-sm underline text-red-700 dark:text-red-400" disabled={busy()} onClick={() => setAskDelete(true)}>
+              Delete
+            </button>
           </div>
 
           <section class="flex flex-wrap items-end gap-3 rounded-md border border-zinc-300 dark:border-slate-600 p-3">
             <label class="flex flex-col text-xs">
               Funnel
-              <select class={input} value={d.funnel} disabled={busy() || d.archived} onChange={async (e) => {
+              <select class={input} value={d.funnel} disabled={busy() || d.archived || locked()} onChange={(e) => {
                 const el = e.currentTarget;
                 const f = funnels()?.funnels.find((x) => x._id === el.value);
                 // keep a won deal won (and a lost one lost) when it moves to another funnel
                 const target = f?.stages.find((s) => s.kind === d.status) ?? f?.stages.find((s) => s.kind === "open");
-                const ok = f && target && window.confirm(`Move this deal to "${f.name}" · ${target.name}?`) ? await move(f._id, target.key) : false;
-                if (!ok) el.value = String(d.funnel);
+                el.value = String(d.funnel); // only changes once confirmed
+                if (f && target) setAskFunnel({ funnel: f, stage: target });
               }}>
                 <For each={funnels()?.funnels}>{(f) => <option value={f._id}>{f.name}</option>}</For>
               </select>
             </label>
             <div class="flex flex-col text-xs">
               Stage
-              <div class="flex flex-wrap gap-1 mt-0.5" role="group" aria-label="Stage">
+              <div class="flex flex-wrap gap-1 mt-0.5 items-center" role="group" aria-label="Stage">
+                <Show when={d.status !== "open" && !d.archived}>
+                  <button
+                    class="rounded-sm px-2 py-1 text-sm btn-default"
+                    aria-expanded={changing()}
+                    disabled={busy()}
+                    onClick={() => setChanging(!changing())}
+                    title="Won and lost deals are locked on the board; unlock here to move this one"
+                  >
+                    {changing() ? "Cancel" : "Change stage"}
+                  </button>
+                </Show>
                 <For each={view()!.funnel?.stages}>
                   {(s) => (
                     <button
                       class="rounded-sm px-2 py-1 text-sm border border-zinc-300 dark:border-slate-600"
                       classList={{ "bg-emerald-700 text-white border-emerald-700": s.key === d.stage }}
                       aria-pressed={s.key === d.stage}
-                      disabled={busy() || d.archived || s.key === d.stage}
+                      disabled={busy() || d.archived || s.key === d.stage || locked()}
                       onClick={() => move(String(d.funnel), s.key)}
                     >
                       {s.name}
@@ -264,6 +285,39 @@ function DealPage() {
             </ul>
           </section>
         </Show>
+        <ConfirmDialog
+          open={!!askFunnel()}
+          title="Move to another funnel"
+          confirmLabel="Move"
+          onConfirm={async () => {
+            const a = askFunnel();
+            setAskFunnel(null);
+            if (a) await move(a.funnel._id, a.stage.key);
+          }}
+          onClose={() => setAskFunnel(null)}
+        >
+          Move "{d.title}" to <b>{askFunnel()?.funnel.name}</b> · {askFunnel()?.stage.name}?
+        </ConfirmDialog>
+        <ConfirmDialog
+          open={askDelete()}
+          title="Delete deal"
+          confirmLabel="Delete deal"
+          danger
+          onConfirm={async () => {
+            try {
+              await apiFetch(`/internal/deals/${params().dealId}`, { method: "DELETE" });
+              setAskDelete(false);
+              showToast({ title: "Deal deleted" });
+              navigate({ to: "/grove/deals" });
+            } catch (err) {
+              setAskDelete(false);
+              showToast({ title: "Not deleted", description: (err as Error).message, variant: "destructive" });
+            }
+          }}
+          onClose={() => setAskDelete(false)}
+        >
+          Delete "{d.title}" for good? Its history goes too. A deal with offers can't be deleted: archive it instead.
+        </ConfirmDialog>
         <WonDialog deal={won()} funnels={funnels()?.funnels ?? []} onClose={() => { setWon(null); refetch(); }} onDone={(to) => navigate(to)} />
       </Show>
     </div>

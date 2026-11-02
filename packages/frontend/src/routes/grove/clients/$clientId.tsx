@@ -5,6 +5,7 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { NewDealDialog } from "~/grove/DealDialogs.tsx";
 import { dkk, STATUS_LABEL, type Client, type Deal, type Funnel } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
@@ -21,6 +22,7 @@ function ClientPage() {
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const [newIn, setNewIn] = createSignal<Funnel | undefined>();
+  const [askDelete, setAskDelete] = createSignal(false);
 
   createEffect(() => {
     const x = data.latest;
@@ -72,6 +74,7 @@ function ClientPage() {
             <h1 class="text-2xl font-bold mr-auto">{c.name}</h1>
             <button class="rounded-sm px-2 py-1 btn-default" disabled={busy() || !dirty()} onClick={() => save()}>{dirty() ? "Save" : "Saved"}</button>
             <button class="rounded-sm px-2 py-1 text-sm underline" disabled={busy() || dirty()} onClick={() => save({ archived: !c.archived })}>{c.archived ? "Restore" : "Archive"}</button>
+            <button class="rounded-sm px-2 py-1 text-sm underline text-red-700 dark:text-red-400" disabled={busy()} onClick={() => setAskDelete(true)}>Delete</button>
           </div>
 
           <fieldset disabled={busy()} class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -117,6 +120,26 @@ function ClientPage() {
               </tbody>
             </table>
           </section>
+          <ConfirmDialog
+            open={askDelete()}
+            title="Delete client"
+            confirmLabel="Delete client"
+            danger
+            onConfirm={async () => {
+              try {
+                await apiFetch(`/internal/clients/${params().clientId}`, { method: "DELETE" });
+                setAskDelete(false);
+                showToast({ title: "Client deleted" });
+                navigate({ to: "/grove/clients" });
+              } catch (err) {
+                setAskDelete(false);
+                showToast({ title: "Not deleted", description: (err as Error).message, variant: "destructive" });
+              }
+            }}
+            onClose={() => setAskDelete(false)}
+          >
+            Delete "{c.name}" for good? A client with deals can't be deleted: archive it instead.
+          </ConfirmDialog>
           <NewDealDialog
             open={!!newIn()}
             funnel={newIn()}
