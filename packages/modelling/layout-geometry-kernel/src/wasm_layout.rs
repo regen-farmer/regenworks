@@ -816,7 +816,7 @@ fn generate_tree_markers(
     let mut tree_markers = Vec::new();
     let mut species_count_map: HashMap<String, (SpeciesRef, u32)> = HashMap::new();
 
-    for tree_row in tree_row_lines {
+    for (tree_row_index, tree_row) in tree_row_lines.iter().enumerate() {
         let row_def = &rows[tree_row.system_design_row_index];
         let total_spacing: f64 = row_def
             .sequence
@@ -843,6 +843,9 @@ fn generate_tree_markers(
                     species: species.clone(),
                     point: GeoJsonFeature::point(point, None),
                     circle: None,
+                    tree_row_index,
+                    system_design_row_index: tree_row.system_design_row_index,
+                    sequence_index: tree_sequence_idx,
                 });
 
                 species_count_map

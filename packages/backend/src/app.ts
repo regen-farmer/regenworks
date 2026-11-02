@@ -5,6 +5,7 @@ dotenv.config();
 
 import User, { type IUserSchema, type UserDocument } from "@rw/db/schemas/user.ts";
 import bodyParser from "body-parser";
+import { randomUUID } from "node:crypto";
 import cors from "cors";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
@@ -16,6 +17,7 @@ import animalRoutes from "./routes/animals.ts";
 import areaRoutes from "./routes/areas.ts";
 import assetRoutes from "./routes/assets.ts";
 import budgetRoutes from "./routes/budgets.ts";
+import catalogueRoutes from "./routes/catalogue.ts";
 import farmerAdvisorRoutes from "./routes/farmer-advisor-survey.ts";
 import farmflowRoutes from "./routes/farmflows.ts";
 import farmScenarioConfigRoutes from "./routes/farmscenarioconfigs.ts";
@@ -41,7 +43,8 @@ import stripeRoutes from "./routes/stripe.ts";
 import systemdesignRoutes from "./routes/systemdesigns.ts";
 import systemflowRoutes from "./routes/systemflows.ts";
 import systemRoutes from "./routes/systems.ts";
-import { isPlainObject } from "./utils/mongoSafety.ts";
+import { checkAuthConfig, identify, IdentityUnavailableError } from "./auth/identify.ts";
+import { resolveUser } from "./auth/resolveUser.ts";
 // REQUIRE ROUTES
 import tilesRoutes from "./routes/tiles.ts";
 import userPresetsRoutes from "./routes/userpresets.ts";
@@ -81,6 +84,7 @@ app.use(
 
 // APP SETUP
 mongoose.set("sanitizeFilter", true);
+checkAuthConfig(); // fail fast on bad Auth0 settings, before serving anything
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
 app.use(bodyParser.json());
@@ -135,84 +139,31 @@ app.use(
   ) => {
     res.locals.currentUser = undefined;
 
-    const jwt = req.headers.authorization;
-
-    function parseJwt(token) {
-      // eslint-disable-next-line no-unneeded-ternary
-      // console.log("token in place", token === "undefined" ? false : true);
-
-      if (token === "undefined") {
+    // Identity comes only from Auth0 (see auth/identify.ts); the account rules
+    // are in auth/resolveUser.ts. Never trust the request body or an unsigned header.
+    let identity: Awaited<ReturnType<typeof identify>>;
+    try {
+      identity = await identify(req.headers.authorization);
+    } catch (err) {
+      if (err instanceof IdentityUnavailableError) {
+        console.error(err.message);
+        res
+          .status(503)
+          .send({ error: "Login check is temporarily unavailable. Please try again." });
         return;
       }
-
-      return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+      throw err;
     }
+    const idToken: Auth0IDToken | undefined = identity
+      ? ({
+          sub: identity.sub,
+          email: identity.email,
+          email_verified: identity.email_verified,
+        } as Auth0IDToken)
+      : undefined;
 
-    let idToken: Auth0IDToken | undefined;
-
-    // console.log('jwt in place', jwt);
-
-    if (jwt && jwt !== "" && jwt !== "undefined" && typeof jwt === "string") {
-      // idToken = parseJwt(jwt);
-      // console.log('jwt:', jwt)
-      const parsedToken = JSON.parse(jwt) as unknown;
-      if (isPlainObject(parsedToken)) {
-        idToken = parsedToken as unknown as Auth0IDToken;
-      }
-      // console.log('idToken:', idToken)
-      // if (!idToken) {
-      //   // console.log("no id token");
-      //   res.status(404).send("Invalid token");
-      //   return;
-      // }
-    } else {
-      console.log("no jwt");
-    }
-
-    const externalId = idToken?.sub;
-    const email = idToken?.email;
-
-    if (typeof externalId === "string" && externalId !== "") {
-      const user = await User.findOne({ externalId: { $eq: externalId } }).exec();
-      if (user) {
-        req.user = user;
-      } else if (typeof email === "string" && email !== "") {
-        console.log("idToken", idToken);
-        // Find any existing user
-        const user = await User.findOne({ email: { $eq: email } }).exec();
-
-        if (user) {
-          user.externalId = externalId;
-          await user.save();
-          req.user = user;
-        } else {
-          // Create a new user if none exist
-          const newUser = await User.create({
-            externalId,
-            email,
-            registrationDate: Date.now(),
-            isProject: true,
-          });
-
-          const savedUser = await newUser.save();
-
-          req.user = savedUser;
-        }
-      } else {
-        // Create a new user if none exist
-        const newUser = await User.create({
-          externalId,
-          registrationDate: Date.now(),
-          isProject: true,
-        });
-
-        const savedUser = await newUser.save();
-
-        req.user = savedUser;
-      }
-    } else {
-      console.log("No oidc user");
-    }
+    const user = await resolveUser(identity, User);
+    if (user) req.user = user;
 
     if (idToken) {
       req.idToken = idToken;
@@ -255,6 +206,7 @@ app.use("", saptestRoutes);
 app.use("", farmflowRoutes);
 app.use("", rotationRoutes);
 app.use("", varietyRoutes);
+app.use("", catalogueRoutes); // plant catalogue: hybrid groups, cultivars, rootstocks
 app.use("", stripeRoutes);
 app.use("", userPresetsRoutes);
 app.use("", farmScenarioConfigRoutes);
@@ -266,6 +218,24 @@ app.use("", financialModelsRoutes);
 app.get("/*splat", async (req: express.Request & { user?: IUserSchema }, res: express.Response) => {
   res.status(404).send("404");
 });
+
+// ERRORS: one JSON answer and one log line with a short id, so a message on
+// screen ("error a1b2c3d4") can be found in the Render logs.
+app.use(
+  (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const errorId = randomUUID().slice(0, 8);
+    console.error("[error %s] %s %s", errorId, req.method, req.originalUrl, err);
+    // Response already started: let Express close the connection.
+    if (res.headersSent) return next(err);
+    const raw = Number(err?.status ?? err?.statusCode);
+    const status = Number.isInteger(raw) && raw >= 400 && raw <= 599 ? raw : 500;
+    res.status(status).send({
+      // Never show server-side details for 5xx.
+      error: status >= 500 ? "Something went wrong on the server" : String(err?.message ?? "Error"),
+      errorId,
+    });
+  },
+);
 
 const PORT = process.env.BACKEND_PORT ? Number.parseInt(process.env.BACKEND_PORT) : 3001;
 const IP = process.env.BACKEND_IP ?? "127.0.0.1";

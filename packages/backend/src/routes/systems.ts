@@ -1,9 +1,9 @@
 import express from "express";
+import { owns, systemReadable } from "../middleware/ownership.ts";
 import unique from "array-unique";
 import System, { type ISystemSchema } from "@rw/db/schemas/system.ts";
 import Layer from "@rw/db/schemas/layer.ts";
 import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
-import Parcel from "@rw/db/schemas/parcel.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
@@ -12,6 +12,12 @@ import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
+
+/** A system from the request without its ids, owner or flows (links to other records). */
+function systemInput(system: unknown) {
+  const { _id: _a, id: _b, owner: _c, flows: _d, ...rest } = sanitizeMongoDocument(system) as Record<string, unknown>;
+  return rest;
+}
 
 // SYSTEM INDEX
 router.get(
@@ -32,6 +38,8 @@ router.get(
 
 router.put(
   "/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick",
+  systemReadable("systemId"),
+  owns("project", "projectId"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -73,6 +81,7 @@ router.put(
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -92,6 +101,7 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   "/layers/:id/systems/newgrid",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -148,6 +158,7 @@ router.post(
 // NESTED AREA SYSTEM CREATE ROUTE
 router.post(
   "/layers/:id/systems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -216,7 +227,8 @@ router.post(
         }
         // CREATE SYSTEM
         try {
-          const createdSystem = await System.create(system);
+          // Built from the request, without ids, owner or flows of other systems.
+          const createdSystem = await System.create(systemInput(system));
           console.log(createdSystem);
           // ADD OWNER
           createdSystem.owner.id = req.user?._id.toString()!;
@@ -244,6 +256,7 @@ router.post(
 // LAYER FUTURE SYSTEMS COMPARE ROUTE
 router.get(
   "/layers/:id/systems/compare",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -352,6 +365,7 @@ router.get(
 // SYSTEM SHOW ROUTE
 router.get(
   "/systems/:id",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -429,6 +443,7 @@ router.get(
 // SYSTEM EDIT ROUTE
 router.get(
   "/systems/:id/edit",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -572,6 +587,7 @@ router.get(
 // SYSTEM EDIT ROUTE OLD
 router.get(
   "/systems/:id/editold",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -629,6 +645,7 @@ router.get(
 // SYSTEM EDIT W. SPECIES ROUTE
 router.get(
   "/systems/:id/edit/:speciesid",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -743,6 +760,9 @@ router.get(
 // SYSTEM UPDATE ROUTE
 router.put(
   "/systems/:id",
+  systemReadable(),
+  // No owns() here on purpose: a non-owner editing a shared system gets their
+  // own edited copy (see the "NOT OWNER" branch); only the owner changes it.
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -813,12 +833,16 @@ router.put(
             system.animals.splice(i, 1);
           }
         }
-        if (foundSystem.owner.id === req.user?._id.toString()) {
+        // Every edit makes a copy for the editor, owners included (as it always
+        // has: this compared an id object with a string). Editing in place
+        // would wipe the system's activities and change shared templates
+        // under other users' scenarios; decide that before switching it on.
+        if (false as boolean) {
           // if true, update existing system
 
           console.log("OWNER");
           try {
-            foundSystem.set(sanitizeMongoDocument(system));
+            foundSystem.set(systemInput(system));
             const updatedSystem = await foundSystem.save();
             if (updatedSystem) {
               res.send({
@@ -834,7 +858,9 @@ router.put(
           console.log("NOT OWNER");
 
           // if false, create a new system and add current user as owner
-          const createdSystem = await System.create(system);
+          // Built from the request, but never with its ids, owner or links;
+          // flows come from the system being copied.
+          const createdSystem = await System.create({ ...systemInput(system), flows: foundSystem.flows });
 
           // Add owner
           createdSystem.owner.id = req.user?._id.toString()!;
@@ -915,6 +941,8 @@ router.put(
 // SYSTEM DELETE ROUTE
 router.delete(
   "/layers/:id/systems/:pid",
+  owns("layer"),
+  owns("system", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -995,6 +1023,7 @@ router.delete(
 // SYSTEM SUCCESSION ROUTE
 router.get(
   "/systems/:id/succession",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1258,6 +1287,7 @@ router.get(
 // LAYER MY SYSTEMS FIND
 router.get(
   "/layers/:id/mysystems",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1295,6 +1325,7 @@ router.get(
 // SYSTEM OCCURRENCE NEW ROUTE
 router.get(
   "/systems/:id/occurrences/new",
+  systemReadable(),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -1312,6 +1343,7 @@ router.get(
 // SYSTEM OCCURRANCE CREATE ROUTE
 router.put(
   "/systems/:id/occurrences",
+  owns("system"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

@@ -1,4 +1,5 @@
 import { systemBasedLayout } from "../layout-turf-js/system_based_layout.ts";
+import { attachPlantDetails } from "../planting/plant_details.ts";
 import type { LayoutBackendInput, LayoutBackendRun, LayoutResult } from "./types.ts";
 
 function normalizeSystemDesign(systemDesign: any) {
@@ -16,9 +17,9 @@ function normalizeSystemDesign(systemDesign: any) {
 
 export async function runTurfJsLayout(input: LayoutBackendInput): Promise<LayoutBackendRun> {
   const started = Date.now();
-  const layout = systemBasedLayout(
-    normalizeSystemDesign(input.systemDesign) as any,
-    input.fieldGeometry,
+  const layout = attachPlantDetails(
+    systemBasedLayout(normalizeSystemDesign(input.systemDesign) as any, input.fieldGeometry),
+    input.systemDesign,
   ) as LayoutResult;
 
   return {

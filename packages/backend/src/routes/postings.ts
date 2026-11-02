@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import Posting from "@rw/db/schemas/posting.ts";
 import Budget from "@rw/db/schemas/budget.ts";
@@ -18,6 +19,7 @@ const router = express.Router();
 // NESTED POSTING BUDGET NEW ROUTE
 router.get(
   "/budgets/:id/postings/new",
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -36,6 +38,7 @@ router.get(
 // NESTED POSTING BUDGET CREATE ROUTE
 router.post(
   "/budgets/:id/postings",
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -66,6 +69,8 @@ router.post(
 // NESTED POSTING BUDGET EDIT ROUTE - WITH THESE I CAN CHECK BUDGET OWNERSHIP
 router.get(
   "/budgets/:id/postings/:postid/edit",
+  owns("posting", "postid"),
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -92,6 +97,8 @@ router.get(
 // NESTED POSTING BUDGET UPDATE ROUTE
 router.put(
   "/budgets/:id/postings/:postid",
+  owns("posting", "postid"),
+  owns("budget"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -112,6 +119,7 @@ router.put(
 // POSTING PARCEL BUDGET NEW
 router.get(
   "/parcels/:id/layers/:bid/accounts/postings/new",
+  owns("layer", "bid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -140,6 +148,7 @@ router.get(
 // POSTING PARCEL BUDGET CREATE ROUTE
 router.post(
   "/parcels/:id/layers/:bid/accounts/postings",
+  owns("layer", "bid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

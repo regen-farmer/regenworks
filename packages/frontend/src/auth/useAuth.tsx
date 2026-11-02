@@ -1,6 +1,8 @@
 import { createSignal, onMount, Show } from "solid-js";
 import NewUser from "~/auth/signup.tsx";
 import { NavBar } from "~/components/NavBar.tsx";
+import { GroveSideNav } from "~/components/GroveSideNav.tsx";
+import { hasRole } from "@rw/db/access.ts";
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, paymentPlan, StripeIds } from "~/util/paymentPlan.ts";
 import { isElectron } from "~/util/platform.ts";
@@ -174,7 +176,12 @@ export const ShowAfterAuth = (props: any) => {
       >
         <Show when={getMongoDBUser()} fallback={<p>Connecting...</p>}>
           <NavBar />
-          {props.children}
+          <Show when={hasRole(getMongoDBUser(), "grove-field")} fallback={props.children}>
+            <div class="flex">
+              <GroveSideNav />
+              <div class="flex-1 min-w-0">{props.children}</div>
+            </div>
+          </Show>
         </Show>
       </Show>
     </Show>

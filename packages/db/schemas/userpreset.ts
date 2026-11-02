@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { ISystemDesignSchema } from "./systemdesign.ts";
+import { sequenceEntryFields, type ISystemDesignSchema } from "./systemdesign.ts";
 import type { IUserSchema } from "./user.ts";
 
 export interface IUserPresetSchema {
@@ -34,15 +34,7 @@ const userPresetSchema = new mongoose.Schema<IUserPresetSchema>({
 	systemDesign: {
 		rows: [
 			{
-				sequence: [
-					{
-						species: {
-							type: mongoose.Schema.Types.ObjectId,
-							ref: "Species",
-						},
-						spacingAfter: Number,
-					},
-				],
+				sequence: [sequenceEntryFields],
 				offset: {
 					before: Number,
 					after: Number,

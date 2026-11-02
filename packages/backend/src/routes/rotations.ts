@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import Rotation from "@rw/db/schemas/rotation.ts";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -14,6 +15,7 @@ const router = express.Router();
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   "/layers/:id/rotations/steps",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -32,6 +34,7 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   "/layers/:id/rotations/steps",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -83,6 +86,7 @@ router.post(
 // ROTATION NEW
 router.get(
   "/layers/:id/rotations/new",
+  owns("layer"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -125,6 +129,7 @@ router.get(
 // NEW AREA SYSTEM GRID NEW ROUTE
 router.get(
   "/projects/:id/rotations/steps",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -143,6 +148,7 @@ router.get(
 // NEW AREA SYSTEM GRID REDIRECT ROUTE
 router.post(
   "/projects/:id/rotations/steps",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -167,6 +173,7 @@ router.post(
 // ROTATION NEW
 router.get(
   "/projects/:id/rotations/new",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -206,6 +213,7 @@ router.get(
 // CREATE PROJECT ROTATION
 router.post(
   "/projects/:id/rotations",
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -269,6 +277,8 @@ router.post(
 // EDIT PROJECT ROTATION
 router.get(
   "/projects/:id/rotations/:pid/edit",
+  owns("rotation", "pid"),
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -302,6 +312,8 @@ router.get(
 // UPDATE PROJECT ROTATION
 router.put(
   "/projects/:id/rotations/:pid",
+  owns("rotation", "pid"),
+  owns("project"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

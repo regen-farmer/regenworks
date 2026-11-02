@@ -3,6 +3,7 @@ import FinancialModel from "@rw/db/schemas/financialModel.ts";
 import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import type { Auth0IDToken } from "../app.ts";
 import {
   calculateFarmFinancials,
@@ -527,6 +528,7 @@ async function buildYieldData(configId: string) {
 
 router.get(
   "/farm-scenario-configs/:configId/yield-estimation",
+  owns("farmScenarioConfig", "configId", { allowPublic: true }),
   middleware.isLoggedIn,
   async (req: AuthRequest, res) => {
     try {
@@ -552,6 +554,7 @@ router.get(
 
 router.get(
   "/farm-scenario-configs/:configId/yield-estimation/export/csv",
+  owns("farmScenarioConfig", "configId", { allowPublic: true }),
   middleware.isLoggedIn,
   async (req: AuthRequest, res) => {
     try {

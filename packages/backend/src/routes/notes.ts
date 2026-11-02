@@ -1,4 +1,5 @@
 import express from "express";
+import { owns } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import Parcel from "@rw/db/schemas/parcel.ts";
 import Note from "@rw/db/schemas/note.ts";
@@ -13,6 +14,7 @@ const router = express.Router();
 // PARCEL NOTES
 router.get(
   "/parcels/:id/notes",
+  owns("parcel"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -42,6 +44,8 @@ router.get(
 
 router.get(
   "/parcels/:id/layers/:pid/rows/:rid/notes/new",
+  owns("row", "rid"),
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -59,6 +63,8 @@ router.get(
 // CREATE NOTE ON ROW
 router.post(
   "/parcels/:id/layers/:pid/rows/:rid/notes",
+  owns("row", "rid"),
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -85,6 +91,8 @@ router.post(
 
 router.get(
   "/parcels/:id/layers/:pid/areas/:rid/notes/new",
+  owns("area", "rid"),
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
@@ -102,6 +110,8 @@ router.get(
 // CREATE NOTE ON ROW
 router.post(
   "/parcels/:id/layers/:pid/areas/:rid/notes",
+  owns("area", "rid"),
+  owns("layer", "pid"),
   middleware.isLoggedIn,
   async (
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },

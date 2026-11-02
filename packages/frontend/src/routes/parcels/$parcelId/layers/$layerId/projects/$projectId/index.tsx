@@ -55,6 +55,10 @@ import { Button } from "~/components/ui/button";
 import { Resizable, ResizableHandle, ResizablePanel } from "~/components/ui/resizable";
 import { getScenario } from "~/util/getScenario.ts";
 import { getSpecies } from "~/util/getSpecies.ts";
+import { PlantDetailsEditor } from "~/components/plants/PlantDetailsEditor.tsx";
+import { StakeoutExport } from "~/components/plants/StakeoutExport.tsx";
+import { MakeOfferButton } from "~/grove/MakeOfferButton.tsx";
+import { canUsePlantCatalogue, getPlantCatalogue } from "~/util/plantCatalogue.ts";
 import { use3DControl } from "~/util/map_controls/use3DControl.ts";
 import { useMeasureControl } from "~/util/map_controls/useMeasureControl.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
@@ -231,6 +235,7 @@ function ProjectIndexView() {
   });
 
   const species = getSpecies();
+  const [plantCatalogue, { refetch: refetchPlantCatalogue }] = getPlantCatalogue();
 
   const [mapLoaded, setMapLoaded] = createSignal<boolean>(false);
   const [mapContainerRef, setMapContainerRef] = createSignal<HTMLElement>();
@@ -580,7 +585,19 @@ function ProjectIndexView() {
       },
     );
 
-    const systemData = await newsystem.json();
+    // Error pages may not be JSON (e.g. a 500), so parse defensively.
+    const systemData = await newsystem.json().catch(() => undefined);
+
+    if (!newsystem.ok) {
+      // e.g. a cultivar that belongs to another species, or no permission.
+      showToast({
+        title: "Design not saved",
+        description: systemData?.error ?? newsystem.statusText,
+        variant: "destructive",
+      });
+      setSaving(false);
+      return;
+    }
 
     setSavedSystem(systemData as ISystemDesignSchema);
 
@@ -1162,6 +1179,15 @@ function ProjectIndexView() {
                                                               return e?._id === "" ? "" : e?._id!;
                                                             },
                                                           );
+                                                          // A cultivar belongs to one species, so clear it.
+                                                          setSystem(
+                                                            "rows",
+                                                            rowIdx(),
+                                                            "sequence",
+                                                            sequenceIdx(),
+                                                            "variety",
+                                                            undefined,
+                                                          );
                                                         }}
                                                         value={species()?.species.find(
                                                           (s) => s._id === sequence.species,
@@ -1192,6 +1218,22 @@ function ProjectIndexView() {
                                                         <ComboboxContent />
                                                       </ComboboxRoot>
                                                     </div>
+                                                    <Show when={canUsePlantCatalogue()}>
+                                                      <PlantDetailsEditor
+                                                        entry={sequence}
+                                                        speciesById={species()?.speciesById as any}
+                                                        catalogue={plantCatalogue()}
+                                                        refetchCatalogue={refetchPlantCatalogue}
+                                                        disabled={isFreemium()}
+                                                        onChange={(patch) => {
+                                                          setSystem("rows", rowIdx(), "sequence", sequenceIdx(), (entry) => ({
+                                                            ...entry,
+                                                            ...patch,
+                                                          }));
+                                                          logSystem();
+                                                        }}
+                                                      />
+                                                    </Show>
                                                   </div>
                                                 </div>)
                                               )}
@@ -2590,9 +2632,18 @@ const ExportAndShareContent = ({
       intersectionPoints: any;
       treeMarkerArray: any;
       speciesCountArray: any;
+      plantNames?: { varieties: Record<string, string>; rootstocks: Record<string, string> };
     } = await response.json();
 
     const treeMarkerArray: any[] = result.treeMarkerArray;
+    const names = result.plantNames ?? { varieties: {}, rootstocks: {} };
+    // Names come from users, so escape them for XML.
+    const xml = (v: unknown) =>
+      String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 
     let kmlDoc = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -2604,9 +2655,30 @@ const ExportAndShareContent = ({
       console.log(entry);
 
       if (entry.species?.nameCommon) {
+        const cultivar = entry.variety ? names.varieties[entry.variety] : undefined;
+        const rootstock = entry.rootstock
+          ? names.rootstocks[entry.rootstock]
+          : entry.ownRoots
+            ? "own roots / seedling"
+            : undefined;
+        const organic = entry.organic === true ? "yes" : entry.organic === false ? "no" : undefined;
+        const latin = [entry.species.genus, entry.species.species].filter(Boolean).join(" ");
+        const description = [
+          latin || entry.species.species,
+          cultivar && `cultivar: ${cultivar}`,
+          rootstock && `rootstock: ${rootstock}`,
+          organic && `organic: ${organic}`,
+        ]
+          .filter(Boolean)
+          .join("; ");
+        const data = { species: entry.species.nameCommon, cultivar, rootstock, organic };
         kmlDoc += `<Placemark>
-          <name>${entry.species.nameCommon}</name>
-          <description>${entry.species.species}</description>
+          <name>${xml(cultivar ? `${entry.species.nameCommon} ${cultivar}` : entry.species.nameCommon)}</name>
+          <description>${xml(description)}</description>
+          <ExtendedData>${Object.entries(data)
+            .filter(([, v]) => v !== undefined)
+            .map(([k, v]) => `<Data name="${k}"><value>${xml(v)}</value></Data>`)
+            .join("")}</ExtendedData>
           <Point>
             <coordinates>${entry.point.geometry.coordinates[0]},${entry.point.geometry.coordinates[1]},0</coordinates>
           </Point>
@@ -2829,6 +2901,17 @@ const ExportAndShareContent = ({
             {exportingKML() ? "Exporting..." : "Export trees as KML"}
           </button>
         </div>
+        <MakeOfferButton
+          projectId={params().projectId}
+          title={[scenarioData()?.project?.layer?.name, scenarioData()?.project?.name].filter(Boolean).join(" - ")}
+        />
+        <Show when={canUsePlantCatalogue()}>
+          <StakeoutExport
+            projectId={params().projectId}
+            fieldName={scenarioData()?.project?.layer?.name}
+            scenarioName={scenarioData()?.project?.name}
+          />
+        </Show>
       </div>
 
       <div class="mb-6  border-zinc-300 dark:border-slate-600 pt-6">

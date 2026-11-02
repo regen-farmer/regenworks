@@ -25,6 +25,8 @@ import {
 import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 import { getDevProdStatus, StripeIds } from "~/util/paymentPlan.ts";
 import { isElectron } from "~/util/platform.ts";
+import { canUsePlantCatalogue } from "~/util/plantCatalogue.ts";
+import { isGroveUser } from "~/grove/access.ts";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -93,7 +95,8 @@ export function NavBar() {
         id="logotype"
         class="mx-3 cursor-pointer"
         onclick={() => {
-          navigate({ to: "/" });
+          // Grove's start page is the dashboard; everyone else gets the farm map.
+          navigate({ to: isGroveUser() ? "/grove" : "/" });
         }}
       >
         <div class="logo-icon" />
@@ -212,6 +215,14 @@ export function NavBar() {
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip>
+            </Show>
+            {/* Grove users get the left menu (GroveSideNav) instead of these links. */}
+            <Show when={canUsePlantCatalogue() && !isGroveUser()}>
+              <li class="nav-item">
+                <Link class="nav-link" to={"/plants"}>
+                  <i class="fas fa-seedling" /> Plants
+                </Link>
+              </li>
             </Show>
             <li class="nav-item">
               <Link class="nav-link" to={"/settings"}>

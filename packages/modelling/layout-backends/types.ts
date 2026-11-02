@@ -18,6 +18,8 @@ export interface LayoutResult {
   treeMarkerArray: any[];
   stripPolygons?: any[];
   speciesCountArray?: any[];
+  /** Trees per distinct plant (species + cultivar + rootstock + organic). */
+  plantCountArray?: import("../planting/plant_details.ts").PlantCount[];
   headlandSides?: any[];
   sidesCloseToBearing?: any[];
   intersectionPoints?: any[];

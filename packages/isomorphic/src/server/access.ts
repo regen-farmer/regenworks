@@ -50,7 +50,7 @@ export async function requireProjectOwner(projectId: string) {
   const project = await Project.findById(projectId).populate("system");
   if (!project) throw new AccessError(404, "Project not found");
   const ownerId = project.owner?.id?.toString();
-  if (ownerId !== user._id.toString() && !user.isAdmin) {
+  if (ownerId !== user._id.toString() && !hasRole(user, "grove-admin")) {
     throw new AccessError(403, "You don't have permission to change this project");
   }
   return { user, project };

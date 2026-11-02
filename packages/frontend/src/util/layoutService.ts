@@ -9,6 +9,7 @@
  * 3. Browser web: private Rust WASM layout by default, with selectable alternatives
  */
 
+import { attachPlantDetails } from "@rw/modelling/planting/plant_details.ts";
 import { isTauri, isElectron } from "./platform";
 
 // Types that match the layout response structure
@@ -148,6 +149,12 @@ function getTurfLayoutModule(): Promise<TurfLayoutModule> {
  * @returns Layout result
  */
 export async function generateLayout(systemDesign: any, fieldGeometry: any): Promise<any> {
+  // Every engine places trees by species; cultivar, rootstock and organic are
+  // then looked up from the design for each tree (same for all engines).
+  return attachPlantDetails(await generateLayoutRaw(systemDesign, fieldGeometry), systemDesign);
+}
+
+async function generateLayoutRaw(systemDesign: any, fieldGeometry: any): Promise<any> {
   if (isElectron() && !forceBrowserLayoutBackend) {
     return generateLayoutElectron(systemDesign, fieldGeometry);
   }
