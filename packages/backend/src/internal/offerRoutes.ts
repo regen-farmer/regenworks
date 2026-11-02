@@ -61,6 +61,7 @@ function present(offer: any) {
         vatUnclear: l.priceSource === "cost+margin" && !!l.pricing?.vatUnclear,
         costReferenceOutdated: l.priceSource === "sales" && !!l.pricing?.outdated,
         stale: !!l.pricing?.stale,
+        pickedMissing: !!l.pricing?.pickedMissing,
         ambiguous: !!l.pricing?.ambiguous,
         unpriced: l.priceSource === "none",
       })),

@@ -23,6 +23,11 @@ const lineSchema = new mongoose.Schema(
 		// what was asked for (design or editor; null = open) and what was matched
 		organicRequested: { type: Boolean, default: null },
 		organic: { type: Boolean, default: null },
+		// a product picked in the pricebook (priced from exactly that row)
+		pricebookRef: {
+			type: new mongoose.Schema({ kind: { type: String, enum: ["sales", "supplier"] }, id: { type: String, maxlength: 100 } }, { _id: false }),
+			default: null,
+		},
 		qty: { type: Number, min: 0, max: 10_000_000 },
 		unitPrice: { type: Number, min: 0, max: 10_000_000 },
 		priceSource: { type: String, enum: PRICE_SOURCES, default: "none" },

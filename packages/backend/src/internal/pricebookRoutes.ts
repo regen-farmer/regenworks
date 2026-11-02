@@ -139,7 +139,9 @@ const organicParam = (v: unknown) => (v === "true" ? true : v === "false" ? fals
 
 // Free-text search for the pricebook page, or a structured match.
 router.get("/search", async (req: Req, res) => {
-  const doc = await activePricebook();
+  // an offer's own version when given, else the newest
+  const v = Number(req.query.version);
+  const doc = Number.isInteger(v) && v > 0 ? await pricebookVersion(v) : await activePricebook();
   if (!doc) {
     res.send({ version: null, salesPrices: [], supplierPrices: [] });
     return;

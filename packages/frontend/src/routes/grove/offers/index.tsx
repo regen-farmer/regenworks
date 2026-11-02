@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/solid-router";
 import { createResource, For, Show } from "solid-js";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
-import { dkk, STATUS_DA, type Offer, type Totals } from "~/grove/offerTypes.ts";
+import { dkk, STATUS_EN, type Offer, type Totals } from "~/grove/offerTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 type Row = Offer & { lineCount: number; totals: Totals };
@@ -61,7 +61,7 @@ function Offers() {
                     </Link>
                   </td>
                   <td class="py-1 pr-3">{o.client?.name}</td>
-                  <td class="py-1 pr-3">{STATUS_DA[o.status]}</td>
+                  <td class="py-1 pr-3">{STATUS_EN[o.status]}</td>
                   <td class="py-1 pr-3">{o.validUntil ? new Date(o.validUntil).toLocaleDateString("da-DK") : ""}</td>
                   <td class="py-1 pr-3">{o.lineCount}</td>
                   <td class="py-1 pr-3 text-right">{dkk(o.totals?.net)}</td>

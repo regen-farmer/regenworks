@@ -8,6 +8,9 @@ export type OfferLine = {
   size?: string;
   organic?: boolean | null;
   organicRequested?: boolean | null;
+  pricebookRef?: { kind: "sales" | "supplier"; id: string } | null;
+  heightMin?: number;
+  heightMax?: number;
   qty: number;
   unitPrice: number;
   priceSource: "sales" | "cost+margin" | "manual" | "none";
@@ -44,7 +47,7 @@ export type Presented = {
   totals: Totals;
   dinero: { text: string; qty: number; amount: number }[];
   internal: {
-    lines: { id: string; margin: { unitCost: number; unitMargin: number; marginPct: number } | null; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; costReferenceOutdated?: boolean }[];
+    lines: { id: string; margin: { unitCost: number; unitMargin: number; marginPct: number } | null; dispensation: boolean; outdated: boolean; vatUnclear: boolean; ambiguous: boolean; unpriced: boolean; stale?: boolean; pickedMissing?: boolean; costReferenceOutdated?: boolean }[];
     purchaseList: { supplierId: string; totalCostDkk: number; lines: any[] }[];
   };
   warning?: string;
@@ -56,6 +59,32 @@ export const STATUS_DA: Record<Offer["status"], string> = {
   accepted: "Accepteret",
   declined: "Afvist",
 };
+
+/** Labels in the app (English). The client's offer sheet uses the Danish ones. */
+export const PROPAGATION_EN: Record<string, string> = {
+  grafted: "Grafted",
+  seedling: "Seedling",
+  "own-rooted": "Own roots",
+  cutting: "Cutting",
+};
+
+export const STATUS_EN: Record<Offer["status"], string> = {
+  draft: "Draft",
+  sent: "Sent",
+  accepted: "Accepted",
+  declined: "Declined",
+};
+
+/** Pricebook wording ("podet", "vegetatively propagated", ...) to our types. */
+export function propagationFrom(raw: string | undefined): string | undefined {
+  const x = (raw ?? "").toLowerCase();
+  if (!x) return undefined;
+  if (/graft|podet|veredel/.test(x)) return "grafted";
+  if (/seed|frø|zaai/.test(x)) return "seedling";
+  if (/cutting|stikling|stek/.test(x)) return "cutting";
+  if (/own|layer|vegetativ|tissue|meristem|egen rod/.test(x)) return "own-rooted";
+  return undefined;
+}
 
 export const PROPAGATION_DA: Record<string, string> = {
   grafted: "podet",
