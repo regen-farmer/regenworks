@@ -3,6 +3,7 @@
 // Deals point at a stage by its key, so a rename never touches a deal; a
 // stage can only be removed once no deal is in it.
 import type { IFunnelStage } from "@rw/db/schemas/internal/funnel.ts";
+import { danishDay } from "./services.ts";
 
 type Stage = Pick<IFunnelStage, "key" | "name" | "kind"> & { targetDays?: number | null };
 const KINDS = ["open", "won", "lost"] as const;
@@ -285,15 +286,17 @@ export function attentionReasons(
 ) {
   const out: { key: "overdue" | "no-action" | "slow" | "closing" | "close-passed"; text: string }[] = [];
   if (deal.status !== "open" || deal.archived) return out;
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const next = deal.nextAction?.date ? new Date(deal.nextAction.date) : null;
-  if (next && next.getTime() < today.getTime()) out.push({ key: "overdue", text: "Next action overdue" });
+  // Danish calendar days, whatever the server's time zone
+  const today = danishDay(now);
+  const dayOf = (v: Date | string | null | undefined) => (v ? danishDay(new Date(v)) : null);
+  const next = dayOf(deal.nextAction?.date);
+  if (next && next < today) out.push({ key: "overdue", text: "Next action overdue" });
   if (!next) out.push({ key: "no-action", text: "No next action" });
   const age = stageAge(deal, stage, now);
   if (age.over) out.push({ key: "slow", text: `${age.days} days in ${stage?.name ?? "stage"} (target ${stage?.targetDays})` });
-  const close = deal.expectedClose ? new Date(deal.expectedClose) : null;
-  if (close && close.getTime() < today.getTime()) out.push({ key: "close-passed", text: "Expected close has passed" });
-  else if (close && close.getTime() - today.getTime() <= 14 * DAY) out.push({ key: "closing", text: "Expected to close within 2 weeks" });
+  const close = dayOf(deal.expectedClose);
+  const in14 = danishDay(new Date(now.getTime() + 14 * DAY));
+  if (close && close < today) out.push({ key: "close-passed", text: "Expected close has passed" });
+  else if (close && close <= in14) out.push({ key: "closing", text: "Expected to close within 2 weeks" });
   return out;
 }

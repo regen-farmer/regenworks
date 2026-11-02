@@ -35,7 +35,6 @@ type Card = {
     depositPct: number;
     project: { _id: string; name: string; stage: Stage; step?: string } | null;
   }[];
-  projects: { _id: string; name: string; client?: string; stage: Stage; step?: string; status: string; nextAction?: { text?: string; date?: string | null }; plantingDate?: string | null }[];
 };
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";

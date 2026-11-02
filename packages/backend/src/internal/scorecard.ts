@@ -58,20 +58,25 @@ const day = (d: Date | string | null | undefined) => {
   return Number.isNaN(x.getTime()) ? undefined : danishDay(x);
 };
 
-type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; wonAt?: Date | string | null; groveProject?: unknown };
+type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; wonAt?: Date | string | null; updatedAt?: Date | string | null; groveProject?: unknown };
 
 /**
- * Won business in the period, counted per deal (A · Deals) where there is
- * one: a deal won in the period counts the margin (spring) or deposit
- * (forward order) of its accepted offers. A won deal without an accepted
- * offer shows its deal value, flagged, since its margin isn't known.
- * Accepted offers not on a won deal (older offers, plant-list sales) still
- * count, by their acceptance date, so nothing sold is lost.
+ * Won business in the period, shown per deal (A · Deals) where there is one.
+ * Each accepted offer on a won deal counts once, on the later of the day the
+ * deal was won and the day the offer was accepted, so a sale is never moved
+ * back into an earlier period (a deal won on a handshake in October with its
+ * offer accepted in November counts in November). Spring work counts margin,
+ * forward orders their deposit. A won deal without an accepted offer shows
+ * its deal value, flagged, since its margin isn't known. Accepted offers not
+ * on a won deal (plant-list sales, older offers) count by acceptance date.
+ * `closedDealIds`: won and lost deals, whose sent offers are no longer
+ * counted as "in sent offers".
  */
 export function scorecard(input: {
   offers: ScoredOffer[];
   openDeals: { value?: number | null; funnelName?: string }[];
   wonDeals?: WonDeal[];
+  closedDealIds?: unknown[];
   targets: ScorecardTargets;
   now?: Date;
 }) {
@@ -79,59 +84,64 @@ export function scorecard(input: {
   const t = input.targets;
   const inPeriod = (d: string | undefined) => !!d && (!t.from || d >= t.from) && (!t.to || d <= t.to);
   const wonDeals = input.wonDeals ?? [];
-  const wonDealIds = new Set(wonDeals.map((d) => String(d._id)));
+  const wonBy = new Map(wonDeals.map((d) => [String(d._id), d]));
   const priced = (o: ScoredOffer) => {
     const totals = offerTotals(o);
     const m = offerMargin(o);
     return { o, net: totals.net, margin: m.margin, marginPct: m.marginPct, withoutCost: m.withoutCost, deposit: totals.deposit.amount, depositPct: totals.deposit.pct, forward: !!o.terms?.forwardOrder };
   };
+  const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
+  const wonDay = (d: WonDeal) => day(d.wonAt) ?? day(d.updatedAt);
   const accepted = input.offers.filter((o) => o.status === "accepted");
-  const offersOf = new Map<string, ReturnType<typeof priced>[]>();
+  type P = ReturnType<typeof priced> & { on: string | undefined };
+  const offersOf = new Map<string, P[]>();
   for (const o of accepted) {
-    if (o.deal && wonDealIds.has(String(o.deal))) {
-      const k = String(o.deal);
-      offersOf.set(k, [...(offersOf.get(k) ?? []), priced(o)]);
-    }
+    const d = o.deal ? wonBy.get(String(o.deal)) : undefined;
+    if (!d) continue;
+    const k = String(d._id);
+    offersOf.set(k, [...(offersOf.get(k) ?? []), { ...priced(o), on: later(wonDay(d), day(o.acceptedAt)) }]);
   }
   const round = (n: number) => Math.round(n * 100) / 100;
-  const fromDeals = wonDeals
-    .filter((d) => inPeriod(day(d.wonAt)))
-    .map((d) => {
-      const list = offersOf.get(String(d._id)) ?? [];
-      const spring = list.filter((x) => !x.forward);
-      const fwd = list.filter((x) => x.forward);
-      const net = round(list.reduce((n, x) => n + x.net, 0));
-      const margin = round(spring.reduce((n, x) => n + x.margin, 0));
-      const springNet = spring.reduce((n, x) => n + x.net, 0);
-      return {
+  const fromDeals = wonDeals.flatMap((d) => {
+    const all = offersOf.get(String(d._id)) ?? [];
+    if (!all.length) {
+      if (!inPeriod(wonDay(d))) return [];
+      return [{ kind: "deal" as const, _id: d._id, offers: 0, title: d.title, client: d.client, funnel: d.funnelName, acceptedOn: wonDay(d), forwardOrder: false, net: 0, margin: 0, marginPct: null as number | null, withoutCost: 0, deposit: 0, withoutOffer: d.value ?? 0, deal: d._id, groveProject: d.groveProject ?? null }];
+    }
+    const list = all.filter((x) => inPeriod(x.on));
+    if (!list.length) return [];
+    const spring = list.filter((x) => !x.forward);
+    const fwd = list.filter((x) => x.forward);
+    const margin = round(spring.reduce((n, x) => n + x.margin, 0));
+    const springNet = spring.reduce((n, x) => n + x.net, 0);
+    return [
+      {
         kind: "deal" as const,
         _id: d._id,
-        offerId: list.length === 1 ? list[0].o._id : null,
         offers: list.length,
         title: d.title,
         client: d.client,
         funnel: d.funnelName,
-        acceptedOn: day(d.wonAt),
+        acceptedOn: list.map((x) => x.on).sort().at(-1),
         forwardOrder: fwd.length > 0 && spring.length === 0,
-        net,
+        net: round(list.reduce((n, x) => n + x.net, 0)),
         margin,
         marginPct: springNet > 0 && spring.every((x) => x.marginPct !== null) ? Math.round((margin / springNet) * 1000) / 10 : null,
         withoutCost: round(spring.reduce((n, x) => n + x.withoutCost, 0)),
         deposit: round(fwd.reduce((n, x) => n + x.deposit, 0)),
-        depositPct: fwd[0]?.depositPct ?? 0,
-        withoutOffer: list.length ? 0 : (d.value ?? 0),
+        withoutOffer: 0,
         deal: d._id,
         groveProject: d.groveProject ?? null,
-      };
-    });
+      },
+    ];
+  });
   const fromOffers = accepted
-    .filter((o) => !(o.deal && wonDealIds.has(String(o.deal))) && inPeriod(day(o.acceptedAt)))
+    .filter((o) => !(o.deal && wonBy.has(String(o.deal))) && inPeriod(day(o.acceptedAt)))
     .map((o) => {
       const x = priced(o);
       return {
         kind: "offer" as const,
         _id: o._id,
-        offerId: o._id,
         offers: 1,
         title: o.title,
         client: o.client?.name,
@@ -140,10 +150,9 @@ export function scorecard(input: {
         forwardOrder: x.forward,
         net: x.net,
         margin: x.forward ? 0 : x.margin,
-        marginPct: x.marginPct,
+        marginPct: x.forward ? null : x.marginPct,
         withoutCost: x.forward ? 0 : x.withoutCost,
         deposit: x.forward ? x.deposit : 0,
-        depositPct: x.depositPct,
         withoutOffer: 0,
         deal: o.deal ?? null,
         groveProject: o.groveProject ?? null,
@@ -156,8 +165,10 @@ export function scorecard(input: {
   const margin = sum(won.map((w) => w.margin));
   const deposits = sum(won.map((w) => w.deposit));
   const withoutCost = sum(won.map((w) => w.withoutCost));
-  const withoutOffer = { count: won.filter((w) => w.withoutOffer > 0 || (w.kind === "deal" && !w.offers)).length, value: sum(won.map((w) => w.withoutOffer)) };
-  const sent = input.offers.filter((o) => o.status === "sent");
+  const withoutOffer = { count: won.filter((w) => w.kind === "deal" && !w.offers).length, value: sum(won.map((w) => w.withoutOffer)) };
+  // sent offers still in play: not on a deal that is already won or lost
+  const closed = new Set((input.closedDealIds ?? []).map(String));
+  const sent = input.offers.filter((o) => o.status === "sent" && !(o.deal && closed.has(String(o.deal))));
   const sentMargin = sum(sent.filter((o) => !o.terms?.forwardOrder).map((o) => offerMargin(o).margin));
   const sentDeposits = sum(sent.filter((o) => o.terms?.forwardOrder).map((o) => offerTotals(o).deposit.amount));
   const byFunnel = new Map<string, { count: number; value: number }>();

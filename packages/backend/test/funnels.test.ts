@@ -179,4 +179,7 @@ test("attention: overdue or missing next action, slow stage, closing soon", asyn
   assert.deepEqual(keys(deal({ nextAction: { date: "2026-11-18" }, history: [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }] })), ["overdue"]);
   assert.deepEqual(keys(deal({ history: [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }], expectedClose: "2026-11-30" })), ["no-action", "closing"]);
   assert.deepEqual(keys(deal({ status: "won" })), []);
+  const fresh = [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }];
+  assert.deepEqual(keys(deal({ history: fresh, nextAction: { date: "2026-11-20T11:00:00Z" } })), [], "due today is not overdue");
+  assert.deepEqual(keys(deal({ history: fresh, nextAction: { date: "2026-11-21" }, expectedClose: "2026-11-19T12:00:00Z" })), ["close-passed"]);
 });
