@@ -311,6 +311,11 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
     };
   }
   if (body?.notes !== undefined) out.notes = text(body.notes, 5000);
+  if (body?.groveProject !== undefined) {
+    if (body.groveProject === null || body.groveProject === "") out.groveProject = null;
+    else if (typeof body.groveProject === "string" && /^[0-9a-f]{24}$/i.test(body.groveProject)) out.groveProject = body.groveProject;
+    else errors.push("Dashboard project must be a project id");
+  }
   if (body?.lines !== undefined) {
     if (!Array.isArray(body.lines) || body.lines.length > 500) errors.push("Lines must be a list (max 500)");
     else {
