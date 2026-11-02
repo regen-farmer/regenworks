@@ -51,7 +51,14 @@ export const currentSubscriptions = (): any[] => {
   return getStripeCustomer()?.subscriptions;
 };
 
+/**
+ * The free plan's limits (presets and bearing only). Admins and the Grove
+ * team design for clients, so they are never limited, with or without a
+ * Stripe subscription.
+ */
 export const isFreemium = (): boolean => {
+  const user = getMongoDBUser();
+  if (user?.isAdmin || hasRole(user, "grove-field")) return false;
   return !(currentSubscriptions()?.length > 0);
 };
 
