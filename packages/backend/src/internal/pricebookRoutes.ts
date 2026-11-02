@@ -15,13 +15,14 @@ import {
   type PlantQuery,
   type PricebookData,
 } from "./pricebook.ts";
+import { priceService } from "./services.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 2 * 1024 * 1024, files: 5, fields: 5, fieldSize: 2000, parts: 12 },
-}).fields([...Object.values(PRICEBOOK_FILES), "settings.csv"].map((name) => ({ name, maxCount: 1 })));
+  limits: { fileSize: 2 * 1024 * 1024, files: 6, fields: 5, fieldSize: 2000, parts: 12 },
+}).fields([...Object.values(PRICEBOOK_FILES), "settings.csv", "services.csv"].map((name) => ({ name, maxCount: 1 })));
 
 /** Upload problems (too big, unexpected file) as a clear 400/413, not a 500. */
 function parseUpload(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -97,12 +98,17 @@ router.post(
       supplierPrices: text(PRICEBOOK_FILES.supplierPrices),
       salesPrices: text(PRICEBOOK_FILES.salesPrices),
       settings: text("settings.csv"),
+      services: text("services.csv"),
     });
     if (!built.ok) {
       res.status(400).send({ error: built.errors.join("; "), errors: built.errors });
       return;
     }
     const note = typeof req.body?.note === "string" ? req.body.note.slice(0, 500) : undefined;
+    const previous: any = await PricebookVersion.findOne().sort({ version: -1 }).select("counts.services").lean();
+    if ((previous?.counts?.services ?? 0) > 0 && !built.data.services?.length) {
+      built.warnings.unshift("services.csv was not included: this version has no services, so offers using it can't price services. Import again with services.csv if that wasn't meant.");
+    }
     await PricebookVersion.init(); // make sure the unique version index exists
     for (let attempt = 0; attempt < 3; attempt++) {
       const latest: any = await PricebookVersion.findOne().sort({ version: -1 }).select("version").lean();
@@ -116,6 +122,7 @@ router.post(
             documents: built.data.documents.length,
             supplierPrices: built.data.supplierPrices.length,
             salesPrices: built.data.salesPrices.length,
+            services: built.data.services?.length ?? 0,
           },
           warnings: built.warnings,
           ...built.data,
@@ -136,6 +143,29 @@ router.post(
 
 const q = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 200) : undefined);
 const organicParam = (v: unknown) => (v === "true" ? true : v === "false" ? false : undefined);
+
+// Services for the offer calculator, with the price each would get
+// (an offer's own version and EUR rate when given, else the newest).
+router.get("/services", async (req: Req, res) => {
+  const v = Number(req.query.version);
+  const doc = Number.isInteger(v) && v > 0 ? await pricebookVersion(v) : await activePricebook();
+  if (!doc) {
+    res.send({ version: null, services: [], guaranteeText: null });
+    return;
+  }
+  const settings = doc.settings ?? {};
+  const services = (doc.services ?? []).map((s: any) => {
+    const rate = Number(req.query.eurDkk);
+    const p = priceService(s, {
+      eurDkk: rate > 1 && rate < 20 ? rate : settings.eurDkk ?? Number.NaN,
+      supplierPrices: doc.supplierPrices ?? [],
+      documents: doc.documents ?? [],
+      defaultMarginPct: settings.targetMarginServices,
+    });
+    return { ...s, unitPrice: p?.unitPrice ?? null, priceSource: p?.source ?? "none" };
+  });
+  res.send({ version: doc.version, services, guaranteeText: settings.guaranteeTextDa ?? null });
+});
 
 // Free-text search for the pricebook page, or a structured match.
 router.get("/search", async (req: Req, res) => {

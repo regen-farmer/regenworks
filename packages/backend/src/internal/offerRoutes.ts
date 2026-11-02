@@ -11,6 +11,7 @@ import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import { inIds } from "../utils/mongoSafety.ts";
+import { designQuantities } from "./designQuantities.ts";
 import { activePricebook, pricebookVersion, pricingRates } from "./pricebookRoutes.ts";
 import {
   cleanOfferUpdate,
@@ -18,6 +19,7 @@ import {
   dineroLines,
   lineMargin,
   mergeLines,
+  offerMargin,
   needsDispensation,
   offerTotals,
   priceLine,
@@ -60,14 +62,18 @@ function present(offer: any) {
         dispensation: needsDispensation(l, o.clientOrganic),
         // for sales-priced lines these describe the cost reference, not the client price
         outdated: l.priceSource === "cost+margin" && !!l.pricing?.outdated,
+        documentDate: l.pricing?.documentDate,
         vatUnclear: l.priceSource === "cost+margin" && !!l.pricing?.vatUnclear,
         costReferenceOutdated: l.priceSource === "sales" && !!l.pricing?.outdated,
         stale: !!l.pricing?.stale,
         pickedMissing: !!l.pricing?.pickedMissing,
         ambiguous: !!l.pricing?.ambiguous,
         unpriced: l.priceSource === "none",
+        // a service cost with no low/high range (one source only)
+        singleSource: l.kind === "service" && !!l.pricing?.singleSource,
       })),
       purchaseList: purchaseList(o),
+      margin: offerMargin(o),
     },
   };
 }
@@ -159,6 +165,38 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
     } as OfferLine;
   });
 }
+
+// Quantities from the offer's design for the services calculator: trees,
+// rows, metres of tree row, field boundary and area, tree-cover area.
+router.get("/:id/quantities", async (req: Req, res) => {
+  if (!validId(req.params.id)) {
+    res.status(400).send({ error: "Invalid id" });
+    return;
+  }
+  const offer: any = await Offer.findById(req.params.id).select("project lines").lean();
+  if (!offer) {
+    res.status(404).send({ error: "Offer not found" });
+    return;
+  }
+  const plantTrees = (offer.lines ?? []).filter((l: any) => l.kind !== "service").reduce((n: number, l: any) => n + (l.qty || 0), 0);
+  if (!offer.project) {
+    res.send({ fromDesign: false, quantities: { trees: plantTrees } });
+    return;
+  }
+  const project: any = await Project.findById(offer.project).populate("layer").populate("systemdesign").exec();
+  if (!project?.systemdesign || !project?.layer?.geometry) {
+    res.send({ fromDesign: false, quantities: { trees: plantTrees } });
+    return;
+  }
+  try {
+    const layout = await runSystemBasedLayout(project.systemdesign, project.layer.geometry);
+    res.send({ fromDesign: true, quantities: designQuantities(layout, project.layer.geometry) });
+  } catch (err) {
+    // the calculator then asks for the quantities by hand
+    console.error("[offers] quantities: layout failed for offer %s: %s", String(offer._id), (err as Error).message);
+    res.send({ fromDesign: false, failed: true, quantities: { trees: plantTrees } });
+  }
+});
 
 router.get("/", async (_req: Req, res) => {
   const offers: any[] = await Offer.find()
@@ -291,14 +329,22 @@ router.put("/:id", async (req: Req, res) => {
   let merged = lines ? mergeLines(offer.lines.map((l: any) => l.toObject()), lines) : offer.lines.map((l: any) => l.toObject());
   // New or changed plants, and a new margin/rate, are priced again with the
   // offer's own pricebook version (hand-set prices are kept).
-  const needsPricing = offer.status !== "accepted" && (ratesChanged || merged.some((l: any) => l.priceSource === "none" && l.latin));
+  // Only the lines that need a price are priced, unless the rates changed:
+  // the other lines keep the price the client was given.
+  const waiting = (l: any) => l.priceSource === "none" && (l.latin || l.serviceId);
+  const needsPricing = offer.status !== "accepted" && (ratesChanged || merged.some(waiting));
   if (needsPricing) {
-    const priced = await priceAll(merged, offer);
+    const toPrice = ratesChanged ? merged : merged.filter(waiting);
+    const priced = await priceAll(toPrice, offer);
     if ("error" in priced) {
       res.status(409).send({ error: priced.error });
       return;
     }
-    merged = priced.lines;
+    if (ratesChanged) merged = priced.lines;
+    else {
+      let k = 0;
+      merged = merged.map((l: any) => (waiting(l) ? priced.lines[k++] : l));
+    }
     offer.marginPct = priced.marginPct;
     offer.eurDkk = priced.eurDkk;
     offer.pricebookVersion ??= priced.pricebookVersion;

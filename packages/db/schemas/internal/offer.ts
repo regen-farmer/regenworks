@@ -7,8 +7,15 @@ import mongoose from "mongoose";
 export const OFFER_STATUSES = ["draft", "sent", "accepted", "declined"] as const;
 export const PRICE_SOURCES = ["sales", "cost+margin", "manual", "none"] as const;
 
+export const LINE_KINDS = ["plant", "service"] as const;
+
 const lineSchema = new mongoose.Schema(
 	{
+		// a plant (default) or a service (protection, planting, staking, ...)
+		kind: { type: String, enum: LINE_KINDS, default: "plant" },
+		serviceId: { type: String, maxlength: 100 },
+		section: { type: String, maxlength: 40 },
+		unitDa: { type: String, maxlength: 20 },
 		latin: { type: String, maxlength: 200 },
 		nameDa: { type: String, maxlength: 200 },
 		speciesId: { type: mongoose.Schema.Types.ObjectId, ref: "Species" },
@@ -56,7 +63,17 @@ export interface IOffer {
 	eurDkk?: number | null;
 	lines: any[];
 	discountPct: number;
-	terms: { deliverySeason?: string; deposit?: string; text?: string };
+	terms: {
+		deliverySeason?: string;
+		deposit?: string;
+		text?: string;
+		/** expected delivery/planting date: decides the deposit rule */
+		deliveryDate?: Date | null;
+		/** deposit % set by hand; null = the rule (50 % within 3 months, else 20 %) */
+		depositPct?: number | null;
+		guarantee?: boolean;
+		guaranteeText?: string;
+	};
 	notes?: string;
 	createdBy?: mongoose.Types.ObjectId;
 	updatedBy?: mongoose.Types.ObjectId;
@@ -90,6 +107,10 @@ const offerSchema = new mongoose.Schema<IOffer>(
 			deliverySeason: { type: String, maxlength: 200 },
 			deposit: { type: String, maxlength: 500 },
 			text: { type: String, maxlength: 5000 },
+			deliveryDate: { type: Date, default: null },
+			depositPct: { type: Number, min: 0, max: 100, default: null },
+			guarantee: { type: Boolean, default: false },
+			guaranteeText: { type: String, maxlength: 3000 },
 		},
 		notes: { type: String, maxlength: 5000 },
 		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

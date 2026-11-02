@@ -1,5 +1,6 @@
 // Offer sheet logic (pure, tested). Grove team only via /internal/offers.
 import { priceFromRow, round5, suggestPrice, type PlantQuery, type PricebookData, type PricebookRef, type Propagation } from "./pricebook.ts";
+import { depositAmount, depositPctFor, priceService, SERVICE_SECTIONS, type ServiceSection } from "./services.ts";
 
 export const VAT_RATE = 0.25;
 export const DEFAULT_VALID_DAYS = 14;
@@ -20,6 +21,12 @@ const round2 = (n: number) => Math.round(Number((n * 100).toPrecision(12))) / 10
 
 export type OfferLine = {
   _id?: unknown;
+  /** a plant (default) or a service from services.csv */
+  kind?: "plant" | "service";
+  serviceId?: string;
+  section?: ServiceSection;
+  /** unit on the offer for services, e.g. "ha", "m", "stk." */
+  unitDa?: string;
   latin?: string;
   nameDa?: string;
   speciesId?: unknown;
@@ -48,7 +55,11 @@ export type OfferLike = {
   lines: OfferLine[];
   discountPct?: number;
   clientOrganic?: boolean;
+  offerDate?: Date | string;
+  terms?: { deliveryDate?: Date | string | null; depositPct?: number | null };
 };
+
+export const isService = (l: OfferLine) => l.kind === "service";
 
 export const lineTotal = (l: OfferLine) => round2((l.qty || 0) * (l.unitPrice || 0) * (1 - (l.discountPct || 0) / 100));
 
@@ -62,18 +73,75 @@ export function offerTotals(o: OfferLike) {
   const discount = round2(subtotal * ((o.discountPct || 0) / 100));
   const net = round2(subtotal - discount);
   const vat = round2(net * VAT_RATE);
-  return { lines, subtotal, discount, net, vat, total: round2(net + vat) };
+  const total = round2(net + vat);
+  const plants = round2(o.lines.filter((l) => !isService(l)).reduce((s, l) => s + lineTotal(l), 0));
+  return { lines, subtotal, plants, services: round2(subtotal - plants), discount, net, vat, total, deposit: deposit(o, total) };
 }
 
-/** Margin per line from the pricebook cost (internal sheet). */
+/**
+ * Deposit at acceptance: the % set on the offer, else the rule (50 % if
+ * delivery within 3 months of the offer date, 20 % if later).
+ */
+export function deposit(o: OfferLike, totalInclVat: number) {
+  const set = o.terms?.depositPct;
+  const delivery = o.terms?.deliveryDate ? new Date(o.terms.deliveryDate) : null;
+  const usable = delivery && !Number.isNaN(delivery.getTime()) ? delivery : null;
+  const pct = typeof set === "number" ? set : depositPctFor(o.offerDate ? new Date(o.offerDate) : new Date(), usable);
+  return { pct, fromRule: typeof set !== "number", amount: depositAmount(totalInclVat, pct) };
+}
+
+/**
+ * Margin per line from the pricebook cost (internal sheet): at the likely
+ * cost, the range from the high and low cost when known, and whether it is
+ * below the target margin.
+ */
 export function lineMargin(l: OfferLine) {
   const cost = l.pricing?.unitCostDkk;
   const sale = (l.unitPrice || 0) * (1 - (l.discountPct || 0) / 100);
   if (typeof cost !== "number" || !(sale > 0)) return null;
-  return { unitCost: cost, unitMargin: round2(sale - cost), marginPct: round2(((sale - cost) / sale) * 100) };
+  const pct = (c: number) => round2(((sale - c) / sale) * 100);
+  const high = typeof l.pricing?.costHigh === "number" ? l.pricing.costHigh : cost;
+  const low = typeof l.pricing?.costLow === "number" ? l.pricing.costLow : cost;
+  const target = typeof l.pricing?.targetMarginPct === "number" ? l.pricing.targetMarginPct : undefined;
+  const marginPct = pct(cost);
+  return {
+    unitCost: cost,
+    unitMargin: round2(sale - cost),
+    marginPct,
+    worstPct: pct(high),
+    bestPct: pct(low),
+    targetPct: target,
+    belowTarget: target !== undefined && marginPct < target,
+  };
+}
+
+/** Margin of the whole offer at likely, high and low cost (lines with a known cost). */
+export function offerMargin(o: OfferLike) {
+  let sale = 0;
+  let likely = 0;
+  let worst = 0;
+  let best = 0;
+  let unknown = 0;
+  for (const l of o.lines) {
+    const amount = lineTotal(l);
+    const c = l.pricing?.unitCostDkk;
+    if (typeof c !== "number") {
+      if (amount > 0) unknown += amount;
+      continue;
+    }
+    sale += amount;
+    likely += c * (l.qty || 0);
+    worst += (typeof l.pricing?.costHigh === "number" ? l.pricing.costHigh : c) * (l.qty || 0);
+    best += (typeof l.pricing?.costLow === "number" ? l.pricing.costLow : c) * (l.qty || 0);
+  }
+  // the offer-wide discount comes off the sales side
+  const net = sale * (1 - (o.discountPct || 0) / 100);
+  const pct = (cost: number) => (net > 0 ? round2(((net - cost) / net) * 100) : null);
+  return { sale: round2(net), margin: round2(net - likely), marginPct: pct(likely), worstPct: pct(worst), bestPct: pct(best), withoutCost: round2(unknown) };
 }
 
 const stk = (n: number) => n.toLocaleString("da-DK");
+const amountDa = (n: number) => n.toLocaleString("da-DK", { maximumFractionDigits: 2 });
 const pct = (n: number) => n.toLocaleString("da-DK", { maximumFractionDigits: 2 });
 
 /**
@@ -82,8 +150,13 @@ const pct = (n: number) => n.toLocaleString("da-DK", { maximumFractionDigits: 2 
  */
 export function dineroLines(o: OfferLike) {
   const groups = new Map<string, { text: string; qty: number; amount: number; cultivars: Set<string>; unnamed: number }>();
+  const services: { text: string; qty: number; amount: number }[] = [];
   for (const l of o.lines) {
     if (!(l.qty > 0)) continue;
+    if (isService(l)) {
+      services.push({ text: `${l.nameDa || "Ydelse"}: ${amountDa(l.qty)} ${l.unitDa || "stk."}`, qty: l.qty, amount: lineTotal(l) });
+      continue;
+    }
     const name = l.nameDa || l.latin || "Planter";
     const prop = l.propagation ? PROPAGATION_DA[l.propagation] ?? l.propagation : "";
     const key = `${name}|${prop}|${l.organic === true ? "øko" : ""}`;
@@ -100,6 +173,7 @@ export function dineroLines(o: OfferLike) {
     const sorter = named && g.unnamed ? `, ${named} + ${stk(g.unnamed)} usorteret` : named ? `, ${named}` : "";
     return { text: `${g.text}${sorter}: ${stk(g.qty)} stk.`, qty: g.qty, amount: round2(g.amount) };
   });
+  out.push(...services);
   const t = offerTotals(o);
   if (t.discount > 0) out.push({ text: `Rabat ${pct(o.discountPct ?? 0)} %`, qty: 1, amount: -t.discount });
   return out;
@@ -109,7 +183,7 @@ export function dineroLines(o: OfferLike) {
 export function purchaseList(o: OfferLike) {
   const bySupplier = new Map<string, { supplierId: string; lines: any[]; totalCostDkk: number }>();
   for (const l of o.lines) {
-    if (!(l.qty > 0)) continue;
+    if (!(l.qty > 0) || isService(l)) continue;
     const listed = l.priceSource === "sales" ? l.pricing?.listedSupplier : undefined;
     const ref = l.pricing?.supplierId;
     // Grove's listed nursery for sales-priced lines; say so when the cost
@@ -166,7 +240,41 @@ export function priceLine(
   clientOrganic = false,
 ): OfferLine {
   if (l.priceSource === "manual") return l;
+  if (isService(l)) return priceServiceLine(l, data, rates);
   if (!data || !rates || !l.latin) return { ...l, priceSource: l.unitPrice > 0 ? l.priceSource : "none" };
+  return withTarget(pricePlantLine(l, data, rates, hybrid, clientOrganic), data.settings?.targetMarginTrees);
+}
+
+const withTarget = (l: OfferLine, target: number | undefined) =>
+  target === undefined || !l.pricing ? l : { ...l, pricing: { ...l.pricing, targetMarginPct: target } };
+
+/** A service line, priced from services.csv in this pricebook version. */
+function priceServiceLine(l: OfferLine, data: PricebookData | null, rates: { marginPct: number; eurDkk: number } | null): OfferLine {
+  const s = data?.services?.find((x) => x.serviceId === l.serviceId);
+  if (!data || !s) {
+    if (!l.serviceId) return { ...l, priceSource: l.unitPrice > 0 ? "manual" : "none" };
+    if (l.unitPrice > 0 && l.priceSource !== "none") return { ...l, pricing: { ...(l.pricing ?? {}), stale: true, matchNote: "service not in this pricebook version; previous price kept" } };
+    return { ...l, priceSource: "none", unitPrice: 0, pricing: { matchNote: "service not in this pricebook version" } };
+  }
+  // services are priced to the services target margin (a gross margin), not the plants' markup
+  const p = priceService(s, {
+    eurDkk: rates?.eurDkk ?? data.settings?.eurDkk ?? Number.NaN,
+    supplierPrices: data.supplierPrices,
+    documents: data.documents,
+    defaultMarginPct: data.settings?.targetMarginServices,
+  });
+  const named = { ...l, nameDa: l.nameDa || s.nameDa, section: s.section, unitDa: l.unitDa || s.unitDa };
+  if (!p) return { ...named, priceSource: "none", unitPrice: 0, pricing: { serviceId: s.serviceId, matchNote: "no price yet: add price_excl_vat, or a cost and target_margin_services, in the pricebook" } };
+  return { ...named, unitPrice: p.unitPrice, priceSource: p.source, pricing: { ...p } };
+}
+
+function pricePlantLine(
+  l: OfferLine,
+  data: PricebookData,
+  rates: { marginPct: number; eurDkk: number },
+  hybrid: PlantQuery["hybrid"] | undefined,
+  clientOrganic: boolean,
+): OfferLine {
   if (l.pricebookRef) {
     const picked = priceFromRow(data, l.pricebookRef, rates);
     const row: any =
@@ -236,7 +344,7 @@ function danishName(data: PricebookData, l: OfferLine, hybrid?: PlantQuery["hybr
 }
 
 /** What identifies the plant on a line; changing any of these needs a new price. */
-const PLANT_FIELDS = ["latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
+const PLANT_FIELDS = ["kind", "serviceId", "latin", "cultivar", "rootstock", "propagation", "size", "heightMin", "heightMax", "organicRequested"] as const;
 const same = (a: unknown, b: unknown) => {
   const n = (v: unknown) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? null : typeof v === "string" ? v.trim() : v);
   return n(a) === n(b);
@@ -265,7 +373,8 @@ export function mergeLines(stored: any[], incoming: any[]) {
     // editor sent along with it.
     const picked = refKey(l) !== null && refKey(l) !== refKey(old);
     const priceTyped = !picked && old.unitPrice !== l.unitPrice;
-    const plantChanged = picked || PLANT_FIELDS.some((k) => !same(old[k], l[k]));
+    // lines stored before services existed have no kind: they are plants
+    const plantChanged = picked || PLANT_FIELDS.some((k) => (k === "kind" ? (old.kind ?? "plant") !== (l.kind ?? "plant") : !same(old[k], l[k])));
     if (plantChanged) {
       return [{ ...l, _id: old._id, speciesId: l.latin === old.latin ? old.speciesId : undefined, pricing: null, priceSource: priceTyped ? "manual" : "none", unitPrice: priceTyped ? l.unitPrice : 0 }];
     }
@@ -346,11 +455,26 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
     else out.discountPct = d;
   }
   if (body?.terms !== undefined) {
+    const t = body.terms ?? {};
     out.terms = {
-      deliverySeason: text(body.terms?.deliverySeason, 200),
-      deposit: text(body.terms?.deposit, 500),
-      text: text(body.terms?.text, 5000),
+      deliverySeason: text(t.deliverySeason, 200),
+      deposit: text(t.deposit, 500),
+      text: text(t.text, 5000),
+      guarantee: t.guarantee === true,
+      guaranteeText: text(t.guaranteeText, 3000),
+      deliveryDate: null,
+      depositPct: null,
     };
+    if (t.deliveryDate !== null && t.deliveryDate !== undefined && t.deliveryDate !== "") {
+      const d = typeof t.deliveryDate === "string" || typeof t.deliveryDate === "number" ? new Date(t.deliveryDate) : new Date(Number.NaN);
+      if (Number.isNaN(d.getTime())) errors.push("Delivery date is not a date");
+      else out.terms.deliveryDate = d;
+    }
+    if (t.depositPct !== null && t.depositPct !== undefined && t.depositPct !== "") {
+      const p = number(t.depositPct, 0, 100);
+      if (p === undefined) errors.push("Deposit must be 0-100 %");
+      else out.terms.depositPct = p;
+    }
   }
   if (body?.notes !== undefined) out.notes = text(body.notes, 5000);
   if (body?.groveProject !== undefined) {
@@ -372,9 +496,16 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
         if (qty === undefined) errors.push(`Line ${i + 1}: quantity`);
         if (unitPrice === undefined) errors.push(`Line ${i + 1}: unit price`);
         const source = ["sales", "cost+margin", "manual", "none"].includes(l?.priceSource) ? l.priceSource : "manual";
+        const service = l?.kind === "service";
+        const serviceId = service && typeof l?.serviceId === "string" && l.serviceId.length > 0 && l.serviceId.length <= 100 ? l.serviceId : undefined;
+        if (service && !serviceId && !text(l?.nameDa, 200)) errors.push(`Line ${i + 1}: a service line needs a service or a name`);
         return {
           _id: typeof l?._id === "string" && /^[0-9a-f]{24}$/i.test(l._id) ? l._id : undefined,
-          latin: text(l?.latin, 200),
+          kind: service ? "service" : "plant",
+          serviceId,
+          section: service && (SERVICE_SECTIONS as readonly unknown[]).includes(l?.section) ? l.section : undefined,
+          unitDa: service ? text(l?.unitDa, 20) : undefined,
+          latin: service ? undefined : text(l?.latin, 200),
           nameDa: text(l?.nameDa, 200),
           cultivar: text(l?.cultivar, 200),
           rootstock: text(l?.rootstock, 200),
