@@ -15,12 +15,19 @@ const router = express.Router();
 const KEY = "scorecard";
 
 router.get("/", async (_req: Req, res) => {
+  // One-off for offers accepted before acceptedAt existed: their last change
+  // is the best guess, fixed now so later edits (Dinero no., notes) don't move them.
+  const undated: any[] = await Offer.find({ status: "accepted", acceptedAt: null }).select("updatedAt").limit(5000).lean();
+  if (undated.length) {
+    await Offer.bulkWrite(undated.map((o) => ({ updateOne: { filter: { _id: o._id, acceptedAt: null }, update: { $set: { acceptedAt: o.updatedAt ?? new Date() } }, timestamps: false } })));
+  }
   const setting: any = await GroveSetting.findOne({ key: KEY }).lean();
   const targets: ScorecardTargets = setting?.value ?? {};
   const [offers, deals, funnels, projects] = await Promise.all([
     Offer.find({ status: inIds(["accepted", "sent"]) })
       .select("title client.name status acceptedAt updatedAt offerDate terms lines.qty lines.unitPrice lines.discountPct lines.pricing.unitCostDkk lines.pricing.costHigh lines.pricing.costLow discountPct deal groveProject")
-      .limit(2000)
+      .sort({ updatedAt: -1 })
+      .limit(5000)
       .lean(),
     Deal.find({ status: "open", archived: false }).select("value funnel").limit(5000).lean(),
     Funnel.find({}).select("name").lean(),

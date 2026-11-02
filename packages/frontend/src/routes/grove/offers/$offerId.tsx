@@ -92,7 +92,7 @@ function OfferPage() {
   }
 
   const save = () =>
-    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes, groveProject: draft.groveProject ?? null, deal: draft.deal ?? null } : {
+    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes, groveProject: draft.groveProject ?? null, deal: draft.deal ?? null, acceptedAt: draft.acceptedAt ?? null, scorecardForward: !!draft.terms?.forwardOrder } : {
       dineroNumber: draft.dineroNumber,
       title: draft.title,
       status: draft.status,
@@ -190,7 +190,7 @@ function OfferPage() {
                 Priced with pricebook v{data()!.offer.pricebookVersion ?? "–"} · prices you typed are kept · new or changed plants and a new margin are priced when you save
               </span>
               <Show when={draft.status === "accepted"}>
-                <span class="text-xs text-amber-700">Accepted: locked except Dinero no., notes and the links to a deal or project.</span>
+                <span class="text-xs text-amber-700">Accepted: locked except Dinero no., notes, the links to a deal or project, and the scorecard fields below.</span>
               </Show>
               <button class="ml-auto text-xs underline text-red-600" onClick={() => setAskDelete(true)}>
                 Delete offer
@@ -282,6 +282,19 @@ function OfferPage() {
               </fieldset>
             </section>
 
+            <Show when={locked()}>
+              <section class="flex flex-wrap gap-4 items-end rounded-md border border-zinc-300 dark:border-slate-600 p-2 text-sm">
+                <span class="text-xs opacity-70">For the scorecard (doesn't change what the client signed):</span>
+                <label class="flex flex-col text-xs">
+                  Accepted on
+                  <input type="date" class={`${input} w-40`} value={dateValue(draft.acceptedAt ?? undefined)} onInput={(e) => edit("acceptedAt", e.currentTarget.value ? `${e.currentTarget.value}T12:00:00` : null)} />
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" checked={!!draft.terms?.forwardOrder} onChange={(e) => edit("terms", "forwardOrder", e.currentTarget.checked)} />
+                  Counts as a forward order (its deposit stays as signed)
+                </label>
+              </section>
+            </Show>
             <fieldset disabled={locked()} class="contents">
             <section class="overflow-x-auto">
               <table class="w-full text-sm">

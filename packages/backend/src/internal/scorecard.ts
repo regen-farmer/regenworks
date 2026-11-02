@@ -2,6 +2,7 @@
 // forward-order deposits against targets set in the app, the open pipeline,
 // and what is needed per week to close the gap. Grove team only.
 import { offerMargin, offerTotals, type OfferLike } from "./offers.ts";
+import { danishDay } from "./services.ts";
 
 export type ScorecardTargets = {
   label?: string;
@@ -50,7 +51,12 @@ type ScoredOffer = OfferLike & {
   groveProject?: unknown;
 };
 
-const day = (d: Date | string | null | undefined) => (d ? new Date(d).toISOString().slice(0, 10) : undefined);
+/** The Danish calendar day of a timestamp (00:30 on 1 Nov in Denmark is 1 Nov, not 31 Oct). */
+const day = (d: Date | string | null | undefined) => {
+  if (!d) return undefined;
+  const x = new Date(d);
+  return Number.isNaN(x.getTime()) ? undefined : danishDay(x);
+};
 
 export function scorecard(
   input: { offers: ScoredOffer[]; openDeals: { value?: number | null; funnelName?: string }[]; targets: ScorecardTargets; now?: Date },
@@ -60,7 +66,7 @@ export function scorecard(
   const inPeriod = (d: string | undefined) => !!d && (!t.from || d >= t.from) && (!t.to || d <= t.to);
   // accepted offers: when accepted (older ones: last change)
   const won = input.offers
-    .filter((o) => o.status === "accepted" && inPeriod(day(o.acceptedAt ?? o.updatedAt)))
+    .filter((o) => o.status === "accepted" && inPeriod(day(o.acceptedAt)))
     .map((o) => {
       const totals = offerTotals(o);
       const m = offerMargin(o);
@@ -69,7 +75,7 @@ export function scorecard(
         _id: o._id,
         title: o.title,
         client: o.client?.name,
-        acceptedOn: day(o.acceptedAt ?? o.updatedAt),
+        acceptedOn: day(o.acceptedAt),
         forwardOrder: forward,
         net: totals.net,
         margin: m.margin,
@@ -98,8 +104,9 @@ export function scorecard(
     v.value += d.value ?? 0;
     byFunnel.set(k, v);
   }
-  const end = t.to ? new Date(`${t.to}T23:59:59Z`) : null;
-  const weeksLeft = end ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (7 * 86_400_000))) : null;
+  // whole Danish days from today to the end of the period, in weeks (rounded up)
+  const daysLeft = t.to ? Math.round((Date.parse(`${t.to}T00:00:00Z`) - Date.parse(`${danishDay(now)}T00:00:00Z`)) / 86_400_000) + 1 : null;
+  const weeksLeft = daysLeft === null ? null : Math.max(0, Math.ceil(daysLeft / 7));
   const gap = (target: number | null | undefined, actual: number) => (typeof target === "number" ? Math.max(0, Math.round(target - actual)) : null);
   const perWeek = (g: number | null) => (g === null || weeksLeft === null ? null : weeksLeft > 0 ? Math.round(g / weeksLeft) : g);
   const marginGap = gap(t.margin, margin);
@@ -109,7 +116,6 @@ export function scorecard(
     weeksLeft,
     margin: { actual: margin, target: t.margin ?? null, gap: marginGap, perWeek: perWeek(marginGap), withoutCost, inSentOffers: sentMargin },
     deposits: { actual: deposits, target: t.deposits ?? null, gap: depositGap, perWeek: perWeek(depositGap), inSentOffers: sentDeposits },
-    total: { actual: sum([margin, deposits]), target: typeof t.margin === "number" || typeof t.deposits === "number" ? (t.margin ?? 0) + (t.deposits ?? 0) : null },
     pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v })).sort((a, b) => b.value - a.value),
     won,
   };

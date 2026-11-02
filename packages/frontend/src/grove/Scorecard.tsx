@@ -14,7 +14,6 @@ type Card = {
   weeksLeft: number | null;
   margin: Part;
   deposits: Part;
-  total: { actual: number; target: number | null };
   pipeline: { funnel: string; count: number; value: number }[];
   won: {
     _id: string;
@@ -91,7 +90,17 @@ export function Scorecard() {
             <span class="text-sm font-normal opacity-70"> ({card()!.targets.from ?? "…"} to {card()!.targets.to ?? "…"}{card()!.weeksLeft !== null ? `, ${card()!.weeksLeft} weeks left` : ""})</span>
           </Show>
         </h2>
-        <button class="text-sm underline" onClick={() => setEditing(!editing())}>{editing() ? "Cancel" : "Set targets"}</button>
+        <button
+          class="text-sm underline"
+          disabled={!card()}
+          onClick={() => {
+            // always start from what is saved, so a save can't wipe values not shown yet
+            if (!editing()) setT({ ...(card()?.targets ?? {}) });
+            setEditing(!editing());
+          }}
+        >
+          {editing() ? "Cancel" : "Set targets"}
+        </button>
       </div>
       <Show when={data.error}><p class="text-sm text-red-600">{(data.error as Error)?.message}</p></Show>
 
