@@ -71,3 +71,35 @@ test("editing (copying) someone's private system is refused", async () => {
   const s = await fetch(`${base}/systems/${SHARED}`, { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" });
   assert.equal(s.status, 299, "copying a shared template is fine");
 });
+
+test("attaching someone's private system to your own scenario or field is refused", async () => {
+  // owns() on the user's own records passes via the ownership stub below
+  const { setOwnerLookupForTests } = await import("../src/middleware/ownership.ts");
+  setOwnerLookupForTests(async () => ({ ownerId: OTHER._id, isPublic: false }));
+  who = { user: OTHER, idToken: v };
+  const own = id(50);
+  const calls: [string, string, any?][] = [
+    ["GET", `/layers/${own}/systems/${PRIVATE}/projects/new`],
+    ["POST", `/layers/${own}/systems/${PRIVATE}/projects`, {}],
+    ["POST", `/projects/${own}/addedgesystem`, { systemid: PRIVATE }],
+    ["POST", `/layers/${own}/presentsystem`, { systemid: PRIVATE }],
+    ["PUT", `/parcels/${own}/layers/${own}/projects/${own}/systems/${PRIVATE}/pick`, {}],
+  ];
+  for (const f of ["projects.ts", "layers.ts"]) {
+    const router: any = (await import(`../src/routes/${f}`)).default;
+    for (const layer of router.stack ?? []) {
+      const stack = layer.route?.stack;
+      if (stack?.length) stack[stack.length - 1].handle = (_q: any, r: any) => r.status(299).send("ok");
+    }
+    app.use("", router);
+  }
+  for (const [method, path, body] of calls) {
+    const r = await fetch(base + path, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+    await r.text();
+    assert.equal(r.status, 403, `${method} ${path}`);
+    const shared = await fetch(base + path.replace(PRIVATE, SHARED), { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify({ ...body, systemid: body.systemid ? SHARED : undefined }) : undefined });
+    await shared.text();
+    assert.equal(shared.status, 299, `shared: ${method} ${path}`);
+  }
+  setOwnerLookupForTests(null);
+});

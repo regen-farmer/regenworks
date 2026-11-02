@@ -190,9 +190,9 @@ export function isSelf(param = "id") {
  * private ones only by their owner (or a Grove admin). Copying a system
  * (editing one you don't own) needs read access too.
  */
-export function systemReadable(param = "id") {
+export function systemReadable(param = "id", from: "params" | "body" = "params") {
   return async (req: Req, res: express.Response, next: express.NextFunction) => {
-    const id = req.params[param];
+    const id = from === "body" ? (req.body as any)?.[param] : req.params[param];
     if (typeof id !== "string" || !mongoose.isValidObjectId(id)) {
       res.status(400).send({ error: "Invalid id" });
       return;
@@ -220,4 +220,13 @@ let currentSystemLookup: (id: string) => Promise<SystemFound> = dbSystemLookup;
 /** Tests only. */
 export function setSystemLookupForTests(fn: ((id: string) => Promise<SystemFound>) | null) {
   currentSystemLookup = fn ?? dbSystemLookup;
+}
+
+/** Whether a user may use (read, attach) a system: shared, own, or Grove admin. */
+export async function canUseSystem(user: Req["user"], systemId: unknown) {
+  if (!user || typeof systemId !== "string" && !(systemId && typeof systemId === "object")) return false;
+  const id = String((systemId as any)?._id ?? systemId);
+  if (!mongoose.isValidObjectId(id)) return false;
+  const found = await currentSystemLookup(id);
+  return !!found && (found.shared || found.ownerId === str(user._id) || hasRole(user, "grove-admin"));
 }

@@ -7,11 +7,17 @@ import Species, { type ISpeciesSchema } from "@rw/db/schemas/species.ts";
 import Animal from "@rw/db/schemas/animal.ts";
 import Project from "@rw/db/schemas/project.ts";
 import middleware from "../middleware/index.ts";
-import { sanitizeMongoDocument, sanitizeMongoValue, withoutProtectedFields } from "../utils/mongoSafety.ts";
+import { sanitizeMongoDocument, sanitizeMongoValue } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import type { Auth0IDToken } from "../app.ts";
 
 const router = express.Router();
+
+/** A system from the request without its ids, owner or flows (links to other records). */
+function systemInput(system: unknown) {
+  const { _id: _a, id: _b, owner: _c, flows: _d, ...rest } = sanitizeMongoDocument(system) as Record<string, unknown>;
+  return rest;
+}
 
 // SYSTEM INDEX
 router.get(
@@ -32,6 +38,7 @@ router.get(
 
 router.put(
   "/parcels/:parcelId/layers/:layerId/projects/:projectId/systems/:systemId/pick",
+  systemReadable("systemId"),
   owns("project", "projectId"),
   middleware.isLoggedIn,
   async (
@@ -220,7 +227,8 @@ router.post(
         }
         // CREATE SYSTEM
         try {
-          const createdSystem = await System.create(system);
+          // Built from the request, without ids, owner or flows of other systems.
+          const createdSystem = await System.create(systemInput(system));
           console.log(createdSystem);
           // ADD OWNER
           createdSystem.owner.id = req.user?._id.toString()!;
@@ -825,13 +833,16 @@ router.put(
             system.animals.splice(i, 1);
           }
         }
-        // (compared as strings: an id object never equals a string)
-        if (String(foundSystem.owner?.id) === String(req.user?._id)) {
+        // Every edit makes a copy for the editor, owners included (as it always
+        // has: this compared an id object with a string). Editing in place
+        // would wipe the system's activities and change shared templates
+        // under other users' scenarios; decide that before switching it on.
+        if (false as boolean) {
           // if true, update existing system
 
           console.log("OWNER");
           try {
-            foundSystem.set(withoutProtectedFields(sanitizeMongoDocument(system)));
+            foundSystem.set(systemInput(system));
             const updatedSystem = await foundSystem.save();
             if (updatedSystem) {
               res.send({
@@ -847,7 +858,9 @@ router.put(
           console.log("NOT OWNER");
 
           // if false, create a new system and add current user as owner
-          const createdSystem = await System.create(system);
+          // Built from the request, but never with its ids, owner or links;
+          // flows come from the system being copied.
+          const createdSystem = await System.create({ ...systemInput(system), flows: foundSystem.flows });
 
           // Add owner
           createdSystem.owner.id = req.user?._id.toString()!;

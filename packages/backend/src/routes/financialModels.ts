@@ -1,6 +1,4 @@
 import FarmScenarioConfig from "@rw/db/schemas/farmScenarioConfig.ts";
-import mongoose from "mongoose";
-import { inIds } from "../utils/mongoSafety.ts";
 import FinancialModel from "@rw/db/schemas/financialModel.ts";
 import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
@@ -114,7 +112,7 @@ async function computeFinancials(modelId: string): Promise<FarmFinancialsResult 
   );
 
   const speciesDocs = await Species.find({
-    _id: inIds(Array.from(speciesIds).filter((id) => mongoose.isValidObjectId(String(id)))),
+    _id: { $in: Array.from(speciesIds) },
   }).populate("flows");
 
   // eslint-disable-next-line no-console
@@ -439,7 +437,7 @@ router.get(
       // Fetch full species documents
       const speciesIds = Array.from(speciesCounts.keys());
       const speciesDocs = await Species.find({
-        _id: inIds(speciesIds.filter((id) => mongoose.isValidObjectId(String(id)))),
+        _id: { $in: speciesIds },
       }).populate("flows");
 
       const result = Array.from(speciesCounts.entries()).map(([id, data]) => {
@@ -517,7 +515,7 @@ async function buildYieldData(configId: string) {
   }
 
   const speciesDocs = await Species.find({
-    _id: inIds(Array.from(speciesIds).filter((id) => mongoose.isValidObjectId(String(id)))),
+    _id: { $in: Array.from(speciesIds) },
   }).populate("flows");
 
   const speciesMap = new Map<string, any>();

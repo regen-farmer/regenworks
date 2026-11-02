@@ -1,6 +1,5 @@
 import Activity from "@rw/db/schemas/activity.ts";
-import { notUsedElsewhere } from "../utils/sharedRecords.ts";
-import { dbOwnerLookup, ownershipDecision, owns } from "../middleware/ownership.ts";
+import { dbOwnerLookup, ownershipDecision, owns, systemReadable } from "../middleware/ownership.ts";
 import Area from "@rw/db/schemas/area.ts";
 import Asset from "@rw/db/schemas/asset.ts";
 import Budget from "@rw/db/schemas/budget.ts";
@@ -562,6 +561,7 @@ router.get(
 // ADD PROJECT EDGE SYSTEM UPDATE
 router.post(
   "/projects/:id/addedgesystem",
+  systemReadable("systemid", "body"),
   owns("project"),
   middleware.isLoggedIn,
   async (
@@ -667,14 +667,14 @@ router.put(
               // SAVE TREE ASSETS ON ROWS AS WELL - IF NO ROWS, GENERATE THEM AND AREAS?
               if (updatedProject) {
                 try {
-                  // rows in the scenario's own order (treeAssetRowRef indexes it)
-                  const found = await Row.find({ _id: inIds((updatedProject.rows ?? []).map(String)) });
-                  const byId = new Map(found.map((r: any) => [String(r._id), r]));
-                  const foundRows: any[] = (updatedProject.rows ?? []).map((id: any) => byId.get(String(id))).filter(Boolean);
+                  const foundRows = await Row.find({
+                    _id: { $in: updatedProject.rows },
+                  });
 
                   for (let i = 0; i < createdAssets.length; i++) {
                     const ref = treeAssetRowRef[i];
-                    if (!foundRows[ref]) continue; // row missing: skip rather than crash
+                    console.log(`ref ${ref}`);
+                    // @ts-expect-error
                     foundRows[ref].assets.push(createdAssets[i]);
                   }
                   // SAVE ROWS INDIVIDUALLY
@@ -815,9 +815,7 @@ router.get(
       const foundProject = await Project.findById(req.params.id);
       if (foundProject) {
         try {
-          // only this scenario's own rows (copies used to share them)
-          const ids = await notUsedElsewhere("rows", foundProject.rows, String(foundProject._id));
-          await Row.deleteMany({ _id: inIds(ids) });
+          await Row.deleteMany({ _id: { $in: foundProject.rows } });
           // DELETE ROWS
           try {
             const updatedProject = await Project.findByIdAndUpdate(req.params.id, {
@@ -982,6 +980,7 @@ router.delete(
 // LAYER PROJECT NEW ROUTE WITH SYSTEM REF
 router.get(
   "/layers/:id/systems/:system/projects/new",
+  systemReadable("system"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
@@ -1074,14 +1073,32 @@ router.post(
         if (!list.length) return [];
         const docs: any[] = await model.find({ _id: inIds(list) }).lean();
         const byId = new Map(docs.map((d) => [String(d._id), d]));
+        // field records (trees, activities, notes, flows) stay with the original
+        const fresh = ["assets", "activities", "farmflows", "notes"];
         const copies = list
           .map((id) => byId.get(id))
           .filter(Boolean)
-          .map(({ _id, __v, ...d }: any) => ({ ...d, ...(Array.isArray(d.assets) ? { assets: [] } : {}), ...(d.owner ? { owner: { id: req.user?._id } } : {}) }));
-        return (await model.insertMany(copies)).map((d: any) => d._id);
+          .map(({ _id, __v, ...d }: any) => ({
+            ...d,
+            ...Object.fromEntries(fresh.filter((k) => Array.isArray(d[k])).map((k) => [k, []])),
+            ...(d.owner ? { owner: { id: copyOwner } } : {}),
+          }));
+        const inserted = (await model.insertMany(copies)).map((d: any) => d._id);
+        created.push(...inserted.map((id: any) => [model, id] as const));
+        return inserted;
       };
-      source.rows = await copyAll(Row, source.rows);
-      source.areas = await copyAll(Area, source.areas);
+      // The copy belongs to the field's owner (e.g. the client when a Grove
+      // admin duplicates in a client's field), not to whoever clicked.
+      const copyOwner = (await dbOwnerLookup("layer", req.params.id))?.ownerId ?? req.user?._id;
+      const created: (readonly [any, unknown])[] = [];
+      try {
+        source.rows = await copyAll(Row, source.rows);
+        source.areas = await copyAll(Area, source.areas);
+      } catch (err) {
+        // don't leave half-made copies behind
+        for (const [model, id] of created) await model.deleteOne({ _id: id }).catch(() => {});
+        throw err;
+      }
 
       const createdProject = await Project.create({
         ...source,
@@ -1229,6 +1246,7 @@ router.post(
 // LAYER PROJECT CREATE ROUTE
 router.post(
   "/layers/:id/systems/:system/projects",
+  systemReadable("system"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
@@ -1750,6 +1768,12 @@ router.patch(
     const project = await Project.findById(req.params.id).populate("system");
 
     const system = project?.system;
+    // The system may be a shared template used by other people's scenarios:
+    // only its owner (or a Grove admin) may change its activities and prices.
+    if (system && String((system as any).owner?.id) !== String(req.user?._id) && !hasRole(req.user, "grove-admin")) {
+      res.status(403).send({ error: "This system belongs to someone else; make your own copy to change its activities" });
+      return;
+    }
 
     const newActivities: [
       {

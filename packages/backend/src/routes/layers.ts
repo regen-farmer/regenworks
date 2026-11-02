@@ -1,5 +1,5 @@
 import express from "express";
-import { owns } from "../middleware/ownership.ts";
+import { owns, systemReadable } from "../middleware/ownership.ts";
 import escapeHtml from "escape-html";
 import unique from "array-unique";
 import { Types } from "mongoose";
@@ -638,6 +638,7 @@ router.delete(
 // LAYER CURRENT SYSTEM UPDATE
 router.post(
   "/layers/:id/presentsystem",
+  systemReadable("systemid", "body"),
   owns("layer"),
   middleware.isLoggedIn,
   async (
