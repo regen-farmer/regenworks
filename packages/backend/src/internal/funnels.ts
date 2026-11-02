@@ -272,3 +272,28 @@ export function dealReport(deals: DealLike[], funnels: { _id: unknown; name: str
   });
   return { deals: inPeriod.length, bySource, byFunnel, truncated: false };
 }
+
+/**
+ * Why an open deal needs attention today: next action overdue or missing,
+ * longer in its stage than the stage's target, expected close passed or
+ * within two weeks. Empty when it's fine.
+ */
+export function attentionReasons(
+  deal: DealLike & { nextAction?: { text?: string; date?: Date | string | null }; expectedClose?: Date | string | null },
+  stage: Stage | undefined,
+  now = new Date(),
+) {
+  const out: { key: "overdue" | "no-action" | "slow" | "closing" | "close-passed"; text: string }[] = [];
+  if (deal.status !== "open" || deal.archived) return out;
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const next = deal.nextAction?.date ? new Date(deal.nextAction.date) : null;
+  if (next && next.getTime() < today.getTime()) out.push({ key: "overdue", text: "Next action overdue" });
+  if (!next) out.push({ key: "no-action", text: "No next action" });
+  const age = stageAge(deal, stage, now);
+  if (age.over) out.push({ key: "slow", text: `${age.days} days in ${stage?.name ?? "stage"} (target ${stage?.targetDays})` });
+  const close = deal.expectedClose ? new Date(deal.expectedClose) : null;
+  if (close && close.getTime() < today.getTime()) out.push({ key: "close-passed", text: "Expected close has passed" });
+  else if (close && close.getTime() - today.getTime() <= 14 * DAY) out.push({ key: "closing", text: "Expected to close within 2 weeks" });
+  return out;
+}

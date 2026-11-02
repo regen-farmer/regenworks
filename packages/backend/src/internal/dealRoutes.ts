@@ -12,7 +12,7 @@ import { inIds } from "../utils/mongoSafety.ts";
 import { offerTotals } from "./offers.ts";
 import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
 import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
-import { cleanFunnel, cleanSources, dealReport, DEFAULT_SOURCES, FUNNEL_TEMPLATES, keyFrom, stageSince } from "./funnels.ts";
+import { attentionReasons, cleanFunnel, cleanSources, dealReport, DEFAULT_SOURCES, FUNNEL_TEMPLATES, keyFrom, stageSince } from "./funnels.ts";
 import {
   DEFAULT_FUNNELS,
   cleanClient,
@@ -263,6 +263,41 @@ dealRouter.put("/sources", async (req: Req, res) => {
   if (!cleaned.ok) return bad(res, cleaned.error);
   await GroveSetting.findOneAndUpdate({ key: SOURCES_KEY }, { $set: { value: { sources: cleaned.value }, updatedBy: req.user?._id } }, { upsert: true });
   res.send({ sources: cleaned.value });
+});
+
+// ---------- open deals that need attention (Dashboard, A tab) ----------
+dealRouter.get("/attention", async (_req: Req, res) => {
+  const [deals, funnels]: any[][] = await Promise.all([
+    Deal.find({ status: "open", archived: false }).select("title client funnel stage status value nextAction expectedClose createdAt history.stage history.funnel history.at owner").limit(5000).lean(),
+    Funnel.find({}).select("name stages archived").lean(),
+  ]);
+  const funnelBy = new Map(funnels.map((f) => [String(f._id), f]));
+  const flagged = deals
+    .map((d) => {
+      const f = funnelBy.get(String(d.funnel));
+      const stage = f?.stages.find((s: any) => s.key === d.stage);
+      return { d, f, stage, reasons: attentionReasons(d, stage) };
+    })
+    .filter((x) => x.reasons.length);
+  const order = { overdue: 0, "close-passed": 1, slow: 2, closing: 3, "no-action": 4 } as const;
+  flagged.sort((a, b) => Math.min(...a.reasons.map((r) => order[r.key])) - Math.min(...b.reasons.map((r) => order[r.key])) || (b.d.value ?? 0) - (a.d.value ?? 0));
+  const shown = flagged.slice(0, 300);
+  const presented = await present(shown.map((x) => x.d));
+  res.send({
+    total: flagged.length,
+    open: deals.length,
+    deals: presented.map((d: any, i: number) => ({
+      _id: d._id,
+      title: d.title,
+      client: d.client,
+      value: d.value,
+      nextAction: d.nextAction,
+      expectedClose: d.expectedClose,
+      funnel: shown[i].f ? { _id: shown[i].f._id, name: shown[i].f.name } : null,
+      stage: shown[i].stage?.name ?? d.stage,
+      reasons: shown[i].reasons,
+    })),
+  });
 });
 
 // ---------- report: by source, win rate and days per stage ----------

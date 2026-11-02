@@ -1,10 +1,11 @@
 // Dashboard scorecard: margin won on spring deals and deposits on forward
-// orders against the targets set here, the pace needed, the pipeline, and
-// where every active project is. Grove team only.
+// orders, counted per won deal (A) from its accepted offers, against the
+// targets set here; the pace needed and the open pipeline. Grove team only.
 import { Link } from "@tanstack/solid-router";
 import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { showToast } from "~/components/ui/toast";
 import { stageText, type Stage } from "~/grove/projectTypes.ts";
+import { dkk } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 type Targets = { label?: string; from?: string; to?: string; margin?: number | null; deposits?: number | null };
@@ -15,7 +16,13 @@ type Card = {
   margin: Part;
   deposits: Part;
   pipeline: { funnel: string; count: number; value: number }[];
+  withoutOffer?: { count: number; value: number };
   won: {
+    kind: "deal" | "offer";
+    offerId?: string | null;
+    offers: number;
+    funnel?: string;
+    withoutOffer: number;
     _id: string;
     title?: string;
     client?: string;
@@ -129,23 +136,40 @@ export function Scorecard() {
             </For>
           </div>
         </div>
+        <Show when={card()!.withoutOffer?.count}>
+          <p class="text-xs text-amber-700">
+            {card()!.withoutOffer!.count} won deal{card()!.withoutOffer!.count === 1 ? " has" : "s have"} no accepted offer ({dkk(card()!.withoutOffer!.value) || "no value"}), so {card()!.withoutOffer!.count === 1 ? "its" : "their"} margin isn't counted. Accept the offer, or link it to the deal.
+          </p>
+        </Show>
         <Show when={(card()!.margin.withoutCost ?? 0) > 0}>
           <p class="text-xs text-amber-700">{kr(card()!.margin.withoutCost)} of accepted sales has no known cost, so its margin isn't counted.</p>
         </Show>
         <p class="text-xs opacity-70">
-          Counts offers accepted in the period: the internal-sheet margin for spring deals, the deposit for offers ticked "Forward order". Management is billed monthly and isn't counted here.
+          Counts deals won in the period, from their accepted offers: the internal-sheet margin for spring work, the deposit for offers ticked "Forward order". Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.
         </p>
 
         <details>
-          <summary class="text-sm cursor-pointer">Accepted in the period ({card()!.won.length})</summary>
+          <summary class="text-sm cursor-pointer">Won in the period ({card()!.won.length})</summary>
           <table class="w-full text-sm mt-1">
             <tbody>
               <For each={card()!.won}>
                 {(w) => (
                   <tr class="border-t border-zinc-200 dark:border-slate-700">
                     <td class="py-1 pr-3">{short(w.acceptedOn)}</td>
-                    <td class="py-1 pr-3"><Link to="/grove/offers/$offerId" params={{ offerId: w._id }} class="underline">{w.title || "Offer"}</Link> <span class="opacity-70">{w.client}</span></td>
-                    <td class="py-1 pr-3">{w.forwardOrder ? `Forward order · deposit ${w.depositPct} % = ${kr(w.deposit)}` : `Margin ${kr(w.margin)}${w.marginPct !== null ? ` (${w.marginPct} %)` : ""}`}</td>
+                    <td class="py-1 pr-3">
+                      <Show
+                        when={w.kind === "deal"}
+                        fallback={<Link to="/grove/offers/$offerId" params={{ offerId: w._id }} class="underline">{w.title || "Offer"}</Link>}
+                      >
+                        <Link to="/grove/deals/$dealId" params={{ dealId: w._id }} class="underline">{w.title || "Deal"}</Link>
+                      </Show>{" "}
+                      <span class="opacity-70">{[w.client, w.funnel, w.kind === "offer" ? "offer without a deal" : ""].filter(Boolean).join(" · ")}</span>
+                    </td>
+                    <td class="py-1 pr-3">
+                      <Show when={w.kind === "deal" && !w.offers} fallback={[w.margin ? `Margin ${kr(w.margin)}${w.marginPct !== null ? ` (${w.marginPct} %)` : ""}` : "", w.deposit ? `forward-order deposit ${kr(w.deposit)}` : ""].filter(Boolean).join(" · ") || "–"}>
+                        <span class="text-amber-700">No accepted offer · deal value {kr(w.withoutOffer)}</span>
+                      </Show>
+                    </td>
                     <td class="py-1 pr-3">
                       <Show when={w.project}>
                         <Link to="/grove/projects/$projectId" params={{ projectId: w.project!._id }} class="underline">{w.project!.name}</Link>: {stageText(w.project!)}
@@ -158,36 +182,6 @@ export function Scorecard() {
           </table>
         </details>
 
-        <details open>
-          <summary class="text-sm cursor-pointer">Where each project is ({card()!.projects.length})</summary>
-          <table class="w-full text-sm mt-1">
-            <thead>
-              <tr class="text-left text-xs opacity-70">
-                <th class="py-1 pr-3">Project</th>
-                <th class="py-1 pr-3">Stage · step</th>
-                <th class="py-1 pr-3">Next action</th>
-                <th class="py-1 pr-3">Planting</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={card()!.projects}>
-                {(p) => (
-                  <tr class="border-t border-zinc-200 dark:border-slate-700">
-                    <td class="py-1 pr-3">
-                      <Link to="/grove/projects/$projectId" params={{ projectId: p._id }} class="underline">{p.name}</Link>
-                      <span class="opacity-70">{p.client ? ` · ${p.client}` : ""}{p.status !== "active" ? ` · ${p.status}` : ""}</span>
-                    </td>
-                    <td class="py-1 pr-3">{stageText(p)}</td>
-                    <td class="py-1 pr-3" classList={{ "text-red-700 dark:text-red-400": !!p.nextAction?.date && new Date(p.nextAction.date).getTime() < new Date().setHours(0, 0, 0, 0) }}>
-                      {p.nextAction?.text}{p.nextAction?.date ? ` (${short(p.nextAction.date)})` : ""}
-                    </td>
-                    <td class="py-1 pr-3">{short(p.plantingDate)}</td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </details>
       </Show>
     </section>
   );

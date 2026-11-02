@@ -58,41 +58,105 @@ const day = (d: Date | string | null | undefined) => {
   return Number.isNaN(x.getTime()) ? undefined : danishDay(x);
 };
 
-export function scorecard(
-  input: { offers: ScoredOffer[]; openDeals: { value?: number | null; funnelName?: string }[]; targets: ScorecardTargets; now?: Date },
-) {
+type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; wonAt?: Date | string | null; groveProject?: unknown };
+
+/**
+ * Won business in the period, counted per deal (A · Deals) where there is
+ * one: a deal won in the period counts the margin (spring) or deposit
+ * (forward order) of its accepted offers. A won deal without an accepted
+ * offer shows its deal value, flagged, since its margin isn't known.
+ * Accepted offers not on a won deal (older offers, plant-list sales) still
+ * count, by their acceptance date, so nothing sold is lost.
+ */
+export function scorecard(input: {
+  offers: ScoredOffer[];
+  openDeals: { value?: number | null; funnelName?: string }[];
+  wonDeals?: WonDeal[];
+  targets: ScorecardTargets;
+  now?: Date;
+}) {
   const now = input.now ?? new Date();
   const t = input.targets;
   const inPeriod = (d: string | undefined) => !!d && (!t.from || d >= t.from) && (!t.to || d <= t.to);
-  // accepted offers: when accepted (older ones: last change)
-  const won = input.offers
-    .filter((o) => o.status === "accepted" && inPeriod(day(o.acceptedAt)))
-    .map((o) => {
-      const totals = offerTotals(o);
-      const m = offerMargin(o);
-      const forward = !!o.terms?.forwardOrder;
+  const wonDeals = input.wonDeals ?? [];
+  const wonDealIds = new Set(wonDeals.map((d) => String(d._id)));
+  const priced = (o: ScoredOffer) => {
+    const totals = offerTotals(o);
+    const m = offerMargin(o);
+    return { o, net: totals.net, margin: m.margin, marginPct: m.marginPct, withoutCost: m.withoutCost, deposit: totals.deposit.amount, depositPct: totals.deposit.pct, forward: !!o.terms?.forwardOrder };
+  };
+  const accepted = input.offers.filter((o) => o.status === "accepted");
+  const offersOf = new Map<string, ReturnType<typeof priced>[]>();
+  for (const o of accepted) {
+    if (o.deal && wonDealIds.has(String(o.deal))) {
+      const k = String(o.deal);
+      offersOf.set(k, [...(offersOf.get(k) ?? []), priced(o)]);
+    }
+  }
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const fromDeals = wonDeals
+    .filter((d) => inPeriod(day(d.wonAt)))
+    .map((d) => {
+      const list = offersOf.get(String(d._id)) ?? [];
+      const spring = list.filter((x) => !x.forward);
+      const fwd = list.filter((x) => x.forward);
+      const net = round(list.reduce((n, x) => n + x.net, 0));
+      const margin = round(spring.reduce((n, x) => n + x.margin, 0));
+      const springNet = spring.reduce((n, x) => n + x.net, 0);
       return {
+        kind: "deal" as const,
+        _id: d._id,
+        offerId: list.length === 1 ? list[0].o._id : null,
+        offers: list.length,
+        title: d.title,
+        client: d.client,
+        funnel: d.funnelName,
+        acceptedOn: day(d.wonAt),
+        forwardOrder: fwd.length > 0 && spring.length === 0,
+        net,
+        margin,
+        marginPct: springNet > 0 && spring.every((x) => x.marginPct !== null) ? Math.round((margin / springNet) * 1000) / 10 : null,
+        withoutCost: round(spring.reduce((n, x) => n + x.withoutCost, 0)),
+        deposit: round(fwd.reduce((n, x) => n + x.deposit, 0)),
+        depositPct: fwd[0]?.depositPct ?? 0,
+        withoutOffer: list.length ? 0 : (d.value ?? 0),
+        deal: d._id,
+        groveProject: d.groveProject ?? null,
+      };
+    });
+  const fromOffers = accepted
+    .filter((o) => !(o.deal && wonDealIds.has(String(o.deal))) && inPeriod(day(o.acceptedAt)))
+    .map((o) => {
+      const x = priced(o);
+      return {
+        kind: "offer" as const,
         _id: o._id,
+        offerId: o._id,
+        offers: 1,
         title: o.title,
         client: o.client?.name,
+        funnel: undefined as string | undefined,
         acceptedOn: day(o.acceptedAt),
-        forwardOrder: forward,
-        net: totals.net,
-        margin: m.margin,
-        marginPct: m.marginPct,
-        withoutCost: m.withoutCost,
-        deposit: totals.deposit.amount,
-        depositPct: totals.deposit.pct,
+        forwardOrder: x.forward,
+        net: x.net,
+        margin: x.forward ? 0 : x.margin,
+        marginPct: x.marginPct,
+        withoutCost: x.forward ? 0 : x.withoutCost,
+        deposit: x.forward ? x.deposit : 0,
+        depositPct: x.depositPct,
+        withoutOffer: 0,
         deal: o.deal ?? null,
         groveProject: o.groveProject ?? null,
       };
-    })
-    .sort((a, b) => (b.acceptedOn ?? "").localeCompare(a.acceptedOn ?? ""));
+    });
+  const won = [...fromDeals, ...fromOffers].sort((a, b) => (b.acceptedOn ?? "").localeCompare(a.acceptedOn ?? ""));
   const sum = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) * 100) / 100;
   // spring deals count their margin; forward orders count their deposit
-  const margin = sum(won.filter((w) => !w.forwardOrder).map((w) => w.margin));
-  const deposits = sum(won.filter((w) => w.forwardOrder).map((w) => w.deposit));
-  const withoutCost = sum(won.filter((w) => !w.forwardOrder).map((w) => w.withoutCost));
+  // spring business counts margin, forward orders their deposit (a deal can hold both)
+  const margin = sum(won.map((w) => w.margin));
+  const deposits = sum(won.map((w) => w.deposit));
+  const withoutCost = sum(won.map((w) => w.withoutCost));
+  const withoutOffer = { count: won.filter((w) => w.withoutOffer > 0 || (w.kind === "deal" && !w.offers)).length, value: sum(won.map((w) => w.withoutOffer)) };
   const sent = input.offers.filter((o) => o.status === "sent");
   const sentMargin = sum(sent.filter((o) => !o.terms?.forwardOrder).map((o) => offerMargin(o).margin));
   const sentDeposits = sum(sent.filter((o) => o.terms?.forwardOrder).map((o) => offerTotals(o).deposit.amount));
@@ -115,6 +179,7 @@ export function scorecard(
     targets: t,
     weeksLeft,
     margin: { actual: margin, target: t.margin ?? null, gap: marginGap, perWeek: perWeek(marginGap), withoutCost, inSentOffers: sentMargin },
+    withoutOffer,
     deposits: { actual: deposits, target: t.deposits ?? null, gap: depositGap, perWeek: perWeek(depositGap), inSentOffers: sentDeposits },
     pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v })).sort((a, b) => b.value - a.value),
     won,

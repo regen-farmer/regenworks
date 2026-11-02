@@ -4,6 +4,7 @@ import express from "express";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import Deal from "@rw/db/schemas/internal/deal.ts";
 import Funnel from "@rw/db/schemas/internal/funnel.ts";
+import Client from "@rw/db/schemas/internal/client.ts";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
 import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
@@ -23,7 +24,7 @@ router.get("/", async (_req: Req, res) => {
   }
   const setting: any = await GroveSetting.findOne({ key: KEY }).lean();
   const targets: ScorecardTargets = setting?.value ?? {};
-  const [offers, deals, funnels, projects] = await Promise.all([
+  const [offers, deals, funnels, projects, wonDeals] = await Promise.all([
     Offer.find({ status: inIds(["accepted", "sent"]) })
       .select("title client.name status acceptedAt updatedAt offerDate terms lines.qty lines.unitPrice lines.discountPct lines.pricing.unitCostDkk lines.pricing.costHigh lines.pricing.costLow discountPct deal groveProject")
       .sort({ updatedAt: -1 })
@@ -36,11 +37,24 @@ router.get("/", async (_req: Req, res) => {
       .sort({ updatedAt: -1 })
       .limit(500)
       .lean(),
+    Deal.find({ status: "won" }).select("title client value wonAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
   ]);
+  const clientIds = [...new Set((wonDeals as any[]).map((d) => String(d.client)).filter(Boolean))];
+  const clients: any[] = clientIds.length ? await Client.find({ _id: inIds(clientIds) }).select("name").lean() : [];
+  const clientName = new Map(clients.map((c) => [String(c._id), c.name]));
   const funnelName = new Map((funnels as any[]).map((f) => [String(f._id), f.name]));
   const card = scorecard({
     offers: offers as any[],
     openDeals: (deals as any[]).map((d) => ({ value: d.value, funnelName: funnelName.get(String(d.funnel)) })),
+    wonDeals: (wonDeals as any[]).map((d) => ({
+      _id: d._id,
+      title: d.title,
+      client: clientName.get(String(d.client)),
+      funnelName: funnelName.get(String(d.funnel)),
+      value: d.value,
+      wonAt: d.wonAt,
+      groveProject: d.groveProject,
+    })),
     targets,
   });
   const projectBy = new Map((projects as any[]).map((p) => [String(p._id), p]));
