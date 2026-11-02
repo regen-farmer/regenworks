@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import Project from "@rw/db/schemas/project.ts";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
+import Deal from "@rw/db/schemas/internal/deal.ts";
+import { dealOfferAccepted } from "./dealRoutes.ts";
 import { stageAfterOffer } from "./projects.ts";
 import Species from "@rw/db/schemas/species.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
@@ -160,7 +162,7 @@ async function linesFromScenario(projectId: string): Promise<OfferLine[] | null>
 
 router.get("/", async (_req: Req, res) => {
   const offers: any[] = await Offer.find()
-    .select("dineroNumber title status client.name clientOrganic offerDate validUntil project groveProject lines discountPct updatedAt")
+    .select("dineroNumber title status client.name clientOrganic offerDate validUntil project groveProject deal lines discountPct updatedAt")
     .sort({ updatedAt: -1 })
     .limit(500)
     .lean();
@@ -196,6 +198,10 @@ router.post("/", async (req: Req, res) => {
       return;
     }
     groveProject = req.body.groveProjectId;
+  }
+  if (cleaned.value.deal && !(await Deal.exists({ _id: cleaned.value.deal }))) {
+    res.status(400).send({ error: "Deal not found" });
+    return;
   }
   const priced = await priceAll(lines, {
     marginPct: cleaned.value.marginPct,
@@ -256,15 +262,19 @@ router.put("/:id", async (req: Req, res) => {
     res.status(400).send({ error: "Dashboard project not found" });
     return;
   }
+  if (rest.deal && !(await Deal.exists({ _id: rest.deal }))) {
+    res.status(400).send({ error: "Deal not found" });
+    return;
+  }
   const linkedNow = rest.groveProject && String(rest.groveProject) !== String(offer.groveProject ?? "");
   // An accepted offer is what the client signed: only its Dinero number and
   // notes can change.
   if (offer.status === "accepted") {
     // linking to a dashboard project is internal bookkeeping, not the offer itself
-    const allowed = new Set(["dineroNumber", "notes", "groveProject"]);
+    const allowed = new Set(["dineroNumber", "notes", "groveProject", "deal"]);
     const changed = Object.keys(cleaned.value).filter((k) => !allowed.has(k) && !(k === "status" && cleaned.value.status === "accepted"));
     if (changed.length) {
-      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number and notes can change" });
+      res.status(409).send({ error: "This offer is accepted and locked; only the Dinero number, notes and links to a project or deal can change" });
       return;
     }
   }
@@ -299,6 +309,9 @@ router.put("/:id", async (req: Req, res) => {
   await offer.save();
   if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");
   if (becameAccepted) await moveProjectStage(offer.groveProject, "offer-accepted");
+  // Only the moment of acceptance moves a deal; linking an already accepted
+  // offer to a deal later doesn't (it could be the wrong deal).
+  if (becameAccepted) await dealOfferAccepted(offer.deal, req.user?._id);
   res.send(present(offer));
 });
 

@@ -20,6 +20,7 @@ import { Route as SystemsRouteRouteImport } from './routes/_pages/systems/route'
 import { Route as TermsRouteImport } from './routes/_pages/terms'
 import { Route as AdminIndexRouteImport } from './routes/_pages/admin/index'
 import { Route as GroveIndexRouteImport } from './routes/_pages/grove/index'
+import { Route as GroveManagedRouteImport } from './routes/_pages/grove/managed'
 import { Route as GrovePricebookRouteImport } from './routes/_pages/grove/pricebook'
 import { Route as PlantsIndexRouteImport } from './routes/_pages/plants/index'
 import { Route as SpeciesIndexRouteImport } from './routes/_pages/species/index'
@@ -29,6 +30,10 @@ import { Route as AdminAdvisorRequestsIndexRouteImport } from './routes/_pages/a
 import { Route as AdminFarmerAdvisorSurveyIndexRouteImport } from './routes/_pages/admin/farmer-advisor-survey/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as FarmScenarioPreviewConfigIdIndexRouteImport } from './routes/_pages/farm-scenario-preview/$configId/index'
+import { Route as GroveClientsIndexRouteImport } from './routes/_pages/grove/clients/index'
+import { Route as GroveClientsClientIdRouteImport } from './routes/_pages/grove/clients/$clientId'
+import { Route as GroveDealsIndexRouteImport } from './routes/_pages/grove/deals/index'
+import { Route as GroveDealsDealIdRouteImport } from './routes/_pages/grove/deals/$dealId'
 import { Route as GroveOffersIndexRouteImport } from './routes/_pages/grove/offers/index'
 import { Route as GroveOffersOfferIdRouteImport } from './routes/_pages/grove/offers/$offerId'
 import { Route as GroveProjectsProjectIdRouteImport } from './routes/_pages/grove/projects/$projectId'
@@ -126,6 +131,11 @@ const GroveIndexRoute = GroveIndexRouteImport.update({
   path: '/',
   getParentRoute: () => GroveRouteRoute,
 } as any)
+const GroveManagedRoute = GroveManagedRouteImport.update({
+  id: '/managed',
+  path: '/managed',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
 const GrovePricebookRoute = GrovePricebookRouteImport.update({
   id: '/pricebook',
   path: '/pricebook',
@@ -174,6 +184,26 @@ const FarmScenarioPreviewConfigIdIndexRoute =
     path: '/farm-scenario-preview/$configId/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GroveClientsIndexRoute = GroveClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveClientsClientIdRoute = GroveClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveDealsIndexRoute = GroveDealsIndexRouteImport.update({
+  id: '/deals/',
+  path: '/deals/',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveDealsDealIdRoute = GroveDealsDealIdRouteImport.update({
+  id: '/deals/$dealId',
+  path: '/deals/$dealId',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
 const GroveOffersIndexRoute = GroveOffersIndexRouteImport.update({
   id: '/offers/',
   path: '/offers/',
@@ -434,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
@@ -442,6 +473,8 @@ export interface FileRoutesByFullPath {
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
+  '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -450,6 +483,8 @@ export interface FileRoutesByFullPath {
   '/admin/advisor-requests/': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey/': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId/': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/clients/': typeof GroveClientsIndexRoute
+  '/grove/deals/': typeof GroveDealsIndexRoute
   '/grove/offers/': typeof GroveOffersIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
@@ -493,6 +528,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin': typeof AdminIndexRoute
@@ -501,6 +537,8 @@ export interface FileRoutesByTo {
   '/species': typeof SpeciesIndexRoute
   '/systems': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
+  '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -509,6 +547,8 @@ export interface FileRoutesByTo {
   '/admin/advisor-requests': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/clients': typeof GroveClientsIndexRoute
+  '/grove/deals': typeof GroveDealsIndexRoute
   '/grove/offers': typeof GroveOffersIndexRoute
   '/parcels/$parcelId': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId': typeof ScenarioPreviewScenarioIdIndexRoute
@@ -557,6 +597,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
+  '/grove/managed': typeof GroveManagedRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/species/new': typeof SpeciesNewRoute
   '/admin/': typeof AdminIndexRoute
@@ -565,6 +606,8 @@ export interface FileRoutesById {
   '/species/': typeof SpeciesIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
+  '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -573,6 +616,8 @@ export interface FileRoutesById {
   '/admin/advisor-requests/': typeof AdminAdvisorRequestsIndexRoute
   '/admin/farmer-advisor-survey/': typeof AdminFarmerAdvisorSurveyIndexRoute
   '/farm-scenario-preview/$configId/': typeof FarmScenarioPreviewConfigIdIndexRoute
+  '/grove/clients/': typeof GroveClientsIndexRoute
+  '/grove/deals/': typeof GroveDealsIndexRoute
   '/grove/offers/': typeof GroveOffersIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
   '/scenario-preview/$scenarioId/': typeof ScenarioPreviewScenarioIdIndexRoute
@@ -622,6 +667,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/terms'
+    | '/grove/managed'
     | '/grove/pricebook'
     | '/species/new'
     | '/admin/'
@@ -630,6 +676,8 @@ export interface FileRouteTypes {
     | '/species/'
     | '/systems/'
     | '/api/auth/$'
+    | '/grove/clients/$clientId'
+    | '/grove/deals/$dealId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -638,6 +686,8 @@ export interface FileRouteTypes {
     | '/admin/advisor-requests/'
     | '/admin/farmer-advisor-survey/'
     | '/farm-scenario-preview/$configId/'
+    | '/grove/clients/'
+    | '/grove/deals/'
     | '/grove/offers/'
     | '/parcels/$parcelId/'
     | '/scenario-preview/$scenarioId/'
@@ -681,6 +731,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/terms'
+    | '/grove/managed'
     | '/grove/pricebook'
     | '/species/new'
     | '/admin'
@@ -689,6 +740,8 @@ export interface FileRouteTypes {
     | '/species'
     | '/systems'
     | '/api/auth/$'
+    | '/grove/clients/$clientId'
+    | '/grove/deals/$dealId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -697,6 +750,8 @@ export interface FileRouteTypes {
     | '/admin/advisor-requests'
     | '/admin/farmer-advisor-survey'
     | '/farm-scenario-preview/$configId'
+    | '/grove/clients'
+    | '/grove/deals'
     | '/grove/offers'
     | '/parcels/$parcelId'
     | '/scenario-preview/$scenarioId'
@@ -744,6 +799,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/settings'
     | '/terms'
+    | '/grove/managed'
     | '/grove/pricebook'
     | '/species/new'
     | '/admin/'
@@ -752,6 +808,8 @@ export interface FileRouteTypes {
     | '/species/'
     | '/systems/'
     | '/api/auth/$'
+    | '/grove/clients/$clientId'
+    | '/grove/deals/$dealId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -760,6 +818,8 @@ export interface FileRouteTypes {
     | '/admin/advisor-requests/'
     | '/admin/farmer-advisor-survey/'
     | '/farm-scenario-preview/$configId/'
+    | '/grove/clients/'
+    | '/grove/deals/'
     | '/grove/offers/'
     | '/parcels/$parcelId/'
     | '/scenario-preview/$scenarioId/'
@@ -897,6 +957,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof GroveIndexRouteImport
       parentRoute: typeof GroveRouteRoute
     }
+    '/grove/managed': {
+      id: '/grove/managed'
+      path: '/managed'
+      fullPath: '/grove/managed'
+      preLoaderRoute: typeof GroveManagedRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
     '/grove/pricebook': {
       id: '/grove/pricebook'
       path: '/pricebook'
@@ -959,6 +1026,34 @@ declare module '@tanstack/solid-router' {
       fullPath: '/farm-scenario-preview/$configId/'
       preLoaderRoute: typeof FarmScenarioPreviewConfigIdIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/grove/clients/': {
+      id: '/grove/clients/'
+      path: '/clients'
+      fullPath: '/grove/clients/'
+      preLoaderRoute: typeof GroveClientsIndexRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/clients/$clientId': {
+      id: '/grove/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/grove/clients/$clientId'
+      preLoaderRoute: typeof GroveClientsClientIdRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/deals/': {
+      id: '/grove/deals/'
+      path: '/deals'
+      fullPath: '/grove/deals/'
+      preLoaderRoute: typeof GroveDealsIndexRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/deals/$dealId': {
+      id: '/grove/deals/$dealId'
+      path: '/deals/$dealId'
+      fullPath: '/grove/deals/$dealId'
+      preLoaderRoute: typeof GroveDealsDealIdRouteImport
+      parentRoute: typeof GroveRouteRoute
     }
     '/grove/offers/': {
       id: '/grove/offers/'
@@ -1251,18 +1346,28 @@ declare module '@tanstack/solid-router' {
 }
 
 interface GroveRouteRouteChildren {
+  GroveManagedRoute: typeof GroveManagedRoute
   GrovePricebookRoute: typeof GrovePricebookRoute
   GroveIndexRoute: typeof GroveIndexRoute
+  GroveClientsClientIdRoute: typeof GroveClientsClientIdRoute
+  GroveDealsDealIdRoute: typeof GroveDealsDealIdRoute
   GroveOffersOfferIdRoute: typeof GroveOffersOfferIdRoute
   GroveProjectsProjectIdRoute: typeof GroveProjectsProjectIdRoute
+  GroveClientsIndexRoute: typeof GroveClientsIndexRoute
+  GroveDealsIndexRoute: typeof GroveDealsIndexRoute
   GroveOffersIndexRoute: typeof GroveOffersIndexRoute
 }
 
 const GroveRouteRouteChildren: GroveRouteRouteChildren = {
+  GroveManagedRoute: GroveManagedRoute,
   GrovePricebookRoute: GrovePricebookRoute,
   GroveIndexRoute: GroveIndexRoute,
+  GroveClientsClientIdRoute: GroveClientsClientIdRoute,
+  GroveDealsDealIdRoute: GroveDealsDealIdRoute,
   GroveOffersOfferIdRoute: GroveOffersOfferIdRoute,
   GroveProjectsProjectIdRoute: GroveProjectsProjectIdRoute,
+  GroveClientsIndexRoute: GroveClientsIndexRoute,
+  GroveDealsIndexRoute: GroveDealsIndexRoute,
   GroveOffersIndexRoute: GroveOffersIndexRoute,
 }
 
