@@ -221,12 +221,3 @@ let currentSystemLookup: (id: string) => Promise<SystemFound> = dbSystemLookup;
 export function setSystemLookupForTests(fn: ((id: string) => Promise<SystemFound>) | null) {
   currentSystemLookup = fn ?? dbSystemLookup;
 }
-
-/** Whether a user may use (read, attach) a system: shared, own, or Grove admin. */
-export async function canUseSystem(user: Req["user"], systemId: unknown) {
-  if (!user || typeof systemId !== "string" && !(systemId && typeof systemId === "object")) return false;
-  const id = String((systemId as any)?._id ?? systemId);
-  if (!mongoose.isValidObjectId(id)) return false;
-  const found = await currentSystemLookup(id);
-  return !!found && (found.shared || found.ownerId === str(user._id) || hasRole(user, "grove-admin"));
-}

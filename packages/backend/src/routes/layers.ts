@@ -173,7 +173,7 @@ router.post(
       const foundParcel = await Parcel.findById(req.params.id);
       if (foundParcel) {
         try {
-          const layer: LayerDocument = await Layer.create(req.body.layer);
+          const layer: LayerDocument = await Layer.create(withoutProtectedFields(sanitizeMongoDocument(req.body.layer)));
           // Add user ID to Layer.
           layer.owner.id = req.user?._id.toString()!;
 
@@ -324,7 +324,7 @@ router.post(
             const foundParcel = await Parcel.findById(req.params.id);
             if (foundParcel) {
               try {
-                const createdLayer = await Layer.create(req.body.layer);
+                const createdLayer = await Layer.create(withoutProtectedFields(sanitizeMongoDocument(req.body.layer)));
                 createdLayer.owner.id = req.user?._id.toString()!;
                 createdLayer.geometry = geometry;
                 // CALCULATE LAYER SIZE
@@ -685,6 +685,7 @@ router.post(
 // LAYER ADD FUTURE SYSTEM DRAFT
 router.post(
   "/layers/:id/editfuture",
+  systemReadable("systemid", "body"),
   owns("layer"),
   middleware.isLoggedIn,
   async (

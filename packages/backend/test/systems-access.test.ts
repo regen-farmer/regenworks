@@ -83,6 +83,7 @@ test("attaching someone's private system to your own scenario or field is refuse
     ["POST", `/layers/${own}/systems/${PRIVATE}/projects`, {}],
     ["POST", `/projects/${own}/addedgesystem`, { systemid: PRIVATE }],
     ["POST", `/layers/${own}/presentsystem`, { systemid: PRIVATE }],
+    ["POST", `/layers/${own}/editfuture`, { systemid: PRIVATE }],
     ["PUT", `/parcels/${own}/layers/${own}/projects/${own}/systems/${PRIVATE}/pick`, {}],
   ];
   for (const f of ["projects.ts", "layers.ts"]) {

@@ -43,6 +43,8 @@ function FinancialsView() {
     return await response.json();
   });
 
+  const [saveError, setSaveError] = createSignal<string>();
+
   const [lineChart, setLineChart] = createSignal();
   const [showChart, setShowChart] = createSignal(true);
 
@@ -193,11 +195,15 @@ function FinancialsView() {
     });
     // console.log(payload)
 
-    await fetch(`/api/projects/${params().projectId}/financials/activities`, {
+    const saved = await fetch(`/api/projects/${params().projectId}/financials/activities`, {
       body: JSON.stringify(payload),
       method: "PATCH",
       ...apiFetchOptions(),
     });
+    if (!saved.ok) {
+      const body = await saved.json().catch(() => undefined);
+      setSaveError(body?.error ?? `Not saved (${saved.status})`);
+    } else setSaveError(undefined);
 
     myChart.destroy();
   };
@@ -287,6 +293,9 @@ function FinancialsView() {
           </div>
           <div class="col-sm-4">
             <form onSubmit={handleKeyParameterSubmit}>
+          <Show when={saveError()}>
+            <p class="text-sm text-red-600 my-2" role="alert">{saveError()}</p>
+          </Show>
               <h2 class="h2">Financial Analysis</h2>
               <p>
                 <strong>Parameters</strong>

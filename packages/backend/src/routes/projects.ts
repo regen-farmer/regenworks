@@ -178,7 +178,7 @@ router.post(
   ) => {
     // Create a new project
     try {
-      const service = await Project.create(req.body.project);
+      const service = await Project.create(withoutProtectedFields(sanitizeMongoDocument(req.body.project)));
       // CONVERT ADDRESS TO COORDINATES USING GEOCODER
       geocoder.geocode(req.body.service.location, async (err, data) => {
         if (err || !data.length) {
@@ -1191,7 +1191,7 @@ router.post(
     try {
       const foundLayer = await Layer.findById(req.params.id).populate("rows").exec();
 
-      const createdProject = await Project.create(req.body.project);
+      const createdProject = await Project.create(withoutProtectedFields(sanitizeMongoDocument(req.body.project)));
 
       if (foundLayer && createdProject) {
         // CREATE CURRENCY
@@ -1258,7 +1258,7 @@ router.post(
     try {
       const foundLayer = await Layer.findById(req.params.id).populate("rows").exec();
 
-      const createdProject = await Project.create(req.body.project);
+      const createdProject = await Project.create(withoutProtectedFields(sanitizeMongoDocument(req.body.project)));
 
       // FIND SYSTEM AND ADD TO PROJECT
       const foundSystem = await System.findById(req.params.system).populate("model.species").exec();
