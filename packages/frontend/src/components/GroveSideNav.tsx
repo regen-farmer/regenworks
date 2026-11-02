@@ -22,6 +22,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/plants", label: "Plants", icon: "fa-seedling", show: () => canUsePlantCatalogue() },
   { to: "/grove/prices", label: "Prices", icon: "fa-scale-balanced", show: () => canSeeMoney() },
   { to: "/grove/pricebook", label: "Pricebook", icon: "fa-tags", show: () => canSeeMoney() },
+  { to: "/grove/value-chains", label: "Value chains", icon: "fa-diagram-project", show: () => canSeeMoney() },
   { to: "/settings", label: "Settings", icon: "fa-gear" },
 ];
 

@@ -11,6 +11,7 @@ import projectRoutes from "../internal/projectRoutes.ts";
 import { clientRouter, dealRouter, funnelRouter } from "../internal/dealRoutes.ts";
 import scorecardRoutes from "../internal/scorecardRoutes.ts";
 import supplyRoutes from "../internal/supplyRoutes.ts";
+import valueChainRoutes from "../internal/valueChainRoutes.ts";
 
 const router = express.Router();
 
@@ -32,6 +33,8 @@ router.use("/clients", requireRole("grove-team"), clientRouter);
 router.use("/scorecard", requireRole("grove-team"), scorecardRoutes);
 // Forward-order supply: grove-team only.
 router.use("/supply", requireRole("grove-team"), supplyRoutes);
+// Library → Value chains: equipment catalogue (with prices) and processing lines, grove-team only.
+router.use("/value-chains", requireRole("grove-team"), valueChainRoutes);
 // Dashboard: field users see their assigned projects (no money); see projectRoutes.ts.
 router.use("/projects", projectRoutes);
 
