@@ -11,9 +11,16 @@ export type ScorecardTargets = {
   to?: string;
   /** gross margin on offers accepted in the period (kr, excl. VAT) */
   margin?: number | null;
-  /** deposits on forward orders accepted in the period (kr incl. VAT) */
+  /** deposits on forward orders won in the period (kr excl. VAT, as in the sales plan) */
   deposits?: number | null;
+  /** margin assumed on a won deal until its offer has real costs (%, default 25) */
+  standardMarginPct?: number | null;
 };
+
+export const DEFAULT_STANDARD_MARGIN = 25;
+/** Deposit on a forward-order deal without an offer: the forward-order rule. */
+export const FORWARD_DEPOSIT_PCT = 20;
+const VAT = 0.25;
 
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime());
 
@@ -27,6 +34,14 @@ export function cleanTargets(body: any): { ok: true; value: ScorecardTargets } |
     out[k] = body[k];
   }
   if (out.from && out.to && out.from > out.to) return { ok: false, error: "The period must end after it starts" };
+  if (body?.standardMarginPct !== undefined) {
+    if (body.standardMarginPct === null || body.standardMarginPct === "") out.standardMarginPct = null;
+    else {
+      const p = typeof body.standardMarginPct === "number" ? body.standardMarginPct : Number(body.standardMarginPct);
+      if (!Number.isFinite(p) || p < 0 || p > 90) return { ok: false, error: "Standard margin must be 0 to 90 %" };
+      out.standardMarginPct = Math.round(p * 10) / 10;
+    }
+  }
   for (const k of ["margin", "deposits"] as const) {
     if (body?.[k] === undefined) continue;
     if (body[k] === null || body[k] === "") {
@@ -58,7 +73,7 @@ const day = (d: Date | string | null | undefined) => {
   return Number.isNaN(x.getTime()) ? undefined : danishDay(x);
 };
 
-type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; wonAt?: Date | string | null; updatedAt?: Date | string | null; groveProject?: unknown };
+type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: string; value?: number | null; forwardOrder?: boolean; wonAt?: Date | string | null; updatedAt?: Date | string | null; groveProject?: unknown };
 
 /**
  * Won business in the period, shown per deal (A · Deals) where there is one.
@@ -66,8 +81,10 @@ type WonDeal = { _id: unknown; title?: string; client?: string; funnelName?: str
  * deal was won and the day the offer was accepted, so a sale is never moved
  * back into an earlier period (a deal won on a handshake in October with its
  * offer accepted in November counts in November). Spring work counts margin,
- * forward orders their deposit. A won deal without an accepted offer shows
- * its deal value, flagged, since its margin isn't known. Accepted offers not
+ * forward orders their deposit (excl. VAT). A won deal without an accepted
+ * offer is estimated from its value: the standard margin (Kris, 2 Nov: count
+ * deals now, real costs come with the offers), or a 20 % deposit for a deal
+ * ticked "Forward order". Accepted offers not
  * on a won deal (plant-list sales, older offers) count by acceptance date.
  * `closedDealIds`: won and lost deals, whose sent offers are no longer
  * counted as "in sent offers".
@@ -102,11 +119,34 @@ export function scorecard(input: {
     offersOf.set(k, [...(offersOf.get(k) ?? []), { ...priced(o), on: later(wonDay(d), day(o.acceptedAt)) }]);
   }
   const round = (n: number) => Math.round(n * 100) / 100;
+  const stdPct = typeof t.standardMarginPct === "number" ? t.standardMarginPct : DEFAULT_STANDARD_MARGIN;
   const fromDeals = wonDeals.flatMap((d) => {
     const all = offersOf.get(String(d._id)) ?? [];
     if (!all.length) {
       if (!inPeriod(wonDay(d))) return [];
-      return [{ kind: "deal" as const, _id: d._id, offers: 0, title: d.title, client: d.client, funnel: d.funnelName, acceptedOn: wonDay(d), forwardOrder: false, net: 0, margin: 0, marginPct: null as number | null, withoutCost: 0, deposit: 0, withoutOffer: d.value ?? 0, deal: d._id, groveProject: d.groveProject ?? null }];
+      const value = d.value ?? 0;
+      const fwd = !!d.forwardOrder;
+      return [
+        {
+          kind: "deal" as const,
+          _id: d._id,
+          offers: 0,
+          estimated: true,
+          title: d.title,
+          client: d.client,
+          funnel: d.funnelName,
+          acceptedOn: wonDay(d),
+          forwardOrder: fwd,
+          net: value,
+          margin: fwd ? 0 : round((value * stdPct) / 100),
+          marginPct: fwd ? null : (stdPct as number | null),
+          withoutCost: 0,
+          deposit: fwd ? round((value * FORWARD_DEPOSIT_PCT) / 100) : 0,
+          withoutOffer: value,
+          deal: d._id,
+          groveProject: d.groveProject ?? null,
+        },
+      ];
     }
     const list = all.filter((x) => inPeriod(x.on));
     if (!list.length) return [];
@@ -128,8 +168,9 @@ export function scorecard(input: {
         margin,
         marginPct: springNet > 0 && spring.every((x) => x.marginPct !== null) ? Math.round((margin / springNet) * 1000) / 10 : null,
         withoutCost: round(spring.reduce((n, x) => n + x.withoutCost, 0)),
-        deposit: round(fwd.reduce((n, x) => n + x.deposit, 0)),
+        deposit: round(fwd.reduce((n, x) => n + x.deposit / (1 + VAT), 0)),
         withoutOffer: 0,
+        estimated: false,
         deal: d._id,
         groveProject: d.groveProject ?? null,
       },
@@ -152,8 +193,9 @@ export function scorecard(input: {
         margin: x.forward ? 0 : x.margin,
         marginPct: x.forward ? null : x.marginPct,
         withoutCost: x.forward ? 0 : x.withoutCost,
-        deposit: x.forward ? x.deposit : 0,
+        deposit: x.forward ? round(x.deposit / (1 + VAT)) : 0,
         withoutOffer: 0,
+        estimated: false,
         deal: o.deal ?? null,
         groveProject: o.groveProject ?? null,
       };
@@ -165,12 +207,14 @@ export function scorecard(input: {
   const margin = sum(won.map((w) => w.margin));
   const deposits = sum(won.map((w) => w.deposit));
   const withoutCost = sum(won.map((w) => w.withoutCost));
-  const withoutOffer = { count: won.filter((w) => w.kind === "deal" && !w.offers).length, value: sum(won.map((w) => w.withoutOffer)) };
+  // won deals counted from their value (no accepted offer yet)
+  const estimated = won.filter((w) => w.estimated);
+  const withoutOffer = { count: estimated.length, value: sum(estimated.map((w) => w.withoutOffer)), margin: sum(estimated.map((w) => w.margin)), deposits: sum(estimated.map((w) => w.deposit)) };
   // sent offers still in play: not on a deal that is already won or lost
   const closed = new Set((input.closedDealIds ?? []).map(String));
   const sent = input.offers.filter((o) => o.status === "sent" && !(o.deal && closed.has(String(o.deal))));
   const sentMargin = sum(sent.filter((o) => !o.terms?.forwardOrder).map((o) => offerMargin(o).margin));
-  const sentDeposits = sum(sent.filter((o) => o.terms?.forwardOrder).map((o) => offerTotals(o).deposit.amount));
+  const sentDeposits = sum(sent.filter((o) => o.terms?.forwardOrder).map((o) => offerTotals(o).deposit.amount / (1 + VAT)));
   const byFunnel = new Map<string, { count: number; value: number }>();
   for (const d of input.openDeals) {
     const k = d.funnelName ?? "Other";
@@ -192,7 +236,8 @@ export function scorecard(input: {
     margin: { actual: margin, target: t.margin ?? null, gap: marginGap, perWeek: perWeek(marginGap), withoutCost, inSentOffers: sentMargin },
     withoutOffer,
     deposits: { actual: deposits, target: t.deposits ?? null, gap: depositGap, perWeek: perWeek(depositGap), inSentOffers: sentDeposits },
-    pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v })).sort((a, b) => b.value - a.value),
+    standardMarginPct: stdPct,
+    pipeline: [...byFunnel.entries()].map(([funnel, v]) => ({ funnel, ...v, estMargin: Math.round((v.value * stdPct) / 100) })).sort((a, b) => b.value - a.value),
     won,
   };
 }

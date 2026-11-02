@@ -35,6 +35,8 @@ export type Deal = {
   owner?: string | null;
   source?: string;
   sourceDetail?: string;
+  /** trees for a later season: counts as a deposit on the scorecard */
+  forwardOrder?: boolean;
   /** when the deal came into its current stage */
   stageSince?: string | null;
   nextAction?: { text?: string; date?: string | null };

@@ -95,8 +95,13 @@ function parseSuppliers(text: string, row: number): { name: string; qty: number 
     });
 }
 
+type Options = { species: { latin: string; name?: string; cultivars: string[] }[]; rootstocks: string[] };
+
 function Supply() {
   const [data, { refetch }] = createResource(() => (canSeeMoney() ? true : undefined), () => apiFetch<Data>("/internal/supply"));
+  // searchable species, cultivars and rootstocks (from the pricebook and the saved plan)
+  const [options] = createResource(() => (canSeeMoney() ? true : undefined), () => apiFetch<Options>("/internal/supply/options"));
+  const cultivarsOf = (latin: string) => options.latest?.species.find((x) => x.latin.toLowerCase() === latin.trim().split(/\s+/).slice(0, 2).join(" ").toLowerCase())?.cultivars ?? [];
   const d = () => (data.error ? undefined : data.latest);
   const [editing, setEditing] = createSignal(false);
   const [rows, setRows] = createSignal<EditRow[]>([]);
@@ -189,17 +194,17 @@ function Supply() {
               <table class="w-full text-sm min-w-[1100px]">
                 <thead>
                   <tr>
-                    <th class={th}>Species (Latin)</th>
+                    <th class={th}>Species (search)</th>
                     <th class={th}>Cultivar</th>
                     <th class={th}>Propagation</th>
-                    <th class={th}>Rootstock</th>
+                    <th class={th}>Rootstock (search)</th>
                     <th class={th}>Organic</th>
                     <th class={th}>Form</th>
                     <th class={th}>Years</th>
                     <th class={th}>Season</th>
-                    <th class={th}>Own production</th>
-                    <th class={th}>Take %</th>
-                    <th class={th}>Suppliers (Name: qty; …)</th>
+                    <th class={th} title="How many we produce ourselves: grafts made (grafted) or seeds sown/seedlings potted (seedlings)">Own: plants started</th>
+                    <th class={th} title="Share of our own plants expected to make it, e.g. 70 % graft take">Expected success %</th>
+                    <th class={th} title="Other nurseries that can deliver this product, and how many plants each">Bought in from other nurseries</th>
                     <th class={th}>Note</th>
                     <th class={th} />
                   </tr>
@@ -208,8 +213,13 @@ function Supply() {
                   <Index each={rows()}>
                     {(r, i) => (
                       <tr>
-                        <td class={td}><input class={input} required maxLength={100} value={r().latin} placeholder="Corylus avellana" onInput={(e) => setField(i, "latin", e.currentTarget.value)} /></td>
-                        <td class={td}><input class={input} maxLength={100} value={r().cultivar} placeholder="Corabel" onInput={(e) => setField(i, "cultivar", e.currentTarget.value)} /></td>
+                        <td class={td}><input class={input} required maxLength={100} list="supply-species" value={r().latin} placeholder="Type to search, e.g. Corylus" onInput={(e) => setField(i, "latin", e.currentTarget.value)} /></td>
+                        <td class={td}>
+                          <input class={input} maxLength={100} list={`supply-cultivars-${i}`} value={r().cultivar} placeholder="Corabel" onInput={(e) => setField(i, "cultivar", e.currentTarget.value)} />
+                          <datalist id={`supply-cultivars-${i}`}>
+                            <For each={cultivarsOf(r().latin)}>{(c) => <option value={c} />}</For>
+                          </datalist>
+                        </td>
                         <td class={td}>
                           <select class={input} value={r().propagation} onChange={(e) => setField(i, "propagation", e.currentTarget.value)}>
                             <option value="">–</option>
@@ -217,7 +227,7 @@ function Supply() {
                           </select>
                         </td>
                         <td class={td}>
-                          <input class={input} maxLength={100} disabled={!!r().propagation && r().propagation !== "grafted"} value={r().rootstock} placeholder={r().propagation && r().propagation !== "grafted" ? "own roots" : "Corylus colurna"} onInput={(e) => setField(i, "rootstock", e.currentTarget.value)} />
+                          <input class={input} maxLength={100} disabled={!!r().propagation && r().propagation !== "grafted"} value={r().rootstock} placeholder={r().propagation && r().propagation !== "grafted" ? "own roots" : "Corylus colurna"} list="supply-rootstocks" onInput={(e) => setField(i, "rootstock", e.currentTarget.value)} />
                         </td>
                         <td class={td}>
                           <select class={input} value={r().organic} onChange={(e) => setField(i, "organic", e.currentTarget.value)}>
@@ -234,9 +244,9 @@ function Supply() {
                         </td>
                         <td class={td}><input class={`${input} w-14`} maxLength={5} value={r().years} placeholder={defaultYears(r().propagation) ?? "1+1"} onInput={(e) => setField(i, "years", e.currentTarget.value)} /></td>
                         <td class={td}><input class={input} required maxLength={40} value={r().season} placeholder="Autumn 2027" onInput={(e) => setField(i, "season", e.currentTarget.value)} /></td>
-                        <td class={td}><input class={`${input} w-24`} type="number" min="0" step="1" value={r().ownGrafts} placeholder="grafts/sown" onInput={(e) => setField(i, "ownGrafts", e.currentTarget.value)} /></td>
+                        <td class={td}><input class={`${input} w-24`} type="number" min="0" step="1" value={r().ownGrafts} placeholder="e.g. 1000" onInput={(e) => setField(i, "ownGrafts", e.currentTarget.value)} /></td>
                         <td class={td}><input class={`${input} w-16`} type="number" min="0" max="100" value={r().takePct} placeholder="70" onInput={(e) => setField(i, "takePct", e.currentTarget.value)} /></td>
-                        <td class={td}><input class={input} maxLength={1000} value={r().suppliers} placeholder="Supplier A: 2000" onInput={(e) => setField(i, "suppliers", e.currentTarget.value)} /></td>
+                        <td class={td}><input class={input} maxLength={1000} value={r().suppliers} placeholder="Nursery: plants, e.g. Vester Skovgaard: 2000" onInput={(e) => setField(i, "suppliers", e.currentTarget.value)} /></td>
                         <td class={td}><input class={input} maxLength={500} value={r().note} onInput={(e) => setField(i, "note", e.currentTarget.value)} /></td>
                         <td class={td}>
                           <button type="button" class="text-xs underline" onClick={() => setRows(rows().filter((_, j) => j !== i))}>Remove</button>
@@ -247,6 +257,15 @@ function Supply() {
                 </tbody>
               </table>
             </div>
+            <datalist id="supply-species">
+              <For each={options.latest?.species}>{(x) => <option value={x.latin}>{x.name ?? ""}</option>}</For>
+            </datalist>
+            <datalist id="supply-rootstocks">
+              <For each={options.latest?.rootstocks}>{(x) => <option value={x} />}</For>
+            </datalist>
+            <p class="text-xs opacity-80">
+              <b>Own: plants started</b> is what we produce ourselves: grafts made (grafted) or seeds sown (seedlings). <b>Expected success %</b> is how many of them we expect to make it (e.g. 70 % graft take), so 1,000 grafts at 70 % = 700 plants. <b>Bought in</b> lists other nurseries that can deliver the same product, as "Nursery: plants", several separated by ";".
+            </p>
             <div class="flex flex-wrap gap-2 items-center">
               <button type="button" class="text-sm underline" onClick={() => setRows([...rows(), { ...blank }])}>Add a product</button>
               <button class="rounded-sm px-2 py-1 btn-default" disabled={busy()}>Save plan</button>
@@ -265,8 +284,8 @@ function Supply() {
                 <th class={th}>Season</th>
                 <th class={th}>Signed</th>
                 <th class={th}>Likely</th>
-                <th class={th}>Own × take</th>
-                <th class={th}>Suppliers</th>
+                <th class={th}>Own × success</th>
+                <th class={th}>Bought in</th>
                 <th class={th}>Available</th>
                 <th class={th}>After signed</th>
                 <th class={th}>After likely</th>

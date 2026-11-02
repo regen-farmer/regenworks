@@ -155,6 +155,10 @@ export function cleanDeal(body: any, { creating = false } = {}): Cleaned<Record<
     if (typeof body.archived !== "boolean") errors.push("archived must be true or false");
     else out.archived = body.archived;
   }
+  if (body?.forwardOrder !== undefined) {
+    if (typeof body.forwardOrder !== "boolean") errors.push("forwardOrder must be true or false");
+    else out.forwardOrder = body.forwardOrder;
+  }
   return errors.length ? { ok: false, errors } : { ok: true, value: out };
 }
 

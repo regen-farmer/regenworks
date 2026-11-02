@@ -37,7 +37,7 @@ router.get("/", async (_req: Req, res) => {
       .sort({ updatedAt: -1 })
       .limit(500)
       .lean(),
-    Deal.find({ status: "won" }).select("title client value wonAt updatedAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
+    Deal.find({ status: "won" }).select("title client value forwardOrder wonAt updatedAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
     Deal.find({ status: "lost" }).select("_id").limit(10000).lean(),
   ]);
   const clientIds = [...new Set((wonDeals as any[]).map((d) => String(d.client)).filter(Boolean))];
@@ -53,6 +53,7 @@ router.get("/", async (_req: Req, res) => {
       client: clientName.get(String(d.client)),
       funnelName: funnelName.get(String(d.funnel)),
       value: d.value,
+      forwardOrder: d.forwardOrder,
       wonAt: d.wonAt,
       updatedAt: d.updatedAt,
       groveProject: d.groveProject,
