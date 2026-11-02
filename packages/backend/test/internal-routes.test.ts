@@ -52,3 +52,23 @@ test("/internal/me: admin with unverified email → 401", async () => {
     401,
   );
 });
+
+test("/internal/pricebook: field user → 403 (no prices for field users)", async () => {
+  who = { user: { roles: ["grove-field"] }, idToken: verified };
+  const res = await fetch(`${base}/internal/pricebook`);
+  assert.equal(res.status, 403);
+});
+
+test("/internal/pricebook: anonymous → 401, public → 403", async () => {
+  who = {};
+  assert.equal((await fetch(`${base}/internal/pricebook`)).status, 401);
+  who = { user: { roles: [] }, idToken: verified };
+  assert.equal((await fetch(`${base}/internal/pricebook/import`, { method: "POST" })).status, 403);
+});
+
+test("/internal/pricebook: every route refuses field users", async () => {
+  who = { user: { roles: ["grove-field"] }, idToken: verified };
+  for (const path of ["/", "/versions", "/search?q=x", "/suggest?latin=x"]) {
+    assert.equal((await fetch(`${base}/internal/pricebook${path}`)).status, 403, path);
+  }
+});
