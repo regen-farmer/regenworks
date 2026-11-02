@@ -4,6 +4,7 @@ import express from "express";
 import Offer from "@rw/db/schemas/internal/offer.ts";
 import Deal from "@rw/db/schemas/internal/deal.ts";
 import Funnel from "@rw/db/schemas/internal/funnel.ts";
+import Client from "@rw/db/schemas/internal/client.ts";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
 import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
@@ -23,7 +24,7 @@ router.get("/", async (_req: Req, res) => {
   }
   const setting: any = await GroveSetting.findOne({ key: KEY }).lean();
   const targets: ScorecardTargets = setting?.value ?? {};
-  const [offers, deals, funnels, projects] = await Promise.all([
+  const [offers, deals, funnels, projects, wonDeals, lostDeals] = await Promise.all([
     Offer.find({ status: inIds(["accepted", "sent"]) })
       .select("title client.name status acceptedAt updatedAt offerDate terms lines.qty lines.unitPrice lines.discountPct lines.pricing.unitCostDkk lines.pricing.costHigh lines.pricing.costLow discountPct deal groveProject")
       .sort({ updatedAt: -1 })
@@ -36,11 +37,27 @@ router.get("/", async (_req: Req, res) => {
       .sort({ updatedAt: -1 })
       .limit(500)
       .lean(),
+    Deal.find({ status: "won" }).select("title client value wonAt updatedAt funnel groveProject").sort({ wonAt: -1 }).limit(5000).lean(),
+    Deal.find({ status: "lost" }).select("_id").limit(10000).lean(),
   ]);
+  const clientIds = [...new Set((wonDeals as any[]).map((d) => String(d.client)).filter(Boolean))];
+  const clients: any[] = clientIds.length ? await Client.find({ _id: inIds(clientIds) }).select("name").lean() : [];
+  const clientName = new Map(clients.map((c) => [String(c._id), c.name]));
   const funnelName = new Map((funnels as any[]).map((f) => [String(f._id), f.name]));
   const card = scorecard({
     offers: offers as any[],
     openDeals: (deals as any[]).map((d) => ({ value: d.value, funnelName: funnelName.get(String(d.funnel)) })),
+    wonDeals: (wonDeals as any[]).map((d) => ({
+      _id: d._id,
+      title: d.title,
+      client: clientName.get(String(d.client)),
+      funnelName: funnelName.get(String(d.funnel)),
+      value: d.value,
+      wonAt: d.wonAt,
+      updatedAt: d.updatedAt,
+      groveProject: d.groveProject,
+    })),
+    closedDealIds: [...(wonDeals as any[]), ...(lostDeals as any[])].map((d) => d._id),
     targets,
   });
   const projectBy = new Map((projects as any[]).map((p) => [String(p._id), p]));
@@ -50,17 +67,6 @@ router.get("/", async (_req: Req, res) => {
       const p = w.groveProject ? projectBy.get(String(w.groveProject)) : undefined;
       return { ...w, project: p ? { _id: p._id, name: p.name, stage: p.stage, step: p.step } : null };
     }),
-    projects: (projects as any[]).map((p) => ({
-      _id: p._id,
-      name: p.name,
-      type: p.type,
-      client: p.client?.name,
-      stage: p.stage,
-      step: p.step,
-      status: p.status,
-      nextAction: p.nextAction,
-      plantingDate: p.plantingDate,
-    })),
   });
 });
 

@@ -169,3 +169,17 @@ test("funnel editor, sources and report: grove-team only", async () => {
     assert.equal((await fetch(`${base}/internal/deals/report`)).status, status);
   }
 });
+
+test("attention: overdue or missing next action, slow stage, closing soon", async () => {
+  const { attentionReasons } = await import("../src/internal/funnels.ts");
+  const now = new Date("2026-11-20T10:00:00Z");
+  const stage = { key: "lead", name: "Lead", kind: "open" as const, targetDays: 5 };
+  const keys = (x: any) => attentionReasons(x, stage, now).map((r) => r.key);
+  assert.deepEqual(keys(deal({ nextAction: { date: "2026-11-25" } })), ["slow"], "19 days in Lead, target 5");
+  assert.deepEqual(keys(deal({ nextAction: { date: "2026-11-18" }, history: [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }] })), ["overdue"]);
+  assert.deepEqual(keys(deal({ history: [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }], expectedClose: "2026-11-30" })), ["no-action", "closing"]);
+  assert.deepEqual(keys(deal({ status: "won" })), []);
+  const fresh = [{ stage: "lead", funnel: "f1", at: d("2026-11-19") }];
+  assert.deepEqual(keys(deal({ history: fresh, nextAction: { date: "2026-11-20T11:00:00Z" } })), [], "due today is not overdue");
+  assert.deepEqual(keys(deal({ history: fresh, nextAction: { date: "2026-11-21" }, expectedClose: "2026-11-19T12:00:00Z" })), ["close-passed"]);
+});

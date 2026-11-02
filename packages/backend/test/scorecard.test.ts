@@ -90,3 +90,64 @@ test("/internal/scorecard: grove-team only", async () => {
   who = { user: { _id: "000000000000000000000001", roles: ["grove-team"] }, idToken: { email_verified: true } };
   assert.equal((await fetch(`${base}/internal/scorecard/targets`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ margin: -5 }) })).status, 400);
 });
+
+test("scorecard counts won deals: margin/deposit from their accepted offers; no offer flagged; other offers still count", async () => {
+  const c = scorecard({
+    targets: { from: "2026-11-01", to: "2027-04-30" },
+    openDeals: [],
+    wonDeals: [
+      { _id: "d1", title: "Spring 4 ha", wonAt: "2026-11-20T12:00:00Z", value: 99999 },
+      { _id: "d2", title: "Hazel 2027", wonAt: "2026-11-21T12:00:00Z" },
+      { _id: "d3", title: "Handshake", wonAt: "2026-11-22T12:00:00Z", value: 40000 },
+      { _id: "d4", title: "Last season", wonAt: "2026-05-01T12:00:00Z" },
+    ],
+    offers: [
+      // accepted before the deal was won (or long ago): counts by the deal's date
+      { status: "accepted", deal: "d1", acceptedAt: "2026-10-30", lines: [line(100, 100, 60)] },
+      { status: "accepted", deal: "d2", acceptedAt: "2026-11-21", lines: [line(1000, 130, 90)], terms: { forwardOrder: true } },
+      { status: "accepted", deal: "d4", acceptedAt: "2026-11-25", lines: [line(10, 1000, 0)] },
+      // no deal: counts on its own
+      { status: "accepted", acceptedAt: "2026-11-23", lines: [line(10, 100, 50)] },
+    ] as any[],
+  });
+  assert.equal(c.margin.actual, 4000 + 10000 + 500, "d1 + d4 (won in May, offer accepted 25 Nov: counts now) + the plant-list offer");
+  const fwdDeposit = offerTotals({ lines: [line(1000, 130, 90)], terms: { forwardOrder: true } } as any).deposit.amount;
+  assert.equal(c.deposits.actual, fwdDeposit);
+  assert.deepEqual(c.withoutOffer, { count: 1, value: 40000 });
+  assert.deepEqual(c.won.map((w) => [w.kind, w.title ?? "(offer)"]), [
+    ["deal", "Last season"],
+    ["offer", "(offer)"],
+    ["deal", "Handshake"],
+    ["deal", "Hazel 2027"],
+    ["deal", "Spring 4 ha"],
+  ]);
+});
+
+test("scorecard edge cases: mixed deal, offers on open/lost deals, missing wonAt, sent offers on closed deals, Danish midnight", () => {
+  const c = scorecard({
+    targets: { from: "2026-11-01", to: "2027-04-30" },
+    openDeals: [],
+    wonDeals: [
+      { _id: "mix", title: "Mixed", wonAt: "2026-10-31T23:30:00Z" }, // 1 Nov in Denmark
+      { _id: "nodate", title: "No date", updatedAt: "2026-11-05T12:00:00Z" },
+    ],
+    closedDealIds: ["mix", "nodate", "lostdeal"],
+    offers: [
+      { status: "accepted", deal: "mix", acceptedAt: "2026-11-02", lines: [line(100, 100, 60)] },
+      { status: "accepted", deal: "mix", acceptedAt: "2026-11-02", lines: [line(100, 130, 90)], terms: { forwardOrder: true } },
+      { status: "accepted", deal: "nodate", acceptedAt: "2026-11-05", lines: [line(10, 100, 50)] },
+      { status: "accepted", deal: "opendeal", acceptedAt: "2026-11-06", lines: [line(10, 100, 80)] },
+      { status: "sent", deal: "mix", lines: [line(1000, 100, 0)] },
+      { status: "sent", deal: "lostdeal", lines: [line(1000, 100, 0)] },
+      { status: "sent", deal: "opendeal", lines: [line(10, 100, 50)] },
+    ] as any[],
+  });
+  const mix = c.won.find((w) => w.title === "Mixed")!;
+  assert.equal(mix.margin, 4000);
+  assert.ok(mix.deposit > 0);
+  assert.equal(mix.forwardOrder, false);
+  assert.equal(mix.acceptedOn, "2026-11-02");
+  assert.equal(c.won.find((w) => w.title === "No date")?.margin, 500, "a won deal without wonAt keeps its offers");
+  assert.equal(c.margin.actual, 4000 + 500 + 200, "offer on an open deal counts by its acceptance date");
+  assert.equal(c.margin.inSentOffers, 500, "only the sent offer on the open deal");
+});

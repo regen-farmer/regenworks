@@ -3,6 +3,7 @@
 // Deals point at a stage by its key, so a rename never touches a deal; a
 // stage can only be removed once no deal is in it.
 import type { IFunnelStage } from "@rw/db/schemas/internal/funnel.ts";
+import { danishDay } from "./services.ts";
 
 type Stage = Pick<IFunnelStage, "key" | "name" | "kind"> & { targetDays?: number | null };
 const KINDS = ["open", "won", "lost"] as const;
@@ -271,4 +272,31 @@ export function dealReport(deals: DealLike[], funnels: { _id: unknown; name: str
     };
   });
   return { deals: inPeriod.length, bySource, byFunnel, truncated: false };
+}
+
+/**
+ * Why an open deal needs attention today: next action overdue or missing,
+ * longer in its stage than the stage's target, expected close passed or
+ * within two weeks. Empty when it's fine.
+ */
+export function attentionReasons(
+  deal: DealLike & { nextAction?: { text?: string; date?: Date | string | null }; expectedClose?: Date | string | null },
+  stage: Stage | undefined,
+  now = new Date(),
+) {
+  const out: { key: "overdue" | "no-action" | "slow" | "closing" | "close-passed"; text: string }[] = [];
+  if (deal.status !== "open" || deal.archived) return out;
+  // Danish calendar days, whatever the server's time zone
+  const today = danishDay(now);
+  const dayOf = (v: Date | string | null | undefined) => (v ? danishDay(new Date(v)) : null);
+  const next = dayOf(deal.nextAction?.date);
+  if (next && next < today) out.push({ key: "overdue", text: "Next action overdue" });
+  if (!next) out.push({ key: "no-action", text: "No next action" });
+  const age = stageAge(deal, stage, now);
+  if (age.over) out.push({ key: "slow", text: `${age.days} days in ${stage?.name ?? "stage"} (target ${stage?.targetDays})` });
+  const close = dayOf(deal.expectedClose);
+  const in14 = danishDay(new Date(now.getTime() + 14 * DAY));
+  if (close && close < today) out.push({ key: "close-passed", text: "Expected close has passed" });
+  else if (close && close <= in14) out.push({ key: "closing", text: "Expected to close within 2 weeks" });
+  return out;
 }

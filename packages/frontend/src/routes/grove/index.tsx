@@ -1,5 +1,7 @@
-// Grove Dashboard: every project from prospect to management, as a board,
-// a list or a map. Grove team (field users see their assigned projects).
+// Grove Dashboard: the scorecard (from won deals), then two tabs: A · Deals
+// (open deals that need attention) and B · Projects (where each ongoing
+// project is, as a status list, a board, a list or a map). Field users see
+// only B, with their assigned projects.
 import { createFileRoute, Link } from "@tanstack/solid-router";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -7,6 +9,7 @@ import { createEffect, createMemo, createResource, createSignal, For, onCleanup,
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { Scorecard } from "~/grove/Scorecard.tsx";
+import { DealsAttention } from "~/grove/DealsAttention.tsx";
 import { DECISION_EN } from "~/grove/ChecklistPanel.tsx";
 import {
   kroner,
@@ -14,6 +17,7 @@ import {
   STAGE_COLOR,
   STAGE_LABEL,
   STAGES,
+  stageText,
   TYPE_LABEL,
   TYPES,
   type GroveProject,
@@ -22,21 +26,40 @@ import {
 import { apiFetch } from "~/util/apiFetch.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
-type View = "board" | "list" | "map";
+type View = "status" | "board" | "list" | "map";
+type Tab = "deals" | "projects";
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm";
 
 function readView(): View {
   try {
     const v = localStorage.getItem("grove-dashboard-view");
-    return v === "list" || v === "map" ? v : "board";
+    return v === "list" || v === "map" || v === "board" ? v : "status";
   } catch {
-    return "board";
+    return "status";
+  }
+}
+
+function readTab(): Tab {
+  try {
+    return localStorage.getItem("grove-dashboard-tab") === "projects" ? "projects" : "deals";
+  } catch {
+    return "deals";
   }
 }
 
 function Dashboard() {
   const [data, { refetch, mutate }] = createResource(() => apiFetch<{ projects: GroveProject[] }>("/internal/projects"));
   const [view, setView] = createSignal<View>(readView());
+  const [tabChoice, setTab] = createSignal<Tab>(readTab());
+  // field users only have projects
+  const tab = () => (canSeeMoney() ? tabChoice() : "projects");
+  createEffect(() => {
+    try {
+      localStorage.setItem("grove-dashboard-tab", tabChoice());
+    } catch {
+      // per-browser convenience only
+    }
+  });
   const [search, setSearch] = createSignal("");
   const [type, setType] = createSignal("");
   const [stageFilter, setStageFilter] = createSignal("");
@@ -132,15 +155,31 @@ function Dashboard() {
   return (
     <div class="p-4 flex flex-col gap-3" data-testid="grove-dashboard">
       <Toaster />
+      <h1 class="text-3xl font-bold">Grove Dashboard</h1>
       <Show when={canSeeMoney()}>
         <Scorecard />
       </Show>
+      <Show when={canSeeMoney()}>
+        <div role="tablist" aria-label="Workspace" class="flex gap-1 border-b border-zinc-300 dark:border-slate-600">
+          <For each={[["deals", "A · Deals"], ["projects", "B · Projects"]] as [Tab, string][]}>
+            {([k, l]) => (
+              <button role="tab" aria-selected={tab() === k} class="px-3 py-1.5 text-sm -mb-px border-b-2" classList={{ "border-emerald-700 font-semibold": tab() === k, "border-transparent opacity-70": tab() !== k }} onClick={() => setTab(k)}>
+                {l}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+      <Show when={tab() === "deals"}>
+        <DealsAttention />
+      </Show>
+      <Show when={tab() === "projects"}>
       <div class="flex flex-wrap items-center gap-2">
-        <h1 class="text-3xl font-bold mr-auto">Grove Dashboard</h1>
-        <For each={["board", "list", "map"] as View[]}>
+        <h2 class="text-xl font-semibold mr-auto">Projects</h2>
+        <For each={["status", "board", "list", "map"] as View[]}>
           {(v) => (
             <button class="rounded-sm px-2 py-1 text-sm" classList={{ "btn-default": view() === v, underline: view() !== v }} onClick={() => setView(v)}>
-              {{ board: "Board", list: "List", map: "Map" }[v]}
+              {{ status: "Status", board: "Board", list: "List", map: "Map" }[v]}
             </button>
           )}
         </For>
@@ -200,6 +239,52 @@ function Dashboard() {
       </Show>
 
       <Show when={data()} fallback={<p>Loading…</p>}>
+        <Show when={view() === "status"}>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-xs opacity-70">
+                  <th class="py-1 pr-3">Project</th>
+                  <th class="py-1 pr-3">Stage · step</th>
+                  <th class="py-1 pr-3">Screening</th>
+                  <th class="py-1 pr-3">Next action</th>
+                  <th class="py-1 pr-3">Planting</th>
+                  <th class="py-1 pr-3">Size</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For
+                  each={[...shown()]
+                    .filter((p) => p.status !== "archived" && p.stage !== "closed")
+                    .sort((a, b) => STAGES.findIndex(([k]) => k === b.stage) - STAGES.findIndex(([k]) => k === a.stage) || a.name.localeCompare(b.name))}
+                  fallback={<tr><td class="py-2 opacity-70" colSpan={6}>No ongoing projects.</td></tr>}
+                >
+                  {(p) => (
+                    <tr class="border-t border-zinc-200 dark:border-slate-700 align-top" classList={{ "opacity-60": p.status !== "active" }}>
+                      <td class="py-1 pr-3">
+                        <Link to="/grove/projects/$projectId" params={{ projectId: p._id }} class="underline font-semibold">{p.name}</Link>
+                        <div class="text-xs opacity-70">{[TYPE_LABEL[p.type], p.client?.name, p.status !== "active" ? p.status : ""].filter(Boolean).join(" · ")}</div>
+                      </td>
+                      <td class="py-1 pr-3">
+                        <span class="inline-block w-2 h-2 rounded-full mr-1" style={{ background: STAGE_COLOR[p.stage] }} />
+                        {stageText(p)}
+                      </td>
+                      <td class="py-1 pr-3 text-xs" classList={{ "text-amber-700": !!p.screening?.issues }}>
+                        {p.screening ? `${p.screening.done}/${p.screening.total}${p.screening.decision ? ` · ${DECISION_EN[p.screening.decision] ?? ""}` : ""}` : ""}
+                      </td>
+                      <td class="py-1 pr-3 text-xs" classList={{ "text-red-700 dark:text-red-400 font-semibold": !!p.nextAction?.date && new Date(p.nextAction.date).getTime() < new Date().setHours(0, 0, 0, 0) }}>
+                        {p.nextAction?.text}
+                        {p.nextAction?.date ? ` (${shortDate(p.nextAction.date)})` : ""}
+                      </td>
+                      <td class="py-1 pr-3 text-xs">{shortDate(p.plantingDate)}</td>
+                      <td class="py-1 pr-3 text-xs">{[p.plannedHa ? `${p.plannedHa} ha` : "", (p.trees ?? p.signedTrees) ? `${(p.trees ?? p.signedTrees)!.toLocaleString("da-DK")} trees` : ""].filter(Boolean).join(" · ")}</td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
         <Show when={view() === "board"}>
           <div class="flex gap-3 overflow-x-auto pb-2">
             <For each={STAGES}>
@@ -340,6 +425,7 @@ function Dashboard() {
         <Show when={view() === "map"}>
           <ProjectMap projects={shown().filter((p) => p.status === "active")} />
         </Show>
+      </Show>
       </Show>
     </div>
   );
