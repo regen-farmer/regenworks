@@ -118,12 +118,26 @@ export function progress(t: ChecklistTemplate, c: ChecklistLike | null | undefin
 
 export const itemKeys = (t: ChecklistTemplate) => new Set(t.sections.flatMap((s) => s.items.map((i) => i.key)));
 
-/** One item's answer: a known state and a note up to 2,000 characters. */
-export function cleanItem(body: any): { ok: true; value: { state: ItemState; note: string } } | { ok: false; error: string } {
-  if (!ITEM_STATES.includes(body?.state)) return { ok: false, error: `State must be one of ${ITEM_STATES.join(", ")}` };
-  if (body?.note !== undefined && body.note !== null && typeof body.note !== "string") return { ok: false, error: "Note must be text" };
-  return { ok: true, value: { state: body.state, note: typeof body?.note === "string" ? body.note.trim().slice(0, 2000) : "" } };
+/**
+ * A change to one item: its state, its note, or both. Each is saved on its
+ * own, so a note typed just before a status click isn't overwritten.
+ */
+export function cleanItem(body: any): { ok: true; value: { state?: ItemState; note?: string } } | { ok: false; error: string } {
+  const out: { state?: ItemState; note?: string } = {};
+  if (body?.state !== undefined) {
+    if (!ITEM_STATES.includes(body.state)) return { ok: false, error: `State must be one of ${ITEM_STATES.join(", ")}` };
+    out.state = body.state;
+  }
+  if (body?.note !== undefined) {
+    if (body.note !== null && typeof body.note !== "string") return { ok: false, error: "Note must be text" };
+    out.note = typeof body.note === "string" ? body.note.trim().slice(0, 2000) : "";
+  }
+  if (out.state === undefined && out.note === undefined) return { ok: false, error: "Send a state or a note" };
+  return { ok: true, value: out };
 }
+
+/** The template for a kind, or undefined (never an inherited property like "constructor"). */
+export const templateOf = (kind: unknown) => (typeof kind === "string" && Object.hasOwn(TEMPLATES, kind) ? TEMPLATES[kind] : undefined);
 
 export function cleanDecision(body: any): { ok: true; value: { result: Decision | null; conditions: string } } | { ok: false; error: string } {
   const r = body?.result;

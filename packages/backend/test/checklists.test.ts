@@ -3,7 +3,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanDecision, cleanItem, itemKeys, progress, SCREENING } from "../src/internal/checklists.ts";
+import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, templateOf } from "../src/internal/checklists.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("screening template: Kris' four sections; item keys unique and safe as map keys", () => {
@@ -29,7 +29,12 @@ test("progress: done, not relevant and issue count as done; per section and tota
 });
 
 test("input: item state and note; decision", () => {
-  assert.deepEqual(cleanItem({ state: "done" }), { ok: true, value: { state: "done", note: "" } }, "done without a note is fine");
+  assert.deepEqual(cleanItem({ state: "done" }), { ok: true, value: { state: "done" } }, "done without a note; the note isn't touched");
+  assert.deepEqual(cleanItem({ note: " drains " }), { ok: true, value: { note: "drains" } }, "a note alone keeps the state");
+  assert.equal(cleanItem({}).ok, false);
+  assert.equal(templateOf("constructor"), undefined);
+  assert.equal(templateOf("__proto__"), undefined);
+  assert.equal(templateOf("screening"), SCREENING);
   assert.equal(cleanItem({ state: "maybe" }).ok, false);
   assert.equal(cleanItem({ state: "issue", note: { $gt: "" } }).ok, false);
   assert.equal((cleanItem({ state: "issue", note: "x".repeat(3000) }) as any).value.note.length, 2000);
@@ -65,4 +70,8 @@ test("checklist routes: anonymous 401, public 403; field users can't set the dec
   assert.equal((await put(`/internal/projects/${id}/checklists/screening/items/goals-primary`, { state: "maybe" })).status, 400);
   assert.equal((await put(`/internal/projects/${id}/checklists/screening/sections/nope`, { note: "x" })).status, 404);
   assert.equal((await fetch(`${base}/internal/projects/nope/checklists/screening`)).status, 400);
+  for (const k of ["constructor", "toString", "__proto__"]) {
+    assert.equal((await put(`/internal/projects/${id}/checklists/${k}/items/x`, { state: "done" })).status, 404, k);
+    assert.equal((await fetch(`${base}/internal/projects/${id}/checklists/${k}`)).status, 404, k);
+  }
 });

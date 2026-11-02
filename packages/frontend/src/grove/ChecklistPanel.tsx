@@ -2,7 +2,7 @@
 // progress, each item Done / Not relevant / Issue found with an optional note,
 // a note per section, and the go / no-go decision (Grove team). Each change
 // is saved at once, one item at a time.
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createEffect, createResource, createSignal, For, Show } from "solid-js";
 import { showToast } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
@@ -35,15 +35,32 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
     (k) => apiFetch<Data>(`/internal/projects/${k.id}/checklists/${k.kind}`),
   );
   const d = () => (data.error ? undefined : data.latest);
+  // The template is kept once, so saving doesn't rebuild the sections
+  // (open sections, focus and text being typed stay as they are).
+  const [template, setTemplate] = createSignal<Template>();
+  const [openSections, setOpenSections] = createSignal<Set<string>>(new Set());
+  createEffect(() => {
+    const x = d();
+    if (x && template()?.kind !== x.template.kind) {
+      setTemplate(x.template);
+      const first = x.progress.sections.find((p) => p.done < p.total)?.key ?? x.template.sections[0]?.key;
+      setOpenSections(new Set(first ? [first] : []));
+    }
+  });
   const [saving, setSaving] = createSignal(0);
+  let seq = 0;
   const [noteOpen, setNoteOpen] = createSignal<Set<string>>(new Set());
   const [decision, setDecision] = createSignal<{ result: string; conditions: string } | null>(null);
 
-  async function send(path: string, body: unknown) {
+  async function send(path: string, body: unknown, itemKey?: string) {
     setSaving((n) => n + 1);
+    const mine = ++seq;
     try {
       const r = await apiFetch<Data>(`/internal/projects/${props.projectId}/checklists/${props.kind}/${path}`, { method: "PUT", body: JSON.stringify(body) });
-      mutate(r);
+      const now = data.latest;
+      // the newest reply wins; an older one only updates its own item
+      if (mine === seq || !now) mutate(r);
+      else if (itemKey) mutate({ ...now, checklist: { ...now.checklist, items: { ...now.checklist.items, [itemKey]: r.checklist.items[itemKey] } } });
       return true;
     } catch (err) {
       showToast({ title: "Not saved", description: (err as Error).message, variant: "destructive" });
@@ -57,14 +74,13 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
   const setState = (key: string, state: State) => {
     const current = answer(key)?.state ?? "open";
     // clicking the active state again opens the item again
-    send(`items/${key}`, { state: current === state ? "open" : state, note: answer(key)?.note ?? "" });
+    send(`items/${key}`, { state: current === state ? "open" : state }, key);
   };
   const saveNote = (key: string, note: string) => {
     if ((answer(key)?.note ?? "") === note.trim()) return;
-    send(`items/${key}`, { state: answer(key)?.state ?? "open", note });
+    send(`items/${key}`, { note }, key);
   };
   const sectionProgress = (key: string) => d()?.progress.sections.find((s) => s.key === key);
-  const firstOpen = () => d()?.progress.sections.find((s) => s.done < s.total)?.key;
 
   return (
     <section class="flex flex-col gap-2" data-testid={`checklist-${props.kind}`} aria-label={d()?.template.title ?? "Checklist"}>
@@ -86,9 +102,23 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
           <span class="text-xs opacity-60" aria-live="polite">{saving() ? "Saving…" : ""}</span>
         </div>
 
-        <For each={d()!.template.sections}>
+        <For each={template()?.sections}>
           {(s) => (
-            <details class="rounded-md border border-zinc-300 dark:border-slate-600" open={s.key === firstOpen()}>
+            <details
+              class="rounded-md border border-zinc-300 dark:border-slate-600"
+              open={openSections().has(s.key)}
+              onToggle={(e) => {
+                const isOpen = (e.currentTarget as HTMLDetailsElement).open;
+                if (isOpen !== openSections().has(s.key)) {
+                  setOpenSections((x) => {
+                    const n = new Set(x);
+                    if (isOpen) n.add(s.key);
+                    else n.delete(s.key);
+                    return n;
+                  });
+                }
+              }}
+            >
               <summary class="cursor-pointer px-3 py-2 flex items-center gap-2">
                 <span class="font-semibold mr-auto">{s.title}</span>
                 <span class="text-sm" classList={{ "text-emerald-700 font-semibold": sectionProgress(s.key)?.done === s.items.length }}>
@@ -172,7 +202,7 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
               fallback={<p class="text-sm">{d()!.checklist.decision?.result ? DECISION_EN[d()!.checklist.decision!.result!] : "Not decided yet"} (the Grove team decides)</p>}
             >
               <div role="radiogroup" aria-label="Decision" class="flex flex-wrap gap-3 text-sm">
-                <For each={Object.entries(DECISION_EN)}>
+                <For each={[["", "Not decided"], ...Object.entries(DECISION_EN)]}>
                   {([k, label]) => (
                     <label class="flex items-center gap-1">
                       <input

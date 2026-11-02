@@ -17,7 +17,7 @@ import { GROVE_ROLES } from "@rw/db/access.ts";
 import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
 import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
 import Checklist from "@rw/db/schemas/internal/checklist.ts";
-import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, TEMPLATES } from "./checklists.ts";
+import { cleanDecision, cleanItem, itemKeys, progress, SCREENING, templateOf } from "./checklists.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -241,6 +241,7 @@ router.delete("/:id", team, async (req: Req, res) => {
     return;
   }
   await GroveProject.deleteOne({ _id: req.params.id });
+  await Checklist.deleteMany({ project: req.params.id }); // its screening goes with it
   res.status(204).send();
 });
 
@@ -262,13 +263,13 @@ async function visibleProject(req: Req, res: express.Response) {
 }
 
 function templateFor(req: Req, res: express.Response) {
-  const t = TEMPLATES[String(req.params.kind)];
+  const t = templateOf(req.params.kind);
   if (!t) res.status(404).send({ error: "Unknown checklist" });
   return t;
 }
 
 async function presentChecklist(projectId: unknown, kind: string) {
-  const t = TEMPLATES[kind];
+  const t = templateOf(kind)!;
   const c: any = await Checklist.findOne({ project: projectId, kind }).lean();
   return {
     template: t,
@@ -302,7 +303,16 @@ router.put("/:id/checklists/:kind/items/:key", async (req: Req, res) => {
   // one item at a time, so two people filling in different items don't overwrite each other
   await Checklist.findOneAndUpdate(
     { project: project._id, kind: t.kind },
-    { $set: { [`items.${req.params.key}`]: { ...cleaned.value, at: new Date(), by: req.user?._id }, templateVersion: t.version } },
+    {
+      $set: {
+        // only what was sent: a status click doesn't touch the note, and the other way round
+        ...(cleaned.value.state !== undefined ? { [`items.${req.params.key}.state`]: cleaned.value.state } : {}),
+        ...(cleaned.value.note !== undefined ? { [`items.${req.params.key}.note`]: cleaned.value.note } : {}),
+        [`items.${req.params.key}.at`]: new Date(),
+        [`items.${req.params.key}.by`]: req.user?._id,
+        templateVersion: t.version,
+      },
+    },
     { upsert: true, runValidators: true },
   );
   res.send(await presentChecklist(project._id, t.kind));

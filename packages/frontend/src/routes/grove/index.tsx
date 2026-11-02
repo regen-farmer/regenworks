@@ -7,6 +7,7 @@ import { createEffect, createMemo, createResource, createSignal, For, onCleanup,
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { Scorecard } from "~/grove/Scorecard.tsx";
+import { DECISION_EN } from "~/grove/ChecklistPanel.tsx";
 import {
   kroner,
   shortDate,
@@ -238,7 +239,7 @@ function Dashboard() {
                         <Show when={p.screening}>
                           <div class="text-xs mt-0.5" classList={{ "text-amber-700": !!p.screening!.issues }}>
                             Screening {p.screening!.done}/{p.screening!.total}
-                            {p.screening!.decision ? ` · ${{ go: "Go", "go-conditions": "Go, with conditions", "no-go": "No-go" }[p.screening!.decision] ?? ""}` : ""}
+                            {p.screening!.decision ? ` · ${DECISION_EN[p.screening!.decision] ?? ""}` : ""}
                           </div>
                         </Show>
                         <Show when={p.nextAction?.text}>
