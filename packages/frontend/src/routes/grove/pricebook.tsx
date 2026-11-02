@@ -45,7 +45,8 @@ function Pricebook() {
     setBusy(true);
     try {
       const s = await uploadForm<Summary>("/internal/pricebook/import", form);
-      showToast({ title: `Pricebook version ${s.version} imported` });
+      const servicesWarning = s.warnings?.find((w) => w.startsWith("services.csv was not included"));
+      showToast({ title: `Pricebook version ${s.version} imported`, description: servicesWarning, variant: servicesWarning ? "destructive" : undefined });
       formEl.reset();
       refetch();
     } catch (err) {

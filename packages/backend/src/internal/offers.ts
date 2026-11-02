@@ -264,7 +264,7 @@ function priceServiceLine(l: OfferLine, data: PricebookData | null, rates: { mar
     defaultMarginPct: data.settings?.targetMarginServices,
   });
   const named = { ...l, nameDa: l.nameDa || s.nameDa, section: s.section, unitDa: l.unitDa || s.unitDa };
-  if (!p) return { ...named, priceSource: "none", unitPrice: 0, pricing: { serviceId: s.serviceId, matchNote: "no price or cost for this service in services.csv yet" } };
+  if (!p) return { ...named, priceSource: "none", unitPrice: 0, pricing: { serviceId: s.serviceId, matchNote: "no price yet: add price_excl_vat, or a cost and target_margin_services, in the pricebook" } };
   return { ...named, unitPrice: p.unitPrice, priceSource: p.source, pricing: { ...p } };
 }
 

@@ -53,6 +53,7 @@ export type Offer = {
     guaranteeText?: string;
   };
   notes?: string;
+  createdAt?: string;
   updatedAt?: string;
 };
 

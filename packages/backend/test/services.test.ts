@@ -41,20 +41,26 @@ test("service price: listed price, else cost priced to the target (gross) margin
   const base: Service = { serviceId: "s", section: "protection", nameDa: "Net", unitDa: "stk.", basis: "tree", qtyPerBasis: 1, roundUp: false };
   assert.equal(priceService({ ...base, priceExclVat: 123 }, { eurDkk: 7, supplierPrices: [] })!.unitPrice, 123);
   const fromCost = priceService({ ...base, costLow: 80, costLikely: 100, costHigh: 130 }, { eurDkk: 7, supplierPrices: [], defaultMarginPct: 40 })!;
-  assert.equal(fromCost.unitPrice, 165, "100 / (1 - 0.40) = 166.67 -> nearest 5 kr");
+  assert.equal(fromCost.unitPrice, 170, "100 / (1 - 0.40) = 166.67 -> up to the next 5 kr");
   assert.equal(fromCost.singleSource, false);
   const sup = [{ priceId: "p1", docId: "d", supplierId: "x", latin: "", organicStatus: "", price: 2, currency: "EUR", vat: "not stated" }];
   const docs = [{ docId: "d", supplierId: "x", documentDate: "2020-01-01" }];
   const fromSupplier = priceService({ ...base, supplierPriceId: "p1", supplierQty: 3 }, { eurDkk: 7, supplierPrices: sup, documents: docs, defaultMarginPct: 50, now: new Date("2026-11-02") })!;
   assert.equal(fromSupplier.unitCostDkk, 42);
-  assert.equal(fromSupplier.unitPrice, 85, "42 / 0.5 = 84 -> nearest 5 kr");
+  assert.equal(fromSupplier.unitPrice, 85, "42 / 0.5 = 84 -> up to the next 5 kr");
   assert.equal(fromSupplier.singleSource, true);
   assert.equal(fromSupplier.vatUnclear, true, "VAT not stated: flagged like plant lines");
   assert.equal(fromSupplier.outdated, true, "price list over 3 years old");
   assert.equal(priceService(base, { eurDkk: 7, supplierPrices: [] }), null, "nothing known");
-  assert.equal(roundServicePrice(6.2), 6);
-  assert.equal(roundServicePrice(6.3), 6.5);
-  assert.equal(roundServicePrice(62), 60);
+  assert.equal(roundServicePrice(6.2), 6.5, "always up: the margin never drops under the target");
+  assert.equal(roundServicePrice(6), 6);
+  assert.equal(roundServicePrice(61), 65);
+  assert.equal(roundServicePrice(60), 60);
+  // a cost+margin price is never below its target after rounding
+  for (const cost of [4.85, 7.09, 7.46, 1156.3, 33.33, 99.99]) {
+    const p = priceService({ serviceId: "x", section: "other", nameDa: "x", unitDa: "stk.", basis: "tree", qtyPerBasis: 1, roundUp: false, costLikely: cost }, { eurDkk: 7, supplierPrices: [], defaultMarginPct: 40 })!;
+    assert.ok((p.unitPrice - cost) / p.unitPrice >= 0.4 - 1e-9, `cost ${cost} -> ${p.unitPrice}`);
+  }
 });
 
 test("deposit rule: 50 % if delivery is within 3 months of the offer, else 20 % (Danish calendar days)", () => {

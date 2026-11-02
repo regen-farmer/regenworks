@@ -6,7 +6,7 @@
 // on the offer (e.g. "stk.", "m", "ha", "sæt") and a rule for its quantity
 // from the design: per tree, per metre of tree row, per metre of field
 // boundary, per hectare of field or of tree cover, per row, or a fixed number.
-import { isOutdated, round5, vatExcluded, type PriceDocument, type SupplierPrice } from "./pricebook.ts";
+import { isOutdated, vatExcluded, type PriceDocument, type SupplierPrice } from "./pricebook.ts";
 
 export const SERVICE_SECTIONS = ["protection", "fencing", "site-prep", "planting", "staking", "design", "irrigation", "logistics", "other"] as const;
 export type ServiceSection = (typeof SERVICE_SECTIONS)[number];
@@ -167,8 +167,15 @@ export function serviceQty(s: Pick<Service, "basis" | "qtyPerBasis" | "roundUp">
   return s.basis === "field_ha" || s.basis === "tree_ha" ? Math.round(raw * 100) / 100 : Math.round(raw);
 }
 
-/** Client prices: nearest 5 kr from 50 kr, else nearest 0.50 kr (small items like nets). */
-export const roundServicePrice = (kr: number) => (kr >= 50 ? round5(kr) : Math.round(kr * 2) / 2);
+/**
+ * Client prices from cost + target margin: up to the next 5 kr from 50 kr,
+ * else the next 0.50 kr (small items like nets). Rounding up keeps the
+ * margin at or above the target.
+ */
+export const roundServicePrice = (kr: number) => {
+  const up = (step: number) => Math.ceil(Number((kr / step).toPrecision(12))) * step;
+  return kr >= 50 ? up(5) : up(0.5);
+};
 
 export type ServicePricing = {
   serviceId: string;

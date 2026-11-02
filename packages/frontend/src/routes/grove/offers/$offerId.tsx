@@ -198,10 +198,12 @@ function OfferPage() {
             </div>
 
             <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <fieldset disabled={locked()} class="contents">
               <label class="flex flex-col text-xs">
                 Title
                 <input class={input} value={draft.title ?? ""} onInput={(e) => edit("title", e.currentTarget.value)} />
               </label>
+              </fieldset>
               <label class="flex flex-col text-xs">
                 Dinero tilbud no.
                 <input class={input} value={draft.dineroNumber ?? ""} onInput={(e) => edit("dineroNumber", e.currentTarget.value)} />
@@ -221,6 +223,7 @@ function OfferPage() {
                   <For each={projects()?.projects.filter((x) => x.status !== "archived" || x._id === draft.groveProject)}>{(x) => <option value={x._id}>{x.name}</option>}</For>
                 </select>
               </label>
+              <fieldset disabled={locked()} class="contents">
               <label class="flex flex-col text-xs">
                 Status
                 <select class={input} value={draft.status} disabled={data()?.offer.status === "accepted"} onChange={(e) => edit("status", e.currentTarget.value)}>
@@ -276,6 +279,7 @@ function OfferPage() {
                 Discount on the whole offer (%)
                 <input type="number" class={input} value={draft.discountPct ?? 0} onInput={(e) => edit("discountPct", Number(e.currentTarget.value) || 0)} />
               </label>
+              </fieldset>
             </section>
 
             <fieldset disabled={locked()} class="contents">
@@ -565,6 +569,9 @@ function OfferPage() {
   );
 }
 
+/** Offers created from offer v2 on always show the deposit; older ones keep their own deposit text. */
+const madeWithDepositRule = (createdAt: string | undefined) => !!createdAt && createdAt >= "2026-11-02T11:00:00.000Z";
+
 /** The Danish offer sheet sent to the client (print to PDF). */
 function OfferSheet(props: { p: Presented }) {
   const o = () => props.p.offer;
@@ -697,7 +704,7 @@ function OfferSheet(props: { p: Presented }) {
         <Show when={o().terms?.deliveryDate}><div>Forventet levering/plantning: {dato(o().terms.deliveryDate ?? undefined)}</div></Show>
         {/* Offers made before the deposit rule only show their own deposit text. */}
         <Show
-          when={(o().terms?.deliveryDate || typeof o().terms?.depositPct === "number") && t().deposit.pct > 0}
+          when={(o().terms?.deliveryDate || typeof o().terms?.depositPct === "number" || madeWithDepositRule(o().createdAt)) && t().deposit.pct > 0}
           fallback={<Show when={o().terms?.deposit}><div>Depositum: {o().terms.deposit}</div></Show>}
         >
           <div>
