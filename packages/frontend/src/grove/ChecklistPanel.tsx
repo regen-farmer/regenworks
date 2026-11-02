@@ -39,9 +39,12 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
   // (open sections, focus and text being typed stay as they are).
   const [template, setTemplate] = createSignal<Template>();
   const [openSections, setOpenSections] = createSignal<Set<string>>(new Set());
+  let shownFor = "";
   createEffect(() => {
     const x = d();
-    if (x && template()?.kind !== x.template.kind) {
+    // once per project and checklist (the page may be reused for another project)
+    if (x && shownFor !== `${props.projectId}|${x.template.kind}`) {
+      shownFor = `${props.projectId}|${x.template.kind}`;
       setTemplate(x.template);
       const first = x.progress.sections.find((p) => p.done < p.total)?.key ?? x.template.sections[0]?.key;
       setOpenSections(new Set(first ? [first] : []));
