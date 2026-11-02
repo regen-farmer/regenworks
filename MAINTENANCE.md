@@ -104,9 +104,11 @@ unless there is a reason not to, and when there is, make it a planned change.
    changes (see `CLAUDE.md`).
 
 **Writing a migration.** One standalone script per change in
-`packages/db/migrations/`, named `<what>-<yyyy>-<mm>.ts`. It reads
-`DATABASEURL`, prints what it would do, and writes only with `--apply`
-(see `plant-catalogue-2026-11.ts`). Running it twice must be harmless.
+`packages/db/migrations/`, named `<what>-<yyyy>-<mm>.ts`, whose first line is
+`// migration: dry-run-by-default` (the runner refuses scripts without it). It
+reads `DATABASEURL`, prints what it would do, writes only with `--apply`, and
+exits non-zero on any error: don't catch and carry on (see
+`plant-catalogue-2026-11.ts`). Running it twice must be harmless.
 
 **Running a migration** with the runner, which keeps a ledger (the `migrations`
 collection) of what ran on each database, from which commit, after which backup:
@@ -119,21 +121,26 @@ DATABASEURL=<staging> node packages/db/migrations/migrate.ts run packages/db/mig
 DATABASEURL=<db> node packages/db/migrations/migrate.ts status
 ```
 
-The runner refuses to apply without `--backup`, from uncommitted code, or a
-migration already in that database's ledger. To undo, restore the backup; there
-are no down-migrations. A migration that was applied before the ledger existed
-is recorded with `migrate.ts record <name> --note "<who, when, where>"`
-(`plant-catalogue-2026-11` was applied on staging and production in Nov 2026).
-`remove-fields-2024-1.ts` and `stripe-customer-id.ts` are older one-offs and
-not run through the ledger.
+`status` and dry runs only read. With `--apply`, the runner first claims the
+name in the ledger (state `running`), so two people can't apply the same
+migration at once, then marks it `done` or `failed`. It refuses to apply
+without `--backup`, from uncommitted or unpushed code, or when the name already
+has a ledger entry in any state. A `running` or `failed` entry means: check the
+data (or restore the backup), then delete the entry by hand before trying again.
+To undo, restore the backup; there are no down-migrations.
 
-**Breaking with old data.** The planned changes that do restructure data are
-the farm / field / scenario rename (routes and collections), Dashboard
-projects becoming deals, and the B · Project plan (which extends the farm
-planting plan, `FarmScenarioConfig`, with optional fields). Before those, count
-documents per collection by last activity and by Grove vs public users, and
-decide on purpose: migrate everything, or migrate Grove's and recently used
-projects and keep older ones read-only with an export.
+A migration applied before the ledger existed is recorded with
+`migrate.ts record <name> --note "<who, when, where>"`. **To do once:**
+`plant-catalogue-2026-11` was applied on staging and production in Nov 2026
+but is not in either ledger yet; record it on both. The scripts in
+`migrations/legacy/` are older one-offs without a dry run; they are kept for
+reference and must not be run.
+
+**Breaking with old data.** Some planned changes will restructure data, for
+example the farm / field / scenario rename (routes and collections). Before
+such a change, count documents per collection by last activity and by owner,
+and decide on purpose: migrate everything, or migrate recently used projects
+and keep older ones read-only with an export.
 
 ## Security notes
 
