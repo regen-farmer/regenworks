@@ -26,6 +26,7 @@ export type Offer = {
   status: "draft" | "sent" | "accepted" | "declined";
   project?: string;
   groveProject?: string | null;
+  deal?: string | null;
   client: { name?: string; address?: string; cvr?: string; contactPerson?: string; email?: string; phone?: string };
   clientOrganic: boolean;
   offerDate: string;

@@ -32,6 +32,7 @@ function OfferPage() {
     (id) => apiFetch<Presented>(`/internal/offers/${id}`),
   );
   const [projects] = createResource(() => canSeeMoney() || undefined, () => apiFetch<{ projects: { _id: string; name: string; status: string }[] }>("/internal/projects"));
+  const [deals] = createResource(() => canSeeMoney() || undefined, () => apiFetch<{ deals: { _id: string; title: string; clientName: string }[] }>("/internal/deals/options"));
   const [draft, setDraft] = createStore<Offer>({} as Offer);
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
@@ -66,7 +67,7 @@ function OfferPage() {
   }
 
   const save = () =>
-    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes, groveProject: draft.groveProject ?? null } : {
+    call(`/internal/offers/${params().offerId}`, "PUT", data()?.offer.status === "accepted" ? { dineroNumber: draft.dineroNumber, notes: draft.notes, groveProject: draft.groveProject ?? null, deal: draft.deal ?? null } : {
       dineroNumber: draft.dineroNumber,
       title: draft.title,
       status: draft.status,
@@ -80,6 +81,7 @@ function OfferPage() {
       terms: draft.terms,
       notes: draft.notes,
       groveProject: draft.groveProject ?? null,
+      deal: draft.deal ?? null,
       lines: draft.lines.map(({ pricing: _p, ...l }) => l),
     }).then((r) => {
       if (r) showToast({ title: "Offer saved" });
@@ -184,6 +186,14 @@ function OfferPage() {
               <label class="flex flex-col text-xs">
                 Dinero tilbud no.
                 <input class={input} value={draft.dineroNumber ?? ""} onInput={(e) => edit("dineroNumber", e.currentTarget.value)} />
+              </label>
+              <label class="flex flex-col text-xs">
+                Deal
+                <select class={input} value={draft.deal ?? ""} onChange={(e) => edit("deal", e.currentTarget.value || null)}>
+                  <option value="">–</option>
+                  <Show when={draft.deal && !deals()?.deals.some((x) => x._id === draft.deal)}><option value={draft.deal!}>(linked deal)</option></Show>
+                  <For each={deals()?.deals}>{(x) => <option value={x._id}>{x.clientName ? `${x.clientName} · ` : ""}{x.title}</option>}</For>
+                </select>
               </label>
               <label class="flex flex-col text-xs">
                 Dashboard project

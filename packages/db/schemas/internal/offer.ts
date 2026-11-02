@@ -45,6 +45,8 @@ export interface IOffer {
 	status: (typeof OFFER_STATUSES)[number];
 	project?: mongoose.Types.ObjectId | null;
 	groveProject?: mongoose.Types.ObjectId | null;
+	/** The deal in A · Clients & deals this offer belongs to. */
+	deal?: mongoose.Types.ObjectId | null;
 	client: { name?: string; address?: string; cvr?: string; contactPerson?: string; email?: string; phone?: string };
 	clientOrganic: boolean;
 	offerDate: Date;
@@ -67,6 +69,7 @@ const offerSchema = new mongoose.Schema<IOffer>(
 		status: { type: String, enum: OFFER_STATUSES, default: "draft" },
 		project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
 		groveProject: { type: mongoose.Schema.Types.ObjectId, ref: "GroveProject" },
+		deal: { type: mongoose.Schema.Types.ObjectId, ref: "GroveDeal", index: true },
 		client: {
 			name: { type: String, maxlength: 200 },
 			address: { type: String, maxlength: 500 },

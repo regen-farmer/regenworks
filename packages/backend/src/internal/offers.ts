@@ -358,6 +358,11 @@ export function cleanOfferUpdate(body: any): Cleaned<Record<string, any>> {
     else if (typeof body.groveProject === "string" && /^[0-9a-f]{24}$/i.test(body.groveProject)) out.groveProject = body.groveProject;
     else errors.push("Dashboard project must be a project id");
   }
+  if (body?.deal !== undefined) {
+    if (body.deal === null || body.deal === "") out.deal = null;
+    else if (typeof body.deal === "string" && /^[0-9a-f]{24}$/i.test(body.deal)) out.deal = body.deal;
+    else errors.push("Deal must be a deal id");
+  }
   if (body?.lines !== undefined) {
     if (!Array.isArray(body.lines) || body.lines.length > 500) errors.push("Lines must be a list (max 500)");
     else {

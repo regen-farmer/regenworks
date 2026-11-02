@@ -13,6 +13,7 @@ import { inIds } from "../utils/mongoSafety.ts";
 import { offerTotals } from "./offers.ts";
 import User from "@rw/db/schemas/user.ts";
 import { GROVE_ROLES } from "@rw/db/access.ts";
+import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
 import { cleanProject, forFieldUser, summariseOffers, visibleFilter as visibleFor } from "./projects.ts";
 
 type Req = express.Request & { user?: UserDocument };
@@ -37,21 +38,6 @@ async function offerValues(projectIds: unknown[]) {
   }
   for (const [k, list] of byProject) out.set(k, summariseOffers(list));
   return out;
-}
-
-/** Ids of users with a Grove role (their farms can be linked to projects). */
-async function groveUserIds(): Promise<string[]> {
-  const users: any[] = await User.find({ $or: [{ isAdmin: true }, { roles: mongoose.trusted({ $in: [...GROVE_ROLES] }) }] })
-    .select("_id")
-    .lean();
-  return users.map((u) => String(u._id));
-}
-
-/** Only farms kept under a Grove account can be linked (not public users' farms). */
-async function farmIsGroves(farmId: string) {
-  const farm: any = await Parcel.findById(farmId).select("owner").lean();
-  if (!farm?.owner?.id) return false;
-  return (await groveUserIds()).includes(String(farm.owner.id));
 }
 
 async function farmsById(ids: unknown[]) {
