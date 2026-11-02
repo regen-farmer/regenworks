@@ -45,7 +45,12 @@ function git(cwd: string, args: string[]): string | undefined {
 
 const by = process.env.MIGRATION_BY || userInfo().username;
 
-await mongoose.connect(url as string);
+try {
+	await mongoose.connect(url as string);
+} catch (e: any) {
+	// Not e.message: for a malformed URL it contains the URL, password included.
+	fail(`Could not connect to DATABASEURL (${e?.name ?? "error"})`);
+}
 let exitCode = 0;
 try {
 	const db = mongoose.connection.db!;
