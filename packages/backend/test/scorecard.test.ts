@@ -179,3 +179,16 @@ test("won deals without an offer: standard margin (set in targets), forward-orde
   assert.deepEqual(c.pipeline.map((p) => [p.funnel, p.estMargin, p.estDeposits]), [["Design clients", 30000, 0], ["Management clients", 0, 0], ["Tree sales", 0, 10000]]);
   assert.equal(cleanTargets({ standardMarginPct: 95 }).ok, false);
 });
+
+test("an accepted offer with no known cost counts at the standard margin (Kim's hazel)", () => {
+  const c = scorecard({
+    targets: { from: "2026-11-01", to: "2027-04-01" },
+    openDeals: [],
+    wonDeals: [{ _id: "kim", title: "1100 hasel på egen rod", wonAt: "2026-11-02T12:00:00Z", value: 72000 }],
+    closedDealIds: ["kim"],
+    offers: [{ status: "accepted", deal: "kim", acceptedAt: "2026-11-02", lines: [{ qty: 370, unitPrice: 60, priceSource: "manual" }] }] as any[],
+  });
+  assert.equal(c.margin.withoutCost, 22200);
+  assert.equal(c.margin.actual, 5550, "25 % of 22,200 until the cost is known");
+  assert.equal(c.margin.costEstimate, 5550);
+});

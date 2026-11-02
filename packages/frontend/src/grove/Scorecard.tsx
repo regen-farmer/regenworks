@@ -9,7 +9,7 @@ import { dkk } from "~/grove/dealTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 type Targets = { label?: string; from?: string; to?: string; margin?: number | null; deposits?: number | null; standardMarginPct?: number | null };
-type Part = { actual: number; target: number | null; gap: number | null; perWeek: number | null; inSentOffers: number; withoutCost?: number };
+type Part = { actual: number; target: number | null; gap: number | null; perWeek: number | null; inSentOffers: number; withoutCost?: number; costEstimate?: number };
 type Card = {
   targets: Targets;
   weeksLeft: number | null;
@@ -148,7 +148,9 @@ export function Scorecard() {
           </p>
         </Show>
         <Show when={(card()!.margin.withoutCost ?? 0) > 0}>
-          <p class="text-xs text-amber-700">{kr(card()!.margin.withoutCost)} of accepted sales has no known cost, so its margin isn't counted.</p>
+          <p class="text-xs text-amber-700">
+            {kr(card()!.margin.withoutCost)} of accepted sales has no known cost yet, so it counts at the {card()!.standardMarginPct ?? 25} % standard margin (≈ {kr(card()!.margin.costEstimate ?? 0)}). Add the cost in the pricebook and reprice the offer to count the real margin.
+          </p>
         </Show>
         <p class="text-xs opacity-70">
           Counts deals won in the period. A deal with an accepted offer counts its real margin (deposit for forward orders); a deal without one is estimated from its value at the standard margin (forward orders: a 20 % deposit; management deals are billed monthly and not counted). Deposits excl. VAT. Accepted offers without a deal count by their acceptance date. Management is billed monthly and isn't counted here.

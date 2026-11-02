@@ -11,6 +11,7 @@ import { createFileRoute, Link } from "@tanstack/solid-router";
 import { createResource, createSignal, For, Index, Show } from "solid-js";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { SearchInput } from "~/grove/SearchInput.tsx";
 import { PROPAGATION_EN } from "~/grove/offerTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
@@ -104,6 +105,8 @@ function Supply() {
   // suggestions only: a failed load just means none
   const opts = () => (options.error ? undefined : options.latest);
   const speciesOf = (latin: string) => latin.replace(/×/g, " ").trim().split(/\s+/).filter((w) => w && w.toLowerCase() !== "x").slice(0, 2).join(" ").toLowerCase();
+  const speciesOptions = () => (opts()?.species ?? []).map((x) => ({ value: x.latin, label: x.name }));
+  const rootstockOptions = () => (opts()?.rootstocks ?? []).map((x) => ({ value: x }));
   const cultivarsOf = (latin: string) => opts()?.species.find((x) => x.latin.toLowerCase() === speciesOf(latin))?.cultivars ?? [];
   const d = () => (data.error ? undefined : data.latest);
   const [editing, setEditing] = createSignal(false);
@@ -193,7 +196,7 @@ function Supply() {
 
         <Show when={editing()}>
           <form class="flex flex-col gap-2 rounded-md border border-zinc-300 dark:border-slate-600 p-3" onSubmit={save}>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto pb-64">
               <table class="w-full text-sm min-w-[1100px]">
                 <thead>
                   <tr>
@@ -216,12 +219,11 @@ function Supply() {
                   <Index each={rows()}>
                     {(r, i) => (
                       <tr>
-                        <td class={td}><input class={input} required maxLength={100} list="supply-species" value={r().latin} placeholder="Type to search, e.g. Corylus" onInput={(e) => setField(i, "latin", e.currentTarget.value)} /></td>
                         <td class={td}>
-                          <input class={input} maxLength={100} list={`supply-cultivars-${i}`} value={r().cultivar} placeholder="Corabel" onInput={(e) => setField(i, "cultivar", e.currentTarget.value)} />
-                          <datalist id={`supply-cultivars-${i}`}>
-                            <For each={cultivarsOf(r().latin)}>{(c) => <option value={c} />}</For>
-                          </datalist>
+                          <SearchInput class={input} required maxLength={100} ariaLabel="Species" value={r().latin} placeholder="Search, e.g. hassel or avellana" options={speciesOptions()} onInput={(v) => setField(i, "latin", v)} />
+                        </td>
+                        <td class={td}>
+                          <SearchInput class={input} maxLength={100} ariaLabel="Cultivar" value={r().cultivar} placeholder="Corabel" options={cultivarsOf(r().latin).map((c) => ({ value: c }))} onInput={(v) => setField(i, "cultivar", v)} />
                         </td>
                         <td class={td}>
                           <select class={input} value={r().propagation} onChange={(e) => setField(i, "propagation", e.currentTarget.value)}>
@@ -230,7 +232,16 @@ function Supply() {
                           </select>
                         </td>
                         <td class={td}>
-                          <input class={input} maxLength={100} disabled={!!r().propagation && r().propagation !== "grafted"} value={r().rootstock} placeholder={r().propagation && r().propagation !== "grafted" ? "own roots" : "Corylus colurna"} list="supply-rootstocks" onInput={(e) => setField(i, "rootstock", e.currentTarget.value)} />
+                          <SearchInput
+                            class={input}
+                            maxLength={100}
+                            ariaLabel="Rootstock"
+                            disabled={!!r().propagation && r().propagation !== "grafted"}
+                            value={r().rootstock}
+                            placeholder={r().propagation && r().propagation !== "grafted" ? "own roots" : "Search, e.g. colurna"}
+                            options={rootstockOptions()}
+                            onInput={(v) => setField(i, "rootstock", v)}
+                          />
                         </td>
                         <td class={td}>
                           <select class={input} value={r().organic} onChange={(e) => setField(i, "organic", e.currentTarget.value)}>
@@ -260,12 +271,6 @@ function Supply() {
                 </tbody>
               </table>
             </div>
-            <datalist id="supply-species">
-              <For each={opts()?.species}>{(x) => <option value={x.latin}>{x.name ?? ""}</option>}</For>
-            </datalist>
-            <datalist id="supply-rootstocks">
-              <For each={opts()?.rootstocks}>{(x) => <option value={x} />}</For>
-            </datalist>
             <p class="text-xs opacity-80">
               <b>Own: plants started</b> is what we produce ourselves: grafts made (grafted) or seeds sown (seedlings). <b>Expected success %</b> is how many of them we expect to make it (e.g. 70 % graft take), so 1,000 grafts at 70 % = 700 plants. <b>Bought in</b> lists other nurseries that can deliver the same product, as "Nursery: plants", several separated by ";".
             </p>
