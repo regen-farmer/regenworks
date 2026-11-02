@@ -351,6 +351,7 @@ router.put("/:id", async (req: Req, res) => {
   }
   if (lines || needsPricing) offer.lines = merged;
   const becameAccepted = rest.status === "accepted" && offer.isModified("status");
+  if (becameAccepted) offer.acceptedAt = new Date();
   offer.updatedBy = req.user?._id;
   await offer.save();
   if (linkedNow) await moveProjectStage(offer.groveProject, offer.status === "accepted" ? "offer-accepted" : "offer-made");

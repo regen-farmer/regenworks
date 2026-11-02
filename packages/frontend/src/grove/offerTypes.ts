@@ -49,10 +49,12 @@ export type Offer = {
     text?: string;
     deliveryDate?: string | null;
     depositPct?: number | null;
+    forwardOrder?: boolean;
     guarantee?: boolean;
     guaranteeText?: string;
   };
   notes?: string;
+  acceptedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -208,8 +210,9 @@ export function addMonths(day: string, months: number): string {
   return `${ny}-${String(nm).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
 }
 
-/** Deposit rule (same as the server): 50 % if delivery within 3 months of the offer date, else 20 %. */
-export function depositRule(offerDate: string | undefined, deliveryDate: string | null | undefined) {
+/** Deposit rule (same as the server): forward orders 20 %; else 50 % if delivery within 3 months of the offer date, else 20 %. */
+export function depositRule(offerDate: string | undefined, deliveryDate: string | null | undefined, forwardOrder = false) {
+  if (forwardOrder) return 20;
   if (!deliveryDate) return 50;
   return danishDay(new Date(deliveryDate)) <= addMonths(danishDay(new Date(offerDate ?? Date.now())), 3) ? 50 : 20;
 }

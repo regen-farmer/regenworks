@@ -29,6 +29,8 @@ export type GroveProject = {
   name: string;
   type: "client" | "own" | "tree-sale";
   stage: Stage;
+  /** where in the stage, e.g. "Staking" */
+  step?: string;
   status: "active" | "on-hold" | "archived";
   client?: { name?: string; contactPerson?: string; email?: string; phone?: string };
   farm?: { _id: string; name?: string; lat?: number; lng?: number; size?: number } | null;
@@ -48,6 +50,18 @@ export type GroveProject = {
   signedValue?: number;
   updatedAt?: string;
 };
+
+/** Suggested steps per stage (free text is allowed too). */
+export const STEPS: Record<Stage, string[]> = {
+  prospect: ["First contact", "Meeting booked", "Screening"],
+  "design-offer": ["Screening", "Design", "Financial model", "Offer sent", "Negotiation"],
+  signed: ["Deposit invoiced", "Deposit paid", "Plants ordered"],
+  establishment: ["Plants ordered", "Delivery", "Staking", "Planting", "As-planted check"],
+  management: ["Care year 1", "Survival count", "Replanting", "Care year 2+"],
+  closed: ["Done", "Cancelled"],
+};
+
+export const stageText = (p: { stage: Stage; step?: string }) => `${STAGE_LABEL[p.stage] ?? p.stage}${p.step ? ` · ${p.step}` : ""}`;
 
 export const kroner = (n: number | undefined | null) =>
   n === undefined || n === null || !n ? "" : `${Math.round(n).toLocaleString("da-DK")} kr`;

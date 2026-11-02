@@ -500,13 +500,17 @@ function OfferPage() {
                 Delivery season
                 <input class={input} value={draft.terms?.deliverySeason ?? ""} placeholder="fx Efterår 2027" onInput={(e) => edit("terms", "deliverySeason", e.currentTarget.value)} />
               </label>
+              <label class="flex items-center gap-2 text-sm md:col-span-2">
+                <input type="checkbox" checked={!!draft.terms?.forwardOrder} onChange={(e) => edit("terms", "forwardOrder", e.currentTarget.checked)} />
+                Forward order (plants for a later season: 20 % deposit; counted as a deposit on the scorecard)
+              </label>
               <label class="flex flex-col text-xs">
                 Expected delivery / planting date (sets the deposit rule)
                 <input type="date" class={input} value={dateValue(draft.terms?.deliveryDate ?? undefined)} onInput={(e) => edit("terms", "deliveryDate", e.currentTarget.value ? `${e.currentTarget.value}T12:00:00` : null)} />
               </label>
               <label class="flex flex-col text-xs">
-                Deposit at acceptance (%) · blank = rule: {depositRule(draft.offerDate, draft.terms?.deliveryDate)} % (50 % if delivery within 3 months, else 20 %)
-                <input type="number" min="0" max="100" class={input} value={draft.terms?.depositPct ?? ""} placeholder={String(depositRule(draft.offerDate, draft.terms?.deliveryDate))} onInput={(e) => edit("terms", "depositPct", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} />
+                Deposit at acceptance (%) · blank = rule: {depositRule(draft.offerDate, draft.terms?.deliveryDate, !!draft.terms?.forwardOrder)} % (forward orders 20 %; else 50 % if delivery within 3 months, otherwise 20 %)
+                <input type="number" min="0" max="100" class={input} value={draft.terms?.depositPct ?? ""} placeholder={String(depositRule(draft.offerDate, draft.terms?.deliveryDate, !!draft.terms?.forwardOrder))} onInput={(e) => edit("terms", "depositPct", e.currentTarget.value === "" ? null : Number(e.currentTarget.value))} />
               </label>
               <label class="flex flex-col text-xs">
                 Deposit note (optional, shown on the offer)

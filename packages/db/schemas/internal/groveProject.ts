@@ -13,6 +13,8 @@ export interface IGroveProject {
 	name: string;
 	type: (typeof PROJECT_TYPES)[number];
 	stage: (typeof PROJECT_STAGES)[number];
+	/** where in the stage, e.g. "Staking" in establishment */
+	step?: string;
 	status: (typeof PROJECT_STATUSES)[number];
 	client: { name?: string; contactPerson?: string; email?: string; phone?: string };
 	farm?: mongoose.Types.ObjectId | null;
@@ -33,6 +35,7 @@ const schema = new mongoose.Schema<IGroveProject>(
 		name: { type: String, required: true, trim: true, maxlength: 200 },
 		type: { type: String, enum: PROJECT_TYPES, default: "client" },
 		stage: { type: String, enum: PROJECT_STAGES, default: "prospect" },
+		step: { type: String, maxlength: 60 },
 		status: { type: String, enum: PROJECT_STATUSES, default: "active" },
 		client: {
 			name: { type: String, maxlength: 200 },

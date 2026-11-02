@@ -6,7 +6,7 @@ import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
-import { STAGES, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
+import { STAGES, STEPS, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
 import { apiFetch } from "~/util/apiFetch.ts";
 
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
@@ -51,6 +51,7 @@ function ProjectPage() {
           name: p.name,
           type: p.type,
           stage: p.stage,
+          step: p.step ?? "",
           status: p.status,
           client: p.client ?? {},
           farm: p.farm?._id ?? null,
@@ -122,6 +123,13 @@ function ProjectPage() {
             <select class={input} value={p.stage} onChange={(e) => edit("stage", e.currentTarget.value)}>
               <For each={STAGES}>{([k, v]) => <option value={k}>{v}</option>}</For>
             </select>
+          </label>
+          <label class="flex flex-col text-xs">
+            Step in this stage
+            <input class={input} list="grove-steps" maxLength={60} value={p.step ?? ""} placeholder={STEPS[p.stage]?.[0] ?? ""} onInput={(e) => edit("step", e.currentTarget.value)} />
+            <datalist id="grove-steps">
+              <For each={STEPS[p.stage] ?? []}>{(x) => <option value={x} />}</For>
+            </datalist>
           </label>
           <label class="flex flex-col text-xs">
             Status
