@@ -91,14 +91,17 @@ export function handleSignOut() {
 async function hydrateMongoAndStripe() {
   // Get MongoDB user from localStorage (populated once, then reused across launches)
   let mongodbUser = localStorage.getItem("mongodbUser");
+  // a remembered failed lookup ("null", "undefined") is no user: ask again
+  if (mongodbUser === "null" || mongodbUser === "undefined") mongodbUser = null;
   if (!mongodbUser) {
     const mongodbuserResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/myuser`, {
       method: "get",
       ...apiFetchOptions(),
     });
-    const responsejson = await mongodbuserResponse.json();
-    mongodbUser = JSON.stringify(responsejson.user);
-    localStorage.setItem("mongodbUser", mongodbUser);
+    const responsejson = mongodbuserResponse.ok ? await mongodbuserResponse.json().catch(() => null) : null;
+    mongodbUser = JSON.stringify(responsejson?.user ?? null);
+    // only remember a real answer: a failed call (e.g. while logged out) would otherwise stick
+    if (responsejson?.user) localStorage.setItem("mongodbUser", mongodbUser);
   }
   setMongoDBDBUser(JSON.parse(mongodbUser));
 
@@ -113,9 +116,17 @@ async function hydrateMongoAndStripe() {
         ...apiFetchOptions(),
       },
     );
-    const customerData = await customerResponse.json();
-    stripeCustomer = JSON.stringify(customerData);
-    localStorage.setItem("stripeCustomer", stripeCustomer);
+    const customerData = customerResponse.ok ? await customerResponse.json().catch(() => null) : null;
+    stripeCustomer = JSON.stringify(customerData ?? {});
+    // only remember a real answer, or a failed lookup shows "Free plan" until the next sign-out
+    if (Array.isArray(customerData?.subscriptions)) localStorage.setItem("stripeCustomer", stripeCustomer);
+  } else {
+    // an answer remembered from a failed call (no subscriptions list): ask again next time
+    try {
+      if (!Array.isArray(JSON.parse(stripeCustomer)?.subscriptions)) localStorage.removeItem("stripeCustomer");
+    } catch {
+      localStorage.removeItem("stripeCustomer");
+    }
   }
   setStripeCustomer(JSON.parse(stripeCustomer));
 }
