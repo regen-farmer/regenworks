@@ -11,6 +11,8 @@ import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { inIds } from "../utils/mongoSafety.ts";
 import { offerTotals } from "./offers.ts";
 import { farmIsGroves, groveUserIds } from "./groveRefs.ts";
+import GroveSetting from "@rw/db/schemas/internal/groveSetting.ts";
+import { cleanFunnel, cleanSources, dealReport, DEFAULT_SOURCES, FUNNEL_TEMPLATES, keyFrom, stageSince } from "./funnels.ts";
 import {
   DEFAULT_FUNNELS,
   cleanClient,
@@ -79,6 +81,7 @@ async function present(deals: any[]) {
   }
   return deals.map((d) => ({
     ...d,
+    stageSince: stageSince(d),
     history: undefined,
     client: d.client ? clientBy.get(String(d.client)) ?? { _id: d.client } : null,
     farm: d.farm ? farmBy.get(String(d.farm)) ?? { _id: d.farm } : null,
@@ -105,10 +108,101 @@ async function nextPosition(funnel: unknown, stage: string) {
 // ---------- funnels ----------
 export const funnelRouter = express.Router();
 
-funnelRouter.get("/", async (_req: Req, res) => {
+// ?editor=1: archived funnels too, and how many deals sit in each stage
+funnelRouter.get("/", async (req: Req, res) => {
   await ensureFunnels();
-  const funnels = await Funnel.find({ archived: false }).sort({ order: 1, name: 1 }).lean();
-  res.send({ funnels });
+  const editor = req.query.editor === "1";
+  const funnels: any[] = await Funnel.find(editor ? {} : { archived: false }).sort({ order: 1, name: 1 }).lean();
+  if (!editor) {
+    res.send({ funnels });
+    return;
+  }
+  const counts: any[] = await Deal.aggregate([{ $group: { _id: { funnel: "$funnel", stage: "$stage" }, n: { $sum: 1 } } }]);
+  const countOf = new Map(counts.map((c) => [`${String(c._id.funnel)}|${c._id.stage}`, c.n as number]));
+  res.send({
+    funnels: funnels.map((f) => ({
+      ...f,
+      stages: f.stages.map((st: any) => ({ ...st, deals: countOf.get(`${String(f._id)}|${st.key}`) ?? 0 })),
+      deals: f.stages.reduce((n: number, st: any) => n + (countOf.get(`${String(f._id)}|${st.key}`) ?? 0), 0),
+    })),
+    templates: FUNNEL_TEMPLATES,
+  });
+});
+
+/** A new funnel, from a template or the stages sent. */
+funnelRouter.post("/", async (req: Req, res) => {
+  const template = FUNNEL_TEMPLATES.find((t) => t.key === req.body?.template);
+  const stages = Array.isArray(req.body?.stages) ? req.body.stages : template?.stages;
+  // new funnel: every stage gets a fresh key from its name
+  const cleaned = cleanFunnel({ ...req.body, stages: (stages ?? []).map((st: any) => ({ ...st, key: undefined })) });
+  if (!cleaned.ok) return bad(res, cleaned.error);
+  const all: any[] = await Funnel.find({}).select("key order").lean();
+  const { removed: _removed, ...value } = cleaned.value;
+  try {
+    const funnel = await Funnel.create({
+      ...value,
+      key: keyFrom(value.name, all.map((f) => f.key)),
+      order: Math.max(0, ...all.map((f) => f.order ?? 0)) + 1,
+    });
+    res.status(201).send({ funnel });
+  } catch (err: any) {
+    if (err?.code === 11000) return bad(res, "Someone made a funnel with that name just now; try again", 409);
+    throw err;
+  }
+});
+
+/** Order of the funnel tabs. */
+funnelRouter.put("/order", async (req: Req, res) => {
+  const ids = req.body?.ids;
+  if (!Array.isArray(ids) || !ids.length || ids.length > 100 || !ids.every(isId)) return bad(res, "Send the funnel ids in order");
+  await Funnel.bulkWrite(ids.map((id: string, i: number) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: i + 1 } } } })));
+  res.send({ ok: true });
+});
+
+/**
+ * Rename a funnel or change its stages. A stage with deals in it can't be
+ * removed (move them first). `updatedAt` from when the editor loaded the
+ * funnel: if someone changed it meanwhile, nothing is saved.
+ */
+funnelRouter.put("/:id", async (req: Req, res) => {
+  if (!isId(req.params.id)) return bad(res, "Invalid id");
+  const funnel: any = await Funnel.findById(req.params.id).lean();
+  if (!funnel) return bad(res, "Funnel not found", 404);
+  if (typeof req.body?.updatedAt !== "string" || new Date(req.body.updatedAt).getTime() !== new Date(funnel.updatedAt).getTime()) {
+    return bad(res, "This funnel was changed by someone else meanwhile. Reload and try again.", 409);
+  }
+  const cleaned = cleanFunnel(req.body, funnel);
+  if (!cleaned.ok) return bad(res, cleaned.error);
+  const { removed, ...value } = cleaned.value;
+  if (removed.length) {
+    const inRemoved = await Deal.countDocuments({ funnel: funnel._id, stage: inIds(removed) });
+    if (inRemoved) return bad(res, `${inRemoved} deal${inRemoved === 1 ? " is" : "s are"} in a stage you removed (archived deals too). Move them first.`, 409);
+  }
+  const saved = await Funnel.findOneAndUpdate({ _id: funnel._id, updatedAt: funnel.updatedAt }, { $set: value }, { new: true, runValidators: true }).lean();
+  if (!saved) return bad(res, "This funnel was changed by someone else meanwhile. Reload and try again.", 409);
+  res.send({ funnel: saved });
+});
+
+/** Hide or show a funnel. Its deals stay; the last open funnel can't be hidden. */
+funnelRouter.post("/:id/archive", async (req: Req, res) => {
+  if (!isId(req.params.id)) return bad(res, "Invalid id");
+  if (typeof req.body?.archived !== "boolean") return bad(res, "archived must be true or false");
+  const active: any[] = await Funnel.find({ archived: false }).select("_id").lean();
+  if (req.body.archived && active.every((f) => String(f._id) === req.params.id)) {
+    return bad(res, "Keep at least one funnel", 409);
+  }
+  const f = await Funnel.findByIdAndUpdate(req.params.id, { $set: { archived: req.body.archived } }, { new: true }).lean();
+  if (!f) return bad(res, "Funnel not found", 404);
+  res.send({ funnel: f });
+});
+
+/** Delete a funnel that never had a deal; otherwise hide it. */
+funnelRouter.delete("/:id", async (req: Req, res) => {
+  if (!isId(req.params.id)) return bad(res, "Invalid id");
+  if (await Deal.exists({ funnel: req.params.id })) return bad(res, "This funnel has deals; hide it instead", 409);
+  const r = await Funnel.deleteOne({ _id: req.params.id });
+  if (!r.deletedCount) return bad(res, "Funnel not found", 404);
+  res.status(204).send();
 });
 
 // ---------- deals ----------
@@ -120,6 +214,35 @@ dealRouter.get("/", async (req: Req, res) => {
   const archived = req.query.archived === "1";
   const deals = await Deal.find({ funnel: funnel._id, archived }).sort({ position: 1, _id: 1 }).limit(2000).lean();
   res.send({ funnel, deals: await present(deals) });
+});
+
+// ---------- deal sources (Settings) ----------
+const SOURCES_KEY = "dealSources";
+async function sources(): Promise<string[]> {
+  const s: any = await GroveSetting.findOne({ key: SOURCES_KEY }).lean();
+  return Array.isArray(s?.value?.sources) && s.value.sources.length ? s.value.sources : DEFAULT_SOURCES;
+}
+dealRouter.get("/sources", async (_req: Req, res) => {
+  res.send({ sources: await sources(), defaults: DEFAULT_SOURCES });
+});
+dealRouter.put("/sources", async (req: Req, res) => {
+  const cleaned = cleanSources(req.body);
+  if (!cleaned.ok) return bad(res, cleaned.error);
+  await GroveSetting.findOneAndUpdate({ key: SOURCES_KEY }, { $set: { value: { sources: cleaned.value }, updatedBy: req.user?._id } }, { upsert: true });
+  res.send({ sources: cleaned.value });
+});
+
+// ---------- report: by source, win rate and days per stage ----------
+dealRouter.get("/report", async (req: Req, res) => {
+  const day = (v: unknown) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? new Date(`${v}T00:00:00Z`) : null);
+  const from = day(req.query.from);
+  const to = day(req.query.to);
+  if ((req.query.from && !from) || (req.query.to && !to)) return bad(res, "Dates as YYYY-MM-DD");
+  const [deals, funnels] = await Promise.all([
+    Deal.find({}).select("funnel stage status source value archived createdAt history.stage history.funnel history.at").limit(20000).lean(),
+    Funnel.find({}).sort({ archived: 1, order: 1 }).lean(),
+  ]);
+  res.send(dealReport(deals as any[], funnels as any[], { from, to }));
 });
 
 // Short list of deals to link an offer to (open and won, newest first).
@@ -369,7 +492,9 @@ dealRouter.post("/:id/handover", async (req: Req, res) => {
       farm: deal.farm ?? null,
       groveProject: deal.groveProject ?? null,
       owner: deal.owner ?? req.user?._id ?? null,
-      source: "Re-purchase",
+      // where the client first came from stays with them
+      source: deal.source || "Re-purchase",
+      sourceDetail: deal.sourceDetail,
       history: [{ stage: stage.key, funnel: funnel._id, status: stage.kind, at: now, by: req.user?._id, note: `follow-up of ${String(deal.title).slice(0, 150)}` }],
       createdBy: req.user?._id,
     });

@@ -15,6 +15,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/clients", label: "Clients", icon: "fa-address-book", sub: true, show: () => canSeeMoney() },
   { to: "/grove/offers", label: "Offers", icon: "fa-file-invoice", sub: true, show: () => canSeeMoney() },
   { to: "/grove/supply", label: "Supply", icon: "fa-boxes-stacked", sub: true, show: () => canSeeMoney() },
+  { to: "/grove/funnels", label: "Funnels & sources", icon: "fa-sliders", sub: true, show: () => canSeeMoney() },
   { to: "/", label: "Projects", letter: "B", icon: "fa-compass-drafting", exact: true, also: /^\/(parcels|grove\/projects)(\/|$)/ },
   { to: "/grove/managed", label: "Managed farms", letter: "C", icon: "fa-tractor", soon: true },
   { heading: "Library" },

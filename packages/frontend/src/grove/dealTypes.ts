@@ -1,7 +1,7 @@
 // A · Clients & deals: shapes shared by the funnel board, deal and client pages.
 export type StageKind = "open" | "won" | "lost";
-export type FunnelStage = { key: string; name: string; kind: StageKind };
-export type Funnel = { _id: string; key: string; name: string; description?: string; stages: FunnelStage[] };
+export type FunnelStage = { key: string; name: string; kind: StageKind; targetDays?: number | null };
+export type Funnel = { _id: string; key: string; name: string; description?: string; order?: number; archived?: boolean; updatedAt?: string; stages: FunnelStage[] };
 
 export type ClientRef = { _id: string; name?: string; kind?: string };
 export type Client = {
@@ -34,6 +34,9 @@ export type Deal = {
   expectedClose?: string | null;
   owner?: string | null;
   source?: string;
+  sourceDetail?: string;
+  /** when the deal came into its current stage */
+  stageSince?: string | null;
   nextAction?: { text?: string; date?: string | null };
   farm?: { _id: string; name?: string } | null;
   groveProject?: string | null;
@@ -49,7 +52,14 @@ export type Deal = {
 };
 
 export const STATUS_LABEL: Record<StageKind, string> = { open: "Open", won: "Won", lost: "Lost" };
-export const SOURCES = ["Website", "Referral", "Skovlandbrugstjek (FØL)", "Event / fair", "Corporate programme", "Re-purchase", "Cold outreach", "Other"];
+/** Whole days since a date. */
+export const daysSince = (iso: string | null | undefined, now = Date.now()) => (iso ? Math.floor((now - new Date(iso).getTime()) / 86_400_000) : null);
+
+/** Days in the current stage, and whether that's past the stage's target time. */
+export function stageAge(d: Pick<Deal, "stageSince" | "status">, stage: FunnelStage | undefined) {
+  const days = daysSince(d.stageSince);
+  return { days, over: d.status === "open" && !!stage?.targetDays && days !== null && days > stage.targetDays };
+}
 
 export const dkk = (n: number | null | undefined) =>
   n === null || n === undefined || !Number.isFinite(n) ? "" : `${Math.round(n).toLocaleString("da-DK")} kr`;
