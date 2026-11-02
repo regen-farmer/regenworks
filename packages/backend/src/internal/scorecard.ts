@@ -101,11 +101,16 @@ export function scorecard(input: {
   const t = input.targets;
   const inPeriod = (d: string | undefined) => !!d && (!t.from || d >= t.from) && (!t.to || d <= t.to);
   const wonDeals = input.wonDeals ?? [];
+  const stdPct = typeof t.standardMarginPct === "number" ? t.standardMarginPct : DEFAULT_STANDARD_MARGIN;
   const wonBy = new Map(wonDeals.map((d) => [String(d._id), d]));
   const priced = (o: ScoredOffer) => {
     const totals = offerTotals(o);
     const m = offerMargin(o);
-    return { o, net: totals.net, margin: m.margin, marginPct: m.marginPct, withoutCost: m.withoutCost, deposit: totals.deposit.amount, depositPct: totals.deposit.pct, forward: !!o.terms?.forwardOrder };
+    // lines without a known cost count at the standard margin until their cost is known
+    const estimate = Math.round(((m.withoutCost * stdPct) / 100) * 100) / 100;
+    const margin = Math.round((m.margin + estimate) * 100) / 100;
+    const marginPct = totals.net > 0 && m.sale + m.withoutCost > 0 ? Math.round((margin / (m.sale + m.withoutCost)) * 1000) / 10 : m.marginPct;
+    return { o, net: totals.net, margin, estimate, marginPct, withoutCost: m.withoutCost, deposit: totals.deposit.amount, depositPct: totals.deposit.pct, forward: !!o.terms?.forwardOrder };
   };
   const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
   const wonDay = (d: WonDeal) => day(d.wonAt) ?? day(d.updatedAt);
@@ -119,7 +124,6 @@ export function scorecard(input: {
     offersOf.set(k, [...(offersOf.get(k) ?? []), { ...priced(o), on: later(wonDay(d), day(o.acceptedAt)) }]);
   }
   const round = (n: number) => Math.round(n * 100) / 100;
-  const stdPct = typeof t.standardMarginPct === "number" ? t.standardMarginPct : DEFAULT_STANDARD_MARGIN;
   const fromDeals = wonDeals.flatMap((d) => {
     const all = offersOf.get(String(d._id)) ?? [];
     if (!all.length) {
@@ -142,6 +146,7 @@ export function scorecard(input: {
           margin: fwd ? 0 : round((value * stdPct) / 100),
           marginPct: fwd ? null : (stdPct as number | null),
           withoutCost: 0,
+          costEstimate: 0,
           deposit: fwd ? round((value * FORWARD_DEPOSIT_PCT) / 100) : 0,
           withoutOffer: value,
           deal: d._id,
@@ -169,6 +174,7 @@ export function scorecard(input: {
         margin,
         marginPct: springNet > 0 && spring.every((x) => x.marginPct !== null) ? Math.round((margin / springNet) * 1000) / 10 : null,
         withoutCost: round(spring.reduce((n, x) => n + x.withoutCost, 0)),
+        costEstimate: round(spring.reduce((n, x) => n + x.estimate, 0)),
         deposit: round(fwd.reduce((n, x) => n + x.deposit / (1 + VAT), 0)),
         withoutOffer: 0,
         estimated: false,
@@ -194,6 +200,7 @@ export function scorecard(input: {
         margin: x.forward ? 0 : x.margin,
         marginPct: x.forward ? null : x.marginPct,
         withoutCost: x.forward ? 0 : x.withoutCost,
+        costEstimate: x.forward ? 0 : x.estimate,
         deposit: x.forward ? round(x.deposit / (1 + VAT)) : 0,
         withoutOffer: 0,
         estimated: false,
@@ -237,7 +244,7 @@ export function scorecard(input: {
   return {
     targets: t,
     weeksLeft,
-    margin: { actual: margin, target: t.margin ?? null, gap: marginGap, perWeek: perWeek(marginGap), withoutCost, inSentOffers: sentMargin },
+    margin: { actual: margin, target: t.margin ?? null, gap: marginGap, perWeek: perWeek(marginGap), withoutCost, costEstimate: sum(won.map((w) => w.costEstimate)), inSentOffers: sentMargin },
     withoutOffer,
     deposits: { actual: deposits, target: t.deposits ?? null, gap: depositGap, perWeek: perWeek(depositGap), inSentOffers: sentDeposits },
     standardMarginPct: stdPct,
