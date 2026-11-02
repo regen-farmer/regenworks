@@ -190,7 +190,7 @@ export function priceLine(
     // Not in this pricebook version, or the plant was edited: match as usual,
     // and say so on the line.
     const fallback = priceLineByMatch(l, data, rates, hybrid, clientOrganic);
-    return { ...fallback, pricing: { ...(fallback.pricing ?? {}), pickedMissing: true, matchNote: `picked product not used (${picked ? "plant edited" : "not in this pricebook version"}); ${fallback.pricing?.matchNote ?? "matched instead"}` } };
+    return { ...fallback, pricing: { ...(fallback.pricing ?? {}), pickedMissing: true, matchNote: `picked product not used (${!row ? "not in this pricebook version" : !stillSame ? "plant edited" : "no usable price on that row"}); ${fallback.pricing?.matchNote ?? "matched instead"}` } };
   }
   return priceLineByMatch(l, data, rates, hybrid, clientOrganic);
 }

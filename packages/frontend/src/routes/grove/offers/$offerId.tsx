@@ -348,8 +348,13 @@ function OfferPage() {
                     onPick={(fields) => {
                       const at = picking();
                       if (at === "new") edit("lines", (ls: OfferLine[]) => [...(ls ?? []), { qty: 1, discountPct: 0, ...fields } as OfferLine]);
-                      // a different species gets its Danish name from the pricebook on save
-                      else if (typeof at === "number") edit("lines", at, (l: OfferLine) => ({ ...l, ...fields, nameDa: fields.nameDa ?? (fields.latin === l.latin ? l.nameDa : undefined) }));
+                      // Keep the line's price: a different product is priced again on
+                      // save, the same product leaves the line as it was.
+                      // A different species gets its Danish name from the pricebook.
+                      else if (typeof at === "number") {
+                        const { unitPrice: _u, priceSource: _s, ...plant } = fields;
+                        edit("lines", at, (l: OfferLine) => ({ ...l, ...plant, nameDa: plant.nameDa ?? (plant.latin === l.latin ? l.nameDa : undefined) }));
+                      }
                       setPicking(null);
                     }}
                   />

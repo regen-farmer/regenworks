@@ -206,15 +206,18 @@ test("a picked Grove sales price is used as listed; an unknown row falls back to
   assert.equal("pricebookRefKey" in m[0], false);
 });
 
-test("re-picking a product on a priced line prices it again (the editor sends 0 kr)", () => {
+test("re-picking a product on a priced line prices it again", () => {
   const stored = [{ _id: "a", ...hazel({ organic: false }), unitPrice: 110, priceSource: "sales", pricing: { salesPriceId: "s2" }, pricebookRef: { kind: "sales", id: "s2" } }];
   const m = mergeLines(stored, [{ _id: "a", ...hazel(), qty: 10, unitPrice: 0, priceSource: "none", pricebookRef: { kind: "sales", id: "s1" } }]);
   assert.equal(m[0].priceSource, "none");
   const priced = priceLine(m[0], pb, rates, undefined, false);
   assert.equal(priced.unitPrice, 150);
   assert.equal(priced.pricing?.salesPriceId, "s1");
-  const same = mergeLines(stored, [{ _id: "a", ...hazel(), unitPrice: 0, pricebookRef: { kind: "sales", id: "s2" } }]);
-  assert.equal(same[0].priceSource, "manual", "same product, price typed as 0: the user's choice");
+  const kept = mergeLines(stored, [{ _id: "a", ...hazel(), qty: 10, unitPrice: 110, priceSource: "sales", pricebookRef: { kind: "sales", id: "s1" } }]);
+  assert.equal(kept[0].priceSource, "none", "a different product is priced again even if the old price comes along");
+  const same = mergeLines(stored, [{ _id: "a", ...hazel({ organic: false }), unitPrice: 110, priceSource: "sales", pricebookRef: { kind: "sales", id: "s2" } }]);
+  assert.equal(same[0].unitPrice, 110, "the same product again leaves the price alone");
+  assert.equal(same[0].priceSource, "sales");
 });
 
 test("a picked product is not used once the plant is edited (and the line says so)", () => {

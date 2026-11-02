@@ -584,7 +584,7 @@ export function priceFromRow(
     const s = data.salesPrices.find((p) => p.salesPriceId === ref.id);
     if (!s) return null;
     // cost reference for the internal sheet, as for matched sales prices
-    const prop = s.propagation?.toLowerCase().includes("graft") ? "grafted" : s.propagation ? "seedling" : undefined;
+    const prop = rowPropagation(s.propagation);
     const cost = supplierSuggestion(
       data,
       {
