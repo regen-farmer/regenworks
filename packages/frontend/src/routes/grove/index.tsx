@@ -235,6 +235,12 @@ function Dashboard() {
                           {p.status !== "active" ? ` · ${p.status}` : ""}
                         </div>
                         <Show when={p.step}><div class="text-xs font-semibold mt-0.5">{p.step}</div></Show>
+                        <Show when={p.screening}>
+                          <div class="text-xs mt-0.5" classList={{ "text-amber-700": !!p.screening!.issues }}>
+                            Screening {p.screening!.done}/{p.screening!.total}
+                            {p.screening!.decision ? ` · ${{ go: "Go", "go-conditions": "Go, with conditions", "no-go": "No-go" }[p.screening!.decision] ?? ""}` : ""}
+                          </div>
+                        </Show>
                         <Show when={p.nextAction?.text}>
                           <div class="text-xs mt-1">
                             Next: {p.nextAction!.text}

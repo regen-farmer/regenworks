@@ -4,6 +4,7 @@ import { createEffect, createResource, createSignal, For, Show } from "solid-js"
 import { createStore, reconcile } from "solid-js/store";
 import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
+import { ChecklistPanel } from "~/grove/ChecklistPanel.tsx";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, STEPS, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
@@ -199,6 +200,8 @@ function ProjectPage() {
             <label class="flex flex-col text-xs md:col-span-3">Notes<textarea class={input} rows={3} value={p.notes ?? ""} onInput={(e) => edit("notes", e.currentTarget.value)} /></label>
           </Show>
         </fieldset>
+
+        <ChecklistPanel projectId={params().projectId} kind="screening" />
 
         <Show when={team()}>
           <section class="flex flex-col gap-2">
