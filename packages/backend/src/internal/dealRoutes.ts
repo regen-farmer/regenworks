@@ -202,7 +202,8 @@ dealRouter.post("/import-dashboard", async (req: Req, res) => {
     } catch (err: any) {
       if (err?.code !== 11000) throw err;
       // imported at the same moment by someone else: drop the client we just made
-      if (madeClient) {
+      // (unless another import has already put its deal on it)
+      if (madeClient && !(await Deal.exists({ client: client._id }))) {
         await Client.deleteOne({ _id: client._id });
         clientsCreated -= 1;
       }
