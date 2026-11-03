@@ -7,6 +7,7 @@ import Activity from "@rw/db/schemas/activity.ts";
 import middleware from "../middleware/index.ts"; // Will automatically require the middleware "index" file as the standard
 import { sanitizeMongoDocument } from "../utils/mongoSafety.ts";
 import type { Auth0IDToken } from "../app.ts";
+import { issuerBaseUrl } from "../auth/identify.ts";
 
 // import logger from '../middleware/logger';
 
@@ -30,7 +31,12 @@ router.get(
     req: express.Request & { user?: UserDocument; idToken?: Auth0IDToken },
     res: express.Response,
   ) => {
-    res.send({ user: req.user });
+    // tokenRefused: a Bearer token was sent, this backend can check tokens, and
+    // Auth0 said no (expired or old session). The web app then goes to login.
+    // Not set for a valid token without a user (e.g. email not verified yet).
+    const sentToken = /^Bearer\s+\S/i.test(String(req.headers.authorization ?? ""));
+    const tokenRefused = sentToken && !!issuerBaseUrl() && !req.idToken;
+    res.send({ user: req.user, ...(tokenRefused ? { tokenRefused: true } : {}) });
   },
 );
 
