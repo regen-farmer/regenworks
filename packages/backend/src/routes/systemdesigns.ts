@@ -14,6 +14,13 @@ import { canEditDesign, checkDesignPlants, referencedIds } from "../catalogue/ru
 
 const router = express.Router();
 
+/** What a design save may change: everything but its id, version and timestamps. */
+export function designFields(body: any) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+  const { _id: _i, __v: _v, createdAt: _c, updatedAt: _u, ...rest } = body;
+  return rest;
+}
+
 function storedPlantIds(systemdesign: any) {
   const ids = referencedIds(systemdesign?.rows ?? []);
   return { varieties: new Set(ids.varieties), rootstocks: new Set(ids.rootstocks) };
@@ -80,7 +87,11 @@ router.put(
       // Check cultivars and rootstocks: they must exist, be shared or belong to
       // the design's owner (not just the editor), and a cultivar must match
       // its species. References already stored are kept or quietly dropped.
-      const body = sanitizeMongoDocument(req.body);
+      // The page sends the whole design back, including its id and version
+      // number (__v). After one save the stored version has moved on, so a
+      // second save from the same page would look for a version that is gone
+      // (500). The design is replaced as a whole by its owner: drop those fields.
+      const body = designFields(sanitizeMongoDocument(req.body));
       const ids = referencedIds(body?.rows ?? []);
       const [varieties, rootstocks] = await Promise.all([
         ids.varieties.length ? Variety.find({ _id: inIds(ids.varieties) }).lean() : [],

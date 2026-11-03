@@ -93,16 +93,26 @@ async function hydrateMongoAndStripe() {
   let mongodbUser = localStorage.getItem("mongodbUser");
   // a remembered failed lookup ("null", "undefined") is no user: ask again
   if (mongodbUser === "null" || mongodbUser === "undefined") mongodbUser = null;
-  if (!mongodbUser) {
-    const mongodbuserResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/myuser`, {
-      method: "get",
-      ...apiFetchOptions(),
-    });
-    const responsejson = mongodbuserResponse.ok ? await mongodbuserResponse.json().catch(() => null) : null;
-    mongodbUser = JSON.stringify(responsejson?.user ?? null);
-    // only remember a real answer: a failed call (e.g. while logged out) would otherwise stick
-    if (responsejson?.user) localStorage.setItem("mongodbUser", mongodbUser);
+  // Always ask the backend, so an expired or old session goes back to the
+  // login page instead of pages that can't load anything. The backend creates
+  // the user for any token Auth0 accepts, so "no user" for a token means the
+  // token was refused. If the backend can't be reached or can't check the
+  // login right now (503), the remembered user is used.
+  const mongodbuserResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/myuser`, {
+    method: "get",
+    ...apiFetchOptions(),
+  }).catch(() => undefined);
+  const responsejson = mongodbuserResponse?.ok ? await mongodbuserResponse.json().catch(() => null) : null;
+  if (getAuth0Token() && (mongodbuserResponse?.status === 401 || (mongodbuserResponse?.ok && responsejson && !responsejson.user))) {
+    handleSignOut();
+    return;
   }
+  if (responsejson?.user) {
+    mongodbUser = JSON.stringify(responsejson.user);
+    // only remember a real answer: a failed call (e.g. while logged out) would otherwise stick
+    localStorage.setItem("mongodbUser", mongodbUser);
+  }
+  mongodbUser ??= JSON.stringify(null);
   setMongoDBDBUser(JSON.parse(mongodbUser));
 
   // Get Stripe customer from localStorage
