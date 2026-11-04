@@ -31,7 +31,7 @@
 		"@deck.gl/mesh-layers": "~9.3.12",
 		"@kobalte/core": "^0.13.12",
 		"@mapbox/geojson-area": "^0.2.2",
-		"@mapbox/mapbox-gl-draw": "^1.4.3",
+		"@mapbox/mapbox-gl-draw": "^1.5.2",
 		"@maptiler/sdk": "^4.0.2",
 		"@popperjs/core": "^2.11.8",
 		"@rw/db": "workspace:*",
