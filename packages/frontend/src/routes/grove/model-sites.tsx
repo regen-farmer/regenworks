@@ -403,7 +403,11 @@ function ModelSites() {
       </aside>
 
       <main class="flex-1 relative min-h-[60vh]">
-        <div ref={(node) => queueMicrotask(() => initMap(node))} class="absolute inset-0" />
+        {/* maplibre's own CSS sets its container to position: relative, which beats Tailwind's
+            "absolute"; so the map fills a positioned wrapper instead of being positioned itself */}
+        <div class="absolute inset-0">
+          <div ref={(node) => queueMicrotask(() => initMap(node))} class="w-full h-full" />
+        </div>
         <Show when={selected()}>
           <section class="absolute left-3 top-3 w-80 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-md bg-white/95 dark:bg-slate-900/95 shadow p-3 flex flex-col gap-2 text-sm">
             <div class="flex items-center gap-2">
