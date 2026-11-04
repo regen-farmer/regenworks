@@ -5,7 +5,7 @@
 // Collapses to icons; the choice is remembered in this browser.
 import { Link, useLocation } from "@tanstack/solid-router";
 import { createEffect, createSignal, For, onCleanup, Show, type JSX } from "solid-js";
-import { canSeeMoney } from "~/grove/access.ts";
+import { canSeeMoney, isGroveTeam } from "~/grove/access.ts";
 import { canUsePlantCatalogue } from "~/util/plantCatalogue.ts";
 
 type Item = { to: string; label: string; icon: string; exact?: boolean; show?: () => boolean; letter?: string; sub?: boolean; soon?: boolean; also?: RegExp };
@@ -26,6 +26,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/prices", label: "Prices", icon: "fa-scale-balanced", show: () => canSeeMoney() },
   { to: "/grove/pricebook", label: "Pricebook", icon: "fa-tags", show: () => canSeeMoney() },
   { to: "/grove/value-chains", label: "Value chains", icon: "fa-diagram-project", show: () => canSeeMoney() },
+  { to: "/grove/model-sites", label: "Model sites", icon: "fa-location-crosshairs", show: () => isGroveTeam() },
   { to: "/settings", label: "Settings", icon: "fa-gear" },
 ];
 

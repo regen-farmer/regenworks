@@ -22,6 +22,7 @@ import { Route as AdminIndexRouteImport } from './routes/_pages/admin/index'
 import { Route as GroveIndexRouteImport } from './routes/_pages/grove/index'
 import { Route as GroveFunnelsRouteImport } from './routes/_pages/grove/funnels'
 import { Route as GroveManagedRouteImport } from './routes/_pages/grove/managed'
+import { Route as GroveModelSitesRouteImport } from './routes/_pages/grove/model-sites'
 import { Route as GrovePricebookRouteImport } from './routes/_pages/grove/pricebook'
 import { Route as GrovePricesRouteImport } from './routes/_pages/grove/prices'
 import { Route as GroveSupplyRouteImport } from './routes/_pages/grove/supply'
@@ -146,6 +147,11 @@ const GroveFunnelsRoute = GroveFunnelsRouteImport.update({
 const GroveManagedRoute = GroveManagedRouteImport.update({
   id: '/managed',
   path: '/managed',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveModelSitesRoute = GroveModelSitesRouteImport.update({
+  id: '/model-sites',
+  path: '/model-sites',
   getParentRoute: () => GroveRouteRoute,
 } as any)
 const GrovePricebookRoute = GrovePricebookRouteImport.update({
@@ -509,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/grove/funnels': typeof GroveFunnelsRoute
   '/grove/managed': typeof GroveManagedRoute
+  '/grove/model-sites': typeof GroveModelSitesRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
   '/grove/supply': typeof GroveSupplyRoute
@@ -580,6 +587,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/grove/funnels': typeof GroveFunnelsRoute
   '/grove/managed': typeof GroveManagedRoute
+  '/grove/model-sites': typeof GroveModelSitesRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
   '/grove/supply': typeof GroveSupplyRoute
@@ -656,6 +664,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/grove/funnels': typeof GroveFunnelsRoute
   '/grove/managed': typeof GroveManagedRoute
+  '/grove/model-sites': typeof GroveModelSitesRoute
   '/grove/pricebook': typeof GrovePricebookRoute
   '/grove/prices': typeof GrovePricesRoute
   '/grove/supply': typeof GroveSupplyRoute
@@ -733,6 +742,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/grove/funnels'
     | '/grove/managed'
+    | '/grove/model-sites'
     | '/grove/pricebook'
     | '/grove/prices'
     | '/grove/supply'
@@ -804,6 +814,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/grove/funnels'
     | '/grove/managed'
+    | '/grove/model-sites'
     | '/grove/pricebook'
     | '/grove/prices'
     | '/grove/supply'
@@ -879,6 +890,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/grove/funnels'
     | '/grove/managed'
+    | '/grove/model-sites'
     | '/grove/pricebook'
     | '/grove/prices'
     | '/grove/supply'
@@ -1054,6 +1066,13 @@ declare module '@tanstack/solid-router' {
       path: '/managed'
       fullPath: '/grove/managed'
       preLoaderRoute: typeof GroveManagedRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/model-sites': {
+      id: '/grove/model-sites'
+      path: '/model-sites'
+      fullPath: '/grove/model-sites'
+      preLoaderRoute: typeof GroveModelSitesRouteImport
       parentRoute: typeof GroveRouteRoute
     }
     '/grove/pricebook': {
@@ -1482,6 +1501,7 @@ declare module '@tanstack/solid-router' {
 interface GroveRouteRouteChildren {
   GroveFunnelsRoute: typeof GroveFunnelsRoute
   GroveManagedRoute: typeof GroveManagedRoute
+  GroveModelSitesRoute: typeof GroveModelSitesRoute
   GrovePricebookRoute: typeof GrovePricebookRoute
   GrovePricesRoute: typeof GrovePricesRoute
   GroveSupplyRoute: typeof GroveSupplyRoute
@@ -1502,6 +1522,7 @@ interface GroveRouteRouteChildren {
 const GroveRouteRouteChildren: GroveRouteRouteChildren = {
   GroveFunnelsRoute: GroveFunnelsRoute,
   GroveManagedRoute: GroveManagedRoute,
+  GroveModelSitesRoute: GroveModelSitesRoute,
   GrovePricebookRoute: GrovePricebookRoute,
   GrovePricesRoute: GrovePricesRoute,
   GroveSupplyRoute: GroveSupplyRoute,
