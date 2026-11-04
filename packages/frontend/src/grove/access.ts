@@ -6,6 +6,8 @@ import { apiFetchOptions } from "~/util/apiFetchOptions.ts";
 
 export const isGroveUser = () => hasRole(getMongoDBUser(), "grove-field");
 export const canSeeMoney = () => canSeeMoneyFor(getMongoDBUser());
+/** grove-team and up (e.g. model sites: other farms' systems, not money). */
+export const isGroveTeam = () => hasRole(getMongoDBUser(), "grove-team");
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 

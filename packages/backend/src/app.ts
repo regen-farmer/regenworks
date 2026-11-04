@@ -22,6 +22,7 @@ import farmerAdvisorRoutes from "./routes/farmer-advisor-survey.ts";
 import farmflowRoutes from "./routes/farmflows.ts";
 import farmScenarioConfigRoutes from "./routes/farmscenarioconfigs.ts";
 import internalRoutes from "./routes/internal.ts";
+import modelSitesExport from "./routes/modelSitesExport.ts";
 import financialModelsRoutes from "./routes/financialModels.ts";
 import flowRoutes from "./routes/flows.ts";
 import indexRoutes from "./routes/index.ts";
@@ -211,6 +212,7 @@ app.use("", stripeRoutes);
 app.use("", userPresetsRoutes);
 app.use("", farmScenarioConfigRoutes);
 app.use("/internal", internalRoutes); // Grove team only: see routes/internal.ts
+app.use("/model-sites-export", modelSitesExport); // grove-data jobs, shared key: see routes/modelSitesExport.ts
 app.use("", plantOfferRequestRoutes);
 app.use("", financialModelsRoutes);
 

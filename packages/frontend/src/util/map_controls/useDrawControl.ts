@@ -5,7 +5,7 @@ import geojsonArea from "@mapbox/geojson-area";
 
 // Custom styles for MapLibre GL compatibility
 // Fixes line-dasharray literal array issues
-const maplibreCompatibleStyles = [
+export const maplibreCompatibleStyles = [
   // Polygon fill styles
   {
     id: "gl-draw-polygon-fill-inactive",
