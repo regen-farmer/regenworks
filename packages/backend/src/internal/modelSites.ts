@@ -44,13 +44,21 @@ export function parseCoordinateLines(text: string): { items: QueueItem[]; skippe
   const items: QueueItem[] = [];
   const skipped: string[] = [];
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
+    const line = raw.trim().slice(0, 300);
     if (!line) continue;
-    const m = /^\s*(-?\d+(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d+(?:[.,]\d+)?)\s*(?:[,;\t]\s*|\s+)?(.*)$/.exec(line);
-    if (!m) {
+    // the first two numbers on the line, then the rest as the name (a simple scan: no backtracking)
+    const nums = [...line.matchAll(/-?\d+(?:[.,]\d+)?/g)].slice(0, 2);
+    if (nums.length < 2 || nums[0].index !== 0) {
       skipped.push(line);
       continue;
     }
+    const between = line.slice(nums[0].index! + nums[0][0].length, nums[1].index);
+    if (!/^[\s,;]+$/.test(between)) {
+      skipped.push(line);
+      continue;
+    }
+    const rest = line.slice(nums[1].index! + nums[1][0].length).replace(/^[\s,;]+/, "");
+    const m = [line, nums[0][0], nums[1][0], rest];
     const a = Number(m[1].replace(",", "."));
     const b = Number(m[2].replace(",", "."));
     // Europe: latitude 34-72, longitude -25-45

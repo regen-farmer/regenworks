@@ -111,3 +111,9 @@ test("/model-sites-export: closed (404) without the setting, 401 with a wrong ke
   if (old === undefined) delete process.env.MODEL_SITES_EXPORT_KEY;
   else process.env.MODEL_SITES_EXPORT_KEY = old;
 });
+
+test("pasted coordinates: a long hostile line is cut and read quickly", () => {
+  const t0 = Date.now();
+  parseCoordinateLines("0\t" + "\t".repeat(100000) + "x\n" + "0\t0" + " ".repeat(100000));
+  assert.ok(Date.now() - t0 < 200);
+});
