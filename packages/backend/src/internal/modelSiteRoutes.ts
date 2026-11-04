@@ -57,16 +57,29 @@ router.post("/import", async (req: Req, res) => {
     return;
   }
   const { items, skipped } = cleaned.value;
-  const refs = items.map((it) => it.sourceRef).filter((r): r is string => !!r);
+  const refs = [...new Set(items.map((it) => it.sourceRef).filter((r): r is string => !!r))];
   const batches = [...new Set(items.map((it) => it.batch))];
+  // a "model-<id>" ref may point at a site of this very instance (its own export re-imported)
+  const ownIds = refs.map((r) => r.replace(/^model-/, "")).filter((id) => mongoose.isValidObjectId(id));
+  // inIds on request values is safe here: cleanImport makes every ref and batch a plain string
   const existing: any[] = [
-    ...(refs.length ? await ModelSite.find({ sourceRef: inIds(refs) }).select("batch lon lat sourceRef").lean() : []),
-    ...(await ModelSite.find({ batch: inIds(batches) }).select("batch lon lat sourceRef").lean()),
+    ...(refs.length ? await ModelSite.find({ sourceRef: inIds(refs) }).select("_id batch lon lat sourceRef").lean() : []),
+    ...(ownIds.length ? await ModelSite.find({ _id: inIds(ownIds) }).select("_id batch lon lat sourceRef").lean() : []),
+    ...(await ModelSite.find({ batch: inIds(batches) }).select("_id batch lon lat sourceRef").lean()),
   ];
-  const seenRefs = new Set(existing.map((e) => e.sourceRef).filter(Boolean));
+  const seenRefs = new Set<string>([
+    ...existing.map((e) => e.sourceRef).filter(Boolean),
+    ...existing.map((e) => `model-${String(e._id)}`),
+  ]);
   const near = (a: { lon: number; lat: number; batch: string }, b: { lon: number; lat: number; batch: string }) =>
     a.batch === b.batch && Math.abs(a.lat - b.lat) < 0.0003 && Math.abs(a.lon - b.lon) < 0.0005;
-  const fresh = items.filter((it, i) => !(it.sourceRef && seenRefs.has(it.sourceRef)) && !existing.some((e) => near(e, it)) && !items.slice(0, i).some((o) => near(o, it)));
+  const fresh: typeof items = [];
+  for (const it of items) {
+    if (it.sourceRef && seenRefs.has(it.sourceRef)) continue;
+    if (existing.some((e) => near(e, it)) || fresh.some((o) => near(o, it))) continue;
+    fresh.push(it);
+    if (it.sourceRef) seenRefs.add(it.sourceRef);
+  }
   const created = fresh.length
     ? await ModelSite.insertMany(fresh.map((it) => ({ ...it, createdBy: req.user?._id, updatedBy: req.user?._id })))
     : [];

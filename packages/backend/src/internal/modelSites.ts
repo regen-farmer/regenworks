@@ -305,29 +305,29 @@ export function cleanImport(body: unknown): Ok<{ items: ImportItem[]; skipped: s
       skipped.push(`${label}: no valid outline`);
       continue;
     }
-    const u = cleanSiteUpdate({
-      system: props.system ?? undefined,
-      species: Array.isArray(props.species) || typeof props.species === "string" ? props.species : undefined,
-      rowBearingDeg: props.row_bearing_deg ?? undefined,
-      alleyWidthM: props.alley_width_m ?? undefined,
-      inRowSpacingM: props.in_row_spacing_m ?? undefined,
-      plantedYear: props.planted ?? undefined,
-    });
-    if (!u.ok) {
-      skipped.push(`${label}: ${u.error}`);
-      continue;
+    // layout fields one by one: a bad value drops that field (listed in skipped), not the site
+    const layout: Partial<SiteUpdate> = {};
+    const fields: [string, string][] = [["system", "system"], ["species", "species"], ["rowBearingDeg", "row_bearing_deg"],
+      ["alleyWidthM", "alley_width_m"], ["inRowSpacingM", "in_row_spacing_m"], ["plantedYear", "planted"]];
+    for (const [k, pk] of fields) {
+      const v = props[pk];
+      if (v === undefined || v === null) continue;
+      const one = cleanSiteUpdate({ [k]: v });
+      if (one.ok) Object.assign(layout, one.value);
+      else skipped.push(`${label}: ${one.error} (field left empty)`);
     }
     const [lon, lat] = centre(geometry);
-    const { status: _s, geometry: _g, notes: _n, fieldIds: _f, ...layout } = u.value;
+    const { status: _s, geometry: _g, notes: _n, fieldIds: _f, name: _nm, batch: _b, ...rest } = layout;
     items.push({
-      ...layout,
+      ...rest,
       name: str(props.name, 200) || label,
       batch: batchAll || str(props.batch, 80) || "Imported",
       status: "traced",
       geometry,
       lon,
       lat,
-      source: "import",
+      // keep where the site first came from (e.g. euraf-map); the ref is the exporting instance's site id
+      source: str(props.source, 60) || "import",
       sourceRef: str(props.site, 200) || undefined,
     });
   }
