@@ -248,7 +248,7 @@ function ModelSites() {
       const m = map!;
       m.addSource("sites", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       m.addLayer({ id: "site-outline-fill", type: "fill", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "fill-color": ["case", ["boolean", ["get", "other"], false], "#e5e7eb", "#22c55e"], "fill-opacity": ["case", ["boolean", ["get", "other"], false], 0.08, 0.15] } });
-      m.addLayer({ id: "site-outline-line", type: "line", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "line-color": ["case", ["boolean", ["get", "other"], false], "#e5e7eb", "#22c55e"], "line-width": ["case", ["boolean", ["get", "other"], false], 1, 2], "line-dasharray": [1, 0] } });
+      m.addLayer({ id: "site-outline-line", type: "line", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "line-color": ["case", ["boolean", ["get", "other"], false], "#e5e7eb", "#22c55e"], "line-width": ["case", ["boolean", ["get", "other"], false], 1, 2] } });
       m.addLayer({
         id: "site-points",
         type: "circle",
