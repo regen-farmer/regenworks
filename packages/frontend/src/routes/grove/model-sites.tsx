@@ -42,11 +42,13 @@ type Data = { sites: Site[]; batches: string[] };
 const SYSTEMS: [string, string][] = [
   ["silvoarable", "Silvoarable (trees with arable crops)"],
   ["silvopasture", "Silvopasture (trees with grazing)"],
+  ["agrosilvopastoral", "Agrosilvopastoral (crops and grazed clover-grass in rotation)"],
   ["orchard", "Orchard"],
   ["hedgerow", "Hedgerow"],
   ["shelterbelt", "Shelterbelt"],
   ["short-rotation", "Short-rotation coppice belts"],
   ["food-forest", "Food forest"],
+  ["control", "Control: open field without trees"],
   ["other", "Other"],
 ];
 // field-map tiles served by the app's tile server (the same as on the farm page)

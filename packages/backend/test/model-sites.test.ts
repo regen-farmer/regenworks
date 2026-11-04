@@ -47,6 +47,7 @@ test("update: outline marks the site traced; ranges are checked; unknown fields 
   assert.equal((u.value as any).isAdmin, undefined);
   assert.equal(cleanSiteUpdate({ rowBearingDeg: 270 }).ok, false);
   assert.equal(cleanSiteUpdate({ system: "jungle" }).ok, false);
+  assert.ok(cleanSiteUpdate({ system: "agrosilvopastoral" }).ok && cleanSiteUpdate({ system: "control" }).ok);
   assert.equal(cleanSiteUpdate({ plantedYear: null }).ok && true, true);
   assert.equal(cleanSiteUpdate({ plantedYear: 2012.5 }).ok, false);
   const f = cleanSiteUpdate({ fieldIds: ["DK:1", 2, { x: 1 }] });
