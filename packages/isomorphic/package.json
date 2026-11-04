@@ -44,7 +44,7 @@
 		"@mailchimp/mailchimp_marketing": "^3.0.80",
 		"@mailchimp/mailchimp_transactional": "^1.0.59",
 		"@mapbox/geojson-area": "^0.2.2",
-		"@mapbox/mapbox-gl-draw": "^1.4.3",
+		"@mapbox/mapbox-gl-draw": "^1.5.2",
 		"@maptiler/sdk": "^4.0.2",
 		"@popperjs/core": "^2.11.8",
 		"@rw/db": "workspace:*",
