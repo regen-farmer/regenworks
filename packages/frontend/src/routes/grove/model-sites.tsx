@@ -247,8 +247,8 @@ function ModelSites() {
     map.on("load", () => {
       const m = map!;
       m.addSource("sites", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      m.addLayer({ id: "site-outline-fill", type: "fill", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "fill-color": "#22c55e", "fill-opacity": 0.15 } });
-      m.addLayer({ id: "site-outline-line", type: "line", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "line-color": "#22c55e", "line-width": 2 } });
+      m.addLayer({ id: "site-outline-fill", type: "fill", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "fill-color": ["case", ["boolean", ["get", "other"], false], "#e5e7eb", "#22c55e"], "fill-opacity": ["case", ["boolean", ["get", "other"], false], 0.08, 0.15] } });
+      m.addLayer({ id: "site-outline-line", type: "line", source: "sites", filter: ["==", "$type", "Polygon"], paint: { "line-color": ["case", ["boolean", ["get", "other"], false], "#e5e7eb", "#22c55e"], "line-width": ["case", ["boolean", ["get", "other"], false], 1, 2], "line-dasharray": [1, 0] } });
       m.addLayer({
         id: "site-points",
         type: "circle",
@@ -305,6 +305,10 @@ function ModelSites() {
   createEffect(() => {
     if (!mapReady() || !map) return;
     const features: any[] = [];
+    // other batches' traced outlines, dimmed, so every traced field shows on the map
+    for (const s of data()?.sites ?? []) {
+      if (s.batch !== batch() && s.geometry) features.push({ type: "Feature", geometry: s.geometry, properties: { id: s._id, other: true } });
+    }
     for (const s of sites()) {
       features.push({ type: "Feature", geometry: { type: "Point", coordinates: [s.lon, s.lat] }, properties: { id: s._id, color: STATUS_COLOR[s.status], selected: s._id === selectedId() } });
       if (s.geometry && s._id !== selectedId()) features.push({ type: "Feature", geometry: s.geometry, properties: { id: s._id } });
