@@ -184,6 +184,8 @@ function ModelSites() {
   let draw: MapboxDraw | undefined;
   const [mapReady, setMapReady] = createSignal(false);
   const [picking, setPicking] = createSignal(false);
+  // "New site on the map": the next click on the map drops a new site there
+  const [placing, setPlacing] = createSignal(false);
   const [fieldIds, setFieldIds] = createSignal<string[]>([]);
   const [draftHa, setDraftHa] = createSignal(0);
   // the outline is only sent when it was changed here, so a save never wipes a stored one by accident
@@ -229,6 +231,19 @@ function ModelSites() {
     map.on("draw.create", changed);
     map.on("draw.update", changed);
     map.on("draw.delete", changed);
+    // the drawing tool switches map panning off while a shape or corner is dragged and doesn't
+    // always switch it back on (maplibre with mapbox-gl-draw): keep panning on outside a drag
+    const panOn = () => {
+      const mode = (draw as any)?.getMode?.();
+      if (mode !== "direct_select") map?.dragPan.enable();
+    };
+    map.on("mouseup", panOn);
+    map.on("touchend", panOn);
+    map.on("draw.modechange", panOn);
+    map.on("draw.selectionchange", panOn);
+    map.on("click", (e) => {
+      if (placing()) void placeSite(e.lngLat.lng, e.lngLat.lat);
+    });
     map.on("load", () => {
       const m = map!;
       m.addSource("sites", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
@@ -320,6 +335,39 @@ function ModelSites() {
       refreshDraft();
     }),
   );
+
+  async function placeSite(lon: number, lat: number) {
+    setPlacing(false);
+    if (map) map.getCanvas().style.cursor = "";
+    const b = batch().trim();
+    if (!b) {
+      showToast({ title: "Choose or make a batch first", variant: "destructive" });
+      return;
+    }
+    const name = `${b} – new site ${sites().length + 1}`;
+    try {
+      const r = await apiFetch<{ added: number; duplicates: number }>("/internal/model-sites/queue", {
+        method: "POST",
+        body: JSON.stringify({ batch: b, items: [{ name, lon, lat, source: "map" }] }),
+      });
+      if (!r.added) {
+        showToast({ title: "There's already a site within about 30 m", description: "Click a bit further into the field you want.", variant: "destructive" });
+        return;
+      }
+      await refetch();
+      // the new site is the queued one nearest the click
+      const near = sites()
+        .filter((x) => x.status === "queued")
+        .sort((a, c) => Math.hypot(a.lon - lon, a.lat - lat) - Math.hypot(c.lon - lon, c.lat - lat))[0];
+      if (near) {
+        setSelectedId(near._id);
+        setPicking(true);
+      }
+      showToast({ title: "New site added", description: "Pick its fields or draw it, give it a name and save." });
+    } catch (e) {
+      showToast({ title: "Couldn't add the site", description: (e as Error).message, variant: "destructive" });
+    }
+  }
 
   function next() {
     const list = sites();
@@ -420,6 +468,19 @@ function ModelSites() {
             <button class={primary} onClick={renameBatch}>Rename</button>
             <button class={btn} onClick={() => setRenaming(false)}>Cancel</button>
           </div>
+        </Show>
+        <Show when={batch()}>
+          <button
+            class={`${placing() ? primary : btn} self-start text-xs`}
+            onClick={() => {
+              const on = !placing();
+              setPlacing(on);
+              setPicking(false);
+              if (map) map.getCanvas().style.cursor = on ? "crosshair" : "";
+            }}
+          >
+            {placing() ? "Click the map where the new site is… (click here to cancel)" : "+ New site on the map"}
+          </button>
         </Show>
         <div class="text-xs flex gap-3">
           <span style={{ color: STATUS_COLOR.queued }}>● {counts().queued} to trace</span>
