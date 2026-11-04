@@ -156,10 +156,9 @@ test("import: reads an export back (outline, layout, batch, ref), skips bad feat
 });
 
 test("the default JSON parser skips the model-sites routes, so their own limits apply after the role check", async () => {
-  const bodyParser = (await import("body-parser")).default;
+  const { defaultJson } = await import("../src/middleware/jsonBody.ts");
   const a = express();
-  const jsonDefault = bodyParser.json();
-  a.use((req, res, next) => (req.path.startsWith("/internal/model-sites") ? next() : jsonDefault(req, res, next)));
+  a.use(defaultJson());
   a.use((req: any, _res, next) => { req.user = { roles: ["grove-team"] }; req.idToken = { email_verified: true }; next(); });
   a.use("/internal/model-sites/import", express.json({ limit: "10mb" }), (req, res) => res.send({ n: JSON.stringify(req.body).length }));
   a.use("/other", (req, res) => res.send({}));

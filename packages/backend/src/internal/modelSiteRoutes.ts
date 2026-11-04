@@ -60,7 +60,7 @@ router.post("/import", async (req: Req, res) => {
   const refs = [...new Set(items.map((it) => it.sourceRef).filter((r): r is string => !!r))];
   const batches = [...new Set(items.map((it) => it.batch))];
   // a "model-<id>" ref may point at a site of this very instance (its own export re-imported)
-  const ownIds = refs.map((r) => r.replace(/^model-/, "")).filter((id) => mongoose.isValidObjectId(id));
+  const ownIds = refs.map((r) => r.replace(/^model-/, "")).filter((id) => mongoose.isObjectIdOrHexString(id));
   // inIds on request values is safe here: cleanImport makes every ref and batch a plain string
   const existing: any[] = [
     ...(refs.length ? await ModelSite.find({ sourceRef: inIds(refs) }).select("_id batch lon lat sourceRef").lean() : []),

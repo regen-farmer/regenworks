@@ -1,5 +1,6 @@
 /* eslint-disable import/first */
 import dotenv from "dotenv";
+import { defaultJson } from "./middleware/jsonBody.ts";
 
 dotenv.config();
 
@@ -88,10 +89,8 @@ mongoose.set("sanitizeFilter", true);
 checkAuthConfig(); // fail fast on bad Auth0 settings, before serving anything
 await mongoose.connect(process.env.DATABASEURL as string); // CONNECTS TO MLAB MONGODB
 
-// Model sites parse their own (larger) bodies after the grove-team check, so the default
-// 100 kB parser skips them; every other route keeps the default.
-const jsonDefault = bodyParser.json();
-app.use((req, res, next) => (req.path.startsWith("/internal/model-sites") ? next() : jsonDefault(req, res, next)));
+// Model sites parse their own (larger) bodies after the grove-team check; every other route keeps the 100 kB default
+app.use(defaultJson());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // app.use(express.static(`${__dirname}/public`)); // SETS PUBLIC ASSETS REPOSITORY
