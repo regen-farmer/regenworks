@@ -262,3 +262,75 @@ export function cleanBatchRename(body: unknown): Ok<{ from: string; to: string }
   if (from === to) return { ok: false, error: "That's already its name" };
   return { ok: true, value: { from, to } };
 }
+
+export type ImportItem = Omit<SiteUpdate, "status" | "geometry" | "notes" | "fieldIds"> & {
+  name: string;
+  batch: string;
+  status: "traced";
+  geometry: NonNullable<SiteUpdate["geometry"]>;
+  lon: number;
+  lat: number;
+  source: string;
+  sourceRef?: string;
+};
+
+const MAX_IMPORT = 2000;
+
+/** Mean of the outer ring's vertices of the first polygon: a point inside or near the outline. */
+function centre(g: NonNullable<SiteUpdate["geometry"]>): [number, number] {
+  const ring = (g.type === "Polygon" ? (g.coordinates as number[][][])[0] : (g.coordinates as number[][][][])[0][0]).slice(0, -1);
+  const n = Math.max(ring.length, 1);
+  return [ring.reduce((a, p) => a + p[0], 0) / n, ring.reduce((a, p) => a + p[1], 0) / n];
+}
+
+/**
+ * POST /import body: a GeoJSON FeatureCollection of traced sites, as GroveWorks's own export or
+ * grove-data's model_sites.geojson write it (properties: name, batch, system, species,
+ * row_bearing_deg, alley_width_m, in_row_spacing_m, planted, site). Optional `batch` puts them
+ * all in one batch. Features without a valid outline, or with an unknown system type, are skipped.
+ */
+export function cleanImport(body: unknown): Ok<{ items: ImportItem[]; skipped: string[] }> | Err {
+  if (!isPlainObject(body)) return { ok: false, error: "Send a GeoJSON file of sites" };
+  const fc = isPlainObject(body.collection) ? body.collection : body;
+  if (!Array.isArray(fc.features)) return { ok: false, error: "That isn't a GeoJSON FeatureCollection" };
+  if (fc.features.length > MAX_IMPORT) return { ok: false, error: `At most ${MAX_IMPORT} sites at a time` };
+  const batchAll = str(body.batch, 80);
+  const items: ImportItem[] = [];
+  const skipped: string[] = [];
+  for (const f of fc.features) {
+    const props = isPlainObject(f) && isPlainObject(f.properties) ? f.properties : {};
+    const label = str(props.name, 80) || str(props.site, 80) || "a site";
+    const geometry = isPlainObject(f) ? cleanGeometry(f.geometry) : null;
+    if (!geometry) {
+      skipped.push(`${label}: no valid outline`);
+      continue;
+    }
+    // layout fields one by one: a bad value drops that field (listed in skipped), not the site
+    const layout: Partial<SiteUpdate> = {};
+    const fields: [string, string][] = [["system", "system"], ["species", "species"], ["rowBearingDeg", "row_bearing_deg"],
+      ["alleyWidthM", "alley_width_m"], ["inRowSpacingM", "in_row_spacing_m"], ["plantedYear", "planted"]];
+    for (const [k, pk] of fields) {
+      const v = props[pk];
+      if (v === undefined || v === null) continue;
+      const one = cleanSiteUpdate({ [k]: v });
+      if (one.ok) Object.assign(layout, one.value);
+      else skipped.push(`${label}: ${one.error} (field left empty)`);
+    }
+    const [lon, lat] = centre(geometry);
+    const { status: _s, geometry: _g, notes: _n, fieldIds: _f, name: _nm, batch: _b, ...rest } = layout;
+    items.push({
+      ...rest,
+      name: str(props.name, 200) || label,
+      batch: batchAll || str(props.batch, 80) || "Imported",
+      status: "traced",
+      geometry,
+      lon,
+      lat,
+      // keep where the site first came from (e.g. euraf-map); the ref is the exporting instance's site id
+      source: str(props.source, 60) || "import",
+      sourceRef: str(props.site, 200) || undefined,
+    });
+  }
+  if (!items.length) return { ok: false, error: skipped.length ? `No site could be read (${skipped.slice(0, 3).join("; ")})` : "The file has no sites" };
+  return { ok: true, value: { items, skipped } };
+}

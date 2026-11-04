@@ -3,7 +3,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanBatchRename, cleanGeometry, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
+import { cleanBatchRename, cleanGeometry, cleanImport, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
 import modelSitesExport, { exportKeyOk } from "../src/routes/modelSitesExport.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
@@ -98,6 +98,9 @@ test("/internal/model-sites: anonymous 401, field user 403", async () => {
   who = { user: { roles: ["grove-field"] }, idToken: { email_verified: true } };
   assert.equal((await fetch(`${base}/internal/model-sites`)).status, 403);
   assert.equal((await fetch(`${base}/internal/model-sites/queue`, { method: "POST" })).status, 403);
+  assert.equal((await fetch(`${base}/internal/model-sites/import`, { method: "POST" })).status, 403);
+  who = {};
+  assert.equal((await fetch(`${base}/internal/model-sites/import`, { method: "POST" })).status, 401);
 });
 
 test("/model-sites-export: closed (404) without the setting, 401 with a wrong key", async () => {
@@ -124,4 +127,47 @@ test("batch rename: needs a different, non-empty name", () => {
   assert.equal(cleanBatchRename({ from: "A", to: "A" }).ok, false);
   const r = cleanBatchRename({ from: " EURAF Denmark ", to: "EURAF Sweden" });
   assert.ok(r.ok && r.value.from === "EURAF Denmark" && r.value.to === "EURAF Sweden");
+});
+
+test("import: reads an export back (outline, layout, batch, ref), skips bad features, no notes", () => {
+  const exported = toFeatureCollection([
+    { _id: "a1", name: "Hestbjerg 1", batch: "Danish sites", status: "traced", source: "kris", system: "silvopasture", species: ["Poplar"], rowBearingDeg: 0,
+      plantedYear: 2016, notes: "ask the owner", geometry: { type: "Polygon", coordinates: [[[8.51, 56.30], [8.52, 56.30], [8.52, 56.31], [8.51, 56.30]]] } },
+  ]);
+  exported.features.push({ type: "Feature", geometry: { type: "Point", coordinates: [9, 56] } as any, properties: { name: "Point only" } as any });
+  exported.features.push({ type: "Feature", geometry: { type: "Polygon", coordinates: [[[9, 56], [9.01, 56], [9.01, 56.01], [9, 56]]] }, properties: { name: "Odd", system: "jungle" } as any });
+  const r = cleanImport({ collection: exported });
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.equal(r.value.items.length, 2); // "Odd" keeps its outline, its unknown system is left empty
+  assert.equal(r.value.items[1].system, undefined);
+  const it = r.value.items[0];
+  assert.deepEqual([it.name, it.batch, it.status, it.system, it.plantedYear, it.sourceRef, it.source], ["Hestbjerg 1", "Danish sites", "traced", "silvopasture", 2016, "model-a1", "kris"]);
+  assert.ok(it.lon > 8.51 && it.lon < 8.52 && it.lat > 56.30 && it.lat < 56.31);
+  assert.ok(!("notes" in it));
+  assert.equal(r.value.skipped.length, 2);
+  // a bad layout value drops the field, not the site
+  const bad = cleanImport({ type: "FeatureCollection", features: [{ type: "Feature", geometry: exported.features[0].geometry, properties: { name: "B", row_bearing_deg: 270, planted: 2020 } }] });
+  assert.ok(bad.ok && bad.value.items.length === 1 && bad.value.items[0].rowBearingDeg === undefined && bad.value.items[0].plantedYear === 2020 && bad.value.skipped.length === 1);
+  const one = cleanImport({ collection: exported, batch: "Moved from dev" });
+  assert.ok(one.ok && one.value.items[0].batch === "Moved from dev");
+  assert.equal(cleanImport({ features: "no" }).ok, false);
+  assert.equal(cleanImport({ type: "FeatureCollection", features: [] }).ok, false);
+});
+
+test("the default JSON parser skips the model-sites routes, so their own limits apply after the role check", async () => {
+  const { defaultJson } = await import("../src/middleware/jsonBody.ts");
+  const a = express();
+  a.use(defaultJson());
+  a.use((req: any, _res, next) => { req.user = { roles: ["grove-team"] }; req.idToken = { email_verified: true }; next(); });
+  a.use("/internal/model-sites/import", express.json({ limit: "10mb" }), (req, res) => res.send({ n: JSON.stringify(req.body).length }));
+  a.use("/other", (req, res) => res.send({}));
+  const s2 = a.listen(0);
+  const b2 = `http://127.0.0.1:${(s2.address() as AddressInfo).port}`;
+  const big = JSON.stringify({ pad: "x".repeat(300_000) });
+  const r1 = await fetch(`${b2}/internal/model-sites/import`, { method: "POST", headers: { "content-type": "application/json" }, body: big });
+  const r2 = await fetch(`${b2}/other`, { method: "POST", headers: { "content-type": "application/json" }, body: big });
+  s2.close();
+  assert.equal(r1.status, 200);
+  assert.equal(r2.status, 413);
 });
