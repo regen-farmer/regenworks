@@ -127,7 +127,7 @@ function ModelSites() {
   const set = (k: string) => (e: Event) => setForm({ ...form(), [k]: (e.currentTarget as HTMLInputElement).value });
 
   // ---- map, field picking and drawing
-  let el: HTMLDivElement | undefined;
+  let resizeObserver: ResizeObserver | undefined;
   let map: maplibregl.Map | undefined;
   let draw: MapboxDraw | undefined;
   const [mapReady, setMapReady] = createSignal(false);
@@ -164,8 +164,12 @@ function ModelSites() {
     changed();
   }
 
-  createEffect(() => {
-    if (!el || map) return;
+  // set up the map when its box is in the page (a callback ref: the page can render before
+  // the site list has loaded), and keep it sized to the box
+  function initMap(el: HTMLDivElement) {
+    if (map) return;
+    resizeObserver = new ResizeObserver(() => map?.resize());
+    resizeObserver.observe(el);
     map = new maplibregl.Map({ container: el, style: GoogleSatStyle as any, center: [9.5, 56.1], zoom: 6, maxZoom: 20 });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     draw = new MapboxDraw({ displayControlsDefault: false, defaultMode: "simple_select", styles: maplibreCompatibleStyles as any });
@@ -210,9 +214,14 @@ function ModelSites() {
         });
       }
       setMapReady(true);
+      m.resize();
     });
+    map.on("error", (e) => console.error("model sites map:", e?.error ?? e));
+  }
+  onCleanup(() => {
+    resizeObserver?.disconnect();
+    map?.remove();
   });
-  onCleanup(() => map?.remove());
 
   // show the field map while picking
   createEffect(() => {
@@ -394,7 +403,7 @@ function ModelSites() {
       </aside>
 
       <main class="flex-1 relative min-h-[60vh]">
-        <div ref={el} class="absolute inset-0" />
+        <div ref={(node) => queueMicrotask(() => initMap(node))} class="absolute inset-0" />
         <Show when={selected()}>
           <section class="absolute left-3 top-3 w-80 max-h-[calc(100%-1.5rem)] overflow-y-auto rounded-md bg-white/95 dark:bg-slate-900/95 shadow p-3 flex flex-col gap-2 text-sm">
             <div class="flex items-center gap-2">
