@@ -252,3 +252,13 @@ export function toFeatureCollection(sites: any[]) {
       })),
   };
 }
+
+/** POST /rename-batch body: { from, to } (both 1-80 characters, different). */
+export function cleanBatchRename(body: unknown): Ok<{ from: string; to: string }> | Err {
+  if (!isPlainObject(body)) return { ok: false, error: "Say which batch and its new name" };
+  const from = str(body.from, 80);
+  const to = str(body.to, 80);
+  if (!from || !to) return { ok: false, error: "Give the batch a new name" };
+  if (from === to) return { ok: false, error: "That's already its name" };
+  return { ok: true, value: { from, to } };
+}

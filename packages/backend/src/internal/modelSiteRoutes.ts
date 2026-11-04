@@ -5,7 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import ModelSite from "@rw/db/schemas/internal/modelSite.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
-import { cleanQueue, cleanSiteUpdate, toFeatureCollection } from "./modelSites.ts";
+import { cleanBatchRename, cleanQueue, cleanSiteUpdate, toFeatureCollection } from "./modelSites.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -43,6 +43,18 @@ router.post("/queue", async (req: Req, res) => {
     ? await ModelSite.insertMany(fresh.map((it) => ({ ...it, batch, status: "queued", createdBy: req.user?._id, updatedBy: req.user?._id })))
     : [];
   res.send({ added: created.length, duplicates: items.length - fresh.length, skipped });
+});
+
+// rename a batch (all its sites); joining an existing batch is allowed
+router.post("/rename-batch", async (req: Req, res) => {
+  const cleaned = cleanBatchRename(req.body);
+  if (!cleaned.ok) {
+    res.status(400).send({ error: cleaned.error });
+    return;
+  }
+  const { from, to } = cleaned.value;
+  const r = await ModelSite.updateMany({ batch: from }, { $set: { batch: to, updatedBy: req.user?._id } });
+  res.send({ renamed: r.modifiedCount ?? 0, batch: to });
 });
 
 router.put("/:id", async (req: Req, res) => {
