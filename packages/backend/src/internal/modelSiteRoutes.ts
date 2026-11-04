@@ -4,12 +4,14 @@
 import express from "express";
 import mongoose from "mongoose";
 import ModelSite from "@rw/db/schemas/internal/modelSite.ts";
+import { inIds } from "../utils/mongoSafety.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
-import { cleanBatchRename, cleanQueue, cleanSiteUpdate, toFeatureCollection } from "./modelSites.ts";
+import { cleanBatchRename, cleanImport, cleanQueue, cleanSiteUpdate, toFeatureCollection } from "./modelSites.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
-// outlines from several field-map fields can pass the app-wide 100 kB body limit
+// outlines from several field-map fields can pass the app-wide 100 kB body limit; an import file more so
+router.use("/import", express.json({ limit: "10mb" }));
 router.use(express.json({ limit: "1mb" }));
 const validId = (id: unknown): id is string => typeof id === "string" && mongoose.isValidObjectId(id);
 const LIST_FIELDS = "name batch status source sourceRef lon lat geometry fieldIds system species rowBearingDeg alleyWidthM inRowSpacingM plantedYear notes updatedAt";
@@ -41,6 +43,32 @@ router.post("/queue", async (req: Req, res) => {
   const fresh = items.filter((it, i) => !existing.some((e) => near(e, it)) && !items.slice(0, i).some((o) => near(o, it)));
   const created = fresh.length
     ? await ModelSite.insertMany(fresh.map((it) => ({ ...it, batch, status: "queued", createdBy: req.user?._id, updatedBy: req.user?._id })))
+    : [];
+  res.send({ added: created.length, duplicates: items.length - fresh.length, skipped });
+});
+
+// import traced sites from a GeoJSON file (e.g. another GroveWorks's export or grove-data's
+// model_sites.geojson). A site already imported (same sourceRef) or within ~30 m of one in the
+// same batch is skipped, so importing the same file twice adds nothing.
+router.post("/import", async (req: Req, res) => {
+  const cleaned = cleanImport(req.body);
+  if (!cleaned.ok) {
+    res.status(400).send({ error: cleaned.error });
+    return;
+  }
+  const { items, skipped } = cleaned.value;
+  const refs = items.map((it) => it.sourceRef).filter((r): r is string => !!r);
+  const batches = [...new Set(items.map((it) => it.batch))];
+  const existing: any[] = [
+    ...(refs.length ? await ModelSite.find({ sourceRef: inIds(refs) }).select("batch lon lat sourceRef").lean() : []),
+    ...(await ModelSite.find({ batch: inIds(batches) }).select("batch lon lat sourceRef").lean()),
+  ];
+  const seenRefs = new Set(existing.map((e) => e.sourceRef).filter(Boolean));
+  const near = (a: { lon: number; lat: number; batch: string }, b: { lon: number; lat: number; batch: string }) =>
+    a.batch === b.batch && Math.abs(a.lat - b.lat) < 0.0003 && Math.abs(a.lon - b.lon) < 0.0005;
+  const fresh = items.filter((it, i) => !(it.sourceRef && seenRefs.has(it.sourceRef)) && !existing.some((e) => near(e, it)) && !items.slice(0, i).some((o) => near(o, it)));
+  const created = fresh.length
+    ? await ModelSite.insertMany(fresh.map((it) => ({ ...it, createdBy: req.user?._id, updatedBy: req.user?._id })))
     : [];
   res.send({ added: created.length, duplicates: items.length - fresh.length, skipped });
 });

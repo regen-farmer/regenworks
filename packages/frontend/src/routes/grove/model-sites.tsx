@@ -129,6 +129,35 @@ function ModelSites() {
     }
   }
 
+  // ---- importing a GeoJSON file of traced sites (e.g. from another GroveWorks or grove-data)
+  const [importing, setImporting] = createSignal(false);
+  async function importFile(file: File | undefined) {
+    if (!file) return;
+    setImporting(true);
+    try {
+      let collection: unknown;
+      try {
+        collection = JSON.parse(await file.text());
+      } catch {
+        throw new Error("The file isn't valid GeoJSON");
+      }
+      const r = await apiFetch<{ added: number; duplicates: number; skipped: string[] }>("/internal/model-sites/import", {
+        method: "POST",
+        body: JSON.stringify({ collection, batch: newBatch().trim() || undefined }),
+      });
+      showToast({
+        title: `Imported ${r.added} site${r.added === 1 ? "" : "s"}`,
+        description: [r.duplicates ? `${r.duplicates} already here` : "", r.skipped.length ? `Not read: ${r.skipped.slice(0, 3).join(" · ")}` : ""].filter(Boolean).join(". ") || undefined,
+      });
+      setNewBatch("");
+      await refetch();
+    } catch (e) {
+      showToast({ title: "Couldn't import the file", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setImporting(false);
+    }
+  }
+
   // ---- the form for the selected site (text, so typing isn't interrupted)
   const [form, setForm] = createSignal<Record<string, string>>({});
   createEffect(
@@ -412,6 +441,24 @@ function ModelSites() {
             <button class={primary} disabled={adding() || !paste().trim()} onClick={addSites}>
               {adding() ? "Adding…" : "Add to batch"}
             </button>
+            <label class="text-sm flex flex-col gap-1 border-t border-zinc-300 dark:border-slate-600 pt-2">
+              Or import traced sites from a GeoJSON file (outlines and layout; notes don't come along). With a batch name above, they all go in that batch.
+              <input
+                type="file"
+                accept=".geojson,.json,application/geo+json,application/json"
+                id="model-sites-import"
+                disabled={importing()}
+                class="text-xs"
+                onChange={(e) => {
+                  const f = e.currentTarget.files?.[0];
+                  e.currentTarget.value = "";
+                  void importFile(f);
+                }}
+              />
+            </label>
+            <Show when={importing()}>
+              <p class="text-xs opacity-70">Importing…</p>
+            </Show>
           </div>
         </details>
 

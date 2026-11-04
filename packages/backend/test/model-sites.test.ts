@@ -3,7 +3,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanBatchRename, cleanGeometry, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
+import { cleanBatchRename, cleanGeometry, cleanImport, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
 import modelSitesExport, { exportKeyOk } from "../src/routes/modelSitesExport.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
@@ -124,4 +124,26 @@ test("batch rename: needs a different, non-empty name", () => {
   assert.equal(cleanBatchRename({ from: "A", to: "A" }).ok, false);
   const r = cleanBatchRename({ from: " EURAF Denmark ", to: "EURAF Sweden" });
   assert.ok(r.ok && r.value.from === "EURAF Denmark" && r.value.to === "EURAF Sweden");
+});
+
+test("import: reads an export back (outline, layout, batch, ref), skips bad features, no notes", () => {
+  const exported = toFeatureCollection([
+    { _id: "a1", name: "Hestbjerg 1", batch: "Danish sites", status: "traced", system: "silvopasture", species: ["Poplar"], rowBearingDeg: 0,
+      plantedYear: 2016, notes: "ask the owner", geometry: { type: "Polygon", coordinates: [[[8.51, 56.30], [8.52, 56.30], [8.52, 56.31], [8.51, 56.30]]] } },
+  ]);
+  exported.features.push({ type: "Feature", geometry: { type: "Point", coordinates: [9, 56] } as any, properties: { name: "Point only" } as any });
+  exported.features.push({ type: "Feature", geometry: { type: "Polygon", coordinates: [[[9, 56], [9.01, 56], [9.01, 56.01], [9, 56]]] }, properties: { name: "Odd", system: "jungle" } as any });
+  const r = cleanImport({ collection: exported });
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.equal(r.value.items.length, 1);
+  const it = r.value.items[0];
+  assert.deepEqual([it.name, it.batch, it.status, it.system, it.plantedYear, it.sourceRef, it.source], ["Hestbjerg 1", "Danish sites", "traced", "silvopasture", 2016, "model-a1", "import"]);
+  assert.ok(it.lon > 8.51 && it.lon < 8.52 && it.lat > 56.30 && it.lat < 56.31);
+  assert.ok(!("notes" in it));
+  assert.equal(r.value.skipped.length, 2);
+  const one = cleanImport({ collection: exported, batch: "Moved from dev" });
+  assert.ok(one.ok && one.value.items[0].batch === "Moved from dev");
+  assert.equal(cleanImport({ features: "no" }).ok, false);
+  assert.equal(cleanImport({ type: "FeatureCollection", features: [] }).ok, false);
 });
