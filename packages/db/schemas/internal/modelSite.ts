@@ -8,7 +8,7 @@ import mongoose from "mongoose";
  * once its outline is drawn or picked from the field map. Grove team only.
  */
 export const MODEL_SITE_STATUSES = ["queued", "traced", "skipped"] as const;
-export const MODEL_SITE_SYSTEMS = ["silvoarable", "silvopasture", "orchard", "hedgerow", "shelterbelt", "short-rotation", "food-forest", "other"] as const;
+export const MODEL_SITE_SYSTEMS = ["silvoarable", "silvopasture", "agrosilvopastoral", "orchard", "hedgerow", "shelterbelt", "short-rotation", "food-forest", "control", "other"] as const;
 
 export interface IModelSite {
 	name: string;

@@ -3,7 +3,7 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
 import type { AddressInfo } from "node:net";
-import { cleanGeometry, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
+import { cleanBatchRename, cleanGeometry, cleanQueue, cleanSiteUpdate, parseCoordinateLines, toFeatureCollection } from "../src/internal/modelSites.ts";
 import modelSitesExport, { exportKeyOk } from "../src/routes/modelSitesExport.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
@@ -47,6 +47,7 @@ test("update: outline marks the site traced; ranges are checked; unknown fields 
   assert.equal((u.value as any).isAdmin, undefined);
   assert.equal(cleanSiteUpdate({ rowBearingDeg: 270 }).ok, false);
   assert.equal(cleanSiteUpdate({ system: "jungle" }).ok, false);
+  assert.ok(cleanSiteUpdate({ system: "agrosilvopastoral" }).ok && cleanSiteUpdate({ system: "control" }).ok);
   assert.equal(cleanSiteUpdate({ plantedYear: null }).ok && true, true);
   assert.equal(cleanSiteUpdate({ plantedYear: 2012.5 }).ok, false);
   const f = cleanSiteUpdate({ fieldIds: ["DK:1", 2, { x: 1 }] });
@@ -116,4 +117,11 @@ test("pasted coordinates: a long hostile line is cut and read quickly", () => {
   const t0 = Date.now();
   parseCoordinateLines("0\t" + "\t".repeat(100000) + "x\n" + "0\t0" + " ".repeat(100000));
   assert.ok(Date.now() - t0 < 200);
+});
+
+test("batch rename: needs a different, non-empty name", () => {
+  assert.equal(cleanBatchRename({ from: "EURAF Denmark", to: "" }).ok, false);
+  assert.equal(cleanBatchRename({ from: "A", to: "A" }).ok, false);
+  const r = cleanBatchRename({ from: " EURAF Denmark ", to: "EURAF Sweden" });
+  assert.ok(r.ok && r.value.from === "EURAF Denmark" && r.value.to === "EURAF Sweden");
 });

@@ -42,11 +42,13 @@ type Data = { sites: Site[]; batches: string[] };
 const SYSTEMS: [string, string][] = [
   ["silvoarable", "Silvoarable (trees with arable crops)"],
   ["silvopasture", "Silvopasture (trees with grazing)"],
+  ["agrosilvopastoral", "Agrosilvopastoral (crops and grazed clover-grass in rotation)"],
   ["orchard", "Orchard"],
   ["hedgerow", "Hedgerow"],
   ["shelterbelt", "Shelterbelt"],
   ["short-rotation", "Short-rotation coppice belts"],
   ["food-forest", "Food forest"],
+  ["control", "Control: open field without trees"],
   ["other", "Other"],
 ];
 // field-map tiles served by the app's tile server (the same as on the farm page)
@@ -74,6 +76,27 @@ function ModelSites() {
   }));
   const [selectedId, setSelectedId] = createSignal<string>("");
   const selected = createMemo(() => sites().find((s) => s._id === selectedId()));
+
+  // ---- renaming the batch
+  const [renaming, setRenaming] = createSignal(false);
+  const [renameTo, setRenameTo] = createSignal("");
+  async function renameBatch() {
+    const from = batch();
+    const to = renameTo().trim();
+    if (!from || !to || to === from) {
+      setRenaming(false);
+      return;
+    }
+    try {
+      const r = await apiFetch<{ renamed: number; batch: string }>("/internal/model-sites/rename-batch", { method: "POST", body: JSON.stringify({ from, to }) });
+      showToast({ title: `Renamed ${from} to ${r.batch} (${r.renamed} site${r.renamed === 1 ? "" : "s"})` });
+      setRenaming(false);
+      setBatch(r.batch);
+      await refetch();
+    } catch (e) {
+      showToast({ title: "Couldn't rename the batch", description: (e as Error).message, variant: "destructive" });
+    }
+  }
 
   // ---- adding coordinates
   const [newBatch, setNewBatch] = createSignal("");
@@ -353,6 +376,22 @@ function ModelSites() {
             </Show>
           </select>
         </label>
+        <Show
+          when={renaming()}
+          fallback={
+            <Show when={batch()}>
+              <button class={`${btn} self-start text-xs`} onClick={() => { setRenameTo(batch()); setRenaming(true); }}>
+                Rename batch
+              </button>
+            </Show>
+          }
+        >
+          <div class="flex gap-1">
+            <input class={input} value={renameTo()} onInput={(e) => setRenameTo(e.currentTarget.value)} id="model-sites-rename" />
+            <button class={primary} onClick={renameBatch}>Rename</button>
+            <button class={btn} onClick={() => setRenaming(false)}>Cancel</button>
+          </div>
+        </Show>
         <div class="text-xs flex gap-3">
           <span style={{ color: STATUS_COLOR.queued }}>● {counts().queued} to trace</span>
           <span style={{ color: STATUS_COLOR.traced }}>● {counts().traced} traced</span>
