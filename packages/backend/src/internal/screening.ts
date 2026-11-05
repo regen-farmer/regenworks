@@ -87,6 +87,29 @@ export type ServiceConfig = { url: string; key: string } | null;
 export function serviceConfig(env: Record<string, string | undefined> = process.env): ServiceConfig {
   const url = (env.SCREENING_URL ?? "").trim().replace(/\/+$/, "");
   const key = env.SCREENING_KEY ?? "";
-  if (!/^https?:\/\//.test(url) || key.length < 32) return null;
+  if (key.length < 32) return null;
+  // the key travels in a header: https only (plain http just for a service on this machine)
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  const local = u.hostname === "localhost" || u.hostname === "127.0.0.1";
+  if (u.protocol !== "https:" && !(u.protocol === "http:" && local)) return null;
   return { url, key };
 }
+
+/** What GroveWorks passes on from the service's answer (nothing else it might send). */
+export function pickResult(body: any) {
+  return {
+    site: typeof body?.site === "string" ? body.site : "",
+    name: typeof body?.name === "string" ? body.name : "",
+    field_covered: typeof body?.field_covered === "number" ? body.field_covered : 0,
+    species: body?.species && typeof body.species === "object" ? body.species : {},
+    layers: Array.isArray(body?.layers) ? body.layers : [],
+    model: typeof body?.model === "string" ? body.model : "",
+  };
+}
+
+export const MAX_RESULT_BYTES = 8_000_000;

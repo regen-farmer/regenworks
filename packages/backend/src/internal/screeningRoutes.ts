@@ -10,7 +10,10 @@ import Project from "@rw/db/schemas/project.ts";
 import GroveProject from "@rw/db/schemas/internal/groveProject.ts";
 import type { UserDocument } from "@rw/db/schemas/user.ts";
 import { inIds } from "../utils/mongoSafety.ts";
-import { ALL_MODEL_SPECIES, cleanSpecies, designSpecies, fieldGeometry, serviceConfig } from "./screening.ts";
+import { canSeeMoney } from "@rw/db/access.ts";
+import { groveUserIds } from "./groveRefs.ts";
+import { visibleFilter } from "./projects.ts";
+import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designSpecies, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -22,7 +25,7 @@ router.get("/project/:id/fields", async (req: Req, res) => {
     res.status(400).send({ error: "Invalid id" });
     return;
   }
-  const p: any = await GroveProject.findById(req.params.id).select("farm").lean();
+  const p: any = await GroveProject.findOne({ _id: req.params.id, ...visibleFilter(req.user, canSeeMoney) }).select("farm").lean();
   if (!p) {
     res.status(404).send({ error: "Project not found" });
     return;
@@ -52,16 +55,18 @@ router.post("/run", async (req: Req, res) => {
   let species = cleanSpecies(req.body?.species);
   let notCovered: string[] = [];
   let fieldName: string | undefined;
+  let owner: unknown;
   if (validId(scenarioId)) {
     const sc: any = await Project.findById(scenarioId)
       .select("layer systemdesign")
-      .populate("layer", "name geometry")
+      .populate("layer", "name geometry owner")
       .populate({ path: "systemdesign", select: "rows", populate: { path: "rows.sequence.species", select: "nameCommon genus species" } })
       .lean();
     if (!sc?.layer) {
       res.status(404).send({ error: "Scenario not found" });
       return;
     }
+    owner = sc.layer.owner?.id;
     geometry = fieldGeometry(sc.layer.geometry);
     fieldName = sc.layer.name;
     const ds = designSpecies(sc.systemdesign?.rows);
@@ -72,15 +77,21 @@ router.post("/run", async (req: Req, res) => {
       return;
     }
   } else if (validId(fieldId)) {
-    const l: any = await Layer.findById(fieldId).select("name geometry").lean();
+    const l: any = await Layer.findById(fieldId).select("name geometry owner").lean();
     if (!l) {
       res.status(404).send({ error: "Field not found" });
       return;
     }
+    owner = l.owner?.id;
     geometry = fieldGeometry(l.geometry);
     fieldName = l.name;
   } else {
     res.status(400).send({ error: "Send a fieldId or a scenarioId" });
+    return;
+  }
+  // only fields kept under a Grove account (Grove's own and its clients' farms), never a public user's field
+  if (!owner || !(await groveUserIds()).includes(String(owner))) {
+    res.status(403).send({ error: "Only fields on farms kept under a Grove account can be screened" });
     return;
   }
   if (!geometry) {
@@ -95,15 +106,20 @@ router.post("/run", async (req: Req, res) => {
       headers: { "Content-Type": "application/json", "X-Screening-Key": cfg.key },
       body: JSON.stringify({ outline: geometry, species: species.length ? species : ALL_MODEL_SPECIES.slice(0, 3), layers: true }),
       signal: ctl.signal,
+      redirect: "error", // the key must not follow a redirect elsewhere
     });
+    if (Number(r.headers.get("content-length") ?? 0) > MAX_RESULT_BYTES) {
+      res.status(502).send({ error: "The screening service sent too much" });
+      return;
+    }
     const body: any = await r.json().catch(() => ({}));
     if (!r.ok) {
       // the service's own message (e.g. "not screened yet") is meant for the screen; never pass on a 401 as is
       const status = r.status === 404 || r.status === 400 ? r.status : 502;
-      res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail : "The screening service failed") });
+      res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail.slice(0, 300) : "The screening service failed") });
       return;
     }
-    res.send({ ...body, field: fieldName, notCovered });
+    res.send({ ...pickResult(body), field: fieldName, notCovered });
   } catch (e: any) {
     res.status(504).send({ error: e?.name === "AbortError" ? "The screening service took too long" : "The screening service can't be reached" });
   } finally {
