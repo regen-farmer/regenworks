@@ -29,7 +29,7 @@ const STATES: [State, string, string][] = [
 export const DECISION_EN: Record<string, string> = { go: "Go", "go-conditions": "Go, with conditions", "no-go": "No-go" };
 const input = "p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm w-full";
 
-export function ChecklistPanel(props: { projectId: string; kind: string }) {
+export function ChecklistPanel(props: { projectId: string; kind: string; suggestion?: () => { result: string; conditions: string } | null }) {
   const [data, { mutate }] = createResource(
     () => ({ id: props.projectId, kind: props.kind }),
     (k) => apiFetch<Data>(`/internal/projects/${k.id}/checklists/${k.kind}`),
@@ -54,6 +54,11 @@ export function ChecklistPanel(props: { projectId: string; kind: string }) {
   let seq = 0;
   const [noteOpen, setNoteOpen] = createSignal<Set<string>>(new Set());
   const [decision, setDecision] = createSignal<{ result: string; conditions: string } | null>(null);
+  // a suggestion (e.g. from the model screening) fills the decision form; it is saved only with "Save decision"
+  createEffect(() => {
+    const s = props.suggestion?.();
+    if (s?.result) setDecision({ result: s.result, conditions: s.conditions });
+  });
 
   async function send(path: string, body: unknown, itemKey?: string) {
     setSaving((n) => n + 1);

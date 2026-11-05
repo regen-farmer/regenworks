@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import express from "express";
+import type { AddressInfo } from "node:net";
+import { after } from "node:test";
+import { cleanSpecies, designSpecies, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import internalRoutes from "../src/routes/internal.ts";
+
+test("screening: library species map to the model's species", () => {
+  assert.equal(modelSpecies({ genus: "Corylus", species: "avellana" }), "hazel");
+  assert.equal(modelSpecies({ genus: "Juglans", species: "x intermedia" }), "walnut");
+  assert.equal(modelSpecies({ nameCommon: "Black chokeberries", genus: "Aronia", species: "melanocarpa" }), "aronia");
+  assert.equal(modelSpecies({ nameCommon: "Apple", genus: "Malus", species: "domestica" }), null);
+  const d = designSpecies([{ sequence: [{ species: { genus: "Corylus", species: "avellana" } }, { species: { nameCommon: "Apple", genus: "Malus" } }] }, { sequence: [{ species: "id-only" }] }]);
+  assert.deepEqual(d, { covered: ["hazel"], notCovered: ["Apple"] });
+  assert.deepEqual(cleanSpecies(["hazel", "x", "hazel", 3]), ["hazel"]);
+});
+
+test("screening: field outlines and the service config", () => {
+  const poly = { type: "Polygon", coordinates: [[[9, 56], [9.1, 56], [9.1, 56.1], [9, 56]]] };
+  assert.deepEqual(fieldGeometry(JSON.stringify({ type: "Feature", geometry: poly, properties: {} })), poly);
+  assert.deepEqual(fieldGeometry(JSON.stringify(poly).replace(/"/g, "&#34;")), poly);
+  assert.equal(fieldGeometry(JSON.stringify({ type: "Point", coordinates: [9, 56] })), null);
+  assert.equal(fieldGeometry("not json"), null);
+  assert.equal(serviceConfig({}), null);
+  assert.equal(serviceConfig({ SCREENING_URL: "https://x.onrender.com", SCREENING_KEY: "short" }), null);
+  assert.deepEqual(serviceConfig({ SCREENING_URL: "https://x.onrender.com/", SCREENING_KEY: "k".repeat(32) }), { url: "https://x.onrender.com", key: "k".repeat(32) });
+  assert.equal(serviceConfig({ SCREENING_URL: "http://x.onrender.com", SCREENING_KEY: "k".repeat(32) }), null, "no plain http to another host");
+  assert.ok(serviceConfig({ SCREENING_URL: "http://localhost:8000", SCREENING_KEY: "k".repeat(32) }));
+  assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["field_covered", "layers", "model", "name", "site", "species"]);
+});
+
+let who: any = {};
+const app = express();
+app.use(express.json());
+app.use((req: any, _res, next) => {
+  req.user = who.user;
+  req.idToken = who.idToken;
+  next();
+});
+app.use("/internal", internalRoutes);
+const server = app.listen(0);
+const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+after(() => server.close());
+
+test("/internal/screening: grove-team only", async () => {
+  for (const [user, status] of [
+    [undefined, 401],
+    [{ roles: [] }, 403],
+    [{ _id: "000000000000000000000001", roles: ["grove-field"] }, 403],
+  ] as const) {
+    who = user ? { user, idToken: { email_verified: true } } : {};
+    assert.equal((await fetch(`${base}/internal/screening/project/000000000000000000000002/fields`)).status, status);
+    assert.equal((await fetch(`${base}/internal/screening/run`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+  }
+});

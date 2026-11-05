@@ -6,6 +6,7 @@ import { showToast, Toaster } from "~/components/ui/toast";
 import { canSeeMoney } from "~/grove/access.ts";
 import { ChecklistPanel } from "~/grove/ChecklistPanel.tsx";
 import { TreeRegisterPanel } from "~/grove/TreeRegisterPanel.tsx";
+import { ScreeningModel } from "~/grove/ScreeningModel.tsx";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, STEPS, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
@@ -31,6 +32,7 @@ function ProjectPage() {
   const [dirty, setDirty] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const [askDelete, setAskDelete] = createSignal(false);
+  const [suggestion, setSuggestion] = createSignal<{ result: string; conditions: string } | null>(null);
 
   createEffect(() => {
     const d = data();
@@ -202,7 +204,13 @@ function ProjectPage() {
           </Show>
         </fieldset>
 
-        <ChecklistPanel projectId={params().projectId} kind="screening" />
+        {/* the checklist and (Grove team) the model's screening side by side: map and findings next to sections B and D */}
+        <div class="grid gap-4 items-start" classList={{ "xl:grid-cols-2": team() }}>
+          <ChecklistPanel projectId={params().projectId} kind="screening" suggestion={suggestion} />
+          <Show when={team()}>
+            <ScreeningModel projectId={params().projectId} onSuggestion={(s) => setSuggestion({ ...s })} />
+          </Show>
+        </div>
 
         <TreeRegisterPanel projectId={params().projectId} />
 

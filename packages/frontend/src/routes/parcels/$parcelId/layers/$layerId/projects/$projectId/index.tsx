@@ -74,6 +74,8 @@ import FarmerAdvisorSelector from "~/components/freemium/farmer-advisor-selector
 import { Row } from "~/components/row/Row";
 import { setReloadSignal } from "~/components/select/project-select";
 import { showToast, Toaster } from "~/components/ui/toast";
+import { isGroveTeam } from "~/grove/access.ts";
+import { ScreeningModel } from "~/grove/ScreeningModel.tsx";
 
 function deepEqual(obj1: any, obj2: any): boolean {
   if (obj1 === obj2) return true;
@@ -823,7 +825,7 @@ function ProjectIndexView() {
                         "flex-direction": "column",
                       }}
                     >
-                      <TabsList class="grid w-fit grid-cols-4 m-2">
+                      <TabsList class="grid w-fit m-2" classList={{ "grid-cols-4": !isGroveTeam(), "grid-cols-5": isGroveTeam() }}>
                         <TabsTrigger class="border" value="edit">
                           Edit design
                         </TabsTrigger>
@@ -836,6 +838,11 @@ function ProjectIndexView() {
                         <TabsTrigger class="border" value="info">
                           Info
                         </TabsTrigger>
+                        <Show when={isGroveTeam()}>
+                          <TabsTrigger class="border" value="screening">
+                            Screening
+                          </TabsTrigger>
+                        </Show>
                       </TabsList>
 
                       <TabsContent
@@ -1581,6 +1588,12 @@ function ProjectIndexView() {
                           handleDeleteProject={handleDeleteProject}
                         />
                       </TabsContent>
+                      <Show when={isGroveTeam()}>
+                        <TabsContent value="screening" style={{ overflow: "auto", flex: "1 1 auto", padding: "20px" }}>
+                          {/* Grove team: the screening model on this scenario's field and the trees in its design; nothing saved */}
+                          <ScreeningModel scenarioId={params().projectId} />
+                        </TabsContent>
+                      </Show>
                     </Tabs>
                   </div>
                 </>
