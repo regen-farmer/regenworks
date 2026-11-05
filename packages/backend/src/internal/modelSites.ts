@@ -247,6 +247,8 @@ export function toFeatureCollection(sites: any[]) {
           in_row_spacing_m: s.inRowSpacingM ?? null,
           planted: s.plantedYear ?? null,
           source: s.source ?? null,
+          // the exporting instance's id for an imported site (e.g. known-walnut-06), so grove-data keeps its id
+          source_ref: s.sourceRef ?? null,
           updated: s.updatedAt ? new Date(s.updatedAt).toISOString() : null,
         },
       })),

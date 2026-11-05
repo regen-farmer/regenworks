@@ -66,6 +66,9 @@ test("export: only traced sites with an outline, as features grove-data reads, n
   assert.equal(p.zone, "inner");
   assert.equal(JSON.stringify(fc).includes("u1"), false);
   assert.equal("notes" in p, false, "notes stay in GroveWorks");
+  assert.equal(p.source_ref, null);
+  const imported = toFeatureCollection([{ _id: "b1", name: "Ref", batch: "DK", status: "traced", geometry: { type: "Polygon", coordinates: [] }, sourceRef: "known-walnut-06" }]);
+  assert.equal(imported.features[0].properties.source_ref, "known-walnut-06");
 });
 
 test("export key: constant-time match, short or missing keys never match", () => {
