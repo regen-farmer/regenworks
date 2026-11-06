@@ -34,7 +34,7 @@ router.get("/", async (req, res) => {
     return;
   }
   const sites = await ModelSite.find({ status: "traced" })
-    .select("name batch status source lon lat geometry system species rowBearingDeg alleyWidthM inRowSpacingM plantedYear updatedAt")
+    .select("name batch status source sourceRef lon lat geometry system species rowBearingDeg alleyWidthM inRowSpacingM plantedYear updatedAt")
     .sort({ _id: 1 })
     .limit(5000)
     .lean();
