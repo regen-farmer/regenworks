@@ -13,7 +13,7 @@ import { inIds } from "../utils/mongoSafety.ts";
 import { canSeeMoney } from "@rw/db/access.ts";
 import { groveUserIds } from "./groveRefs.ts";
 import { visibleFilter } from "./projects.ts";
-import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designSpecies, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
+import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designRows, designSpecies, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -56,11 +56,13 @@ router.post("/run", async (req: Req, res) => {
   let notCovered: string[] = [];
   let fieldName: string | undefined;
   let owner: unknown;
+  let rows: ReturnType<typeof designRows> = [];
   if (validId(scenarioId)) {
     const sc: any = await Project.findById(scenarioId)
-      .select("layer systemdesign")
+      .select("layer systemdesign rows")
       .populate("layer", "name geometry owner")
       .populate({ path: "systemdesign", select: "rows", populate: { path: "rows.sequence.species", select: "nameCommon genus species" } })
+      .populate({ path: "rows", select: "geometry sequence", populate: { path: "sequence", select: "model", populate: { path: "model.species", select: "genus height" } } })
       .lean();
     if (!sc?.layer) {
       res.status(404).send({ error: "Scenario not found" });
@@ -69,6 +71,7 @@ router.post("/run", async (req: Req, res) => {
     owner = sc.layer.owner?.id;
     geometry = fieldGeometry(sc.layer.geometry);
     fieldName = sc.layer.name;
+    rows = designRows(sc.rows);
     const ds = designSpecies(sc.systemdesign?.rows);
     notCovered = ds.notCovered;
     if (!species.length) species = ds.covered;
@@ -104,7 +107,8 @@ router.post("/run", async (req: Req, res) => {
     const r = await fetch(`${cfg.url}/screen`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Screening-Key": cfg.key },
-      body: JSON.stringify({ outline: geometry, species: species.length ? species : ALL_MODEL_SPECIES.slice(0, 3), layers: true }),
+      // a scenario's laid-out rows go along, so the screening shows what the design itself changes
+      body: JSON.stringify({ outline: geometry, species: species.length ? species : ALL_MODEL_SPECIES.slice(0, 3), layers: true, ...(rows.length ? { rows } : {}) }),
       signal: ctl.signal,
       redirect: "error", // the key must not follow a redirect elsewhere
     });
@@ -119,7 +123,7 @@ router.post("/run", async (req: Req, res) => {
       res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail.slice(0, 300) : "The screening service failed") });
       return;
     }
-    res.send({ ...pickResult(body), field: fieldName, notCovered });
+    res.send({ ...pickResult(body), field: fieldName, notCovered, rowsSent: rows.length });
   } catch (e: any) {
     // the cause (DNS, TLS, refused, a redirect) for the backend's logs; never the key
     console.error("screening service call failed:", e?.name, e?.message, e?.cause?.code ?? e?.cause?.message ?? "");
