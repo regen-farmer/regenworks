@@ -3,7 +3,7 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { cleanSpecies, designRows, designSpecies, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { cleanSpecies, designRows, designSpecies, pickDesign, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("screening: library species map to the model's species", () => {
@@ -63,12 +63,36 @@ test("designRows: a scenario's row lines, tallest mature height and grove-twin s
     { geometry: JSON.stringify({ type: "Feature", geometry: { type: "MultiLineString", coordinates: [[[9, 56], [9, 56.1]], [[9.2, 56], [9.2, 56.1]]] } }), sequence: null },
     { geometry: JSON.stringify({ type: "Point", coordinates: [9, 56] }) },
     { geometry: "not json" },
+    { geometry: JSON.stringify({ type: "FeatureCollection", features: {} }) },
+    { geometry: JSON.stringify({ type: "MultiLineString", coordinates: 5 }) },
+    { geometry: JSON.stringify({ type: "LineString", coordinates: [[9, 56], [9, 57]] }), sequence: { model: "junk" } as any },
     { geometry: JSON.stringify(line).replace(/"/g, "&#34;"), sequence: { model: [{ species: { genus: "Populus", height: 500 } }] } },
   ]);
-  assert.equal(rows.length, 4);
+  assert.equal(rows.length, 5);
   assert.deepEqual(rows[0], { line: [[9.1, 56.1], [9.1, 56.2]], mature_height_m: 18, species: ["walnut", "hazel"] });
   assert.equal(rows[1].mature_height_m, null);
   assert.equal(rows[2].line[0][0], 9.2);
-  assert.deepEqual(rows[3].species, ["hybrid poplar"]);
-  assert.equal(rows[3].mature_height_m, null, "an implausible height is ignored");
+  assert.deepEqual(rows[3].species, []);
+  assert.deepEqual(rows[4].species, ["hybrid poplar"]);
+  assert.equal(rows[4].mature_height_m, null, "an implausible height is ignored");
+  const many = designRows(Array.from({ length: 100 }, () => ({ geometry: JSON.stringify({ type: "LineString", coordinates: Array.from({ length: 1500 }, (_, i) => [9, 56 + i * 1e-5]) }) })));
+  assert.ok(many.reduce((n, r) => n + r.line.length, 0) <= 50_000, "a total point budget");
+});
+
+test("pickDesign: only what the Screening tab shows", () => {
+  assert.equal(pickDesign(null), null);
+  assert.equal(pickDesign([1]), null);
+  const d = pickDesign({
+    rows: { rows: 3, height_m: [4, 4], secret: "x" },
+    species: { walnut: {} },
+    compare: { walnut: { today: { wind_growth_factor: 0.64, extra: 1 }, with_design: "bad", statement: "s", verdict: 7 }, "<b>": {} },
+    layers: [{ id: "a", title: "t", png: "data:image/png;base64,AA", corners: [], legend: {} }, { id: "b", title: "t", png: "javascript:x", corners: [], legend: {} }, "junk"],
+    note: "n",
+  })!;
+  assert.deepEqual(Object.keys(d).sort(), ["compare", "layers", "note", "rows"]);
+  assert.deepEqual(Object.keys(d.compare), ["walnut"]);
+  assert.equal(d.compare.walnut.today.wind_growth_factor, 0.64);
+  assert.equal(d.compare.walnut.with_design.wind_growth_factor, null);
+  assert.equal(d.compare.walnut.verdict, null);
+  assert.equal(d.layers.length, 1);
 });

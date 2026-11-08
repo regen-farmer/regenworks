@@ -98,14 +98,15 @@ const TWIN_TREE_BY_GENUS: Record<string, string> = {
 };
 
 const MAX_ROWS = 400;
-const MAX_POINTS = 2000;
+const MAX_POINTS = 2000; // per line
+const MAX_TOTAL_POINTS = 50_000; // per request
 
-function lineParts(g: any): number[][][] {
-  if (!g) return [];
-  if (g.type === "Feature") return lineParts(g.geometry);
-  if (g.type === "FeatureCollection") return (g.features ?? []).flatMap(lineParts);
+function lineParts(g: any, depth = 0): unknown[] {
+  if (!g || typeof g !== "object" || depth > 3) return [];
+  if (g.type === "Feature") return lineParts(g.geometry, depth + 1);
+  if (g.type === "FeatureCollection") return Array.isArray(g.features) ? g.features.flatMap((f: unknown) => lineParts(f, depth + 1)) : [];
   if (g.type === "LineString") return [g.coordinates];
-  if (g.type === "MultiLineString") return g.coordinates ?? [];
+  if (g.type === "MultiLineString") return Array.isArray(g.coordinates) ? g.coordinates : [];
   return [];
 }
 
@@ -115,6 +116,7 @@ function lineParts(g: any): number[][][] {
  */
 export function designRows(rows: { geometry?: unknown; sequence?: { model?: { species?: any }[] } | null }[] | undefined) {
   const out: { line: number[][]; mature_height_m: number | null; species: string[] }[] = [];
+  let points = 0;
   for (const r of rows ?? []) {
     if (out.length >= MAX_ROWS) break;
     if (typeof r?.geometry !== "string" || !r.geometry) continue;
@@ -124,16 +126,19 @@ export function designRows(rows: { geometry?: unknown; sequence?: { model?: { sp
     } catch {
       continue;
     }
-    const spp = (r.sequence?.model ?? []).map((m) => m?.species).filter((sp) => sp && typeof sp === "object");
+    const spp = (Array.isArray(r.sequence?.model) ? r.sequence!.model! : []).map((m) => m?.species).filter((sp) => sp && typeof sp === "object");
     const heights = spp.map((sp: any) => Number(sp.height)).filter((h) => Number.isFinite(h) && h > 0 && h < 100);
     const names = [...new Set(spp.map((sp: any) => TWIN_TREE_BY_GENUS[String(sp.genus ?? "").trim().toLowerCase()]).filter(Boolean))] as string[];
     for (const part of lineParts(g)) {
-      if (out.length >= MAX_ROWS) break;
+      if (out.length >= MAX_ROWS || points >= MAX_TOTAL_POINTS) break;
       const line = (Array.isArray(part) ? part : [])
-        .slice(0, MAX_POINTS)
-        .filter((p) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]) && Math.abs(p[0]) <= 180 && Math.abs(p[1]) <= 90)
+        .slice(0, Math.min(MAX_POINTS, MAX_TOTAL_POINTS - points))
+        .filter((p): p is number[] => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]) && Math.abs(p[0]) <= 180 && Math.abs(p[1]) <= 90)
         .map((p) => [Math.round(p[0] * 1e7) / 1e7, Math.round(p[1] * 1e7) / 1e7]);
-      if (line.length >= 2) out.push({ line, mature_height_m: heights.length ? Math.max(...heights) : null, species: names });
+      if (line.length >= 2) {
+        points += line.length;
+        out.push({ line, mature_height_m: heights.length ? Math.max(...heights) : null, species: names });
+      }
     }
   }
   return out;
@@ -157,6 +162,37 @@ export function serviceConfig(env: Record<string, string | undefined> = process.
   return { url, key };
 }
 
+const obj = (v: unknown): v is Record<string, any> => !!v && typeof v === "object" && !Array.isArray(v);
+const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+function keyNumbers(v: unknown) {
+  const o = obj(v) ? v : {};
+  return { frost_share_median: num(o.frost_share_median), wind_growth_factor: num(o.wind_growth_factor), water_lost_median: num(o.water_lost_median), young_growth_index: num(o.young_growth_index) };
+}
+
+/** The design part of the service's answer, narrowed to what the Screening tab shows. */
+export function pickDesign(d: unknown) {
+  if (!obj(d)) return null;
+  const r = obj(d.rows) ? d.rows : {};
+  const h = Array.isArray(r.height_m) && r.height_m.length === 2 && r.height_m.every((x: unknown) => num(x) !== null) ? (r.height_m as [number, number]) : null;
+  const compare: Record<string, { today: ReturnType<typeof keyNumbers>; with_design: ReturnType<typeof keyNumbers>; statement: string; verdict: string | null }> = {};
+  if (obj(d.compare)) {
+    for (const [sp, c] of Object.entries(d.compare)) {
+      if (!obj(c) || !ALL_MODEL_SPECIES.includes(sp)) continue;
+      compare[sp] = { today: keyNumbers(c.today), with_design: keyNumbers(c.with_design), statement: typeof c.statement === "string" ? c.statement.slice(0, 1000) : "", verdict: typeof c.verdict === "string" ? c.verdict.slice(0, 200) : null };
+    }
+  }
+  const layers = (Array.isArray(d.layers) ? d.layers : []).filter(
+    (l: unknown) => obj(l) && typeof l.id === "string" && typeof l.title === "string" && typeof l.png === "string" && l.png.startsWith("data:image/png;base64,") && Array.isArray(l.corners) && obj(l.legend),
+  );
+  return {
+    rows: { rows: num(r.rows) ?? 0, area_ha: num(r.area_ha), height_m: h, age_years: num(r.age_years) },
+    compare,
+    layers,
+    note: typeof d.note === "string" ? d.note.slice(0, 1000) : "",
+  };
+}
+
 /** What GroveWorks passes on from the service's answer (nothing else it might send). */
 export function pickResult(body: any) {
   return {
@@ -165,7 +201,7 @@ export function pickResult(body: any) {
     field_covered: typeof body?.field_covered === "number" ? body.field_covered : 0,
     species: body?.species && typeof body.species === "object" ? body.species : {},
     layers: Array.isArray(body?.layers) ? body.layers : [],
-    design: body?.design && typeof body.design === "object" && !Array.isArray(body.design) ? body.design : null,
+    design: pickDesign(body?.design),
     model: typeof body?.model === "string" ? body.model : "",
   };
 }

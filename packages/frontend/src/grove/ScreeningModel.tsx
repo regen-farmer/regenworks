@@ -24,8 +24,7 @@ type Result = {
 type Field = { _id: string; name: string; size?: number; geometry: any };
 type KeyNumbers = { frost_share_median: number | null; wind_growth_factor: number | null; water_lost_median: number | null; young_growth_index: number | null };
 type Design = {
-  rows: { rows: number; cells?: number; area_ha?: number; height_m?: [number, number] | null; age_years?: number };
-  species: Result["species"];
+  rows: { rows: number; area_ha?: number | null; height_m?: [number, number] | null; age_years?: number | null };
   compare: Record<string, { today: KeyNumbers; with_design: KeyNumbers; statement: string; verdict: string | null }>;
   layers: Layer[];
   note: string;
@@ -224,8 +223,8 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                   {(c) => (
                     <>
                       <p class="text-xs opacity-80">
-                        {r().design!.rows.rows} rows
-                        {r().design!.rows.height_m ? `, ${r().design!.rows.height_m![0]}–${r().design!.rows.height_m![1]} m tall` : ""} after {r().design!.rows.age_years ?? 5} years.
+                        {r().design?.rows?.rows ?? 0} rows
+                        {r().design?.rows?.height_m ? `, ${r().design!.rows.height_m![0]}–${r().design!.rows.height_m![1]} m tall` : ""} after {r().design?.rows?.age_years ?? 5} years.
                       </p>
                       <Show when={c().verdict}>
                         <p class="text-sm font-semibold">{c().verdict!.charAt(0).toUpperCase() + c().verdict!.slice(1)}.</p>
@@ -236,12 +235,12 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                           <tr class="opacity-70"><th class="text-left font-normal" /><th class="text-right font-normal">Today</th><th class="text-right font-normal">With the rows</th></tr>
                         </thead>
                         <tbody>
-                          <tr><td>Growth lost to wind (young trees)</td><td class="text-right">{c().today.wind_growth_factor === null ? "–" : pct(1 - c().today.wind_growth_factor!)}</td><td class="text-right">{c().with_design.wind_growth_factor === null ? "–" : pct(1 - c().with_design.wind_growth_factor!)}</td></tr>
-                          <tr><td>Springs with damaging frost (field median)</td><td class="text-right">{pct(c().today.frost_share_median)}</td><td class="text-right">{pct(c().with_design.frost_share_median)}</td></tr>
-                          <tr><td>Growth lost to drought, median year</td><td class="text-right">{pct(c().today.water_lost_median)}</td><td class="text-right">{pct(c().with_design.water_lost_median)}</td></tr>
+                          <tr><td>Growth lost to wind (young trees)</td><td class="text-right">{c().today?.wind_growth_factor == null ? "–" : pct(1 - c().today.wind_growth_factor!)}</td><td class="text-right">{c().with_design?.wind_growth_factor == null ? "–" : pct(1 - c().with_design.wind_growth_factor!)}</td></tr>
+                          <tr><td>Springs with damaging frost (field median)</td><td class="text-right">{pct(c().today?.frost_share_median)}</td><td class="text-right">{pct(c().with_design?.frost_share_median)}</td></tr>
+                          <tr><td>Growth lost to drought, median year</td><td class="text-right">{pct(c().today?.water_lost_median)}</td><td class="text-right">{pct(c().with_design?.water_lost_median)}</td></tr>
                         </tbody>
                       </table>
-                      <p class="text-xs opacity-70">{r().design!.note}</p>
+                      <p class="text-xs opacity-70">{r().design?.note}</p>
                     </>
                   )}
                 </Show>
