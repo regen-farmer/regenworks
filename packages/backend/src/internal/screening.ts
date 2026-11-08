@@ -83,6 +83,62 @@ export function cleanSpecies(v: unknown): string[] {
 
 export type ServiceConfig = { url: string; key: string } | null;
 
+/** grove-twin's tree height curves by genus (alleycrop.TREES), so a row grows at its species' pace. */
+const TWIN_TREE_BY_GENUS: Record<string, string> = {
+  juglans: "walnut",
+  castanea: "sweet chestnut",
+  corylus: "hazel",
+  malus: "apple",
+  quercus: "oak",
+  populus: "hybrid poplar",
+  salix: "willow (coppiced)",
+  alnus: "black alder",
+  hippophae: "sea buckthorn",
+  elaeagnus: "autumn olive",
+};
+
+const MAX_ROWS = 400;
+const MAX_POINTS = 2000;
+
+function lineParts(g: any): number[][][] {
+  if (!g) return [];
+  if (g.type === "Feature") return lineParts(g.geometry);
+  if (g.type === "FeatureCollection") return (g.features ?? []).flatMap(lineParts);
+  if (g.type === "LineString") return [g.coordinates];
+  if (g.type === "MultiLineString") return g.coordinates ?? [];
+  return [];
+}
+
+/**
+ * A scenario's rows for the screening service: each row's line (lon/lat), the mature height of its
+ * tallest species (m, from the library) and the species names grove-twin knows a height curve for.
+ */
+export function designRows(rows: { geometry?: unknown; sequence?: { model?: { species?: any }[] } | null }[] | undefined) {
+  const out: { line: number[][]; mature_height_m: number | null; species: string[] }[] = [];
+  for (const r of rows ?? []) {
+    if (out.length >= MAX_ROWS) break;
+    if (typeof r?.geometry !== "string" || !r.geometry) continue;
+    let g: any;
+    try {
+      g = JSON.parse(r.geometry.replace(/&#34;/g, '"'));
+    } catch {
+      continue;
+    }
+    const spp = (r.sequence?.model ?? []).map((m) => m?.species).filter((sp) => sp && typeof sp === "object");
+    const heights = spp.map((sp: any) => Number(sp.height)).filter((h) => Number.isFinite(h) && h > 0 && h < 100);
+    const names = [...new Set(spp.map((sp: any) => TWIN_TREE_BY_GENUS[String(sp.genus ?? "").trim().toLowerCase()]).filter(Boolean))] as string[];
+    for (const part of lineParts(g)) {
+      if (out.length >= MAX_ROWS) break;
+      const line = (Array.isArray(part) ? part : [])
+        .slice(0, MAX_POINTS)
+        .filter((p) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]) && Math.abs(p[0]) <= 180 && Math.abs(p[1]) <= 90)
+        .map((p) => [Math.round(p[0] * 1e7) / 1e7, Math.round(p[1] * 1e7) / 1e7]);
+      if (line.length >= 2) out.push({ line, mature_height_m: heights.length ? Math.max(...heights) : null, species: names });
+    }
+  }
+  return out;
+}
+
 /** The service's address and key from the environment (SCREENING_URL, SCREENING_KEY), or null when not set up. */
 export function serviceConfig(env: Record<string, string | undefined> = process.env): ServiceConfig {
   const url = (env.SCREENING_URL ?? "").trim().replace(/\/+$/, "");
@@ -109,6 +165,7 @@ export function pickResult(body: any) {
     field_covered: typeof body?.field_covered === "number" ? body.field_covered : 0,
     species: body?.species && typeof body.species === "object" ? body.species : {},
     layers: Array.isArray(body?.layers) ? body.layers : [],
+    design: body?.design && typeof body.design === "object" && !Array.isArray(body.design) ? body.design : null,
     model: typeof body?.model === "string" ? body.model : "",
   };
 }

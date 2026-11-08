@@ -3,7 +3,7 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { cleanSpecies, designSpecies, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { cleanSpecies, designRows, designSpecies, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("screening: library species map to the model's species", () => {
@@ -28,7 +28,7 @@ test("screening: field outlines and the service config", () => {
   assert.deepEqual(serviceConfig({ SCREENING_URL: " https://x.onrender.com\n", SCREENING_KEY: "k".repeat(32) + "\n" }), { url: "https://x.onrender.com", key: "k".repeat(32) }, "pasted line breaks trimmed");
   assert.equal(serviceConfig({ SCREENING_URL: "http://x.onrender.com", SCREENING_KEY: "k".repeat(32) }), null, "no plain http to another host");
   assert.ok(serviceConfig({ SCREENING_URL: "http://localhost:8000", SCREENING_KEY: "k".repeat(32) }));
-  assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["field_covered", "layers", "model", "name", "site", "species"]);
+  assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["design", "field_covered", "layers", "model", "name", "site", "species"]);
 });
 
 let who: any = {};
@@ -54,4 +54,21 @@ test("/internal/screening: grove-team only", async () => {
     assert.equal((await fetch(`${base}/internal/screening/project/000000000000000000000002/fields`)).status, status);
     assert.equal((await fetch(`${base}/internal/screening/run`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
   }
+});
+
+test("designRows: a scenario's row lines, tallest mature height and grove-twin species", () => {
+  const line = { type: "LineString", coordinates: [[9.1, 56.1], [9.1, 56.2], ["x", 1]] };
+  const rows = designRows([
+    { geometry: JSON.stringify(line), sequence: { model: [{ species: { genus: "Juglans", height: 18 } }, { species: { genus: "Corylus", height: 6 } }] } },
+    { geometry: JSON.stringify({ type: "Feature", geometry: { type: "MultiLineString", coordinates: [[[9, 56], [9, 56.1]], [[9.2, 56], [9.2, 56.1]]] } }), sequence: null },
+    { geometry: JSON.stringify({ type: "Point", coordinates: [9, 56] }) },
+    { geometry: "not json" },
+    { geometry: JSON.stringify(line).replace(/"/g, "&#34;"), sequence: { model: [{ species: { genus: "Populus", height: 500 } }] } },
+  ]);
+  assert.equal(rows.length, 4);
+  assert.deepEqual(rows[0], { line: [[9.1, 56.1], [9.1, 56.2]], mature_height_m: 18, species: ["walnut", "hazel"] });
+  assert.equal(rows[1].mature_height_m, null);
+  assert.equal(rows[2].line[0][0], 9.2);
+  assert.deepEqual(rows[3].species, ["hybrid poplar"]);
+  assert.equal(rows[3].mature_height_m, null, "an implausible height is ignored");
 });

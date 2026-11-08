@@ -17,9 +17,19 @@ type Result = {
   species: Record<string, { overall: string; decisions: Decision[]; missing: string[] }>;
   layers: Layer[];
   notCovered?: string[];
+  rowsSent?: number;
+  design?: Design | null;
   model: string;
 };
 type Field = { _id: string; name: string; size?: number; geometry: any };
+type KeyNumbers = { frost_share_median: number | null; wind_growth_factor: number | null; water_lost_median: number | null; young_growth_index: number | null };
+type Design = {
+  rows: { rows: number; cells?: number; area_ha?: number; height_m?: [number, number] | null; age_years?: number };
+  species: Result["species"];
+  compare: Record<string, { today: KeyNumbers; with_design: KeyNumbers; statement: string; verdict: string | null }>;
+  layers: Layer[];
+  note: string;
+};
 
 // the checklist's sections the findings belong to
 const SECTIONS: [string, string[]][] = [
@@ -112,6 +122,8 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
     try {
       const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId(), species: group() === "nuts" ? NUTS : BERRIES };
       const r = await apiFetch<Result>("/internal/screening/run", { method: "POST", body: JSON.stringify(body) });
+      // the design's layers sit next to today's in one list
+      if (r.design?.layers?.length) r.layers = [...r.layers, ...r.design.layers];
       setResult(r);
       const first = Object.keys(r.species)[0] ?? "";
       setSpecies(first);
@@ -128,6 +140,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
   const layer = createMemo(() => result()?.layers.find((l) => l.id === layerId()));
   const speciesLayers = createMemo(() => (result()?.layers ?? []).filter((l) => l.species === species() || l.species === null));
   const findings = (topics: string[]) => (result()?.species[species()]?.decisions ?? []).filter((d) => topics.includes(d.topic));
+  const pct = (v: number | null | undefined) => (v === null || v === undefined ? "–" : `${Math.round(v * 100)}%`);
 
   return (
     <section class="flex flex-col gap-2">
@@ -150,7 +163,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
       </div>
       <p class="text-xs opacity-70">
         Frost, drought, establishment, waterlogging and wind for young trees, with Grove's thresholds. Nothing is saved.
-        {props.scenarioId ? " Uses the trees in this design; the design's own rows as shelter come with the next model step." : ""}
+        {props.scenarioId ? " Uses the trees in this design and, where the layout has rows, screens the field with them standing (about a minute)." : ""}
       </p>
       <Show when={fields()?.configured === false && props.projectId}>
         <p class="text-sm text-amber-600">The screening service isn't set up on this server yet.</p>
@@ -188,6 +201,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                   <label class="flex items-center gap-1 rounded-sm px-1 border border-zinc-300 dark:border-slate-600">
                     <input type="radio" name="screen-layer" checked={layerId() === l.id} onChange={() => setLayerId(l.id)} />
                     {l.title.split(":")[0]}
+                    {l.id.startsWith("design-") ? " · with design" : ""}
                   </label>
                 )}
               </For>
@@ -195,6 +209,43 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
             <MiniMap layer={layer} outline={outline} />
             <Show when={layer()}>
               <p class="text-xs opacity-70">{layer()!.title}: light {layer()!.legend.min} → dark {layer()!.legend.max} ({layer()!.legend.unit}).</p>
+            </Show>
+            <Show when={props.scenarioId}>
+              <div class="border border-sky-600 rounded-sm p-2 flex flex-col gap-1">
+                <h3 class="font-semibold text-sm">With this design's rows</h3>
+                <Show
+                  when={r().design?.compare?.[species()]}
+                  fallback={
+                    <p class="text-xs opacity-70">
+                      {r().design?.note ?? (r().rowsSent ? "The design's rows weren't screened." : "This scenario has no laid-out rows yet; generate the layout to screen the design with its rows.")}
+                    </p>
+                  }
+                >
+                  {(c) => (
+                    <>
+                      <p class="text-xs opacity-80">
+                        {r().design!.rows.rows} rows
+                        {r().design!.rows.height_m ? `, ${r().design!.rows.height_m![0]}–${r().design!.rows.height_m![1]} m tall` : ""} after {r().design!.rows.age_years ?? 5} years.
+                      </p>
+                      <Show when={c().verdict}>
+                        <p class="text-sm font-semibold">{c().verdict!.charAt(0).toUpperCase() + c().verdict!.slice(1)}.</p>
+                      </Show>
+                      <p class="text-sm">{c().statement}</p>
+                      <table class="text-xs w-full max-w-md">
+                        <thead>
+                          <tr class="opacity-70"><th class="text-left font-normal" /><th class="text-right font-normal">Today</th><th class="text-right font-normal">With the rows</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>Growth lost to wind (young trees)</td><td class="text-right">{c().today.wind_growth_factor === null ? "–" : pct(1 - c().today.wind_growth_factor!)}</td><td class="text-right">{c().with_design.wind_growth_factor === null ? "–" : pct(1 - c().with_design.wind_growth_factor!)}</td></tr>
+                          <tr><td>Springs with damaging frost (field median)</td><td class="text-right">{pct(c().today.frost_share_median)}</td><td class="text-right">{pct(c().with_design.frost_share_median)}</td></tr>
+                          <tr><td>Growth lost to drought, median year</td><td class="text-right">{pct(c().today.water_lost_median)}</td><td class="text-right">{pct(c().with_design.water_lost_median)}</td></tr>
+                        </tbody>
+                      </table>
+                      <p class="text-xs opacity-70">{r().design!.note}</p>
+                    </>
+                  )}
+                </Show>
+              </div>
             </Show>
             <For each={SECTIONS}>
               {([title, topics]) => (
