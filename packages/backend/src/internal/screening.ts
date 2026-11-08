@@ -86,7 +86,8 @@ export type ServiceConfig = { url: string; key: string } | null;
 /** The service's address and key from the environment (SCREENING_URL, SCREENING_KEY), or null when not set up. */
 export function serviceConfig(env: Record<string, string | undefined> = process.env): ServiceConfig {
   const url = (env.SCREENING_URL ?? "").trim().replace(/\/+$/, "");
-  const key = env.SCREENING_KEY ?? "";
+  // pasted values often carry a trailing space or line break, which is not a valid header value
+  const key = (env.SCREENING_KEY ?? "").trim();
   if (key.length < 32) return null;
   // the key travels in a header: https only (plain http just for a service on this machine)
   let u: URL;

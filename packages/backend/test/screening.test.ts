@@ -25,6 +25,7 @@ test("screening: field outlines and the service config", () => {
   assert.equal(serviceConfig({}), null);
   assert.equal(serviceConfig({ SCREENING_URL: "https://x.onrender.com", SCREENING_KEY: "short" }), null);
   assert.deepEqual(serviceConfig({ SCREENING_URL: "https://x.onrender.com/", SCREENING_KEY: "k".repeat(32) }), { url: "https://x.onrender.com", key: "k".repeat(32) });
+  assert.deepEqual(serviceConfig({ SCREENING_URL: " https://x.onrender.com\n", SCREENING_KEY: "k".repeat(32) + "\n" }), { url: "https://x.onrender.com", key: "k".repeat(32) }, "pasted line breaks trimmed");
   assert.equal(serviceConfig({ SCREENING_URL: "http://x.onrender.com", SCREENING_KEY: "k".repeat(32) }), null, "no plain http to another host");
   assert.ok(serviceConfig({ SCREENING_URL: "http://localhost:8000", SCREENING_KEY: "k".repeat(32) }));
   assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["field_covered", "layers", "model", "name", "site", "species"]);

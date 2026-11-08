@@ -121,6 +121,8 @@ router.post("/run", async (req: Req, res) => {
     }
     res.send({ ...pickResult(body), field: fieldName, notCovered });
   } catch (e: any) {
+    // the cause (DNS, TLS, refused, a redirect) for the backend's logs; never the key
+    console.error("screening service call failed:", e?.name, e?.message, e?.cause?.code ?? e?.cause?.message ?? "");
     res.status(504).send({ error: e?.name === "AbortError" ? "The screening service took too long" : "The screening service can't be reached" });
   } finally {
     clearTimeout(timer);
