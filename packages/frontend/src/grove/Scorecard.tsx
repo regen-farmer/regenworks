@@ -45,13 +45,18 @@ const kr = (n: number | null | undefined) => (n === null || n === undefined ? "â
 const short = (d: string | null | undefined) => (d ? new Date(d).toLocaleDateString("da-DK", { day: "numeric", month: "short" }) : "");
 
 function Bar(props: { label: string; part: Part; note: string }) {
-  const pct = () => (props.part.target ? Math.min(100, Math.round((props.part.actual / props.part.target) * 100)) : 0);
+  // share of the target reached; the text can pass 100%, the bar stops at full
+  const share = () => (props.part.target ? Math.round((props.part.actual / props.part.target) * 100) : null);
+  const pct = () => Math.max(0, Math.min(100, share() ?? 0));
   return (
     <div class="flex flex-col gap-1 min-w-64 flex-1">
       <div class="flex justify-between text-sm">
         <span class="font-semibold">{props.label}</span>
         <span>
           {kr(props.part.actual)} <span class="opacity-70">/ {props.part.target === null ? "no target" : kr(props.part.target)}</span>
+          <Show when={share() !== null}>
+            <span class="font-semibold"> Â· {share()}%</span>
+          </Show>
         </span>
       </div>
       <div class="h-3 rounded bg-zinc-200 dark:bg-slate-700" role="progressbar" aria-label={props.label} aria-valuenow={pct()} aria-valuemin={0} aria-valuemax={100}>
