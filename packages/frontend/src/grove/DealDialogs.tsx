@@ -76,7 +76,7 @@ export function WonDialog(props: { deal: Deal | null; funnels: Funnel[]; onClose
 
 /** New deal in a funnel: an existing client (picked by name) or a new one. */
 export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?: string; clientName?: string; onClose: () => void; onCreated: (id: string) => void }) {
-  const [clients] = createResource(() => (props.open && !props.clientId ? true : undefined), () => apiFetch<{ clients: Client[] }>("/internal/clients"));
+  const [clients] = createResource(() => (props.open ? true : undefined), () => apiFetch<{ clients: Client[] }>("/internal/clients"));
   const [title, setTitle] = createSignal("");
   const [clientName, setClientName] = createSignal("");
   const [stage, setStage] = createSignal("");
@@ -86,6 +86,9 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
   const [forwardOrder, setForwardOrder] = createSignal(false);
   const [nextText, setNextText] = createSignal("");
   const [nextDate, setNextDate] = createSignal("");
+  const [contactPerson, setContactPerson] = createSignal("");
+  const [phone, setPhone] = createSignal("");
+  const [email, setEmail] = createSignal("");
   const [busy, setBusy] = createSignal(false);
   createEffect(() => {
     if (!props.open) return;
@@ -99,11 +102,22 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
     setNextText("");
     setNextDate("");
   });
-  const existing = () => {
-    if (props.clientId) return props.clientId;
+  const existingClient = () => {
+    const list = clients()?.clients;
+    if (props.clientId) return list?.find((c) => c._id === props.clientId);
     const n = clientName().trim().toLowerCase();
-    return clients()?.clients.find((c) => c.name.trim().toLowerCase() === n)?._id;
+    return list?.find((c) => c.name.trim().toLowerCase() === n);
   };
+  const existing = () => props.clientId ?? existingClient()?._id;
+  // contact details: filled from the client on file, or blank for a new client
+  createEffect(() => {
+    if (!props.open) return;
+    const c = existingClient();
+    setContactPerson(c?.contactPerson ?? "");
+    setPhone(c?.phone ?? "");
+    setEmail(c?.email ?? "");
+  });
+  const contact = () => ({ contactPerson: contactPerson().trim(), phone: phone().trim(), email: email().trim() });
 
   async function create(e: SubmitEvent) {
     e.preventDefault();
@@ -122,9 +136,21 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
           sourceDetail: sourceDetail(),
           forwardOrder: forwardOrder(),
           nextAction: { text: nextText(), date: noon(nextDate()) },
-          ...(id ? { client: id } : { newClient: { name: clientName() } }),
+          ...(id ? { client: id } : { newClient: { name: clientName(), ...contact() } }),
         }),
       });
+      // an existing client: save contact details that were added or changed here
+      const c = existingClient();
+      if (id && c) {
+        const changed = Object.fromEntries(Object.entries(contact()).filter(([k, v]) => v !== ((c as any)[k] ?? "")));
+        if (Object.keys(changed).length) {
+          try {
+            await apiFetch(`/internal/clients/${id}`, { method: "PUT", body: JSON.stringify(changed) });
+          } catch (err) {
+            showToast({ title: "Deal created, but the contact details weren't saved", description: (err as Error).message, variant: "destructive" });
+          }
+        }
+      }
       showToast({ title: "Deal created" });
       props.onCreated(r.deal._id);
     } catch (err) {
@@ -154,6 +180,21 @@ export function NewDealDialog(props: { open: boolean; funnel?: Funnel; clientId?
               <span class="text-xs opacity-70">{clientName().trim() ? (existing() ? "Existing client" : "A new client will be created") : ""}</span>
             </label>
           </Show>
+          <fieldset class="grid grid-cols-2 gap-2 border border-zinc-300 dark:border-slate-600 rounded-sm p-2">
+            <legend class="px-1 text-xs opacity-70">Contact{existing() ? " (saved to the client)" : ""}</legend>
+            <label class="flex flex-col gap-1">
+              Phone
+              <input class={input} type="tel" autocomplete="off" maxLength={50} value={phone()} onInput={(e) => setPhone(e.currentTarget.value)} placeholder="e.g. +45 12 34 56 78" />
+            </label>
+            <label class="flex flex-col gap-1">
+              Email
+              <input class={input} type="email" autocomplete="off" maxLength={200} value={email()} onInput={(e) => setEmail(e.currentTarget.value)} placeholder="name@example.dk" />
+            </label>
+            <label class="flex flex-col gap-1 col-span-full">
+              Contact person <span class="text-xs opacity-70">(if the client is a company)</span>
+              <input class={input} maxLength={200} value={contactPerson()} onInput={(e) => setContactPerson(e.currentTarget.value)} />
+            </label>
+          </fieldset>
           <label class="flex flex-col gap-1">
             Deal title
             <input class={input} maxLength={200} value={title()} onInput={(e) => setTitle(e.currentTarget.value)} placeholder="e.g. 2 ha hazel, autumn 2027 (blank: client name)" />
