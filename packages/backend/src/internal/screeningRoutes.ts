@@ -13,6 +13,7 @@ import { inIds } from "../utils/mongoSafety.ts";
 import { canSeeMoney } from "@rw/db/access.ts";
 import { groveUserIds } from "./groveRefs.ts";
 import { visibleFilter } from "./projects.ts";
+import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
@@ -61,7 +62,7 @@ router.post("/run", async (req: Req, res) => {
     const sc: any = await Project.findById(scenarioId)
       .select("layer systemdesign rows")
       .populate("layer", "name geometry owner")
-      .populate({ path: "systemdesign", select: "rows", populate: { path: "rows.sequence.species", select: "nameCommon genus species height" } })
+      .populate({ path: "systemdesign", populate: { path: "rows.sequence.species" } })
       .populate({ path: "rows", select: "geometry sequence", populate: { path: "sequence", select: "model", populate: { path: "model.species", select: "genus height" } } })
       .lean();
     if (!sc?.layer) {
@@ -71,8 +72,19 @@ router.post("/run", async (req: Req, res) => {
     owner = sc.layer.owner?.id;
     geometry = fieldGeometry(sc.layer.geometry);
     fieldName = sc.layer.name;
-    // the layout as generated on the page, else rows stored on the scenario
-    rows = layoutRows(req.body?.layoutRows, sc.systemdesign?.rows);
+    // the layout generated from the scenario's design and field, as the offer and the tree register do;
+    // rows stored on the scenario as a fallback
+    if (sc.systemdesign?.rows?.length && sc.layer.geometry) {
+      try {
+        const layout: any = await runSystemBasedLayout(sc.systemdesign, sc.layer.geometry);
+        rows = layoutRows(
+          (layout?.treeRowLines ?? []).map((r: any) => ({ line: r?.line?.geometry?.coordinates, row: r?.systemDesignRowIndex })),
+          sc.systemdesign.rows,
+        );
+      } catch (err) {
+        console.error("screening: layout failed for scenario", scenarioId, (err as Error)?.message);
+      }
+    }
     if (!rows.length) rows = designRows(sc.rows);
     const ds = designSpecies(sc.systemdesign?.rows);
     notCovered = ds.notCovered;

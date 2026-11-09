@@ -145,9 +145,8 @@ export function designRows(rows: { geometry?: unknown; sequence?: { model?: { sp
 }
 
 /**
- * Rows as the layout page generated them (the layout isn't stored): line coordinates plus the
- * index of the design row they belong to. Species and heights come from the saved design, never
- * from the request.
+ * Rows from a generated layout (layouts aren't stored): line coordinates plus the index of the
+ * design row each belongs to; species and heights come from the saved design.
  */
 export function layoutRows(
   input: unknown,

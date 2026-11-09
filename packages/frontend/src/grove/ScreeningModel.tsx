@@ -98,13 +98,7 @@ function MiniMap(props: { layer: () => Layer | undefined; outline: () => any }) 
   return <div ref={el} style={{ height: "360px", width: "100%", position: "relative" }} class="rounded-sm overflow-hidden" />;
 }
 
-export function ScreeningModel(props: {
-  projectId?: string;
-  scenarioId?: string;
-  /** a scenario's rows as laid out on the page: line coordinates (lon/lat) and the design row index */
-  layoutRows?: () => { line: unknown; row: unknown }[];
-  onSuggestion?: (s: { result: string; conditions: string }) => void;
-}) {
+export function ScreeningModel(props: { projectId?: string; scenarioId?: string; onSuggestion?: (s: { result: string; conditions: string }) => void }) {
   const [fields] = createResource(
     () => props.projectId,
     (id) => apiFetch<{ farm: { name: string } | null; fields: Field[]; configured: boolean }>(`/internal/screening/project/${id}/fields`),
@@ -125,10 +119,7 @@ export function ScreeningModel(props: {
     setBusy(true);
     setError("");
     try {
-      const rows = props.layoutRows?.() ?? [];
-      const body = props.scenarioId
-        ? { scenarioId: props.scenarioId, ...(rows.length ? { layoutRows: rows.slice(0, 400) } : {}) }
-        : { fieldId: fieldId(), species: group() === "nuts" ? NUTS : BERRIES };
+      const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId(), species: group() === "nuts" ? NUTS : BERRIES };
       const r = await apiFetch<Result>("/internal/screening/run", { method: "POST", body: JSON.stringify(body) });
       // the design's layers sit next to today's in one list
       if (r.design?.layers?.length) r.layers = [...r.layers, ...r.design.layers];
@@ -225,7 +216,7 @@ export function ScreeningModel(props: {
                   when={r().design?.compare?.[species()]}
                   fallback={
                     <p class="text-xs opacity-70">
-                      {r().design?.note ?? (r().rowsSent ? "The design's rows weren't screened." : "No rows are laid out on the map yet; open Edit design and generate the layout, then screen again.")}
+                      {r().design?.note ?? (r().rowsSent ? "The design's rows weren't screened." : "This scenario has no laid-out rows yet; generate the layout to screen the design with its rows.")}
                     </p>
                   }
                 >

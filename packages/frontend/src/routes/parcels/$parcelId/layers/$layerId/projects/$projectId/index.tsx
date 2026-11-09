@@ -1591,13 +1591,7 @@ function ProjectIndexView() {
                       <Show when={isGroveTeam()}>
                         <TabsContent value="screening" style={{ overflow: "auto", flex: "1 1 auto", padding: "20px" }}>
                           {/* Grove team: the screening model on this scenario's field and the trees in its design; nothing saved */}
-                          <ScreeningModel
-                            scenarioId={params().projectId}
-                            layoutRows={() =>
-                              // the layout as generated on this page (it isn't stored): each row line with the design row it belongs to
-                              (systemLayout()?.treeRowLines ?? []).map((r: any) => ({ line: r?.line?.geometry?.coordinates, row: r?.systemDesignRowIndex }))
-                            }
-                          />
+                          <ScreeningModel scenarioId={params().projectId} />
                         </TabsContent>
                       </Show>
                     </Tabs>
