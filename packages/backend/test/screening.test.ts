@@ -3,7 +3,7 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { cleanSpecies, designRows, designSpecies, pickDesign, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("screening: library species map to the model's species", () => {
@@ -95,4 +95,24 @@ test("pickDesign: only what the Screening tab shows", () => {
   assert.equal(d.compare.walnut.with_design.wind_growth_factor, null);
   assert.equal(d.compare.walnut.verdict, null);
   assert.equal(d.layers.length, 1);
+});
+
+test("layoutRows: the page's row lines with species and heights from the saved design", () => {
+  const saved = [{ sequence: [{ species: { genus: "Castanea", height: 15 } }, { species: { genus: "Hippophae", height: 4 } }] }, { sequence: [{ species: { genus: "Salix", height: 9 } }] }];
+  const rows = layoutRows(
+    [
+      { line: [[9.1, 56.1], [9.1, 56.2]], row: 0 },
+      { line: [[9.2, 56.1], [9.2, 56.2]], row: 1, mature_height_m: 99, species: ["evil"] },
+      { line: [[9.3, 56.1], [9.3, 56.2]], row: 7 },
+      { line: "x", row: 0 },
+      null,
+    ],
+    saved,
+  );
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows[0], { line: [[9.1, 56.1], [9.1, 56.2]], mature_height_m: 15, species: ["sweet chestnut", "sea buckthorn"] });
+  assert.deepEqual(rows[1].species, ["willow (coppiced)"], "species and height come from the saved design, not the request");
+  assert.equal(rows[1].mature_height_m, 9);
+  assert.equal(rows[2].mature_height_m, null, "an unknown design row still shelters at the default height");
+  assert.deepEqual(layoutRows("nope", saved), []);
 });

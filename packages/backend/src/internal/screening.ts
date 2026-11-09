@@ -144,6 +144,25 @@ export function designRows(rows: { geometry?: unknown; sequence?: { model?: { sp
   return out;
 }
 
+/**
+ * Rows as the layout page generated them (the layout isn't stored): line coordinates plus the
+ * index of the design row they belong to. Species and heights come from the saved design, never
+ * from the request.
+ */
+export function layoutRows(
+  input: unknown,
+  designRowsSaved: { sequence?: { species?: any }[] }[] | undefined,
+): ReturnType<typeof designRows> {
+  if (!Array.isArray(input)) return [];
+  const rows = input.slice(0, MAX_ROWS).flatMap((r: any) => {
+    if (!r || typeof r !== "object" || !Array.isArray(r.line)) return [];
+    const i = Number.isInteger(r.row) && r.row >= 0 ? r.row : -1;
+    const seq = i >= 0 && Array.isArray(designRowsSaved?.[i]?.sequence) ? designRowsSaved![i].sequence! : [];
+    return [{ geometry: JSON.stringify({ type: "LineString", coordinates: r.line }), sequence: { model: seq.map((e) => ({ species: e?.species })) } }];
+  });
+  return designRows(rows);
+}
+
 /** The service's address and key from the environment (SCREENING_URL, SCREENING_KEY), or null when not set up. */
 export function serviceConfig(env: Record<string, string | undefined> = process.env): ServiceConfig {
   const url = (env.SCREENING_URL ?? "").trim().replace(/\/+$/, "");
