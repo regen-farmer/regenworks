@@ -126,4 +126,11 @@ test("pickSuitability: species rows and soil tests only", () => {
   assert.deepEqual(s.species[0].soil_tests, [{ test: "texture", p_change: 0.2, could_be: ["doubtful"] }]);
   assert.equal(s.jb, 3);
   assert.ok(!("x" in s));
+  const t = pickSuitability({ jb: 2.7, species: [{ species: "a", status: "go", soil_tests: [] }, { species: "b", screened: true, status: "no",
+    soil_tests: [{ test: "ph", p_change: 5, could_be: ["go", "go"] }, { test: "ph", p_change: 0.1 }] }, { species: " ", status: "go" }] })!;
+  assert.equal(t.jb, null, "a soil class must be a whole JB number");
+  assert.equal(t.species.length, 2);
+  assert.equal(t.species[0].species, "b", "screened species first");
+  assert.deepEqual(t.species[0].soil_tests, [{ test: "ph", p_change: 1, could_be: ["go"] }]);
+  assert.equal(pickSuitability({ species: [{ species: "x", status: "maybe" }] }), null);
 });

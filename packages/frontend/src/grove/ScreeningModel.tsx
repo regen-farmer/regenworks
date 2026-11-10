@@ -24,7 +24,7 @@ type Result = {
 };
 type Suitability = {
   jb: number | null;
-  species: { species: string; screened: boolean; status: string; risk: string | null; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[] }[];
+  species: { species: string; screened: boolean; status: string; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[] }[];
   soil_test_sentence: string;
 };
 const SUIT_TONE: Record<string, string> = {
@@ -232,7 +232,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                 <div class="border border-zinc-400 dark:border-slate-600 rounded-sm p-2 flex flex-col gap-1">
                   <h3 class="font-semibold text-sm">Species suitability on this farm{su().jb ? ` (soil JB${su().jb} on the map)` : ""}</h3>
                   <p class="text-xs opacity-70">
-                    Winter cold, summer warmth to ripen, spring frost, soil, wet winters and drought, for the 26 phase-1 species. The screened species come first.
+                    Winter cold, summer warmth to ripen, spring frost, soil, wet winters and drought, for {su().species.length} phase-1 species, with the deciding risk in words. The screened species come first.
                   </p>
                   <table class="text-xs w-full">
                     <tbody>

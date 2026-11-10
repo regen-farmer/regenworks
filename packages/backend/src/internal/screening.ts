@@ -233,15 +233,22 @@ export function pickSuitability(v: unknown) {
   if (!v || typeof v !== "object" || Array.isArray(v)) return null;
   const o = v as Record<string, any>;
   const rows = (Array.isArray(o.species) ? o.species : []).slice(0, 60).flatMap((r: any) => {
-    if (!r || typeof r !== "object" || typeof r.species !== "string" || !STATUSES.includes(r.status)) return [];
+    if (!r || typeof r !== "object" || typeof r.species !== "string" || !r.species.trim() || !STATUSES.includes(r.status)) return [];
+    const seen = new Set<string>();
     const tests = (Array.isArray(r.soil_tests) ? r.soil_tests : [])
-      .filter((t: any) => t && SOIL_TESTS.includes(t.test) && typeof t.p_change === "number")
-      .map((t: any) => ({ test: t.test as string, p_change: Math.max(0, Math.min(1, t.p_change)), could_be: (Array.isArray(t.could_be) ? t.could_be : []).filter((c: any) => STATUSES.includes(c)) }));
-    return [{ species: r.species.slice(0, 60), screened: r.screened === true, status: r.status as string, risk: typeof r.risk === "string" ? r.risk.slice(0, 40) : null,
+      .filter((t: any) => t && SOIL_TESTS.includes(t.test) && Number.isFinite(t.p_change) && !seen.has(t.test) && seen.add(t.test))
+      .map((t: any) => ({
+        test: t.test as string,
+        p_change: Math.max(0, Math.min(1, t.p_change)),
+        could_be: [...new Set((Array.isArray(t.could_be) ? t.could_be : []).filter((c: any) => STATUSES.includes(c)))] as string[],
+      }));
+    return [{ species: r.species.trim().slice(0, 60), screened: r.screened === true, status: r.status as string,
       words: typeof r.words === "string" ? r.words.slice(0, 400) : "", soil_tests: tests }];
   });
   if (!rows.length) return null;
-  return { jb: typeof o.jb === "number" ? o.jb : null, species: rows, soil_test_sentence: typeof o.soil_test_sentence === "string" ? o.soil_test_sentence.slice(0, 600) : "" };
+  rows.sort((a: any, b: any) => Number(b.screened) - Number(a.screened));  // screened species first
+  const jb = Number.isInteger(o.jb) && o.jb >= 1 && o.jb <= 12 ? (o.jb as number) : null;
+  return { jb, species: rows, soil_test_sentence: typeof o.soil_test_sentence === "string" ? o.soil_test_sentence.slice(0, 600) : "" };
 }
 
 export const MAX_RESULT_BYTES = 8_000_000;
