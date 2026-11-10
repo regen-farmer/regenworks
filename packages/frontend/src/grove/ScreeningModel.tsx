@@ -19,7 +19,24 @@ type Result = {
   notCovered?: string[];
   rowsSent?: number;
   design?: Design | null;
+  suitability?: Suitability | null;
   model: string;
+};
+type Suitability = {
+  jb: number | null;
+  species: { species: string; screened: boolean; status: string; risk: string | null; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[] }[];
+  soil_test_sentence: string;
+};
+const SUIT_TONE: Record<string, string> = {
+  go: "bg-emerald-700 text-white",
+  "go with measures": "bg-amber-600 text-white",
+  doubtful: "bg-amber-200 text-black",
+  no: "bg-red-700 text-white",
+};
+const SOIL_TEST_HOW: Record<string, string> = {
+  texture: "Texture: finger test on the visit, or lab clay content",
+  ph: "pH: kit on the visit, or the lab's Rt (ask for existing soil analyses first)",
+  auger: "Auger to about 1 m: rust mottling shows how wet it gets, and how deep roots can go",
 };
 type Field = { _id: string; name: string; size?: number; geometry: any };
 type KeyNumbers = { frost_share_median: number | null; wind_growth_factor: number | null; water_lost_median: number | null; young_growth_index: number | null };
@@ -139,6 +156,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
   const layer = createMemo(() => result()?.layers.find((l) => l.id === layerId()));
   const speciesLayers = createMemo(() => (result()?.layers ?? []).filter((l) => l.species === species() || l.species === null));
   const findings = (topics: string[]) => (result()?.species[species()]?.decisions ?? []).filter((d) => topics.includes(d.topic));
+  const [allSpecies, setAllSpecies] = createSignal(false);
   const pct = (v: number | null | undefined) => (v === null || v === undefined ? "–" : `${Math.round(v * 100)}%`);
 
   return (
@@ -208,6 +226,48 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
             <MiniMap layer={layer} outline={outline} />
             <Show when={layer()}>
               <p class="text-xs opacity-70">{layer()!.title}: light {layer()!.legend.min} → dark {layer()!.legend.max} ({layer()!.legend.unit}).</p>
+            </Show>
+            <Show when={r().suitability}>
+              {(su) => (
+                <div class="border border-zinc-400 dark:border-slate-600 rounded-sm p-2 flex flex-col gap-1">
+                  <h3 class="font-semibold text-sm">Species suitability on this farm{su().jb ? ` (soil JB${su().jb} on the map)` : ""}</h3>
+                  <p class="text-xs opacity-70">
+                    Winter cold, summer warmth to ripen, spring frost, soil, wet winters and drought, for the 26 phase-1 species. The screened species come first.
+                  </p>
+                  <table class="text-xs w-full">
+                    <tbody>
+                      <For each={su().species.filter((x) => allSpecies() || x.screened)}>
+                        {(x) => (
+                          <tr class="border-t border-zinc-300 dark:border-slate-700 align-top">
+                            <td class="py-0.5 pr-2 whitespace-nowrap">{x.species}</td>
+                            <td class="py-0.5 pr-2 whitespace-nowrap">
+                              <span class={`rounded-sm px-1 ${SUIT_TONE[x.status] ?? ""}`}>{x.status}</span>
+                            </td>
+                            <td class="py-0.5">
+                              {x.words}
+                              <Show when={x.soil_tests.length}>
+                                <span class="opacity-70"> · soil test could change it ({x.soil_tests.map((t) => `${t.test === "ph" ? "pH" : t.test} ${Math.round(t.p_change * 100)}%`).join(", ")})</span>
+                              </Show>
+                            </td>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                  </table>
+                  <button type="button" class="text-xs underline self-start" onClick={() => setAllSpecies(!allSpecies())}>
+                    {allSpecies() ? "Show the screened species only" : `Show all ${su().species.length} species`}
+                  </button>
+                  <div class="mt-1">
+                    <p class="text-sm font-semibold">Soil test</p>
+                    <p class="text-sm">{su().soil_test_sentence}</p>
+                    <ul class="text-xs list-disc pl-4">
+                      <For each={[...new Set(su().species.filter((x) => x.screened).flatMap((x) => x.soil_tests.map((t) => t.test)))]}>
+                        {(t) => <li>{SOIL_TEST_HOW[t] ?? t}</li>}
+                      </For>
+                    </ul>
+                  </div>
+                </div>
+              )}
             </Show>
             <Show when={props.scenarioId}>
               <div class="border border-sky-600 rounded-sm p-2 flex flex-col gap-1">
