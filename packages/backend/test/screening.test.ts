@@ -3,7 +3,7 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 
 test("screening: library species map to the model's species", () => {
@@ -28,7 +28,7 @@ test("screening: field outlines and the service config", () => {
   assert.deepEqual(serviceConfig({ SCREENING_URL: " https://x.onrender.com\n", SCREENING_KEY: "k".repeat(32) + "\n" }), { url: "https://x.onrender.com", key: "k".repeat(32) }, "pasted line breaks trimmed");
   assert.equal(serviceConfig({ SCREENING_URL: "http://x.onrender.com", SCREENING_KEY: "k".repeat(32) }), null, "no plain http to another host");
   assert.ok(serviceConfig({ SCREENING_URL: "http://localhost:8000", SCREENING_KEY: "k".repeat(32) }));
-  assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["design", "field_covered", "layers", "model", "name", "site", "species"]);
+  assert.deepEqual(Object.keys(pickResult({ site: "s", extra: "x" })).sort(), ["design", "field_covered", "layers", "model", "name", "site", "species", "suitability"]);
 });
 
 let who: any = {};
@@ -115,4 +115,22 @@ test("layoutRows: the page's row lines with species and heights from the saved d
   assert.equal(rows[1].mature_height_m, 9);
   assert.equal(rows[2].mature_height_m, null, "an unknown design row still shelters at the default height");
   assert.deepEqual(layoutRows("nope", saved), []);
+});
+
+test("pickSuitability: species rows and soil tests only", () => {
+  assert.equal(pickSuitability(null), null);
+  const s = pickSuitability({ jb: 3, soil_test_sentence: "A soil test could change apple (texture).", x: 1,
+    species: [{ species: "apple", screened: true, status: "go with measures", risk: "soil", words: "w", soil_tests: [{ test: "texture", p_change: 0.2, could_be: ["doubtful", "evil"] }, { test: "rm -rf", p_change: 1 }] },
+      { species: "hazel", status: "maybe" }, "junk"] })!;
+  assert.equal(s.species.length, 1);
+  assert.deepEqual(s.species[0].soil_tests, [{ test: "texture", p_change: 0.2, could_be: ["doubtful"] }]);
+  assert.equal(s.jb, 3);
+  assert.ok(!("x" in s));
+  const t = pickSuitability({ jb: 2.7, species: [{ species: "a", status: "go", soil_tests: [] }, { species: "b", screened: true, status: "no",
+    soil_tests: [{ test: "ph", p_change: 5, could_be: ["go", "go"] }, { test: "ph", p_change: 0.1 }] }, { species: " ", status: "go" }] })!;
+  assert.equal(t.jb, null, "a soil class must be a whole JB number");
+  assert.equal(t.species.length, 2);
+  assert.equal(t.species[0].species, "b", "screened species first");
+  assert.deepEqual(t.species[0].soil_tests, [{ test: "ph", p_change: 1, could_be: ["go"] }]);
+  assert.equal(pickSuitability({ species: [{ species: "x", status: "maybe" }] }), null);
 });
