@@ -20,7 +20,8 @@ const storageKey = (projectId: string) => `stakeout-prefix:${projectId}`;
 // format, DKTM zone and row-end offset are remembered for every design (the kit is the same everywhere)
 const SETTINGS_KEY = "stakeout-settings";
 type Settings = { format: StakeoutFormatId; zone: GridId | "auto"; offset: string };
-const DEFAULTS: Settings = { format: "trimble-dktm-ne", zone: "auto", offset: "1" };
+// SITECH's working example (11 Nov) is DKTM2; the job's zone decides, so the zone is chosen, not guessed
+const DEFAULTS: Settings = { format: "trimble-dktm-ne", zone: "dktm2", offset: "1" };
 const DKTM_ZONES: [GridId, string][] = [
   ["dktm1", "DKTM1 (west Jutland)"],
   ["dktm2", "DKTM2 (east Jutland, Funen)"],
@@ -31,7 +32,7 @@ function loadSettings(): Settings {
   try {
     const v = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}");
     return {
-      format: v.format in STAKEOUT_FORMATS ? v.format : DEFAULTS.format,
+      format: Object.hasOwn(STAKEOUT_FORMATS, v.format) ? v.format : DEFAULTS.format,
       zone: v.zone === "auto" || DKTM_ZONES.some(([z]) => z === v.zone) ? v.zone : DEFAULTS.zone,
       offset: typeof v.offset === "string" ? v.offset : DEFAULTS.offset,
     };
@@ -158,8 +159,8 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
               onChange={(e) => set({ zone: e.currentTarget.value as Settings["zone"] })}
               title="Must match the coordinate system of the job on the controller"
             >
-              <option value="auto">Nearest to the field</option>
               <For each={DKTM_ZONES}>{([z, label]) => <option value={z}>{label}</option>}</For>
+              <option value="auto">Nearest to the field (check the summary)</option>
             </select>
           </label>
         </Show>

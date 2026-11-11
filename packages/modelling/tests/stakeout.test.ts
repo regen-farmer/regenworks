@@ -161,7 +161,7 @@ const DKTM_REFS: [GridId, number, number, number, number][] = [
   ["dktm4", 14.9, 55.1, 793616.5138, 1108367.3268],
 ];
 
-test("DKTM zones match pyproj to 0.1 mm, and round-trip", () => {
+test("DKTM zones match pyproj to 1 mm (the example file has 3 decimals), and round-trip", () => {
   for (const [g, lon, lat, e, n] of DKTM_REFS) {
     const r = toGrid(lon, lat, g);
     assert.ok(Math.abs(r.e - e) < 1e-3, `${g} easting ${r.e} vs ${e}`);
@@ -195,6 +195,7 @@ test("SITECH format: Name;N;E;0,000;Code with decimal commas and CRLF, as the wo
     assert.equal(f[2], p.e.toFixed(3).replace(".", ","));
   }
   assert.ok(out.files["Test_field_summary.txt"].includes("DKTM2 (EPSG:4094)"));
+  assert.ok(out.files["Test_field_DKTM2.dxf"], "the DXF is named by its grid");
 });
 
 test("row ends can sit beyond the first and last tree, on the row line", async () => {

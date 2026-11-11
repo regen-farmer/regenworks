@@ -270,7 +270,8 @@ export function stakeoutFiles(
 
   const num = (v: number) => (fmt.decimalComma ? mm(v).replace(".", ",") : mm(v));
   const z = fmt.decimalComma ? (options.nullElevation ?? fmt.elevation).replace(".", ",") : (options.nullElevation ?? fmt.elevation);
-  const code = (s: string) => csvSafe(s).replace(/;+/g, " ");
+  // semicolons are separators only in the semicolon format; elsewhere the code stays as before
+  const code = (s: string) => (fmt.sep === ";" ? csvSafe(s.replace(/;+/g, " ")) : csvSafe(s));
   const line = (name: string, lon: number, lat: number, c: string) => {
     if (!gridId) return [name, lat.toFixed(9), lon.toFixed(9), z, code(c)].join(fmt.sep);
     const p = at(lon, lat, gridId);
@@ -347,7 +348,7 @@ export function stakeoutFiles(
     `Trees: ${all.length}   Rows: ${rows.length}   Median spacing (grid): ${median.toFixed(2)} m`,
     ...(grid ? [`mm rounding check (worst tree): ${(roundTrip * 1000).toFixed(2)} mm`] : []),
     `Point names: ${prefix}R<row>T<tree>; rows in design order; T001 at the same end in every row`,
-    "Distances below are UTM 32N grid distances (ground = grid / 0.9996, +4 cm per 100 m; DKTM grids are within 2 mm per 100 m of ground)",
+    "Distances below are UTM 32N grid distances (ground = grid / 0.9996, +4 cm per 100 m; DKTM grids are within about 5 mm per 100 m of ground)",
     "",
     "Plants:",
     ...[...plants.entries()].sort((a, b) => b[1] - a[1]).map(([label, n]) => `  ${label}: ${n}`),
@@ -374,7 +375,8 @@ export function stakeoutFiles(
     files: {
       [`${safeStem}_trees_${tag}.csv`]: treesCsv,
       [`${safeStem}_rows_${tag}.csv`]: rowsCsv,
-      [`${safeStem}.dxf`]: `${dxf.join("\n")}\n`,
+      // the DXF is in the point files' grid: named by it, except the original UTM files
+      [fmt.id === "trimble-utm-en" ? `${safeStem}.dxf` : `${safeStem}_${(gridId ?? "utm32").toUpperCase()}.dxf`]: `${dxf.join("\n")}\n`,
       [`${safeStem}_check.kml`]: kml,
       [`${safeStem}_summary.txt`]: summary,
     },
