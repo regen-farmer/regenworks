@@ -11,6 +11,35 @@ const MODEL_SPECIES: Record<string, string> = {
   "aronia prunifolia": "aronia",
   "hippophae rhamnoides": "sea buckthorn",
   "ribes nigrum": "blackcurrant",
+  // the other phase-1 species, mapped from 11 Nov 2026
+  "castanea sativa x crenata": "euro-japanese chestnut",
+  "castanea crenata x sativa": "euro-japanese chestnut",
+  "juglans ailantifolia": "heartnut",
+  "juglans ailantifolia var. cordiformis": "heartnut",
+  "malus domestica": "apple",
+  "pyrus communis": "pear",
+  "prunus domestica": "plum",
+  "prunus avium": "sweet cherry",
+  "prunus cerasus": "sour cherry",
+  "ribes rubrum": "redcurrant",
+  "ribes uva-crispa": "gooseberry",
+  "sambucus nigra": "elderberry",
+  "vaccinium corymbosum": "blueberry",
+  "lonicera caerulea": "haskap",
+  "elaeagnus umbellata": "autumn olive",
+  "alnus glutinosa": "black alder",
+};
+/** Genera the model covers as one species whatever the epithet (hybrids, cultivated forms). */
+const MODEL_GENUS: Record<string, string> = {
+  juglans: "walnut",
+  castanea: "sweet chestnut",
+  corylus: "hazel",
+  morus: "mulberry",
+  amelanchier: "serviceberry",
+  quercus: "oak",
+  larix: "hybrid larch",
+  salix: "willow",
+  populus: "poplar",
 };
 const BY_COMMON: Record<string, string> = {
   walnut: "walnut",
@@ -26,8 +55,29 @@ const BY_COMMON: Record<string, string> = {
   "sea buckthorn": "sea buckthorn",
   blackcurrant: "blackcurrant",
   "black currant": "blackcurrant",
+  "red currant": "redcurrant",
+  redcurrant: "redcurrant",
+  gooseberry: "gooseberry",
+  elderberry: "elderberry",
+  elder: "elderberry",
+  blueberry: "blueberry",
+  haskap: "haskap",
+  honeyberry: "haskap",
+  "autumn olive": "autumn olive",
+  heartnut: "heartnut",
+  apple: "apple",
+  pear: "pear",
+  plum: "plum",
+  "sweet cherry": "sweet cherry",
+  "sour cherry": "sour cherry",
 };
-export const ALL_MODEL_SPECIES = ["walnut", "sweet chestnut", "hazel", "aronia", "sea buckthorn", "blackcurrant"];
+export const ALL_MODEL_SPECIES = [
+  "walnut", "sweet chestnut", "hazel", "aronia", "sea buckthorn", "blackcurrant",
+  "euro-japanese chestnut", "heartnut", "apple", "pear", "plum", "sweet cherry", "sour cherry", "mulberry", "redcurrant", "gooseberry",
+  "elderberry", "blueberry", "serviceberry", "haskap", "autumn olive", "black alder", "oak", "hybrid larch", "willow", "poplar",
+];
+/** The service screens at most this many species in one run. */
+export const MAX_SPECIES_PER_RUN = 10;
 
 /** The screening model's name for a library species, or null if the model doesn't cover it. */
 export function modelSpecies(sp: { genus?: string; species?: string; nameCommon?: string } | null | undefined): string | null {
@@ -35,10 +85,8 @@ export function modelSpecies(sp: { genus?: string; species?: string; nameCommon?
   const latin = `${sp.genus ?? ""} ${sp.species ?? ""}`.trim().toLowerCase();
   if (MODEL_SPECIES[latin]) return MODEL_SPECIES[latin];
   // hybrids and cultivated forms ("Juglans x intermedia", "Corylus maxima"): by genus
-  const genus = (sp.genus ?? "").toLowerCase();
-  if (genus === "juglans") return "walnut";
-  if (genus === "castanea") return "sweet chestnut";
-  if (genus === "corylus") return "hazel";
+  const genus = (sp.genus ?? "").trim().toLowerCase();
+  if (MODEL_GENUS[genus]) return MODEL_GENUS[genus];
   return BY_COMMON[(sp.nameCommon ?? "").trim().toLowerCase()] ?? null;
 }
 
@@ -78,7 +126,7 @@ export function fieldGeometry(stored: unknown): { type: "Polygon" | "MultiPolygo
 /** Species asked for in a request: known model species only, at most all of them. */
 export function cleanSpecies(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
-  return [...new Set(v.filter((s): s is string => typeof s === "string" && ALL_MODEL_SPECIES.includes(s)))];
+  return [...new Set(v.filter((s): s is string => typeof s === "string" && ALL_MODEL_SPECIES.includes(s)))].slice(0, MAX_SPECIES_PER_RUN);
 }
 
 export type ServiceConfig = { url: string; key: string } | null;

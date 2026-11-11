@@ -3,17 +3,29 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { ALL_MODEL_SPECIES, cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 import { cleanFieldSoil, hasMeasurement, soilForService } from "../src/internal/fieldSoil.ts";
+
+test("screening: the other phase-1 species map too (11 Nov)", () => {
+  assert.equal(modelSpecies({ genus: "Prunus", species: "avium" }), "sweet cherry");
+  assert.equal(modelSpecies({ genus: "Prunus", species: "spinosa" }), null, "blackthorn is not a model species");
+  assert.equal(modelSpecies({ genus: "Juglans", species: "ailantifolia" }), "heartnut");
+  assert.equal(modelSpecies({ genus: "Castanea", species: "sativa x crenata" }), "euro-japanese chestnut");
+  assert.equal(modelSpecies({ genus: "Salix", species: "viminalis" }), "willow");
+  assert.equal(modelSpecies({ genus: "Morus", species: "nigra" }), "mulberry");
+  assert.equal(modelSpecies({ nameCommon: "Haskap", genus: "", species: "" }), "haskap");
+  assert.equal(cleanSpecies(ALL_MODEL_SPECIES).length, 10, "at most 10 species a run");
+});
 
 test("screening: library species map to the model's species", () => {
   assert.equal(modelSpecies({ genus: "Corylus", species: "avellana" }), "hazel");
   assert.equal(modelSpecies({ genus: "Juglans", species: "x intermedia" }), "walnut");
   assert.equal(modelSpecies({ nameCommon: "Black chokeberries", genus: "Aronia", species: "melanocarpa" }), "aronia");
-  assert.equal(modelSpecies({ nameCommon: "Apple", genus: "Malus", species: "domestica" }), null);
-  const d = designSpecies([{ sequence: [{ species: { genus: "Corylus", species: "avellana" } }, { species: { nameCommon: "Apple", genus: "Malus" } }] }, { sequence: [{ species: "id-only" }] }]);
-  assert.deepEqual(d, { covered: ["hazel"], notCovered: ["Apple"] });
+  assert.equal(modelSpecies({ nameCommon: "Apple", genus: "Malus", species: "domestica" }), "apple");
+  assert.equal(modelSpecies({ nameCommon: "Hawthorn", genus: "Crataegus", species: "monogyna" }), null);
+  const d = designSpecies([{ sequence: [{ species: { genus: "Corylus", species: "avellana" } }, { species: { nameCommon: "Hawthorn", genus: "Crataegus" } }] }, { sequence: [{ species: "id-only" }] }]);
+  assert.deepEqual(d, { covered: ["hazel"], notCovered: ["Hawthorn"] });
   assert.deepEqual(cleanSpecies(["hazel", "x", "hazel", 3]), ["hazel"]);
 });
 

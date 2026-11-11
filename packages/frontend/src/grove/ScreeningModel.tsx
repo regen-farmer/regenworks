@@ -54,8 +54,12 @@ const SECTIONS: [string, string[]][] = [
   ["D. Soil and water", ["water", "establishment"]],
 ];
 const TOPIC: Record<string, string> = { frost: "Spring frost", wind: "Wind", waterlogging: "Waterlogging", water: "Drought and irrigation", establishment: "Establishment" };
-const NUTS = ["walnut", "sweet chestnut", "hazel"];
-const BERRIES = ["aronia", "sea buckthorn", "blackcurrant"];
+const GROUPS: Record<string, [string, string[]]> = {
+  nuts: ["Nut trees", ["walnut", "sweet chestnut", "euro-japanese chestnut", "heartnut", "hazel"]],
+  fruit: ["Fruit trees", ["apple", "pear", "plum", "sweet cherry", "sour cherry", "mulberry"]],
+  berries: ["Berry shrubs", ["aronia", "blackcurrant", "redcurrant", "gooseberry", "elderberry", "blueberry", "serviceberry", "haskap"]],
+  support: ["Nitrogen fixers, timber, biomass", ["sea buckthorn", "autumn olive", "black alder", "oak", "hybrid larch", "willow", "poplar"]],
+};
 
 const tone = (d: string) =>
   /don't plant|wrong species/.test(d) ? "bg-red-700 text-white" : /^(fine|plant into grass|no irrigation needed|no shelter row needed|plant)$/.test(d) ? "bg-emerald-700 text-white" : "bg-amber-600 text-white";
@@ -241,7 +245,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
     const f = fields()?.fields;
     if (f?.length && !fieldId()) setFieldId(f[0]._id);
   });
-  const [group, setGroup] = createSignal<"nuts" | "berries">("nuts");
+  const [group, setGroup] = createSignal<string>("nuts");
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal("");
   const [result, setResult] = createSignal<Result | null>(null);
@@ -252,7 +256,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
     setBusy(true);
     setError("");
     try {
-      const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId(), species: group() === "nuts" ? NUTS : BERRIES };
+      const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId(), species: GROUPS[group()][1] };
       const r = await apiFetch<Result>("/internal/screening/run", { method: "POST", body: JSON.stringify(body) });
       // the design's layers sit next to today's in one list
       if (r.design?.layers?.length) r.layers = [...r.layers, ...r.design.layers];
@@ -285,8 +289,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
               <For each={fields()!.fields}>{(f) => <option value={f._id}>{f.name}{f.size ? ` (${Number(f.size).toFixed(1)} ha)` : ""}</option>}</For>
             </select>
             <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={group()} onChange={(e) => setGroup(e.currentTarget.value as any)}>
-              <option value="nuts">Nut trees</option>
-              <option value="berries">Berry shrubs</option>
+              <For each={Object.entries(GROUPS)}>{([k, [label]]) => <option value={k}>{label}</option>}</For>
             </select>
           </Show>
         </Show>
