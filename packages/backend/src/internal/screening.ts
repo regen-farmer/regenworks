@@ -248,7 +248,10 @@ export function pickSuitability(v: unknown) {
   if (!rows.length) return null;
   rows.sort((a: any, b: any) => Number(b.screened) - Number(a.screened));  // screened species first
   const jb = Number.isInteger(o.jb) && o.jb >= 1 && o.jb <= 12 ? (o.jb as number) : null;
-  return { jb, species: rows, soil_test_sentence: typeof o.soil_test_sentence === "string" ? o.soil_test_sentence.slice(0, 600) : "" };
+  const measured = o.measured && typeof o.measured === "object" && !Array.isArray(o.measured)
+    ? Object.fromEntries(["jb", "ph", "wet_depth_m", "root_depth_m"].map((k) => [k, Number.isFinite(o.measured[k]) ? o.measured[k] : null]))
+    : null;
+  return { jb, measured, species: rows, soil_test_sentence: typeof o.soil_test_sentence === "string" ? o.soil_test_sentence.slice(0, 600) : "" };
 }
 
 export const MAX_RESULT_BYTES = 8_000_000;

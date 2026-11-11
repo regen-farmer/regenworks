@@ -5,6 +5,7 @@ import type { AddressInfo } from "node:net";
 import { after } from "node:test";
 import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
+import { cleanFieldSoil, hasMeasurement, soilForService } from "../src/internal/fieldSoil.ts";
 
 test("screening: library species map to the model's species", () => {
   assert.equal(modelSpecies({ genus: "Corylus", species: "avellana" }), "hazel");
@@ -53,7 +54,33 @@ test("/internal/screening: grove-team only", async () => {
     who = user ? { user, idToken: { email_verified: true } } : {};
     assert.equal((await fetch(`${base}/internal/screening/project/000000000000000000000002/fields`)).status, status);
     assert.equal((await fetch(`${base}/internal/screening/run`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`)).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "DELETE" })).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/scenario/000000000000000000000002`)).status, status);
   }
+});
+
+test("cleanFieldSoil: known fields in range, empty clears, nothing else", () => {
+  const ok = cleanFieldSoil({ jb: "6", ph: "6,4", wetDepthM: 0.456, rootDepthM: "", source: "lab", sampledOn: "2026-11-10", notes: "auger", owner: "x", layer: "y" });
+  assert.ok(ok.ok);
+  if (ok.ok) {
+    assert.deepEqual({ ...ok.value, sampledOn: undefined }, { jb: 6, ph: 6.4, wetDepthM: 0.46, rootDepthM: null, source: "lab", sampledOn: undefined, notes: "auger" });
+    assert.ok(ok.value.sampledOn instanceof Date);
+  }
+  for (const bad of [{ jb: 13 }, { jb: 6.5 }, { ph: 2 }, { wetDepthM: -1 }, { rootDepthM: "deep" }, { source: "guess" }, { sampledOn: "2099-01-01" }, { notes: 5 }, [], null, "x"]) {
+    assert.equal(cleanFieldSoil(bad).ok, false, JSON.stringify(bad));
+  }
+  assert.deepEqual(cleanFieldSoil({}), { ok: true, value: {} });
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null } }, "blank text clears, not 0");
+  assert.equal(hasMeasurement({ source: "visit", jb: null }), false, "a record needs a measured value");
+  assert.equal(hasMeasurement({ ph: 6.2 }), true);
+});
+
+test("soilForService: measured values only, null when none", () => {
+  assert.equal(soilForService(null), null);
+  assert.equal(soilForService({ source: "visit", notes: "x" }), null);
+  assert.deepEqual(soilForService({ jb: 7, ph: null, wetDepthM: 0.4, notes: "x" }), { jb: 7, ph: null, wet_depth_m: 0.4, root_depth_m: null });
 });
 
 test("designRows: a scenario's row lines, tallest mature height and grove-twin species", () => {
@@ -133,4 +160,7 @@ test("pickSuitability: species rows and soil tests only", () => {
   assert.equal(t.species[0].species, "b", "screened species first");
   assert.deepEqual(t.species[0].soil_tests, [{ test: "ph", p_change: 1, could_be: ["go"] }]);
   assert.equal(pickSuitability({ species: [{ species: "x", status: "maybe" }] }), null);
+  assert.equal(s.measured, null);
+  const m = pickSuitability({ jb: 2, measured: { jb: 2, ph: "6", wet_depth_m: 0.3, evil: 1 }, species: [{ species: "a", status: "go" }] })!;
+  assert.deepEqual(m.measured, { jb: 2, ph: null, wet_depth_m: 0.3, root_depth_m: null });
 });
