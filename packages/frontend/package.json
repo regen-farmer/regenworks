@@ -12,7 +12,7 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.3.3",
-		"@tanstack/router-plugin": "^1.168.48",
+		"@tanstack/router-plugin": "^1.169.0",
 		"@types/geojson": "^7946.0.14",
 		"@types/lodash": "^4.17.20",
 		"@types/mapbox__mapbox-gl-draw": "^1.4.9",
