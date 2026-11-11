@@ -1,4 +1,6 @@
-// ETRS89 lon/lat <-> ETRS89 / UTM zone 32N (EPSG:25832), the Danish grid.
+// ETRS89 lon/lat <-> the Danish grids: ETRS89 / UTM zone 32N (EPSG:25832) and the
+// local zones ETRS89 / DKTM1-4 (EPSG:4093-4096) that Danish surveyors and SITECH's
+// Trimble jobs use (11 Nov 2026).
 //
 // Transverse Mercator with Krüger's series to 6th order (as used by
 // PROJ's "etmerc"): accurate to well under a millimetre inside the zone,
@@ -7,9 +9,21 @@
 
 const A = 6378137; // GRS80 semi-major axis
 const F = 1 / 298.257222101; // GRS80 flattening
-const K0 = 0.9996;
-const FALSE_EASTING = 500000;
-const LON0 = (9 * Math.PI) / 180; // zone 32 central meridian
+/** A Transverse Mercator grid on GRS80: central meridian (degrees), scale, false easting and northing (m). */
+export type Grid = { id: GridId; name: string; epsg: number; lon0: number; k0: number; fe: number; fn: number };
+export type GridId = "utm32" | "dktm1" | "dktm2" | "dktm3" | "dktm4";
+export const GRIDS: Record<GridId, Grid> = {
+  utm32: { id: "utm32", name: "ETRS89 / UTM zone 32N", epsg: 25832, lon0: 9, k0: 0.9996, fe: 500000, fn: 0 },
+  dktm1: { id: "dktm1", name: "ETRS89 / DKTM1", epsg: 4093, lon0: 9, k0: 0.99998, fe: 200000, fn: -5000000 },
+  dktm2: { id: "dktm2", name: "ETRS89 / DKTM2", epsg: 4094, lon0: 10, k0: 0.99998, fe: 400000, fn: -5000000 },
+  dktm3: { id: "dktm3", name: "ETRS89 / DKTM3", epsg: 4095, lon0: 11.75, k0: 0.99998, fe: 600000, fn: -5000000 },
+  dktm4: { id: "dktm4", name: "ETRS89 / DKTM4", epsg: 4096, lon0: 15, k0: 1, fe: 800000, fn: -5000000 },
+};
+
+/** The DKTM zone whose central meridian is nearest (DKTM1 west Jutland ... DKTM4 Bornholm); a suggestion, the job's zone decides. */
+export function dktmZoneFor(lon: number): GridId {
+  return lon < 9.5 ? "dktm1" : lon < 10.875 ? "dktm2" : lon < 13.375 ? "dktm3" : "dktm4";
+}
 
 const N = F / (2 - F);
 const N2 = N * N;
@@ -41,8 +55,14 @@ const E = Math.sqrt(F * (2 - F)); // first eccentricity
 
 /** ETRS89 longitude/latitude (degrees) to UTM 32N easting/northing (metres). */
 export function toUtm32(lon: number, lat: number): { e: number; n: number } {
+  return toGrid(lon, lat, "utm32");
+}
+
+/** ETRS89 longitude/latitude (degrees) to a grid's easting/northing (metres). */
+export function toGrid(lon: number, lat: number, gridId: GridId): { e: number; n: number } {
+  const g = GRIDS[gridId];
   const phi = (lat * Math.PI) / 180;
-  const lambda = (lon * Math.PI) / 180 - LON0;
+  const lambda = ((lon - g.lon0) * Math.PI) / 180;
   // conformal latitude
   const t = Math.sinh(Math.atanh(Math.sin(phi)) - E * Math.atanh(E * Math.sin(phi)));
   const xiP = Math.atan2(t, Math.cos(lambda));
@@ -53,13 +73,19 @@ export function toUtm32(lon: number, lat: number): { e: number; n: number } {
     xi += ALPHA[j - 1] * Math.sin(2 * j * xiP) * Math.cosh(2 * j * etaP);
     eta += ALPHA[j - 1] * Math.cos(2 * j * xiP) * Math.sinh(2 * j * etaP);
   }
-  return { e: FALSE_EASTING + K0 * A_HAT * eta, n: K0 * A_HAT * xi };
+  return { e: g.fe + g.k0 * A_HAT * eta, n: g.fn + g.k0 * A_HAT * xi };
 }
 
 /** UTM 32N easting/northing (metres) back to ETRS89 longitude/latitude (degrees). */
 export function fromUtm32(e: number, n: number): { lon: number; lat: number } {
-  const xi = n / (K0 * A_HAT);
-  const eta = (e - FALSE_EASTING) / (K0 * A_HAT);
+  return fromGrid(e, n, "utm32");
+}
+
+/** A grid's easting/northing (metres) back to ETRS89 longitude/latitude (degrees). */
+export function fromGrid(e: number, n: number, gridId: GridId): { lon: number; lat: number } {
+  const g = GRIDS[gridId];
+  const xi = (n - g.fn) / (g.k0 * A_HAT);
+  const eta = (e - g.fe) / (g.k0 * A_HAT);
   let xiP = xi;
   let etaP = eta;
   for (let j = 1; j <= 6; j++) {
@@ -80,7 +106,7 @@ export function fromUtm32(e: number, n: number): { lon: number; lat: number } {
     if (Math.abs(dTau) < 1e-14) break;
   }
   return {
-    lon: ((lambda + LON0) * 180) / Math.PI,
+    lon: (lambda * 180) / Math.PI + g.lon0,
     lat: (Math.atan(tau) * 180) / Math.PI,
   };
 }

@@ -11,7 +11,7 @@
 //
 // Coordinates: the app's lon/lat are taken as ETRS89 (no datum shift, as in
 // the Python converter) and projected to ETRS89 / UTM 32N, metres, 3 decimals.
-import { fromUtm32, toUtm32 } from "./utm.ts";
+import { GRIDS, dktmZoneFor, fromGrid, fromUtm32, toGrid, toUtm32, type GridId } from "./utm.ts";
 
 export type StakeoutTree = {
   name: string;
@@ -28,6 +28,37 @@ export type StakeoutTree = {
 
 export type StakeoutRow = { row: number; trees: StakeoutTree[] };
 
+/**
+ * Point-file formats (11 Nov 2026). The trees and rows files are written in the chosen one; the DXF
+ * uses the same grid, the check KML stays lon/lat.
+ *  trimble-dktm-ne: SITECH's Trimble jobs (example file from Kris): Name;Northing;Easting;Elevation;Code,
+ *                   semicolons, decimal commas, Windows line ends, no header, DKTM zone of the job.
+ *  trimble-utm-en:  Trimble Access "CSV Grid points E-N": Name,Easting,Northing,Elevation,Code, UTM 32N.
+ *  latlon:          Name,Latitude,Longitude,Height,Code with a header, ETRS89 degrees to 9 decimals
+ *                   (phone apps, Emlid Flow).
+ */
+export type StakeoutFormatId = "trimble-dktm-ne" | "trimble-utm-en" | "latlon";
+export type StakeoutFormat = {
+  id: StakeoutFormatId;
+  label: string;
+  /** "dktm": the zone comes from the options (default: nearest to the field) */
+  grid: GridId | "dktm" | "latlon";
+  order: "NE" | "EN";
+  sep: "," | ";";
+  decimalComma: boolean;
+  eol: "\n" | "\r\n";
+  elevation: string;
+  header?: string;
+};
+export const STAKEOUT_FORMATS: Record<StakeoutFormatId, StakeoutFormat> = {
+  "trimble-dktm-ne": { id: "trimble-dktm-ne", label: "Trimble (SITECH): DKTM, N;E, semicolons", grid: "dktm", order: "NE", sep: ";",
+    decimalComma: true, eol: "\r\n", elevation: "0.000" },
+  "trimble-utm-en": { id: "trimble-utm-en", label: "Trimble Access: UTM 32N, E,N (CSV Grid points E-N)", grid: "utm32", order: "EN",
+    sep: ",", decimalComma: false, eol: "\n", elevation: "" },
+  latlon: { id: "latlon", label: "Lat/long CSV (ETRS89 degrees, phone apps, Emlid)", grid: "latlon", order: "NE", sep: ",",
+    decimalComma: false, eol: "\n", elevation: "", header: "Name,Latitude,Longitude,Height,Code" },
+};
+
 export type StakeoutOptions = {
   /** Letters in front of every point name, e.g. "B". Letters, digits, - and _ only. */
   prefix?: string;
@@ -35,6 +66,12 @@ export type StakeoutOptions = {
   nullElevation?: string;
   /** Human label for a tree, e.g. species + cultivar + rootstock. */
   labelOf: (tree: any) => { label: string; species: string };
+  /** Point-file format; default trimble-utm-en (the original files). */
+  format?: StakeoutFormatId;
+  /** DKTM zone for the trimble-dktm-ne format; default the zone nearest the field. */
+  dktm?: GridId;
+  /** Row start and end points this far (m) beyond the first and last tree, on the row line (room for a tiller). */
+  rowEndOffsetM?: number;
 };
 
 export function cleanPrefix(prefix: string | undefined): string {
@@ -183,6 +220,8 @@ export type StakeoutFiles = {
    * rounding; the projection itself is tested against pyproj.
    */
   roundTripMm: number;
+  /** the grid the point files are in, or "latlon" */
+  grid: GridId | "latlon";
   files: Record<string, string>;
 };
 
@@ -203,41 +242,80 @@ export function stakeoutFiles(
   const rows = stakeoutTrees(layout, options);
   const all = rows.flatMap((r) => r.trees);
   if (!all.length) throw new Error("No trees to export.");
-  const z = options.nullElevation ?? "";
+  const fmt = STAKEOUT_FORMATS[options.format ?? "trimble-utm-en"];
+  if (!fmt) throw new Error("Unknown stake-out format.");
+  const lonMid = all.reduce((acc, t) => acc + t.lon, 0) / all.length;
+  const gridId: GridId | null =
+    fmt.grid === "latlon" ? null : fmt.grid === "dktm" ? (options.dktm && options.dktm.startsWith("dktm") ? options.dktm : dktmZoneFor(lonMid)) : fmt.grid;
+  const grid = gridId ? GRIDS[gridId] : null;
   const prefix = cleanPrefix(options.prefix);
   const rowWidth = Math.max(2, String(rows.length).length);
   const safeStem = stem.replace(/[^\p{L}\p{N}_.-]+/gu, "_").replace(/^_+|_+$/g, "") || "design";
+  const offset = Math.max(0, Math.min(10, Number(options.rowEndOffsetM) || 0));
+
+  // grid coordinates of a lon/lat point in the chosen grid (UTM for lat/long files' DXF)
+  const dxfGrid: GridId = gridId ?? "utm32";
+  const at = (lon: number, lat: number, g: GridId = dxfGrid) => toGrid(lon, lat, g);
 
   let roundTrip = 0;
-  for (const t of all) {
-    const back = fromUtm32(Number(mm(t.e)), Number(mm(t.n)));
-    const dE = (back.lon - t.lon) * 111320 * Math.cos((t.lat * Math.PI) / 180);
-    const dN = (back.lat - t.lat) * 110574;
-    roundTrip = Math.max(roundTrip, Math.hypot(dE, dN));
+  if (gridId) {
+    for (const t of all) {
+      const p = at(t.lon, t.lat, gridId);
+      const back = fromGrid(Number(mm(p.e)), Number(mm(p.n)), gridId);
+      const dE = (back.lon - t.lon) * 111320 * Math.cos((t.lat * Math.PI) / 180);
+      const dN = (back.lat - t.lat) * 110574;
+      roundTrip = Math.max(roundTrip, Math.hypot(dE, dN));
+    }
   }
 
-  const treesCsv = all.map((t) => `${t.name},${mm(t.e)},${mm(t.n)},${z},${csvSafe(t.label)}\n`).join("");
-  // Rows with one tree have no line to stake.
-  const rowsCsv = rows
+  const num = (v: number) => (fmt.decimalComma ? mm(v).replace(".", ",") : mm(v));
+  const z = fmt.decimalComma ? (options.nullElevation ?? fmt.elevation).replace(".", ",") : (options.nullElevation ?? fmt.elevation);
+  const code = (s: string) => csvSafe(s).replace(/;+/g, " ");
+  const line = (name: string, lon: number, lat: number, c: string) => {
+    if (!gridId) return [name, lat.toFixed(9), lon.toFixed(9), z, code(c)].join(fmt.sep);
+    const p = at(lon, lat, gridId);
+    const [x, y] = fmt.order === "NE" ? [p.n, p.e] : [p.e, p.n];
+    return [name, num(x), num(y), z, code(c)].join(fmt.sep);
+  };
+  const file = (lines: string[]) => (fmt.header ? [fmt.header, ...lines] : lines).map((l) => l + fmt.eol).join("");
+
+  // row ends, moved `offset` m outwards along the row line (in UTM metres, then back to lon/lat)
+  const rowEnd = (from: StakeoutTree, away: StakeoutTree) => {
+    if (!offset) return { lon: from.lon, lat: from.lat, e: from.e, n: from.n };
+    const len = dist(from, away) || 1;
+    const e = from.e + ((from.e - away.e) / len) * offset;
+    const n = from.n + ((from.n - away.n) / len) * offset;
+    return { ...fromUtm32(e, n), e, n };
+  };
+  const ends = rows
     .filter((r) => r.trees.length >= 2)
     .map((r) => {
       const a = r.trees[0];
       const b = r.trees[r.trees.length - 1];
+      return { r, a, b, s: rowEnd(a, b), e: rowEnd(b, a) };
+    });
+
+  const treesCsv = file(all.map((t) => line(t.name, t.lon, t.lat, t.label)));
+  // Rows with one tree have no line to stake.
+  const endWords = offset ? [`row start ${offset} m before T001`, `row end ${offset} m after the last tree`] : ["row start", "row end"];
+  const rowsCsv = file(
+    ends.flatMap(({ r, s: st, e: en }) => {
       const id = `${prefix}R${pad(r.row, rowWidth)}`;
-      return `${id}S,${mm(a.e)},${mm(a.n)},${z},row start\n${id}E,${mm(b.e)},${mm(b.n)},${z},row end\n`;
-    })
-    .join("");
+      return [line(`${id}S`, st.lon, st.lat, endWords[0]), line(`${id}E`, en.lon, en.lat, endWords[1])];
+    }),
+  );
 
   const layerOf = (s: string) => s.replace(/[^A-Za-z0-9]/g, "_").slice(0, 31) || "TREES";
   const dxf: string[] = ["0", "SECTION", "2", "ENTITIES"];
   for (const t of all) {
     const layer = layerOf(t.species);
-    dxf.push("0", "POINT", "8", layer, "10", mm(t.e), "20", mm(t.n), "30", "0.0");
-    dxf.push("0", "TEXT", "8", `${layer}_LABEL`, "10", mm(t.e + 0.2), "20", mm(t.n + 0.2), "30", "0.0", "40", "0.3", "1", t.name);
+    const p = at(t.lon, t.lat);
+    dxf.push("0", "POINT", "8", layer, "10", mm(p.e), "20", mm(p.n), "30", "0.0");
+    dxf.push("0", "TEXT", "8", `${layer}_LABEL`, "10", mm(p.e + 0.2), "20", mm(p.n + 0.2), "30", "0.0", "40", "0.3", "1", t.name);
   }
-  for (const r of rows) {
-    const a = r.trees[0];
-    const b = r.trees[r.trees.length - 1];
+  for (const { s: st, e: en } of ends) {
+    const a = at(st.lon, st.lat);
+    const b = at(en.lon, en.lat);
     dxf.push("0", "LINE", "8", "ROWS", "10", mm(a.e), "20", mm(a.n), "30", "0.0", "11", mm(b.e), "21", mm(b.n), "31", "0.0");
   }
   dxf.push("0", "ENDSEC", "0", "EOF");
@@ -259,12 +337,17 @@ export function stakeoutFiles(
   for (const t of all) plants.set(t.label, (plants.get(t.label) ?? 0) + 1);
   const summary = [
     `Source: ${options.source ?? safeStem}`,
-    "Grid: ETRS89 / UTM zone 32N (EPSG:25832), metres, 3 decimals (1 mm)",
+    `Format: ${fmt.label}`,
+    grid
+      ? `Grid: ${grid.name} (EPSG:${grid.epsg}), metres, 3 decimals (1 mm)${fmt.order === "NE" ? "; columns Name, Northing, Easting, Elevation, Code" : "; columns Name, Easting, Northing, Elevation, Code"}`
+      : "Coordinates: ETRS89 latitude/longitude, degrees, 9 decimals (under 1 mm); DXF in UTM 32N",
+    ...(fmt.grid === "dktm" ? ["Check the controller job uses the same DKTM zone (DKTM1 west Jutland, DKTM2 east Jutland and Funen, DKTM3 Zealand, DKTM4 Bornholm)"] : []),
+    ...(offset ? [`Row start/end points: ${offset} m beyond the first and last tree, on the row line`] : []),
     "Datum: the design's lon/lat are taken as ETRS89 (no datum shift)",
     `Trees: ${all.length}   Rows: ${rows.length}   Median spacing (grid): ${median.toFixed(2)} m`,
-    `mm rounding check (worst tree): ${(roundTrip * 1000).toFixed(2)} mm`,
+    ...(grid ? [`mm rounding check (worst tree): ${(roundTrip * 1000).toFixed(2)} mm`] : []),
     `Point names: ${prefix}R<row>T<tree>; rows in design order; T001 at the same end in every row`,
-    "Distances below are grid distances (ground = grid / 0.9996, +4 cm per 100 m)",
+    "Distances below are UTM 32N grid distances (ground = grid / 0.9996, +4 cm per 100 m; DKTM grids are within 2 mm per 100 m of ground)",
     "",
     "Plants:",
     ...[...plants.entries()].sort((a, b) => b[1] - a[1]).map(([label, n]) => `  ${label}: ${n}`),
@@ -281,13 +364,16 @@ export function stakeoutFiles(
     "",
   ].join("\n");
 
+  // file name tag: the original NENZ for UTM, <GRID>_NE for DKTM (as SITECH's example), latlon
+  const tag = fmt.id === "trimble-utm-en" ? "NENZ" : gridId ? `${gridId.toUpperCase()}_${fmt.order}` : "latlon";
   return {
     trees: all.length,
     rows: rows.length,
     roundTripMm: roundTrip * 1000,
+    grid: gridId ?? "latlon",
     files: {
-      [`${safeStem}_trees_NENZ.csv`]: treesCsv,
-      [`${safeStem}_rows_NENZ.csv`]: rowsCsv,
+      [`${safeStem}_trees_${tag}.csv`]: treesCsv,
+      [`${safeStem}_rows_${tag}.csv`]: rowsCsv,
       [`${safeStem}.dxf`]: `${dxf.join("\n")}\n`,
       [`${safeStem}_check.kml`]: kml,
       [`${safeStem}_summary.txt`]: summary,
