@@ -290,8 +290,13 @@ export function pickSuitability(v: unknown) {
         p_change: Math.max(0, Math.min(1, t.p_change)),
         could_be: [...new Set((Array.isArray(t.could_be) ? t.could_be : []).filter((c: any) => STATUSES.includes(c)))] as string[],
       }));
+    const cultivars = (Array.isArray(r.cultivars) ? r.cultivars : []).slice(0, 12).flatMap((c: any) =>
+      c && typeof c.cultivar === "string" && c.cultivar.trim() && Number.isFinite(c.share_of_years_warm_enough)
+        ? [{ cultivar: c.cultivar.trim().slice(0, 40), ripening: typeof c.ripening === "string" ? c.ripening.slice(0, 20) : "",
+            share: Math.max(0, Math.min(1, c.share_of_years_warm_enough)) }]
+        : []);
     return [{ species: r.species.trim().slice(0, 60), screened: r.screened === true, status: r.status as string,
-      words: typeof r.words === "string" ? r.words.slice(0, 400) : "", soil_tests: tests }];
+      words: typeof r.words === "string" ? r.words.slice(0, 400) : "", soil_tests: tests, cultivars }];
   });
   if (!rows.length) return null;
   rows.sort((a: any, b: any) => Number(b.screened) - Number(a.screened));  // screened species first

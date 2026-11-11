@@ -25,7 +25,7 @@ type Result = {
 type Suitability = {
   jb: number | null;
   measured?: Record<string, number | null> | null;
-  species: { species: string; screened: boolean; status: string; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[] }[];
+  species: { species: string; screened: boolean; status: string; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[]; cultivars?: { cultivar: string; ripening: string; share: number }[] }[];
   soil_test_sentence: string;
 };
 const SUIT_TONE: Record<string, string> = {
@@ -370,6 +370,9 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                             </td>
                             <td class="py-0.5">
                               {x.words}
+                              <Show when={x.cultivars?.length}>
+                                <span class="block opacity-80">ripens here: {x.cultivars!.map((c) => `${c.cultivar} ${Math.round(c.share * 100)}% of years`).join(", ")}</span>
+                              </Show>
                               <Show when={x.soil_tests.length}>
                                 <span class="opacity-70"> · soil test could change it ({x.soil_tests.map((t) => `${t.test === "ph" ? "pH" : t.test} ${Math.round(t.p_change * 100)}%`).join(", ")})</span>
                               </Show>

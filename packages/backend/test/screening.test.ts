@@ -175,4 +175,6 @@ test("pickSuitability: species rows and soil tests only", () => {
   assert.equal(s.measured, null);
   const m = pickSuitability({ jb: 2, measured: { jb: 2, ph: "6", wet_depth_m: 0.3, evil: 1 }, species: [{ species: "a", status: "go" }] })!;
   assert.deepEqual(m.measured, { jb: 2, ph: null, wet_depth_m: 0.3, root_depth_m: null });
+  const cv = pickSuitability({ species: [{ species: "walnut", status: "go", cultivars: [{ cultivar: "Lara", ripening: "early", share_of_years_warm_enough: 1.4 }, { cultivar: "" }, "x"] }] })!;
+  assert.deepEqual(cv.species[0].cultivars, [{ cultivar: "Lara", ripening: "early", share: 1 }]);
 });
