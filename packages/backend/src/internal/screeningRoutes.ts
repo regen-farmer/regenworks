@@ -16,7 +16,7 @@ import { visibleFilter } from "./projects.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import FieldSoil from "@rw/db/schemas/internal/fieldSoil.ts";
 import { soilForService } from "./fieldSoil.ts";
-import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
+import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, MAX_SPECIES_PER_RUN, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -92,7 +92,7 @@ router.post("/run", async (req: Req, res) => {
     if (!rows.length) rows = designRows(sc.rows);
     const ds = designSpecies(sc.systemdesign?.rows);
     notCovered = ds.notCovered;
-    if (!species.length) species = ds.covered;
+    if (!species.length) species = ds.covered.slice(0, MAX_SPECIES_PER_RUN);
     if (!species.length) {
       res.status(400).send({ error: "None of the trees in this design are in the screening model yet (walnut, chestnut, hazel, aronia, sea buckthorn, blackcurrant).", notCovered });
       return;
