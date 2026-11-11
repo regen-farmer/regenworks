@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runTurfJsLayout } from "../layout-backends/turf-js.ts";
 import { cleanPrefix, stakeoutFiles, stakeoutTrees } from "../planting/stakeout.ts";
-import { fromUtm32, toUtm32 } from "../planting/utm.ts";
+import { dktmZoneFor, fromGrid, fromUtm32, toGrid, toUtm32, type GridId } from "../planting/utm.ts";
 import { zipTextFiles } from "../planting/zip.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -149,4 +149,75 @@ test("spreadsheet formulas in labels are neutralised; one-tree rows get no line"
   const out = stakeoutFiles(layout, "x", { prefix: "B", labelOf });
   assert.ok(!out.files["x_trees_NENZ.csv"].split("\n")[0].split(",")[4].startsWith("="));
   assert.equal(out.files["x_rows_NENZ.csv"].trim().split("\n").length, 2);
+});
+
+// Reference values from pyproj 3.8 (EPSG:4258 -> EPSG:4093-4096); the first point is the first tree of SITECH's
+// working example file (Test_field_trees_DKTM2_NE.csv: TFR01T001;1137149,669;421031,508;0,000;Apple).
+const DKTM_REFS: [GridId, number, number, number, number][] = [
+  ["dktm2", 10.331624093531738, 55.35923077975464, 421031.508, 1137149.669],
+  ["dktm1", 9.2, 56.4, 212349.1067, 1252994.0853],
+  ["dktm2", 8.3, 55.5, 292574.7851, 1154084.8738],
+  ["dktm3", 12.3, 55.6, 634668.7216, 1164041.7561],
+  ["dktm4", 14.9, 55.1, 793616.5138, 1108367.3268],
+];
+
+test("DKTM zones match pyproj to 1 mm (the example file has 3 decimals), and round-trip", () => {
+  for (const [g, lon, lat, e, n] of DKTM_REFS) {
+    const r = toGrid(lon, lat, g);
+    assert.ok(Math.abs(r.e - e) < 1e-3, `${g} easting ${r.e} vs ${e}`);
+    assert.ok(Math.abs(r.n - n) < 1e-3, `${g} northing ${r.n} vs ${n}`);
+    const back = fromGrid(r.e, r.n, g);
+    assert.ok(Math.abs(back.lon - lon) < 1e-10 && Math.abs(back.lat - lat) < 1e-10);
+  }
+  assert.equal(dktmZoneFor(10.33), "dktm2");
+  assert.equal(dktmZoneFor(12.3), "dktm3");
+});
+
+test("SITECH format: Name;N;E;0,000;Code with decimal commas and CRLF, as the working example", async () => {
+  const { layout } = await runTurfJsLayout({ systemDesign: input.systemDesign, fieldGeometry: input.fieldGeometry });
+  const out = stakeoutFiles(layout, "Test field", { prefix: "TF", labelOf, format: "trimble-dktm-ne", dktm: "dktm2" });
+  assert.equal(out.grid, "dktm2");
+  const trees = out.files["Test_field_trees_DKTM2_NE.csv"];
+  assert.ok(trees, Object.keys(out.files).join(" "));
+  const lines = trees.split("\r\n").filter(Boolean);
+  assert.equal(lines.length, out.trees);
+  assert.ok(!trees.replace(/\r\n/g, "").includes("\n"), "Windows line ends only");
+  const all = stakeoutTrees(layout, { prefix: "TF", labelOf }).flatMap((r) => r.trees);
+  for (const [i, l] of lines.entries()) {
+    const f = l.split(";");
+    assert.equal(f.length, 5);
+    assert.match(f[1], /^\d+,\d{3}$/);
+    assert.match(f[2], /^\d+,\d{3}$/);
+    assert.equal(f[3], "0,000");
+    const p = toGrid(all[i].lon, all[i].lat, "dktm2");
+    assert.equal(f[0], all[i].name);
+    assert.equal(f[1], p.n.toFixed(3).replace(".", ","), "northing first");
+    assert.equal(f[2], p.e.toFixed(3).replace(".", ","));
+  }
+  assert.ok(out.files["Test_field_summary.txt"].includes("DKTM2 (EPSG:4094)"));
+  assert.ok(out.files["Test_field_DKTM2.dxf"], "the DXF is named by its grid");
+});
+
+test("row ends can sit beyond the first and last tree, on the row line", async () => {
+  const { layout } = await runTurfJsLayout({ systemDesign: input.systemDesign, fieldGeometry: input.fieldGeometry });
+  const rows = stakeoutTrees(layout, { prefix: "B", labelOf });
+  const r = rows.find((x) => x.trees.length >= 2)!;
+  const a = r.trees[0];
+  const b = r.trees[r.trees.length - 1];
+  const out = stakeoutFiles(layout, "x", { prefix: "B", labelOf, rowEndOffsetM: 1 });
+  const first = out.files["x_rows_NENZ.csv"].split("\n")[0].split(",");
+  const s = { e: Number(first[1]), n: Number(first[2]) };
+  const fromA = Math.hypot(s.e - a.e, s.n - a.n);
+  const fromB = Math.hypot(s.e - b.e, s.n - b.n);
+  assert.ok(Math.abs(fromA - 1) < 0.002, `1 m from the first tree: ${fromA}`);
+  assert.ok(Math.abs(fromB - (Math.hypot(a.e - b.e, a.n - b.n) + 1)) < 0.002, "beyond it, on the line");
+  assert.ok(first[4].includes("1 m before"));
+});
+
+test("lat/long format: header, degrees to 9 decimals", async () => {
+  const { layout } = await runTurfJsLayout({ systemDesign: input.systemDesign, fieldGeometry: input.fieldGeometry });
+  const out = stakeoutFiles(layout, "x", { prefix: "B", labelOf, format: "latlon" });
+  const lines = out.files["x_trees_latlon.csv"].trim().split("\n");
+  assert.equal(lines[0], "Name,Latitude,Longitude,Height,Code");
+  assert.match(lines[1], /^BR\d+T\d+,5\d\.\d{9},\d+\.\d{9},,/);
 });
