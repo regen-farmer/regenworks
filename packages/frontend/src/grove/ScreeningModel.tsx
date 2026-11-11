@@ -18,12 +18,14 @@ type Result = {
   layers: Layer[];
   notCovered?: string[];
   rowsSent?: number;
+  fieldLayerId?: string;
   design?: Design | null;
   suitability?: Suitability | null;
   model: string;
 };
 type Suitability = {
   jb: number | null;
+  measured?: Record<string, number | null> | null;
   species: { species: string; screened: boolean; status: string; words: string; soil_tests: { test: string; p_change: number; could_be: string[] }[] }[];
   soil_test_sentence: string;
 };
@@ -115,6 +117,96 @@ function MiniMap(props: { layer: () => Layer | undefined; outline: () => any }) 
   return <div ref={el} style={{ height: "360px", width: "100%", position: "relative" }} class="rounded-sm overflow-hidden" />;
 }
 
+type FieldSoil = { jb?: number | null; ph?: number | null; wetDepthM?: number | null; rootDepthM?: number | null; source?: string; sampledOn?: string | null; notes?: string; updatedAt?: string };
+const SOIL_INPUTS: [keyof FieldSoil, string, string][] = [
+  ["jb", "Soil class (JB 1–12)", "1"],
+  ["ph", "pH", "0.1"],
+  ["wetDepthM", "Rust mottling or water at (m)", "0.05"],
+  ["rootDepthM", "Roots can reach (m)", "0.05"],
+];
+
+/** Soil measured on the field (visit, lab, farmer's analyses). The screening uses it instead of the maps. */
+function MeasuredSoil(props: { layerId: string; onSaved?: () => void }) {
+  const [saved, { mutate }] = createResource(
+    () => props.layerId,
+    (id) => apiFetch<{ soil: FieldSoil | null }>(`/internal/field-soil/${id}`).then((r) => r.soil),
+  );
+  const [draft, setDraft] = createSignal<FieldSoil>({});
+  const [msg, setMsg] = createSignal("");
+  const [open, setOpen] = createSignal(false);
+  createEffect(() => {
+    const s = saved();
+    setDraft(s ? { ...s, sampledOn: s.sampledOn ? s.sampledOn.slice(0, 10) : "" } : { source: "visit" });
+  });
+  const value = (k: keyof FieldSoil) => {
+    const v = draft()[k];
+    return v === null || v === undefined ? "" : String(v);
+  };
+  async function save() {
+    setMsg("");
+    const d = draft();
+    const body: Record<string, unknown> = { source: d.source ?? "visit", sampledOn: d.sampledOn || null, notes: d.notes ?? "" };
+    for (const [k] of SOIL_INPUTS) body[k] = d[k] === undefined || d[k] === null || (d[k] as any) === "" ? null : d[k];
+    try {
+      const r = await apiFetch<{ soil: FieldSoil }>(`/internal/field-soil/${props.layerId}`, { method: "PUT", body: JSON.stringify(body) });
+      mutate(r.soil);
+      setMsg("Saved. Run the screening again to use it.");
+      props.onSaved?.();
+    } catch (e: any) {
+      setMsg(e?.message ?? "Could not save");
+    }
+  }
+  const summary = () => {
+    const s = saved();
+    if (!s) return "none yet: the screening uses the national maps";
+    return [s.jb ? `JB${s.jb}` : "", s.ph ? `pH ${s.ph}` : "", s.wetDepthM != null ? `wet at ${s.wetDepthM} m` : "", s.rootDepthM != null ? `roots to ${s.rootDepthM} m` : ""]
+      .filter(Boolean).join(", ") + (s.source ? ` (${s.source}${s.sampledOn ? `, ${s.sampledOn.slice(0, 10)}` : ""})` : "");
+  };
+  return (
+    <div class="border border-zinc-400 dark:border-slate-600 rounded-sm p-2 flex flex-col gap-1 text-sm">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-semibold">Measured soil:</span>
+        <span class="opacity-80">{saved.loading ? "Loading…" : summary()}</span>
+        <button type="button" class="text-xs underline ml-auto" onClick={() => setOpen(!open())}>{open() ? "Close" : saved() ? "Edit" : "Add"}</button>
+      </div>
+      <Show when={open()}>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <For each={SOIL_INPUTS}>
+            {([k, label, step]) => (
+              <label class="flex flex-col text-xs gap-0.5">
+                {label}
+                <input type="number" step={step} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={value(k)}
+                  onInput={(e) => setDraft({ ...draft(), [k]: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} />
+              </label>
+            )}
+          </For>
+          <label class="flex flex-col text-xs gap-0.5">
+            Source
+            <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().source ?? "visit"} onChange={(e) => setDraft({ ...draft(), source: e.currentTarget.value })}>
+              <option value="visit">Farm visit</option>
+              <option value="lab">Lab analysis</option>
+              <option value="farmer analysis">Farmer's analysis</option>
+            </select>
+          </label>
+          <label class="flex flex-col text-xs gap-0.5">
+            Sampled on
+            <input type="date" class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().sampledOn ?? ""} onInput={(e) => setDraft({ ...draft(), sampledOn: e.currentTarget.value })} />
+          </label>
+          <label class="flex flex-col text-xs gap-0.5 col-span-2">
+            Notes
+            <input type="text" maxLength={2000} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().notes ?? ""} onInput={(e) => setDraft({ ...draft(), notes: e.currentTarget.value })} />
+          </label>
+        </div>
+        <p class="text-xs opacity-70">Leave a box empty if it wasn't measured. With no rust mottling, enter the depth the auger reached. Soil, wet ground and drought then use these values; winter cold, heat and frost still come from the weather.</p>
+        <div class="flex items-center gap-2">
+          <button type="button" class="rounded-sm px-2 py-1 btn-default text-xs" onClick={save}>Save measured soil</button>
+          <span class="text-xs">{msg()}</span>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
 export function ScreeningModel(props: { projectId?: string; scenarioId?: string; onSuggestion?: (s: { result: string; conditions: string }) => void }) {
   const [fields] = createResource(
     () => props.projectId,
@@ -178,6 +270,9 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
           {busy() ? "Screening…" : props.scenarioId ? "Screen this design" : "Run screening"}
         </button>
       </div>
+      <Show when={props.projectId ? fieldId() : result()?.fieldLayerId} keyed>
+        {(id) => <MeasuredSoil layerId={id} />}
+      </Show>
       <p class="text-xs opacity-70">
         Frost, drought, establishment, waterlogging and wind for young trees, with Grove's thresholds. Nothing is saved.
         {props.scenarioId ? " Uses the trees in this design and, where the layout has rows, screens the field with them standing (about a minute)." : ""}
@@ -230,7 +325,10 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
             <Show when={r().suitability}>
               {(su) => (
                 <div class="border border-zinc-400 dark:border-slate-600 rounded-sm p-2 flex flex-col gap-1">
-                  <h3 class="font-semibold text-sm">Species suitability on this farm{su().jb ? ` (soil JB${su().jb} on the map)` : ""}</h3>
+                  <h3 class="font-semibold text-sm">Species suitability on this farm{su().jb ? ` (soil JB${su().jb} ${su().measured?.jb ? "measured" : "on the map"})` : ""}</h3>
+                  <Show when={su().measured}>
+                    <p class="text-xs">Uses the soil measured on the field for soil, wet ground and drought.</p>
+                  </Show>
                   <p class="text-xs opacity-70">
                     Winter cold, summer warmth to ripen, spring frost, soil, wet winters and drought, for {su().species.length} phase-1 species, with the deciding risk in words. The screened species come first.
                   </p>

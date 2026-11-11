@@ -14,6 +14,8 @@ import { canSeeMoney } from "@rw/db/access.ts";
 import { groveUserIds } from "./groveRefs.ts";
 import { visibleFilter } from "./projects.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
+import FieldSoil from "@rw/db/schemas/internal/fieldSoil.ts";
+import { soilForService } from "./fieldSoil.ts";
 import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
@@ -58,6 +60,7 @@ router.post("/run", async (req: Req, res) => {
   let fieldName: string | undefined;
   let owner: unknown;
   let rows: ReturnType<typeof designRows> = [];
+  let layerId = "";
   if (validId(scenarioId)) {
     const sc: any = await Project.findById(scenarioId)
       .select("layer systemdesign rows")
@@ -70,6 +73,7 @@ router.post("/run", async (req: Req, res) => {
       return;
     }
     owner = sc.layer.owner?.id;
+    layerId = String(sc.layer._id);
     geometry = fieldGeometry(sc.layer.geometry);
     fieldName = sc.layer.name;
     // the layout generated from the scenario's design and field, as the offer and the tree register do;
@@ -100,6 +104,7 @@ router.post("/run", async (req: Req, res) => {
       return;
     }
     owner = l.owner?.id;
+    layerId = String(l._id);
     geometry = fieldGeometry(l.geometry);
     fieldName = l.name;
   } else {
@@ -115,6 +120,8 @@ router.post("/run", async (req: Req, res) => {
     res.status(400).send({ error: "The field has no outline to screen" });
     return;
   }
+  // soil measured on the field (visit, lab, farmer's analyses) replaces the national maps' values
+  const soil = soilForService(await FieldSoil.findOne({ layer: layerId }).select("jb ph wetDepthM rootDepthM").lean());
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 120_000);
   try {
@@ -122,7 +129,7 @@ router.post("/run", async (req: Req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Screening-Key": cfg.key },
       // a scenario's laid-out rows go along, so the screening shows what the design itself changes
-      body: JSON.stringify({ outline: geometry, species: species.length ? species : ALL_MODEL_SPECIES.slice(0, 3), layers: true, ...(rows.length ? { rows } : {}) }),
+      body: JSON.stringify({ outline: geometry, species: species.length ? species : ALL_MODEL_SPECIES.slice(0, 3), layers: true, ...(rows.length ? { rows } : {}), ...(soil ? { soil } : {}) }),
       signal: ctl.signal,
       redirect: "error", // the key must not follow a redirect elsewhere
     });
@@ -137,7 +144,7 @@ router.post("/run", async (req: Req, res) => {
       res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail.slice(0, 300) : "The screening service failed") });
       return;
     }
-    res.send({ ...pickResult(body), field: fieldName, notCovered, rowsSent: rows.length });
+    res.send({ ...pickResult(body), field: fieldName, notCovered, rowsSent: rows.length, fieldLayerId: layerId, soilMeasured: soil });
   } catch (e: any) {
     // the cause (DNS, TLS, refused, a redirect) for the backend's logs; never the key
     console.error("screening service call failed:", e?.name, e?.message, e?.cause?.code ?? e?.cause?.message ?? "");

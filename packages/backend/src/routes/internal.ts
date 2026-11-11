@@ -13,6 +13,7 @@ import scorecardRoutes from "../internal/scorecardRoutes.ts";
 import supplyRoutes from "../internal/supplyRoutes.ts";
 import valueChainRoutes from "../internal/valueChainRoutes.ts";
 import modelSiteRoutes from "../internal/modelSiteRoutes.ts";
+import fieldSoilRoutes from "../internal/fieldSoilRoutes.ts";
 import screeningRoutes from "../internal/screeningRoutes.ts";
 
 const router = express.Router();
@@ -39,6 +40,7 @@ router.use("/supply", requireRole("grove-team"), supplyRoutes);
 router.use("/value-chains", requireRole("grove-team"), valueChainRoutes);
 // Model sites for the landscape model (traced outlines of other farms' systems): grove-team only.
 router.use("/model-sites", requireRole("grove-team"), modelSiteRoutes);
+router.use("/field-soil", requireRole("grove-team"), fieldSoilRoutes);
 // Model screening (frost, water, wind on a field or a scenario's design via grove-twin's service): grove-team only.
 router.use("/screening", requireRole("grove-team"), screeningRoutes);
 // Dashboard: field users see their assigned projects (no money); see projectRoutes.ts.
