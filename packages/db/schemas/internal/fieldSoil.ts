@@ -14,7 +14,7 @@ export interface IFieldSoil {
 	jb?: number | null;
 	/** pH (Rt or a kit) */
 	ph?: number | null;
-	/** depth (m) to rust mottling or standing water in the auger hole; null: not reached */
+	/** depth (m) to rust mottling or standing water in the auger hole; with none, the depth the auger reached. null: not measured (the map is used) */
 	wetDepthM?: number | null;
 	/** depth (m) roots can reach: to a hardpan, gravel or permanent water */
 	rootDepthM?: number | null;

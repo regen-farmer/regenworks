@@ -144,7 +144,7 @@ router.post("/run", async (req: Req, res) => {
       res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail.slice(0, 300) : "The screening service failed") });
       return;
     }
-    res.send({ ...pickResult(body), field: fieldName, notCovered, rowsSent: rows.length, fieldLayerId: layerId, soilMeasured: soil });
+    res.send({ ...pickResult(body), field: fieldName, notCovered, rowsSent: rows.length });
   } catch (e: any) {
     // the cause (DNS, TLS, refused, a redirect) for the backend's logs; never the key
     console.error("screening service call failed:", e?.name, e?.message, e?.cause?.code ?? e?.cause?.message ?? "");

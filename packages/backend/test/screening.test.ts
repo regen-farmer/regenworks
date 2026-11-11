@@ -5,7 +5,7 @@ import type { AddressInfo } from "node:net";
 import { after } from "node:test";
 import { cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
-import { cleanFieldSoil, soilForService } from "../src/internal/fieldSoil.ts";
+import { cleanFieldSoil, hasMeasurement, soilForService } from "../src/internal/fieldSoil.ts";
 
 test("screening: library species map to the model's species", () => {
   assert.equal(modelSpecies({ genus: "Corylus", species: "avellana" }), "hazel");
@@ -56,6 +56,8 @@ test("/internal/screening: grove-team only", async () => {
     assert.equal((await fetch(`${base}/internal/screening/run`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
     assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`)).status, status);
     assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "DELETE" })).status, status);
+    assert.equal((await fetch(`${base}/internal/field-soil/scenario/000000000000000000000002`)).status, status);
   }
 });
 
@@ -70,6 +72,9 @@ test("cleanFieldSoil: known fields in range, empty clears, nothing else", () => 
     assert.equal(cleanFieldSoil(bad).ok, false, JSON.stringify(bad));
   }
   assert.deepEqual(cleanFieldSoil({}), { ok: true, value: {} });
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null } }, "blank text clears, not 0");
+  assert.equal(hasMeasurement({ source: "visit", jb: null }), false, "a record needs a measured value");
+  assert.equal(hasMeasurement({ ph: 6.2 }), true);
 });
 
 test("soilForService: measured values only, null when none", () => {

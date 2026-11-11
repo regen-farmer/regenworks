@@ -3,6 +3,7 @@ import { FIELD_SOIL_SOURCES } from "@rw/db/schemas/internal/fieldSoil.ts";
 type Clean = { ok: true; value: Record<string, unknown> } | { ok: false; error: string };
 
 const num = (v: unknown, lo: number, hi: number, whole = false): number | null | undefined => {
+  if (typeof v === "string") v = v.trim();
   if (v === null || v === "") return null;
   if (v === undefined) return undefined;
   const n = typeof v === "number" ? v : typeof v === "string" ? Number(v.replace(",", ".")) : NaN;
@@ -39,6 +40,9 @@ export function cleanFieldSoil(body: unknown): Clean {
   }
   return { ok: true, value: out };
 }
+
+/** At least one measured value (soil class, pH, wet depth, rooting depth) in a cleaned update. */
+export const hasMeasurement = (v: Record<string, unknown>) => ["jb", "ph", "wetDepthM", "rootDepthM"].some((k) => typeof v[k] === "number");
 
 /** What the screening service gets: the measured values only. */
 export function soilForService(s: any) {

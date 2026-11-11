@@ -18,7 +18,6 @@ type Result = {
   layers: Layer[];
   notCovered?: string[];
   rowsSent?: number;
-  fieldLayerId?: string;
   design?: Design | null;
   suitability?: Suitability | null;
   model: string;
@@ -118,7 +117,7 @@ function MiniMap(props: { layer: () => Layer | undefined; outline: () => any }) 
 }
 
 type FieldSoil = { jb?: number | null; ph?: number | null; wetDepthM?: number | null; rootDepthM?: number | null; source?: string; sampledOn?: string | null; notes?: string; updatedAt?: string };
-const SOIL_INPUTS: [keyof FieldSoil, string, string][] = [
+const SOIL_INPUTS: [string, string, string][] = [
   ["jb", "Soil class (JB 1–12)", "1"],
   ["ph", "pH", "0.1"],
   ["wetDepthM", "Rust mottling or water at (m)", "0.05"],
@@ -126,39 +125,55 @@ const SOIL_INPUTS: [keyof FieldSoil, string, string][] = [
 ];
 
 /** Soil measured on the field (visit, lab, farmer's analyses). The screening uses it instead of the maps. */
-function MeasuredSoil(props: { layerId: string; onSaved?: () => void }) {
+function MeasuredSoil(props: { layerId: string }) {
   const [saved, { mutate }] = createResource(
     () => props.layerId,
     (id) => apiFetch<{ soil: FieldSoil | null }>(`/internal/field-soil/${id}`).then((r) => r.soil),
   );
-  const [draft, setDraft] = createSignal<FieldSoil>({});
+  // the form keeps what is typed as text; save() sends it and the backend reads numbers (6,4 too)
+  const [draft, setDraft] = createSignal<Record<string, string>>({});
   const [msg, setMsg] = createSignal("");
   const [open, setOpen] = createSignal(false);
-  createEffect(() => {
+  function startEdit() {
     const s = saved();
-    setDraft(s ? { ...s, sampledOn: s.sampledOn ? s.sampledOn.slice(0, 10) : "" } : { source: "visit" });
-  });
-  const value = (k: keyof FieldSoil) => {
-    const v = draft()[k];
-    return v === null || v === undefined ? "" : String(v);
-  };
+    const text = (v: unknown) => (v === null || v === undefined ? "" : String(v));
+    setDraft({
+      jb: text(s?.jb), ph: text(s?.ph), wetDepthM: text(s?.wetDepthM), rootDepthM: text(s?.rootDepthM),
+      source: s?.source ?? "visit", sampledOn: s?.sampledOn ? s.sampledOn.slice(0, 10) : "", notes: s?.notes ?? "",
+    });
+    setMsg("");
+    setOpen(true);
+  }
+  const set = (k: string, v: string) => setDraft({ ...draft(), [k]: v });
   async function save() {
     setMsg("");
     const d = draft();
-    const body: Record<string, unknown> = { source: d.source ?? "visit", sampledOn: d.sampledOn || null, notes: d.notes ?? "" };
-    for (const [k] of SOIL_INPUTS) body[k] = d[k] === undefined || d[k] === null || (d[k] as any) === "" ? null : d[k];
+    const body: Record<string, unknown> = { source: d.source || "visit", sampledOn: d.sampledOn || null, notes: d.notes ?? "" };
+    for (const [k] of SOIL_INPUTS) body[k] = d[k]?.trim() ? d[k].trim() : null;
     try {
       const r = await apiFetch<{ soil: FieldSoil }>(`/internal/field-soil/${props.layerId}`, { method: "PUT", body: JSON.stringify(body) });
       mutate(r.soil);
+      setOpen(false);
       setMsg("Saved. Run the screening again to use it.");
-      props.onSaved?.();
     } catch (e: any) {
       setMsg(e?.message ?? "Could not save");
+    }
+  }
+  async function clear() {
+    setMsg("");
+    try {
+      await apiFetch(`/internal/field-soil/${props.layerId}`, { method: "DELETE" });
+      mutate(null);
+      setOpen(false);
+      setMsg("Cleared. The screening uses the maps again.");
+    } catch (e: any) {
+      setMsg(e?.message ?? "Could not clear");
     }
   }
   const summary = () => {
     const s = saved();
     if (!s) return "none yet: the screening uses the national maps";
+    // records always hold at least one measured value
     return [s.jb ? `JB${s.jb}` : "", s.ph ? `pH ${s.ph}` : "", s.wetDepthM != null ? `wet at ${s.wetDepthM} m` : "", s.rootDepthM != null ? `roots to ${s.rootDepthM} m` : ""]
       .filter(Boolean).join(", ") + (s.source ? ` (${s.source}${s.sampledOn ? `, ${s.sampledOn.slice(0, 10)}` : ""})` : "");
   };
@@ -167,7 +182,7 @@ function MeasuredSoil(props: { layerId: string; onSaved?: () => void }) {
       <div class="flex items-center gap-2 flex-wrap">
         <span class="font-semibold">Measured soil:</span>
         <span class="opacity-80">{saved.loading ? "Loading…" : summary()}</span>
-        <button type="button" class="text-xs underline ml-auto" onClick={() => setOpen(!open())}>{open() ? "Close" : saved() ? "Edit" : "Add"}</button>
+        <button type="button" class="text-xs underline ml-auto" disabled={saved.loading} onClick={() => (open() ? setOpen(false) : startEdit())}>{open() ? "Close" : saved() ? "Edit" : "Add"}</button>
       </div>
       <Show when={open()}>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -175,14 +190,14 @@ function MeasuredSoil(props: { layerId: string; onSaved?: () => void }) {
             {([k, label, step]) => (
               <label class="flex flex-col text-xs gap-0.5">
                 {label}
-                <input type="number" step={step} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={value(k)}
-                  onInput={(e) => setDraft({ ...draft(), [k]: e.currentTarget.value === "" ? null : Number(e.currentTarget.value) })} />
+                <input type="text" inputMode="decimal" class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft()[k] ?? ""}
+                  placeholder={step === "1" ? "e.g. 6" : "e.g. 0.6"} onInput={(e) => set(k, e.currentTarget.value)} />
               </label>
             )}
           </For>
           <label class="flex flex-col text-xs gap-0.5">
             Source
-            <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().source ?? "visit"} onChange={(e) => setDraft({ ...draft(), source: e.currentTarget.value })}>
+            <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().source || "visit"} onChange={(e) => set("source", e.currentTarget.value)}>
               <option value="visit">Farm visit</option>
               <option value="lab">Lab analysis</option>
               <option value="farmer analysis">Farmer's analysis</option>
@@ -190,18 +205,23 @@ function MeasuredSoil(props: { layerId: string; onSaved?: () => void }) {
           </label>
           <label class="flex flex-col text-xs gap-0.5">
             Sampled on
-            <input type="date" class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().sampledOn ?? ""} onInput={(e) => setDraft({ ...draft(), sampledOn: e.currentTarget.value })} />
+            <input type="date" class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().sampledOn ?? ""} onInput={(e) => set("sampledOn", e.currentTarget.value)} />
           </label>
           <label class="flex flex-col text-xs gap-0.5 col-span-2">
             Notes
-            <input type="text" maxLength={2000} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().notes ?? ""} onInput={(e) => setDraft({ ...draft(), notes: e.currentTarget.value })} />
+            <input type="text" maxLength={2000} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().notes ?? ""} onInput={(e) => set("notes", e.currentTarget.value)} />
           </label>
         </div>
         <p class="text-xs opacity-70">Leave a box empty if it wasn't measured. With no rust mottling, enter the depth the auger reached. Soil, wet ground and drought then use these values; winter cold, heat and frost still come from the weather.</p>
         <div class="flex items-center gap-2">
           <button type="button" class="rounded-sm px-2 py-1 btn-default text-xs" onClick={save}>Save measured soil</button>
-          <span class="text-xs">{msg()}</span>
+          <Show when={saved()}>
+            <button type="button" class="text-xs underline" onClick={clear}>Clear</button>
+          </Show>
         </div>
+      </Show>
+      <Show when={msg()}>
+        <span class="text-xs">{msg()}</span>
       </Show>
     </div>
   );
@@ -213,6 +233,10 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
     (id) => apiFetch<{ farm: { name: string } | null; fields: Field[]; configured: boolean }>(`/internal/screening/project/${id}/fields`),
   );
   const [fieldId, setFieldId] = createSignal<string>("");
+  const [scenarioField] = createResource(
+    () => props.scenarioId,
+    (id) => apiFetch<{ layerId: string }>(`/internal/field-soil/scenario/${id}`).then((r) => r.layerId).catch(() => ""),
+  );
   createEffect(() => {
     const f = fields()?.fields;
     if (f?.length && !fieldId()) setFieldId(f[0]._id);
@@ -270,7 +294,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
           {busy() ? "Screening…" : props.scenarioId ? "Screen this design" : "Run screening"}
         </button>
       </div>
-      <Show when={props.projectId ? fieldId() : result()?.fieldLayerId} keyed>
+      <Show when={props.projectId ? fieldId() : scenarioField()} keyed>
         {(id) => <MeasuredSoil layerId={id} />}
       </Show>
       <p class="text-xs opacity-70">
