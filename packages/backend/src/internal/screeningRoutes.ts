@@ -121,7 +121,7 @@ router.post("/run", async (req: Req, res) => {
     return;
   }
   // soil measured on the field (visit, lab, farmer's analyses) replaces the national maps' values
-  const soil = soilForService(await FieldSoil.findOne({ layer: layerId }).select("jb ph wetDepthM rootDepthM").lean());
+  const soil = soilForService(await FieldSoil.findOne({ layer: layerId }).select("jb ph wetDepthM wetFound rootDepthM").lean());
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 120_000);
   try {

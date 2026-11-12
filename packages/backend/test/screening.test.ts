@@ -85,6 +85,8 @@ test("cleanFieldSoil: known fields in range, empty clears, nothing else", () => 
   }
   assert.deepEqual(cleanFieldSoil({}), { ok: true, value: {} });
   assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null } }, "blank text clears, not 0");
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: 1, wetFound: false }), { ok: true, value: { wetDepthM: 1, wetFound: false } });
+  assert.equal(cleanFieldSoil({ wetFound: "no" }).ok, false);
   assert.equal(hasMeasurement({ source: "visit", jb: null }), false, "a record needs a measured value");
   assert.equal(hasMeasurement({ ph: 6.2 }), true);
 });
@@ -93,6 +95,9 @@ test("soilForService: measured values only, null when none", () => {
   assert.equal(soilForService(null), null);
   assert.equal(soilForService({ source: "visit", notes: "x" }), null);
   assert.deepEqual(soilForService({ jb: 7, ph: null, wetDepthM: 0.4, notes: "x" }), { jb: 7, ph: null, wet_depth_m: 0.4, root_depth_m: null });
+  assert.equal(soilForService({ wetDepthM: 1.0, wetFound: false })?.wet_found, false, "dry down to the auger depth");
+  assert.equal(soilForService({ wetDepthM: 0.4, wetFound: true })?.wet_found, undefined, "found is the default");
+  assert.equal(soilForService({ jb: 6, wetFound: false })?.wet_found, undefined, "no depth, no flag");
 });
 
 test("designRows: a scenario's row lines, tallest mature height and grove-twin species", () => {

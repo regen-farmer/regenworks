@@ -22,6 +22,10 @@ export function cleanFieldSoil(body: unknown): Clean {
     if (Number.isNaN(v)) return { ok: false, error: `${k} must be a number from ${lo} to ${hi}${whole ? " (whole)" : ""}` };
     if (v !== undefined) out[k] = v === null ? null : Math.round((v as number) * 100) / 100;
   }
+  if (b.wetFound !== undefined) {
+    if (b.wetFound !== null && typeof b.wetFound !== "boolean") return { ok: false, error: "wetFound must be true, false or null" };
+    out.wetFound = b.wetFound;
+  }
   if (b.source !== undefined) {
     if (!FIELD_SOIL_SOURCES.includes(b.source as any)) return { ok: false, error: `source must be one of ${FIELD_SOIL_SOURCES.join(", ")}` };
     out.source = b.source;
@@ -48,6 +52,9 @@ export const hasMeasurement = (v: Record<string, unknown>) => ["jb", "ph", "wetD
 export function soilForService(s: any) {
   if (!s) return null;
   const pick = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-  const out = { jb: pick(s.jb), ph: pick(s.ph), wet_depth_m: pick(s.wetDepthM), root_depth_m: pick(s.rootDepthM) };
-  return Object.values(out).some((v) => v !== null) ? out : null;
+  const out: Record<string, number | boolean | null> = { jb: pick(s.jb), ph: pick(s.ph), wet_depth_m: pick(s.wetDepthM), root_depth_m: pick(s.rootDepthM) };
+  if (!Object.values(out).some((v) => v !== null)) return null;
+  // the auger found no wet soil down to wet_depth_m: the service then reads it as "dry to that depth"
+  if (out.wet_depth_m !== null && s.wetFound === false) out.wet_found = false;
+  return out;
 }

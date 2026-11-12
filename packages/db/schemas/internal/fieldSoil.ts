@@ -16,6 +16,8 @@ export interface IFieldSoil {
 	ph?: number | null;
 	/** depth (m) to rust mottling or standing water in the auger hole; with none, the depth the auger reached. null: not measured (the map is used) */
 	wetDepthM?: number | null;
+	/** false: no rust mottling or water down to wetDepthM (the depth the auger reached); unset counts as found (12 Nov 2026) */
+	wetFound?: boolean | null;
 	/** depth (m) roots can reach: to a hardpan, gravel or permanent water */
 	rootDepthM?: number | null;
 	source: (typeof FIELD_SOIL_SOURCES)[number];
@@ -30,6 +32,7 @@ const schema = new mongoose.Schema<IFieldSoil>(
 		jb: { type: Number, min: 1, max: 12 },
 		ph: { type: Number, min: 3, max: 9.5 },
 		wetDepthM: { type: Number, min: 0, max: 3 },
+		wetFound: Boolean,
 		rootDepthM: { type: Number, min: 0, max: 3 },
 		source: { type: String, enum: FIELD_SOIL_SOURCES, default: "visit" },
 		sampledOn: Date,
