@@ -22,9 +22,13 @@ export function cleanFieldSoil(body: unknown): Clean {
     if (Number.isNaN(v)) return { ok: false, error: `${k} must be a number from ${lo} to ${hi}${whole ? " (whole)" : ""}` };
     if (v !== undefined) out[k] = v === null ? null : Math.round((v as number) * 100) / 100;
   }
-  if (b.wetFound !== undefined) {
-    if (b.wetFound !== null && typeof b.wetFound !== "boolean") return { ok: false, error: "wetFound must be true, false or null" };
-    out.wetFound = b.wetFound;
+  // wetFound qualifies the auger depth, so the two always travel together: a depth without it resets it
+  // (wet soil found, the default), no depth clears it, and it can't change on its own
+  if (b.wetFound !== undefined && b.wetFound !== null && typeof b.wetFound !== "boolean") return { ok: false, error: "wetFound must be true, false or null" };
+  if (b.wetFound !== undefined && b.wetDepthM === undefined) return { ok: false, error: "wetFound needs wetDepthM in the same update" };
+  if ("wetDepthM" in out) {
+    out.wetFound = out.wetDepthM === null ? null : (b.wetFound ?? null);
+    if (out.wetFound === false && !((out.wetDepthM as number) > 0)) return { ok: false, error: "dry down to 0 m means nothing: enter the depth the auger reached" };
   }
   if (b.source !== undefined) {
     if (!FIELD_SOIL_SOURCES.includes(b.source as any)) return { ok: false, error: `source must be one of ${FIELD_SOIL_SOURCES.join(", ")}` };

@@ -452,7 +452,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                         <span class="font-semibold">{TOPIC[d.topic] ?? d.topic}: </span>
                         <span class={`rounded-sm px-1 text-xs ${tone(d.decision)}`}>{d.decision}</span>
                         <Show when={d.measured}>
-                          <span class="ml-1 text-xs opacity-70">(measured on the visit)</span>
+                          <span class="ml-1 text-xs opacity-70">(measured)</span>
                         </Show>
                         <Show when={!d.robust}>
                           <span class="text-xs opacity-70"> (close to the threshold: could go either way)</span>

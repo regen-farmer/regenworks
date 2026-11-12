@@ -86,7 +86,13 @@ test("cleanFieldSoil: known fields in range, empty clears, nothing else", () => 
   assert.deepEqual(cleanFieldSoil({}), { ok: true, value: {} });
   assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null } }, "blank text clears, not 0");
   assert.deepEqual(cleanFieldSoil({ wetDepthM: 1, wetFound: false }), { ok: true, value: { wetDepthM: 1, wetFound: false } });
-  assert.equal(cleanFieldSoil({ wetFound: "no" }).ok, false);
+  assert.equal(cleanFieldSoil({ wetDepthM: 1, wetFound: "no" }).ok, false);
+  assert.equal(cleanFieldSoil({ jb: 6, wetFound: false }).ok, false, "the flag can't change without the depth");
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: 0.5 }), { ok: true, value: { wetDepthM: 0.5, wetFound: null } }, "a new depth resets the flag");
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: null, wetFound: false }), { ok: true, value: { wetDepthM: null, wetFound: null } }, "no depth, no flag");
+  assert.equal(cleanFieldSoil({ wetDepthM: 0, wetFound: false }).ok, false, "dry to 0 m");
+  const only = cleanFieldSoil({ wetFound: false });
+  assert.equal(only.ok, false, "the flag alone is not a measurement");
   assert.equal(hasMeasurement({ source: "visit", jb: null }), false, "a record needs a measured value");
   assert.equal(hasMeasurement({ ph: 6.2 }), true);
 });
