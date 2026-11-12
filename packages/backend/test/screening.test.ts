@@ -77,14 +77,14 @@ test("cleanFieldSoil: known fields in range, empty clears, nothing else", () => 
   const ok = cleanFieldSoil({ jb: "6", ph: "6,4", wetDepthM: 0.456, rootDepthM: "", source: "lab", sampledOn: "2026-11-10", notes: "auger", owner: "x", layer: "y" });
   assert.ok(ok.ok);
   if (ok.ok) {
-    assert.deepEqual({ ...ok.value, sampledOn: undefined }, { jb: 6, ph: 6.4, wetDepthM: 0.46, rootDepthM: null, source: "lab", sampledOn: undefined, notes: "auger" });
+    assert.deepEqual({ ...ok.value, sampledOn: undefined }, { jb: 6, ph: 6.4, wetDepthM: 0.46, wetFound: null, rootDepthM: null, source: "lab", sampledOn: undefined, notes: "auger" });
     assert.ok(ok.value.sampledOn instanceof Date);
   }
   for (const bad of [{ jb: 13 }, { jb: 6.5 }, { ph: 2 }, { wetDepthM: -1 }, { rootDepthM: "deep" }, { source: "guess" }, { sampledOn: "2099-01-01" }, { notes: 5 }, [], null, "x"]) {
     assert.equal(cleanFieldSoil(bad).ok, false, JSON.stringify(bad));
   }
   assert.deepEqual(cleanFieldSoil({}), { ok: true, value: {} });
-  assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null } }, "blank text clears, not 0");
+  assert.deepEqual(cleanFieldSoil({ wetDepthM: " " }), { ok: true, value: { wetDepthM: null, wetFound: null } }, "blank text clears, not 0");
   assert.deepEqual(cleanFieldSoil({ wetDepthM: 1, wetFound: false }), { ok: true, value: { wetDepthM: 1, wetFound: false } });
   assert.equal(cleanFieldSoil({ wetDepthM: 1, wetFound: "no" }).ok, false);
   assert.equal(cleanFieldSoil({ jb: 6, wetFound: false }).ok, false, "the flag can't change without the depth");
