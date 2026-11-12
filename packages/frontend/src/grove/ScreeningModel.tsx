@@ -7,7 +7,7 @@ import { createEffect, createMemo, createResource, createSignal, For, onCleanup,
 import { apiFetch } from "~/util/apiFetch.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
-type Decision = { topic: string; decision: string; statement: string; measure?: string; robust: boolean; range: number[] };
+type Decision = { topic: string; decision: string; statement: string; measure?: string; measured?: boolean; robust: boolean; range: number[] };
 type Layer = { id: string; title: string; species: string | null; topic: string; png: string; corners: [number, number][]; legend: { min: number; max: number; unit: string } };
 type Result = {
   site: string;
@@ -120,11 +120,11 @@ function MiniMap(props: { layer: () => Layer | undefined; outline: () => any }) 
   return <div ref={el} style={{ height: "360px", width: "100%", position: "relative" }} class="rounded-sm overflow-hidden" />;
 }
 
-type FieldSoil = { jb?: number | null; ph?: number | null; wetDepthM?: number | null; rootDepthM?: number | null; source?: string; sampledOn?: string | null; notes?: string; updatedAt?: string };
+type FieldSoil = { jb?: number | null; ph?: number | null; wetDepthM?: number | null; wetFound?: boolean | null; rootDepthM?: number | null; source?: string; sampledOn?: string | null; notes?: string; updatedAt?: string };
 const SOIL_INPUTS: [string, string, string][] = [
   ["jb", "Soil class (JB 1–12)", "1"],
   ["ph", "pH", "0.1"],
-  ["wetDepthM", "Rust mottling or water at (m)", "0.05"],
+  ["wetDepthM", "Auger depth (m): wet soil found at, or dry down to", "0.05"],
   ["rootDepthM", "Roots can reach (m)", "0.05"],
 ];
 
@@ -142,7 +142,7 @@ function MeasuredSoil(props: { layerId: string }) {
     const s = saved();
     const text = (v: unknown) => (v === null || v === undefined ? "" : String(v));
     setDraft({
-      jb: text(s?.jb), ph: text(s?.ph), wetDepthM: text(s?.wetDepthM), rootDepthM: text(s?.rootDepthM),
+      jb: text(s?.jb), ph: text(s?.ph), wetDepthM: text(s?.wetDepthM), wetFound: s?.wetFound === false ? "no" : "yes", rootDepthM: text(s?.rootDepthM),
       source: s?.source ?? "visit", sampledOn: s?.sampledOn ? s.sampledOn.slice(0, 10) : "", notes: s?.notes ?? "",
     });
     setMsg("");
@@ -154,6 +154,7 @@ function MeasuredSoil(props: { layerId: string }) {
     const d = draft();
     const body: Record<string, unknown> = { source: d.source || "visit", sampledOn: d.sampledOn || null, notes: d.notes ?? "" };
     for (const [k] of SOIL_INPUTS) body[k] = d[k]?.trim() ? d[k].trim() : null;
+    body.wetFound = body.wetDepthM === null ? null : d.wetFound !== "no";
     try {
       const r = await apiFetch<{ soil: FieldSoil }>(`/internal/field-soil/${props.layerId}`, { method: "PUT", body: JSON.stringify(body) });
       mutate(r.soil);
@@ -178,7 +179,7 @@ function MeasuredSoil(props: { layerId: string }) {
     const s = saved();
     if (!s) return "none yet: the screening uses the national maps";
     // records always hold at least one measured value
-    return [s.jb ? `JB${s.jb}` : "", s.ph ? `pH ${s.ph}` : "", s.wetDepthM != null ? `wet at ${s.wetDepthM} m` : "", s.rootDepthM != null ? `roots to ${s.rootDepthM} m` : ""]
+    return [s.jb ? `JB${s.jb}` : "", s.ph ? `pH ${s.ph}` : "", s.wetDepthM != null ? (s.wetFound === false ? `dry to ${s.wetDepthM} m` : `wet at ${s.wetDepthM} m`) : "", s.rootDepthM != null ? `roots to ${s.rootDepthM} m` : ""]
       .filter(Boolean).join(", ") + (s.source ? ` (${s.source}${s.sampledOn ? `, ${s.sampledOn.slice(0, 10)}` : ""})` : "");
   };
   return (
@@ -200,6 +201,13 @@ function MeasuredSoil(props: { layerId: string }) {
             )}
           </For>
           <label class="flex flex-col text-xs gap-0.5">
+            In the auger hole
+            <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().wetFound || "yes"} onChange={(e) => set("wetFound", e.currentTarget.value)}>
+              <option value="yes">Rust mottling or water found</option>
+              <option value="no">Dry all the way down</option>
+            </select>
+          </label>
+          <label class="flex flex-col text-xs gap-0.5">
             Source
             <select class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().source || "visit"} onChange={(e) => set("source", e.currentTarget.value)}>
               <option value="visit">Farm visit</option>
@@ -216,7 +224,7 @@ function MeasuredSoil(props: { layerId: string }) {
             <input type="text" maxLength={2000} class="p-1 rounded-sm border border-zinc-300 dark:border-slate-600 bg-transparent text-sm" value={draft().notes ?? ""} onInput={(e) => set("notes", e.currentTarget.value)} />
           </label>
         </div>
-        <p class="text-xs opacity-70">Leave a box empty if it wasn't measured. With no rust mottling, enter the depth the auger reached. Soil, wet ground and drought then use these values; winter cold, heat and frost still come from the weather.</p>
+        <p class="text-xs opacity-70">Leave a box empty if it wasn't measured. Auger in the field's wettest spot: the lowest point, or where the screening flags waterlogging. The auger depth then decides the waterlogging verdict, and soil, wet ground and drought use these values; winter cold, heat and frost still come from the weather.</p>
         <div class="flex items-center gap-2">
           <button type="button" class="rounded-sm px-2 py-1 btn-default text-xs" onClick={save}>Save measured soil</button>
           <Show when={saved()}>
@@ -443,6 +451,9 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                       <div class="text-sm">
                         <span class="font-semibold">{TOPIC[d.topic] ?? d.topic}: </span>
                         <span class={`rounded-sm px-1 text-xs ${tone(d.decision)}`}>{d.decision}</span>
+                        <Show when={d.measured}>
+                          <span class="ml-1 text-xs opacity-70">(measured)</span>
+                        </Show>
                         <Show when={!d.robust}>
                           <span class="text-xs opacity-70"> (close to the threshold: could go either way)</span>
                         </Show>

@@ -13,7 +13,7 @@ import { cleanFieldSoil, hasMeasurement } from "./fieldSoil.ts";
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
 router.use(express.json({ limit: "20kb" }));
-const FIELDS = "layer jb ph wetDepthM rootDepthM source sampledOn notes updatedAt";
+const FIELDS = "layer jb ph wetDepthM wetFound rootDepthM source sampledOn notes updatedAt";
 
 async function groveField(id: unknown): Promise<boolean> {
   if (typeof id !== "string" || !mongoose.isValidObjectId(id)) return false;
