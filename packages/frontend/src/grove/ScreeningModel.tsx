@@ -7,7 +7,9 @@ import { createEffect, createMemo, createResource, createSignal, For, onCleanup,
 import { apiFetch } from "~/util/apiFetch.ts";
 import { GoogleSatStyle } from "~/util/map_styles/google-sat-style.ts";
 
-type Decision = { topic: string; decision: string; statement: string; measure?: string; measured?: boolean; robust: boolean; range: number[] };
+type CultivarGroup = { cultivars: string[]; days_vs_ref: number; budbreak?: string; frost: number; frost_coldest_5pct?: number | null; heat_cool_year?: number | null; band: string };
+type Decision = { topic: string; decision: string; statement: string; measure?: string; measured?: boolean; robust: boolean; range: number[]; cultivars?: CultivarGroup[] };
+const pct = (v: number | null | undefined) => (typeof v === "number" ? `${Math.round(v * 100)}%` : "–");
 type Layer = { id: string; title: string; species: string | null; topic: string; png: string; corners: [number, number][]; legend: { min: number; max: number; unit: string } };
 type Result = {
   site: string;
@@ -460,6 +462,38 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
                         <div class="text-xs opacity-90">{d.statement}</div>
                         <Show when={d.measure}>
                           <div class="text-xs">Measure: {d.measure}</div>
+                        </Show>
+                        <Show when={d.cultivars?.length}>
+                          <details class="text-xs mt-1">
+                            <summary class="cursor-pointer">Frost by cultivar on this field (earliest budbreak first)</summary>
+                            <div class="overflow-x-auto">
+                              <table class="mt-1 text-xs tabular-nums">
+                                <thead>
+                                  <tr class="text-left opacity-70">
+                                    <th class="pr-3 font-normal">Cultivars</th>
+                                    <th class="pr-3 font-normal">Budbreak</th>
+                                    <th class="pr-3 font-normal">Frost springs</th>
+                                    <th class="pr-3 font-normal">Coldest 5%</th>
+                                    <th class="pr-3 font-normal">Heat to ripen, cool year</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <For each={d.cultivars}>
+                                    {(g) => (
+                                      <tr>
+                                        <td class="pr-3">{g.cultivars.join(", ")}</td>
+                                        <td class="pr-3">{g.budbreak ?? "–"}</td>
+                                        <td class="pr-3"><span class={`rounded-sm px-1 ${tone(g.band)}`}>{pct(g.frost)}</span></td>
+                                        <td class="pr-3">{pct(g.frost_coldest_5pct)}</td>
+                                        <td class="pr-3">{typeof g.heat_cool_year === "number" ? `${Math.round(g.heat_cool_year)} °C-days` : "–"}</td>
+                                      </tr>
+                                    )}
+                                  </For>
+                                </tbody>
+                              </table>
+                            </div>
+                            <p class="opacity-70 mt-1">Heat: degree-days above 10 °C from budbreak to 10 October in a cool year (1 in 10). Ripening needs per cultivar aren't known for Denmark yet, so compare cultivars rather than read it as a verdict.</p>
+                          </details>
                         </Show>
                       </div>
                     )}
