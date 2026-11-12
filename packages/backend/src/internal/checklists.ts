@@ -16,7 +16,7 @@ export type ChecklistTemplate = { kind: string; version: number; title: string; 
 
 export const SCREENING: ChecklistTemplate = {
   kind: "screening",
-  version: 1,
+  version: 2,
   title: "Screening",
   decision: true,
   sections: [
@@ -66,6 +66,17 @@ export const SCREENING: ChecklistTemplate = {
         },
         { key: "regulatory-p19", text: "§19 church protection line (kirkebeskyttelseslinje)" },
         { key: "regulatory-fredning", text: "Fredninger (conservation orders) that limit planting or require open views" },
+        {
+          // Moved here from D on 12 Nov 2026 (same key, so saved answers stay).
+          key: "soilwater-permit",
+          text: "Water permit for irrigation (vandindvindingstilladelse): DGU no., permitted m³ a year, expiry, and room for the trees",
+          hint: "Any watering needs a permit, whatever the method (drip, hose reel). Yes: drip or the farmer's hose reel between the tree rows. No: is a new permit realistic (easier in West Jutland)? If not: a pond filled from the farm's own runoff (see D), or no irrigation",
+        },
+        {
+          key: "regulatory-pond",
+          text: "If a pond is an option: landzone permit, permit for the water use (ask the municipality about vandforsyningsloven § 20), §3 nature and ancient monuments, environmental screening for large reservoirs",
+          hint: "Ask the municipality early; a pond can take months to permit",
+        },
       ],
     },
     {
@@ -77,11 +88,18 @@ export const SCREENING: ChecklistTemplate = {
           text: "Note soil type (sandy Jutland soils vs heavy clay on Zealand/Funen) and match species",
           hint: "A Danish soil-type layer in the app comes later",
         },
-        { key: "soilwater-source", text: "Identify the water source for irrigation: mains, well/borehole, pond, rainwater, water cart" },
         {
-          key: "soilwater-permit",
-          text: "Check if a water abstraction permit (vandindvindingstilladelse) is needed, or the existing permit covers trees",
-          hint: "Often a project stopper: many don't know a permit is needed. Ponds/basins as alternatives later",
+          key: "soilwater-source",
+          text: "Identify the water source for irrigation: existing well with a permit, new borehole, a pond filled from the farm's own runoff (drains, surface runoff, roofs; not streams or lakes), or none",
+        },
+        {
+          key: "soilwater-pond-site",
+          text: "Pond site: low spots where runoff and drains on the farm's own land collect; catchment size, clay content, distance to the tree rows",
+          hint: "About 12% clay or more can often seal without a liner. Keyline layout and check dams are options; design the pond together with the tree rows",
+        },
+        {
+          key: "soilwater-measure",
+          text: "Choose the water measure: drip, the farmer's hose reel, pond + drip, or no irrigation (mulch, drought-tolerant species and rootstocks, wider spacing)",
         },
       ],
     },
