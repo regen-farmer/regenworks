@@ -11,7 +11,7 @@ test("screening template: Kris' four sections; item keys unique and safe as map 
   const keys = SCREENING.sections.flatMap((s) => s.items.map((i) => i.key));
   assert.equal(new Set(keys).size, keys.length);
   for (const k of keys) assert.match(k, /^[a-z0-9-]+$/, k);
-  assert.equal(itemKeys(SCREENING).size, 18);
+  assert.equal(itemKeys(SCREENING).size, 21);
 });
 
 test("progress: done, not relevant and issue count as done; per section and total", () => {
@@ -20,7 +20,7 @@ test("progress: done, not relevant and issue count as done; per section and tota
     decision: { result: "go-conditions" },
   });
   assert.equal(p.done, 3, "answers to items no longer in the template don't count");
-  assert.equal(p.total, 18);
+  assert.equal(p.total, 21);
   assert.equal(p.issues, 1);
   assert.deepEqual(p.sections[1], { key: "landscape", done: 2, total: 7, issues: 1 });
   assert.equal(p.decision, "go-conditions");
