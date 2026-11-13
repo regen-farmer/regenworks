@@ -7,5 +7,5 @@ GroveWorks is Grove's agroforestry design and operations app (formerly RegenWork
 - Before opening a PR run what applies: `pnpm --filter isomorphic lint`, `pnpm --filter backend lint`, `pnpm --filter backend test`, `pnpm --filter @rw/modelling test`.
 - **Review:** for risky changes (access/roles, prices/offers/client data, schema or migrations, layout maths, auth), get a review from the `reviewer` agent (`.claude/agents/reviewer.md`) before merging, and fix blockers. Dependency bumps and docs don't need it.
 - Grove-internal data goes under `/internal` (backend) or behind `requireRole` (web app server); roles are defined in `packages/db/access.ts`.
-- Never commit prices, client data or secrets. Prices live in the private `regen-farmer/grove-pricebook` repo.
+- Never commit prices, client data or secrets. Prices live in the private `regen-farmer/grove-data` repo.
 - Screens say farm / field / scenario; code still says parcel / layer / project. Don't rename internals piecemeal.

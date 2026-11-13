@@ -25,7 +25,7 @@ You did not write this change. Assume nothing works until you have checked it.
 - Every new server route that reads or changes user data checks login and ownership (`isLoggedIn` / `checkParcelOwnership` in the backend; `requireUser` / `requireProjectOwner` / `requireRole` in `packages/isomorphic/src/server/access.ts`).
 - `grove-field` users never receive money fields (price, cost, margin, offer value). Check the response objects, not just the screen.
 - No route lets users change their own `isAdmin` or `roles`.
-- No secrets, price lists or client data committed. The repo is **public**. Prices belong in the private `grove-pricebook` repo.
+- No secrets, price lists or client data committed. The repo is **public**. Prices belong in the private `grove-data` repo (formerly grove-pricebook).
 - User input reaching MongoDB is sanitised (`sanitizeMongoValue`, `$eq` in queries; no `req.body` spread into updates).
 
 ### Data safety

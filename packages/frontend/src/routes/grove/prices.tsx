@@ -187,7 +187,7 @@ function Prices() {
         </div>
         <p class="text-sm opacity-70">
           Pricebook v{d()?.version ?? "–"}. Supplier prices are shown as printed and converted to DKK at {d()?.eurDkk ?? "–"} kr/EUR, VAT as
-          the supplier states it. Every price links to its price list and source file in the grove-pricebook repo.
+          the supplier states it. Every price links to its price list and source file in the grove-data repo.
         </p>
         <Show when={data.error}><p class="text-red-600 text-sm">{(data.error as Error)?.message}</p></Show>
 
