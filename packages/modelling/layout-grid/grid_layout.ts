@@ -50,8 +50,12 @@ type Row = {
 
 /** Distances shorter than this count as equal (m): 1 mm. */
 const EPS = 1e-3;
-/** Safety cap so a tiny spacing on a big field can't hang the page. */
+/** Safety caps so a tiny spacing on a big field can't hang the page or server. */
 const MAX_TREES = 500_000;
+const MAX_LATTICE_ROWS = 20_000;
+/** Smallest row width (whole tile) and tree spacing the grid accepts (m). */
+export const MIN_TILE_WIDTH = 0.5;
+export const MIN_SPACING = 0.1;
 
 export type GridInfo = {
   /** Where the first tree of the first row sits, [lng, lat]. */
@@ -189,7 +193,10 @@ export function gridLayout(systemdesign: any, fieldGeometry: any) {
   const widths = rows.map((r) => Math.max(0, finite(r.width)));
   const tileWidth = widths.reduce((a, b) => a + b, 0);
   const rings = ringsOf(headlandPolygon);
-  if (!rows.length || !(tileWidth > EPS) || !rings.length) return empty;
+  if (!rows.length || !rings.length) return empty;
+  if (tileWidth < MIN_TILE_WIDTH) {
+    throw new Error(`Grid rows must be at least ${MIN_TILE_WIDTH} m wide together.`);
+  }
 
   // Frame centred on the field; the corner signs flip u and/or v so the
   // algorithm below always counts from the low corner.
@@ -236,19 +243,42 @@ export function gridLayout(systemdesign: any, fieldGeometry: any) {
   uA += finite(settings.shiftAlong);
   vA += finite(settings.shiftAcross);
 
+  if (((vMax - vMin) / tileWidth + 2) * rows.length > MAX_LATTICE_ROWS) {
+    throw new Error(`The grid would have more than ${MAX_LATTICE_ROWS} rows; check the row widths.`);
+  }
+
   // Each design row's sequence: period and where each entry sits in it.
+  // Blank entries (no species yet) keep their spacing but get no tree, as in
+  // the row layout.
   const seqs = rows.map((row) => {
-    const seq = (row.sequence ?? []).filter((e) => e && e.species);
+    const seq = row.sequence ?? [];
     const offsets: number[] = [];
     let p = 0;
     for (const e of seq) {
       offsets.push(p);
-      p += Math.max(0, finite(e.spacingAfter));
+      p += Math.max(0, finite(e?.spacingAfter));
     }
-    return { seq, offsets, period: p };
+    const planted = seq.map((e, j) => (e && e.species ? j : -1)).filter((j) => j >= 0);
+    // A row whose spacings add up to 0 has no trees (as in the row layout).
+    if (planted.length && p > 0 && p < MIN_SPACING) {
+      throw new Error(`Tree spacing along a grid row must be at least ${MIN_SPACING} m.`);
+    }
+    // Offset (triangular) pattern: every other row moves half a tree spacing.
+    const halfStep = seq.length ? p / seq.length / 2 : 0;
+    return { seq, offsets, period: p, planted, halfStep };
   });
 
-  const extentRows = finite(settings.extent?.rows, 0);
+  // Offset pattern counts tree rows only (alley rows without trees don't
+  // take a turn), so "every other row" means every other tree row.
+  const treeRowOrder = seqs.map(() => -1);
+  let nTreeRows = 0;
+  const treeRowsBefore = seqs.map(() => 0);
+  seqs.forEach((q, r) => {
+    treeRowsBefore[r] = nTreeRows;
+    if (q.planted.length && q.period > EPS) treeRowOrder[r] = nTreeRows++;
+  });
+
+  const extentRows = Math.floor(finite(settings.extent?.rows, 0));
   const extentLength = finite(settings.extent?.length, 0);
   const offsetPattern = settings.pattern === "offset";
 
@@ -258,114 +288,159 @@ export function gridLayout(systemdesign: any, fieldGeometry: any) {
 
   const treeRowLines: any[] = [];
   const treeMarkerArray: any[] = [];
-  const stripPolygons: any[] = [];
-  const stripAreasM2: number[] = [];
-  const groundCoverAreas: any[] = [];
-  const groundCoverAreasM2: Record<string, number> = {};
+  type StripOf = { strip: Feature<Polygon | MultiPolygon, Properties> | null; r: number };
+  const rowStrips: StripOf[] = [];
+  const extraStrips: StripOf[] = [];
+
+  const clip = (a: any, b: any): Feature<Polygon | MultiPolygon, Properties> | null => {
+    try {
+      return intersect({ type: "FeatureCollection", features: [a, b] } as any) as any;
+    } catch {
+      return null;
+    }
+  };
+  /** The field inside u ∈ [uLo, uHi], v ∈ [v − w/2, v + w/2]. */
+  const cutBand = (uLo: number, uHi: number, v: number, w: number) =>
+    clip(
+      headlandPolygon,
+      turf.polygon([
+        [
+          fromP(uLo, v - w / 2),
+          fromP(uHi, v - w / 2),
+          fromP(uHi, v + w / 2),
+          fromP(uLo, v + w / 2),
+          fromP(uLo, v - w / 2),
+        ],
+      ]),
+    );
 
   for (let t = tFrom; t <= tTo; t++) {
     for (let r = 0; r < rows.length; r++) {
-      const latticeRow = t * rows.length + r; // 0 = the anchor's row
-      if (extentRows > 0 && (latticeRow < 0 || latticeRow >= extentRows)) continue;
       const v = vA + t * tileWidth + rowCentre[r];
       const w = widths[r];
-
-      // Strip (and ground cover): the band of this row, cut by the field.
-      if (w > 0 && v + w / 2 > vMin && v - w / 2 < vMax) {
-        const uLo = extentLength > 0 ? Math.max(uMin, uA) - 1 : uMin - 1;
-        const uHi = extentLength > 0 ? Math.min(uMax, uA + extentLength) + 1 : uMax + 1;
-        const band = turf.polygon([
-          [
-            fromP(uLo, v - w / 2),
-            fromP(uHi, v - w / 2),
-            fromP(uHi, v + w / 2),
-            fromP(uLo, v + w / 2),
-            fromP(uLo, v - w / 2),
-          ],
-        ]);
-        let strip: Feature<Polygon | MultiPolygon, Properties> | null = null;
-        try {
-          strip = intersect({
-            type: "FeatureCollection",
-            features: [headlandPolygon, band],
-          } as any) as any;
-        } catch {
-          strip = null;
-        }
-        if (strip) {
-          strip.properties = { name: `strip_${stripPolygons.length}`, rowIndex: r };
-          const m2 = turfArea(strip);
-          stripPolygons.push(strip);
-          stripAreasM2.push(m2);
-          const gc = rows[r].groundcover;
-          const gcId = gc ? String(gc?._id ?? gc) : "";
-          if (gcId) {
-            groundCoverAreasM2[gcId] = (groundCoverAreasM2[gcId] ?? 0) + m2;
-            const parts =
-              strip.geometry.type === "MultiPolygon"
-                ? strip.geometry.coordinates
-                : [strip.geometry.coordinates];
-            for (const coords of parts) {
-              groundCoverAreas.push(
-                turf.polygon(coords as any, {
-                  name: `alleypoly${groundCoverAreas.length}`,
-                  speciesId: gcId,
-                }),
-              );
-            }
-          }
-        }
+      // Tree rows are counted from the anchor's row (turn 0). An alley row
+      // sits between tree turn − 1 and turn.
+      const treeTurn = t * nTreeRows + (treeRowOrder[r] >= 0 ? treeRowOrder[r] : treeRowsBefore[r]);
+      if (extentRows > 0) {
+        const inside =
+          treeRowOrder[r] >= 0
+            ? treeTurn >= 0 && treeTurn < extentRows
+            : treeTurn >= 1 && treeTurn <= extentRows - 1;
+        if (!inside) continue;
       }
 
-      // Tree row pieces and the lattice trees on them.
-      if (v < vMin - EPS || v > vMax + EPS) continue;
-      const { before = 0, after = 0 } = rows[r].offset ?? {};
-      const { seq, offsets, period } = seqs[r];
-      const shift = offsetPattern && Math.abs(latticeRow) % 2 === 1 ? period / 2 : 0;
+      // The band of this row (its strip), cut by the field.
+      let band: Feature<Polygon | MultiPolygon, Properties> | null = null;
+      if (w > 0 && v + w / 2 > vMin && v - w / 2 < vMax) {
+        const uLo = extentLength > 0 ? Math.max(uMin - 1, uA) : uMin - 1;
+        const uHi = extentLength > 0 ? Math.min(uMax + 1, uA + extentLength) : uMax + 1;
+        if (uHi > uLo) band = cutBand(uLo, uHi, v, w);
+      }
 
-      for (let [a, b] of piecesAtV(ringsP, v)) {
-        a += Math.max(0, finite(before));
-        b -= Math.max(0, finite(after));
+      // Tree row pieces (and the lattice trees on them).
+      const pieces = v < vMin - EPS || v > vMax + EPS ? [] : piecesAtV(ringsP, v);
+      const { seq, offsets, period, planted, halfStep } = seqs[r];
+      const shift = offsetPattern && treeRowOrder[r] >= 0 && Math.abs(treeTurn) % 2 === 1 ? halfStep : 0;
+      // Row offsets are at the start and end of the row in the field's own
+      // direction, whichever corner the grid counts from.
+      const off = rows[r].offset ?? {};
+      const startOff = Math.max(0, finite(su === 1 ? off.before : off.after));
+      const endOff = Math.max(0, finite(su === 1 ? off.after : off.before));
+
+      const kept: { a0: number; b0: number; a: number; b: number }[] = [];
+      for (const [a0, b0] of pieces) {
+        let a = a0 + startOff;
+        let b = b0 - endOff;
         if (extentLength > 0) {
           a = Math.max(a, uA);
           b = Math.min(b, uA + extentLength);
         }
-        if (b - a <= EPS) continue;
+        if (b - a > EPS) kept.push({ a0, b0, a, b });
+      }
 
+      if (!kept.length) {
+        // No tree row here (the band only grazes the field): its strip still
+        // counts for areas, after the strips that pair with tree rows.
+        if (band) extraStrips.push({ strip: band, r });
+        continue;
+      }
+
+      for (let k = 0; k < kept.length; k++) {
+        const { a, b } = kept[k];
         const treeRowIndex = treeRowLines.length;
         treeRowLines.push({
           line: turf.lineString([fromP(a, v), fromP(b, v)], { name: `line-${treeRowIndex}` }),
           systemDesignRowIndex: r,
         });
 
-        if (!(period > EPS) || !seq.length) continue;
+        // This row piece's share of the band: split halfway between pieces,
+        // so strips pair 1:1 with tree rows and still cover the whole band.
+        let strip: Feature<Polygon | MultiPolygon, Properties> | null = band;
+        if (band && kept.length > 1) {
+          const lo = k === 0 ? uMin - 1 : (kept[k - 1].b0 + kept[k].a0) / 2;
+          const hi = k === kept.length - 1 ? uMax + 1 : (kept[k].b0 + kept[k + 1].a0) / 2;
+          strip = clip(band, cutBand(lo, hi, v, w + 2));
+        }
+        rowStrips.push({ strip, r });
+
+        if (!(period > EPS) || !planted.length) continue;
+        let count = 0;
+        for (const j of planted) {
+          const base = uA + shift + offsets[j];
+          count += Math.max(0, Math.floor((b + EPS - base) / period) - Math.ceil((a - EPS - base) / period) + 1);
+        }
+        if (treeMarkerArray.length + count > MAX_TREES) {
+          throw new Error(`The grid would have more than ${MAX_TREES} trees; check the spacings.`);
+        }
         const positions: { u: number; j: number }[] = [];
-        for (let j = 0; j < seq.length; j++) {
+        for (const j of planted) {
           const base = uA + shift + offsets[j];
           const mFrom = Math.ceil((a - EPS - base) / period);
           const mTo = Math.floor((b + EPS - base) / period);
           for (let m = mFrom; m <= mTo; m++) positions.push({ u: base + m * period, j });
-          if (treeMarkerArray.length + positions.length > MAX_TREES) {
-            throw new Error(
-              `The grid would have more than ${MAX_TREES} trees; check the spacings.`,
-            );
-          }
         }
         positions.sort((p, q) => p.u - q.u);
         for (const { u, j } of positions) {
           const coords = fromP(u, v);
-          const point = turf.point(coords);
           treeMarkerArray.push({
             species: seq[j].species,
-            point,
+            point: turf.point(coords),
             circle: circle(coords, 1.4, { units: "meters", steps: 12 }),
             treeRowIndex,
             systemDesignRowIndex: r,
-            // Index in the design's own sequence (blank entries skipped above).
-            sequenceIndex: (rows[r].sequence ?? []).indexOf(seq[j]),
+            sequenceIndex: j,
           });
         }
       }
+    }
+  }
+
+  // Strips: first one per tree row (same index as treeRowLines, null when the
+  // row has no width), then bands without a tree row. Ground cover per strip.
+  const stripPolygons: any[] = [];
+  const stripAreasM2: number[] = [];
+  const groundCoverAreas: any[] = [];
+  const groundCoverAreasM2: Record<string, number> = {};
+  for (const { strip, r } of [...rowStrips, ...extraStrips]) {
+    if (!strip) {
+      stripPolygons.push(null);
+      stripAreasM2.push(0);
+      continue;
+    }
+    strip.properties = { name: `strip_${stripPolygons.length}`, rowIndex: r };
+    const m2 = turfArea(strip);
+    stripPolygons.push(strip);
+    stripAreasM2.push(m2);
+    const gc = rows[r].groundcover;
+    const gcId = gc ? String(gc?._id ?? gc) : "";
+    if (!gcId) continue;
+    groundCoverAreasM2[gcId] = (groundCoverAreasM2[gcId] ?? 0) + m2;
+    const parts =
+      strip.geometry.type === "MultiPolygon" ? strip.geometry.coordinates : [strip.geometry.coordinates];
+    for (const coords of parts) {
+      groundCoverAreas.push(
+        turf.polygon(coords as any, { name: `alleypoly${groundCoverAreas.length}`, speciesId: gcId }),
+      );
     }
   }
 

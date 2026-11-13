@@ -191,6 +191,11 @@ function ProjectIndexView() {
       } as ISystemBasedLayout);
     } catch (error) {
       console.error("Layout generation failed:", error);
+      showToast({
+        title: "Preview not made",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
     }
 
     // Don't touch
@@ -208,9 +213,15 @@ function ProjectIndexView() {
     );
     const result = await response.json();
 
+    // setSystem merges into the store, and the page is reused when switching
+    // scenarios: set `layout` explicitly so one scenario's grid settings never
+    // carry over to a row design (old designs have no `layout` key at all).
     if (result?.project?.systemdesign) {
       setSavedSystem(JSON.parse(JSON.stringify(result.project.systemdesign!)));
-      setSystem(result.project.systemdesign!);
+      setSystem({
+        ...result.project.systemdesign!,
+        layout: result.project.systemdesign!.layout ?? undefined,
+      });
     } else {
       // No saved system design, reset to empty
       setSavedSystem(undefined);
@@ -219,6 +230,7 @@ function ProjectIndexView() {
         bearing: 0,
         margin: 0,
         headland: 0,
+        layout: undefined,
       });
     }
 
@@ -651,6 +663,9 @@ function ProjectIndexView() {
     }
 
     setSavedSystem(systemData as ISystemDesignSchema);
+    // The server stores the layout settings in full (blanks as null); take
+    // its version so the page doesn't show unsaved changes after a save.
+    setSystem("layout", (systemData as ISystemDesignSchema)?.layout ?? undefined);
 
     if (systemData) {
       // toast('System design saved.');
@@ -931,6 +946,7 @@ function ProjectIndexView() {
                           rowWidths={system.rows.map((r) => r.width)}
                           picking={pickingAnchor()}
                           onPickAnchor={startPickingAnchor}
+                          busy={previewing()}
                           disabled={isFreemium()}
                         />
                         <div

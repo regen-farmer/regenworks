@@ -21,6 +21,8 @@ export function LayoutToolPanel(props: {
   rowWidths: number[];
   picking: boolean;
   onPickAnchor: () => void;
+  /** A preview is being made: the anchor shown may be about to change. */
+  busy?: boolean;
   disabled?: boolean;
 }) {
   const mode = () => props.layout?.mode ?? "rows";
@@ -168,20 +170,23 @@ export function LayoutToolPanel(props: {
             <option value="offset">Offset (triangular)</option>
           </select>
 
-          <label class="leading-7" title="Blank = as many rows as fit">
-            Number of rows
+          <label class="leading-7" title="Tree rows from the start point. Blank = as many as fit">
+            Number of tree rows
           </label>
           <input
             type="number"
-            min={0}
+            min={1}
             step="1"
             placeholder="all"
             class={inputClass}
             disabled={props.disabled || locked()}
             value={grid().extent?.rows ?? ""}
-            onChange={(e) =>
-              setGrid({ extent: { ...(grid().extent ?? {}), rows: num(e.currentTarget.value) } })
-            }
+            onChange={(e) => {
+              const n = num(e.currentTarget.value);
+              setGrid({
+                extent: { ...grid().extent, rows: n === null || n < 1 ? null : Math.floor(n) },
+              });
+            }}
           />
 
           <label class="leading-7" title="Measured from the start point. Blank = to the field edge">
@@ -197,7 +202,7 @@ export function LayoutToolPanel(props: {
             value={grid().extent?.length ?? ""}
             onChange={(e) =>
               setGrid({
-                extent: { ...(grid().extent ?? {}), length: num(e.currentTarget.value) },
+                extent: { ...grid().extent, length: num(e.currentTarget.value) },
               })
             }
           />
@@ -210,7 +215,7 @@ export function LayoutToolPanel(props: {
               <button
                 type="button"
                 class="rounded-sm px-2 py-1 btn-default"
-                disabled={props.disabled || !props.effectiveAnchor}
+                disabled={props.disabled || props.busy || !props.effectiveAnchor}
                 title="Fix the grid at its current position, so it stays put if the field or the corner changes"
                 onClick={() =>
                   setGrid({

@@ -65,7 +65,10 @@ export interface IGridSettings {
 	pattern?: "rectangular" | "offset" | null;
 	/** A locked grid keeps its anchor when the field or settings change. */
 	locked?: boolean | null;
-	/** Fixed size: number of rows and row length (m) from the anchor; blank = whole field. */
+	/**
+	 * Fixed size from the anchor: number of tree rows (alleys between them
+	 * included) and row length (m). Blank = to the field edges.
+	 */
 	extent?: { rows?: number | null; length?: number | null } | null;
 }
 
@@ -74,7 +77,10 @@ export interface ILayoutSettings {
 	grid?: IGridSettings | null;
 }
 
-/** Mongoose fields for the layout model choice; shared with saved presets. */
+/**
+ * Mongoose fields for the layout model choice. Presets don't store it: a
+ * preset is a row pattern, and applying one keeps the scenario's layout tool.
+ */
 export const layoutFields = {
 	mode: { type: String, enum: ["rows", "grid"] },
 	grid: {
