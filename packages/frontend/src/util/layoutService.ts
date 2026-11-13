@@ -155,6 +155,13 @@ export async function generateLayout(systemDesign: any, fieldGeometry: any): Pro
 }
 
 async function generateLayoutRaw(systemDesign: any, fieldGeometry: any): Promise<any> {
+  // Grid designs have their own layout model in TypeScript; the native and
+  // WASM engines only know the row layout.
+  if (systemDesign?.layout?.mode === "grid") {
+    const geometryObj = typeof fieldGeometry === "string" ? JSON.parse(fieldGeometry) : fieldGeometry;
+    const { systemBasedLayoutSync } = await getTurfLayoutModule();
+    return systemBasedLayoutSync(systemDesign, geometryObj);
+  }
   if (isElectron() && !forceBrowserLayoutBackend) {
     return generateLayoutElectron(systemDesign, fieldGeometry);
   }

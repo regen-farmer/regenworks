@@ -51,6 +51,8 @@ import { OfferRequestModal } from "~/components/OfferRequestModal";
 import { drawSystemDesign } from "~/components/systemDesigner/drawSystemDesign.ts";
 import { SystemInfoBox } from "~/components/systemDesigner/SystemInfoBox.tsx";
 import { TreeStripsExport } from "~/components/systemDesigner/TreeStripsExport.tsx";
+import { LayoutToolPanel } from "~/components/systemDesigner/LayoutToolPanel.tsx";
+import type { ILayoutSettings } from "@rw/db/schemas/systemdesign.ts";
 import { Button } from "~/components/ui/button";
 import { Resizable, ResizableHandle, ResizablePanel } from "~/components/ui/resizable";
 import { getScenario } from "~/util/getScenario.ts";
@@ -152,6 +154,8 @@ function ProjectIndexView() {
 
   const [systemLayout, setSystemLayout] = createSignal<ISystemBasedLayout>();
   const [show3D, setShow3D] = createSignal(false);
+  // Grid layout: waiting for a click on the map to place the grid's start point.
+  const [pickingAnchor, setPickingAnchor] = createSignal(false);
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | undefined>();
 
   const [system, setSystem] = createStore<ISystemDesignSchema>({
@@ -183,6 +187,7 @@ function ProjectIndexView() {
         treeMarkerArray: result.treeMarkerArray,
         stripPolygons: result.stripPolygons,
         stripAreasM2: result.stripAreasM2,
+        grid: result.grid,
       } as ISystemBasedLayout);
     } catch (error) {
       console.error("Layout generation failed:", error);
@@ -380,6 +385,17 @@ function ProjectIndexView() {
           });
         }
 
+        // Grid layout: place the grid's start point with a click.
+        map?.on("click", (e) => {
+          if (!pickingAnchor()) return;
+          setPickingAnchor(false);
+          if (map) map.getCanvas().style.cursor = "";
+          setLayout({
+            mode: "grid",
+            grid: { ...(system.layout?.grid ?? {}), anchor: [e.lngLat.lng, e.lngLat.lat], locked: false },
+          });
+        });
+
         restoreMapInteractions();
         setMapInstance(map);
         setMapLoaded(true);
@@ -558,6 +574,39 @@ function ProjectIndexView() {
     const authUser = getAuth0User();
     return authUser?.email || "";
   });
+
+  /** Change the layout tool or grid settings, and refresh the preview if there is one. */
+  function setLayout(layout: ILayoutSettings) {
+    setSystem("layout", layout as any);
+    if (systemLayout() && system.rows.length > 0) getSystemDesign();
+  }
+
+  function startPickingAnchor() {
+    setPickingAnchor(true);
+    if (map) map.getCanvas().style.cursor = "crosshair";
+  }
+
+  // Grid layout: show where the grid starts (first tree of the first row).
+  let anchorMarker: maplibregl.Marker | undefined;
+  createEffect(() => {
+    const anchor = systemLayout()?.grid?.anchor as [number, number] | undefined;
+    const isGrid = system.layout?.mode === "grid";
+    if (!mapLoaded() || !map) return;
+    if (!isGrid || !anchor) {
+      anchorMarker?.remove();
+      anchorMarker = undefined;
+      return;
+    }
+    if (!anchorMarker) {
+      const el = document.createElement("div");
+      el.title = "Grid start: first tree of the first row";
+      el.style.cssText =
+        "width:14px;height:14px;border-radius:50%;background:#f59e0b;border:2px solid white;box-shadow:0 0 2px #000";
+      anchorMarker = new maplibregl.Marker({ element: el });
+    }
+    anchorMarker.setLngLat(anchor).addTo(map);
+  });
+  onCleanup(() => anchorMarker?.remove());
 
   async function saveSystem() {
     setSaving(true);
@@ -874,6 +923,16 @@ function ProjectIndexView() {
                             </div>
                           </div>
                         </Show>
+                        <LayoutToolPanel
+                          layout={system.layout}
+                          setLayout={setLayout}
+                          effectiveAnchor={systemLayout()?.grid?.anchor}
+                          periods={systemLayout()?.grid?.periods}
+                          rowWidths={system.rows.map((r) => r.width)}
+                          picking={pickingAnchor()}
+                          onPickAnchor={startPickingAnchor}
+                          disabled={isFreemium()}
+                        />
                         <div
                           style={{
                             flex: "1 1 auto",
@@ -1765,6 +1824,8 @@ const DesignPresetContent = ({
     // Clean the preset system to only use IDs
     const cleanSystem = {
       ...preset.system,
+      // Presets hold the row pattern; keep the layout tool and grid placement.
+      layout: system.layout,
       rows: preset.system.rows.map((row: any) => ({
         ...row,
         groundcover: typeof row.groundcover === "object" ? row.groundcover._id : row.groundcover,

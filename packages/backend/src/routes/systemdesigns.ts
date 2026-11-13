@@ -21,6 +21,65 @@ export function designFields(body: any) {
   return rest;
 }
 
+const CORNERS = ["start-left", "start-right", "end-left", "end-right"];
+
+/**
+ * Check the layout tool settings of a design save. Returns the cleaned
+ * settings, or an error message. Missing layout = leave as stored.
+ */
+export function cleanLayout(layout: any): { ok: true; value: any } | { ok: false; error: string } {
+  if (layout === undefined) return { ok: true, value: undefined };
+  if (layout === null) return { ok: true, value: { mode: "rows" } };
+  if (typeof layout !== "object" || Array.isArray(layout)) {
+    return { ok: false, error: "Layout settings must be an object" };
+  }
+  const mode = layout.mode ?? "rows";
+  if (mode !== "rows" && mode !== "grid") return { ok: false, error: `Unknown layout tool "${mode}"` };
+  const g = layout.grid;
+  if (g === undefined || g === null) return { ok: true, value: { mode } };
+  if (typeof g !== "object" || Array.isArray(g)) return { ok: false, error: "Grid settings must be an object" };
+
+  const num = (x: any, name: string, min = -Infinity, max = Infinity) => {
+    if (x === undefined || x === null || x === "") return null;
+    const n = Number(x);
+    if (!Number.isFinite(n) || n < min || n > max) throw new Error(`Grid ${name} is out of range`);
+    return n;
+  };
+  try {
+    let anchor: [number, number] | null = null;
+    if (g.anchor !== undefined && g.anchor !== null) {
+      if (!Array.isArray(g.anchor) || g.anchor.length !== 2) throw new Error("Grid start point must be [longitude, latitude]");
+      anchor = [num(g.anchor[0], "start longitude", -180, 180)!, num(g.anchor[1], "start latitude", -90, 90)!];
+      if (anchor.some((x) => x === null)) throw new Error("Grid start point must be [longitude, latitude]");
+    }
+    const corner = g.corner ?? null;
+    if (corner !== null && !CORNERS.includes(corner)) throw new Error(`Unknown grid corner "${corner}"`);
+    const pattern = g.pattern ?? null;
+    if (pattern !== null && pattern !== "rectangular" && pattern !== "offset") throw new Error(`Unknown grid pattern "${pattern}"`);
+    const rows = num(g.extent?.rows, "number of rows", 0, 100_000);
+    return {
+      ok: true,
+      value: {
+        mode,
+        grid: {
+          anchor,
+          corner,
+          shiftAlong: num(g.shiftAlong, "shift along", -10_000, 10_000),
+          shiftAcross: num(g.shiftAcross, "shift across", -10_000, 10_000),
+          pattern,
+          locked: g.locked === true,
+          extent: {
+            rows: rows === null ? null : Math.floor(rows),
+            length: num(g.extent?.length, "row length", 0, 100_000),
+          },
+        },
+      },
+    };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
 function storedPlantIds(systemdesign: any) {
   const ids = referencedIds(systemdesign?.rows ?? []);
   return { varieties: new Set(ids.varieties), rootstocks: new Set(ids.rootstocks) };
@@ -110,8 +169,15 @@ router.put(
         res.status(400).send({ error: checked.errors.join("; "), errors: checked.errors });
         return;
       }
+      const layout = cleanLayout(body?.layout);
+      if (!layout.ok) {
+        res.status(400).send({ error: layout.error });
+        return;
+      }
       // Leave rows alone if the request didn't send any.
-      const design = Array.isArray(body?.rows) ? { ...body, rows: checked.value } : body;
+      const design: any = Array.isArray(body?.rows) ? { ...body, rows: checked.value } : { ...body };
+      if (layout.value === undefined) delete design.layout;
+      else design.layout = layout.value;
 
       if (foundProject.systemdesign) {
         console.log("##### found system design #####");

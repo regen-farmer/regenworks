@@ -1,4 +1,5 @@
 import { attachPlantDetails } from "../planting/plant_details.ts";
+import { isGridLayout } from "../layout-grid/grid_layout.ts";
 import { runTurfJsLayout } from "./turf-js.ts";
 import type {
   LayoutBackendName,
@@ -89,7 +90,11 @@ export async function runSystemBasedLayoutWithMetrics(
   systemDesign: any,
   fieldGeometry: any,
 ): Promise<LayoutBackendRun> {
-  const backendName = configuredLayoutBackendName();
+  // Grid designs have their own layout model, reached through the TypeScript
+  // entry point; the native engines only know the row layout.
+  const backendName = isGridLayout(plainLayoutInput(systemDesign))
+    ? "turf-js"
+    : configuredLayoutBackendName();
 
   try {
     const run = await runSelectedLayoutBackend(backendName, systemDesign, fieldGeometry);

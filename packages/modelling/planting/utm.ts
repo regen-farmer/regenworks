@@ -60,7 +60,18 @@ export function toUtm32(lon: number, lat: number): { e: number; n: number } {
 
 /** ETRS89 longitude/latitude (degrees) to a grid's easting/northing (metres). */
 export function toGrid(lon: number, lat: number, gridId: GridId): { e: number; n: number } {
-  const g = GRIDS[gridId];
+  return toTm(lon, lat, GRIDS[gridId]);
+}
+
+/**
+ * Transverse Mercator easting/northing for any central meridian and scale.
+ * A projection with `k0: 1` centred on a field keeps ground distances to well
+ * under a millimetre per 100 m across the field (used by the grid layout).
+ */
+export type TmProjection = Pick<Grid, "lon0" | "k0" | "fe" | "fn">;
+
+/** ETRS89 longitude/latitude (degrees) to a Transverse Mercator projection (metres). */
+export function toTm(lon: number, lat: number, g: TmProjection): { e: number; n: number } {
   const phi = (lat * Math.PI) / 180;
   const lambda = ((lon - g.lon0) * Math.PI) / 180;
   // conformal latitude
@@ -83,7 +94,11 @@ export function fromUtm32(e: number, n: number): { lon: number; lat: number } {
 
 /** A grid's easting/northing (metres) back to ETRS89 longitude/latitude (degrees). */
 export function fromGrid(e: number, n: number, gridId: GridId): { lon: number; lat: number } {
-  const g = GRIDS[gridId];
+  return fromTm(e, n, GRIDS[gridId]);
+}
+
+/** Transverse Mercator easting/northing (metres) back to ETRS89 longitude/latitude. */
+export function fromTm(e: number, n: number, g: TmProjection): { lon: number; lat: number } {
   const xi = (n - g.fn) / (g.k0 * A_HAT);
   const eta = (e - g.fe) / (g.k0 * A_HAT);
   let xiP = xi;
