@@ -11,6 +11,7 @@ import { sanitizeMongoDocument, inIds } from "../utils/mongoSafety.ts";
 import Variety from "@rw/db/schemas/variety.ts";
 import Rootstock from "@rw/db/schemas/rootstock.ts";
 import { canEditDesign, checkDesignPlants, referencedIds } from "../catalogue/rules.ts";
+import { MIN_SPACING, MIN_TILE_WIDTH } from "@rw/modelling/layout-grid/grid_layout.ts";
 
 const router = express.Router();
 
@@ -78,6 +79,25 @@ export function cleanLayout(layout: any): { ok: true; value: any } | { ok: false
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
+}
+
+/**
+ * Rows the grid layout would refuse (so a saved grid design always lays out,
+ * and never drops out of farm totals later). Null when fine.
+ */
+export function gridRowsProblem(rows: any[]): string | null {
+  const width = (rows ?? []).reduce((a, r) => a + Math.max(0, Number(r?.width) || 0), 0);
+  if ((rows ?? []).length && width < MIN_TILE_WIDTH) {
+    return `Grid rows must be at least ${MIN_TILE_WIDTH} m wide together.`;
+  }
+  for (const r of rows ?? []) {
+    const seq = r?.sequence ?? [];
+    const period = seq.reduce((a: number, e: any) => a + Math.max(0, Number(e?.spacingAfter) || 0), 0);
+    if (seq.some((e: any) => e?.species) && period > 0 && period < MIN_SPACING) {
+      return `Tree spacing along a grid row must be at least ${MIN_SPACING} m.`;
+    }
+  }
+  return null;
 }
 
 function storedPlantIds(systemdesign: any) {
@@ -178,6 +198,15 @@ router.put(
       const design: any = Array.isArray(body?.rows) ? { ...body, rows: checked.value } : { ...body };
       if (layout.value === undefined) delete design.layout;
       else design.layout = layout.value;
+
+      const mode = layout.value?.mode ?? foundProject.systemdesign?.layout?.mode;
+      if (mode === "grid") {
+        const problem = gridRowsProblem(design.rows ?? foundProject.systemdesign?.rows ?? []);
+        if (problem) {
+          res.status(400).send({ error: problem });
+          return;
+        }
+      }
 
       if (foundProject.systemdesign) {
         console.log("##### found system design #####");

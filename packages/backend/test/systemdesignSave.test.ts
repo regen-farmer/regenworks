@@ -52,3 +52,13 @@ test("grid layout settings: checked on save, stored, and absent on old designs",
   const old: any = SystemDesign.hydrate({ _id: new mongoose.Types.ObjectId(), rows: [] });
   assert.equal(old.toObject().layout?.mode, undefined);
 });
+
+test("grid designs the layout would refuse are refused on save", async () => {
+  const { gridRowsProblem } = await import("../src/routes/systemdesigns.ts");
+  const row = (width: number, spacing: number) => ({ width, sequence: [{ species: "x", spacingAfter: spacing }] });
+  assert.equal(gridRowsProblem([row(6, 3)]), null);
+  assert.equal(gridRowsProblem([row(0, 3), { width: 12, sequence: [] }]), null);
+  assert.equal(gridRowsProblem([row(6, 0)]), null, "spacing 0 = no trees, as in the row layout");
+  assert.match(gridRowsProblem([row(0.2, 3), row(0.2, 3)])!, /0.5 m/);
+  assert.match(gridRowsProblem([row(6, 0.05)])!, /0.1 m/);
+});
