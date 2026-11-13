@@ -17,3 +17,48 @@ test("design save ignores the id, version and timestamps the page sends back", (
   const [where] = d.$__delta();
   assert.equal(where.__v, 3, "the update looks for the stored version");
 });
+
+test("grid layout settings: checked on save, stored, and absent on old designs", async () => {
+  const { cleanLayout } = await import("../src/routes/systemdesigns.ts");
+  assert.deepEqual(cleanLayout(undefined), { ok: true, value: undefined });
+  assert.deepEqual(cleanLayout({ mode: "rows" }), { ok: true, value: { mode: "rows" } });
+  const ok: any = cleanLayout({
+    mode: "grid",
+    grid: { anchor: [10.6, 56.2], corner: "start-left", shiftAlong: "1.5", pattern: "offset", extent: { rows: 4.7 } },
+  });
+  assert.equal(ok.ok, true);
+  assert.deepEqual(ok.value.grid.anchor, [10.6, 56.2]);
+  assert.equal(ok.value.grid.shiftAlong, 1.5);
+  assert.equal(ok.value.grid.extent.rows, 4);
+  for (const bad of [
+    { mode: "spiral" },
+    { mode: "grid", grid: { anchor: [10.6] } },
+    { mode: "grid", grid: { anchor: [500, 56] } },
+    { mode: "grid", grid: { anchor: ["x", 56] } },
+    { mode: "grid", grid: { corner: "middle" } },
+    { mode: "grid", grid: { pattern: "hex" } },
+    { mode: "grid", grid: { shiftAlong: Infinity } },
+    { mode: "grid", grid: { extent: { length: -5 } } },
+    "grid",
+  ]) {
+    assert.equal(cleanLayout(bad).ok, false, JSON.stringify(bad));
+  }
+
+  // Stored by the schema as sent; an old design has no layout at all.
+  const d: any = new SystemDesign({ rows: [], layout: ok.value });
+  assert.equal(d.validateSync(), undefined);
+  assert.equal(d.layout.mode, "grid");
+  assert.deepEqual([...d.layout.grid.anchor], [10.6, 56.2]);
+  const old: any = SystemDesign.hydrate({ _id: new mongoose.Types.ObjectId(), rows: [] });
+  assert.equal(old.toObject().layout?.mode, undefined);
+});
+
+test("grid designs the layout would refuse are refused on save", async () => {
+  const { gridRowsProblem } = await import("../src/routes/systemdesigns.ts");
+  const row = (width: number, spacing: number) => ({ width, sequence: [{ species: "x", spacingAfter: spacing }] });
+  assert.equal(gridRowsProblem([row(6, 3)]), null);
+  assert.equal(gridRowsProblem([row(0, 3), { width: 12, sequence: [] }]), null);
+  assert.equal(gridRowsProblem([row(6, 0)]), null, "spacing 0 = no trees, as in the row layout");
+  assert.match(gridRowsProblem([row(0.2, 3), row(0.2, 3)])!, /0.5 m/);
+  assert.match(gridRowsProblem([row(6, 0.05)])!, /0.1 m/);
+});

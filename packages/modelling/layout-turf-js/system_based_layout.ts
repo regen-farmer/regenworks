@@ -14,6 +14,7 @@ import { makeAllStripPolygons } from "./make_all_strip_polygons.ts";
 import { makeGroundCoverAreas } from "./make_ground_cover_areas.ts";
 import { makeInitialLine } from "./make_line.ts";
 import { makeTreeRowLines } from "./make_tree_row_lines.ts";
+import { gridLayout, isGridLayout } from "../layout-grid/grid_layout.ts";
 
 // Rust model configuration (only used server-side)
 const RUST_MODEL_URL =
@@ -143,6 +144,9 @@ export async function systemBasedLayoutAsync(
   systemdesign: ISystemDesignSchema,
   fieldGeometry: string,
 ) {
+  // Grid designs have their own layout model (the native engines don't know it).
+  if (isGridLayout(systemdesign)) return gridLayout(systemdesign, fieldGeometry);
+
   // Try Tauri native first (desktop app)
   if (isTauri()) {
     try {
@@ -173,6 +177,9 @@ export async function systemBasedLayoutAsync(
  * Synchronous TypeScript implementation (original)
  */
 export function systemBasedLayoutSync(systemdesign: ISystemDesignSchema, fieldGeometry: string) {
+  // Grid designs have their own layout model; nothing below runs for them.
+  if (isGridLayout(systemdesign)) return gridLayout(systemdesign, fieldGeometry);
+
   if (!systemdesign) {
     systemdesign = new SystemDesign({
       margin: 0,
