@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "Outputs": {
+      "properties": {
+        "unit": {
+          "const": "t CO2e/ha/yr",
+          "default": "t CO2e/ha/yr",
+          "title": "Unit",
+          "type": "string"
+        },
+        "years": {
+          "title": "Years",
+          "type": "integer"
+        },
+        "pools": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PoolSeries"
+          },
+          "description": "Keys: total, tree, soil, crop, fire, litter, fertiliser",
+          "title": "Pools",
+          "type": "object"
+        },
+        "totals": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Sum of 'difference' over all years per pool (t CO2e/ha). Negative = net removal.",
+          "title": "Totals",
+          "type": "object"
+        },
+        "soil_carbon_t_c_per_ha": {
+          "additionalProperties": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "description": "Total soil organic carbon (all RothC pools, top 30 cm) for year 0 to the last year, baseline and project (t C/ha).",
+          "title": "Soil Carbon T C Per Ha",
+          "type": "object"
+        }
+      },
+      "required": [
+        "years",
+        "pools",
+        "totals",
+        "soil_carbon_t_c_per_ha"
+      ],
+      "title": "Outputs",
+      "type": "object"
+    },
+    "PoolSeries": {
+      "properties": {
+        "baseline": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Baseline",
+          "type": "array"
+        },
+        "project": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Project",
+          "type": "array"
+        },
+        "difference": {
+          "description": "project - baseline. Negative = net removal.",
+          "items": {
+            "type": "number"
+          },
+          "title": "Difference",
+          "type": "array"
+        }
+      },
+      "required": [
+        "baseline",
+        "project",
+        "difference"
+      ],
+      "title": "PoolSeries",
+      "type": "object"
+    },
+    "RunInfo": {
+      "properties": {
+        "process": {
+          "default": "shamba",
+          "title": "Process",
+          "type": "string"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "upstream_commit": {
+          "title": "Upstream Commit",
+          "type": "string"
+        },
+        "adapter_version": {
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "input_sha256": {
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "string"
+        },
+        "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+        },
+        "soil_model": {
+          "default": "RothC",
+          "title": "Soil Model",
+          "type": "string"
+        },
+        "gwp": {
+          "title": "Gwp",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_version",
+        "upstream_commit",
+        "adapter_version",
+        "input_sha256",
+        "started_at",
+        "duration_s",
+        "gwp",
+        "warnings"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "outputs": {
+      "$ref": "#/$defs/Outputs"
+    },
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    }
+  },
+  "required": [
+    "outputs",
+    "run"
+  ],
+  "title": "ExecuteResponse",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

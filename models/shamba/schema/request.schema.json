@@ -1,0 +1,299 @@
+{
+  "$defs": {
+    "MonthlyClimate": {
+      "additionalProperties": false,
+      "properties": {
+        "temp_c": {
+          "description": "Mean monthly air temperature (°C)",
+          "maximum": 60,
+          "minimum": -50,
+          "title": "Temp C",
+          "type": "number"
+        },
+        "rain_mm": {
+          "description": "Monthly rainfall (mm)",
+          "maximum": 5000,
+          "minimum": 0,
+          "title": "Rain Mm",
+          "type": "number"
+        },
+        "evap_mm": {
+          "description": "Monthly open-pan evaporation (mm). If you only have potential evapotranspiration, divide it by 0.75 (as SHAMBA does for Open-Meteo data).",
+          "maximum": 5000,
+          "minimum": 0,
+          "title": "Evap Mm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "temp_c",
+        "rain_mm",
+        "evap_mm"
+      ],
+      "title": "MonthlyClimate",
+      "type": "object"
+    },
+    "Options": {
+      "additionalProperties": false,
+      "properties": {
+        "n_cohorts": {
+          "default": 1,
+          "description": "Tree cohorts in the project scenario",
+          "maximum": 3,
+          "minimum": 1,
+          "title": "N Cohorts",
+          "type": "integer"
+        },
+        "allometry": {
+          "description": "One key for the baseline, then one per project cohort.",
+          "items": {
+            "enum": [
+              "chave dry",
+              "chave moist",
+              "chave wet",
+              "ryan",
+              "grevillea",
+              "maesopsis",
+              "markhamia"
+            ],
+            "type": "string"
+          },
+          "title": "Allometry",
+          "type": "array"
+        },
+        "gwp": {
+          "default": "AR6",
+          "enum": [
+            "SAR",
+            "AR4",
+            "AR5",
+            "AR6"
+          ],
+          "title": "Gwp",
+          "type": "string"
+        }
+      },
+      "title": "Options",
+      "type": "object"
+    },
+    "Parameters": {
+      "additionalProperties": false,
+      "description": "Optional parameter tables. Any table left out uses SHAMBA's defaults.",
+      "properties": {
+        "tree": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Table"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "tree_params.csv"
+        },
+        "crop": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Table"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "crop_params.csv"
+        },
+        "litter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Table"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "litter_params.csv"
+        },
+        "biomass_pool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Table"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "biomass_pool_params.csv"
+        }
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "ShambaInputs": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "$ref": "#/$defs/Site"
+        },
+        "intervention": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": "One row of SHAMBA's input sheet (the 'input' tab of the SHAMBA v1.2 template), keyed by its column names, e.g. yrs_proj, species1, base_plant_dens. 'lat' and 'lon' are taken from site and may be omitted.",
+          "maxProperties": 400,
+          "title": "Intervention",
+          "type": "object"
+        },
+        "parameters": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "options": {
+          "$ref": "#/$defs/Options"
+        }
+      },
+      "required": [
+        "site",
+        "intervention"
+      ],
+      "title": "ShambaInputs",
+      "type": "object"
+    },
+    "Site": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Lon",
+          "type": "number"
+        },
+        "climate": {
+          "description": "Twelve months, January first.",
+          "items": {
+            "$ref": "#/$defs/MonthlyClimate"
+          },
+          "maxItems": 12,
+          "minItems": 12,
+          "title": "Climate",
+          "type": "array"
+        },
+        "soil": {
+          "$ref": "#/$defs/Soil"
+        }
+      },
+      "required": [
+        "lat",
+        "lon",
+        "climate",
+        "soil"
+      ],
+      "title": "Site",
+      "type": "object"
+    },
+    "Soil": {
+      "additionalProperties": false,
+      "properties": {
+        "soc_t_c_per_ha": {
+          "description": "Soil organic carbon in the top 30 cm at year 0 (t C/ha). SHAMBA 'Cy0'.",
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Soc T C Per Ha",
+          "type": "number"
+        },
+        "clay_pct": {
+          "description": "Clay content (%)",
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Clay Pct",
+          "type": "number"
+        }
+      },
+      "required": [
+        "soc_t_c_per_ha",
+        "clay_pct"
+      ],
+      "title": "Soil",
+      "type": "object"
+    },
+    "Table": {
+      "additionalProperties": false,
+      "description": "A parameter table, written to CSV exactly as given.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns",
+        "rows"
+      ],
+      "title": "Table",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "$ref": "#/$defs/ShambaInputs"
+    }
+  },
+  "required": [
+    "inputs"
+  ],
+  "title": "ExecuteRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
