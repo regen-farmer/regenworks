@@ -1,4 +1,5 @@
-import User from "../schemas/user.ts";
+// Legacy one-off (no dry run, no --apply gate). Kept for reference; do not run through migrate.ts.
+import User from "../../schemas/user.ts";
 
 import { connect } from "mongoose";
 
