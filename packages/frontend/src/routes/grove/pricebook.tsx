@@ -1,4 +1,4 @@
-// Grove pricebook: upload a version from the private grove-pricebook repo,
+// Grove pricebook: upload a version from the private grove-data repo,
 // see documents with their dates, and search prices. Grove team only.
 import { createFileRoute, Link } from "@tanstack/solid-router";
 import { createResource, createSignal, For, Show } from "solid-js";
@@ -38,7 +38,7 @@ function Pricebook() {
     }
     const missing = FILES.filter((n) => !form.has(n));
     if (missing.length) {
-      showToast({ title: `Missing: ${missing.join(", ")}`, description: "Choose all four CSV files from the grove-pricebook repo.", variant: "destructive" });
+      showToast({ title: `Missing: ${missing.join(", ")}`, description: "Choose all four CSV files from the grove-data repo.", variant: "destructive" });
       return;
     }
     form.append("note", (formEl.elements.namedItem("note") as HTMLInputElement).value);
@@ -70,7 +70,7 @@ function Pricebook() {
         <h1 class="text-3xl font-bold">Pricebook</h1>
         <Link to="/grove/prices" class="text-sm underline">See all prices, costs and margins →</Link>
         <p class="text-sm opacity-70">
-          Grove's prices from the private grove-pricebook repo. Offers use Grove's sales price where one exists, otherwise
+          Grove's prices from the private grove-data repo. Offers use Grove's sales price where one exists, otherwise
           the supplier price plus margin, rounded to 5 kr.
         </p>
       </div>

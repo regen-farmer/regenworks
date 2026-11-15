@@ -1,5 +1,5 @@
 // Pricebook: CSV reading, checks, matching and price suggestions, using the
-// real file layout of the private grove-pricebook repo (made-up prices).
+// real file layout of the private grove-data repo (made-up prices).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseCsv } from "../src/internal/csv.ts";

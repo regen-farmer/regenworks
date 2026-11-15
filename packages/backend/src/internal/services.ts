@@ -1,7 +1,7 @@
 // Offer v2: services (tree protection, fencing, site preparation, planting,
 // staking, design, irrigation, logistics). Pure functions, tested.
 //
-// The service list and its prices live in the private grove-pricebook repo
+// The service list and its prices live in the private grove-data repo
 // (services.csv); this code only knows the columns. Each service has a unit
 // on the offer (e.g. "stk.", "m", "ha", "sæt") and a rule for its quantity
 // from the design: per tree, per metre of tree row, per metre of field

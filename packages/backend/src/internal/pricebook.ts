@@ -1,6 +1,6 @@
 // Grove pricebook inside the app.
 //
-// The master copy is the private `grove-pricebook` repo (CSV files). The
+// The master copy is the private `grove-data` repo (CSV files; formerly grove-pricebook). The
 // Grove team uploads those files here; each upload becomes a numbered
 // version, stored in its own collection and only ever sent to grove-team.
 // Pure functions (no database) so they can be tested.
