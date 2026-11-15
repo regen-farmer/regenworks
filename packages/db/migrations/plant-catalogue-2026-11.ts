@@ -1,3 +1,4 @@
+// migration: dry-run-by-default
 // One-off: move old cultivar fields into the plant catalogue (Nov 2026).
 //
 // Before, a cultivar (Variety) stored its rootstock as a name + species and a

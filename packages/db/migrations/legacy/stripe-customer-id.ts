@@ -1,5 +1,6 @@
+// Legacy one-off (no dry run, no --apply gate). Kept for reference; do not run through migrate.ts.
 import Stripe from "stripe";
-import User from "../schemas/user.ts";
+import User from "../../schemas/user.ts";
 
 import { connect } from "mongoose";
 function delay(time) {
