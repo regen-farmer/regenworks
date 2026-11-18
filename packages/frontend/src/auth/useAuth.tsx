@@ -42,7 +42,8 @@ export const allowFarmCreation = (): boolean => {
       // the Grove team keeps farms for its clients: no cap
       hasRole(getMongoDBUser(), "grove-field") ||
       (getMongoDBUser() && getMongoDBUser().parcels?.length < 1) ||
-      (paymentPlan() === "advisor" && getMongoDBUser() && getMongoDBUser().parcels?.length < 100)
+      // advisors keep farms for many clients: no cap
+      (paymentPlan() === "advisor" && !!getMongoDBUser())
     );
   }
 
