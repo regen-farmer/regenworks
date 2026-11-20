@@ -21,6 +21,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/", label: "Farms & designs", icon: "fa-map-location-dot", sub: true, exact: true, also: /^\/parcels(\/|$)/ },
   { to: "/grove/managed", label: "Management & production", letter: "C", icon: "fa-tractor", exact: true },
   { to: "/grove/supply", label: "Nursery & supply", icon: "fa-seedling", sub: true, show: () => canSeeMoney() },
+  { to: "/grove/apcco", label: "APCCO Uganda", letter: "D", icon: "fa-mug-hot", show: () => isGroveTeam(), also: /^\/grove\/apcco(\/|$)/ },
   { heading: "Library" },
   { to: "/plants", label: "Plants", icon: "fa-seedling", show: () => canUsePlantCatalogue() },
   { to: "/grove/prices", label: "Prices", icon: "fa-scale-balanced", show: () => canSeeMoney() },
