@@ -329,13 +329,28 @@ function DataTab(props: { detail: Detail; templates?: Record<DataKind, Template>
 function ModelsTab(props: { detail: Detail; onRun: () => void }) {
   const r = () => props.detail.readiness.models;
   const [sets] = createResource(() => apiFetch<{ sets: ParameterSet[] }>("/internal/apcco/parameter-sets?model=shamba"));
-  const [draft] = createResource(() => props.detail.site._id, (id) => apiFetch<{ scenario: ShambaScenario; notes: string[]; defaultTreeRows: string[] }>(`/internal/apcco/sites/${id}/shamba/draft`));
+  // the draft follows the field data: fetched again whenever an import changes it
+  const dataKey = () => `${props.detail.site._id}|${props.detail.site.areaHa ?? ""}|${props.detail.datasets.map((d) => `${d.kind}:${d.updatedAt}`).join(",")}`;
+  const [draft] = createResource(dataKey, (key) => apiFetch<{ scenario: ShambaScenario; notes: string[]; defaultTreeRows: string[] }>(`/internal/apcco/sites/${key.split("|")[0]}/shamba/draft`));
   const [sc, setSc] = createSignal<ShambaScenario | null>(null);
+  const [edited, setEdited] = createSignal(false);
+  const [seededFrom, setSeededFrom] = createSignal("");
   const [setId, setSetId] = createSignal("");
   const [running, setRunning] = createSignal(false);
   createEffect(() => {
-    if (draft() && !sc()) setSc(structuredClone(draft()!.scenario));
+    const d = draft();
+    if (!d || draft.loading) return;
+    // new field data: take the new draft unless the scenario has been edited by hand
+    if (!sc() || !edited()) {
+      setSc(structuredClone(d.scenario));
+      setSeededFrom(dataKey());
+    }
   });
+  const reset = () => {
+    setSc(structuredClone(draft()!.scenario));
+    setSeededFrom(dataKey());
+    setEdited(false);
+  };
   createEffect(() => {
     if (sets() && !setId()) setSetId(sets()!.sets.find((s) => s.builtIn)?._id ?? sets()!.sets[0]?._id ?? "");
   });
@@ -343,6 +358,7 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
     const next = structuredClone(sc()!);
     fn(next);
     setSc(next);
+    setEdited(true);
   };
   const num = (v: string) => Number(v.replace(",", "."));
   // SHAMBA: cohort k uses row k of the chosen set's tree table
@@ -351,7 +367,9 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
     const rows: any[] | undefined = set?.values?.tables?.tree?.rows;
     if (rows?.length) {
       const r = rows[k];
-      return r ? String(r[r.length - 1] ?? r[1] ?? `row ${k + 1}`) : "–";
+      if (!r) return "–";
+      const last = r[r.length - 1];
+      return typeof last === "string" && last.trim() ? last : String(r[1] ?? `row ${k + 1}`);
     }
     return draft()?.defaultTreeRows?.[k] ?? `row ${k + 1}`;
   };
@@ -400,11 +418,14 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
           <b>SHAMBA scenario</b>
           <span class="text-xs opacity-70">Prefilled from the field data; change anything before running.</span>
           <Show when={draft()}>
-            <button class={`${btn} ml-auto`} onClick={() => setSc(structuredClone(draft()!.scenario))}>
+            <button class={`${btn} ml-auto`} onClick={reset}>
               Reset from the data
             </button>
           </Show>
         </div>
+        <Show when={edited() && seededFrom() !== dataKey()}>
+          <p class="mt-2 text-xs text-amber-700 dark:text-amber-400">The field data has changed since this scenario was drafted. "Reset from the data" to use it (your edits are replaced).</p>
+        </Show>
         <Show when={draft()?.notes.length}>
           <ul class="mt-2 text-xs list-disc ml-5 opacity-80">
             <For each={draft()!.notes}>{(n) => <li>{n}</li>}</For>

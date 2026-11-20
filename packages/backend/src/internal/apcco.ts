@@ -705,7 +705,10 @@ export function checkShambaTreeTable(t: { columns: string[]; rows: (string | num
 export function shambaTreeRowNames(tables: any): string[] {
   const rows: any[] | undefined = tables?.tree?.rows;
   if (!rows?.length) return ["default", "enterolobium", "faidherbia"];
-  return rows.slice(0, 3).map((r, i) => String(r[r.length - 1] ?? r[1] ?? `row ${i + 1}`));
+  return rows.slice(0, 3).map((r, i) => {
+    const last = r[r.length - 1];
+    return typeof last === "string" && last.trim() ? last : String(r[1] ?? `row ${i + 1}`);
+  });
 }
 
 export function parameterLabel(p: { model: string; name: string; status: string; dataset?: string | null; version: string }) {

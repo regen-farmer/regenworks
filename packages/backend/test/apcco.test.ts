@@ -299,3 +299,8 @@ test("the app-wide 100 kB JSON parser leaves /internal/apcco to its own 6 MB par
   assert.equal(other.status, 413);
   srv.close();
 });
+
+test("tree-row names: the trailing name column, else the Name column (not a number)", () => {
+  const ten = tableFromCsv("Sc,Name,N_leaf,N_branch,N_stem,N_croot,N_Froot,C,rs,wood_dens\n1,robusta,0.02,0.002,0.002,0.002,0.01,0.5,0.3,0.62\n2,albizia,0.03,0.006,0.004,0.012,0.02,0.5,0.4,0.55\n3,ficus,0.03,0.006,0.004,0.012,0.02,0.5,0.4,0.42\n") as any;
+  assert.deepEqual(shambaTreeRowNames({ tree: ten }), ["robusta", "albizia", "ficus"]);
+});

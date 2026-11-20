@@ -361,8 +361,14 @@ router.delete("/parameter-sets/:id", async (req: Req, res) => {
     res.status(404).send({ error: "Parameter set not found" });
     return;
   }
-  if (set.builtIn || (await ApccoRun.exists({ parameterSet: set._id }))) {
-    res.status(409).send({ error: set.builtIn ? "Built-in sets can't be deleted" : "Used in runs; archive it instead" });
+  if (set.builtIn) {
+    res.status(409).send({ error: "Built-in sets can't be deleted" });
+    return;
+  }
+  // failed runs still refer to the set, so it's archived rather than deleted (hidden from the lists)
+  if (await ApccoRun.exists({ parameterSet: set._id })) {
+    await ApccoParameterSet.updateOne({ _id: set._id }, { $set: { archived: true } });
+    res.send({ ok: true, archived: true });
     return;
   }
   await ApccoParameterSet.deleteOne({ _id: set._id });

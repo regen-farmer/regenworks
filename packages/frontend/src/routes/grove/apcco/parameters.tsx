@@ -66,6 +66,7 @@ function ParameterSets() {
   async function archive(s: ParameterSet) {
     const r = s.runs ? await sendJson("PUT", `/internal/apcco/parameter-sets/${s._id}`, { archived: true }) : await sendJson("DELETE", `/internal/apcco/parameter-sets/${s._id}`);
     if (!r.ok) showToast({ title: r.body?.error ?? "Not removed", variant: "destructive" });
+    else if (r.body?.archived) showToast({ title: "Archived", description: "Failed runs refer to this set, so it's archived (hidden) rather than deleted." });
     refetch();
   }
   const statusColor = { original: "#64748b", literature: "#2563eb", calibrated: "#15803d" };
