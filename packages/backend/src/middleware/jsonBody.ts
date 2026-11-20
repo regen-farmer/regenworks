@@ -1,9 +1,9 @@
 // The app-wide JSON body parser (100 kB), skipped for routes that parse their own larger
-// bodies after their role check (Model sites: outlines and import files).
+// bodies after their role check (Model sites: outlines and import files; APCCO: field-data CSVs).
 import bodyParser from "body-parser";
 import type express from "express";
 
-const OWN_PARSERS = ["/internal/model-sites"];
+const OWN_PARSERS = ["/internal/model-sites", "/internal/apcco"];
 
 export function defaultJson(): express.RequestHandler {
   const json = bodyParser.json();

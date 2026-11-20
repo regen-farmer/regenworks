@@ -1,0 +1,99 @@
+name: Deploy model runner (Google Cloud Run)
+
+# Builds a model runner image, pushes it to Grove's PRIVATE Artifact Registry and deploys it to
+# Cloud Run with hard limits (scale to zero, max instances, CPU, memory, timeout). Manual only,
+# so nothing is deployed (or billed) by accident. Section D (APCCO Uganda) calls it from the
+# backend with a bearer token (MODEL_<MODEL>_URL / MODEL_<MODEL>_TOKEN on Render).
+#
+# One-time setup in Google Cloud (see models/README.md → "Hosting on Google Cloud Run"):
+#   repository secrets  GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT
+#   repository variables GCP_PROJECT_ID, GCP_REGION (e.g. europe-west1), GCP_ARTIFACT_REPO (e.g. models),
+#                        GCP_RUNTIME_SERVICE_ACCOUNT (the account the service runs as; only reads its token)
+#   Secret Manager       shamba-api-token (the bearer token the backend sends)
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Model runner to deploy
+        type: choice
+        options: [shamba]
+        default: shamba
+
+permissions:
+  contents: read
+  id-token: write # keyless login to Google (Workload Identity Federation), no service-account key
+
+concurrency:
+  group: models-deploy-${{ inputs.model }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.model }}
+    runs-on: ubuntu-latest
+    environment: models
+    env:
+      MODEL: ${{ inputs.model }}
+      REGION: ${{ vars.GCP_REGION || 'europe-west1' }}
+      PROJECT: ${{ vars.GCP_PROJECT_ID }}
+      REPO: ${{ vars.GCP_ARTIFACT_REPO || 'models' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the setup is there
+        env:
+          WIF_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          RUNTIME_SA: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$PROJECT" || { echo "::error::Set the repository variable GCP_PROJECT_ID"; exit 1; }
+          test -n "$WIF_PROVIDER" || { echo "::error::Set the secret GCP_WORKLOAD_IDENTITY_PROVIDER"; exit 1; }
+          test -n "$RUNTIME_SA" || { echo "::error::Set the repository variable GCP_RUNTIME_SERVICE_ACCOUNT"; exit 1; }
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push (private registry)
+        run: |
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT/$REPO/$MODEL-runner:${GITHUB_SHA::12}"
+          gcloud auth configure-docker "$REGION-docker.pkg.dev" --quiet
+          docker build -t "$IMAGE" "models/$MODEL"
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run with limits
+        env:
+          RUNTIME_SA: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+        run: |
+          # Limits agreed for section D: scale to zero, at most 3 instances x 1 run (the backend
+          # allows 3 runs at once), 1 vCPU / 2 GiB each with a 1.5 GB cap per run, 5 min per
+          # request. Runs as its own service account (it can only read its token). The service's
+          # bearer token guards it; the backend is the only caller.
+          gcloud run deploy "model-$MODEL" \
+            --image "$IMAGE" \
+            --project "$PROJECT" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated \
+            --cpu 1 --memory 2Gi \
+            --service-account "$RUNTIME_SA" \
+            --min-instances 0 --max-instances 3 \
+            --concurrency 1 --timeout 300 \
+            --cpu-throttling \
+            --set-env-vars "SHAMBA_MAX_CONCURRENT=1,SHAMBA_TIMEOUT_S=150,SHAMBA_MEMORY_MB=1536" \
+            --set-secrets "SHAMBA_API_TOKEN=shamba-api-token:latest" \
+            --labels "app=groveworks,section=apcco,model=$MODEL" \
+            --quiet
+          URL=$(gcloud run services describe "model-$MODEL" --project "$PROJECT" --region "$REGION" --format 'value(status.url)')
+          echo "Service URL: $URL  →  set MODEL_SHAMBA_URL on the Render backend to this" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Smoke test
+        run: |
+          URL=$(gcloud run services describe "model-$MODEL" --project "$PROJECT" --region "$REGION" --format 'value(status.url)')
+          for i in $(seq 1 20); do curl -sf "$URL/health" && break; sleep 3; done
+          # without the token the process list is refused
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$URL/processes")" = "401"
