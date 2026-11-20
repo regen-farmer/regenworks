@@ -212,6 +212,22 @@ export function parseImport(kind: DataKind, text: string): ImportResult {
   }
   if (kind === "soil") {
     for (const r of rows) if ((r.depth_bottom_cm as number) <= (r.depth_top_cm as number)) errors.push(`Sample ${r.sample_id}: the bottom of the layer must be below the top`);
+    // layers of one sampling point must not overlap (a 0–30 composite next to 0–15 and 15–30 would count twice)
+    const byPoint = new Map<string, Record<string, any>[]>();
+    for (const r of rows) {
+      const g = byPoint.get(String(r.sample_id));
+      if (g) g.push(r);
+      else byPoint.set(String(r.sample_id), [r]);
+    }
+    for (const [id, layers] of byPoint) {
+      const sorted = [...layers].sort((a, b) => a.depth_top_cm - b.depth_top_cm);
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i].depth_top_cm < sorted[i - 1].depth_bottom_cm) {
+          errors.push(`Sample ${id}: layers ${sorted[i - 1].depth_top_cm}–${sorted[i - 1].depth_bottom_cm} cm and ${sorted[i].depth_top_cm}–${sorted[i].depth_bottom_cm} cm overlap; give a composite sample its own sample_id`);
+          break;
+        }
+      }
+    }
   }
   if (kind === "weather-daily") {
     for (const r of rows) if (r.tmin_c !== null && r.tmax_c !== null && (r.tmin_c as number) > (r.tmax_c as number)) errors.push(`${r.date}: minimum temperature above the maximum`);
@@ -249,7 +265,9 @@ export function shadeSummary(trees: Rows | undefined, areaHa: number | null) {
   const groups = new Map<string, Rows>();
   for (const t of trees ?? []) {
     const k = String(t.species ?? "").trim() || "unknown";
-    groups.set(k, [...(groups.get(k) ?? []), t]);
+    const g = groups.get(k);
+    if (g) g.push(t);
+    else groups.set(k, [t]);
   }
   const species = [...groups.entries()].map(([name, rows]) => {
     const dbh = nums(rows, "dbh_cm");
@@ -294,7 +312,11 @@ export function coffeeSummary(plots: Rows | undefined) {
  */
 export function soilSummary(samples: Rows | undefined) {
   const byPoint = new Map<string, Rows>();
-  for (const s of samples ?? []) byPoint.set(String(s.sample_id), [...(byPoint.get(String(s.sample_id)) ?? []), s]);
+  for (const s of samples ?? []) {
+    const g = byPoint.get(String(s.sample_id));
+    if (g) g.push(s);
+    else byPoint.set(String(s.sample_id), [s]);
+  }
   const stocks: number[] = [];
   const clays: number[] = [];
   let partial = 0;
@@ -451,11 +473,16 @@ export function readiness(site: { lat?: number; lon?: number; areaHa?: number | 
 export const SHAMBA_ALLOMETRY = ["chave dry", "chave moist", "chave wet", "ryan", "grevillea", "maesopsis", "markhamia"] as const;
 export const SHAMBA_GWP = ["SAR", "AR4", "AR5", "AR6"] as const;
 
+/**
+ * One SHAMBA tree cohort. SHAMBA ties a cohort's tree parameters and its growth curve to its
+ * species number: cohort k is species k, uses row k of the parameter set's tree table and the
+ * curve keys age/diam (k = 1) or spK_age/spK_diam. So the order of the cohorts is the order of
+ * the rows in the tree table (SHAMBA's defaults: 1 default, 2 enterolobium, 3 faidherbia).
+ */
 export type Cohort = {
   label: string;
-  /** Row (Sc) in the parameter set's tree table; SHAMBA's defaults have 1 default, 2 enterolobium, 3 faidherbia */
-  treeParam: number;
   allometry: (typeof SHAMBA_ALLOMETRY)[number];
+  /** Trees per ha, a whole number (SHAMBA reads it as an integer) */
   densityPerHa: number;
   plantYear: number;
   /** Growth curve: six (age, diameter cm) points, age ascending, starting at age 0 */
@@ -495,7 +522,6 @@ export function draftShambaScenario(summary: ReturnType<typeof siteSummary>): { 
   const c = summary.coffee;
   cohorts.push({
     label: `Coffee (${c.coffeeTypes[0] ?? "robusta"})`,
-    treeParam: 1,
     allometry: "chave moist",
     densityPerHa: c.bushesPerHa ?? 1100,
     plantYear: 0,
@@ -516,9 +542,8 @@ export function draftShambaScenario(summary: ReturnType<typeof siteSummary>): { 
     if (age === null) notes.push(`${label}: no ages in the register, so its growth curve assumes 1 cm/year. Enter the curve by hand or add ages.`);
     return {
       label,
-      treeParam: 1,
       allometry: "chave moist",
-      densityPerHa: area ? round(count / area, 1)! : 0,
+      densityPerHa: area ? Math.round(count / area) : 0,
       plantYear: 0,
       growth: growthFrom(age, age === null ? null : dbh, years),
     };
@@ -529,11 +554,13 @@ export function draftShambaScenario(summary: ReturnType<typeof siteSummary>): { 
     if (cohorts.length < 3) cohorts.push(merged);
     else {
       // fold the rest into the second shade cohort's density (SHAMBA allows 3 cohorts)
-      cohorts[2].densityPerHa = round(cohorts[2].densityPerHa + merged.densityPerHa, 1)!;
+      cohorts[2].densityPerHa = area ? Math.round((top[1].count + rest.reduce((a, s) => a + s.count, 0)) / area) : 0;
       cohorts[2].label += ` + ${rest.length} other species`;
     }
   }
   if (!area && sp.length) notes.push("No site area, so shade-tree densities are 0: add the boundary or the area (ha).");
+  for (const k of cohorts.slice(1)) if (k.densityPerHa === 0 && area) notes.push(`${k.label}: fewer than 0.5 trees per ha, so 0 after rounding (SHAMBA counts whole trees per ha).`);
+  notes.push("Cohort 1 uses row 1 of the parameter set's tree table, cohort 2 row 2, cohort 3 row 3 (SHAMBA's rule). For robusta and Ugandan shade trees, use a set whose tree table has those three rows in that order.");
   if (!sp.length) notes.push("No shade trees imported yet; the project has coffee only.");
   notes.push("Trees are planted in year 0 and grow along their curves, as SHAMBA models a planting; the baseline is coffee without shade trees by default.");
   return {
@@ -557,9 +584,8 @@ export function cleanShambaScenario(x: any): { ok: true; value: ShambaScenario }
   for (const [i, c] of x.cohorts.entries()) {
     const n = `Cohort ${i + 1}`;
     if (typeof c?.label !== "string" || !c.label.trim()) return { ok: false, error: `${n}: name missing` };
-    if (!isNum(c.treeParam, 1, 500) || !Number.isInteger(c.treeParam)) return { ok: false, error: `${n}: tree parameter row must be a whole number` };
     if (!SHAMBA_ALLOMETRY.includes(c.allometry)) return { ok: false, error: `${n}: unknown allometry` };
-    if (!isNum(c.densityPerHa, 0, 20_000)) return { ok: false, error: `${n}: density must be 0–20,000 per ha` };
+    if (!isNum(c.densityPerHa, 0, 20_000) || !Number.isInteger(c.densityPerHa)) return { ok: false, error: `${n}: density must be a whole number of trees per ha (0–20,000)` };
     if (!isNum(c.plantYear, 0, x.years) || !Number.isInteger(c.plantYear)) return { ok: false, error: `${n}: planting year must be within the period` };
     if (!Array.isArray(c.growth) || c.growth.length !== 6) return { ok: false, error: `${n}: the growth curve needs six points` };
     for (let k = 0; k < 6; k++) {
@@ -568,7 +594,7 @@ export function cleanShambaScenario(x: any): { ok: true; value: ShambaScenario }
       if (k === 0 && p.age !== 0) return { ok: false, error: `${n}: the growth curve starts at age 0` };
       if (k > 0 && (p.age <= c.growth[k - 1].age || p.diamCm < c.growth[k - 1].diamCm)) return { ok: false, error: `${n}: growth ages must rise and diameters must not fall` };
     }
-    cohorts.push({ label: c.label.trim().slice(0, 120), treeParam: c.treeParam, allometry: c.allometry, densityPerHa: c.densityPerHa, plantYear: c.plantYear, growth: c.growth.map((p: any) => ({ age: p.age, diamCm: p.diamCm })) });
+    cohorts.push({ label: c.label.trim().slice(0, 120), allometry: c.allometry, densityPerHa: c.densityPerHa, plantYear: c.plantYear, growth: c.growth.map((p: any) => ({ age: p.age, diamCm: p.diamCm })) });
   }
   return { ok: true, value: { years: x.years, baseline: x.baseline, baselineAllometry: x.baselineAllometry, mortality: x.mortality, cohorts, gwp: x.gwp } };
 }
@@ -583,8 +609,8 @@ export function buildShambaRequest(site: { lat: number; lon: number }, climate: 
     yrs_proj: sc.years,
     yr_mon: 0,
     analysis_no: 0,
-    // baseline: coffee only (first cohort's species and curve) or no trees
-    species_base: sc.cohorts[0].treeParam,
+    // baseline: coffee only (cohort 1 = species 1: its tree parameters and curve) or no trees
+    species_base: 1,
     base_plant_dens: sc.baseline === "coffee" ? sc.cohorts[0].densityPerHa : 0,
     base_plant_yr: 0,
     base_mort: sc.baseline === "coffee" ? sc.mortality : 0,
@@ -613,7 +639,7 @@ export function buildShambaRequest(site: { lat: number; lon: number }, climate: 
   }
   sc.cohorts.forEach((c, i) => {
     const k = i + 1;
-    iv[`species${k}`] = c.treeParam;
+    iv[`species${k}`] = k; // SHAMBA: species k → tree-table row k and the spK_ growth curve
     iv[`proj_plant_yr${k}`] = c.plantYear;
     iv[`proj_plant_dens${k}`] = c.densityPerHa;
     const pre = k === 1 ? "" : `sp${k}_`;
@@ -665,6 +691,21 @@ export function tableFromCsv(text: string): { columns: string[]; rows: (string |
     });
   });
   return { columns: t[0].map((c) => c.trim()), rows };
+}
+
+/** SHAMBA reads the first three rows of the tree table by position, columns 3–10 as numbers. */
+export function checkShambaTreeTable(t: { columns: string[]; rows: (string | number | null)[][] }): string | null {
+  if (t.columns.length < 10) return "the tree table needs SHAMBA's 10 columns (Sc, Name, N_leaf, N_branch, N_stem, N_croot, N_Froot, C, rs, wood_dens)";
+  if (t.rows.length < 3) return "the tree table needs at least 3 rows: one per cohort (coffee, then two shade-tree groups)";
+  for (let r = 0; r < 3; r++) for (let c = 2; c <= 9; c++) if (typeof t.rows[r][c] !== "number") return `tree table row ${r + 1}, column ${t.columns[c] || c + 1}: a number is needed`;
+  return null;
+}
+
+/** Names of the first three tree-table rows (the cohorts' parameters), for the form. */
+export function shambaTreeRowNames(tables: any): string[] {
+  const rows: any[] | undefined = tables?.tree?.rows;
+  if (!rows?.length) return ["default", "enterolobium", "faidherbia"];
+  return rows.slice(0, 3).map((r, i) => String(r[r.length - 1] ?? r[1] ?? `row ${i + 1}`));
 }
 
 export function parameterLabel(p: { model: string; name: string; status: string; dataset?: string | null; version: string }) {

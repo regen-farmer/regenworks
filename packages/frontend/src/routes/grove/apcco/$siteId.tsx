@@ -71,14 +71,19 @@ function ApccoSite() {
           <Show when={tab() === "data"}>
             <DataTab detail={detail()!} templates={templates()?.templates} onChanged={refetch} />
           </Show>
-          <Show when={tab() === "models"}>
-            <ModelsTab
-              detail={detail()!}
-              onRun={() => {
-                refetchRuns();
-                setTab("runs");
-              }}
-            />
+          {/* kept mounted so scenario edits survive tab switches; keyed so another site starts fresh */}
+          <Show when={detail()!.site._id} keyed>
+            {(_id) => (
+              <div classList={{ hidden: tab() !== "models" }}>
+                <ModelsTab
+                  detail={detail()!}
+                  onRun={() => {
+                    refetchRuns();
+                    setTab("runs");
+                  }}
+                />
+              </div>
+            )}
           </Show>
           <Show when={tab() === "runs"}>
             <RunsTab runs={runs()?.runs ?? []} siteName={detail()!.site.name} />
@@ -324,7 +329,7 @@ function DataTab(props: { detail: Detail; templates?: Record<DataKind, Template>
 function ModelsTab(props: { detail: Detail; onRun: () => void }) {
   const r = () => props.detail.readiness.models;
   const [sets] = createResource(() => apiFetch<{ sets: ParameterSet[] }>("/internal/apcco/parameter-sets?model=shamba"));
-  const [draft] = createResource(() => props.detail.site._id, (id) => apiFetch<{ scenario: ShambaScenario; notes: string[] }>(`/internal/apcco/sites/${id}/shamba/draft`));
+  const [draft] = createResource(() => props.detail.site._id, (id) => apiFetch<{ scenario: ShambaScenario; notes: string[]; defaultTreeRows: string[] }>(`/internal/apcco/sites/${id}/shamba/draft`));
   const [sc, setSc] = createSignal<ShambaScenario | null>(null);
   const [setId, setSetId] = createSignal("");
   const [running, setRunning] = createSignal(false);
@@ -340,6 +345,16 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
     setSc(next);
   };
   const num = (v: string) => Number(v.replace(",", "."));
+  // SHAMBA: cohort k uses row k of the chosen set's tree table
+  const treeRowName = (k: number) => {
+    const set = sets()?.sets.find((x) => x._id === setId());
+    const rows: any[] | undefined = set?.values?.tables?.tree?.rows;
+    if (rows?.length) {
+      const r = rows[k];
+      return r ? String(r[r.length - 1] ?? r[1] ?? `row ${k + 1}`) : "–";
+    }
+    return draft()?.defaultTreeRows?.[k] ?? `row ${k + 1}`;
+  };
   const shambaReady = () => r().shamba.checks.filter((c) => c.item !== "Growth (diameter and age)").every((c) => c.ok);
 
   async function run() {
@@ -428,7 +443,7 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
             <thead>
               <tr class="text-left border-b border-zinc-300 dark:border-slate-600 text-xs">
                 <th class="py-1">Cohort</th>
-                <th title="Row (Sc) in the parameter set's tree table">Tree param.</th>
+                <th title="SHAMBA: cohort 1 uses row 1 of the parameter set's tree table, cohort 2 row 2, cohort 3 row 3">Tree parameters</th>
                 <th>Allometry</th>
                 <th>Per ha</th>
                 <th>Planted (yr)</th>
@@ -443,8 +458,8 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
                     <td class="py-1 pr-2">
                       <input class={`${input} w-48`} value={c.label} onChange={(e) => update((s) => (s.cohorts[i()].label = e.currentTarget.value))} />
                     </td>
-                    <td>
-                      <input type="number" min={1} class={`${input} w-14`} value={c.treeParam} onChange={(e) => update((s) => (s.cohorts[i()].treeParam = Math.round(num(e.currentTarget.value))))} />
+                    <td class="text-xs pr-2" title="Row of the parameter set's tree table">
+                      row {i() + 1}: {treeRowName(i())}
                     </td>
                     <td>
                       <select class={input} value={c.allometry} onChange={(e) => update((s) => (s.cohorts[i()].allometry = e.currentTarget.value))}>
@@ -452,7 +467,7 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
                       </select>
                     </td>
                     <td>
-                      <input type="number" min={0} class={`${input} w-20`} value={c.densityPerHa} onChange={(e) => update((s) => (s.cohorts[i()].densityPerHa = num(e.currentTarget.value)))} />
+                      <input type="number" min={0} step="1" class={`${input} w-20`} value={c.densityPerHa} onChange={(e) => update((s) => (s.cohorts[i()].densityPerHa = Math.max(0, Math.round(num(e.currentTarget.value)))))} />
                     </td>
                     <td>
                       <input type="number" min={0} class={`${input} w-14`} value={c.plantYear} onChange={(e) => update((s) => (s.cohorts[i()].plantYear = Math.round(num(e.currentTarget.value))))} />
@@ -484,7 +499,7 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
           <Show when={sc()!.cohorts.length < 3}>
             <button
               class={`${btn} mt-2`}
-              onClick={() => update((s) => s.cohorts.push({ label: "New shade trees", treeParam: 1, allometry: "chave moist", densityPerHa: 20, plantYear: 0, growth: [0, 5, 10, 15, 20, 30].map((age) => ({ age, diamCm: age })) }))}
+              onClick={() => update((s) => s.cohorts.push({ label: "New shade trees", allometry: "chave moist", densityPerHa: 20, plantYear: 0, growth: [0, 5, 10, 15, 20, 30].map((age) => ({ age, diamCm: age })) }))}
             >
               <i class="fas fa-plus mr-1" /> Cohort
             </button>
@@ -499,7 +514,7 @@ function ModelsTab(props: { detail: Detail; onRun: () => void }) {
               manage
             </Link>
             <button class={`${primary} ml-auto`} disabled={running() || !setId() || !shambaReady() || !props.detail.runnerConfigured.shamba} onClick={run}>
-              {running() ? "Running SHAMBA… (up to a minute)" : "Run SHAMBA"}
+              {running() ? "Running SHAMBA… (up to 3 minutes)" : "Run SHAMBA"}
             </button>
           </div>
           <Show when={!props.detail.runnerConfigured.shamba}>
@@ -626,7 +641,7 @@ function RunsTab(props: { runs: Run[]; siteName: string }) {
                   <details class="mt-2 text-xs">
                     <summary class="cursor-pointer opacity-70">Provenance (for reports and re-runs)</summary>
                     <ul class="mt-1">
-                      <li>Input SHA-256: <code>{run().inputSha256}</code></li>
+                      <li>Request SHA-256 (GroveWorks, keys sorted): <code>{run().inputSha256}</code></li>
                       <For each={Object.entries(run().provenance ?? {})}>
                         {([k, v]) => (
                           <li>

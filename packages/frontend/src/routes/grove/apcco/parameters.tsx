@@ -12,7 +12,7 @@ import { apiFetch } from "~/util/apiFetch.ts";
 export const Route = createFileRoute("/grove/apcco/parameters")({ component: ParameterSets });
 
 const TABLES = [
-  ["tree", "Tree parameters (tree_params.csv): one row per species (Sc), with N contents, carbon fraction, root:shoot and wood density"],
+  ["tree", "Tree parameters (tree_params.csv), SHAMBA's 10 columns. Rows 1–3 are cohorts 1–3 in the scenario, in that order: coffee, then the two shade-tree groups"],
   ["crop", "Crop parameters (crop_params.csv)"],
   ["litter", "Litter parameters (litter_params.csv)"],
   ["biomass_pool", "Biomass pools (biomass_pool_params.csv)"],

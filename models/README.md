@@ -58,27 +58,37 @@ The shape follows [OGC API – Processes, Part 1](https://ogcapi.ogc.org/process
 Decided 20 Nov 2026 (Kris): **Google Cloud**, spend cap **300 kr/month**. Each runner is a
 Cloud Run service that scales to zero, deployed by hand with the *Deploy model runner* workflow
 (`.github/workflows/models-deploy.yml`). Images go to Grove's **private** Artifact Registry
-(SHAMBA's terms: no public images). Limits per service: max 2 instances × 2 runs, 1 vCPU,
-2 GiB, 5 min per request. The GroveWorks backend is the only caller (section D, `/internal/apcco`,
+(SHAMBA's terms: no public images). Limits per service: max 3 instances × 1 run, 1 vCPU,
+2 GiB (1.5 GB per run), 5 min per request. The GroveWorks backend is the only caller (section D, `/internal/apcco`,
 Grove team only), with a bearer token; it also caps runs at 20 per person per day and 3 at once.
 
 **One-time setup (Kris, in the Google Cloud console):**
 1. Create a project (e.g. `grove-models`) and link billing.
 2. **Billing → Budgets & alerts:** budget 300 kr/month on the project, alerts at 50 %, 80 % and 100 %.
-   (Budgets alert; they don't stop spending. The max-instances limit is the hard cap.)
+   (Budgets alert; they don't stop spending. The max-instances limit is the hard cap: 3 instances
+   that only run while a model runs.)
 3. Enable the APIs: Cloud Run, Artifact Registry, Secret Manager, IAM Credentials.
 4. **Artifact Registry:** a Docker repository `models` in `europe-west1`.
 5. **Secret Manager:** a secret `shamba-api-token` with a long random value. Put the same value
    on the Render backend as `MODEL_SHAMBA_TOKEN` (never in chat or in the repo).
-6. **Service account** `github-deployer` with the roles Cloud Run Admin, Artifact Registry Writer,
-   Service Account User and Secret Manager Secret Accessor (for the runtime service account).
-7. **Workload Identity Federation** for GitHub: a pool and provider for `regen-farmer/regenworks`,
-   allowed to impersonate `github-deployer` (no key file). Google's guide: "Configure Workload
+6. **Two service accounts:**
+   - `model-runner` (the service runs as it): no project roles; only **Secret Manager Secret
+     Accessor on the secret `shamba-api-token`** (set on the secret, not the project). Don't use
+     the default compute account, which often has Editor rights.
+   - `github-deployer` (GitHub Actions deploys as it): Cloud Run Admin, Artifact Registry Writer
+     (on the `models` repository), and Service Account User **on `model-runner` only**.
+7. **Workload Identity Federation** for GitHub: a pool and an OIDC provider for GitHub, with an
+   **attribute condition** that only lets this repository's `models` environment in:
+   `assertion.repository == "regen-farmer/regenworks" && assertion.environment == "models"`.
+   Allow it to impersonate `github-deployer` (no key file). Google's guide: "Configure Workload
    Identity Federation with deployment pipelines" (GitHub Actions).
-8. In GitHub → regenworks → Settings → Secrets and variables → Actions:
-   - secrets `GCP_WORKLOAD_IDENTITY_PROVIDER` (the provider's full name) and `GCP_SERVICE_ACCOUNT`
-     (the service account's email);
-   - variables `GCP_PROJECT_ID`, `GCP_REGION` = `europe-west1`, `GCP_ARTIFACT_REPO` = `models`.
+8. In GitHub → regenworks → Settings:
+   - **Environments → New environment `models`**: add yourself as required reviewer and allow only
+     the `main` and `dev` branches, so a deploy needs your click.
+   - **Secrets and variables → Actions:** secrets `GCP_WORKLOAD_IDENTITY_PROVIDER` (the provider's
+     full name) and `GCP_SERVICE_ACCOUNT` (the deployer's email); variables `GCP_PROJECT_ID`,
+     `GCP_REGION` = `europe-west1`, `GCP_ARTIFACT_REPO` = `models`, `GCP_RUNTIME_SERVICE_ACCOUNT`
+     (the `model-runner` email).
 9. Run *Actions → Deploy model runner → shamba*. Copy the service URL from the run summary to the
    Render backend as `MODEL_SHAMBA_URL`.
 

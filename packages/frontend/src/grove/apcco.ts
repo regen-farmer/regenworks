@@ -43,7 +43,7 @@ export type ParameterSet = {
 };
 
 export type Growth = { age: number; diamCm: number };
-export type Cohort = { label: string; treeParam: number; allometry: string; densityPerHa: number; plantYear: number; growth: Growth[] };
+export type Cohort = { label: string; allometry: string; densityPerHa: number; plantYear: number; growth: Growth[] };
 export type ShambaScenario = { years: number; baseline: "none" | "coffee"; baselineAllometry: string; mortality: number; cohorts: Cohort[]; gwp: string };
 export const ALLOMETRY = ["chave dry", "chave moist", "chave wet", "ryan", "grevillea", "maesopsis", "markhamia"];
 export const GWP = ["SAR", "AR4", "AR5", "AR6"];

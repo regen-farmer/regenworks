@@ -13,6 +13,7 @@ import {
   TEMPLATES,
   boundaryAreaHa,
   buildShambaRequest,
+  checkShambaTreeTable,
   cleanShambaScenario,
   draftShambaScenario,
   inputHash,
@@ -20,6 +21,7 @@ import {
   parseImport,
   readiness,
   runnerConfig,
+  shambaTreeRowNames,
   siteSummary,
   tableFromCsv,
   templateCsv,
@@ -40,7 +42,8 @@ const since = (d: Date) => mongoose.trusted({ $gte: d });
 
 // ---------- sites ----------
 
-function cleanSite(b: any, partial = false): { ok: true; value: any } | { ok: false; error: string } {
+function cleanSite(input: any, partial = false): { ok: true; value: any } | { ok: false; error: string } {
+  const b = input && typeof input === "object" ? input : {};
   const v: any = {};
   if (!partial || "name" in b) {
     v.name = str(b?.name, 200);
@@ -75,10 +78,23 @@ function cleanSite(b: any, partial = false): { ok: true; value: any } | { ok: fa
       if (!clean) return { ok: false, error: "The boundary must be a GeoJSON Polygon or MultiPolygon in longitude/latitude" };
       v.boundary = clean;
       v.areaHa = boundaryAreaHa(clean);
+      if (!v.areaHa || v.areaHa > 100_000) return { ok: false, error: "The boundary's area must be between 0 and 100,000 ha" };
     }
   }
   if ("archived" in (b ?? {})) v.archived = b.archived === true;
   return { ok: true, value: v };
+}
+
+/**
+ * A run still "running" well past the timeout was cut off (e.g. the server restarted during the
+ * call): mark it failed, so it neither shows as running forever nor blocks the limits.
+ */
+async function sweepStaleRuns() {
+  const cutoff = new Date(Date.now() - RUN_LIMITS.timeoutMs - 60_000);
+  await ApccoRun.updateMany(
+    { status: "running", createdAt: mongoose.trusted({ $lt: cutoff }) },
+    { $set: { status: "failed", error: "Interrupted: no answer from the model service (the server may have restarted during the run)", finishedAt: new Date() } },
+  );
 }
 
 async function loadData(siteId: string): Promise<SiteData> {
@@ -234,7 +250,11 @@ router.delete("/sites/:id/data/:kind", async (req: Req, res) => {
 
 async function ensureBuiltIns() {
   for (const b of BUILT_IN_SETS) {
-    await ApccoParameterSet.updateOne({ model: b.model, builtIn: true }, { $setOnInsert: { ...b, builtIn: true } }, { upsert: true });
+    try {
+      await ApccoParameterSet.updateOne({ model: b.model, builtIn: true }, { $setOnInsert: { ...b, builtIn: true } }, { upsert: true });
+    } catch (err: any) {
+      if (err?.code !== 11000) throw err; // two first visits at once: the other one created it
+    }
   }
 }
 
@@ -245,7 +265,8 @@ router.get("/parameter-sets", async (req: Req, res) => {
   const q: any = { archived: notTrue() };
   if (typeof req.query.model === "string" && (APCCO_MODELS as readonly string[]).includes(req.query.model)) q.model = req.query.model;
   const sets: any[] = await ApccoParameterSet.find(q).sort({ model: 1, builtIn: -1, name: 1, version: 1 }).lean();
-  const used: any[] = await ApccoRun.aggregate([{ $group: { _id: "$parameterSet", runs: { $sum: 1 } } }]);
+  // sets are frozen by successful runs only (a failed run used nothing from the set's results)
+  const used: any[] = await ApccoRun.aggregate([{ $match: { status: "done" } }, { $group: { _id: "$parameterSet", runs: { $sum: 1 } } }]);
   res.send({ sets: sets.map((s) => ({ ...setView(s), runs: used.find((u) => String(u._id) === String(s._id))?.runs ?? 0 })) });
 });
 
@@ -266,6 +287,10 @@ function cleanParamSet(b: any): { ok: true; value: any } | { ok: false; error: s
       if (typeof text !== "string" || !text.trim()) continue;
       const t = tableFromCsv(text);
       if (typeof t === "string") return { ok: false, error: `${key} table: ${t}` };
+      if (key === "tree") {
+        const problem = checkShambaTreeTable(t);
+        if (problem) return { ok: false, error: problem };
+      }
       tables[key] = t;
     }
     values.tables = tables;
@@ -308,7 +333,7 @@ router.put("/parameter-sets/:id", async (req: Req, res) => {
     res.send({ ok: true });
     return;
   }
-  if (await ApccoRun.exists({ parameterSet: set._id })) {
+  if (await ApccoRun.exists({ parameterSet: set._id, status: "done" })) {
     res.status(409).send({ error: "This set has been used in runs; save the changes as a new version" });
     return;
   }
@@ -357,7 +382,7 @@ router.get("/sites/:id/shamba/draft", async (req: Req, res) => {
     return;
   }
   const summary = siteSummary(site, await loadData(site._id));
-  res.send({ ...draftShambaScenario(summary), summary });
+  res.send({ ...draftShambaScenario(summary), summary, defaultTreeRows: shambaTreeRowNames(undefined) });
 });
 
 router.get("/sites/:id/runs", async (req: Req, res) => {
@@ -365,6 +390,7 @@ router.get("/sites/:id/runs", async (req: Req, res) => {
     res.status(400).send({ error: "Invalid id" });
     return;
   }
+  await sweepStaleRuns();
   const runs: any[] = await ApccoRun.find({ site: req.params.id })
     .select("model parameterLabel status error createdAt finishedAt inputSha256 outputs.totals outputs.years scenario.years scenario.baseline")
     .sort({ createdAt: -1 })
@@ -397,8 +423,9 @@ async function callRunner(model: string, request: unknown) {
     signal: AbortSignal.timeout(RUN_LIMITS.timeoutMs),
     redirect: "error",
   });
+  if (Number(res.headers.get("content-length") ?? 0) > RUN_LIMITS.maxResponseBytes) throw new Error("The model's answer was too large");
   const text = await res.text();
-  if (text.length > RUN_LIMITS.maxResponseBytes) throw new Error("The model's answer was too large");
+  if (Buffer.byteLength(text) > RUN_LIMITS.maxResponseBytes) throw new Error("The model's answer was too large");
   let body: any;
   try {
     body = JSON.parse(text);
@@ -420,7 +447,7 @@ router.post("/sites/:id/runs/shamba", async (req: Req, res) => {
     res.status(503).send({ error: "The SHAMBA service isn't set up yet (MODEL_SHAMBA_URL and MODEL_SHAMBA_TOKEN on the backend)." });
     return;
   }
-  const [site, set]: any[] = await Promise.all([ApccoSite.findById(req.params.id).lean(), ApccoParameterSet.findOne({ _id: req.body.parameterSetId, model: "shamba" }).lean()]);
+  const [site, set]: any[] = await Promise.all([ApccoSite.findById(req.params.id).lean(), ApccoParameterSet.findOne({ _id: req.body.parameterSetId, model: "shamba", archived: notTrue() }).lean()]);
   if (!site || !set) {
     res.status(404).send({ error: site ? "Parameter set not found" : "Site not found" });
     return;
@@ -428,13 +455,6 @@ router.post("/sites/:id/runs/shamba", async (req: Req, res) => {
   const sc = cleanShambaScenario(req.body.scenario);
   if (!sc.ok) {
     res.status(400).send({ error: sc.error });
-    return;
-  }
-  const treeRows: any[] | undefined = set.values?.tables?.tree?.rows;
-  const maxParam = treeRows?.length ? Math.max(...treeRows.map((r) => Number(r[0])).filter(Number.isFinite)) : 3;
-  const bad = sc.value.cohorts.find((c) => c.treeParam > maxParam);
-  if (bad) {
-    res.status(400).send({ error: `${bad.label}: tree parameter row ${bad.treeParam} isn't in the set's tree table (1–${maxParam})` });
     return;
   }
   const summary = siteSummary(site, await loadData(site._id));
@@ -452,6 +472,7 @@ router.post("/sites/:id/runs/shamba", async (req: Req, res) => {
     res.status(429).send({ error: `At most ${RUN_LIMITS.perUserPerDay} runs per person per day` });
     return;
   }
+  await sweepStaleRuns();
   const stale = new Date(Date.now() - RUN_LIMITS.timeoutMs - 60_000);
   if ((await ApccoRun.countDocuments({ status: "running", createdAt: since(stale) })) >= RUN_LIMITS.concurrent) {
     res.status(429).send({ error: "Other model runs are going; try again in a minute" });

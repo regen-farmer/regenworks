@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import {
   TEMPLATES,
   buildShambaRequest,
+  checkShambaTreeTable,
   cleanShambaScenario,
   coffeeSummary,
   draftShambaScenario,
@@ -17,6 +18,7 @@ import {
   readiness,
   runnerConfig,
   shadeSummary,
+  shambaTreeRowNames,
   siteSummary,
   soilSummary,
   tableFromCsv,
@@ -45,6 +47,22 @@ test("import: missing column, bad number, range, duplicate id and decimal comma"
   assert.ok(comma.ok);
   assert.equal(comma.rows[0].dbh_cm, 34.5);
   assert.match(comma.warnings[0], /Ignored column\(s\): extra/);
+});
+
+test("import: overlapping soil layers of one sampling point are refused", () => {
+  const r = parseImport("soil", "sample_id,depth_top_cm,depth_bottom_cm,soc_pct,bulk_density_g_cm3\nS1,0,30,2,1.2\nS1,0,15,2,1.2\nS1,15,30,1,1.4\nS2,0,15,2,1.2\nS2,15,30,1,1.4\n");
+  assert.ok(!r.ok && /S1: layers 0–30 cm and 0–15 cm overlap/.test(r.errors[0]), !r.ok ? r.errors.join() : "");
+});
+
+test("SHAMBA tree tables: 10 columns, 3 numeric rows; row names for the form", () => {
+  const ok = tableFromCsv("Sc,Name,N_leaf,N_branch,N_stem,N_croot,N_Froot,C,rs,wood_dens,\n1,1,0.02,0.002,0.002,0.002,0.01,0.5,0.3,0.62,robusta\n2,2,0.03,0.006,0.004,0.012,0.02,0.5,0.4,0.55,albizia\n3,3,0.03,0.006,0.004,0.012,0.02,0.5,0.4,0.42,ficus\n") as any;
+  assert.equal(checkShambaTreeTable(ok), null);
+  assert.deepEqual(shambaTreeRowNames({ tree: ok }), ["robusta", "albizia", "ficus"]);
+  assert.deepEqual(shambaTreeRowNames(undefined), ["default", "enterolobium", "faidherbia"]);
+  const two = { ...ok, rows: ok.rows.slice(0, 2) };
+  assert.match(checkShambaTreeTable(two)!, /at least 3 rows/);
+  const text = { ...ok, rows: [ok.rows[0], ok.rows[1], [3, 3, "x", 0, 0, 0, 0, 0.5, 0.4, 0.4, "y"]] };
+  assert.match(checkShambaTreeTable(text)!, /row 3, column N_leaf/);
 });
 
 test("import: dates, soil layers, and tmin above tmax are refused", () => {
@@ -151,9 +169,10 @@ test("draft scenario: coffee + two largest shade species + the rest, densities p
   assert.equal(scenario.cohorts[0].densityPerHa, 1100);
   assert.match(scenario.cohorts[0].label, /robusta/);
   assert.equal(scenario.cohorts[1].label, "Ficus natalensis");
-  assert.equal(scenario.cohorts[1].densityPerHa, 0.5);
+  assert.equal(scenario.cohorts[1].densityPerHa, 1, "0.5/ha rounds to whole trees (SHAMBA reads an integer)");
   assert.match(scenario.cohorts[2].label, /Albizia coriaria \+ 2 other species/);
-  assert.equal(scenario.cohorts[2].densityPerHa, 2, "Albizia 1/ha + the other two 0.5/ha each");
+  assert.equal(scenario.cohorts[2].densityPerHa, 2, "Albizia 2 + the other two 1 each = 4 trees on 2 ha");
+  for (const c of scenario.cohorts) assert.ok(Number.isInteger(c.densityPerHa));
   assert.ok(notes.some((n) => /Ficus natalensis: no ages/.test(n)));
   assert.ok(cleanShambaScenario(scenario).ok, "the draft passes its own checks");
 });
@@ -167,6 +186,9 @@ test("scenario checks: years, cohorts, growth curve shape", () => {
   const falling = structuredClone(scenario);
   falling.cohorts[0].growth[3].diamCm = 0;
   assert.match((cleanShambaScenario(falling) as any).error, /must not fall/);
+  const frac = structuredClone(scenario);
+  frac.cohorts[1].densityPerHa = 0.5;
+  assert.match((cleanShambaScenario(frac) as any).error, /whole number/);
   const late = structuredClone(scenario);
   late.cohorts[1].plantYear = 99;
   assert.match((cleanShambaScenario(late) as any).error, /planting year/);
@@ -178,11 +200,18 @@ test("SHAMBA request: cohort keys, baseline coffee, crops off, allometry per coh
   const sum = siteSummary(site, data);
   const { scenario } = draftShambaScenario(sum);
   const req = buildShambaRequest(site, sum.climate.climate!, { socTcHa: sum.soil.socTcHa0to30!, clayPct: sum.soil.clayPct! }, scenario, { tree: { columns: ["Sc"], rows: [[1]] } });
+  // growth curves differ per cohort here, so a mix-up would show
+  assert.notEqual(scenario.cohorts[1].growth[2].diamCm, scenario.cohorts[0].growth[2].diamCm);
   const iv = req.inputs.intervention;
   assert.equal(iv.yrs_proj, 30);
   assert.equal(iv.proj_plant_dens1, 1100);
   assert.equal(iv.base_plant_dens, 1100, "baseline = coffee without shade");
-  assert.equal(iv.proj_plant_dens2, 0.5);
+  assert.equal(iv.proj_plant_dens2, 1);
+  // SHAMBA ties tree parameters and the growth curve to the species number: cohort k = species k
+  assert.deepEqual([iv.species1, iv.species2, iv.species3, iv.species_base], [1, 2, 3, 1]);
+  assert.equal(iv.sp2_diam3, scenario.cohorts[1].growth[2].diamCm, "cohort 2's own curve under sp2_");
+  assert.equal(iv.sp3_diam3, scenario.cohorts[2].growth[2].diamCm, "cohort 3's own curve under sp3_");
+  for (const [k, v] of Object.entries(iv)) if (/dens/.test(k)) assert.ok(Number.isInteger(v), `${k} = ${v}`);
   assert.equal(iv.age3, 8, "first cohort's curve has no prefix (coffee age 8)");
   assert.equal(iv.sp2_age1, 0);
   assert.ok("sp3_diam6" in iv);
@@ -253,4 +282,20 @@ test("/internal/apcco: public 403, field user 403, team user gets the templates"
   const csv = await fetch(`${base}/internal/apcco/templates/soil.csv`);
   assert.equal(csv.status, 200);
   assert.match(await csv.text(), /^sample_id,plot_id/);
+});
+
+test("the app-wide 100 kB JSON parser leaves /internal/apcco to its own 6 MB parser", async () => {
+  const { defaultJson } = await import("../src/middleware/jsonBody.ts");
+  const app2 = express();
+  app2.use(defaultJson());
+  app2.post("/internal/apcco/x", express.json({ limit: "6mb" }), (req, res) => res.send({ n: req.body.csv.length }));
+  app2.post("/other", (req, res) => res.send({ n: req.body?.csv?.length }));
+  const srv = app2.listen(0);
+  const b = `http://127.0.0.1:${(srv.address() as AddressInfo).port}`;
+  const body = JSON.stringify({ csv: "x".repeat(200_000) });
+  const ok = await fetch(`${b}/internal/apcco/x`, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+  assert.equal(ok.status, 200);
+  const other = await fetch(`${b}/other`, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+  assert.equal(other.status, 413);
+  srv.close();
 });
