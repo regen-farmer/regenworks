@@ -241,6 +241,14 @@ function MeasuredSoil(props: { layerId: string }) {
   );
 }
 
+type NewStatus = {
+  site: string;
+  status: "queued" | "running" | "done" | "failed";
+  steps: { name: string; status: string; seconds: number | null; note: string }[];
+  error: string | null;
+  area_ha: number | null;
+};
+
 export function ScreeningModel(props: { projectId?: string; scenarioId?: string; onSuggestion?: (s: { result: string; conditions: string }) => void }) {
   const [fields] = createResource(
     () => props.projectId,
@@ -261,6 +269,51 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
   const [result, setResult] = createSignal<Result | null>(null);
   const [species, setSpecies] = createSignal<string>("");
   const [layerId, setLayerId] = createSignal<string>("");
+  // a field no screened site covers: screen it on demand (fetch its data, run the maps; ~10-20 min)
+  const [canScreenNew, setCanScreenNew] = createSignal(false);
+  const [newStatus, setNewStatus] = createSignal<NewStatus | null>(null);
+  let pollTimer: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(pollTimer));
+  createEffect(() => {
+    fieldId(); // another field: forget the last field's offer and progress
+    setCanScreenNew(false);
+    setNewStatus(null);
+    clearTimeout(pollTimer);
+  });
+
+  async function poll(site: string) {
+    try {
+      const st = await apiFetch<NewStatus>(`/internal/screening/new/${site}`);
+      setNewStatus(st);
+      if (st.status === "done") {
+        setCanScreenNew(false);
+        await run();
+        return;
+      }
+      if (st.status === "failed") return;
+    } catch {
+      // the service restarts now and then: keep asking
+    }
+    pollTimer = setTimeout(() => poll(site), 15_000);
+  }
+
+  async function screenNew() {
+    setError("");
+    try {
+      const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId() };
+      const st = await apiFetch<NewStatus>("/internal/screening/new", { method: "POST", body: JSON.stringify(body) });
+      setNewStatus(st);
+      if (st.status === "done") {
+        setCanScreenNew(false);
+        await run();
+      } else if (st.site) {
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(() => poll(st.site), 10_000);
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Couldn't start the screening");
+    }
+  }
 
   async function run() {
     setBusy(true);
@@ -276,7 +329,10 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
       setLayerId(r.layers.find((l) => l.species === first)?.id ?? r.layers[0]?.id ?? "");
     } catch (e: any) {
       setResult(null);
-      setError(e?.message ?? "Screening failed");
+      if (e?.status === 404 && /screened yet/i.test(e?.message ?? "")) {
+        setCanScreenNew(true);
+        setError("");
+      } else setError(e?.message ?? "Screening failed");
     } finally {
       setBusy(false);
     }
@@ -319,6 +375,39 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
       </Show>
       <Show when={error()}>
         <p class="text-sm text-red-600">{error()}</p>
+      </Show>
+      <Show when={canScreenNew() && !newStatus()}>
+        <div class="flex items-center gap-2 flex-wrap text-sm rounded-sm border border-amber-400 p-2">
+          <span class="mr-auto">This field hasn't been screened yet. Screening it fetches its terrain, soil, groundwater, wind and weather and runs all the maps, which takes about 10–20 minutes. You can leave the page; the result is kept.</span>
+          <button class="rounded-sm px-2 py-1 btn-default text-sm" onClick={screenNew}>Screen this field</button>
+        </div>
+      </Show>
+      <Show when={newStatus()}>
+        {(st) => (
+          <div class="text-sm rounded-sm border border-zinc-300 dark:border-slate-600 p-2 flex flex-col gap-1">
+            <p>
+              <b>Screening a new field: </b>
+              {st().status === "queued" ? "waiting for another field to finish" : st().status === "running" ? "running (checked every 15 seconds)" : st().status === "done" ? "done" : "failed"}
+              {st().area_ha ? ` · ${st().area_ha} ha` : ""}
+            </p>
+            <ul class="text-xs flex flex-wrap gap-x-3">
+              <For each={st().steps}>
+                {(x) => (
+                  <li title={x.note || undefined} class={x.status === "failed" ? "text-amber-600" : x.status === "done" ? "" : "opacity-60"}>
+                    {x.status === "done" ? "✓" : x.status === "failed" ? "✗" : x.status === "running" ? "…" : "·"} {x.name}
+                  </li>
+                )}
+              </For>
+            </ul>
+            <Show when={st().status === "failed"}>
+              <p class="text-red-600 text-xs">{st().error}</p>
+              <button class="self-start rounded-sm px-2 py-1 btn-default text-xs" onClick={screenNew}>Try again</button>
+            </Show>
+            <Show when={st().status === "done" && st().steps.some((x) => x.status === "failed")}>
+              <p class="text-xs opacity-70">A crossed-out step had no data for this field; its map is left out (hover for the reason).</p>
+            </Show>
+          </div>
+        )}
       </Show>
       <Show when={result()}>
         {(r) => (

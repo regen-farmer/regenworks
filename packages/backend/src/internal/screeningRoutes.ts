@@ -16,7 +16,7 @@ import { visibleFilter } from "./projects.ts";
 import { runSystemBasedLayout } from "@rw/modelling/layout-backends/system-layout.node.ts";
 import FieldSoil from "@rw/db/schemas/internal/fieldSoil.ts";
 import { soilForService } from "./fieldSoil.ts";
-import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, MAX_SPECIES_PER_RUN, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickResult, serviceConfig } from "./screening.ts";
+import { ALL_MODEL_SPECIES, MAX_RESULT_BYTES, MAX_SPECIES_PER_RUN, NEW_SITE_RE, cleanSpecies, designRows, designSpecies, layoutRows, fieldGeometry, pickNewStatus, pickResult, serviceConfig } from "./screening.ts";
 
 type Req = express.Request & { user?: UserDocument };
 const router = express.Router();
@@ -152,6 +152,83 @@ router.post("/run", async (req: Req, res) => {
   } finally {
     clearTimeout(timer);
   }
+});
+
+// Screening a field that isn't screened yet (slice 2): the service fetches the field's public data and
+// runs the maps (~10-20 min); the panel follows it and reruns the screening when it's done.
+async function fieldFor(body: any): Promise<{ geometry: ReturnType<typeof fieldGeometry>; name: string; owner: unknown } | null> {
+  if (validId(body?.scenarioId)) {
+    const sc: any = await Project.findById(body.scenarioId).select("layer").populate("layer", "name geometry owner").lean();
+    return sc?.layer ? { geometry: fieldGeometry(sc.layer.geometry), name: sc.layer.name ?? "", owner: sc.layer.owner?.id } : null;
+  }
+  if (validId(body?.fieldId)) {
+    const l: any = await Layer.findById(body.fieldId).select("name geometry owner").lean();
+    return l ? { geometry: fieldGeometry(l.geometry), name: l.name ?? "", owner: l.owner?.id } : null;
+  }
+  return null;
+}
+
+async function callService(cfg: NonNullable<ReturnType<typeof serviceConfig>>, path: string, init: { method: string; body?: string }, res: express.Response) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 30_000);
+  try {
+    const r = await fetch(`${cfg.url}${path}`, {
+      ...init,
+      headers: { "Content-Type": "application/json", "X-Screening-Key": cfg.key },
+      signal: ctl.signal,
+      redirect: "error",
+    });
+    const body: any = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const status = [400, 404, 503].includes(r.status) ? r.status : 502;
+      res.status(status).send({ error: r.status === 401 ? "The screening service rejected the key" : (typeof body.detail === "string" ? body.detail.slice(0, 300) : "The screening service failed") });
+      return;
+    }
+    res.send(pickNewStatus(body));
+  } catch (e: any) {
+    console.error("screening service call failed:", e?.name, e?.message, e?.cause?.code ?? e?.cause?.message ?? "");
+    res.status(504).send({ error: e?.name === "AbortError" ? "The screening service took too long" : "The screening service can't be reached" });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// start screening a new field: { fieldId } or { scenarioId }
+router.post("/new", async (req: Req, res) => {
+  const cfg = serviceConfig();
+  if (!cfg) {
+    res.status(503).send({ error: "The screening service isn't set up yet (SCREENING_URL and SCREENING_KEY on the backend)." });
+    return;
+  }
+  const f = await fieldFor(req.body);
+  if (!f) {
+    res.status(404).send({ error: "Field not found" });
+    return;
+  }
+  // only fields on farms kept under a Grove account, as for /run
+  if (!f.owner || !(await groveUserIds()).includes(String(f.owner))) {
+    res.status(403).send({ error: "Only fields on farms kept under a Grove account can be screened" });
+    return;
+  }
+  if (!f.geometry) {
+    res.status(400).send({ error: "The field has no outline to screen" });
+    return;
+  }
+  await callService(cfg, "/screen/new", { method: "POST", body: JSON.stringify({ outline: f.geometry, name: f.name.slice(0, 120) }) }, res);
+});
+
+// follow a new field's screening
+router.get("/new/:site", async (req: Req, res) => {
+  const cfg = serviceConfig();
+  if (!cfg) {
+    res.status(503).send({ error: "The screening service isn't set up yet" });
+    return;
+  }
+  if (!NEW_SITE_RE.test(req.params.site)) {
+    res.status(400).send({ error: "Invalid id" });
+    return;
+  }
+  await callService(cfg, `/screen/new/${req.params.site}`, { method: "GET" }, res);
 });
 
 export default router;

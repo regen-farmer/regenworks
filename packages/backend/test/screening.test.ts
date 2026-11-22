@@ -3,7 +3,7 @@ import { test } from "node:test";
 import express from "express";
 import type { AddressInfo } from "node:net";
 import { after } from "node:test";
-import { ALL_MODEL_SPECIES, cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
+import { ALL_MODEL_SPECIES, cleanSpecies, designRows, designSpecies, layoutRows, pickDesign, pickSuitability, pickNewStatus, NEW_SITE_RE, fieldGeometry, modelSpecies, pickResult, serviceConfig } from "../src/internal/screening.ts";
 import internalRoutes from "../src/routes/internal.ts";
 import { cleanFieldSoil, hasMeasurement, soilForService } from "../src/internal/fieldSoil.ts";
 
@@ -66,6 +66,8 @@ test("/internal/screening: grove-team only", async () => {
     who = user ? { user, idToken: { email_verified: true } } : {};
     assert.equal((await fetch(`${base}/internal/screening/project/000000000000000000000002/fields`)).status, status);
     assert.equal((await fetch(`${base}/internal/screening/run`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+    assert.equal((await fetch(`${base}/internal/screening/new`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
+    assert.equal((await fetch(`${base}/internal/screening/new/field-0123456789ab`)).status, status);
     assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`)).status, status);
     assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" })).status, status);
     assert.equal((await fetch(`${base}/internal/field-soil/000000000000000000000002`, { method: "DELETE" })).status, status);
@@ -188,4 +190,21 @@ test("pickSuitability: species rows and soil tests only", () => {
   assert.deepEqual(m.measured, { jb: 2, ph: null, wet_depth_m: 0.3, root_depth_m: null });
   const cv = pickSuitability({ species: [{ species: "walnut", status: "go", cultivars: [{ cultivar: "Lara", ripening: "early", share_of_years_warm_enough: 1.4 }, { cultivar: "" }, "x"] }] })!;
   assert.deepEqual(cv.species[0].cultivars, [{ cultivar: "Lara", ripening: "early", share: 1 }]);
+});
+
+test("pickNewStatus: a new field's screening, narrowed and bounded", () => {
+  assert.ok(NEW_SITE_RE.test("field-0123456789ab"));
+  assert.ok(!NEW_SITE_RE.test("field-0123456789ab/../x") && !NEW_SITE_RE.test("known-hazel-04"));
+  const s = pickNewStatus({
+    site: "field-0123456789ab", status: "running", area_ha: 4.2, queued: "2026-11-22T20:00:00+00:00", outline: { type: "Polygon" }, secret: "x",
+    steps: [{ name: "terrain", status: "done", seconds: 40 }, { name: "groundwater", status: "failed", note: "n".repeat(900) }, { name: "x", status: "weird" }, "junk"],
+  });
+  assert.equal(s.site, "field-0123456789ab");
+  assert.equal(s.status, "running");
+  assert.equal(s.steps.length, 2);
+  assert.equal(s.steps[1].note.length, 300);
+  assert.equal((s as any).outline, undefined);
+  assert.equal((s as any).secret, undefined);
+  assert.equal(pickNewStatus({ site: "../etc", status: "nonsense" }).site, "");
+  assert.equal(pickNewStatus({ status: "nonsense" }).status, "failed");
 });
