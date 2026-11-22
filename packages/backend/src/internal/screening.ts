@@ -1,6 +1,7 @@
 // Model screening (grove-twin's screening service): pure helpers for /internal/screening.
 // GroveWorks sends a field outline (and, for a scenario, the trees in its design); the service
-// answers with decision statements and map layers. Nothing is stored on either side.
+// answers with decision statements and map layers. GroveWorks stores nothing; the service keeps fields
+// screened on demand (slice 2) in its cache.
 
 /** The species the screening model knows, keyed by genus + species (lower case). */
 const MODEL_SPECIES: Record<string, string> = {

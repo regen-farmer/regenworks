@@ -1,7 +1,9 @@
 // /internal/screening: run grove-twin's screening model on a field or on a scenario's design.
 // Grove team only (mounted behind requireRole("grove-team") in routes/internal.ts). GroveWorks
 // forwards the field outline (and the design's trees) to the screening service with a shared key
-// (SCREENING_URL, SCREENING_KEY); nothing is stored.
+// (SCREENING_URL, SCREENING_KEY). A screening run stores nothing; a field screened on demand (/new) is
+// kept by the service (its outline, the public data fetched for it and its maps), under an id made from
+// the outline; the field's name is not sent.
 import express from "express";
 import mongoose from "mongoose";
 import Layer from "@rw/db/schemas/layer.ts";
@@ -214,7 +216,7 @@ router.post("/new", async (req: Req, res) => {
     res.status(400).send({ error: "The field has no outline to screen" });
     return;
   }
-  await callService(cfg, "/screen/new", { method: "POST", body: JSON.stringify({ outline: f.geometry, name: f.name.slice(0, 120) }) }, res);
+  await callService(cfg, "/screen/new", { method: "POST", body: JSON.stringify({ outline: f.geometry }) }, res);
 });
 
 // follow a new field's screening

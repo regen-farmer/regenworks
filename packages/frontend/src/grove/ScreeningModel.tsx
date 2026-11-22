@@ -272,18 +272,32 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
   // a field no screened site covers: screen it on demand (fetch its data, run the maps; ~10-20 min)
   const [canScreenNew, setCanScreenNew] = createSignal(false);
   const [newStatus, setNewStatus] = createSignal<NewStatus | null>(null);
+  const [starting, setStarting] = createSignal(false);
   let pollTimer: ReturnType<typeof setTimeout> | undefined;
-  onCleanup(() => clearTimeout(pollTimer));
+  let pollRun = 0; // bumped when the field changes or the panel closes: a poll in flight then stops
+  let pollStarted = 0;
+  onCleanup(() => {
+    pollRun++;
+    clearTimeout(pollTimer);
+  });
   createEffect(() => {
     fieldId(); // another field: forget the last field's offer and progress
+    pollRun++;
     setCanScreenNew(false);
     setNewStatus(null);
     clearTimeout(pollTimer);
   });
 
-  async function poll(site: string) {
+  async function poll(site: string, run_ = pollRun) {
+    if (run_ !== pollRun) return;
+    // give up after 2 hours (the service marks an interrupted field as failed; this is a last resort)
+    if (Date.now() - pollStarted > 2 * 3600_000) {
+      setNewStatus((st) => (st ? { ...st, status: "failed", error: "No answer for 2 hours. Try again." } : st));
+      return;
+    }
     try {
       const st = await apiFetch<NewStatus>(`/internal/screening/new/${site}`);
+      if (run_ !== pollRun) return;
       setNewStatus(st);
       if (st.status === "done") {
         setCanScreenNew(false);
@@ -294,24 +308,31 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
     } catch {
       // the service restarts now and then: keep asking
     }
-    pollTimer = setTimeout(() => poll(site), 15_000);
+    if (run_ === pollRun) pollTimer = setTimeout(() => poll(site, run_), 15_000);
   }
 
   async function screenNew() {
+    if (starting()) return;
+    setStarting(true);
     setError("");
+    const run_ = ++pollRun;
     try {
       const body = props.scenarioId ? { scenarioId: props.scenarioId } : { fieldId: fieldId() };
       const st = await apiFetch<NewStatus>("/internal/screening/new", { method: "POST", body: JSON.stringify(body) });
+      if (run_ !== pollRun) return;
       setNewStatus(st);
       if (st.status === "done") {
         setCanScreenNew(false);
         await run();
       } else if (st.site) {
         clearTimeout(pollTimer);
-        pollTimer = setTimeout(() => poll(st.site), 10_000);
+        pollStarted = Date.now();
+        pollTimer = setTimeout(() => poll(st.site, run_), 10_000);
       }
     } catch (e: any) {
       setError(e?.message ?? "Couldn't start the screening");
+    } finally {
+      setStarting(false);
     }
   }
 
@@ -367,7 +388,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
         {(id) => <MeasuredSoil layerId={id} />}
       </Show>
       <p class="text-xs opacity-70">
-        Frost, drought, establishment, waterlogging and wind for young trees, with Grove's thresholds. Nothing is saved.
+        Frost, drought, establishment, waterlogging and wind for young trees, with Grove's thresholds. A run saves nothing; a field screened for the first time keeps its maps on the screening service.
         {props.scenarioId ? " Uses the trees in this design and, where the layout has rows, screens the field with them standing (about a minute)." : ""}
       </p>
       <Show when={fields()?.configured === false && props.projectId}>
@@ -379,7 +400,7 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
       <Show when={canScreenNew() && !newStatus()}>
         <div class="flex items-center gap-2 flex-wrap text-sm rounded-sm border border-amber-400 p-2">
           <span class="mr-auto">This field hasn't been screened yet. Screening it fetches its terrain, soil, groundwater, wind and weather and runs all the maps, which takes about 10–20 minutes. You can leave the page; the result is kept.</span>
-          <button class="rounded-sm px-2 py-1 btn-default text-sm" onClick={screenNew}>Screen this field</button>
+          <button class="rounded-sm px-2 py-1 btn-default text-sm" disabled={starting()} onClick={screenNew}>{starting() ? "Starting…" : "Screen this field"}</button>
         </div>
       </Show>
       <Show when={newStatus()}>
@@ -401,10 +422,10 @@ export function ScreeningModel(props: { projectId?: string; scenarioId?: string;
             </ul>
             <Show when={st().status === "failed"}>
               <p class="text-red-600 text-xs">{st().error}</p>
-              <button class="self-start rounded-sm px-2 py-1 btn-default text-xs" onClick={screenNew}>Try again</button>
+              <button class="self-start rounded-sm px-2 py-1 btn-default text-xs" disabled={starting()} onClick={screenNew}>Try again</button>
             </Show>
             <Show when={st().status === "done" && st().steps.some((x) => x.status === "failed")}>
-              <p class="text-xs opacity-70">A crossed-out step had no data for this field; its map is left out (hover for the reason).</p>
+              <p class="text-xs opacity-70">A step marked ✗ had no data for this field; its map is left out (hover over it for the reason).</p>
             </Show>
           </div>
         )}
