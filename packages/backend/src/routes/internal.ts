@@ -16,6 +16,7 @@ import modelSiteRoutes from "../internal/modelSiteRoutes.ts";
 import fieldSoilRoutes from "../internal/fieldSoilRoutes.ts";
 import screeningRoutes from "../internal/screeningRoutes.ts";
 import apccoRoutes from "../internal/apccoRoutes.ts";
+import regulatoryRoutes from "../internal/regulatoryRoutes.ts";
 
 const router = express.Router();
 
@@ -44,6 +45,8 @@ router.use("/model-sites", requireRole("grove-team"), modelSiteRoutes);
 router.use("/field-soil", requireRole("grove-team"), fieldSoilRoutes);
 // Model screening (frost, water, wind on a field or a scenario's design via grove-twin's service): grove-team only.
 router.use("/screening", requireRole("grove-team"), screeningRoutes);
+// Regulatory map layers on the screening page (public open data, checked for Grove-kept fields): grove-team only.
+router.use("/regulatory", requireRole("grove-team"), regulatoryRoutes);
 // D · APCCO Uganda: coffee agroforestry sites, field data and model runs (SHAMBA, DynACof, CAF): grove-team only.
 router.use("/apcco", requireRole("grove-team"), apccoRoutes);
 // Dashboard: field users see their assigned projects (no money); see projectRoutes.ts.
