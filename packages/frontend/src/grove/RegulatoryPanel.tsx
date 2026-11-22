@@ -98,7 +98,9 @@ export function RegulatoryPanel(props: { projectId: string }) {
     setBusy(true);
     setError("");
     try {
-      const c = await apiFetch<Check>(`/internal/regulatory/field/${fieldId()}`);
+      const asked = fieldId();
+      const c = await apiFetch<Check>(`/internal/regulatory/field/${asked}`);
+      if (asked !== fieldId()) return; // the user picked another field meanwhile
       setCheck(c);
       // show the layers that are on or near the field
       setOn(new Set(c.results.filter((r) => r.status === "inside" || r.status === "near").map((r) => r.id)));
@@ -177,7 +179,7 @@ export function RegulatoryPanel(props: { projectId: string }) {
                 {(r) => <span class={`rounded-sm px-1.5 text-xs mr-1 ${tone(r.status)}`} title={r.note ?? ""}>{r.title}: {word(r)}</span>}
               </For>
             </div>
-            <p class="text-xs opacity-60">Checked {new Date(c().checkedAt).toLocaleString("da-DK")}. Copy what applies into the checklist items on the left.</p>
+            <p class="text-xs opacity-60">{c().field.name}: checked {new Date(c().checkedAt).toLocaleString("da-DK")}. Copy what applies into the checklist items on the left.</p>
           </div>
         )}
       </Show>

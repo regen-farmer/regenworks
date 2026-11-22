@@ -5,7 +5,7 @@
 //  - Danmarks Miljøportal, Danmarks Arealinformation (dai:*): §3, protection lines, fredninger, Natura 2000, BNBO
 //  - Slots- og Kulturstyrelsen, Fund og Fortidsminder (public:*): protected monuments and their protection zone
 // Strandbeskyttelse, klitfredning and OSD aren't in these services yet: checklist items say "check by hand".
-import { booleanIntersects, buffer, distance, nearestPointOnLine, point, polygonToLine } from "@turf/turf";
+import { buffer } from "@turf/turf";
 
 export const MILJOEPORTAL = "https://arealeditering-dist-geo.miljoeportal.dk/geoserver/ows";
 export const KULTURARV = "https://www.kulturarv.dk/ffpublic/wms";
@@ -62,54 +62,107 @@ export function widen(field: any, m = NEAR_M): [number, number, number, number] 
   return [w, s, e, n];
 }
 
-function points(g: any): [number, number][] {
-  const out: [number, number][] = [];
-  const walk = (c: any): void => (typeof c?.[0] === "number" ? void out.push([c[0], c[1]]) : c?.forEach(walk));
-  walk(g?.coordinates);
-  return out;
-}
-function lines(g: any): any[] {
-  if (!g) return [];
-  if (g.type === "LineString" || g.type === "MultiLineString") return [{ type: "Feature", properties: {}, geometry: g }];
-  if (g.type === "Polygon" || g.type === "MultiPolygon") {
-    const l: any = polygonToLine({ type: "Feature", properties: {}, geometry: g } as any);
-    return l.type === "FeatureCollection" ? l.features : [l];
-  }
-  return [];
+type XY = [number, number];
+/** Local flat metres around a reference point (equirectangular; < 0.1 % error within a few km in Denmark). */
+export function projector(lon0: number, lat0: number) {
+  const kx = 111_320 * Math.cos((lat0 * Math.PI) / 180);
+  const ky = 110_574;
+  return (c: number[]): XY => [(c[0] - lon0) * kx, (c[1] - lat0) * ky];
 }
 
-/** Shortest distance (m) between the field and a feature; 0 when they touch or overlap. Thinned to keep it quick. */
-export function distanceM(field: any, geom: any): number {
-  const f = { type: "Feature", properties: {}, geometry: field } as any;
-  const g = { type: "Feature", properties: {}, geometry: geom } as any;
-  if (booleanIntersects(f, g)) return 0;
-  const step = (arr: any[]) => arr.filter((_, i) => i % Math.max(1, Math.floor(arr.length / 400)) === 0);
+/** A geometry as rings/paths of flat points: polygons give their rings (closed), lines their paths, points single points. */
+function parts(g: any, P: (c: number[]) => XY): { rings: XY[][]; paths: XY[][]; pts: XY[] } {
+  const rings: XY[][] = [], paths: XY[][] = [], pts: XY[] = [];
+  const t = g?.type, c = g?.coordinates;
+  if (!Array.isArray(c)) return { rings, paths, pts };
+  if (t === "Polygon") rings.push(...c.map((r: number[][]) => r.map(P)));
+  else if (t === "MultiPolygon") for (const poly of c) rings.push(...poly.map((r: number[][]) => r.map(P)));
+  else if (t === "LineString") paths.push(c.map(P));
+  else if (t === "MultiLineString") paths.push(...c.map((l: number[][]) => l.map(P)));
+  else if (t === "Point") pts.push(P(c));
+  else if (t === "MultiPoint") pts.push(...c.map(P));
+  return { rings, paths, pts };
+}
+
+const segDist = (p: XY, a: XY, b: XY) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const L = dx * dx + dy * dy;
+  const t = L ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)) : 0;
+  return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+};
+const cross = (o: XY, a: XY, b: XY) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+const onSeg = (p: XY, a: XY, b: XY) => Math.min(a[0], b[0]) <= p[0] && p[0] <= Math.max(a[0], b[0]) && Math.min(a[1], b[1]) <= p[1] && p[1] <= Math.max(a[1], b[1]);
+/** Do segments ab and cd touch or cross (collinear segments only when they overlap)? */
+function segsCross(a: XY, b: XY, c: XY, d: XY): boolean {
+  const d1 = cross(a, b, c), d2 = cross(a, b, d), d3 = cross(c, d, a), d4 = cross(c, d, b);
+  if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
+  return (d1 === 0 && onSeg(c, a, b)) || (d2 === 0 && onSeg(d, a, b)) || (d3 === 0 && onSeg(a, c, d)) || (d4 === 0 && onSeg(b, c, d));
+}
+/** Even-odd rule over all rings (holes count as outside). */
+function inside(p: XY, rings: XY[][]): boolean {
+  let n = false;
+  for (const r of rings)
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++)
+      if (r[i][1] > p[1] !== r[j][1] > p[1] && p[0] < ((r[j][0] - r[i][0]) * (p[1] - r[i][1])) / (r[j][1] - r[i][1]) + r[i][0]) n = !n;
+  return n;
+}
+const bounds = (xs: XY[]) => xs.reduce((b, p) => [Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1])], [Infinity, Infinity, -Infinity, -Infinity]);
+const boxGap = (a: number[], b: number[]) => Math.hypot(Math.max(0, a[0] - b[2], b[0] - a[2]), Math.max(0, a[1] - b[3], b[1] - a[3]));
+
+/** Shortest distance (m) between the field and a feature, in flat metres; 0 when they touch or overlap.
+ *  Features whose bounding box is more than `cutoff` m away are answered by that gap without the vertex work. */
+export function distanceM(field: any, geom: any, P?: (c: number[]) => XY, cutoff = Infinity): number {
+  if (!P) {
+    const c = field?.coordinates?.flat?.(3) ?? [];
+    P = projector(c[0] ?? 10, c[1] ?? 56);
+  }
+  const F = parts(field, P), G = parts(geom, P);
+  const fAll = F.rings.flat(), gAll = [...G.rings.flat(), ...G.paths.flat(), ...G.pts];
+  if (!fAll.length || !gAll.length) return Infinity;
+  const gap = boxGap(bounds(fAll), bounds(gAll));
+  if (gap > cutoff) return Math.round(gap);
+  // overlap: a feature point inside the field, a field point inside a feature polygon, or crossing edges
+  if (gAll.some((p) => inside(p, F.rings)) || (G.rings.length && fAll.some((p) => inside(p, G.rings)))) return 0;
+  const fSegs: [XY, XY][] = F.rings.flatMap((r) => r.slice(1).map((p, i): [XY, XY] => [r[i], p]));
+  const gSegs: [XY, XY][] = [...G.rings, ...G.paths].flatMap((r) => r.slice(1).map((p, i): [XY, XY] => [r[i], p]));
   let best = Infinity;
-  const near = (pts: [number, number][], ls: any[]) => {
-    for (const p of step(pts)) for (const l of ls) {
-      const q = nearestPointOnLine(l, point(p));
-      best = Math.min(best, distance(point(p), q, { units: "kilometers" }) * 1000);
+  for (const [a, b] of fSegs) {
+    for (const [c, d] of gSegs) {
+      if (segsCross(a, b, c, d)) return 0;
+      best = Math.min(best, segDist(a, c, d), segDist(b, c, d), segDist(c, a, b), segDist(d, a, b));
     }
-  };
-  near(points(field), lines(geom));
-  if (geom.type === "Point" || geom.type === "MultiPoint") near(points(geom), lines(field));
-  else near(points(geom), lines(field));
+    for (const p of G.pts) best = Math.min(best, segDist(p, a, b));
+  }
   return Math.round(best);
 }
 
 export type RegResult = { id: string; title: string; checklist: string | null; status: "inside" | "near" | "clear" | "unavailable"; distanceM: number | null; count: number; note?: string; error?: string };
 
-/** The answer for one layer from the features found near the field. */
-export function answer(l: RegLayer, field: any, features: any[]): RegResult {
+/** The WFS answer as features, or null when it isn't a feature collection (counted as "couldn't be checked"). */
+export function readFeatures(j: any): { features: any[]; truncated: boolean } | null {
+  if (!j || j.type !== "FeatureCollection" || !Array.isArray(j.features)) return null;
+  const matched = Number(j.numberMatched);
+  return { features: j.features, truncated: Number.isFinite(matched) && matched > j.features.length };
+}
+
+/** The answer for one layer from the features found near the field. Stops at the first overlap; a cut-off
+ *  answer with nothing within reach is "couldn't be checked" (a nearer feature may be among those left out). */
+export function answer(l: RegLayer, field: any, features: any[], truncated = false, deadline = Infinity): RegResult {
+  const base = { id: l.id, title: l.title, checklist: l.checklist, note: l.note };
   const geoms = features.map((f) => f?.geometry).filter((g) => g && typeof g.type === "string");
+  const c = field?.coordinates?.flat?.(3) ?? [];
+  const P = projector(c[0] ?? 10, c[1] ?? 56);
   let d: number | null = null;
-  for (const g of geoms.slice(0, 200)) {
-    const x = distanceM(field, g);
+  for (const g of geoms) {
+    if (Date.now() > deadline) return { ...base, status: "unavailable", distanceM: null, count: geoms.length, error: "Too complex to check in time" };
+    const x = distanceM(field, g, P, NEAR_M);
     d = d === null ? x : Math.min(d, x);
     if (d === 0) break;
   }
+  if (d !== null && !Number.isFinite(d)) d = null;
+  if (truncated && (d === null || d > NEAR_M)) return { ...base, status: "unavailable", distanceM: null, count: geoms.length, error: "Too many features near the field: check by hand" };
   const status = d === null || d > NEAR_M ? "clear" : d === 0 ? "inside" : "near";
-  return { id: l.id, title: l.title, checklist: l.checklist, status, distanceM: d, count: geoms.length, note: l.note };
+  return { ...base, status, distanceM: d, count: geoms.length };
 }
 
 /** One line per checklist item: the most serious answer of its layers, in words. */
@@ -120,7 +173,7 @@ export function checklistWords(results: RegResult[]): Record<string, string> {
   for (const [key, rs] of by) {
     const parts = rs.filter((r) => r.status !== "clear").map((r) =>
       r.status === "unavailable" ? `${r.title}: couldn't be checked` : r.status === "inside" ? `${r.title}: on the field` : `${r.title}: ${r.distanceM} m away`);
-    out[key] = parts.length ? parts.join("; ") : `Clear within ${NEAR_M} m (open data, ${new Date().toISOString().slice(0, 10)})`;
+    out[key] = parts.length ? parts.join("; ") : `Clear within ${NEAR_M} m (open data, checked ${new Date().toLocaleDateString("da-DK", { timeZone: "Europe/Copenhagen" })})`;
   }
   for (const n of NOT_COVERED) out[n.checklist] = n.note;
   return out;

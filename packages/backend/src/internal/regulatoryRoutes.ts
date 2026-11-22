@@ -7,23 +7,58 @@ import mongoose from "mongoose";
 import Layer from "@rw/db/schemas/layer.ts";
 import { groveUserIds } from "./groveRefs.ts";
 import { fieldGeometry } from "./screening.ts";
-import { answer, checklistWords, NEAR_M, NOT_COVERED, REG_LAYERS, wfsUrl, widen, wmsTiles, type RegResult } from "./regulatory.ts";
+import { answer, checklistWords, NEAR_M, NOT_COVERED, readFeatures, REG_LAYERS, wfsUrl, widen, wmsTiles, type RegResult } from "./regulatory.ts";
 
 const router = express.Router();
-const MAX_BYTES = 20_000_000;
+const MAX_BYTES = 6_000_000; // a 300 m window is far below this
+const COMPUTE_MS = 8_000; // all layers' distance work together; the rest is "couldn't be checked"
 
-async function features(url: string): Promise<any[]> {
+/** One layer's features, read with a byte cap whether or not the service sends a length. */
+async function fetchJson(url: string): Promise<any> {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 25_000);
   try {
     const r = await fetch(url, { signal: ctl.signal, redirect: "error", headers: { "User-Agent": "GroveWorks screening" } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
     if (Number(r.headers.get("content-length") ?? 0) > MAX_BYTES) throw new Error("too large");
-    const j: any = await r.json();
-    return Array.isArray(j?.features) ? j.features : [];
+    const reader = r.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let n = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      n += value.byteLength;
+      if (n > MAX_BYTES) {
+        ctl.abort();
+        throw new Error("too large");
+      }
+      chunks.push(value);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } finally {
     clearTimeout(t);
   }
+}
+
+/** Every layer checked against the field. `get` fetches a URL's JSON (replaced in tests). */
+export async function checkField(geometry: any, get: (url: string) => Promise<any> = fetchJson): Promise<RegResult[]> {
+  const bbox = widen({ type: "Feature", properties: {}, geometry });
+  // fetch in parallel; the distance work runs layer by layer under one time budget, so the backend stays responsive
+  const fetched = await Promise.all(REG_LAYERS.map((layer) => get(wfsUrl(layer, bbox)).then((j) => ({ j }), (e) => ({ e }))));
+  const deadline = Date.now() + COMPUTE_MS;
+  const out: RegResult[] = [];
+  for (const [i, layer] of REG_LAYERS.entries()) {
+    const f = fetched[i] as { j?: any; e?: any };
+    const read = f.e ? null : readFeatures(f.j);
+    if (!read) {
+      if (f.e) console.error("[regulatory] %s failed: %s", layer.typeName, f.e?.name === "AbortError" ? "timeout" : f.e?.message);
+      out.push({ id: layer.id, title: layer.title, checklist: layer.checklist, status: "unavailable", distanceM: null, count: 0, note: layer.note, error: "The map service didn't answer" });
+      continue;
+    }
+    out.push(answer(layer, geometry, read.features, read.truncated, deadline));
+    await new Promise((r) => setImmediate(r)); // let other requests through between layers
+  }
+  return out;
 }
 
 // the layers for the map (public WMS tiles) and the checklist items they answer
@@ -50,17 +85,7 @@ router.get("/field/:layerId", async (req, res) => {
     res.status(400).send({ error: "The field has no outline" });
     return;
   }
-  const bbox = widen({ type: "Feature", properties: {}, geometry });
-  const results: RegResult[] = await Promise.all(
-    REG_LAYERS.map(async (layer) => {
-      try {
-        return answer(layer, geometry, await features(wfsUrl(layer, bbox)));
-      } catch (e: any) {
-        console.error("[regulatory] %s failed: %s", layer.typeName, e?.name === "AbortError" ? "timeout" : e?.message);
-        return { id: layer.id, title: layer.title, checklist: layer.checklist, status: "unavailable" as const, distanceM: null, count: 0, note: layer.note, error: "The map service didn't answer" };
-      }
-    }),
-  );
+  const results = await checkField(geometry);
   res.send({ field: { _id: l._id, name: l.name }, near_m: NEAR_M, checkedAt: new Date().toISOString(), results, checklist: checklistWords(results) });
 });
 
