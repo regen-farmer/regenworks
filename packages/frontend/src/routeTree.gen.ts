@@ -42,6 +42,8 @@ import { Route as GroveClientsClientIdRouteImport } from './routes/grove/clients
 import { Route as GroveDealsIndexRouteImport } from './routes/grove/deals/index'
 import { Route as GroveDealsDealIdRouteImport } from './routes/grove/deals/$dealId'
 import { Route as GroveDealsReportRouteImport } from './routes/grove/deals/report'
+import { Route as GroveEconomicsIndexRouteImport } from './routes/grove/economics/index'
+import { Route as GroveEconomicsScenarioIdRouteImport } from './routes/grove/economics/$scenarioId'
 import { Route as GroveOffersIndexRouteImport } from './routes/grove/offers/index'
 import { Route as GroveOffersOfferIdRouteImport } from './routes/grove/offers/$offerId'
 import { Route as GroveProjectsIndexRouteImport } from './routes/grove/projects/index'
@@ -252,6 +254,17 @@ const GroveDealsReportRoute = GroveDealsReportRouteImport.update({
   path: '/deals/report',
   getParentRoute: () => GroveRouteRoute,
 } as any)
+const GroveEconomicsIndexRoute = GroveEconomicsIndexRouteImport.update({
+  id: '/economics/',
+  path: '/economics/',
+  getParentRoute: () => GroveRouteRoute,
+} as any)
+const GroveEconomicsScenarioIdRoute =
+  GroveEconomicsScenarioIdRouteImport.update({
+    id: '/economics/$scenarioId',
+    path: '/economics/$scenarioId',
+    getParentRoute: () => GroveRouteRoute,
+  } as any)
 const GroveOffersIndexRoute = GroveOffersIndexRouteImport.update({
   id: '/offers/',
   path: '/offers/',
@@ -529,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
   '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/deals/report': typeof GroveDealsReportRoute
+  '/grove/economics/$scenarioId': typeof GroveEconomicsScenarioIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -540,6 +554,7 @@ export interface FileRoutesByFullPath {
   '/grove/apcco/': typeof GroveApccoIndexRoute
   '/grove/clients/': typeof GroveClientsIndexRoute
   '/grove/deals/': typeof GroveDealsIndexRoute
+  '/grove/economics/': typeof GroveEconomicsIndexRoute
   '/grove/offers/': typeof GroveOffersIndexRoute
   '/grove/projects/': typeof GroveProjectsIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
@@ -601,6 +616,7 @@ export interface FileRoutesByTo {
   '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
   '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/deals/report': typeof GroveDealsReportRoute
+  '/grove/economics/$scenarioId': typeof GroveEconomicsScenarioIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -612,6 +628,7 @@ export interface FileRoutesByTo {
   '/grove/apcco': typeof GroveApccoIndexRoute
   '/grove/clients': typeof GroveClientsIndexRoute
   '/grove/deals': typeof GroveDealsIndexRoute
+  '/grove/economics': typeof GroveEconomicsIndexRoute
   '/grove/offers': typeof GroveOffersIndexRoute
   '/grove/projects': typeof GroveProjectsIndexRoute
   '/parcels/$parcelId': typeof ParcelsParcelIdIndexRoute
@@ -678,6 +695,7 @@ export interface FileRoutesById {
   '/grove/clients/$clientId': typeof GroveClientsClientIdRoute
   '/grove/deals/$dealId': typeof GroveDealsDealIdRoute
   '/grove/deals/report': typeof GroveDealsReportRoute
+  '/grove/economics/$scenarioId': typeof GroveEconomicsScenarioIdRoute
   '/grove/offers/$offerId': typeof GroveOffersOfferIdRoute
   '/grove/projects/$projectId': typeof GroveProjectsProjectIdRoute
   '/parcels/$parcelId/layers': typeof ParcelsParcelIdLayersRouteWithChildren
@@ -689,6 +707,7 @@ export interface FileRoutesById {
   '/grove/apcco/': typeof GroveApccoIndexRoute
   '/grove/clients/': typeof GroveClientsIndexRoute
   '/grove/deals/': typeof GroveDealsIndexRoute
+  '/grove/economics/': typeof GroveEconomicsIndexRoute
   '/grove/offers/': typeof GroveOffersIndexRoute
   '/grove/projects/': typeof GroveProjectsIndexRoute
   '/parcels/$parcelId/': typeof ParcelsParcelIdIndexRoute
@@ -756,6 +775,7 @@ export interface FileRouteTypes {
     | '/grove/clients/$clientId'
     | '/grove/deals/$dealId'
     | '/grove/deals/report'
+    | '/grove/economics/$scenarioId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -767,6 +787,7 @@ export interface FileRouteTypes {
     | '/grove/apcco/'
     | '/grove/clients/'
     | '/grove/deals/'
+    | '/grove/economics/'
     | '/grove/offers/'
     | '/grove/projects/'
     | '/parcels/$parcelId/'
@@ -828,6 +849,7 @@ export interface FileRouteTypes {
     | '/grove/clients/$clientId'
     | '/grove/deals/$dealId'
     | '/grove/deals/report'
+    | '/grove/economics/$scenarioId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -839,6 +861,7 @@ export interface FileRouteTypes {
     | '/grove/apcco'
     | '/grove/clients'
     | '/grove/deals'
+    | '/grove/economics'
     | '/grove/offers'
     | '/grove/projects'
     | '/parcels/$parcelId'
@@ -904,6 +927,7 @@ export interface FileRouteTypes {
     | '/grove/clients/$clientId'
     | '/grove/deals/$dealId'
     | '/grove/deals/report'
+    | '/grove/economics/$scenarioId'
     | '/grove/offers/$offerId'
     | '/grove/projects/$projectId'
     | '/parcels/$parcelId/layers'
@@ -915,6 +939,7 @@ export interface FileRouteTypes {
     | '/grove/apcco/'
     | '/grove/clients/'
     | '/grove/deals/'
+    | '/grove/economics/'
     | '/grove/offers/'
     | '/grove/projects/'
     | '/parcels/$parcelId/'
@@ -1201,6 +1226,20 @@ declare module '@tanstack/solid-router' {
       path: '/deals/report'
       fullPath: '/grove/deals/report'
       preLoaderRoute: typeof GroveDealsReportRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/economics/': {
+      id: '/grove/economics/'
+      path: '/economics'
+      fullPath: '/grove/economics/'
+      preLoaderRoute: typeof GroveEconomicsIndexRouteImport
+      parentRoute: typeof GroveRouteRoute
+    }
+    '/grove/economics/$scenarioId': {
+      id: '/grove/economics/$scenarioId'
+      path: '/economics/$scenarioId'
+      fullPath: '/grove/economics/$scenarioId'
+      preLoaderRoute: typeof GroveEconomicsScenarioIdRouteImport
       parentRoute: typeof GroveRouteRoute
     }
     '/grove/offers/': {
@@ -1507,11 +1546,13 @@ interface GroveRouteRouteChildren {
   GroveClientsClientIdRoute: typeof GroveClientsClientIdRoute
   GroveDealsDealIdRoute: typeof GroveDealsDealIdRoute
   GroveDealsReportRoute: typeof GroveDealsReportRoute
+  GroveEconomicsScenarioIdRoute: typeof GroveEconomicsScenarioIdRoute
   GroveOffersOfferIdRoute: typeof GroveOffersOfferIdRoute
   GroveProjectsProjectIdRoute: typeof GroveProjectsProjectIdRoute
   GroveApccoIndexRoute: typeof GroveApccoIndexRoute
   GroveClientsIndexRoute: typeof GroveClientsIndexRoute
   GroveDealsIndexRoute: typeof GroveDealsIndexRoute
+  GroveEconomicsIndexRoute: typeof GroveEconomicsIndexRoute
   GroveOffersIndexRoute: typeof GroveOffersIndexRoute
   GroveProjectsIndexRoute: typeof GroveProjectsIndexRoute
   GroveTreesProjectIdRegisterIdRoute: typeof GroveTreesProjectIdRegisterIdRoute
@@ -1531,11 +1572,13 @@ const GroveRouteRouteChildren: GroveRouteRouteChildren = {
   GroveClientsClientIdRoute: GroveClientsClientIdRoute,
   GroveDealsDealIdRoute: GroveDealsDealIdRoute,
   GroveDealsReportRoute: GroveDealsReportRoute,
+  GroveEconomicsScenarioIdRoute: GroveEconomicsScenarioIdRoute,
   GroveOffersOfferIdRoute: GroveOffersOfferIdRoute,
   GroveProjectsProjectIdRoute: GroveProjectsProjectIdRoute,
   GroveApccoIndexRoute: GroveApccoIndexRoute,
   GroveClientsIndexRoute: GroveClientsIndexRoute,
   GroveDealsIndexRoute: GroveDealsIndexRoute,
+  GroveEconomicsIndexRoute: GroveEconomicsIndexRoute,
   GroveOffersIndexRoute: GroveOffersIndexRoute,
   GroveProjectsIndexRoute: GroveProjectsIndexRoute,
   GroveTreesProjectIdRegisterIdRoute: GroveTreesProjectIdRegisterIdRoute,
