@@ -1,6 +1,7 @@
 // Model screening (grove-twin's screening service): pure helpers for /internal/screening.
 // GroveWorks sends a field outline (and, for a scenario, the trees in its design); the service
-// answers with decision statements and map layers. Nothing is stored on either side.
+// answers with decision statements and map layers. GroveWorks stores nothing; the service keeps fields
+// screened on demand (slice 2) in its cache.
 
 /** The species the screening model knows, keyed by genus + species (lower case). */
 const MODEL_SPECIES: Record<string, string> = {
@@ -308,3 +309,30 @@ export function pickSuitability(v: unknown) {
 }
 
 export const MAX_RESULT_BYTES = 8_000_000;
+
+/** Ids of fields screened on demand (grove-twin service/ondemand.py): "field-" + 12 hex characters. */
+export const NEW_SITE_RE = /^field-[0-9a-f]{12}$/;
+const NEW_STATUSES = ["queued", "running", "done", "failed"];
+const STEP_STATUSES = ["waiting", "running", "done", "failed"];
+
+/** The on-demand screening's status from the service, narrowed to what the panel shows. */
+export function pickNewStatus(body: any) {
+  const o = obj(body) ? body : {};
+  const site = typeof o.site === "string" && (NEW_SITE_RE.test(o.site) || /^[a-z0-9][a-z0-9-]{0,119}$/.test(o.site)) ? o.site : "";
+  const steps = (Array.isArray(o.steps) ? o.steps : []).slice(0, 20).flatMap((st: any) =>
+    obj(st) && typeof st.name === "string" && STEP_STATUSES.includes(st.status)
+      ? [{ name: st.name.slice(0, 40), status: st.status as string, seconds: num(st.seconds), note: typeof st.note === "string" ? st.note.slice(0, 300) : "" }]
+      : []);
+  const when = (v: unknown) => (typeof v === "string" && v.length <= 40 ? v : null);
+  return {
+    site,
+    status: NEW_STATUSES.includes(o.status) ? (o.status as string) : "failed",
+    steps,
+    error: typeof o.error === "string" ? o.error.slice(0, 400) : null,
+    area_ha: num(o.area_ha),
+    queued: when(o.queued),
+    started: when(o.started),
+    finished: when(o.finished),
+    note: typeof o.note === "string" ? o.note.slice(0, 300) : "",
+  };
+}

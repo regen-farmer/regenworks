@@ -19,6 +19,7 @@ const ITEMS: (Item | { heading: string; show?: () => boolean })[] = [
   { to: "/grove/funnels", label: "Funnels & sources", icon: "fa-sliders", sub: true, show: () => canSeeMoney() },
   { to: "/grove/projects", label: "Projects", letter: "B", icon: "fa-compass-drafting", also: /^\/grove\/(projects|trees)(\/|$)/ },
   { to: "/", label: "Farms & designs", icon: "fa-map-location-dot", sub: true, exact: true, also: /^\/parcels(\/|$)/ },
+  { to: "/grove/economics", label: "Economics", icon: "fa-coins", sub: true, show: () => canSeeMoney() },
   { to: "/grove/managed", label: "Management & production", letter: "C", icon: "fa-tractor", exact: true },
   { to: "/grove/supply", label: "Nursery & supply", icon: "fa-seedling", sub: true, show: () => canSeeMoney() },
   { to: "/grove/apcco", label: "APCCO Uganda", letter: "D", icon: "fa-mug-hot", show: () => isGroveTeam(), also: /^\/grove\/apcco(\/|$)/ },
