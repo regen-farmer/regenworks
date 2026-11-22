@@ -11,7 +11,7 @@ const A: Assumptions = {
 	ranges: [
 		row("first_yield_year", "hazel", [3, 4, 4]),
 		row("full_yield_year", "hazel", [11, 15, 15]),
-		row("yield_full", "hazel", [3, 4, 5]),
+		row("yield_full", "hazel", [3, 4, 5]), // invented test numbers
 		row("price", "hazel", [30, 40, 50]),
 		row("harvest_cost", "hazel", [3, 3, 3]),
 		row("pruning_cost", "hazel", [3, 4, 5]),
@@ -106,4 +106,33 @@ test("library species map to crops", () => {
 	assert.equal(cropOf({ genus: "Corylus", species: "maxima" }), "hazel");
 	assert.equal(cropOf({ genus: "Ribes", species: "nigrum" }), "blackcurrant");
 	assert.equal(cropOf({ genus: "Crataegus", species: "monogyna" }), null);
+});
+
+test("fields planted in different years start their own lines later; payments are checked field by field", () => {
+	const a = field([{ crop_id: "hazel", label: "Hazel", count: 500 }], { fieldId: "a", name: "A", plantingYear: 2027 });
+	const b = field([{ crop_id: "hazel", label: "Hazel", count: 100 }], { fieldId: "b", name: "B", plantingYear: 2030, maxRowSpacingM: 24 });
+	const r = economics(A, [a, b], scen());
+	const L = r.cases.likely;
+	const plants = L.lines.find((l) => l.key === "plants-hazel")!;
+	assert.equal(plants.years[0], -500 * 60);
+	assert.equal(plants.years[3], -100 * 60, "field B's plants in plan year 4");
+	assert.equal(L.lines.find((l) => l.key === "rev-hazel")!.years[3], 0.4 * 500 * 40, "only A harvests in year 4");
+	const fb = r.payments.find((p) => p.payment_id === "oa-fruitberry-2026")!;
+	assert.deepEqual(fb.fields!.map((f) => f.withTrees), [true, false], "A dense with close rows; B too sparse");
+	assert.equal(fb.kr_per_year, Math.round(536.91 * 7.46 * 2), "only A's 2 ha");
+	const pay = L.lines.find((l) => l.key === "payments")!;
+	assert.equal(pay.years[0], Math.round(536.91 * 7.46 * 2));
+});
+
+test("every planted tree counts towards the 100 trees/ha limit; an empty plan has no payback", () => {
+	const mixed = paymentRules(A, [field([{ crop_id: "hazel", label: "Hazel", count: 120 }, { crop_id: null, label: "Oak", count: 180 }], { maxRowSpacingM: 90 })], scen());
+	assert.match(mixed.find((p) => p.payment_id === "gb-2026")!.reason, /150 trees\/ha/);
+	assert.equal(mixed.find((p) => p.payment_id === "gb-2026")!.withTrees, false);
+	const none = economics(A, [], scen());
+	assert.equal(none.cases.likely.paybackYear, null);
+});
+
+test("a crop without a yield curve still costs its pruning and care", () => {
+	const r = economics(A, [field([{ crop_id: "chestnut", label: "Chestnut", count: 50 }])], scen({ crops: [{ crop_id: "chestnut", pruningPerPlant: 10 }] }));
+	assert.equal(r.cases.likely.lines.find((l) => l.key === "prune-chestnut")!.years[4], -50 * 10);
 });

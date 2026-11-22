@@ -100,6 +100,8 @@ function band(v: unknown, max = 1e7): { low: number; likely: number; high: numbe
   if (v === null) return null;
   if (!v || typeof v !== "object") return undefined;
   const o = v as any;
+  // nothing set (e.g. the stored empty band): "use the assumptions"
+  if ([o.low, o.likely, o.high].every((x) => x === undefined || x === null || x === "")) return null;
   const b = [o.low, o.likely, o.high].map((x) => nonNeg(x, max));
   if (b.some((x) => x === undefined || x === null)) return undefined;
   const [low, likely, high] = b as number[];
@@ -203,8 +205,12 @@ export function cleanScenario(body: any): Clean {
   return { ok: true, value: out };
 }
 
-/** The widest space between neighbouring tree rows in a design (m): each row's width with its offsets. */
-export function maxRowSpacing(design: { rows?: { width?: number; offset?: { before?: number; after?: number } }[] } | null | undefined): number | null {
-  const w = (design?.rows ?? []).map((r) => (Number(r.width) || 0) + (Number(r.offset?.before) || 0) + (Number(r.offset?.after) || 0)).filter((x) => x > 0);
-  return w.length ? Math.max(...w) : null;
+/** The widest distance between neighbouring tree rows in a design (m), centre to centre: the layout puts
+ *  row i+1 (w_i + w_i+1)/2 from row i and repeats the pattern. Offsets run along the row (field edge to
+ *  the first and last tree), so they don't count. */
+export function maxRowSpacing(design: { rows?: { width?: number }[] } | null | undefined): number | null {
+  const w = (design?.rows ?? []).map((r) => Number(r.width) || 0).filter((x) => x > 0);
+  if (!w.length) return null;
+  if (w.length === 1) return w[0];
+  return Math.max(...w.map((x, i) => (x + w[(i + 1) % w.length]) / 2));
 }

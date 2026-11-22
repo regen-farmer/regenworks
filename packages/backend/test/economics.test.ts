@@ -6,9 +6,9 @@ import { buildAssumptions, cleanScenario, maxRowSpacing, toAssumptions } from ".
 import internalRoutes from "../src/routes/internal.ts";
 
 const RANGES = `parameter,crop_id,age,unit,n_values,n_sources,low,likely,high,danish_likely,sources,value_ids,note
-yield_full,hazel,,kg/plant/yr,1,1,3.0,4.0,5.0,4.0,src,a-1,
-yield_at_age,hazel,4,kg/plant/yr,2,2,0.24,0.32,1.2,0.32,src,a-2,
-opportunity_cost,,,kr/ha/yr,1,1,3000,3000,3000,3000,grove,a-3,
+yield_full,hazel,,kg/plant/yr,1,1,1.0,2.0,3.0,2.0,src,a-1,
+yield_at_age,hazel,4,kg/plant/yr,2,2,0.1,0.2,0.3,0.2,src,a-2,
+opportunity_cost,,,kr/ha/yr,1,1,1000,1500,2000,1500,test,a-3,
 `;
 const PAY = `payment_id,scheme,scheme_da,year,rate,currency,unit,stackable_with,eligibility,source_id,source_detail,notes
 gb-2026,basic income support,Grundbetaling,2026,211.23,EUR,per eligible ha,all,"Eligible area, with a comma",bek,§ 38,
@@ -34,7 +34,7 @@ test("buildAssumptions: Grove Data's files become one version; ages, payments an
 
 test("buildAssumptions: a broken file changes nothing", () => {
   assert.equal(buildAssumptions({ "area_payments.csv": PAY }).ok, false);
-  const bad = buildAssumptions({ "assumption_ranges.csv": RANGES.replace("3.0,4.0,5.0", "x,4.0,5.0"), "area_payments.csv": PAY });
+  const bad = buildAssumptions({ "assumption_ranges.csv": RANGES.replace("1.0,2.0,3.0", "x,2.0,3.0"), "area_payments.csv": PAY });
   assert.ok(!bad.ok && bad.errors[0].includes("row 2"));
   const noCol = buildAssumptions({ "assumption_ranges.csv": "parameter,crop_id\nprice,hazel\n", "area_payments.csv": PAY });
   assert.ok(!noCol.ok && /missing column/.test(noCol.errors.join()));
@@ -44,7 +44,7 @@ test("buildAssumptions: a broken file changes nothing", () => {
 
 test("cleanScenario: known keys, numbers in range, bands ordered, nothing else", () => {
   const c = cleanScenario({
-    name: "  Lysløkken plan A ",
+    name: "  Test farm, plan A ",
     farm: "0123456789abcdef01234567",
     fields: [{ layer: "0123456789abcdef01234568", scenario: "0123456789abcdef01234569", plantingYear: 2027 }],
     crops: [{ crop_id: "hazel", price: { low: 30, likely: 40, high: 60 }, processingLoss: 0.4, form: "in-shell", hack: 1 }],
@@ -55,7 +55,7 @@ test("cleanScenario: known keys, numbers in range, bands ordered, nothing else",
   });
   assert.ok(c.ok);
   if (!c.ok) return;
-  assert.equal(c.value.name, "Lysløkken plan A");
+  assert.equal(c.value.name, "Test farm, plan A");
   assert.equal((c.value.crops as any)[0].hack, undefined);
   assert.deepEqual((c.value.establishment as any), { plantingPerPlant: 12, protectionPerPlant: null });
   assert.deepEqual((c.value.baseline as any).paymentsToday, ["gb-2026"]);
@@ -67,10 +67,16 @@ test("cleanScenario: known keys, numbers in range, bands ordered, nothing else",
   assert.equal(cleanScenario({ fields: [{ layer: "0123456789abcdef01234568" }, { layer: "0123456789abcdef01234568" }] }).ok, false);
   assert.equal(cleanScenario({ crops: [{ crop_id: "hazel", replacementRate: 2 }] }).ok, false);
   assert.equal(cleanScenario({ horizonYears: 100 }).ok, false);
+  // an empty band (as stored for "use the assumptions") is no band, not an error
+  const empty = cleanScenario({ baseline: { organic: false, paymentsToday: [], opportunityPerHa: {} } });
+  assert.ok(empty.ok && (empty.value.baseline as any).opportunityPerHa === null);
+  const blank = cleanScenario({ crops: [{ crop_id: "hazel", price: { low: null, likely: null, high: null } }] });
+  assert.ok(blank.ok && (blank.value.crops as any)[0].price === null);
 });
 
-test("maxRowSpacing: the widest row with its offsets", () => {
-  assert.equal(maxRowSpacing({ rows: [{ width: 6 }, { width: 9, offset: { before: 1 } }] }), 10);
+test("maxRowSpacing: centre to centre between neighbouring rows; offsets run along the row and don't count", () => {
+  assert.equal(maxRowSpacing({ rows: [{ width: 6 }, { width: 9, offset: { before: 15 } }] }), 7.5);
+  assert.equal(maxRowSpacing({ rows: [{ width: 8, offset: { before: 15, after: 15 } }] }), 8);
   assert.equal(maxRowSpacing({ rows: [] }), null);
 });
 

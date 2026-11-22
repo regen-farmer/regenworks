@@ -54,7 +54,7 @@ const schema = new mongoose.Schema<IEconomicScenario>(
 		management: { type: mongoose.Schema.Types.Mixed, default: {} },
 		baseline: {
 			landUse: { type: String, maxlength: 40 },
-			opportunityPerHa: band,
+			opportunityPerHa: { type: new mongoose.Schema(band, { _id: false }), default: null },
 			organic: { type: Boolean, default: false },
 			paymentsToday: { type: [String], default: [] },
 			paymentsWithTrees: { type: [String], default: undefined },

@@ -291,6 +291,8 @@ router.get("/:id/result", async (req: Req, res) => {
     res.status(409).send({ error: "No assumptions imported yet: import Grove Data's assumptions files first (Economics → Assumptions)." });
     return;
   }
+  // a scenario made before any import is pinned to the version it is first calculated with
+  if (!Number.isInteger(s.assumptionsVersion)) await EconomicScenario.updateOne({ _id: s._id, assumptionsVersion: null }, { $set: { assumptionsVersion: doc.version } });
   const pricebook: any = await activePricebook().catch(() => null);
   const a = toAssumptions(doc, pricebook?.settings?.eurDkk);
   const { plans, problems } = await fieldPlans(s);
