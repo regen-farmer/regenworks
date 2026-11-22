@@ -7,6 +7,7 @@ import { canSeeMoney } from "~/grove/access.ts";
 import { ChecklistPanel } from "~/grove/ChecklistPanel.tsx";
 import { TreeRegisterPanel } from "~/grove/TreeRegisterPanel.tsx";
 import { ScreeningModel } from "~/grove/ScreeningModel.tsx";
+import { RegulatoryPanel } from "~/grove/RegulatoryPanel.tsx";
 import { ConfirmDialog } from "~/grove/ConfirmDialog.tsx";
 import { dkk, STATUS_EN } from "~/grove/offerTypes.ts";
 import { STAGES, STEPS, TYPES, type GroveProject } from "~/grove/projectTypes.ts";
@@ -208,7 +209,10 @@ function ProjectPage() {
         <div class="grid gap-4 items-start" classList={{ "xl:grid-cols-2": team() }}>
           <ChecklistPanel projectId={params().projectId} kind="screening" suggestion={suggestion} />
           <Show when={team()}>
-            <ScreeningModel projectId={params().projectId} onSuggestion={(s) => setSuggestion({ ...s })} />
+            <div class="flex flex-col gap-6">
+              <ScreeningModel projectId={params().projectId} onSuggestion={(s) => setSuggestion({ ...s })} />
+              <RegulatoryPanel projectId={params().projectId} />
+            </div>
           </Show>
         </div>
 
