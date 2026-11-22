@@ -16,6 +16,7 @@ import modelSiteRoutes from "../internal/modelSiteRoutes.ts";
 import fieldSoilRoutes from "../internal/fieldSoilRoutes.ts";
 import screeningRoutes from "../internal/screeningRoutes.ts";
 import apccoRoutes from "../internal/apccoRoutes.ts";
+import economicsRoutes from "../internal/economicsRoutes.ts";
 
 const router = express.Router();
 
@@ -46,6 +47,8 @@ router.use("/field-soil", requireRole("grove-team"), fieldSoilRoutes);
 router.use("/screening", requireRole("grove-team"), screeningRoutes);
 // D · APCCO Uganda: coffee agroforestry sites, field data and model runs (SHAMBA, DynACof, CAF): grove-team only.
 router.use("/apcco", requireRole("grove-team"), apccoRoutes);
+// B · Projects → Economics: assumptions with prices and costs, farm plans on Grove-kept farms: grove-team only.
+router.use("/economics", requireRole("grove-team"), economicsRoutes);
 // Dashboard: field users see their assigned projects (no money); see projectRoutes.ts.
 router.use("/projects", projectRoutes);
 
