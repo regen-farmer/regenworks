@@ -19,7 +19,10 @@ async function fetchJson(url: string): Promise<any> {
   const t = setTimeout(() => ctl.abort(), 25_000);
   try {
     const r = await fetch(url, { signal: ctl.signal, redirect: "error", headers: { "User-Agent": "GroveWorks screening" } });
-    if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+    if (!r.ok || !r.body) {
+      ctl.abort(); // close the connection now
+      throw new Error(`HTTP ${r.status}`);
+    }
     if (Number(r.headers.get("content-length") ?? 0) > MAX_BYTES) throw new Error("too large");
     const reader = r.body.getReader();
     const chunks: Uint8Array[] = [];
@@ -49,7 +52,7 @@ export async function checkField(geometry: any, get: (url: string) => Promise<an
   const out: RegResult[] = [];
   for (const [i, layer] of REG_LAYERS.entries()) {
     const f = fetched[i] as { j?: any; e?: any };
-    const read = f.e ? null : readFeatures(f.j);
+    const read = f.e ? null : readFeatures(f.j, bbox);
     if (!read) {
       if (f.e) console.error("[regulatory] %s failed: %s", layer.typeName, f.e?.name === "AbortError" ? "timeout" : f.e?.message);
       out.push({ id: layer.id, title: layer.title, checklist: layer.checklist, status: "unavailable", distanceM: null, count: 0, note: layer.note, error: "The map service didn't answer" });

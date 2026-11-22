@@ -35,7 +35,7 @@ export const NOT_COVERED = [
 ];
 
 /** The WFS request for one layer around a bounding box (lon/lat, already widened). */
-export function wfsUrl(l: RegLayer, bbox: [number, number, number, number], count = 200): string {
+export function wfsUrl(l: RegLayer, bbox: [number, number, number, number], count = 200): string {  // WFS_COUNT
   const [w, s, e, n] = bbox;
   const q = new URLSearchParams({
     service: "WFS", version: "2.0.0", request: "GetFeature", typeNames: l.typeName, count: String(count),
@@ -124,14 +124,21 @@ export function distanceM(field: any, geom: any, P?: (c: number[]) => XY, cutoff
   // overlap: a feature point inside the field, a field point inside a feature polygon, or crossing edges
   if (gAll.some((p) => inside(p, F.rings)) || (G.rings.length && fAll.some((p) => inside(p, G.rings)))) return 0;
   const fSegs: [XY, XY][] = F.rings.flatMap((r) => r.slice(1).map((p, i): [XY, XY] => [r[i], p]));
-  const gSegs: [XY, XY][] = [...G.rings, ...G.paths].flatMap((r) => r.slice(1).map((p, i): [XY, XY] => [r[i], p]));
+  // only the feature's segments near the field's box matter (a big polygon has thousands far away)
+  const fb = bounds(fAll);
+  const reach = Number.isFinite(cutoff) ? cutoff : Infinity;
+  const gSegs: [XY, XY][] = [...G.rings, ...G.paths]
+    .flatMap((r) => r.slice(1).map((p, i): [XY, XY] => [r[i], p]))
+    .filter(([c, d]) => boxGap(fb, [Math.min(c[0], d[0]), Math.min(c[1], d[1]), Math.max(c[0], d[0]), Math.max(c[1], d[1])]) <= reach);
+  const gPts = Number.isFinite(reach) ? G.pts.filter((p) => boxGap(fb, [p[0], p[1], p[0], p[1]]) <= reach) : G.pts;
+  if (!gSegs.length && !gPts.length) return Math.round(Math.max(gap, reach + 1));
   let best = Infinity;
   for (const [a, b] of fSegs) {
     for (const [c, d] of gSegs) {
       if (segsCross(a, b, c, d)) return 0;
       best = Math.min(best, segDist(a, c, d), segDist(b, c, d), segDist(c, a, b), segDist(d, a, b));
     }
-    for (const p of G.pts) best = Math.min(best, segDist(p, a, b));
+    for (const p of gPts) best = Math.min(best, segDist(p, a, b));
   }
   return Math.round(best);
 }
@@ -139,10 +146,19 @@ export function distanceM(field: any, geom: any, P?: (c: number[]) => XY, cutoff
 export type RegResult = { id: string; title: string; checklist: string | null; status: "inside" | "near" | "clear" | "unavailable"; distanceM: number | null; count: number; note?: string; error?: string };
 
 /** The WFS answer as features, or null when it isn't a feature collection (counted as "couldn't be checked"). */
-export function readFeatures(j: any): { features: any[]; truncated: boolean } | null {
+export const WFS_COUNT = 200;
+export function readFeatures(j: any, bbox?: [number, number, number, number]): { features: any[]; truncated: boolean } | null {
   if (!j || j.type !== "FeatureCollection" || !Array.isArray(j.features)) return null;
   const matched = Number(j.numberMatched);
-  return { features: j.features, truncated: Number.isFinite(matched) && matched > j.features.length };
+  // without numberMatched (or "unknown"), a full page may have been cut off too
+  const truncated = (Number.isFinite(matched) && matched > j.features.length) || j.features.length >= WFS_COUNT;
+  // coordinates far outside the box asked for (e.g. swapped axes after a service change): don't trust the answer
+  if (bbox && j.features.length) {
+    const [w, s, e, n] = bbox, pad = 0.2;
+    const c = j.features[0]?.geometry?.coordinates?.flat?.(4) ?? [];
+    if (c.length >= 2 && (c[0] < w - pad || c[0] > e + pad || c[1] < s - pad || c[1] > n + pad)) return null;
+  }
+  return { features: j.features, truncated };
 }
 
 /** The answer for one layer from the features found near the field. Stops at the first overlap; a cut-off

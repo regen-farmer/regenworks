@@ -75,6 +75,20 @@ test("what the service sends: no feature collection is 'couldn't be checked'; a 
   assert.equal(by["fredning"].status, "clear");
 });
 
+test("a field in the hole of a huge polygon is quick; cut-off and swapped answers aren't trusted", () => {
+  const ring = (n: number, cx: number, cy: number, r: number) => Array.from({ length: n + 1 }, (_, i) => [cx + r * 1.7 * Math.cos((2 * Math.PI * i) / n), cy + r * Math.sin((2 * Math.PI * i) / n)]);
+  const huge = { type: "Polygon", coordinates: [ring(50000, 10.3, 55.4, 0.2), ring(50000, 10.3, 55.4, 0.006)] }; // hole ~670 m across
+  const small = { type: "Polygon", coordinates: [ring(500, 10.3, 55.4, 0.001)] };
+  const t0 = Date.now();
+  const d = distanceM(small, huge, undefined, 300);
+  assert.ok(Date.now() - t0 < 1500, `took ${Date.now() - t0} ms`);
+  assert.ok(d > 300, String(d)); // ~550 m to the hole's edge: clear
+  const full = { type: "FeatureCollection", features: Array.from({ length: 200 }, () => ({ geometry: null })) };
+  assert.equal(readFeatures(full)!.truncated, true, "a full page without numberMatched counts as cut off");
+  const swapped = { type: "FeatureCollection", features: [{ geometry: { type: "Point", coordinates: [55.4, 10.3] } }] };
+  assert.equal(readFeatures(swapped, [10.29, 55.39, 10.31, 55.41]), null);
+});
+
 let who: any = {};
 const app = express();
 app.use(express.json());
