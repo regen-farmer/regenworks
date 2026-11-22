@@ -302,7 +302,7 @@ router.get("/:id/result", async (req: Req, res) => {
     crops: s.crops ?? [],
     establishment: s.establishment ?? {},
     management: s.management ?? {},
-    baseline: { opportunityPerHa: s.baseline?.opportunityPerHa?.likely !== undefined ? s.baseline.opportunityPerHa : null, organic: !!s.baseline?.organic, paymentsToday: s.baseline?.paymentsToday ?? [], paymentsWithTrees: s.baseline?.paymentsWithTrees ?? null },
+    baseline: { opportunityPerHa: s.baseline?.opportunityPerHa?.likely !== undefined ? s.baseline.opportunityPerHa : null, organic: !!s.baseline?.organic, paymentsToday: s.baseline?.paymentsToday ?? [], paymentOverrides: s.baseline?.paymentOverrides ?? null },
   });
   res.send({
     ...result,

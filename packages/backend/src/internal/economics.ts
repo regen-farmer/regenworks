@@ -199,18 +199,33 @@ export function cleanScenario(body: any): Clean {
       opportunityPerHa: opp,
       organic: b.organic === true,
       paymentsToday: ids(b.paymentsToday),
-      paymentsWithTrees: Array.isArray(b.paymentsWithTrees) ? ids(b.paymentsWithTrees) : null,
+      paymentOverrides: b.paymentOverrides && typeof b.paymentOverrides === "object" && !Array.isArray(b.paymentOverrides)
+        ? Object.fromEntries(Object.entries(b.paymentOverrides).filter(([k, v]) => PAY.test(k) && typeof v === "boolean").slice(0, 20))
+        : null,
     };
   }
   return { ok: true, value: out };
 }
 
-/** The widest distance between neighbouring tree rows in a design (m), centre to centre: the layout puts
- *  row i+1 (w_i + w_i+1)/2 from row i and repeats the pattern. Offsets run along the row (field edge to
- *  the first and last tree), so they don't count. */
-export function maxRowSpacing(design: { rows?: { width?: number }[] } | null | undefined): number | null {
-  const w = (design?.rows ?? []).map((r) => Number(r.width) || 0).filter((x) => x > 0);
-  if (!w.length) return null;
-  if (w.length === 1) return w[0];
-  return Math.max(...w.map((x, i) => (x + w[(i + 1) % w.length]) / 2));
+/** The widest distance between neighbouring tree rows in a design (m), centre to centre. The layout lays
+ *  the design's rows side by side, each its width wide, and repeats the pattern; rows without trees (an
+ *  empty sequence) are alleys. Offsets run along the row (field edge to the first and last tree), so they
+ *  don't count. */
+export function maxRowSpacing(design: { rows?: { width?: number; sequence?: unknown[] }[] } | null | undefined): number | null {
+  const rows = design?.rows ?? [];
+  const period = rows.reduce((n, r) => n + Math.max(0, Number(r.width) || 0), 0);
+  if (!(period > 0)) return null;
+  const centres: number[] = [];
+  let acc = 0;
+  for (let rep = 0; rep < 2; rep++)
+    for (const r of rows) {
+      const w = Math.max(0, Number(r.width) || 0);
+      acc += w / 2;
+      if (Array.isArray(r.sequence) && r.sequence.length) centres.push(acc);
+      acc += w / 2;
+    }
+  if (centres.length < 2) return centres.length ? period : null;
+  let best = 0;
+  for (let i = 1; i < centres.length; i++) best = Math.max(best, centres[i] - centres[i - 1]);
+  return Math.round(best * 10) / 10;
 }

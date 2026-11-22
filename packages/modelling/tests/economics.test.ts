@@ -90,7 +90,7 @@ test("payments: basic kept as agroforestry, the fruit/berry supplement when haze
 	assert.equal(wide.find((p) => p.payment_id === "gb-2026")!.withTrees, false);
 	const conventional = paymentRules(A, [field([{ crop_id: "hazel", label: "Hazel", count: 500 }])], scen({ baseline: { organic: false, paymentsToday: ["gb-2026"] } }));
 	assert.equal(conventional.find((p) => p.payment_id === "oa-fruitberry-2026")!.withTrees, false);
-	const byHand = paymentRules(A, [field([{ crop_id: "hazel", label: "Hazel", count: 500 }])], scen({ baseline: { organic: true, paymentsToday: ["gb-2026"], paymentsWithTrees: [] } }));
+	const byHand = paymentRules(A, [field([{ crop_id: "hazel", label: "Hazel", count: 500 }])], scen({ baseline: { organic: true, paymentsToday: ["gb-2026"], paymentOverrides: { "gb-2026": false } } }));
 	assert.match(byHand.find((p) => p.payment_id === "gb-2026")!.reason, /set by hand/);
 });
 
@@ -135,4 +135,13 @@ test("every planted tree counts towards the 100 trees/ha limit; an empty plan ha
 test("a crop without a yield curve still costs its pruning and care", () => {
 	const r = economics(A, [field([{ crop_id: "chestnut", label: "Chestnut", count: 50 }])], scen({ crops: [{ crop_id: "chestnut", pruningPerPlant: 10 }] }));
 	assert.equal(r.cases.likely.lines.find((l) => l.key === "prune-chestnut")!.years[4], -50 * 10);
+});
+
+test("a payment set by hand doesn't switch the others on for every field", () => {
+	const a = field([{ crop_id: "hazel", label: "Hazel", count: 500 }], { fieldId: "a", name: "A" });
+	const b = field([{ crop_id: "hazel", label: "Hazel", count: 100 }], { fieldId: "b", name: "B" });
+	const r = paymentRules(A, [a, b], scen({ baseline: { organic: true, paymentsToday: ["gb-2026", "grass-2026"], paymentOverrides: { "grass-2026": true } } }));
+	const fb = r.find((p) => p.payment_id === "oa-fruitberry-2026")!;
+	assert.deepEqual(fb.fields!.map((f) => f.withTrees), [true, false]);
+	assert.equal(r.find((p) => p.payment_id === "grass-2026")!.kr_per_year, 0, "kept by hand");
 });

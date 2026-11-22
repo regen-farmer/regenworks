@@ -26,7 +26,7 @@ export interface IEconomicScenario {
 		opportunityPerHa?: { low: number; likely: number; high: number } | null;
 		organic: boolean;
 		paymentsToday: string[];
-		paymentsWithTrees?: string[] | null;
+		paymentOverrides?: Record<string, boolean> | null;
 	};
 	createdBy?: mongoose.Types.ObjectId | string;
 	updatedBy?: mongoose.Types.ObjectId | string;
@@ -57,7 +57,7 @@ const schema = new mongoose.Schema<IEconomicScenario>(
 			opportunityPerHa: { type: new mongoose.Schema(band, { _id: false }), default: null },
 			organic: { type: Boolean, default: false },
 			paymentsToday: { type: [String], default: [] },
-			paymentsWithTrees: { type: [String], default: undefined },
+			paymentOverrides: { type: mongoose.Schema.Types.Mixed, default: null },
 		},
 		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 		updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

@@ -75,8 +75,14 @@ test("cleanScenario: known keys, numbers in range, bands ordered, nothing else",
 });
 
 test("maxRowSpacing: centre to centre between neighbouring rows; offsets run along the row and don't count", () => {
-  assert.equal(maxRowSpacing({ rows: [{ width: 6 }, { width: 9, offset: { before: 15 } }] }), 7.5);
-  assert.equal(maxRowSpacing({ rows: [{ width: 8, offset: { before: 15, after: 15 } }] }), 8);
+  const t = ["x"];
+  assert.equal(maxRowSpacing({ rows: [{ width: 6, sequence: t }, { width: 9, sequence: t, offset: { before: 15 } } as any] }), 7.5);
+  assert.equal(maxRowSpacing({ rows: [{ width: 8, sequence: t, offset: { before: 15, after: 15 } } as any] }), 8);
+  // alleys without trees: 6 m tree row + 24 m alley = 30 m; double row 3+3 + 12 m alley = 15 m; 6 + 150 = 156 m
+  assert.equal(maxRowSpacing({ rows: [{ width: 6, sequence: t }, { width: 24, sequence: [] }] }), 30);
+  assert.equal(maxRowSpacing({ rows: [{ width: 3, sequence: t }, { width: 3, sequence: t }, { width: 12, sequence: [] }] }), 15);
+  assert.equal(maxRowSpacing({ rows: [{ width: 6, sequence: t }, { width: 150, sequence: [] }] }), 156);
+  assert.equal(maxRowSpacing({ rows: [{ width: 20, sequence: t }, { width: 0, sequence: t }] }), 10);
   assert.equal(maxRowSpacing({ rows: [] }), null);
 });
 

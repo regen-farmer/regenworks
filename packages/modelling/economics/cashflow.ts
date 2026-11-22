@@ -76,7 +76,8 @@ export type Scenario = {
 		/** payment ids the field gets today */
 		paymentsToday: string[];
 		/** payment ids the field gets with the trees; null = from the rules */
-		paymentsWithTrees?: string[] | null;
+		/** payments set by hand "with the trees" (true/false), for all fields; the rest follow the rules */
+		paymentOverrides?: Record<string, boolean> | null;
 	};
 };
 
@@ -177,7 +178,8 @@ export function paymentRules(a: Assumptions, fields: FieldPlan[], s: Scenario): 
 		const today = s.baseline.paymentsToday.includes(p.payment_id);
 		const rateDkk = p.currency === "EUR" ? p.rate * a.eurDkk : p.rate;
 		const per = fields.map((f) => ({ f, ...fieldPayment(a, f, p, s, today) }));
-		const byHand = s.baseline.paymentsWithTrees ? s.baseline.paymentsWithTrees.includes(p.payment_id) : null;
+		const o = s.baseline.paymentOverrides?.[p.payment_id];
+		const byHand = typeof o === "boolean" ? o : null;
 		if (byHand !== null) for (const x of per) {
 			if (x.withTrees !== byHand) x.reason = `set by hand (the rules said: ${x.reason})`;
 			x.withTrees = byHand;
@@ -238,7 +240,7 @@ export function cashFlow(a: Assumptions, fields: FieldPlan[], s: Scenario, c: Ca
 		}
 		for (const p of f.plants) {
 			if (!p.crop_id) {
-				miss(null, `no economics crop for "${p.label}" (${p.count} plants): planting and care counted, no harvest`);
+				miss(null, `no economics crop for "${p.label}" (${p.count} plants): planting labour, protection and mowing counted; plant price, pruning and harvest not`);
 				continue;
 			}
 			const crop = p.crop_id;

@@ -36,7 +36,7 @@ type Scenario = {
   crops: CropChoice[];
   establishment: Record<string, number | null | undefined>;
   management: Record<string, number | null | undefined>;
-  baseline: { landUse?: string; opportunityPerHa?: Band | null; organic: boolean; paymentsToday: string[]; paymentsWithTrees?: string[] | null };
+  baseline: { landUse?: string; opportunityPerHa?: Band | null; organic: boolean; paymentsToday: string[]; paymentOverrides?: Record<string, boolean> | null };
 };
 type CaseResult = { years: number[]; net: number[]; cumulative: number[]; lines: { key: string; label: string; group: string; years: number[] }[]; npv: number; paybackYear: number | null; worstYear: { year: number; net: number }; cumulativeLowest: { year: number; value: number } };
 type Result = {
@@ -288,11 +288,12 @@ function EconomicScenario() {
                         <td class="pr-3 py-1">
                           <input
                             type="checkbox"
-                            checked={s.baseline?.paymentsWithTrees ? s.baseline.paymentsWithTrees.includes(p.payment_id) : !!check()?.withTrees}
+                            checked={typeof s.baseline?.paymentOverrides?.[p.payment_id] === "boolean" ? s.baseline.paymentOverrides![p.payment_id] : !!check()?.withTrees}
+                            title={typeof s.baseline?.paymentOverrides?.[p.payment_id] === "boolean" ? "Set by hand for all fields" : "From the rules, field by field"}
                             onChange={(e) =>
                               change((x) => {
-                                const base = x.baseline.paymentsWithTrees ?? (result()?.payments.filter((y) => y.withTrees).map((y) => y.payment_id) ?? []);
-                                x.baseline.paymentsWithTrees = e.currentTarget.checked ? [...new Set([...base, p.payment_id])] : base.filter((y) => y !== p.payment_id);
+                                // only this payment is set by hand; the others keep following the rules field by field
+                                x.baseline.paymentOverrides = { ...(x.baseline.paymentOverrides ?? {}), [p.payment_id]: e.currentTarget.checked };
                               })
                             }
                           />
@@ -305,8 +306,8 @@ function EconomicScenario() {
                 </For>
               </tbody>
             </table>
-            <Show when={s.baseline?.paymentsWithTrees}>
-              <button class="self-start text-xs underline" onClick={() => change((x) => (x.baseline.paymentsWithTrees = null))}>Use the rules again for "with the trees"</button>
+            <Show when={Object.keys(s.baseline?.paymentOverrides ?? {}).length}>
+              <button class="self-start text-xs underline" onClick={() => change((x) => (x.baseline.paymentOverrides = null))}>Use the rules again for "with the trees"</button>
             </Show>
           </section>
 
