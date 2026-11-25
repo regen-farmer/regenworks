@@ -24,7 +24,7 @@
 		"@types/mailchimp__mailchimp_marketing": "^3.0.21",
 		"@types/mailchimp__mailchimp_transactional": "^1.0.11",
 		"@types/mapbox__mapbox-gl-draw": "^1.4.9",
-		"@xmldom/xmldom": "^0.9.5",
+		"@xmldom/xmldom": "^0.9.12",
 		"concurrently": "^10.0.3",
 		"puppeteer": "^25.3.0",
 		"vite": "^8.1.3",
