@@ -2,7 +2,8 @@
 // Trimble DKTM N;E, Trimble Access UTM E,N, or lat/long), row ends, DXF, check
 // KML and a summary, named <prefix>R<row>T<tree>.
 // Grove users only for now. See packages/modelling/planting/stakeout.ts.
-import { cleanPrefix, defaultPrefix, plantLabel, STAKEOUT_FORMATS, stakeoutFiles, type StakeoutFormatId } from "@rw/modelling/planting/stakeout.ts";
+import { cleanPrefix, defaultPrefix, plantLabel, STAKEOUT_FORMATS, stakeoutFiles, stakeoutTrees, type StakeoutFormatId } from "@rw/modelling/planting/stakeout.ts";
+import { guidanceFiles } from "@rw/modelling/planting/guidance.ts";
 import { GRIDS, type GridId } from "@rw/modelling/planting/utm.ts";
 import { zipTextFiles } from "@rw/modelling/planting/zip.ts";
 import { createSignal, For, Show } from "solid-js";
@@ -11,6 +12,7 @@ import { apiFetch } from "~/util/apiFetch.ts";
 
 type Preview = {
   treeMarkerArray: any[];
+  project?: { layer?: { name?: string; geometry?: any } };
   plantNames?: { varieties: Record<string, string>; rootstocks: Record<string, string> };
 };
 
@@ -127,6 +129,38 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
     }
   }
 
+  // Guidance lines for auto-steer (26 Nov 2026): ISOXML TASKDATA for ISOBUS terminals and a shapefile for
+  // Trimble, John Deere (Operations Center) and others; one line per row, named like the stakes.
+  async function exportGuidance() {
+    if (!cleanPrefix(prefix())) return;
+    setBusy(true);
+    setResult(undefined);
+    try {
+      const preview = await apiFetch<Preview>(`/projects/${props.projectId}/design-preview`);
+      if (!preview?.treeMarkerArray) throw new Error("No design to export");
+      const names = preview.plantNames ?? { varieties: {}, rootstocks: {} };
+      const rows = stakeoutTrees(preview, { prefix: prefix(), labelOf: (t) => plantLabel(t, names) });
+      const stem = [props.fieldName, props.scenarioName].filter(Boolean).join(" - ") || "design";
+      const fieldName = props.fieldName || preview.project?.layer?.name || "Field";
+      const out = guidanceFiles(rows, { name: fieldName, boundary: preview.project?.layer?.geometry }, stem, { prefix: prefix(), extendM: 5 });
+      const blob = new Blob([zipTextFiles(out.files) as BlobPart], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${stem.replace(/[\\/:*?"<>|]+/g, "_")} - guidance lines.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      const curves = out.lines.filter((l) => l.kind === "CURVE").length;
+      setResult(`${out.lines.length} guidance lines (${out.lines.length - curves} straight${curves ? `, ${curves} curved` : ""}), ${out.lines[0].name} onwards, 5 m beyond the end trees. ISOXML in TASKDATA/, shapefile in Shapefile/.`);
+    } catch (err) {
+      showToast({ title: (err as Error).message || "Export failed", variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div class="flex flex-col gap-1" data-testid="stakeout-export">
       <div class="flex gap-2 items-center flex-wrap">
@@ -183,6 +217,16 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
           <i class="fas fa-location-crosshairs mr-2" />
           {busy() ? "Preparing..." : "Stake-out files (RTK)"}
         </button>
+        <button
+          type="button"
+          class="rounded-sm p-2 my-2 btn-default"
+          onClick={exportGuidance}
+          disabled={busy() || !cleanPrefix(prefix())}
+          title="One guidance line per tree row for tractor auto-steer: ISOXML (TASKDATA folder) and shapefile, in one zip"
+        >
+          <i class="fas fa-tractor mr-2" />
+          Guidance lines (auto-steer)
+        </button>
       </div>
       <p class="text-xs opacity-70">
         Zip with the trees and row start/end points in the chosen format, a DXF in the same grid, a
@@ -190,6 +234,11 @@ export function StakeoutExport(props: { projectId: string; fieldName?: string; s
         same DKTM zone. Stakes are named {cleanPrefix(prefix()) || "?"}R&lt;row&gt;T&lt;tree&gt;. Use a
         different prefix for each field, so fields loaded into one controller job never share
         names. Don't mix files from this button and the old KML converter for one field.
+      </p>
+      <p class="text-xs opacity-70">
+        Guidance lines: one line per tree row for tractor auto-steer, named like the stakes, 5 m beyond the end trees. ISOBUS
+        terminals (CLAAS, Fendt, Case IH/New Holland, Müller, Topcon) take the TASKDATA folder on a USB stick's root; Trimble,
+        John Deere (via Operations Center) and others take the shapefile.
       </p>
       <Show when={result()}>
         <p class="text-xs">{result()}</p>
