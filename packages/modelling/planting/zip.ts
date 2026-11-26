@@ -1,5 +1,5 @@
 // Minimal ZIP writer (stored, no compression) so several export files can be
-// downloaded as one. The files are small text; no dependency needed.
+// downloaded as one. Text or binary files (shapefiles); no dependency needed.
 
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
@@ -17,8 +17,8 @@ function crc32(data: Uint8Array): number {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-/** Build a .zip from text files (UTF-8 names and contents). */
-export function zipTextFiles(files: Record<string, string>, date = new Date()): Uint8Array {
+/** Build a .zip from text (UTF-8) or binary files; names may contain folders ("TASKDATA/TASKDATA.XML"). */
+export function zipTextFiles(files: Record<string, string | Uint8Array>, date = new Date()): Uint8Array {
   const enc = new TextEncoder();
   const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
   const dosDate = ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
@@ -28,7 +28,7 @@ export function zipTextFiles(files: Record<string, string>, date = new Date()): 
 
   for (const [name, text] of Object.entries(files)) {
     const nameBytes = enc.encode(name);
-    const data = enc.encode(text);
+    const data = typeof text === "string" ? enc.encode(text) : text;
     const crc = crc32(data);
 
     const local = new Uint8Array(30 + nameBytes.length + data.length);
